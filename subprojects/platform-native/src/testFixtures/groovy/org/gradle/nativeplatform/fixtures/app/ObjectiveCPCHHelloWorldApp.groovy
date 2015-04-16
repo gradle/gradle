@@ -60,6 +60,18 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
+    SourceFile getLibraryWithoutPCH() {
+        return sourceFile("objc", "sum2.m", """
+            #import "hello.h"
+
+            int sum2 (int a, int b)
+            {
+                return sum(a, b);
+            }
+        """)
+    }
+
+    @Override
     TestApp getAlternate() {
         return new TestApp() {
             @Override
@@ -114,7 +126,7 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
             @end
         """),
                 sourceFile("objc", "sum.m", """
-            #import "hello.h"
+            #import "${path}prefixHeader.h"
 
             int sum (int a, int b)
             {
@@ -140,12 +152,40 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return getLibrarySources()
+        return getAlternateLibrarySources("")
     }
 
     @Override
     String getAlternateLibraryOutput() {
         return null
+    }
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources(String path) {
+        return [
+                sourceFile("objc", "hello.m", """
+            #import "${path}prefixHeader.h"
+
+            @implementation Greeter
+            - (void) sayHello {
+                NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}";
+                fprintf(stdout, "%s\\n", [helloWorld UTF8String]);
+            }
+            @end
+
+            // Extra function to ensure library has different size
+            int anotherFunction() {
+                return 1000;
+            }
+        """),
+                sourceFile("objc", "sum.m", """
+            #import "${path}prefixHeader.h"
+
+            int sum (int a, int b)
+            {
+                return a + b;
+            }
+        """)]
     }
 
     public String getExtraConfiguration(String binaryName = null) {

@@ -62,6 +62,17 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
+    SourceFile getLibraryWithoutPCH() {
+        return sourceFile("cpp", "sum2.cpp", """
+            #include "hello.h"
+
+            int DLL_FUNC sum2(int a, int b) {
+                return sum(a, b);
+            }
+        """)
+    }
+
+    @Override
     TestApp getAlternate() {
         return new TestApp() {
             @Override
@@ -124,7 +135,7 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
                     }
                 """),
                 sourceFile("cpp", "sum.cpp", """
-                    #include "hello.h"
+                    #include "${path}prefixHeader.h"
 
                     int DLL_FUNC sum(int a, int b) {
                         return a + b;
@@ -150,7 +161,32 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return getLibrarySources()
+        return getAlternateLibrarySources("")
+    }
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources(String path) {
+        return [
+                sourceFile("cpp", "hello.cpp", """
+                    #include "${path}prefixHeader.h"
+
+                    void DLL_FUNC Greeter::sayHello() {
+                        std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
+                    }
+
+                    // Extra function to ensure library has different size
+                    int anotherFunction() {
+                        return 1000;
+                    }
+                """),
+                sourceFile("cpp", "sum.cpp", """
+                    #include "${path}prefixHeader.h"
+
+                    int DLL_FUNC sum(int a, int b) {
+                        return a + b;
+                    }
+                """)
+        ]
     }
 
     @Override

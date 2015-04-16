@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.SourceFile
 
 abstract class PCHHelloWorldApp extends IncrementalHelloWorldApp {
     abstract List<SourceFile> getLibrarySources(String path)
+    abstract List<SourceFile> getAlternateLibrarySources(String path)
+    abstract SourceFile getLibraryWithoutPCH()
     abstract String getIOHeader()
 
     public SourceFile getBrokenFile() {

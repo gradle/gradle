@@ -54,6 +54,16 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
+    SourceFile getLibraryWithoutPCH() {
+        return sourceFile("objcpp", "sum2.mm", """
+            #include "hello.h"
+            int sum2(int a, int b) {
+                return sum(a, b);
+            }
+        """)
+    }
+
+    @Override
     TestApp getAlternate() {
         return new TestApp() {
             @Override
@@ -113,7 +123,7 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
                     }
                 """),
                 sourceFile("objcpp", "sum.mm", """
-                    #include "hello.h"
+                    #include "${path}prefixHeader.h"
                     int sum(int a, int b) {
                         return a + b;
                     }
@@ -138,12 +148,32 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return getLibrarySources()
+        return getAlternateLibrarySources("")
     }
 
     @Override
     String getAlternateLibraryOutput() {
         return null
+    }
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources(String path) {
+        return [
+                sourceFile("objcpp", "hello.mm", """
+            #define __STDC_LIMIT_MACROS
+            #include "${path}prefixHeader.h"
+            #include <stdint.h>
+
+            void sayHello() {
+                std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
+            }
+        """),
+                sourceFile("objcpp", "sum.mm", """
+            #include "${path}prefixHeader.h"
+            int sum(int a, int b) {
+                return a + b;
+            }
+        """)]
     }
 
     public String getExtraConfiguration(String binaryName = null) {

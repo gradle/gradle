@@ -59,6 +59,17 @@ class CPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
+    SourceFile getLibraryWithoutPCH() {
+        return sourceFile("c", "sum2.c", """
+            #include "hello.h"
+
+            int DLL_FUNC sum2(int a, int b) {
+                return sum(a, b);
+            }
+        """)
+    }
+
+    @Override
     public TestApp getAlternate() {
         return new TestApp() {
             @Override
@@ -101,34 +112,34 @@ class CPCHHelloWorldApp extends PCHHelloWorldApp {
     List<SourceFile> getLibrarySources(String headerPath) {
         return [
                 sourceFile("c", "hello.c", """
-                #include "${headerPath}prefixHeader.h"
+                    #include "${headerPath}prefixHeader.h"
 
-                #ifdef FRENCH
-                char* greeting() {
-                    return "${HELLO_WORLD_FRENCH}";
-                }
-                #endif
-                #ifdef CUSTOM
-                char* greeting() {
-                    return CUSTOM;
-                }
-                #endif
-                void DLL_FUNC sayHello() {
-                    #if defined(FRENCH) || defined(CUSTOM)
-                    printf("%s\\n", greeting());
-                    #else
-                    printf("${HELLO_WORLD}\\n");
+                    #ifdef FRENCH
+                    char* greeting() {
+                        return "${HELLO_WORLD_FRENCH}";
+                    }
                     #endif
-                    fflush(stdout);
-                }
-            """),
+                    #ifdef CUSTOM
+                    char* greeting() {
+                        return CUSTOM;
+                    }
+                    #endif
+                    void DLL_FUNC sayHello() {
+                        #if defined(FRENCH) || defined(CUSTOM)
+                        printf("%s\\n", greeting());
+                        #else
+                        printf("${HELLO_WORLD}\\n");
+                        #endif
+                        fflush(stdout);
+                    }
+                """),
                 sourceFile("c", "sum.c", """
-                #include "hello.h"
+                    #include "${headerPath}prefixHeader.h"
 
-                int DLL_FUNC sum(int a, int b) {
-                    return a + b;
-                }
-            """)
+                    int DLL_FUNC sum(int a, int b) {
+                        return a + b;
+                    }
+                """)
         ]
     }
 
@@ -149,7 +160,28 @@ class CPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return getLibrarySources()
+        getAlternateLibrarySources("")
+    }
+
+    List<SourceFile> getAlternateLibrarySources(String headerPath) {
+        return [
+                sourceFile("c", "hello.c", """
+                    #include "${headerPath}prefixHeader.h"
+
+                    void DLL_FUNC sayHello() {
+                        printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\\n");
+                        fflush(stdout);
+                    }
+
+                """),
+                sourceFile("c", "sum.c","""
+                    #include "${headerPath}prefixHeader.h"
+
+                    int DLL_FUNC sum(int a, int b) {
+                        return a + b;
+                    }
+                """)
+        ]
     }
 
     @Override

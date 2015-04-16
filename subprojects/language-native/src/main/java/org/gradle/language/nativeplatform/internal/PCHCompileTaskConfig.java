@@ -57,7 +57,7 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         task.setPreCompiledHeader(sourceSet.getPreCompiledHeader());
         task.source(sourceSet.getPrefixHeaderFile());
 
-        task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + languageSourceSet.getFullName() + "PreCompiledHeader"));
+        task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + languageSourceSet.getFullName() + "PCH"));
 
         task.dependsOn(project.getTasks().withType(PrefixHeaderFileGenerateTask.class).matching(new Spec<PrefixHeaderFileGenerateTask>() {
             @Override
