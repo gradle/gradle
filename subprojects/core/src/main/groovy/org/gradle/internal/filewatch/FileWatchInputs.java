@@ -31,11 +31,11 @@ public class FileWatchInputs {
         this.files = files;
     }
 
-    public List<? extends DirectoryTree> getDirectoryTrees()  {
+    public List<DirectoryTree> getDirectoryTrees()  {
         return directories;
     }
 
-    public List<? extends File> getFiles() { return files; }
+    public List<File> getFiles() { return files; }
 
     public static Builder newBuilder() {
         return new Builder();
@@ -50,8 +50,22 @@ public class FileWatchInputs {
             return this;
         }
 
+        public Builder addDirectories(Iterable<DirectoryTree> directoryTrees) {
+            for(DirectoryTree tree : directoryTrees) {
+                add(tree);
+            }
+            return this;
+        }
+
         public Builder add(File file) {
             files.add(file);
+            return this;
+        }
+
+        public Builder addFiles(Iterable<File> files) {
+            for(File file : files) {
+                add(file);
+            }
             return this;
         }
 

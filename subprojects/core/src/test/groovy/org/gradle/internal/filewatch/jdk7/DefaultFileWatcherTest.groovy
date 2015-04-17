@@ -19,7 +19,6 @@ package org.gradle.internal.filewatch.jdk7
 import org.gradle.internal.filewatch.FileWatchInputs
 import spock.lang.Specification
 
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -29,14 +28,7 @@ class DefaultFileWatcherTest extends Specification {
     def "test watch and stop interaction with DefaultFileWatcher"() {
         given:
         def executor = Mock(ExecutorService)
-        def fileWatcher = new DefaultFileWatcher(executor) {
-            @Override
-            protected CountDownLatch createLatch() {
-                CountDownLatch latch = super.createLatch()
-                latch.countDown()
-                latch
-            }
-        }
+        def fileWatcher = new DefaultFileWatcher(executor)
         def inputs = FileWatchInputs.newBuilder().build()
         def callback = Mock(Runnable)
         def future = Mock(Future)

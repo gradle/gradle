@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultFileWatcherService implements FileWatcherService, Stoppable {
@@ -61,7 +62,7 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
     }
 
     @Override
-    public Stoppable watch(FileWatchInputs inputs, Runnable callback) {
+    public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
         return fileWatcherService.watch(inputs, callback);
     }
 }

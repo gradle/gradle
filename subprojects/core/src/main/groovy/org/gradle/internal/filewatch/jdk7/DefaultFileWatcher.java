@@ -20,7 +20,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.FileWatchInputs;
 import org.gradle.internal.filewatch.FileWatcherService;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -32,31 +32,24 @@ public class DefaultFileWatcher implements FileWatcherService {
     }
 
     @Override
-    public Stoppable watch(FileWatchInputs inputs, Runnable callback) {
-        CountDownLatch latch = createLatch();
+    public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
         AtomicBoolean runningFlag = new AtomicBoolean(true);
-        Future<?> execution = executor.submit(new FileWatcherExecutor(runningFlag, callback, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
-        try {
-            // wait until watching is active
-            latch.await();
-        } catch (InterruptedException e) {
-            // ignore
-        }
-        return new FileWatcherStopper(runningFlag, execution);
+        Future<?> taskCompletion = executor.submit(new FileWatcherTask(createWatchStrategy(), inputs, runningFlag, callback));
+        return new FileWatcherStopper(runningFlag, taskCompletion);
     }
 
-    protected CountDownLatch createLatch() {
-        return new CountDownLatch(1);
+    protected WatchStrategy createWatchStrategy() throws IOException {
+        return WatchServiceWatchStrategy.createWatchStrategy();
     }
 
     static class FileWatcherStopper implements Stoppable {
         private final AtomicBoolean runningFlag;
-        private final Future<?> execution;
+        private final Future<?> taskCompletion;
         private static final int STOP_TIMEOUT_SECONDS = 10;
 
-        public FileWatcherStopper(AtomicBoolean runningFlag, Future<?> execution) {
+        public FileWatcherStopper(AtomicBoolean runningFlag, Future<?> taskCompletion) {
             this.runningFlag = runningFlag;
-            this.execution = execution;
+            this.taskCompletion = taskCompletion;
         }
 
         @Override
@@ -68,7 +61,7 @@ public class DefaultFileWatcher implements FileWatcherService {
 
         private void waitForStop() {
             try {
-                execution.get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                taskCompletion.get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 // ignore
             } catch (ExecutionException e) {
