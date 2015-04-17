@@ -20,12 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Describes a test.
+ * Describes a test that runs on the JVM.
  *
  * @since 2.4
  */
 @Incubating
-public interface JavaTestDescriptor extends TestDescriptor {
+public interface JvmTestDescriptor extends TestDescriptor {
 
 
     /**
@@ -33,6 +33,7 @@ public interface JavaTestDescriptor extends TestDescriptor {
      *
      * @return the name of the test class, can be null
      */
+    @Nullable
     String getClassName();
 
 }

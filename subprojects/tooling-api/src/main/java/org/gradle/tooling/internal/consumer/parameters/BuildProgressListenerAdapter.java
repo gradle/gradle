@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.JavaTestDescriptor;
+import org.gradle.tooling.JvmTestDescriptor;
 import org.gradle.tooling.TestDescriptor;
 import org.gradle.tooling.TestFailure;
 import org.gradle.tooling.TestProgressListener;
@@ -170,7 +170,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
         if (testDescriptor instanceof JavaTestDescriptorVersion1) {
-            return new JavaTestDescriptor() {
+            return new JvmTestDescriptor() {
 
                 @Override
                 public String getClassName() {
