@@ -101,7 +101,12 @@ public class ProviderConnection {
                     params.gradleUserhome,
                     GradleVersion.current().getVersion(),
                     params.daemonParams.getEffectiveJavaHome(),
-                    params.daemonParams.getEffectiveJvmArgs());
+                    params.daemonParams.getEffectiveJvmArgs(),
+                    params.daemonParams.getJvmArgs(),
+                    params.daemonParams.getAllJvmArgs(),
+                    params.daemonParams.getEffectiveSystemProperties(),
+                    params.daemonParams.getSystemProperties()
+                    );
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
