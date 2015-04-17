@@ -112,7 +112,7 @@ class DefaultProjectDependencyTest extends Specification {
 
         def conf = project.configurations.create('conf')
         def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
         when:
         projectDependency.buildDependencies.resolve(context)
@@ -124,16 +124,27 @@ class DefaultProjectDependencyTest extends Specification {
         0 * _
     }
 
+    void "does not build project dependencies if configured so"() {
+         def context = Mock(TaskDependencyResolveContext)
+         project.configurations.create('conf')
+         projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
+
+         when:
+         projectDependency.buildDependencies.resolve(context)
+
+         then:
+         0 * _
+     }
+
     void "is self resolving dependency"() {
         def conf = project.configurations.create('conf')
         def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
         when:
         def files = projectDependency.resolve()
 
         then:
-        1 * listener.beforeResolvingProjectDependency(project)
         0 * _
 
         and:
