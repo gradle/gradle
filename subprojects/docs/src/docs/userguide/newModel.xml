@@ -74,7 +74,7 @@
         </para>
         <para>
             Another <emphasis>key</emphasis> motivation is performance and scale.
-            Aspects of the current approach the Gradle talks to modelling the build prevent pervasive parallelism and scale through work avoidance.
+            Aspects of the current approach that Gradle takes to modelling the build prevent pervasive parallelism and limit scalability.
             The new model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
         </para>
     </section>
@@ -301,16 +301,6 @@ model {
         <para>
             It is also possible to create <apilink class="org.gradle.model.Managed" /> type elements at the root level.
         </para>
-        <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="example of creating a model element through the DSL">
-            <sourcefile file='build.gradle' />
-            <output args='hello' />
-        </sample>
-        <para>
-            The following model rule is creating the person element:
-        </para>
-        <sample id='modelDslCreate' dir='modelRules/modelDsl' title="a DSL creation rule">
-            <sourcefile file='build.gradle' snippet="create-rule"/>
-        </sample>
         <para>
             The general form of a creation rule is:
         </para>
@@ -321,6 +311,12 @@ model {
   }
 }
         </programlisting>
+        <para>
+            The following model rule is creating the person element:
+        </para>
+        <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="a DSL creation rule">
+            <sourcefile file='build.gradle' snippet="create-rule"/>
+        </sample>
         <para>
             The model DSL is currently quite limited.
             It is only possible to declare creation and general mutation rules.
@@ -348,7 +344,7 @@ model {
         <para>
             Rule based model configuration is the future of Gradle.
             This area is fledgling, but under very active development.
-            Early experiments have demonstrated that this approach is more efficient, able to provide richer diagnostics and authoring assistance and more extensible.
+            Early experiments have demonstrated that this approach is more efficient, able to provide richer diagnostics and authoring assistance and is more extensible.
             However, there are currently many limitations.
         </para>
         <para>

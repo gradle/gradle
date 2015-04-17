@@ -47,6 +47,8 @@ import org.gradle.api.Incubating;
  * <li>With the exception of {@link Model} methods, all methods must have at least one parameter.</li>
  * <li>With the exception of {@link Model} methods, all methods must have a {@code void} return type.</li>
  * </ul>
+ * <p>
+ * See {@link Model} for information on the significance of the return type of a {@link Model} method.
  *
  * <h4>Subjects and inputs</h4>
  * <p>
