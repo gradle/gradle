@@ -76,21 +76,21 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return null;
     }
 
-    public boolean isPublic() {
-        return isPublic;
-    }
-
-    public LaunchableGradleTask setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
-        return this;
-    }
-
     public String getGroup() {
         return group;
     }
 
     public LaunchableGradleTask setGroup(String group) {
         this.group = group;
+        return this;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public LaunchableGradleTask setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 

@@ -64,9 +64,11 @@ public interface Task extends Launchable {
 
     /**
      * Returns the group a task belongs to.
+     *
      * @return the group a task belongs to.
      * @since 2.5
      */
     @Incubating
+    @Nullable
     String getGroup();
 }
