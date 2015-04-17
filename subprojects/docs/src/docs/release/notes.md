@@ -204,19 +204,20 @@ The following additions have been added to the respective [Tooling API](userguid
 * [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
 returns the effective Gradle user home directory that will be used for operations performed through the Tooling API.
 
-### Model rules
+### Rule based model configuration improvements 
 
-A number of improvements have been made to the model rules execution used by the native language plugins:
+A number of improvements have been made to the rule based model configuration used by the native language plugins in this release.
+There is also a [new User Guide chapter that explains just what “rule based model configuration” is](userguide/new_model.html).
 
-- Added a basic `model` report to allow you to see the structure of the model for a particular project.
-- `@Defaults` annotation allow logic to be applied to attach defaults to a model element.
-- `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
-- `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
+Key additions and improvements in Gradle 2.4:
 
-TODO - performance improvements
-TODO - creation DSL
-TODO - changes to `ManagedSet` and `CollectionBuilder`
-TODO - other improvements
+- A basic [model report](userguide/new_model.html#N17A51) task that visualizes the model space for a project.
+- Addition of [`@Defaults`](javadoc/org/gradle/model/Defaults.html) and [`@Validate`](javadoc/org/gradle/model/Validate.html) lifecycle rules.
+- Additions to the API of [`CollectionBuilder`](javadoc/org/gradle/model/collection/CollectionBuilder.html) and 
+[`ManagedSet`](javadoc/org/gradle/model/collection/ManagedSet.html) that allow rules to be applied to all elements in the collection, 
+or to a particular element, or all elements of a given type.
+
+It is now also possible to [create model elements via the DSL](userguide/new_model.html#N17A0F).
 
 ## Fixed issues
 
