@@ -24,6 +24,8 @@ import java.io.File;
 
 public class PreCompiledHeader extends AbstractBuildableModelElement {
     FileCollection pchObjects;
+    File prefixHeaderFile;
+    String includeString;
 
     public File getObjectFile() {
         return pchObjects == null ? null : pchObjects.getSingleFile();
@@ -36,5 +38,21 @@ public class PreCompiledHeader extends AbstractBuildableModelElement {
     @InputFiles
     public FileCollection getPchObjects() {
         return pchObjects;
+    }
+
+    public File getPrefixHeaderFile() {
+        return prefixHeaderFile;
+    }
+
+    public void setPrefixHeaderFile(File prefixHeaderFile) {
+        this.prefixHeaderFile = prefixHeaderFile;
+    }
+
+    public String getIncludeString() {
+        return includeString;
+    }
+
+    public void setIncludeString(String includeString) {
+        this.includeString = includeString;
     }
 }

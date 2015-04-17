@@ -31,9 +31,7 @@ import java.io.File;
  */
 @Incubating
 abstract public class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
-    private String preCompiledHeader;
-    private PreCompiledHeader preCompiledHeaderInclude;
-    private File prefixHeaderFile;
+    private PreCompiledHeader preCompiledHeader;
 
     public AbstractNativeSourceCompileTask() {
         super();
@@ -42,46 +40,24 @@ abstract public class AbstractNativeSourceCompileTask extends AbstractNativeComp
     @Override
     protected void configureSpec(NativeCompileSpec spec) {
         super.configureSpec(spec);
-        if (preCompiledHeaderInclude != null) {
-            File pchObjectFile = preCompiledHeaderInclude.getObjectFile();
-            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), pchObjectFile);
-            spec.setPrefixHeaderFile(new File(pchDir, getPrefixHeaderFile().getName()));
+        if (preCompiledHeader != null) {
+            File pchObjectFile = preCompiledHeader.getObjectFile();
+            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
+            spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
-            spec.setPreCompiledHeader(DefaultInclude.parse(getPreCompiledHeader(), true).getValue());
+            spec.setPreCompiledHeader(DefaultInclude.parse(preCompiledHeader.getIncludeString(), true).getValue());
         }
     }
 
     /**
-     * Returns the pre-compiled header object file to be used during compilation
+     * Returns the pre-compiled header to be used during compilation
      */
     @Nested @Optional
-    public PreCompiledHeader getPreCompiledHeaderInclude() {
-        return preCompiledHeaderInclude;
-    }
-
-    public void preCompiledHeaderInclude(PreCompiledHeader preCompiledHeader) {
-        this.preCompiledHeaderInclude = preCompiledHeader;
-    }
-
-    /**
-     * Get the header string representing the pre-compiled header to be used by the compiler
-     */
-    String getPreCompiledHeader() {
+    public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;
     }
 
-    public void setPreCompiledHeader(String preCompiledHeader) {
+    public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
-    }
-
-    /**
-     * Returns the pre-compiled header file to be used during compilation
-     */
-    public File getPrefixHeaderFile() {
-        return prefixHeaderFile;
-    }
-
-    public void setPrefixHeaderFile(File prefixHeaderFile) {
-        this.prefixHeaderFile = prefixHeaderFile;
     }
 }

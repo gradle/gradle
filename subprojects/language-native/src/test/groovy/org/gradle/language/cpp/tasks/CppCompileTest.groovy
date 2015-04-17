@@ -49,9 +49,7 @@ class CppCompileTest extends Specification {
         cppCompile.macros = [def: "value"]
         cppCompile.objectFileDir = testDir.file("outputFile")
         cppCompile.source sourceFile
-        cppCompile.preCompiledHeader = "header"
-        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude pch
+        cppCompile.setPreCompiledHeader pch
         cppCompile.execute()
 
         then:
@@ -60,6 +58,8 @@ class CppCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
+        1 * pch.includeString >> "header"
+        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
         1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
         2 * pch.pchObjects >> new SimpleFileCollection()
         1 * cppCompiler.execute({ CppCompileSpec spec ->

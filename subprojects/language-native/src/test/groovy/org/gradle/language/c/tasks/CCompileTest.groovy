@@ -50,9 +50,7 @@ class CCompileTest extends Specification {
         cCompile.macros = [def: "value"]
         cCompile.objectFileDir = testDir.file("outputFile")
         cCompile.source sourceFile
-        cCompile.preCompiledHeader = "header"
-        cCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cCompile.preCompiledHeaderInclude pch
+        cCompile.setPreCompiledHeader pch
         cCompile.execute()
 
         then:
@@ -62,6 +60,8 @@ class CCompileTest extends Specification {
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
         1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        1 * pch.includeString >> "header"
+        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
         2 * pch.pchObjects >> new SimpleFileCollection()
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]

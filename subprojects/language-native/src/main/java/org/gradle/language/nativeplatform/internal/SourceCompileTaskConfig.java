@@ -26,6 +26,7 @@ import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 public class SourceCompileTaskConfig extends CompileTaskConfig {
     public SourceCompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
@@ -45,9 +46,10 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
         // If this task uses a pre-compiled header
         if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {
             final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal)sourceSet;
-            task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
-            task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
-            task.preCompiledHeaderInclude(binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile()));
+            PreCompiledHeader pch = binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile());
+            pch.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
+            pch.setIncludeString(dependentSourceSet.getPreCompiledHeader());
+            task.setPreCompiledHeader(pch);
         }
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

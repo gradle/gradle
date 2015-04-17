@@ -50,9 +50,7 @@ class ObjectiveCCompileTest extends Specification {
         objCCompile.macros = [def: "value"]
         objCCompile.objectFileDir = testDir.file("outputFile")
         objCCompile.source sourceFile
-        objCCompile.preCompiledHeader = "header"
-        objCCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        objCCompile.preCompiledHeaderInclude pch
+        objCCompile.setPreCompiledHeader pch
         objCCompile.execute()
 
         then:
@@ -61,6 +59,8 @@ class ObjectiveCCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCCompileSpec.class.isAssignableFrom(it) }) >> objCCompiler
+        1 * pch.includeString >> "header"
+        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
         1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
         2 * pch.pchObjects >> new SimpleFileCollection()
         1 * objCCompiler.execute({ ObjectiveCCompileSpec spec ->

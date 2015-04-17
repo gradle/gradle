@@ -50,9 +50,7 @@ class ObjectiveCppCompileTest extends Specification {
         objCppCompile.macros = [def: "value"]
         objCppCompile.objectFileDir = testDir.file("outputFile")
         objCppCompile.source sourceFile
-        objCppCompile.preCompiledHeader = "header"
-        objCppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        objCppCompile.preCompiledHeaderInclude pch
+        objCppCompile.setPreCompiledHeader pch
         objCppCompile.execute()
 
         then:
@@ -61,6 +59,8 @@ class ObjectiveCppCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
+        1 * pch.includeString >> "header"
+        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
         1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
         2 * pch.pchObjects >> new SimpleFileCollection()
         1 * objCppCompiler.execute({ ObjectiveCppCompileSpec spec ->
