@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public abstract class CollectionBuilderModelProjection<I> implements ModelProjection {
 
     protected final Class<I> baseItemType;
@@ -111,8 +113,7 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
 
         CollectionBuilder<S> subBuilder = builder.withType(itemClass);
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(node.getPath(), DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
-        @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
-        return cast;
+        return uncheckedCast(view);
     }
 
     @Override

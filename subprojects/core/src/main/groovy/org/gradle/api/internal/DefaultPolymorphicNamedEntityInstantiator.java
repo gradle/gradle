@@ -29,12 +29,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultDynamicTypesNamedEntityInstantiator<T> implements DynamicTypesNamedEntityInstantiator<T> {
+import static org.gradle.internal.Cast.uncheckedCast;
+
+public class DefaultPolymorphicNamedEntityInstantiator<T> implements PolymorphicNamedEntityInstantiator<T> {
     private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
     private final Class<? extends T> baseType;
     private final String displayName;
 
-    public DefaultDynamicTypesNamedEntityInstantiator(Class<? extends T> type, String displayName) {
+    public DefaultPolymorphicNamedEntityInstantiator(Class<? extends T> type, String displayName) {
         this.displayName = displayName;
         this.baseType = type;
     }
@@ -62,12 +64,11 @@ public class DefaultDynamicTypesNamedEntityInstantiator<T> implements DynamicTyp
     @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
         if (!baseType.isAssignableFrom(type)) {
-            throw new IllegalArgumentException(String.format("Cannot register a factory for type %s because "
-                    + "it is not a subtype of container element type %s.", type.getSimpleName(), baseType.getSimpleName()));
+            String message = String.format("Cannot register a factory for type %s because it is not a subtype of container element type %s.", type.getSimpleName(), baseType.getSimpleName());
+            throw new IllegalArgumentException(message);
         }
         if(factories.containsKey(type)){
-            throw new GradleException(String.format("Cannot register a factory for type %s because "
-                    + "a factory for this type is already registered.", type.getSimpleName()));
+            throw new GradleException(String.format("Cannot register a factory for type %s because a factory for this type is already registered.", type.getSimpleName()));
         }
         factories.put(type, factory);
     }
@@ -77,15 +78,14 @@ public class DefaultDynamicTypesNamedEntityInstantiator<T> implements DynamicTyp
         return ImmutableSet.copyOf(factories.keySet());
     }
 
-    public void copyFactoriesFrom(DefaultDynamicTypesNamedEntityInstantiator<T> source) {
+    public void copyFactoriesFrom(DefaultPolymorphicNamedEntityInstantiator<T> source) {
         for (Class<? extends T> languageType : source.factories.keySet()) {
             copyFactory(source, languageType);
         }
     }
 
-    <U extends T> void copyFactory(DefaultDynamicTypesNamedEntityInstantiator<T> source, Class<U> type) {
-        @SuppressWarnings("unchecked")
-        NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) source.factories.get(type);
+    <U extends T> void copyFactory(DefaultPolymorphicNamedEntityInstantiator<T> source, Class<U> type) {
+        NamedDomainObjectFactory<U> factory = uncheckedCast(source.factories.get(type));
         registerFactory(type, factory);
     }
 }

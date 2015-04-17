@@ -16,7 +16,7 @@
 
 package org.gradle.model.collection.internal;
 
-import org.gradle.api.internal.DynamicTypesNamedEntityInstantiator;
+import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.*;
@@ -24,11 +24,11 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
-public class DynamicTypesCollectionBuilderProjection<T> extends CollectionBuilderModelProjection<T> {
+public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilderModelProjection<T> {
 
     private final BiAction<? super MutableModelNode, ? super T> initializer;
 
-    public DynamicTypesCollectionBuilderProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
+    public PolymorphicCollectionBuilderProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
         super(baseItemType);
         this.initializer = initializer;
     }
@@ -40,11 +40,11 @@ public class DynamicTypesCollectionBuilderProjection<T> extends CollectionBuilde
 
     @Override
     protected Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node) {
-        ModelType<DynamicTypesNamedEntityInstantiator<T>> instantiatorType = new ModelType.Builder<DynamicTypesNamedEntityInstantiator<T>>() {
+        ModelType<PolymorphicNamedEntityInstantiator<T>> instantiatorType = new ModelType.Builder<PolymorphicNamedEntityInstantiator<T>>() {
         }.where(new ModelType.Parameter<T>() {
         }, baseItemModelType).build();
 
-        DynamicTypesNamedEntityInstantiator<T> instantiator = node.getPrivateData(instantiatorType);
+        PolymorphicNamedEntityInstantiator<T> instantiator = node.getPrivateData(instantiatorType);
         return instantiator.getCreatableTypes();
     }
 }

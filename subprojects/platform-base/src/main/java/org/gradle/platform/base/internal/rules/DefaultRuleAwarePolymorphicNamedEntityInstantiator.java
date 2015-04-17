@@ -19,17 +19,17 @@ package org.gradle.platform.base.internal.rules;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.DynamicTypesNamedEntityInstantiator;
+import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Map;
 
-public class DefaultRuleAwareDynamicTypesNamedEntityInstantiator<T> implements RuleAwareDynamicTypesNamedEntityInstantiator<T> {
+public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements RuleAwarePolymorphicNamedEntityInstantiator<T> {
 
     private final Map<Class<? extends T>, ModelRuleDescriptor> creators = Maps.newHashMap();
-    private final DynamicTypesNamedEntityInstantiator<T> instantiator;
+    private final PolymorphicNamedEntityInstantiator<T> instantiator;
 
-    public DefaultRuleAwareDynamicTypesNamedEntityInstantiator(DynamicTypesNamedEntityInstantiator<T> instantiator) {
+    public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator) {
         this.instantiator = instantiator;
     }
 

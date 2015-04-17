@@ -16,15 +16,15 @@
 
 package org.gradle.language.base.internal.model;
 
-import org.gradle.api.internal.DefaultDynamicTypesNamedEntityInstantiator;
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProjection;
+import org.gradle.model.collection.internal.PolymorphicCollectionBuilderProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.internal.rules.DefaultRuleAwareDynamicTypesNamedEntityInstantiator;
-import org.gradle.platform.base.internal.rules.RuleAwareDynamicTypesNamedEntityInstantiator;
+import org.gradle.platform.base.internal.rules.DefaultRuleAwarePolymorphicNamedEntityInstantiator;
+import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 
 import java.util.List;
 
@@ -51,20 +51,20 @@ public class CollectionBuilderCreators {
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
-                final DefaultDynamicTypesNamedEntityInstantiator<T> namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<T>(
+                final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(
                         typeClass, "this collection"
                 );
-                ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<T>> instantiatorType = new ModelType.Builder<RuleAwareDynamicTypesNamedEntityInstantiator<T>>() {
+                ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = new ModelType.Builder<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
                 }.where(new ModelType.Parameter<T>() {
                 }, ModelType.of(typeClass)).build();
 
-                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<T>(namedEntityInstantiator));
+                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(namedEntityInstantiator));
             }
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
                 .withProjection(specializedCollectionBuilderProjection)
-                .withProjection(new DynamicTypesCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction))
+                .withProjection(new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }

@@ -23,11 +23,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public abstract class RuleAwarePolymorphicDomainObjectContainer<T> extends DefaultPolymorphicDomainObjectContainer<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T> {
-    private final DefaultRuleAwareDynamicTypesNamedEntityInstantiator<T> ruleAwareInstantiator;
+    private final DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> ruleAwareInstantiator;
 
     public RuleAwarePolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         super(type, instantiator);
-        this.ruleAwareInstantiator = new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<T>(namedEntityInstantiator);
+        this.ruleAwareInstantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(namedEntityInstantiator);
     }
 
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor) {

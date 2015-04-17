@@ -25,11 +25,11 @@ import java.util.Set;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
-    protected final DefaultDynamicTypesNamedEntityInstantiator<T> namedEntityInstantiator;
+    protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
-        namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<T>(type, "this container");
+        namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
     }
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {

@@ -19,5 +19,5 @@ package org.gradle.platform.base.internal.rules;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
-public interface RuleAwareDynamicTypesNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, RuleAwareNamedDomainObjectFactoryRegistry<T> {
+public interface RuleAwarePolymorphicNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, RuleAwareNamedDomainObjectFactoryRegistry<T> {
 }

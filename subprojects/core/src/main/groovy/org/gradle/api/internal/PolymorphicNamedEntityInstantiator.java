@@ -21,7 +21,7 @@ import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 import java.util.Set;
 
-public interface DynamicTypesNamedEntityInstantiator<T> extends NamedEntityInstantiator<T> {
+public interface PolymorphicNamedEntityInstantiator<T> extends NamedEntityInstantiator<T> {
     <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
 
     Set<? extends Class<? extends T>> getCreatableTypes();
