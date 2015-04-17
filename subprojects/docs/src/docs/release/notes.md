@@ -102,17 +102,27 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 TODO
 
-## Potential breaking changes
-
 ### Distribution Plugin changes
 
 Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
 This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
 
-### Removal of `componentSpec` project extension
+### Changes in ComponentModelBasePlugin
+
+#### Removal of `componentSpec` project extension
 
 As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
 Currently component container can be only accessed using model rules.
+
+#### Changes in `ComponentSpecContainer`
+
+- `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`. 
+- `ComponentSpecContainer` now implements `CollectionBuilder<ComponentSpec`.
+
+### Changes in NativeBinariesTestPlugin
+
+- `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`. 
+- `TestSuiteContainer` now implements `CollectionBuilder<TestSuiteSpec`.
 
 ### Source sets cannot be removed from components
 
