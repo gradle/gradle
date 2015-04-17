@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -71,7 +72,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             public DefaultTestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
                 return new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
             }
-        }, descriptor, BiActions.doNothing());
+        }, descriptor, new ComponentSpecInitializationAction());
 
         modelRegistry.createOrReplace(testSuitesCreator);
     }
