@@ -32,19 +32,21 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
+    private final ProjectInternal dependencyProject;
+    private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
-    private final ProjectInternal dependencyProject;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener) {
-        this(dependencyProject, null, projectAccessListener);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
+        this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
     }
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
-                                    ProjectAccessListener projectAccessListener) {
+                                    ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         super(configuration);
         this.dependencyProject = dependencyProject;
         this.projectAccessListener = projectAccessListener;
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public Project getDependencyProject() {
@@ -69,10 +71,21 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-                getConfiguration(), projectAccessListener);
+                getConfiguration(), projectAccessListener, buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
+
+    public Set<File> resolve() {
+        return resolve(true);
+    }
+
+    public Set<File> resolve(boolean transitive) {
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
+        context.add(this);
+        return context.resolve().getFiles();
+    }
+
     public void beforeResolved() {
         projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
     }
@@ -85,6 +98,10 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 context.add(dependency);
             }
         }
+    }
+
+    public TaskDependencyInternal getBuildDependencies() {
+        return taskDependency;
     }
 
     public boolean contentEquals(Dependency dependency) {
@@ -119,12 +136,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getConfiguration().equals(that.getConfiguration())) {
             return false;
         }
+        if (this.buildProjectDependencies != that.buildProjectDependencies) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ getConfiguration().hashCode();
+        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
     }
 
 
@@ -134,23 +154,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 + getConfiguration() + '\'' + '}';
     }
 
-    public TaskDependencyInternal getBuildDependencies() {
-        return taskDependency;
-    }
-
-    public Set<File> resolve() {
-        return resolve(true);
-    }
-
-    public Set<File> resolve(boolean transitive) {
-        projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
-        context.add(this);
-        return context.resolve().getFiles();
-    }
-
     private class TaskDependencyImpl extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
+            if (!buildProjectDependencies) {
+                return;
+            }
             projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
 
             Configuration configuration = getProjectConfiguration();

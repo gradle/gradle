@@ -26,17 +26,19 @@ import org.gradle.internal.reflect.Instantiator;
 public class DefaultProjectDependencyFactory {
     private final ProjectAccessListener projectAccessListener;
     private final Instantiator instantiator;
+    private final boolean buildProjectDependencies;
 
-    public DefaultProjectDependencyFactory(ProjectAccessListener projectAccessListener, Instantiator instantiator) {
+    public DefaultProjectDependencyFactory(ProjectAccessListener projectAccessListener, Instantiator instantiator, boolean buildProjectDependencies) {
         this.projectAccessListener = projectAccessListener;
         this.instantiator = instantiator;
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public ProjectDependency create(ProjectInternal project, String configuration) {
-        return instantiator.newInstance(DefaultProjectDependency.class, project, configuration, projectAccessListener);
+        return instantiator.newInstance(DefaultProjectDependency.class, project, configuration, projectAccessListener, buildProjectDependencies);
     }
 
     public ProjectDependency create(Project project) {
-        return instantiator.newInstance(DefaultProjectDependency.class, project, projectAccessListener);
+        return instantiator.newInstance(DefaultProjectDependency.class, project, projectAccessListener, buildProjectDependencies);
     }
 }

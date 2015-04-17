@@ -32,9 +32,9 @@ import static org.junit.Assert.assertThat
 class DefaultProjectDependencyTest extends Specification {
 
     ProjectInternal project = TestUtil.createRootProject()
-    def listener = Mock(ProjectAccessListener)
+    ProjectAccessListener listener = Mock()
 
-    private projectDependency = new DefaultProjectDependency(project, null)
+    private projectDependency = new DefaultProjectDependency(project, null, false)
 
     void setup() {
         project.version = "1.2"
@@ -53,7 +53,7 @@ class DefaultProjectDependencyTest extends Specification {
         def conf = project.configurations.create("conf1")
 
         when:
-        projectDependency = new DefaultProjectDependency(project, "conf1", null)
+        projectDependency = new DefaultProjectDependency(project, "conf1", null, true)
 
         then:
         projectDependency.projectConfiguration == conf
@@ -71,7 +71,7 @@ class DefaultProjectDependencyTest extends Specification {
         conf.dependencies.add(dep1)
         superConf.dependencies.add(dep2)
 
-        projectDependency = new DefaultProjectDependency(project, "conf", null)
+        projectDependency = new DefaultProjectDependency(project, "conf", null, true)
 
         when:
         projectDependency.resolve(context)
@@ -85,7 +85,7 @@ class DefaultProjectDependencyTest extends Specification {
 
     void "if resolution context is not transitive it will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null)
+        projectDependency = new DefaultProjectDependency(project, null, true)
 
         when:
         projectDependency.resolve(context)
@@ -97,7 +97,7 @@ class DefaultProjectDependencyTest extends Specification {
 
     void "if dependency is not transitive the resolution context will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null)
+        projectDependency = new DefaultProjectDependency(project, null, true)
         projectDependency.setTransitive(false)
 
         when:
@@ -167,26 +167,28 @@ class DefaultProjectDependencyTest extends Specification {
     }
 
     private createProjectDependency() {
-        def out = new DefaultProjectDependency(project, "conf", listener)
+        def out = new DefaultProjectDependency(project, "conf", listener, true)
         out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
         out
     }
 
     void "knows if is equal"() {
         expect:
-        assertThat(new DefaultProjectDependency(project, listener),
-                strictlyEqual(new DefaultProjectDependency(project, listener)))
+        assertThat(new DefaultProjectDependency(project, listener, true),
+                strictlyEqual(new DefaultProjectDependency(project, listener, true)))
 
-        assertThat(new DefaultProjectDependency(project, "conf1", listener),
-                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener)))
+        assertThat(new DefaultProjectDependency(project, "conf1", listener, false),
+                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener, false)))
 
         when:
-        def base = new DefaultProjectDependency(project, "conf1", listener)
-        def differentConf = new DefaultProjectDependency(project, "conf2", listener)
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", listener)
+        def base = new DefaultProjectDependency(project, "conf1", listener, true)
+        def differentConf = new DefaultProjectDependency(project, "conf2", listener, true)
+        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", listener, false)
+        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", listener, true)
 
         then:
         base != differentConf
+        base != differentBuildDeps
         base != differentProject
     }
 }
