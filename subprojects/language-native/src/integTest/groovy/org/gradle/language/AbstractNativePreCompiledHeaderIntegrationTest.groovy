@@ -19,14 +19,14 @@ package org.gradle.language
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    abstract PCHHelloWorldApp getApp()
+    abstract IncrementalHelloWorldApp getApp()
 
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -62,10 +62,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     def "can set a precompiled header on a source set for a relative source header colocated with the source" () {
         given:
         new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello"))
-        assert file("src/hello/${app.sourceType}/hello.h").exists()
         app.librarySources.each { it.writeToDir(file("src/hello")) }
-        new SourceFile(app.sourceType, "prefixHeader.h", app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).content).writeToDir(file("src/hello"))
-        assert file("src/hello/${app.sourceType}/prefixHeader.h").exists()
+        new SourceFile(app.sourceType, "common.h", app.commonHeader.content).writeToDir(file("src/hello"))
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -99,10 +97,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     def "can set a precompiled header on a source set for a source header in include path" () {
         given:
         app.libraryHeader.writeToDir(file("src/include"))
-        app.getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
-        assert file("src/include/headers/hello.h").exists()
-        app.getPrefixHeaderFile(path, app.libraryHeader.name, app.IOHeader).writeToDir(file("src/include"))
-        assert file("src/include/headers/${path}prefixHeader.h").exists()
+        getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
+        getCommonHeader(path).writeToDir(file("src/include"))
 
         when:
         def headerDir = file("src/include/headers")
@@ -169,9 +165,9 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     def "can have source sets both with and without precompiled headers" () {
         given:
         standardSourceFiles()
-        app.getLibraryHeader().writeToDir(file("src/hello2"))
-        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello2"))
-        app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello2"))
+        app.libraryHeader.writeToDir(file("src/hello2"))
+        app.librarySources.find { it.name.startsWith("hello") }.writeToDir(file("src/hello2"))
+        app.commonHeader.writeToDir(file("src/hello2"))
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -209,7 +205,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     def "can have sources that do not use precompiled header" () {
         given:
         standardSourceFiles()
-        app.getLibraryWithoutPCH().writeToDir(file("src/hello"))
+        libraryWithoutPCH.writeToDir(file("src/hello"))
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -270,7 +266,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchCompiledOnceForEach([ sharedPCHHeaderDirName ])
 
         when:
-        app.alternate.libraryHeader.writeToDir(file("src/hello"))
+        alternateLibraryHeader.writeToDir(file("src/hello"))
         maybeWait()
 
         then:
@@ -286,8 +282,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         app.getLibraryHeader().writeToDir(file("src/hello"))
         def helloDotC = app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
         helloDotC.text = "#include \"hello.h\"\n" + helloDotC.text
-        app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello"))
-        assert file("src/hello/headers/prefixHeader.h").exists()
+        app.commonHeader.writeToDir(file("src/hello"))
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -296,7 +291,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds "helloSharedLibrary"
         sharedLibAndPCHTasksExecuted()
         pchCompiledOnceForEach([ sharedPCHHeaderDirName ])
-        output.contains("The source file hello.${app.sourceExtension} includes the header prefixHeader.h but it is not the first declared header, so the pre-compiled header will not be used.")
+        output.contains("The source file hello.${app.sourceExtension} includes the header common.h but it is not the first declared header, so the pre-compiled header will not be used.")
     }
 
     def "produces compiler error when specified header is missing" () {
@@ -342,7 +337,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            ${app.sourceType}.preCompiledHeader "${path}prefixHeader.h"
+                            ${app.sourceType}.preCompiledHeader "${path}common.h"
                         }
                         binaries.all {
                             if (toolChain.name == "visualCpp") {
@@ -359,13 +354,13 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     def standardSourceFiles(path="") {
         app.libraryHeader.writeToDir(file("src/hello"))
-        app.getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
-        app.getPrefixHeaderFile(path, app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello"))
-        assert file("src/hello/headers/${path}prefixHeader.h").exists()
+        getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
+        getCommonHeader(path).writeToDir(file("src/hello"))
+        assert file("src/hello/headers/${path}common.h").exists()
     }
 
     def librarySourceModified(path="") {
-        app.getAlternateLibrarySources(path).find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/hello"))
+        getAlternateLibrarySources(path).find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/hello"))
         maybeWait()
     }
 
@@ -427,6 +422,42 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         } else {
             return message
         }
+    }
+
+    List<SourceFile> getLibrarySources(String headerPath) {
+        updateCommonHeaderPath(app.getLibrarySources(), headerPath)
+    }
+
+    List<SourceFile> getAlternateLibrarySources(String headerPath) {
+        updateCommonHeaderPath(app.getAlternateLibrarySources(), headerPath)
+    }
+
+    SourceFile getCommonHeader(String path) {
+        updateSourceFilePath(app.getCommonHeader(), path)
+    }
+
+    SourceFile getAlternateLibraryHeader() {
+        modifySourceFile(app.getLibraryHeader(), "compiling hello.h", "compiling althello.h")
+    }
+
+    SourceFile getLibraryWithoutPCH() {
+        def original = app.getLibrarySources().find { it.name == "sum.${app.sourceExtension}" }
+        modifySourceFile(original, "include \"common.h\"", "include \"hello.h\"")
+    }
+
+    static List<SourceFile> updateCommonHeaderPath(List<SourceFile> sourceFiles, String headerPath) {
+        return sourceFiles.collect {
+            def newContent = it.content.replaceAll("#include \"common.h\"", "#include \"${headerPath}common.h\"")
+            new SourceFile(it.path, it.name, newContent)
+        }
+    }
+
+    static SourceFile modifySourceFile(SourceFile sourceFile, String text, String replacement) {
+        new SourceFile(sourceFile.path, sourceFile.name, sourceFile.content.replaceAll(text, replacement))
+    }
+
+    static SourceFile updateSourceFilePath(SourceFile sourceFile, String path) {
+        new SourceFile("${sourceFile.path}/${path}", sourceFile.name, sourceFile.content)
     }
 
     String getSharedPCHCompileTaskName() {

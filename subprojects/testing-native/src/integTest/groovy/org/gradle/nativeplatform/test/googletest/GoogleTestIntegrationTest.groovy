@@ -384,6 +384,7 @@ tasks.withType(RunTestExecutable) {
                 "src/hello/cpp/sum.cpp"
         ] as Set
         projectFile.headerFiles == [
+                "src/hello/headers/common.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set

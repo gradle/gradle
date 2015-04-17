@@ -414,6 +414,7 @@ There were test failures:
         ] as Set
         projectFile.headerFiles == [
                 "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
+                "src/hello/headers/common.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set

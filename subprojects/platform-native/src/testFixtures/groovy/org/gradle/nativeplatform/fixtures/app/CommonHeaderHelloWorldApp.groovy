@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
+import org.gradle.integtests.fixtures.SourceFile
 
-class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
+
+abstract class CommonHeaderHelloWorldApp extends HelloWorldApp {
+    public abstract SourceFile getCommonHeader();
+
     @Override
-    IncrementalHelloWorldApp getApp() {
-        return new CppHelloWorldApp()
+    public TestNativeComponent getLibrary() {
+        return new TestNativeComponent() {
+            @Override
+            public List<SourceFile> getSourceFiles() {
+                return getLibrarySources();
+            }
+
+            @Override
+            public List<SourceFile> getHeaderFiles() {
+                return Arrays.asList(getLibraryHeader(), getCommonHeader());
+            }
+        };
     }
 }
