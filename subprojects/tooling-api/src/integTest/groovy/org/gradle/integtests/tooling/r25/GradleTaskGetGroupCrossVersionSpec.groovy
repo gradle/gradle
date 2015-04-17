@@ -66,4 +66,44 @@ task test2(group:'task group 2')
         }
     }
 
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "provide getGroup on Task using GradleProject shouldn't fail if group is null"() {
+        file("build.gradle") << '''
+task test1()
+task test2()
+'''
+
+        when:
+        def gradleProject = withConnection { ProjectConnection connection ->
+            connection.getModel(GradleProject)
+        }
+
+        then:
+        gradleProject != null
+        gradleProject.tasks.findAll { it.name.startsWith('test') }.each {
+            assert it.group == null
+        }
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "provide getGroup on Task using BuildInvocations shouldn't fail if group is null"() {
+        file("build.gradle") << '''
+task test1()
+task test2()
+'''
+
+        when:
+        def buildInvocations = withConnection { ProjectConnection connection ->
+            connection.getModel(BuildInvocations)
+        }
+
+        then:
+        buildInvocations != null
+        buildInvocations.tasks.findAll { it.name.startsWith('test') }.each {
+            assert it.group == null
+        }
+    }
+
 }
