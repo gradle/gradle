@@ -24,6 +24,7 @@ import org.gradle.tooling.events.SuccessEvent
 import org.gradle.tooling.events.TestProgressEvent
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1
 import org.gradle.tooling.internal.protocol.FailureVersion1
+import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1
 import org.gradle.tooling.internal.protocol.TestResultVersion1
@@ -273,7 +274,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
 
         when:
-        def testDescriptor = Mock(TestDescriptorVersion1)
+        def testDescriptor = Mock(JvmTestDescriptorVersion1)
         _ * testDescriptor.getId() >> 1
         _ * testDescriptor.getName() >> 'some test suite'
         _ * testDescriptor.getParentId() >> null
@@ -327,7 +328,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' skipped."
             assert event.testDescriptor.name == 'some test suite'
-            assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
         }
     }
@@ -338,7 +338,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
 
         when:
-        def testDescriptor = Mock(TestDescriptorVersion1)
+        def testDescriptor = Mock(JvmTestDescriptorVersion1)
         _ * testDescriptor.getId() >> 1
         _ * testDescriptor.getName() >> 'some test suite'
         _ * testDescriptor.getParentId() >> null
@@ -412,7 +412,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' failed."
             assert event.testDescriptor.name == 'some test suite'
-            assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
             assert event.outcome.startTime == 1
             assert event.outcome.endTime == 2
@@ -444,7 +443,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "Test 'some test' started."
             assert event.testDescriptor.name == 'some test'
-            assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
         }
     }
@@ -455,10 +453,11 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
 
         when:
-        def testDescriptor = Mock(TestDescriptorVersion1)
+        def testDescriptor = Mock(JvmTestDescriptorVersion1)
         _ * testDescriptor.getId() >> 1
         _ * testDescriptor.getName() >> 'some test'
         _ * testDescriptor.getParentId() >> null
+        _ * testDescriptor.getClassName() >> 'Foo'
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
         _ * startEvent.getTestStructure() >> TestProgressEventVersion1.STRUCTURE_ATOMIC
@@ -480,7 +479,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "Test 'some test' skipped."
             assert event.testDescriptor.name == 'some test'
-            assert event.testDescriptor.className == null
+            assert event.testDescriptor.className == 'Foo'
             assert event.testDescriptor.parent == null
         }
     }
@@ -521,7 +520,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "Test 'some test' succeeded."
             assert event.testDescriptor.name == 'some test'
-            assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
             assert event.outcome.startTime == 1
             assert event.outcome.endTime == 2
@@ -565,7 +563,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.eventTime == 999
             assert event.description == "Test 'some test' failed."
             assert event.testDescriptor.name == 'some test'
-            assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
             assert event.outcome.startTime == 1
             assert event.outcome.endTime == 2

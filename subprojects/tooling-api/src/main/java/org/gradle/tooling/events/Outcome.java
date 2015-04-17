@@ -17,17 +17,23 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * An outcome represents the result of the execution of a unit of work, for example
+ * information about a test case failure.
+ *
+ * @since 2.4
+ */
 @Incubating
 public interface Outcome {
     /**
-     * Returns the time when the unit started execution.
+     * Returns the time when the unit of work started execution.
      *
      * @return The start time, in milliseconds since the epoch
      */
     long getStartTime();
 
     /**
-     * Returns the time when the unit completed execution.
+     * Returns the time when the unit of work completed execution.
      *
      * @return The end time, in milliseconds since the epoch
      */

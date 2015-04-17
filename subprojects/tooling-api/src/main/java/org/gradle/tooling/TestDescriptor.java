@@ -25,7 +25,7 @@ import org.gradle.api.Nullable;
  * @since 2.4
  */
 @Incubating
-public interface TestDescriptor {
+public interface TestDescriptor extends Descriptor {
 
     /**
      * Returns the name of the test.

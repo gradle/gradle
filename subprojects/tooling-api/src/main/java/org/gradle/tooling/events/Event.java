@@ -17,7 +17,19 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * The interface that events in the Tooling API must implement. An event is an abstract concept for something
+ * that can be monitored, like test progress, task progress or build progress.
+ *
+ * @since 2.5
+ */
 @Incubating
 public interface Event {
+    /**
+     * The time this event was triggered, which is independent from the time the underlying unit (test, task, build, ...)
+     * may have started.
+     *
+     * @return The event time, in milliseconds since the epoch.
+     */
     long getEventTime();
 }

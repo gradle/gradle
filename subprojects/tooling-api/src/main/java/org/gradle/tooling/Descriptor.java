@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A descriptor allows to identify an event, task or any individual unit of work in a hierarchy.
+ *
+ * @since 2.4
  */
 @Incubating
-public interface JavaTestDescriptorVersion1 extends TestDescriptorVersion1 {
+public interface Descriptor {
     /**
-     * Returns the name of the test class, if any.
+     * The parent descriptor, if any.
      *
-     * @return The name of the test class, can be null
+     * @return the parent descriptor, can be null.
      */
-    String getClassName();
+    @Nullable
+    Descriptor getParent();
 }

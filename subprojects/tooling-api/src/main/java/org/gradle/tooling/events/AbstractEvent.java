@@ -18,6 +18,11 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * Concrete event types should inherit from this base class.
+ *
+ * @since 2.4
+ */
 @Incubating
 public abstract class AbstractEvent implements Event {
 

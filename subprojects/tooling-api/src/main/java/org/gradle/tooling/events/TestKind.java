@@ -15,6 +15,9 @@
  */
 package org.gradle.tooling.events;
 
+/**
+ * A test kind, allowing to differentiate between test suites, atomic tests or unknown test types.
+ */
 public enum TestKind {
     suite("TestSuite"),
     test("Test"),
@@ -26,6 +29,10 @@ public enum TestKind {
         this.label = label;
     }
 
+    /**
+     * A label for the test kind which can be used to generate a prettified version of the test descriptor.
+     * @return a label corresponding to the test kind
+     */
     public String getLabel() {
         return label;
     }

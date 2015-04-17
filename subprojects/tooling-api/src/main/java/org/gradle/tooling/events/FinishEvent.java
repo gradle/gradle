@@ -17,8 +17,20 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
+/**
+ * Base interface for event types which correspond to something finishing.
+ *
+ * @since 2.5
+ */
 @Incubating
 public interface FinishEvent extends EventPayload {
+    /**
+     * Returns the outcome of the finishing event.
+     *
+     * @return the outcome of an event
+     */
+    @Nullable
     Outcome getOutcome();
 }

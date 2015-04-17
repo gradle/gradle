@@ -19,6 +19,11 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.TestDescriptor;
 
+/**
+ * A test event is an event representing a test execution phase.
+ *
+ * @since 2.4
+ */
 @Incubating
 public class TestEvent extends AbstractEvent implements TestProgressEvent {
 
@@ -33,14 +38,29 @@ public class TestEvent extends AbstractEvent implements TestProgressEvent {
         this.testKind = testKind;
     }
 
+    /**
+     * The test descriptor of this event
+     *
+     * @return a test descriptor
+     */
     public TestDescriptor getTestDescriptor() {
         return testDescriptor;
     }
 
+    /**
+     * A description of the test
+     *
+     * @return description of the test
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * The kind of the test (unit test, test suite, unknown, ...)
+     *
+     * @return the test kind
+     */
     public TestKind getTestKind() {
         return testKind;
     }

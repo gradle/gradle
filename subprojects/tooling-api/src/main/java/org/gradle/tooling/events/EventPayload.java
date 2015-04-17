@@ -17,6 +17,12 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * Each event type may carry an additional payload that must be marked with this
+ * interface.
+ *
+ * @since 2.4
+ */
 @Incubating
 public interface EventPayload {
 }

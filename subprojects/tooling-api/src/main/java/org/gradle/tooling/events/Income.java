@@ -17,10 +17,15 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * An income provides information about a unit of work which has started.
+ *
+ * @since 2.4
+ */
 @Incubating
 public interface Income {
     /**
-     * Returns the time the unit started execution
+     * Returns the time the unit of work started execution
      *
      * @return The start time, in milliseconds since the epoch
      */

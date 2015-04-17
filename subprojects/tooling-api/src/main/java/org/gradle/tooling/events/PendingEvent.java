@@ -17,6 +17,12 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A pending event represents an event for a unit of work which has not yet started, for
+ * example a task about to be executed.
+ *
+ * @since 2.4
+ */
 @Incubating
 public interface PendingEvent extends EventPayload {
 }

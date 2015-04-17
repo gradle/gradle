@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling.events;
+package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
- * A start event represents a unit of work which has just started.
- *
- * @since 2.4
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 @Incubating
-public interface StartEvent extends EventPayload {
+public interface JvmTestDescriptorVersion1 extends TestDescriptorVersion1 {
     /**
-     * Returns the underlying unit of work income.
+     * Returns the name of the test class, if any.
      *
-     * @return the income of the starting unit of work
+     * @return The name of the test class, can be null
      */
-    @Nullable
-    Income getIncome();
+    String getClassName();
 }

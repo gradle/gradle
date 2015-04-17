@@ -34,7 +34,7 @@ import org.gradle.tooling.events.TestKind;
 import org.gradle.tooling.events.TestProgressEvent;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.FailureVersion1;
-import org.gradle.tooling.internal.protocol.JavaTestDescriptorVersion1;
+import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
@@ -113,6 +113,10 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             progressLabel = "failed";
         } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
             aggregate.add(new SkippedEvent() {
+                @Override
+                public Outcome getOutcome() {
+                    return null;
+                }
             });
             progressLabel = "skipped";
         } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
@@ -169,12 +173,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
-        if (testDescriptor instanceof JavaTestDescriptorVersion1) {
+        if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return new JvmTestDescriptor() {
 
                 @Override
                 public String getClassName() {
-                    return ((JavaTestDescriptorVersion1) testDescriptor).getClassName();
+                    return ((JvmTestDescriptorVersion1) testDescriptor).getClassName();
                 }
 
                 @Override
@@ -272,9 +276,9 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private String toString(TestDescriptorVersion1 testDescriptor) {
-        if (testDescriptor instanceof JavaTestDescriptorVersion1) {
+        if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return String.format("TestDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
-                    testDescriptor.getId(), testDescriptor.getName(), ((JavaTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());
+                    testDescriptor.getId(), testDescriptor.getName(), ((JvmTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());
         } else {
             return String.format("TestDescriptor[id(%s), name(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getParentId());
         }
