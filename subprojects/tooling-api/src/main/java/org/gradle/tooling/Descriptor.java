@@ -19,17 +19,26 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * A descriptor allows to identify an event, task or any individual unit of work in a hierarchy.
+ * Describes an entity for which an event has occurred.
  *
  * @since 2.4
  */
 @Incubating
 public interface Descriptor {
+
     /**
-     * The parent descriptor, if any.
+     * Returns the name of the entity.
      *
-     * @return the parent descriptor, can be null.
+     * @return The name of the entity.
+     */
+    String getName();
+
+    /**
+     * Returns the parent entity, if any.
+     *
+     * @return The parent entity.
      */
     @Nullable
     Descriptor getParent();
+
 }

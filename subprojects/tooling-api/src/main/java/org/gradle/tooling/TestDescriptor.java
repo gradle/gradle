@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Describes a test.
+ * Describes a test for which an event has occurred.
  *
  * @since 2.4
  */
@@ -28,16 +28,9 @@ import org.gradle.api.Nullable;
 public interface TestDescriptor extends Descriptor {
 
     /**
-     * Returns the name of the test.
-     *
-     * @return the name of the test, never null
-     */
-    String getName();
-
-    /**
      * Returns the parent of this test, if any.
      *
-     * @return the parent of this test, can be null
+     * @return The parent of this test.
      */
     @Nullable
     TestDescriptor getParent();

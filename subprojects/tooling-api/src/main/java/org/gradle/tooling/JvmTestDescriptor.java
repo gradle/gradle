@@ -20,20 +20,36 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Describes a test that runs on the JVM.
+ * Describes a test that runs on the JVM and for which an event has occurred. At least
+ * a suite name, class name, or method name is available for each JVM test.
  *
  * @since 2.4
  */
 @Incubating
 public interface JvmTestDescriptor extends TestDescriptor {
 
+    /**
+     * Returns the name of the test suite, if any.
+     *
+     * @return The name of the test suite.
+     */
+    @Nullable
+    String getSuiteName();
 
     /**
      * Returns the name of the test class, if any.
      *
-     * @return the name of the test class, can be null
+     * @return The name of the test class.
      */
     @Nullable
     String getClassName();
+
+    /**
+     * Returns the name of the test method, if any.
+     *
+     * @return The name of the test method.
+     */
+    @Nullable
+    String getMethodName();
 
 }
