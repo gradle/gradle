@@ -189,4 +189,9 @@ Run Summary:    Type  Total    Ran Passed Failed Inactive
     public SourceFile getBrokenFile() {
         return sourceFile("c", "broken.c", """'broken""")
     }
+
+    @Override
+    String getSourceSetType() {
+        return "CSourceSet"
+    }
 }

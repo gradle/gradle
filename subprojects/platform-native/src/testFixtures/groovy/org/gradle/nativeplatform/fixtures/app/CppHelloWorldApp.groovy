@@ -185,4 +185,9 @@ Running main() from gtest_main.cc
     public SourceFile getBrokenFile() {
         return sourceFile("cpp", "broken.cpp", """'broken""")
     }
+
+    @Override
+    String getSourceSetType() {
+        return "CppSourceSet"
+    }
 }

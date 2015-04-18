@@ -183,7 +183,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":generateCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
+        executedAndNotSkipped ":generateHelloCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
                               ":linkHelloSharedLibrary", ":helloSharedLibrary",
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 

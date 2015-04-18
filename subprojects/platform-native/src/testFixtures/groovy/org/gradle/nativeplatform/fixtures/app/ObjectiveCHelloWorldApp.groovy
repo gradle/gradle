@@ -165,4 +165,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     public SourceFile getBrokenFile() {
         return sourceFile("objc", "broken.m", """'broken""")
     }
+
+    @Override
+    String getSourceSetType() {
+        return "ObjectiveCSourceSet"
+    }
 }

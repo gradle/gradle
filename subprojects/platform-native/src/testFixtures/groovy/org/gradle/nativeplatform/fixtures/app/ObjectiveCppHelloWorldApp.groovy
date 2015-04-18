@@ -171,4 +171,9 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     public SourceFile getBrokenFile() {
         return sourceFile("objcpp", "broken.mm", """'broken""")
     }
+
+    @Override
+    String getSourceSetType() {
+        return "ObjectiveCppSourceSet"
+    }
 }

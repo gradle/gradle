@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.SourceFile
 
 abstract class CommonHeaderHelloWorldApp extends HelloWorldApp {
     public abstract SourceFile getCommonHeader();
+    public abstract String getSourceSetType();
 
     @Override
     public TestNativeComponent getLibrary() {
