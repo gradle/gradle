@@ -22,7 +22,7 @@ import org.gradle.api.Nullable;
 /**
  * Base interface for event types which correspond to something finishing.
  *
- * @since 2.5
+ * @since 2.4
  */
 @Incubating
 public interface FinishEvent extends EventPayload {

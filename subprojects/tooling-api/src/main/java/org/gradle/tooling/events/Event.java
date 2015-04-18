@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * that can be monitored having experienced something worthwhile to share. Monitored entities could be tests, tasks,
  * the build, the file system, etc.
  *
- * @since 2.5
+ * @since 2.4
  */
 @Incubating
 public interface Event {

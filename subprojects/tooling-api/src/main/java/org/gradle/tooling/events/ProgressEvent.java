@@ -22,7 +22,7 @@ import org.gradle.tooling.Descriptor;
 /**
  * An event that signals some kind of progress in an entity as part of a long running operation. For example, a test having started, a task having finished, etc.
  *
- * @since 2.5
+ * @since 2.4
  */
 @Incubating
 public interface ProgressEvent extends Event {
