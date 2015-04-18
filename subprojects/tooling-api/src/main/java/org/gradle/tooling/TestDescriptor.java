@@ -28,6 +28,13 @@ import org.gradle.api.Nullable;
 public interface TestDescriptor extends Descriptor {
 
     /**
+     * Returns the name of the test.
+     *
+     * @return The name of the test.
+     */
+    String getName();
+
+    /**
      * Returns the parent of this test, if any.
      *
      * @return The parent of this test.

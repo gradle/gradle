@@ -45,7 +45,7 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, toOutcome(result), System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, toOutcome(result), result.getEndTime(), toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
@@ -55,7 +55,7 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, toOutcome(result), System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, toOutcome(result), result.getEndTime(), toTestDescriptorForTest(test), toTestResult(result)));
     }
 
     private String toOutcome(TestResult result) {
