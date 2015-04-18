@@ -1,3 +1,5 @@
+#ifndef HELLO_H
+#define HELLO_H
 #if defined(_WIN32) && defined(DLL_EXPORT)
 #define LIB_FUNC __declspec(dllexport)
 #else
@@ -8,3 +10,4 @@ class Greeter {
     public:
     void LIB_FUNC hello();
 };
+#endif
