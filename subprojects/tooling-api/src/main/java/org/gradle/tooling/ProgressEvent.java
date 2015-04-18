@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events;
+package org.gradle.tooling;
 
 /**
  * Some information about a piece of work of a long running operation.
  * @since 1.0-milestone-3
  */
-public interface ProgressEvent extends Event {
+public interface ProgressEvent {
     /**
      * A description of the current piece of work.
      *

@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.events.ProgressEvent;
-
 /**
  * A listener which is notified as some long running operation makes progress.
  * @since 1.0-milestone-3
