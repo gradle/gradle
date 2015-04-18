@@ -17,6 +17,7 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Descriptor;
 import org.gradle.tooling.TestDescriptor;
 
 /**
@@ -36,6 +37,16 @@ public class TestEvent extends AbstractEvent implements TestProgressEvent {
         this.description = description;
         this.testDescriptor = testDescriptor;
         this.testKind = testKind;
+    }
+
+    /**
+     * The description of the Test entity for which progress is reported.
+     *
+     * @return The description of the underlying Test entity.
+     */
+    @Override
+    public Descriptor getDescriptor() {
+        return getTestDescriptor();
     }
 
     /**

@@ -13,33 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.TestDescriptor;
+import org.gradle.tooling.Descriptor;
 
 /**
- * Some information about the progress of executing the test as part of running a build.
+ * An event that signals some kind of progress in an entity as part of a long running operation. For example, a test having started, a task having finished, etc.
  *
- * Note: sub-types of this interface provide more specific information.
- *
- * @since 2.4
+ * @since 2.5
  */
 @Incubating
-public interface TestProgressEvent extends ProgressEvent {
+public interface ProgressEvent extends Event {
 
     /**
-     * The description of the test for which progress is reported.
+     * The description of the Gradle entity for which progress is reported.
      *
-     * @return The test description
+     * @return The description of the underlying Gradle entity.
      */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The type of the test (suite or atomic for example).
-     *
-     * @return the test kind
-     */
-    TestKind getTestKind();
+    Descriptor getDescriptor();
 
 }
