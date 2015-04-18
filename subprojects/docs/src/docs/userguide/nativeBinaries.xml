@@ -496,7 +496,7 @@
         </para>
         <para>
             To configure a precompiled header, first a header file needs to be defined that includes all of the headers that should
-            be precompiled.  It should be specified as the first included header in every source file where the precompiled header
+            be precompiled.  It must be specified as the first included header in every source file where the precompiled header
             should be used.  It is assumed that this header file, and any headers it contains, make use of header guards so that they can be included
             in an idempotent manner.  If header guards are not used in a header file, it is possible the header could be compiled more
             than once and could potentially lead to a broken build.
@@ -504,13 +504,13 @@
         <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Creating a precompiled header file">
             <sourcefile file="src/hello/headers/pch.h" />
         </sample>
-        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Including a precompiled header file">
+        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Including a precompiled header file in a source file">
             <sourcefile file="src/hello/cpp/hello.cpp" />
         </sample>
         <para>
             Precompiled headers are specified on a source set.  Only one precompiled header file can be specified on a given source set and will
-            be applied to all source files that include it as the first include.  For source files that do not include this header file as the
-            first header, the precompiled header will simply be ignored and the file will be compiled in the normal manner.  The string provided
+            be applied to all source files that declare it as the first include.  If a source files does not include this header file as the
+            first header, the file will be compiled in the normal manner (without making use of the precompiled header object file).  The string provided
             should be the same as that which is used in the "#include" directive in the source files.
         </para>
         <sample id="preCompiledHeaderConfig" dir="native-binaries/pre-compiled-headers" title="Configuring a precompiled header">

@@ -26,6 +26,9 @@
             <tr>
                 <td>libs</td>
             </tr>
+            <tr>
+                <td>preCompiledHeader</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -38,9 +41,6 @@
             </thead>
             <tr>
                 <td>lib</td>
-            </tr>
-            <tr>
-                <td>setPreCompiledHeader</td>
             </tr>
         </table>
     </section>

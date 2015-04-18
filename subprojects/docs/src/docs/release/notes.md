@@ -50,7 +50,7 @@ It is also possible to replace one project dependency with another, or one exter
 as `eachDependency`).
 Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
 
-### Support for Precompiled Headers
+### Support for Precompiled Headers (i)
 
 Precompiled headers are a performance optimization for native builds that allows commonly used headers to be compiled only once rather than for
 each file that includes the headers.  Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
