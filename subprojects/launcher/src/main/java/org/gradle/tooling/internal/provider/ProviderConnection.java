@@ -18,13 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -42,15 +36,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.FailureVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -234,8 +220,18 @@ public class ProviderConnection {
                             }
 
                             @Override
+                            public String getSuiteName() {
+                                return testProgressEvent.getDescriptor().getSuiteName();
+                            }
+
+                            @Override
                             public String getClassName() {
                                 return testProgressEvent.getDescriptor().getClassName();
+                            }
+
+                            @Override
+                            public String getMethodName() {
+                                return testProgressEvent.getDescriptor().getMethodName();
                             }
 
                             @Override

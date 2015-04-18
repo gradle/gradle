@@ -20,14 +20,9 @@ package org.gradle.tooling.internal.consumer.parameters
 import org.gradle.tooling.TestProgressListener
 import org.gradle.tooling.events.FailureEvent
 import org.gradle.tooling.events.SkippedEvent
+import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessEvent
-import org.gradle.tooling.events.TestProgressEvent
-import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1
-import org.gradle.tooling.internal.protocol.FailureVersion1
-import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1
-import org.gradle.tooling.internal.protocol.TestDescriptorVersion1
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1
-import org.gradle.tooling.internal.protocol.TestResultVersion1
+import org.gradle.tooling.internal.protocol.*
 import spock.lang.Specification
 
 class BuildProgressListenerAdapterTest extends Specification {
@@ -288,7 +283,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as TestProgressEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' started."
             assert event.testDescriptor.name == 'some test suite'
@@ -324,7 +319,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as SkippedEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' skipped."
             assert event.testDescriptor.name == 'some test suite'
@@ -364,7 +359,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as SuccessEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' succeeded."
             assert event.testDescriptor.name == 'some test suite'
@@ -408,7 +403,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FailureEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
             assert event.description == "TestSuite 'some test suite' failed."
             assert event.testDescriptor.name == 'some test suite'
@@ -439,7 +434,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as TestProgressEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.description == "Test 'some test' started."
             assert event.testDescriptor.name == 'some test'
@@ -475,7 +470,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as SkippedEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
             assert event.description == "Test 'some test' skipped."
             assert event.testDescriptor.name == 'some test'
@@ -516,7 +511,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as SuccessEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
             assert event.description == "Test 'some test' succeeded."
             assert event.testDescriptor.name == 'some test'
@@ -559,7 +554,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FailureEvent) >> { TestProgressEvent event ->
+        1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
             assert event.description == "Test 'some test' failed."
             assert event.testDescriptor.name == 'some test'

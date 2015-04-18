@@ -17,38 +17,14 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.tooling.Failure;
-import org.gradle.tooling.JvmTestDescriptor;
-import org.gradle.tooling.TestDescriptor;
-import org.gradle.tooling.TestFailure;
-import org.gradle.tooling.TestProgressListener;
-import org.gradle.tooling.TestSuccess;
-import org.gradle.tooling.events.FailureEvent;
-import org.gradle.tooling.events.Income;
-import org.gradle.tooling.events.Outcome;
-import org.gradle.tooling.events.SkippedEvent;
-import org.gradle.tooling.events.StartEvent;
-import org.gradle.tooling.events.SuccessEvent;
-import org.gradle.tooling.events.TestEvent;
-import org.gradle.tooling.events.TestKind;
-import org.gradle.tooling.events.TestProgressEvent;
-import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.FailureVersion1;
-import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
+import org.gradle.tooling.*;
+import org.gradle.tooling.events.*;
+import org.gradle.tooling.internal.protocol.*;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -175,15 +151,26 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return new JvmTestDescriptor() {
+                @Override
+                public String getName() {
+                    return testDescriptor.getName();
+                }
+
+                @Nullable
+                @Override
+                public String getSuiteName() {
+                    return ((JvmTestDescriptorVersion1) testDescriptor).getSuiteName();
+                }
 
                 @Override
                 public String getClassName() {
                     return ((JvmTestDescriptorVersion1) testDescriptor).getClassName();
                 }
 
+                @Nullable
                 @Override
-                public String getName() {
-                    return testDescriptor.getName();
+                public String getMethodName() {
+                    return ((JvmTestDescriptorVersion1) testDescriptor).getMethodName();
                 }
 
                 @Override

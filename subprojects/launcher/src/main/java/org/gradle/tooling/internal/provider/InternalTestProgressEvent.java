@@ -59,13 +59,17 @@ public class InternalTestProgressEvent implements Serializable {
 
         private final Object id;
         private final String name;
+        private final String suiteName;
         private final String className;
+        private final String methodName;
         private final Object parentId;
 
-        public InternalTestDescriptor(Object id, String name, String className, Object parentId) {
+        public InternalTestDescriptor(Object id, String name, String suiteName, String className, String methodName, Object parentId) {
             this.id = id;
             this.name = name;
+            this.suiteName = suiteName;
             this.className = className;
+            this.methodName = methodName;
             this.parentId = parentId;
         }
 
@@ -77,8 +81,16 @@ public class InternalTestProgressEvent implements Serializable {
             return name;
         }
 
+        public String getSuiteName() {
+            return suiteName;
+        }
+
         public String getClassName() {
             return className;
+        }
+
+        public String getMethodName() {
+            return methodName;
         }
 
         public Object getParentId() {

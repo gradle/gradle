@@ -22,10 +22,26 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JvmTestDescriptorVersion1 extends TestDescriptorVersion1 {
+
+    /**
+     * Returns the name of the test suite, if any.
+     *
+     * @return The name of the test suite, can be null.
+     */
+    String getSuiteName();
+
     /**
      * Returns the name of the test class, if any.
      *
-     * @return The name of the test class, can be null
+     * @return The name of the test class, can be null.
      */
     String getClassName();
+
+    /**
+     * Returns the name of the test method, if any.
+     *
+     * @return The name of the test method, can be null.
+     */
+    String getMethodName();
+
 }
