@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.TestDescriptor;
+import org.gradle.tooling.events.Descriptor;
 import org.gradle.tooling.events.StartEvent;
 
 /**
@@ -24,7 +24,7 @@ import org.gradle.tooling.events.StartEvent;
  */
 public final class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
 
-    public DefaultStartEvent(long eventTime, String eventDescription, TestDescriptor descriptor) {
+    public DefaultStartEvent(long eventTime, String eventDescription, Descriptor descriptor) {
         super(eventTime, eventDescription, descriptor);
     }
 
