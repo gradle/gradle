@@ -175,7 +175,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private JvmTestKind toJvmTestKind(JvmTestDescriptorVersion1 jvmTestDescriptor) {
+    private static JvmTestKind toJvmTestKind(JvmTestDescriptorVersion1 jvmTestDescriptor) {
         String jvmTestKind = jvmTestDescriptor.getTestKind();
         if (JvmTestDescriptorVersion1.KIND_SUITE.equals(jvmTestKind)) {
             return JvmTestKind.SUITE;

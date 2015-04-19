@@ -19,7 +19,26 @@ package org.gradle.tooling.internal.protocol;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface FailureVersion1 {
+
+    /**
+     * The message of the failure, if any.
+     *
+     * @return the failure message, can be null
+     */
     String getMessage();
+
+    /**
+     * The description of the failure, if any.
+     *
+     * @return the failure description, can be null
+     */
     String getDescription();
+
+    /**
+     * The cause of the failure, if any, which is again a failure.
+     *
+     * @return the cause of the failure, can be null
+     */
     FailureVersion1 getCause();
+
 }

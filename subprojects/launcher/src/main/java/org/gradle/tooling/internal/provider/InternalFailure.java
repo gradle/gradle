@@ -15,60 +15,41 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.internal.protocol.FailureVersion1;
-
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 
-public class InternalFailure implements FailureVersion1, Serializable {
+public class InternalFailure implements Serializable {
+
     private final String message;
     private final String description;
     private final InternalFailure cause;
 
     public InternalFailure(String message, String description, InternalFailure cause) {
+        this.message = message;
+        this.description = description;
         this.cause = cause;
-        this.message = message;
-        this.description = description;
     }
 
-    public InternalFailure(String message, String description) {
-        this.message = message;
-        this.description = description;
-        this.cause = null;
-    }
-
-    /**
-     * Returns a short message (typically one line) for the failure.
-     * @return the failure message
-     */
     public String getMessage() {
         return message;
     }
 
-    /**
-     * Returns a long description of the failure. For example, a stack trace.
-     * @return a long description of the failure
-     */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * Returns the underlying cause for this failure, if any.
-     * @return the cause for this failure, or <i>null</i> if there's no underlying failure or the cause is unknown.
-     */
     public InternalFailure getCause() {
         return cause;
     }
 
-    public static InternalFailure fromThrowable(Throwable e) {
+    public static InternalFailure fromThrowable(Throwable t) {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);
-        e.printStackTrace(wrt);
-        Throwable cause = e.getCause();
-        InternalFailure causeFailure = cause!=null && cause!=e ? fromThrowable(cause) : null;
-        return new InternalFailure(e.getMessage(), out.toString(), causeFailure);
+        t.printStackTrace(wrt);
+        Throwable cause = t.getCause();
+        InternalFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
+        return new InternalFailure(t.getMessage(), out.toString(), causeFailure);
     }
 
 }

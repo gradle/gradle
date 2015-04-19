@@ -259,8 +259,8 @@ public class ProviderConnection {
                             @Override
                             public List<FailureVersion1> getFailures() {
                                 List<InternalFailure> resultFailures = testProgressEvent.getResult().getFailures();
-                                ArrayList<FailureVersion1> failures = new ArrayList<FailureVersion1>(resultFailures.size());
-                                for (final InternalFailure resultFailure : resultFailures) {
+                                List<FailureVersion1> failures = new ArrayList<FailureVersion1>(resultFailures.size());
+                                for (InternalFailure resultFailure : resultFailures) {
                                     failures.add(toFailure(resultFailure));
                                 }
                                 return failures;
@@ -274,10 +274,8 @@ public class ProviderConnection {
         }
 
         private static FailureVersion1 toFailure(final InternalFailure resultFailure) {
-            if (resultFailure==null) {
-                return null;
-            }
-            return new FailureVersion1() {
+            return resultFailure == null ? null : new FailureVersion1() {
+
                 @Override
                 public String getMessage() {
                     return resultFailure.getMessage();
@@ -292,6 +290,7 @@ public class ProviderConnection {
                 public FailureVersion1 getCause() {
                     return toFailure(resultFailure.getCause());
                 }
+
             };
         }
 
