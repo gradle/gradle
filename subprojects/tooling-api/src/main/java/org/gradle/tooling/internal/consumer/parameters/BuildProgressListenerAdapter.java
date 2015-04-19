@@ -20,7 +20,7 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.events.JvmTestKind;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.internal.DefaultFailureEvent;
-import org.gradle.tooling.events.internal.DefaultSkipEvent;
+import org.gradle.tooling.events.internal.DefaultSkippedEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultSuccessEvent;
 import org.gradle.tooling.internal.protocol.*;
@@ -75,7 +75,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "skipped");
             TestSuccess outcome = toTestSuccess(event.getResult());
-            return new DefaultSkipEvent(eventTime, eventDescription, testDescriptor, outcome);
+            return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "succeeded");
