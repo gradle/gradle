@@ -25,4 +25,11 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface FailureEvent extends FinishEvent {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    FailureOutcome getOutcome();
+
 }
