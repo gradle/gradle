@@ -23,20 +23,13 @@ import org.gradle.tooling.events.SuccessEvent;
 /**
  * Default implementation of the {@code SuccessEvent} interface.
  */
-public final class DefaultSuccessEvent extends BaseEvent implements SuccessEvent {
+public final class DefaultSuccessEvent extends BaseProgressEvent implements SuccessEvent {
 
-    private final Descriptor descriptor;
     private final TestSuccess outcome;
 
     public DefaultSuccessEvent(long eventTime, String eventDescription, Descriptor descriptor, TestSuccess outcome) {
-        super(eventTime, eventDescription);
-        this.descriptor = descriptor;
+        super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
-    }
-
-    @Override
-    public Descriptor getDescriptor() {
-        return descriptor;
     }
 
     @Override

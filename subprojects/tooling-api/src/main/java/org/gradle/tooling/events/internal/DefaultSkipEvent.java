@@ -23,20 +23,13 @@ import org.gradle.tooling.events.SkippedEvent;
 /**
  * Default implementation of the {@code SkippedEvent} interface.
  */
-public final class DefaultSkipEvent extends BaseEvent implements SkippedEvent {
+public final class DefaultSkipEvent extends BaseProgressEvent implements SkippedEvent {
 
-    private final Descriptor descriptor;
     private final TestSuccess outcome;
 
     public DefaultSkipEvent(long eventTime, String eventDescription, Descriptor descriptor, TestSuccess outcome) {
-        super(eventTime, eventDescription);
-        this.descriptor = descriptor;
+        super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
-    }
-
-    @Override
-    public Descriptor getDescriptor() {
-        return descriptor;
     }
 
     @Override

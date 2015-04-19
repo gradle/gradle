@@ -16,16 +16,24 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.TestDescriptor;
-import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.Descriptor;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * Default implementation of the {@code StartEvent} interface.
+ * Base class for {@code ProgressEvent} implementations.
  */
-public final class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
+abstract class BaseProgressEvent extends BaseEvent implements ProgressEvent {
 
-    public DefaultStartEvent(long eventTime, String eventDescription, TestDescriptor descriptor) {
-        super(eventTime, eventDescription, descriptor);
+    private final Descriptor descriptor;
+
+    BaseProgressEvent(long eventTime, String eventDescription, Descriptor descriptor) {
+        super(eventTime, eventDescription);
+        this.descriptor = descriptor;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+        return descriptor;
     }
 
 }
