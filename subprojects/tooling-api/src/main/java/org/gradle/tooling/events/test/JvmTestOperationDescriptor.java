@@ -18,31 +18,45 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.events.Descriptor;
 
 /**
- * Describes a test for which an event has occurred.
+ * Describes a test that runs on the JVM and for which an event has occurred. At least
+ * a suite name, class name, or method name is available for each JVM test.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestDescriptor extends Descriptor {
+public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
 
     /**
-     * Returns the name of the test.
+     * Returns what kind of test this is.
      *
-     * @return The name of the test.
+     * @return The test kind.
      */
-    @Override
-    String getName();
+    JvmTestKind getJvmTestKind();
 
     /**
-     * Returns the parent of this test, if any.
+     * Returns the name of the test suite, if any.
      *
-     * @return The parent of this test.
+     * @return The name of the test suite.
      */
-    @Override
     @Nullable
-    Descriptor getParent();
+    String getSuiteName();
+
+    /**
+     * Returns the name of the test class, if any.
+     *
+     * @return The name of the test class.
+     */
+    @Nullable
+    String getClassName();
+
+    /**
+     * Returns the name of the test method, if any.
+     *
+     * @return The name of the test method.
+     */
+    @Nullable
+    String getMethodName();
 
 }

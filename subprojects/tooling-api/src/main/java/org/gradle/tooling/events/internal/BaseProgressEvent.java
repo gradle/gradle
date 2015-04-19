@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.events.Descriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -24,15 +24,15 @@ import org.gradle.tooling.events.ProgressEvent;
  */
 abstract class BaseProgressEvent extends BaseEvent implements ProgressEvent {
 
-    private final Descriptor descriptor;
+    private final OperationDescriptor descriptor;
 
-    BaseProgressEvent(long eventTime, String eventDescription, Descriptor descriptor) {
+    BaseProgressEvent(long eventTime, String eventDescription, OperationDescriptor descriptor) {
         super(eventTime, eventDescription);
         this.descriptor = descriptor;
     }
 
     @Override
-    public Descriptor getDescriptor() {
+    public OperationDescriptor getDescriptor() {
         return descriptor;
     }
 

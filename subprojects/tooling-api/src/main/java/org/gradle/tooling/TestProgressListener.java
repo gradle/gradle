@@ -42,8 +42,8 @@ public interface TestProgressListener {
      * </ul>
      *
      * You can find out more about the test for which progress is reported by querying
-     * the event's descriptor of type {@code org.gradle.tooling.events.test.TestDescriptor} or its subtype
-     * {@code org.gradle.tooling.events.test.JvmTestDescriptor}.
+     * the event's descriptor of type {@code org.gradle.tooling.events.test.TestOperationDescriptor} or its subtype
+     * {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.
      *
      * @param event An event describing the test status change.
      */

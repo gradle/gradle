@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.events.Descriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.SkippedEvent;
 import org.gradle.tooling.events.SuccessOutcome;
 
@@ -27,7 +27,7 @@ public final class DefaultSkippedEvent extends BaseProgressEvent implements Skip
 
     private final SuccessOutcome outcome;
 
-    public DefaultSkippedEvent(long eventTime, String eventDescription, Descriptor descriptor, SuccessOutcome outcome) {
+    public DefaultSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
     }

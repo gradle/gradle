@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.events.Descriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.SuccessEvent;
 import org.gradle.tooling.events.SuccessOutcome;
 
@@ -27,7 +27,7 @@ public final class DefaultSuccessEvent extends BaseProgressEvent implements Succ
 
     private final SuccessOutcome outcome;
 
-    public DefaultSuccessEvent(long eventTime, String eventDescription, Descriptor descriptor, SuccessOutcome outcome) {
+    public DefaultSuccessEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
     }

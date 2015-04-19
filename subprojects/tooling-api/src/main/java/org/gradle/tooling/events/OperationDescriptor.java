@@ -19,26 +19,26 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Describes an entity for which an event has occurred.
+ * Describes an operation for which an event has occurred.
  *
  * @since 2.4
  */
 @Incubating
-public interface Descriptor {
+public interface OperationDescriptor {
 
     /**
-     * Returns the name of the entity.
+     * Returns the name of the operation.
      *
-     * @return The name of the entity.
+     * @return The name of the operation.
      */
     String getName();
 
     /**
-     * Returns the parent entity, if any.
+     * Returns the parent operation, if any.
      *
-     * @return The parent entity.
+     * @return The parent operation.
      */
     @Nullable
-    Descriptor getParent();
+    OperationDescriptor getParent();
 
 }

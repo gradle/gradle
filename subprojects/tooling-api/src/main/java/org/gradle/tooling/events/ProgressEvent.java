@@ -32,6 +32,6 @@ public interface ProgressEvent extends Event {
      *
      * @return The description of the underlying operation.
      */
-    Descriptor getDescriptor();
+    OperationDescriptor getDescriptor();
 
 }
