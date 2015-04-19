@@ -68,10 +68,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             isStart = true;
             progressLabel = "started";
             aggregate.add(new StartEvent() {
-                @Override
-                public Income getIncome() {
-                    return null;
-                }
             });
         } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
             isStart = false;

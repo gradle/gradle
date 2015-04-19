@@ -17,7 +17,6 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
  * A start event represents a unit of work which has just started.
@@ -26,11 +25,4 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface StartEvent extends EventPayload {
-    /**
-     * Returns the underlying unit of work income.
-     *
-     * @return the income of the starting unit of work
-     */
-    @Nullable
-    Income getIncome();
 }
