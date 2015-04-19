@@ -19,10 +19,11 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * An event that informs about an entity having skipped to execute its operation.
+ * An event that informs about an entity having skipped to execute its operation. A skipped operation
+ * is considered a successful operation since nothing failed.
  *
  * @since 2.4
  */
 @Incubating
-public interface SkippedEvent extends FinishEvent {
+public interface SkippedEvent extends SuccessEvent {
 }
