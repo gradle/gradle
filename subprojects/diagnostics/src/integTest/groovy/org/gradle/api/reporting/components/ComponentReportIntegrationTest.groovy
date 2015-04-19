@@ -18,6 +18,7 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
@@ -25,6 +26,7 @@ class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationT
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
         when:
         succeeds "components"
@@ -35,6 +37,7 @@ No components defined for this project.
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of multiple components"() {
         given:
         buildFile << """
