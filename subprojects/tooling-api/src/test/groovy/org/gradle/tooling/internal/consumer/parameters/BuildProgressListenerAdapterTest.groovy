@@ -251,7 +251,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as ProgressEvent) >> { StartEvent event ->
             assert event.eventTime == 999
-            assert event.description == "TestSuite 'some test suite' started."
+            assert event.description == "Test suite 'some test suite' started."
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.className == null
@@ -287,7 +287,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
-            assert event.description == "TestSuite 'some test suite' skipped."
+            assert event.description == "Test suite 'some test suite' skipped."
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
@@ -327,7 +327,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
-            assert event.description == "TestSuite 'some test suite' succeeded."
+            assert event.description == "Test suite 'some test suite' succeeded."
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.className == null
@@ -371,7 +371,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
-            assert event.description == "TestSuite 'some test suite' failed."
+            assert event.description == "Test suite 'some test suite' failed."
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
@@ -403,7 +403,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as ProgressEvent) >> { StartEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test 'some test' started."
+            assert event.description == "Atomic test 'some test' started."
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null
@@ -439,7 +439,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test 'some test' skipped."
+            assert event.description == "Atomic test 'some test' skipped."
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
@@ -480,7 +480,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test 'some test' succeeded."
+            assert event.description == "Atomic test 'some test' succeeded."
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null
@@ -523,7 +523,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test 'some test' failed."
+            assert event.description == "Atomic test 'some test' failed."
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null

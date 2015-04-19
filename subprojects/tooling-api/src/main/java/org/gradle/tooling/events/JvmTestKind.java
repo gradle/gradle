@@ -20,9 +20,9 @@ package org.gradle.tooling.events;
  */
 public enum JvmTestKind {
 
-    SUITE("TestSuite"),
-    ATOMIC("Test"),
-    UNKNOWN("Unknown");
+    SUITE("Test suite"),
+    ATOMIC("Atomic test"),
+    UNKNOWN("Unknown test kind");
 
     private final String label;
 

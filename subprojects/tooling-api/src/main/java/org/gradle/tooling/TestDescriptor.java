@@ -32,6 +32,7 @@ public interface TestDescriptor extends Descriptor {
      *
      * @return The name of the test.
      */
+    @Override
     String getName();
 
     /**
@@ -39,7 +40,8 @@ public interface TestDescriptor extends Descriptor {
      *
      * @return The parent of this test.
      */
+    @Override
     @Nullable
-    TestDescriptor getParent();
+    Descriptor getParent();
 
 }
