@@ -62,8 +62,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         String testStructure = event.getTestStructure();
         String testOutcome = event.getTestOutcome();
         final long eventTme = event.getEventTime();
-        final TestKind testKind = TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure) ? TestKind.suite :
-                TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure) ? TestKind.test : TestKind.unknown;
+        final TestKind testKind = TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure) ? TestKind.suite : TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure) ? TestKind.test : TestKind.unknown;
         if (testKind == TestKind.unknown || event.getDescriptor() == null) {
             return null;
         }
