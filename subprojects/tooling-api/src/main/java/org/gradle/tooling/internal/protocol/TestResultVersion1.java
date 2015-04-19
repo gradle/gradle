@@ -34,9 +34,9 @@ public interface TestResultVersion1 {
     long getStartTime();
 
     /**
-     * Returns the time the test execution completed.
+     * Returns the time the test execution finished.
      *
-     * @return The completion time
+     * @return The finish time
      */
     long getEndTime();
 
