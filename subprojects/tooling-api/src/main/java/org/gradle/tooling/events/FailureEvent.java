@@ -19,7 +19,7 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * A failure event is an event representing something finished with a fail state.
+ * An event that informs about an entity having failed to execute its operation.
  *
  * @since 2.4
  */

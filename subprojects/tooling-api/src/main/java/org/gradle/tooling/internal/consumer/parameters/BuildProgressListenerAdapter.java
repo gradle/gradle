@@ -17,14 +17,14 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.*;
-import org.gradle.tooling.events.*;
+import org.gradle.tooling.events.JvmTestKind;
 import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.internal.DefaultFailureEvent;
+import org.gradle.tooling.events.internal.DefaultSkipEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
+import org.gradle.tooling.events.internal.DefaultSuccessEvent;
 import org.gradle.tooling.internal.protocol.*;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.*;
 
 /**
@@ -62,50 +62,28 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         String testOutcome = event.getTestOutcome();
         final long eventTime = event.getEventTime();
-        boolean isStart;
-        String progressLabel;
-        final List<Object> aggregate = new ArrayList<Object>();
         if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            final String eventDescription = toEventDescription(testDescriptor, "started");
+            TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
+            String eventDescription = toEventDescription(testDescriptor, "started");
             return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
         } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
-            isStart = false;
-            progressLabel = "failed";
-            aggregate.add(new FailureEvent() {
-                @Override
-                public Outcome getOutcome() {
-                    return toTestFailure(event.getResult());
-                }
-            });
+            TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            String eventDescription = toEventDescription(testDescriptor, "failed");
+            TestFailure outcome = toTestFailure(event.getResult());
+            return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
-            isStart = false;
-            progressLabel = "skipped";
-            aggregate.add(new SkippedEvent() {
-                @Override
-                public Outcome getOutcome() {
-                    return null;
-                }
-            });
+            TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            String eventDescription = toEventDescription(testDescriptor, "skipped");
+            TestSuccess outcome = toTestSuccess(event.getResult());
+            return new DefaultSkipEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
-            isStart = false;
-            progressLabel = "succeeded";
-            aggregate.add(new SuccessEvent() {
-                @Override
-                public Outcome getOutcome() {
-                    return toTestSuccess(event.getResult());
-                }
-            });
+            TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            String eventDescription = toEventDescription(testDescriptor, "succeeded");
+            TestSuccess outcome = toTestSuccess(event.getResult());
+            return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else {
             return null;
         }
-        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart);
-        String eventDescription = toEventDescription(testDescriptor, progressLabel);
-        TestEvent testEvent = new TestEvent(eventTime, eventDescription, testDescriptor);
-        aggregate.add(testEvent);
-        InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
-        Set<Class<?>> interfaces = collectInterfaces(aggregate);
-        return (ProgressEvent) Proxy.newProxyInstance(this.getClass().getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), handler);
     }
 
     private String toEventDescription(TestDescriptor testDescriptor, String progressLabel) {
@@ -116,15 +94,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private static Set<Class<?>> collectInterfaces(List<Object> aggregate) {
-        Set<Class<?>> interfaces = new HashSet<Class<?>>(aggregate.size() + 1);
-        interfaces.add(ProgressEvent.class);
-        for (Object payload : aggregate) {
-            Class<?> payloadClass = payload.getClass();
-            Collections.addAll(interfaces, payloadClass.getInterfaces());
-        }
-        return interfaces;
-    }
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
         if (fromCache) {
@@ -255,14 +224,10 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private static Failure toFailure(FailureVersion1 origFailure) {
-        if (origFailure == null) {
-            return null;
-        }
-        return new Failure(
+        return origFailure == null ? null : new Failure(
                 origFailure.getMessage(),
                 origFailure.getDescription(),
-                toFailure(origFailure.getCause())
-        );
+                toFailure(origFailure.getCause()));
     }
 
     private TestDescriptor getParentTestDescriptor(TestDescriptorVersion1 testDescriptor) {
@@ -285,24 +250,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     testDescriptor.getId(), testDescriptor.getName(), ((JvmTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());
         } else {
             return String.format("TestDescriptor[id(%s), name(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getParentId());
-        }
-    }
-
-    private static class DelegatingInvocationHandler implements InvocationHandler {
-        private final List<Object> aggregate;
-
-        public DelegatingInvocationHandler(List<Object> aggregate) {
-            this.aggregate = aggregate;
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            for (Object o : aggregate) {
-                if (method.getDeclaringClass().isAssignableFrom(o.getClass())) {
-                    return method.invoke(o, args);
-                }
-            }
-            return null;
         }
     }
 

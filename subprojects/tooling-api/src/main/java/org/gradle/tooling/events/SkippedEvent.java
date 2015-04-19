@@ -19,8 +19,7 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * A skipped event represents is an event representing a unit of work which is finished
- * because it has been skipped.
+ * An event that informs about an entity having skipped to execute its operation.
  *
  * @since 2.4
  */

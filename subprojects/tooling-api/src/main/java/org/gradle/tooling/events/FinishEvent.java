@@ -20,17 +20,19 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Base interface for event types which correspond to something finishing.
+ * An event that informs about an entity having finished to execute its operation.
  *
  * @since 2.4
  */
 @Incubating
-public interface FinishEvent extends EventPayload {
+public interface FinishEvent extends ProgressEvent {
+
     /**
-     * Returns the outcome of the finishing event.
+     * Returns the outcome of the finished operation.
      *
-     * @return the outcome of an event
+     * @return the outcome of the finished operation
      */
     @Nullable
     Outcome getOutcome();
+
 }

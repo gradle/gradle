@@ -19,7 +19,7 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * A finish event represents a unit of work which has finished without any error.
+ * An event that informs about an entity having succeeded to execute its operation.
  *
  * @since 2.4
  */

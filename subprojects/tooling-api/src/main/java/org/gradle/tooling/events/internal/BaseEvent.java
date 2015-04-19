@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.events.internal;
+
+import org.gradle.tooling.events.Event;
 
 /**
- * Each event type may carry an additional payload that must be marked with this
- * interface.
- *
- * @since 2.4
+ * Base class for {@code Event} implementations.
  */
-@Incubating
-public interface EventPayload {
+abstract class BaseEvent implements Event {
+
+    private final long eventTime;
+    private final String eventDescription;
+
+    BaseEvent(long eventTime, String eventDescription) {
+        this.eventTime = eventTime;
+        this.eventDescription = eventDescription;
+    }
+
+    @Override
+    public long getEventTime() {
+        return eventTime;
+    }
+
+    @Override
+    public String getDescription() {
+        return eventDescription;
+    }
+
 }
