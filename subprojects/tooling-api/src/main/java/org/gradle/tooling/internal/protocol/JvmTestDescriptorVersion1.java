@@ -23,6 +23,16 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface JvmTestDescriptorVersion1 extends TestDescriptorVersion1 {
 
+    String KIND_SUITE = "SUITE";
+    String KIND_ATOMIC = "ATOMIC";
+
+    /**
+     * Returns the kind of test this is. See the constants on this interface for the supported kinds.
+     *
+     * @return The test kind (test suite, atomic test, etc.).
+     */
+    String getTestKind();
+
     /**
      * Returns the name of the test suite, if any.
      *

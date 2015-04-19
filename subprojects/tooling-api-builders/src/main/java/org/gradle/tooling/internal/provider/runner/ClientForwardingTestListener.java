@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.provider.InternalFailure;
 import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
@@ -40,22 +41,22 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForSuite(suite), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForSuite(suite), null));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, toOutcome(result), result.getEndTime(), toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(toOutcome(result), result.getEndTime(), toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForTest(test), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForTest(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, toOutcome(result), result.getEndTime(), toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(toOutcome(result), result.getEndTime(), toTestDescriptorForTest(test), toTestResult(result)));
     }
 
     private String toOutcome(TestResult result) {
@@ -75,21 +76,23 @@ class ClientForwardingTestListener implements TestListener {
     private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
         Object id = ((TestDescriptorInternal) suite).getId();
         String name = suite.getName();
+        String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
         Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, suiteName, className, methodName, parentId);
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, suiteName, className, methodName, parentId);
     }
 
     private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
         Object id = ((TestDescriptorInternal) test).getId();
         String name = test.getName();
+        String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, suiteName, className, methodName, parentId);
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, suiteName, className, methodName, parentId);
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {

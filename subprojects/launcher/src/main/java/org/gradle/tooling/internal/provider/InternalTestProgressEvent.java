@@ -21,22 +21,16 @@ import java.util.List;
 
 public class InternalTestProgressEvent implements Serializable {
 
-    private final String testStructure;
     private final String testOutcome;
     private final long eventTime;
     private final InternalTestDescriptor descriptor;
     private final InternalTestResult result;
 
-    public InternalTestProgressEvent(String testStructure, String testOutcome, long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        this.testStructure = testStructure;
+    public InternalTestProgressEvent(String testOutcome, long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
         this.testOutcome = testOutcome;
         this.eventTime = eventTime;
         this.descriptor = descriptor;
         this.result = result;
-    }
-
-    public String getTestStructure() {
-        return testStructure;
     }
 
     public String getTestOutcome() {
@@ -59,14 +53,16 @@ public class InternalTestProgressEvent implements Serializable {
 
         private final Object id;
         private final String name;
+        private final String testKind;
         private final String suiteName;
         private final String className;
         private final String methodName;
         private final Object parentId;
 
-        public InternalTestDescriptor(Object id, String name, String suiteName, String className, String methodName, Object parentId) {
+        public InternalTestDescriptor(Object id, String name, String testKind, String suiteName, String className, String methodName, Object parentId) {
             this.id = id;
             this.name = name;
+            this.testKind = testKind;
             this.suiteName = suiteName;
             this.className = className;
             this.methodName = methodName;
@@ -79,6 +75,10 @@ public class InternalTestProgressEvent implements Serializable {
 
         public String getName() {
             return name;
+        }
+
+        public String getTestKind() {
+            return testKind;
         }
 
         public String getSuiteName() {

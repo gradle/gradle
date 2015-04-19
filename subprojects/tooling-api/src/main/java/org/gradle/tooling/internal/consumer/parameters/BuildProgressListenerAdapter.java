@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.*;
 import org.gradle.tooling.events.*;
@@ -60,57 +59,65 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        String testStructure = event.getTestStructure();
         String testOutcome = event.getTestOutcome();
         final long eventTme = event.getEventTime();
-        final JvmTestKind jvmTestKind = TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure) ? JvmTestKind.SUITE : TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure) ? JvmTestKind.ATOMIC : JvmTestKind.UNKNOWN;
-        if (jvmTestKind == JvmTestKind.UNKNOWN || event.getDescriptor() == null) {
-            return null;
-        }
-        String progressLabel = null;
+        boolean isStart;
+        String progressLabel;
         final List<Object> aggregate = new ArrayList<Object>();
-        boolean isStart = false;
         if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
             isStart = true;
+            progressLabel = "started";
             aggregate.add(new StartEvent() {
                 @Override
                 public Income getIncome() {
                     return null;
                 }
             });
-            progressLabel = "started";
         } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
+            isStart = false;
+            progressLabel = "failed";
             aggregate.add(new FailureEvent() {
                 @Override
                 public Outcome getOutcome() {
                     return toTestFailure(event.getResult());
                 }
             });
-            progressLabel = "failed";
         } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
+            isStart = false;
+            progressLabel = "skipped";
             aggregate.add(new SkippedEvent() {
                 @Override
                 public Outcome getOutcome() {
                     return null;
                 }
             });
-            progressLabel = "skipped";
         } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
+            isStart = false;
+            progressLabel = "succeeded";
             aggregate.add(new SuccessEvent() {
                 @Override
                 public Outcome getOutcome() {
                     return toTestSuccess(event.getResult());
                 }
             });
-            progressLabel = "succeeded";
+        } else {
+            return null;
         }
-        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart, jvmTestKind);
-        String eventDescription = String.format("%s '%s' %s.", jvmTestKind.getLabel(), testDescriptor.getName(), progressLabel);
+        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart);
+        String eventDescription = toEventDescription(testDescriptor, progressLabel);
         TestEvent testEvent = new TestEvent(eventTme, eventDescription, testDescriptor);
         aggregate.add(testEvent);
         InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
         Set<Class<?>> interfaces = collectInterfaces(aggregate);
         return (ProgressEvent) Proxy.newProxyInstance(this.getClass().getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), handler);
+    }
+
+    private String toEventDescription(TestDescriptor testDescriptor, String progressLabel) {
+        if (testDescriptor instanceof JvmTestDescriptor) {
+            return String.format("%s '%s' %s.", ((JvmTestDescriptor) testDescriptor).getJvmTestKind().getLabel(), testDescriptor.getName(), progressLabel);
+        } else {
+            return String.format("Generic test '%s' %s.", testDescriptor.getName(), progressLabel);
+        }
     }
 
     private static Set<Class<?>> collectInterfaces(List<Object> aggregate) {
@@ -123,7 +130,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return interfaces;
     }
 
-    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache, JvmTestKind jvmTestKind) {
+    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
         if (fromCache) {
             TestDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
             if (cachedTestDescriptor == null) {
@@ -141,41 +148,40 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
             } else {
                 final TestDescriptor parent = getParentTestDescriptor(testDescriptor);
-                TestDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, jvmTestKind, parent);
+                TestDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
                 testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
                 return newTestDescriptor;
             }
         }
     }
 
-    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final JvmTestKind jvmTestKind, final TestDescriptor parent) {
+    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
+            final JvmTestDescriptorVersion1 jvmTestDescriptor = (JvmTestDescriptorVersion1) testDescriptor;
             return new JvmTestDescriptor() {
                 @Override
                 public String getName() {
-                    return testDescriptor.getName();
-                }
-
-                @Nullable
-                @Override
-                public String getSuiteName() {
-                    return ((JvmTestDescriptorVersion1) testDescriptor).getSuiteName();
-                }
-
-                @Override
-                public String getClassName() {
-                    return ((JvmTestDescriptorVersion1) testDescriptor).getClassName();
-                }
-
-                @Nullable
-                @Override
-                public String getMethodName() {
-                    return ((JvmTestDescriptorVersion1) testDescriptor).getMethodName();
+                    return jvmTestDescriptor.getName();
                 }
 
                 @Override
                 public JvmTestKind getJvmTestKind() {
-                    return jvmTestKind;
+                    return toJvmTestKind(jvmTestDescriptor);
+                }
+
+                @Override
+                public String getSuiteName() {
+                    return jvmTestDescriptor.getSuiteName();
+                }
+
+                @Override
+                public String getClassName() {
+                    return jvmTestDescriptor.getClassName();
+                }
+
+                @Override
+                public String getMethodName() {
+                    return jvmTestDescriptor.getMethodName();
                 }
 
                 @Override
@@ -191,12 +197,22 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     return testDescriptor.getName();
                 }
 
-                @Nullable
                 @Override
                 public TestDescriptor getParent() {
                     return parent;
                 }
             };
+        }
+    }
+
+    private JvmTestKind toJvmTestKind(JvmTestDescriptorVersion1 jvmTestDescriptor) {
+        String jvmTestKind = jvmTestDescriptor.getTestKind();
+        if (JvmTestDescriptorVersion1.KIND_SUITE.equals(jvmTestKind)) {
+            return JvmTestKind.SUITE;
+        } else if (JvmTestDescriptorVersion1.KIND_ATOMIC.equals(jvmTestKind)) {
+            return JvmTestKind.ATOMIC;
+        } else {
+            return JvmTestKind.UNKNOWN;
         }
     }
 
