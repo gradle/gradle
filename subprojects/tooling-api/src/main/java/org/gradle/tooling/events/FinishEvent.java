@@ -17,7 +17,6 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
  * An event that informs about an entity having finished to execute its operation.
@@ -32,7 +31,6 @@ public interface FinishEvent extends ProgressEvent {
      *
      * @return the outcome of the finished operation
      */
-    @Nullable
     Outcome getOutcome();
 
 }
