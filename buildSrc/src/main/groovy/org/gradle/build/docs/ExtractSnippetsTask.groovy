@@ -47,7 +47,7 @@ public class ExtractSnippetsTask extends SourceTask {
 
                 destFile.parentFile.mkdirs()
 
-                if (['.jar', '.zip', '.gpg'].find{ name.endsWith(it) }) {
+                if (['.war', '.jar', '.zip', '.gpg'].find{ name.endsWith(it) }) {
                     destFile.withOutputStream { it.write(srcFile.readBytes()) }
                     return
                 }
