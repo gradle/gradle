@@ -32,15 +32,18 @@ public interface TestProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>TestStartedEvent</li>
-     *     <li>TestSkippedEvent</li>
-     *     <li>TestSucceededEvent</li>
-     *     <li>TestFailedEvent</li>
-     *     <li>TestSuiteStartedEvent</li>
-     *     <li>TestSuiteSkippedEvent</li>
-     *     <li>TestSuiteSucceededEvent</li>
-     *     <li>TestSuiteFailedEvent</li>
+     *     <li>StartEvent</li>
+     *     <li>FinishEvent</li>
+     *        <ul>
+     *          <li>SkippedEvent</li>
+     *          <li>SuccessEvent</li>
+     *          <li>FailureEvent</li>
+     *        </ul>
      * </ul>
+     *
+     * You can find out more about the test for which progress is reported by querying
+     * the event's descriptor of type {@code org.gradle.tooling.events.test.TestDescriptor} or its subtype
+     * {@code org.gradle.tooling.events.test.JvmTestDescriptor}.
      *
      * @param event An event describing the test status change.
      */
