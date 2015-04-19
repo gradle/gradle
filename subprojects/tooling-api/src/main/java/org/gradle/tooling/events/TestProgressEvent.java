@@ -35,11 +35,4 @@ public interface TestProgressEvent extends ProgressEvent {
      */
     TestDescriptor getTestDescriptor();
 
-    /**
-     * The type of the test (suite or atomic for example).
-     *
-     * @return the test kind
-     */
-    TestKind getTestKind();
-
 }

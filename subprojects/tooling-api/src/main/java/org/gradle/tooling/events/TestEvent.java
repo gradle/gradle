@@ -28,15 +28,13 @@ import org.gradle.tooling.TestDescriptor;
 @Incubating
 public class TestEvent extends AbstractEvent implements TestProgressEvent {
 
-    protected final TestKind testKind;
     private final String description;
     private final TestDescriptor testDescriptor;
 
-    public TestEvent(long eventTime, String description, TestDescriptor testDescriptor, TestKind testKind) {
+    public TestEvent(long eventTime, String description, TestDescriptor testDescriptor) {
         super(eventTime);
         this.description = description;
         this.testDescriptor = testDescriptor;
-        this.testKind = testKind;
     }
 
     /**
@@ -67,12 +65,4 @@ public class TestEvent extends AbstractEvent implements TestProgressEvent {
         return description;
     }
 
-    /**
-     * The kind of the test (unit test, test suite, unknown, ...)
-     *
-     * @return the test kind
-     */
-    public TestKind getTestKind() {
-        return testKind;
-    }
 }

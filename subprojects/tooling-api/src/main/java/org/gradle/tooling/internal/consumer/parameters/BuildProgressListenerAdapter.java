@@ -103,9 +103,9 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             });
             progressLabel = "succeeded";
         }
-        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart);
+        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart, testKind);
         String eventDescription = String.format("%s '%s' %s.", testKind.getLabel(), testDescriptor.getName(), progressLabel);
-        TestEvent testEvent = new TestEvent(eventTme, eventDescription, testDescriptor, testKind);
+        TestEvent testEvent = new TestEvent(eventTme, eventDescription, testDescriptor);
         aggregate.add(testEvent);
         InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
         Set<Class<?>> interfaces = collectInterfaces(aggregate);
@@ -122,7 +122,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return interfaces;
     }
 
-    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
+    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache, TestKind testKind) {
         if (fromCache) {
             TestDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
             if (cachedTestDescriptor == null) {
@@ -140,14 +140,14 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
             } else {
                 final TestDescriptor parent = getParentTestDescriptor(testDescriptor);
-                TestDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
+                TestDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, testKind, parent);
                 testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
                 return newTestDescriptor;
             }
         }
     }
 
-    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
+    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestKind testKind, final TestDescriptor parent) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return new JvmTestDescriptor() {
                 @Override
@@ -170,6 +170,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public String getMethodName() {
                     return ((JvmTestDescriptorVersion1) testDescriptor).getMethodName();
+                }
+
+                @Override
+                public TestKind getTestKind() {
+                    return testKind;
                 }
 
                 @Override

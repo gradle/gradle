@@ -18,6 +18,7 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.events.TestKind;
 
 /**
  * Describes a test that runs on the JVM and for which an event has occurred. At least
@@ -27,6 +28,13 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface JvmTestDescriptor extends TestDescriptor {
+
+    /**
+     * The type of the test (suite or atomic for example).
+     *
+     * @return the test kind
+     */
+    TestKind getTestKind();
 
     /**
      * Returns the name of the test suite, if any.
