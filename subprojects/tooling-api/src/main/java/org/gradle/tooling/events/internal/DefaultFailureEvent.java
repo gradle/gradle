@@ -17,23 +17,23 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.Descriptor;
-import org.gradle.tooling.TestFailure;
 import org.gradle.tooling.events.FailureEvent;
+import org.gradle.tooling.events.FailureOutcome;
 
 /**
  * Default implementation of the {@code FailureEvent} interface.
  */
 public final class DefaultFailureEvent extends BaseProgressEvent implements FailureEvent {
 
-    private final TestFailure outcome;
+    private final FailureOutcome outcome;
 
-    public DefaultFailureEvent(long eventTime, String eventDescription, Descriptor descriptor, TestFailure outcome) {
+    public DefaultFailureEvent(long eventTime, String eventDescription, Descriptor descriptor, FailureOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
     }
 
     @Override
-    public TestFailure getOutcome() {
+    public FailureOutcome getOutcome() {
         return outcome;
     }
 

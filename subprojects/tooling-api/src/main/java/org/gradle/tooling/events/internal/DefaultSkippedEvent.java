@@ -17,23 +17,23 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.Descriptor;
-import org.gradle.tooling.TestSuccess;
 import org.gradle.tooling.events.SkippedEvent;
+import org.gradle.tooling.events.SuccessOutcome;
 
 /**
  * Default implementation of the {@code SkippedEvent} interface.
  */
 public final class DefaultSkippedEvent extends BaseProgressEvent implements SkippedEvent {
 
-    private final TestSuccess outcome;
+    private final SuccessOutcome outcome;
 
-    public DefaultSkippedEvent(long eventTime, String eventDescription, Descriptor descriptor, TestSuccess outcome) {
+    public DefaultSkippedEvent(long eventTime, String eventDescription, Descriptor descriptor, SuccessOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
     }
 
     @Override
-    public TestSuccess getOutcome() {
+    public SuccessOutcome getOutcome() {
         return outcome;
     }
 

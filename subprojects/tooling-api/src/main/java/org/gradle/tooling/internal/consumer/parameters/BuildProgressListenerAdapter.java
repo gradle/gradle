@@ -16,9 +16,14 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.tooling.*;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.JvmTestDescriptor;
+import org.gradle.tooling.TestDescriptor;
+import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.events.FailureOutcome;
 import org.gradle.tooling.events.JvmTestKind;
 import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.internal.DefaultFailureEvent;
 import org.gradle.tooling.events.internal.DefaultSkippedEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
@@ -69,17 +74,17 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "failed");
-            TestFailure outcome = toTestFailure(event.getResult());
+            FailureOutcome outcome = toTestFailure(event.getResult());
             return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "skipped");
-            TestSuccess outcome = toTestSuccess(event.getResult());
+            SuccessOutcome outcome = toTestSuccess(event.getResult());
             return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "succeeded");
-            TestSuccess outcome = toTestSuccess(event.getResult());
+            SuccessOutcome outcome = toTestSuccess(event.getResult());
             return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else {
             return null;
@@ -181,8 +186,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private TestSuccess toTestSuccess(final TestResultVersion1 testResult) {
-        return new TestSuccess() {
+    private SuccessOutcome toTestSuccess(final TestResultVersion1 testResult) {
+        return new SuccessOutcome() {
 
             @Override
             public long getStartTime() {
@@ -197,8 +202,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         };
     }
 
-    private TestFailure toTestFailure(final TestResultVersion1 testResult) {
-        return new TestFailure() {
+    private FailureOutcome toTestFailure(final TestResultVersion1 testResult) {
+        return new FailureOutcome() {
 
             @Override
             public long getStartTime() {

@@ -13,26 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.Outcome;
-
-import java.util.List;
 
 /**
- * Some information about having run a test with a failure.
+ * Some information about having run a test successfully.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestFailure extends Outcome {
-
-    /**
-     * The exceptions that occurred while running the test, if any.
-     *
-     * @return the exceptions, empty if the test failed without any exceptions
-     */
-    List<Failure> getFailures();
+public interface SuccessOutcome extends Outcome {
 
 }
