@@ -31,4 +31,5 @@ public interface SuccessEvent extends FinishEvent {
      */
     @Override
     SuccessOutcome getOutcome();
+
 }
