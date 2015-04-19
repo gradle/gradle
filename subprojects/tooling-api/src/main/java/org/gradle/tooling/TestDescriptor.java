@@ -18,6 +18,7 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.events.Descriptor;
 
 /**
  * Describes a test for which an event has occurred.

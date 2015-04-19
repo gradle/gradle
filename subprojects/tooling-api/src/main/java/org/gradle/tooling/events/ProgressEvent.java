@@ -17,7 +17,6 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Descriptor;
 
 /**
  * An event that signals progress while executing an operation. For example,

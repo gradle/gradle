@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.Descriptor;
+import org.gradle.tooling.events.Descriptor;
 import org.gradle.tooling.events.FailureEvent;
 import org.gradle.tooling.events.FailureOutcome;
 
