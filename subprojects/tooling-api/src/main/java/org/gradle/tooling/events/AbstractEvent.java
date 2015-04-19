@@ -28,6 +28,11 @@ public abstract class AbstractEvent implements Event {
 
     private final long eventTime;
 
+    /**
+     * Creates a new instance with the given event time.
+     *
+     * @param eventTime The event time, in milliseconds since the epoch
+     */
     protected AbstractEvent(long eventTime) {
         this.eventTime = eventTime;
     }
