@@ -16,7 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.TestProgressEvent;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
  * A listener which is notified when the tests that are executed as part of running a build make progress.
@@ -44,6 +44,6 @@ public interface TestProgressListener {
      *
      * @param event An event describing the test status change.
      */
-    void statusChanged(TestProgressEvent event);
+    void statusChanged(ProgressEvent event);
 
 }

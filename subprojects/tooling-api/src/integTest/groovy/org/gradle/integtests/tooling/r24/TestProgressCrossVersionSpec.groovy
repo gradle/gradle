@@ -52,12 +52,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when: "asking for a model and specifying some test task(s) to run first"
-        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         result.add(event)
                     }
                 }).get()
@@ -88,12 +88,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when: "launching a build"
-        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         result.add(event)
                     }
                 }).run()
@@ -129,7 +129,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
                 }).run()
@@ -160,23 +160,23 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when: "launching a build"
-        List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
-        List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> resultsOfFirstListener = new ArrayList<ProgressEvent>()
+        List<ProgressEvent> resultsOfLastListener = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         resultsOfFirstListener.add(event)
                     }
                 }).addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
                 }).addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         resultsOfLastListener.add(event)
                     }
                 }).run()
@@ -210,12 +210,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -323,12 +323,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -439,12 +439,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -583,12 +583,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        Queue<ProgressEvent> result = new ConcurrentLinkedQueue<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -663,12 +663,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        Queue<ProgressEvent> result = new ConcurrentLinkedQueue<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }

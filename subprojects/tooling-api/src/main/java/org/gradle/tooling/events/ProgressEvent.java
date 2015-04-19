@@ -29,7 +29,7 @@ import org.gradle.tooling.Descriptor;
 public interface ProgressEvent extends Event {
 
     /**
-     * The description of the underlying entity for which progress is reported.
+     * Returns the description of the underlying entity for which progress is reported.
      *
      * @return The description of the underlying entity.
      */
