@@ -19,6 +19,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.*;
 import org.gradle.tooling.events.*;
 import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.internal.protocol.*;
 
 import java.lang.reflect.InvocationHandler;
@@ -60,15 +61,14 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         String testOutcome = event.getTestOutcome();
-        final long eventTme = event.getEventTime();
+        final long eventTime = event.getEventTime();
         boolean isStart;
         String progressLabel;
         final List<Object> aggregate = new ArrayList<Object>();
         if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
-            isStart = true;
-            progressLabel = "started";
-            aggregate.add(new StartEvent() {
-            });
+            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
+            final String eventDescription = toEventDescription(testDescriptor, "started");
+            return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
         } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
             isStart = false;
             progressLabel = "failed";
@@ -101,7 +101,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
         TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart);
         String eventDescription = toEventDescription(testDescriptor, progressLabel);
-        TestEvent testEvent = new TestEvent(eventTme, eventDescription, testDescriptor);
+        TestEvent testEvent = new TestEvent(eventTime, eventDescription, testDescriptor);
         aggregate.add(testEvent);
         InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
         Set<Class<?>> interfaces = collectInterfaces(aggregate);
@@ -305,4 +305,5 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             return null;
         }
     }
+
 }

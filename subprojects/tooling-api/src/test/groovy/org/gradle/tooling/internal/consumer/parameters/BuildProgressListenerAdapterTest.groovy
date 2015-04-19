@@ -249,7 +249,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as ProgressEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.description == "Test suite 'some test suite' started."
             assert event.descriptor.name == 'some test suite'
@@ -401,7 +401,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as ProgressEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.description == "Atomic test 'some test' started."
             assert event.descriptor.name == 'some test'

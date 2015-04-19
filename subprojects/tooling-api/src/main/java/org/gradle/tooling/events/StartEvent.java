@@ -19,10 +19,10 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * A start event represents a unit of work which has just started.
+ * A start event informs about an entity having started to execute its operation.
  *
  * @since 2.4
  */
 @Incubating
-public interface StartEvent extends EventPayload {
+public interface StartEvent extends ProgressEvent {
 }
