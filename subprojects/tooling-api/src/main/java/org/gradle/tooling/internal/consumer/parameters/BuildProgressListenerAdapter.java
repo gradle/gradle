@@ -66,23 +66,23 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        String testOutcome = event.getTestOutcome();
         final long eventTime = event.getEventTime();
-        if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
+        String eventType = event.getEventType();
+        if (TestProgressEventVersion1.EVENT_TYPE_STARTED.equals(eventType)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
             String eventDescription = toEventDescription(testDescriptor, "started");
             return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
-        } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
+        } else if (TestProgressEventVersion1.EVENT_TYPE_FAILED.equals(eventType)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "failed");
             FailureOutcome outcome = toTestFailure(event.getResult());
             return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
-        } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
+        } else if (TestProgressEventVersion1.EVENT_TYPE_SKIPPED.equals(eventType)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "skipped");
             SuccessOutcome outcome = toTestSuccess(event.getResult());
             return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
-        } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
+        } else if (TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED.equals(eventType)) {
             TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = toEventDescription(testDescriptor, "succeeded");
             SuccessOutcome outcome = toTestSuccess(event.getResult());

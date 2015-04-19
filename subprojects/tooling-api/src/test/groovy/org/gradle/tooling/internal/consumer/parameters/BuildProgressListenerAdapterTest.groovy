@@ -62,7 +62,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         TestProgressEventVersion1 unknownEvent = Mock(TestProgressEventVersion1)
-        _ * unknownEvent.getTestOutcome() >> 'UNKNOWN_OUTCOME'
+        _ * unknownEvent.getEventType() >> 'UNKNOWN_OUTCOME'
 
         adapter.onEvent(unknownEvent)
 
@@ -82,7 +82,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -106,7 +106,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
 
@@ -118,7 +118,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDescriptor() >> testDescriptor
 
@@ -130,7 +130,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDescriptor() >> testDescriptor
 
@@ -142,7 +142,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
 
@@ -154,7 +154,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDescriptor() >> testDescriptor
 
@@ -166,7 +166,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         when:
         failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDescriptor() >> testDescriptor
 
@@ -189,7 +189,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * childTestDescriptor.getParentId() >> 1
 
         TestProgressEventVersion1 childEvent = Mock(TestProgressEventVersion1)
-        _ * childEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * childEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTestDescriptor
 
@@ -212,7 +212,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * parentTestDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 parentEvent = Mock(TestProgressEventVersion1)
-        _ * parentEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * parentEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * parentEvent.getEventTime() >> 999
         _ * parentEvent.getDescriptor() >> parentTestDescriptor
 
@@ -222,7 +222,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * childTestDescriptor.getParentId() >> parentTestDescriptor.getId()
 
         TestProgressEventVersion1 childEvent = Mock(TestProgressEventVersion1)
-        _ * childEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * childEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTestDescriptor
 
@@ -246,7 +246,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -276,12 +276,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
         TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
 
@@ -311,7 +311,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -320,7 +320,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testResult.getEndTime() >> 2
 
         TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDescriptor() >> testDescriptor
         _ * succeededEvent.getResult() >> testResult
@@ -354,7 +354,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -364,7 +364,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDescriptor() >> testDescriptor
         _ * failedEvent.getResult() >> testResult
@@ -398,7 +398,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -428,12 +428,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getClassName() >> 'Foo'
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
         TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
 
@@ -464,7 +464,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -473,7 +473,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testResult.getEndTime() >> 2
 
         TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDescriptor() >> testDescriptor
         _ * succeededEvent.getResult() >> testResult
@@ -506,7 +506,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
-        _ * startEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_STARTED
+        _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
@@ -516,7 +516,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getTestOutcome() >> TestProgressEventVersion1.OUTCOME_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDescriptor() >> testDescriptor
         _ * failedEvent.getResult() >> testResult

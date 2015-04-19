@@ -41,33 +41,33 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForSuite(suite), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForSuite(suite), null));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(toOutcome(result), System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), toEventType(result), toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptorForTest(test), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForTest(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(toOutcome(result), System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), toEventType(result), toTestDescriptorForTest(test), toTestResult(result)));
     }
 
-    private String toOutcome(TestResult result) {
+    private String toEventType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return TestProgressEventVersion1.OUTCOME_SUCCEEDED;
+                return TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED;
             case SKIPPED:
-                return TestProgressEventVersion1.OUTCOME_SKIPPED;
+                return TestProgressEventVersion1.EVENT_TYPE_SKIPPED;
             case FAILURE:
-                return TestProgressEventVersion1.OUTCOME_FAILED;
+                return TestProgressEventVersion1.EVENT_TYPE_FAILED;
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

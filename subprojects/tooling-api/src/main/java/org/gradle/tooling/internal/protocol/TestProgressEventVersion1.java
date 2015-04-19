@@ -20,10 +20,10 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface TestProgressEventVersion1 {
 
-    String OUTCOME_STARTED = "STARTED";
-    String OUTCOME_SKIPPED = "SKIPPED";
-    String OUTCOME_SUCCEEDED = "SUCCEEDED";
-    String OUTCOME_FAILED = "FAILED";
+    String EVENT_TYPE_STARTED = "STARTED";
+    String EVENT_TYPE_SKIPPED = "SKIPPED";
+    String EVENT_TYPE_SUCCEEDED = "SUCCEEDED";
+    String EVENT_TYPE_FAILED = "FAILED";
 
     /**
      * Returns the time when the event happened.
@@ -33,11 +33,11 @@ public interface TestProgressEventVersion1 {
     long getEventTime();
 
     /**
-     * Returns the outcome of the test that has progressed. See the constants on this interface for the supported outcome types.
+     * Returns the type of the test progress event. See the constants on this interface for the supported event types.
      *
-     * @return The outcome of the progressed test (started, skipped, etc.)
+     * @return The type of the test progress event (started, skipped, etc.)
      */
-    String getTestOutcome();
+    String getEventType();
 
     /**
      * Returns the description of the test for which progress is reported.
