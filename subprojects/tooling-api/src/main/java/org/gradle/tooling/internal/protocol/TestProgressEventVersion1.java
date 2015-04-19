@@ -26,18 +26,18 @@ public interface TestProgressEventVersion1 {
     String OUTCOME_FAILED = "FAILED";
 
     /**
-     * Returns the outcome of the test that has progressed. See the constants on this interface for the supported outcome types.
-     *
-     * @return The outcome of the progressed test (started, skipped, etc.)
-     */
-    String getTestOutcome();
-
-    /**
      * Returns the time when the event happened.
      *
      * @return The event time
      */
     long getEventTime();
+
+    /**
+     * Returns the outcome of the test that has progressed. See the constants on this interface for the supported outcome types.
+     *
+     * @return The outcome of the progressed test (started, skipped, etc.)
+     */
+    String getTestOutcome();
 
     /**
      * Returns the description of the test for which progress is reported.
