@@ -16,24 +16,27 @@
 package org.gradle.tooling.events;
 
 /**
- * A test kind, allowing to differentiate between test suites, atomic tests or unknown test types.
+ * Enumerates the different kinds of JVM tests. This allows to differentiate between test suites, atomic tests, etc.
  */
-public enum TestKind {
-    suite("TestSuite"),
-    test("Test"),
-    unknown("Unknown");
+public enum JvmTestKind {
+
+    SUITE("TestSuite"),
+    ATOMIC("Test"),
+    UNKNOWN("Unknown");
 
     private final String label;
 
-    TestKind(String label) {
+    JvmTestKind(String label) {
         this.label = label;
     }
 
     /**
-     * A label for the test kind which can be used to generate a prettified version of the test descriptor.
+     * Returns a label for the test kind. The label can be used to generate a prettified version of the test descriptor.
+     *
      * @return a label corresponding to the test kind
      */
     public String getLabel() {
         return label;
     }
+
 }

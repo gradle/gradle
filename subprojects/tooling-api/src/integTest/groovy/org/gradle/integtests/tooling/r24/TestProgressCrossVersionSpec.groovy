@@ -230,7 +230,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootStartedEvent instanceof StartEvent &&
                 rootStartedEvent.eventTime > 0 &&
                 rootStartedEvent.description == "TestSuite 'Gradle Test Run :test' started." &&
-                rootStartedEvent.descriptor.testKind == TestKind.suite &&
+                rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
@@ -240,7 +240,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testProcessStartedEvent instanceof StartEvent &&
                 testProcessStartedEvent.eventTime > 0 &&
                 testProcessStartedEvent.description == "TestSuite 'Gradle Test Executor 2' started." &&
-                testProcessStartedEvent.descriptor.testKind == TestKind.suite &&
+                testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.suiteName == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.className == null &&
@@ -250,7 +250,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testClassStartedEvent instanceof StartEvent &&
                 testClassStartedEvent.eventTime > 0 &&
                 testClassStartedEvent.description == "TestSuite 'example.MyTest' started." &&
-                testClassStartedEvent.descriptor.testKind == TestKind.suite &&
+                testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testClassStartedEvent.descriptor.name == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.suiteName == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.className == 'example.MyTest' &&
@@ -260,7 +260,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testStartedEvent instanceof StartEvent &&
                 testStartedEvent.eventTime > 0 &&
                 testStartedEvent.description == "Test 'foo' started." &&
-                testStartedEvent.descriptor.testKind == TestKind.test &&
+                testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
                 testStartedEvent.descriptor.name == 'foo' &&
                 testStartedEvent.descriptor.suiteName == null &&
                 testStartedEvent.descriptor.className == 'example.MyTest' &&
@@ -339,7 +339,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootStartedEvent instanceof StartEvent &&
                 rootStartedEvent.eventTime > 0 &&
                 rootStartedEvent.description == "TestSuite 'Gradle Test Run :test' started." &&
-                rootStartedEvent.descriptor.testKind == TestKind.suite &&
+                rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
@@ -349,7 +349,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testProcessStartedEvent instanceof StartEvent &&
                 testProcessStartedEvent.eventTime > 0 &&
                 testProcessStartedEvent.description == "TestSuite 'Gradle Test Executor 2' started." &&
-                testProcessStartedEvent.descriptor.testKind == TestKind.suite &&
+                testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.suiteName == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.className == null &&
@@ -359,7 +359,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testClassStartedEvent instanceof StartEvent &&
                 testClassStartedEvent.eventTime > 0 &&
                 testClassStartedEvent.description == "TestSuite 'example.MyTest' started." &&
-                testClassStartedEvent.descriptor.testKind == TestKind.suite &&
+                testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testClassStartedEvent.descriptor.name == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.suiteName == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.className == 'example.MyTest' &&
@@ -369,7 +369,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testStartedEvent instanceof StartEvent &&
                 testStartedEvent.eventTime > 0 &&
                 testStartedEvent.description == "Test 'foo' started." &&
-                testStartedEvent.descriptor.testKind == TestKind.test &&
+                testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
                 testStartedEvent.descriptor.name == 'foo' &&
                 testStartedEvent.descriptor.suiteName == null &&
                 testStartedEvent.descriptor.className == 'example.MyTest' &&
@@ -451,7 +451,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         rootStartedEvent instanceof StartEvent &&
                 rootStartedEvent.eventTime > 0 &&
                 rootStartedEvent.description == "TestSuite 'Gradle Test Run :test' started." &&
-                rootStartedEvent.descriptor.testKind == TestKind.suite &&
+                rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
@@ -461,7 +461,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testProcessStartedEvent instanceof StartEvent &&
                 testProcessStartedEvent.eventTime > 0 &&
                 testProcessStartedEvent.description == "TestSuite 'Gradle Test Executor 2' started." &&
-                testProcessStartedEvent.descriptor.testKind == TestKind.suite &&
+                testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.suiteName == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.className == null &&
@@ -471,7 +471,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testClassStartedEvent instanceof StartEvent &&
                 testClassStartedEvent.eventTime > 0 &&
                 testClassStartedEvent.description == "TestSuite 'example.MyTest' started." &&
-                testClassStartedEvent.descriptor.testKind == TestKind.suite &&
+                testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
                 testClassStartedEvent.descriptor.name == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.suiteName == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.className == 'example.MyTest' &&
@@ -481,7 +481,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testStartedEvent instanceof StartEvent &&
                 testStartedEvent.eventTime > 0 &&
                 testStartedEvent.description == "Test 'foo' started." &&
-                testStartedEvent.descriptor.testKind == TestKind.test &&
+                testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
                 testStartedEvent.descriptor.name == 'foo' &&
                 testStartedEvent.descriptor.suiteName == null &&
                 testStartedEvent.descriptor.className == 'example.MyTest' &&
