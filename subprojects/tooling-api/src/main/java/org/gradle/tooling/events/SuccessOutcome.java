@@ -18,11 +18,10 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * Some information about having run a test successfully.
+ * Provides information about the successful execution of an operation.
  *
  * @since 2.4
  */
 @Incubating
 public interface SuccessOutcome extends Outcome {
-
 }

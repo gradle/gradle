@@ -21,7 +21,7 @@ import org.gradle.tooling.Failure;
 import java.util.List;
 
 /**
- * Some information about having run a test with a failure.
+ * Provides information about the failed execution of an operation.
  *
  * @since 2.4
  */
@@ -29,9 +29,9 @@ import java.util.List;
 public interface FailureOutcome extends Outcome {
 
     /**
-     * The exceptions that occurred while running the test, if any.
+     * Returns the exceptions that occurred while running the operation, if any.
      *
-     * @return the exceptions, empty if the test failed without any exceptions
+     * @return the exceptions, empty if the operation failed without any exceptions
      */
     List<Failure> getFailures();
 

@@ -19,7 +19,7 @@ package org.gradle.tooling.events;
 import org.gradle.api.Incubating;
 
 /**
- * An event that informs about an entity having succeeded to execute its operation.
+ * An event that informs about an operation having finished its execution successfully.
  *
  * @since 2.4
  */

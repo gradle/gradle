@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.Descriptor;
 
 /**
- * An event that signals progress of an entity while executing a long running operation. For example,
+ * An event that signals progress while executing an operation. For example,
  * a test having started, a task having finished, etc.
  *
  * @since 2.4
@@ -29,9 +29,9 @@ import org.gradle.tooling.Descriptor;
 public interface ProgressEvent extends Event {
 
     /**
-     * Returns the description of the underlying entity for which progress is reported.
+     * Returns the description of the underlying operation for which progress is reported.
      *
-     * @return The description of the underlying entity.
+     * @return The description of the underlying operation.
      */
     Descriptor getDescriptor();
 

@@ -19,8 +19,8 @@ import org.gradle.api.Incubating;
 
 /**
  * Root interface for all events propagated through the Tooling API. An event is an abstract concept for an entity
- * that can be monitored having experienced something worthwhile to share. Monitored entities could be tests, tasks,
- * the build, the file system, etc.
+ * that can be monitored having experienced something worthwhile to share. Monitored entities could be the file system,
+ * the dependency graph, etc. or operations that execute the build, tests, tasks, etc.
  *
  * @since 2.4
  */
@@ -29,7 +29,7 @@ public interface Event {
 
     /**
      * Returns the time this event was triggered. Note that the event time is independent from the time something
-     * happened in the underlying entity that is monitored (test, task, build, file system, etc.).
+     * happened in the underlying operation that is monitored (execution of tests, tasks, build, file system, etc.).
      *
      * @return The event time, in milliseconds since the epoch.
      */
