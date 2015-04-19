@@ -26,7 +26,7 @@ import org.gradle.tooling.TestDescriptor;
  * @since 2.4
  */
 @Incubating
-public class TestEvent extends AbstractEvent implements TestProgressEvent {
+public class TestEvent extends AbstractEvent implements ProgressEvent {
 
     private final String description;
     private final TestDescriptor testDescriptor;
@@ -44,15 +44,6 @@ public class TestEvent extends AbstractEvent implements TestProgressEvent {
      */
     @Override
     public Descriptor getDescriptor() {
-        return getTestDescriptor();
-    }
-
-    /**
-     * The test descriptor of this event
-     *
-     * @return a test descriptor
-     */
-    public TestDescriptor getTestDescriptor() {
         return testDescriptor;
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.*;
 import org.gradle.tooling.events.*;
+import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.internal.protocol.*;
 
 import java.lang.reflect.InvocationHandler;
@@ -52,13 +53,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private void broadcastTestProgressEvent(TestProgressEventVersion1 event) {
-        TestProgressEvent testProgressEvent = toTestProgressEvent(event);
+        ProgressEvent testProgressEvent = toTestProgressEvent(event);
         if (testProgressEvent != null) {
             testProgressListeners.getSource().statusChanged(testProgressEvent);
         }
     }
 
-    private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
+    private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         String testStructure = event.getTestStructure();
         String testOutcome = event.getTestOutcome();
         final long eventTme = event.getEventTime();
@@ -109,12 +110,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         aggregate.add(testEvent);
         InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
         Set<Class<?>> interfaces = collectInterfaces(aggregate);
-        return (TestProgressEvent) Proxy.newProxyInstance(this.getClass().getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), handler);
+        return (ProgressEvent) Proxy.newProxyInstance(this.getClass().getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), handler);
     }
 
     private static Set<Class<?>> collectInterfaces(List<Object> aggregate) {
         Set<Class<?>> interfaces = new HashSet<Class<?>>(aggregate.size() + 1);
-        interfaces.add(TestProgressEvent.class);
+        interfaces.add(ProgressEvent.class);
         for (Object payload : aggregate) {
             Class<?> payloadClass = payload.getClass();
             Collections.addAll(interfaces, payloadClass.getInterfaces());
