@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.events.JvmTestKind;
 
 /**
  * Describes a test that runs on the JVM and for which an event has occurred. At least

@@ -17,17 +17,17 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.JvmTestDescriptor;
-import org.gradle.tooling.TestDescriptor;
 import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.events.FailureOutcome;
-import org.gradle.tooling.events.JvmTestKind;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.internal.DefaultFailureEvent;
 import org.gradle.tooling.events.internal.DefaultSkippedEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultSuccessEvent;
+import org.gradle.tooling.events.test.JvmTestDescriptor;
+import org.gradle.tooling.events.test.JvmTestKind;
+import org.gradle.tooling.events.test.TestDescriptor;
 import org.gradle.tooling.internal.protocol.*;
 
 import java.util.*;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.test;
 
 /**
  * Enumerates the different kinds of JVM tests. This allows to differentiate between test suites, atomic tests, etc.

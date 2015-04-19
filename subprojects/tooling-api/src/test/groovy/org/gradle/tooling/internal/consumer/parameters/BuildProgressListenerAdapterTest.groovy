@@ -18,7 +18,11 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.tooling.TestProgressListener
-import org.gradle.tooling.events.*
+import org.gradle.tooling.events.FailureEvent
+import org.gradle.tooling.events.SkippedEvent
+import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.SuccessEvent
+import org.gradle.tooling.events.test.JvmTestKind
 import org.gradle.tooling.internal.protocol.*
 import spock.lang.Specification
 

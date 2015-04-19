@@ -23,6 +23,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestProgressListener
 import org.gradle.tooling.events.*
+import org.gradle.tooling.events.test.JvmTestKind
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

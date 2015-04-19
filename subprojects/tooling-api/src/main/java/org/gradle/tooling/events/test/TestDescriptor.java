@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
