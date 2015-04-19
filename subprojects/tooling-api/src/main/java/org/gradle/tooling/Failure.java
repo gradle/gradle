@@ -15,64 +15,40 @@
  */
 package org.gradle.tooling;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
- * A class holding information about failures. Failures are similar to exceptions
- * but carry less information (only a message, a description and a cause) so they
- * can be used in a wider scope than just Java compilation.
+ * Represents a failure. Failures are similar to exceptions but carry less information (only a message, a description and a cause) so
+ * they can be used in a wider scope than just Java compilation.
  *
  * @since 2.4
  */
-public class Failure {
-    private final String message;
-    private final String description;
-    private final Failure cause;
-
-    public Failure(String message, String description, Failure cause) {
-        this.cause = cause;
-        this.message = message;
-        this.description = description;
-    }
-
-    public Failure(String message, String description) {
-        this.message = message;
-        this.description = description;
-        this.cause = null;
-    }
+@Incubating
+public interface Failure {
 
     /**
      * Returns a short message (typically one line) for the failure.
+     *
      * @return the failure message
      */
-    public String getMessage() {
-        return message;
-    }
+    @Nullable
+    String getMessage();
 
     /**
      * Returns a long description of the failure. For example, a stack trace.
+     *
      * @return a long description of the failure
      */
-    public String getDescription() {
-        return description;
-    }
+    @Nullable
+    String getDescription();
 
     /**
      * Returns the underlying cause for this failure, if any.
-     * @return the cause for this failure, or <i>null</i> if there's no underlying failure or the cause is unknown.
+     *
+     * @return the cause for this failure, or {@code null} if there's no underlying failure or the cause is unknown
      */
-    public Failure getCause() {
-        return cause;
-    }
-
-    public static Failure fromThrowable(Throwable e) {
-        StringWriter out = new StringWriter();
-        PrintWriter wrt = new PrintWriter(out);
-        e.printStackTrace(wrt);
-        Throwable cause = e.getCause();
-        Failure causeFailure = cause!=null && cause!=e ? fromThrowable(cause) : null;
-        return new Failure(e.getMessage(), out.toString(), causeFailure);
-    }
+    @Nullable
+    Failure getCause();
 
 }

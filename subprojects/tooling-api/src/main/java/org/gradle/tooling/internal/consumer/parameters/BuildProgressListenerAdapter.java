@@ -28,6 +28,7 @@ import org.gradle.tooling.events.internal.DefaultSuccessEvent;
 import org.gradle.tooling.events.test.JvmTestDescriptor;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestDescriptor;
+import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
 import java.util.*;
@@ -229,7 +230,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private static Failure toFailure(FailureVersion1 origFailure) {
-        return origFailure == null ? null : new Failure(
+        return origFailure == null ? null : new DefaultFailure(
                 origFailure.getMessage(),
                 origFailure.getDescription(),
                 toFailure(origFailure.getCause()));
