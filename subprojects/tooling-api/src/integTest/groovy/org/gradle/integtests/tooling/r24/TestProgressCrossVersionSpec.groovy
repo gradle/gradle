@@ -314,7 +314,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             public class MyTest {
                 @org.junit.Test public void foo() throws Exception {
                      Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
-                     org.junit.Assert.assertEquals(1, 2);
+                     throw new RuntimeException("broken", new RuntimeException("nope"));
                 }
             }
         """
@@ -383,7 +383,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testFailedEvent.descriptor == testStartedEvent.descriptor &&
                 testFailedEvent.outcome.startTime > 0 &&
                 testFailedEvent.outcome.endTime > testFailedEvent.outcome.startTime &&
-                testFailedEvent.outcome.failures.findAll { it.description =~ /AssertionError/ }.size() == 1
+                testFailedEvent.outcome.failures.size() == 1 &&
+                testFailedEvent.outcome.failures[0].message == 'broken' &&
+                testFailedEvent.outcome.failures[0].description.startsWith("java.lang.RuntimeException: broken") &&
+                testFailedEvent.outcome.failures[0].description.contains("at example.MyTest.foo(MyTest.java:6)") &&
+                testFailedEvent.outcome.failures[0].causes.size() == 1 &&
+                testFailedEvent.outcome.failures[0].causes[0].message == 'nope' &&
+                testFailedEvent.outcome.failures[0].causes[0].causes.empty
         def testClassFailedEvent = result[5]
         testClassFailedEvent instanceof FailureEvent &&
                 testClassFailedEvent.eventTime >= testClassFailedEvent.outcome.endTime &&

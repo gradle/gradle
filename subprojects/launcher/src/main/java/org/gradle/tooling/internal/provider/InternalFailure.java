@@ -15,11 +15,15 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.internal.protocol.FailureVersion1;
+
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.util.Collections;
+import java.util.List;
 
-public class InternalFailure implements Serializable {
+public class InternalFailure implements Serializable, FailureVersion1 {
 
     private final String message;
     private final String description;
@@ -39,8 +43,9 @@ public class InternalFailure implements Serializable {
         return description;
     }
 
-    public InternalFailure getCause() {
-        return cause;
+    @Override
+    public List<? extends FailureVersion1> getCauses() {
+        return cause == null ? Collections.<FailureVersion1>emptyList() : Collections.singletonList(cause);
     }
 
     public static InternalFailure fromThrowable(Throwable t) {

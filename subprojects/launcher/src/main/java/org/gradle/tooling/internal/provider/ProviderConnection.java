@@ -44,7 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -254,43 +256,14 @@ public class ProviderConnection {
                             }
 
                             @Override
-                            public List<FailureVersion1> getFailures() {
-                                List<InternalFailure> resultFailures = testProgressEvent.getResult().getFailures();
-                                List<FailureVersion1> failures = new ArrayList<FailureVersion1>(resultFailures.size());
-                                for (InternalFailure resultFailure : resultFailures) {
-                                    failures.add(toFailure(resultFailure));
-                                }
-                                return failures;
+                            public List<? extends FailureVersion1> getFailures() {
+                                return testProgressEvent.getResult().getFailures();
                             }
-
                         };
                     }
-
                 });
             }
         }
-
-        private static FailureVersion1 toFailure(final InternalFailure resultFailure) {
-            return resultFailure == null ? null : new FailureVersion1() {
-
-                @Override
-                public String getMessage() {
-                    return resultFailure.getMessage();
-                }
-
-                @Override
-                public String getDescription() {
-                    return resultFailure.getDescription();
-                }
-
-                @Override
-                public List<FailureVersion1> getCauses() {
-                    return Arrays.asList(toFailure(resultFailure.getCause()));
-                }
-
-            };
-        }
-
     }
 
 }
