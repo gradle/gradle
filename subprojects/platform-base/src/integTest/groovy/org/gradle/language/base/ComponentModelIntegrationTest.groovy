@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
@@ -231,6 +232,23 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("This collection does not support element removal.")
     }
 
+    def "can create a component via build script"() {
+        when:
+        buildFile << """
+        model {
+            components {
+                someCustomComponent(CustomComponent)
+            }
+        }
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
+            source"""))
+
+    }
 
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
@@ -290,11 +308,11 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails "tasks"
         then:
-        errorOutput.contains "Cannot add Mutate rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified) > all()' for model element 'components.main'"
+        failureHasCause "Cannot add Mutate rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified) > all()' for model element 'components.main'"
 
         where:
-        projectionType                      | fullQualified
-        "CollectionBuilder<ComponentSpec>"  | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
-        "ComponentSpecContainer"            | "org.gradle.platform.base.ComponentSpecContainer"
+        projectionType                     | fullQualified
+        "CollectionBuilder<ComponentSpec>" | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
+        "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
     }
 }
