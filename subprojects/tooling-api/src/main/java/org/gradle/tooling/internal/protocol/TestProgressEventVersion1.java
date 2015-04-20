@@ -22,10 +22,10 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface TestProgressEventVersion1 {
 
-    String EVENT_TYPE_STARTED = "STARTED";
-    String EVENT_TYPE_SKIPPED = "SKIPPED";
-    String EVENT_TYPE_SUCCEEDED = "SUCCEEDED";
-    String EVENT_TYPE_FAILED = "FAILED";
+    String EVENT_TYPE_STARTED = "TEST-STARTED";
+    String EVENT_TYPE_SKIPPED = "TEST-SKIPPED";
+    String EVENT_TYPE_SUCCEEDED = "TEST-SUCCEEDED";
+    String EVENT_TYPE_FAILED = "TEST-FAILED";
 
     /**
      * Returns the time when the event happened.
