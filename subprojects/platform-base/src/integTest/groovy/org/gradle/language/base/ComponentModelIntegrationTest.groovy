@@ -232,7 +232,117 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("This collection does not support element removal.")
     }
 
-    def "can create a component via build script"() {
+    def "plugin can create component"() {
+        when:
+        buildFile << """
+        class SomeComponentPlugin extends RuleSource {
+            @Mutate
+            void createComponent(ComponentSpecContainer specs) {
+                specs.create("someCustomComponent", CustomComponent)
+            }
+        }
+        apply plugin: SomeComponentPlugin
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""    components
+        main
+            source
+        someCustomComponent
+"""))
+
+    }
+
+    def "plugin can configure component with given name"() {
+        given:
+        withMainSourceSet()
+        when:
+        buildFile << """
+        class SomeComponentPlugin extends RuleSource {
+            @Mutate
+            void addSourceSet(ComponentSpecContainer specs) {
+                specs.named("main") {
+                    sources {
+                        bar(CustomLanguageSourceSet)
+                    }
+                }
+
+            }
+        }
+        apply plugin: SomeComponentPlugin
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""    components
+        main
+            source
+                bar
+                main"""))
+    }
+
+    def "plugin can apply component beforeEach / afterEach"() {
+        when:
+        buildFile << """
+        class SomeComponentPlugin extends RuleSource {
+            @Mutate
+            void applyCustomizations(ComponentSpecContainer specs) {
+                specs.create("newComponent", CustomComponent) {
+                    println "creating \$it"
+                }
+                specs.afterEach {
+                    println "afterEach \$it"
+                }
+                specs.beforeEach {
+                    println "beforeEach \$it"
+                }
+            }
+        }
+        apply plugin: SomeComponentPlugin
+        """
+        then:
+        succeeds "tasks"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'newComponent'
+creating DefaultCustomComponent 'newComponent'
+afterEach DefaultCustomComponent 'newComponent'"""))
+
+    }
+
+    def "plugin can configure component with given type "() {
+        given:
+        withMainSourceSet()
+        when:
+        buildFile << """
+        class SomeComponentPlugin extends RuleSource {
+            @Mutate
+            void applyCustomizations(ComponentSpecContainer specs) {
+                specs.withType(CustomComponent) {
+                    sources {
+                        bar(CustomLanguageSourceSet)
+                    }
+                }
+            }
+        }
+        apply plugin: SomeComponentPlugin
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""    components
+        main
+            source
+                bar
+                main"""))
+
+    }
+
+    def "buildscript can create component"() {
         when:
         buildFile << """
         model {
@@ -247,6 +357,132 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
             source"""))
+
+    }
+
+    def "buildscript can configure component with given name"() {
+        given:
+        withMainSourceSet()
+        when:
+        buildFile << """
+        model {
+            components {
+                test(CustomComponent)
+
+                named("main") {
+                    sources {
+                        bar(CustomLanguageSourceSet)
+                    }
+                }
+            }
+        }
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""    components
+        main
+            source
+                bar
+                main
+        test
+            source
+"""))
+
+    }
+
+    def "buildscript can apply component beforeEach / afterEach"() {
+        given:
+        withMainSourceSet()
+        when:
+        buildFile << """
+        model {
+            components {
+               newComponent(CustomComponent){
+                    println "creating \$it"
+               }
+               beforeEach {
+                    println "beforeEach \$it"
+               }
+
+               afterEach {
+                    println "afterEach \$it"
+               }
+            }
+        }
+        """
+        then:
+        succeeds "tasks"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'newComponent'
+creating DefaultCustomComponent 'newComponent'
+afterEach DefaultCustomComponent 'newComponent'"""))
+
+    }
+
+    def "buildscript can configure component with given type "() {
+        given:
+        withMainSourceSet()
+        when:
+        buildFile << """
+        model {
+            components {
+                withType(CustomComponent.class) {
+                    sources {
+                        bar(CustomLanguageSourceSet)
+                    }
+                }
+            }
+        }
+        """
+        then:
+        succeeds "model"
+
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""    components
+        main
+            source
+                bar
+                main"""))
+
+    }
+
+    def "reasonable error message when creating component with default implementation"() {
+        when:
+        buildFile << """
+        model {
+            components {
+                another(DefaultCustomComponent)
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failureHasCause("Cannot create a DefaultCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+    }
+
+    def "reasonable error message when creating component with no implementation"() {
+        when:
+        buildFile << """
+        interface AnotherCustomComponent extends ComponentSpec {}
+
+        model {
+            components {
+                another(AnotherCustomComponent)
+            }
+        }
+
+        """
+        then:
+        fails "model"
+
+        and:
+        failureHasCause("Cannot create a AnotherCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
 
     }
 
