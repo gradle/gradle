@@ -15,11 +15,10 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
+import spock.lang.Unroll
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -268,20 +267,17 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Main component: main")
     }
 
-    // this exposes a problem with the CollectionBuilder view
-    // as they don't noticed when get closed
-    // todo when fixed update to check correct error message
-    @Ignore
-    def "CollectionBuilder<ComponentSpec> is closed when used as input"() {
-        when:
+    @Unroll
+    def "#projectionType is closed when used as input"() {
+        given:
         withMainSourceSet()
-        buildFile << '''
+        buildFile << """
             import org.gradle.model.collection.*
 
             class ComponentSpecContainerRules extends RuleSource {
 
                 @Mutate
-                void addComponentTasks(TaskContainer tasks, CollectionBuilder<ComponentSpec> componentSpecs) {
+                void addComponentTasks(TaskContainer tasks, $projectionType componentSpecs) {
                     componentSpecs.all {
                         // some stuff here
                     }
@@ -289,9 +285,16 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply type: ComponentSpecContainerRules
-        '''
+        """
 
-        then:
+        when:
         fails "tasks"
+        then:
+        errorOutput.contains "Cannot add Mutate rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified) > all()' for model element 'components.main'"
+
+        where:
+        projectionType                      | fullQualified
+        "CollectionBuilder<ComponentSpec>"  | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
+        "ComponentSpecContainer"            | "org.gradle.platform.base.ComponentSpecContainer"
     }
 }
