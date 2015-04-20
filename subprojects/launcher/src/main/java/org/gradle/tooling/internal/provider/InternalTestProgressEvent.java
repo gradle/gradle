@@ -15,11 +15,15 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
+import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.TestResultVersion1;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class InternalTestProgressEvent implements Serializable {
+public class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
 
     private final long eventTime;
     private final String eventType;
@@ -49,7 +53,7 @@ public class InternalTestProgressEvent implements Serializable {
         return result;
     }
 
-    public static class InternalTestDescriptor implements Serializable {
+    public static class InternalTestDescriptor implements Serializable, JvmTestDescriptorVersion1 {
 
         private final Object id;
         private final String name;
@@ -99,7 +103,7 @@ public class InternalTestProgressEvent implements Serializable {
 
     }
 
-    public static class InternalTestResult implements Serializable {
+    public static class InternalTestResult implements Serializable, TestResultVersion1 {
 
         private final long startTime;
         private final long endTime;
