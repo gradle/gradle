@@ -270,9 +270,10 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
     // this exposes a problem with the CollectionBuilder view
     // as they don't noticed when get closed
+    // todo when fixed update to check correct error message
     @Ignore
     def "CollectionBuilder<ComponentSpec> is closed when used as input"() {
-        given:
+        when:
         withMainSourceSet()
         buildFile << '''
             import org.gradle.model.collection.*
@@ -290,7 +291,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             apply type: ComponentSpecContainerRules
         '''
 
-        when:
+        then:
         fails "tasks"
     }
 }
