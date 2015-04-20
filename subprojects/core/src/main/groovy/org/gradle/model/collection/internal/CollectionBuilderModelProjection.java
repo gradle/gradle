@@ -120,4 +120,30 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
     public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
         return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(getCreatableTypes(node)));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CollectionBuilderModelProjection<?> that = (CollectionBuilderModelProjection<?>) o;
+
+        if (baseItemType != null ? !baseItemType.equals(that.baseItemType) : that.baseItemType != null) {
+            return false;
+        }
+        return !(baseItemModelType != null ? !baseItemModelType.equals(that.baseItemModelType) : that.baseItemModelType != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = baseItemType != null ? baseItemType.hashCode() : 0;
+        result = 31 * result + (baseItemModelType != null ? baseItemModelType.hashCode() : 0);
+        return result;
+    }
+
 }

@@ -19,7 +19,10 @@ package org.gradle.model.collection.internal;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DefaultCollectionBuilder;
+import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
@@ -46,5 +49,22 @@ public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilder
 
         PolymorphicNamedEntityInstantiator<T> instantiator = node.getPrivateData(instantiatorType);
         return instantiator.getCreatableTypes();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return initializer != null ? initializer.hashCode() : 0;
     }
 }

@@ -39,6 +39,31 @@ public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        SpecializedCollectionBuilderProjection<?, ?> that = (SpecializedCollectionBuilderProjection<?, ?>) o;
+
+        return !(publicType != null ? !publicType.equals(that.publicType) : that.publicType != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (publicType != null ? publicType.hashCode() : 0);
+        result = 31 * result + (factory != null ? factory.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
         return targetType.equals(publicType) && super.canBeViewedAsWritable(targetType);
     }

@@ -15,15 +15,12 @@
  */
 
 package org.gradle.model
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.model.persist.ReusingModelRegistryStore
-import spock.lang.Ignore
-
 //@IgnoreIf({ GradleContextualExecuter.isDaemon() })
-@Ignore("failing builds randomly on windows: http://builds.gradle.org/viewLog.html?buildId=276330&buildTypeId=Gradle_Master_Coverage_WindowsJava18_2")
+//@Ignore("failing builds randomly on windows: http://builds.gradle.org/viewLog.html?buildId=276330&buildTypeId=Gradle_Master_Coverage_WindowsJava18_2")
 class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
