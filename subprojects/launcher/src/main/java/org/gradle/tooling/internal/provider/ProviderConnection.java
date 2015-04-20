@@ -44,10 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -287,8 +284,8 @@ public class ProviderConnection {
                 }
 
                 @Override
-                public FailureVersion1 getCause() {
-                    return toFailure(resultFailure.getCause());
+                public List<FailureVersion1> getCauses() {
+                    return Arrays.asList(toFailure(resultFailure.getCause()));
                 }
 
             };

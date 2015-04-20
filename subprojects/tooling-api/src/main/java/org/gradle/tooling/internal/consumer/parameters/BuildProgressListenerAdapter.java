@@ -218,7 +218,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
             @Override
             public List<Failure> getFailures() {
-                List<FailureVersion1> origFailures = testResult.getFailures();
+                List<? extends FailureVersion1> origFailures = testResult.getFailures();
                 List<Failure> failures = new ArrayList<Failure>(origFailures.size());
                 for (FailureVersion1 origFailure : origFailures) {
                     failures.add(toFailure(origFailure));
@@ -233,7 +233,15 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return origFailure == null ? null : new DefaultFailure(
                 origFailure.getMessage(),
                 origFailure.getDescription(),
-                toFailure(origFailure.getCause()));
+                toFailure(origFailure.getCauses()));
+    }
+
+    private static List<Failure> toFailure(List<? extends FailureVersion1> causes) {
+        List<Failure> result = new ArrayList<Failure>();
+        for (FailureVersion1 cause : causes) {
+            result.add(toFailure(cause));
+        }
+        return result;
     }
 
     private TestOperationDescriptor getParentTestDescriptor(TestDescriptorVersion1 testDescriptor) {

@@ -30,23 +30,23 @@ class BuildProgressListenerAdapterTest extends Specification {
 
     def "adapter is only subscribing to test progress events if at least one test progress listener is attached"() {
         when:
-        def adapter = new BuildProgressListenerAdapter(Collections.emptyList())
+        def adapter = new BuildProgressListenerAdapter([])
 
         then:
         adapter.getSubscribedEvents() == []
 
         when:
         final TestProgressListener listener = Mock(TestProgressListener)
-        adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        adapter = new BuildProgressListenerAdapter([listener])
 
         then:
-        adapter.getSubscribedEvents() == Collections.singletonList(BuildProgressListenerVersion1.TEST_PROGRESS)
+        adapter.getSubscribedEvents() == [BuildProgressListenerVersion1.TEST_PROGRESS]
     }
 
     def "only TestProgressEventVersionX instances are processed"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         adapter.onEvent(new Object())
@@ -58,7 +58,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "only TestProgressEventVersionX instances with known outcome are processed"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         TestProgressEventVersion1 unknownEvent = Mock(TestProgressEventVersion1)
@@ -73,7 +73,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of start events throws exception if previous start event with same test descriptor exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(TestDescriptorVersion1)
@@ -97,7 +97,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of non-start events throws exception if no previous start event with same test descriptor exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(TestDescriptorVersion1)
@@ -180,7 +180,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of child events throws exception if no previous parent event exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def childTestDescriptor = Mock(TestDescriptorVersion1)
@@ -203,7 +203,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of child events expects parent event exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def parentTestDescriptor = Mock(TestDescriptorVersion1)
@@ -236,7 +236,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteStartedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -266,7 +266,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteSkippedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -301,7 +301,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteSucceededEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -344,7 +344,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteFailedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -361,7 +361,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
+        _ * testResult.getFailures() >> [Stub(FailureVersion1)]
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
@@ -388,7 +388,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestStartedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -417,7 +417,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSkippedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -454,7 +454,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSucceededEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -496,7 +496,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestFailedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter(Collections.singletonList(listener))
+        def adapter = new BuildProgressListenerAdapter([listener])
 
         when:
         def testDescriptor = Mock(JvmTestDescriptorVersion1)
@@ -513,7 +513,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
+        _ * testResult.getFailures() >> [Stub(FailureVersion1)]
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED

@@ -15,8 +15,12 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
 public interface FailureVersion1 {
 
@@ -39,6 +43,6 @@ public interface FailureVersion1 {
      *
      * @return the cause of the failure, can be null
      */
-    FailureVersion1 getCause();
+    List<? extends FailureVersion1> getCauses();
 
 }

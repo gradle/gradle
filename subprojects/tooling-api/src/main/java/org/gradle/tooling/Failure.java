@@ -18,6 +18,8 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
+import java.util.List;
+
 /**
  * Represents a failure. Failures are similar to exceptions but carry less information (only a message, a description and a cause) so
  * they can be used in a wider scope than just Java compilation.
@@ -44,11 +46,10 @@ public interface Failure {
     String getDescription();
 
     /**
-     * Returns the underlying cause for this failure, if any.
+     * Returns the underlying causes for this failure, if any.
      *
-     * @return the cause for this failure, or {@code null} if there's no underlying failure or the cause is unknown
+     * @return the causes for this failure. Returns an empty list if this failure has no causes.
      */
-    @Nullable
-    Failure getCause();
+    List<? extends Failure> getCauses();
 
 }

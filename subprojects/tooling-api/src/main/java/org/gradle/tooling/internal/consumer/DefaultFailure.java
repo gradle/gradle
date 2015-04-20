@@ -18,16 +18,18 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.Failure;
 
+import java.util.List;
+
 public final class DefaultFailure implements Failure {
 
     private final String message;
     private final String description;
-    private final Failure cause;
+    private final List<? extends Failure> causes;
 
-    public DefaultFailure(String message, String description, Failure cause) {
+    public DefaultFailure(String message, String description, List<? extends Failure> causes) {
         this.message = message;
         this.description = description;
-        this.cause = cause;
+        this.causes = causes;
     }
 
     @Override
@@ -41,8 +43,8 @@ public final class DefaultFailure implements Failure {
     }
 
     @Override
-    public Failure getCause() {
-        return cause;
+    public List<? extends Failure> getCauses() {
+        return causes;
     }
 
 }
