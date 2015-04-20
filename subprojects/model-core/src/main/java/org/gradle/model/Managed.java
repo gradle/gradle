@@ -43,7 +43,9 @@ import java.lang.annotation.Target;
  * String getName();
  * </pre>
  * <p>
- * A getter and setter must be declared for each property (except for properties of other managed types or of {@link org.gradle.model.collection.ManagedSet}).
+ * A getter and setter must be declared for each property that is not of a managed type or of {@link org.gradle.model.collection.ManagedSet}.
+ * For properties of managed types or of {@link org.gradle.model.collection.ManagedSet} the getter is mandatory and the setter is optional.
+ * If no setter is provided the property is considered inherent and defaults to an "empty" instance of the type.
  *
  * <h4>Supported property types</h4>
  * <p>
