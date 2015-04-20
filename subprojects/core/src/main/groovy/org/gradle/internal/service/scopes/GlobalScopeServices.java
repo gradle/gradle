@@ -60,9 +60,9 @@ import org.gradle.model.internal.core.ModelCreatorFactory;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
-import org.gradle.model.persist.AlwaysNewModelRegistryStore;
-import org.gradle.model.persist.ModelRegistryStore;
-import org.gradle.model.persist.ReusingModelRegistryStore;
+import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
+import org.gradle.model.internal.persist.ModelRegistryStore;
+import org.gradle.model.internal.persist.ReusingModelRegistryStore;
 
 import java.util.List;
 

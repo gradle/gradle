@@ -13,39 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+
+package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-
-import java.util.List;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.events.OperationDescriptor;
 
 /**
- * Some information about having run a test with a failure.
+ * Describes a test for which an event has occurred.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestFailure {
+public interface TestOperationDescriptor extends OperationDescriptor {
 
     /**
-     * Returns the time when the test started execution.
+     * Returns the name of the test.
      *
-     * @return The start time, in milliseconds since the epoch
+     * @return The name of the test.
      */
-    long getStartTime();
+    @Override
+    String getName();
 
     /**
-     * Returns the time when the test completed execution.
+     * Returns the parent of this test, if any.
      *
-     * @return The end time, in milliseconds since the epoch
+     * @return The parent of this test.
      */
-    long getEndTime();
-
-    /**
-     * The exceptions that occurred while running the test, if any.
-     *
-     * @return the exceptions, empty if the test failed without any exceptions
-     */
-    List<Failure> getFailures();
+    @Override
+    @Nullable
+    OperationDescriptor getParent();
 
 }

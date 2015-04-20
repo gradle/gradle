@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
 /**
- * Some information about the test being skipped as part of running a build.
+ * An event that informs about an operation having finished its execution successfully.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestSkippedEvent extends TestProgressEvent {
+public interface SuccessEvent extends FinishEvent {
 
     /**
-     * The description of the test being skipped.
-     *
-     * @return The description
+     * {@inheritDoc}
      */
-    TestDescriptor getTestDescriptor();
+    @Override
+    SuccessOutcome getOutcome();
 
 }

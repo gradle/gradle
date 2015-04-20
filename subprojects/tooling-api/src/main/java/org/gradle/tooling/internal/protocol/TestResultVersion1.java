@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
-@Incubating
 public interface TestResultVersion1 {
 
     /**
@@ -34,9 +33,9 @@ public interface TestResultVersion1 {
     long getStartTime();
 
     /**
-     * Returns the time the test execution completed.
+     * Returns the time the test execution finished.
      *
-     * @return The completion time
+     * @return The finish time
      */
     long getEndTime();
 
@@ -45,6 +44,6 @@ public interface TestResultVersion1 {
      *
      * @return The failures that occurred
      */
-    List<FailureVersion1> getFailures();
+    List<? extends FailureVersion1> getFailures();
 
 }

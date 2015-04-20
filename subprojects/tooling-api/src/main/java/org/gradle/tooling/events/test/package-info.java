@@ -13,30 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
-
-import org.gradle.api.Incubating;
 
 /**
- * Some information about the test having finished successfully as part of running a build.
- *
- * @since 2.4
+ * Test execution specific interfaces and classes related to event notifications.
  */
-@Incubating
-public interface TestSucceededEvent extends TestProgressEvent {
-
-    /**
-     * The description of the test having finished successfully.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The result of running the test successfully.
-     *
-     * @return The result
-     */
-    TestSuccess getTestResult();
-
-}
+package org.gradle.tooling.events.test;

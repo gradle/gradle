@@ -17,47 +17,39 @@ package org.gradle.tooling.internal.protocol;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
 public interface TestProgressEventVersion1 {
 
-    String STRUCTURE_SUITE = "TEST_SUITE";
-    String STRUCTURE_ATOMIC = "TEST_ATOMIC";
-
-    String OUTCOME_STARTED = "STARTED";
-    String OUTCOME_SKIPPED = "SKIPPED";
-    String OUTCOME_SUCCEEDED = "SUCCEEDED";
-    String OUTCOME_FAILED = "FAILED";
+    String EVENT_TYPE_STARTED = "STARTED";
+    String EVENT_TYPE_SKIPPED = "SKIPPED";
+    String EVENT_TYPE_SUCCEEDED = "SUCCEEDED";
+    String EVENT_TYPE_FAILED = "FAILED";
 
     /**
-     * The structure of the test that has progressed. See the constants on this interface for the supported structure types.
-     *
-     * @return The structure of the progressed test (atomic test, test suite, etc.)
-     */
-    String getTestStructure();
-
-    /**
-     * The outcome of the test that has progressed. See the constants on this interface for the supported outcome types.
-     *
-     * @return The outcome of the progressed test (started, skipped, etc.)
-     */
-    String getTestOutcome();
-
-    /**
-     * The time when the event happened.
+     * Returns the time when the event happened.
      *
      * @return The event time
      */
     long getEventTime();
 
     /**
-     * The description of the test for which progress is reported.
+     * Returns the type of the test progress event. See the constants on this interface for the supported event types.
+     *
+     * @return The type of the test progress event (started, skipped, etc.)
+     */
+    String getEventType();
+
+    /**
+     * Returns the description of the test for which progress is reported.
      *
      * @return The test description
      */
     TestDescriptorVersion1 getDescriptor();
 
     /**
-     * The result of running the test successfully or with a failure.
+     * Returns the result of running the test successfully or with a failure.
      *
      * @return The test result
      */

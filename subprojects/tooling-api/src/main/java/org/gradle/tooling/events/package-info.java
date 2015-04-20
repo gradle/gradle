@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
-
-import org.gradle.api.Incubating;
-
 /**
- * Some information about the test having failed as part of running a build.
- *
- * @since 2.4
+ * The interfaces and classes related to registering for event notifications and listening to dispatched events.
  */
-@Incubating
-public interface TestFailedEvent extends TestProgressEvent {
-
-    /**
-     * The description of the test having failed.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The result of running the test with a failure.
-     *
-     * @return The result
-     */
-    TestFailure getTestResult();
-
-}
+package org.gradle.tooling.events;

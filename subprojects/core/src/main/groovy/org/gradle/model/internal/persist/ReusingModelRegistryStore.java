@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.persist;
+package org.gradle.model.internal.persist;
 
 import com.google.common.collect.Maps;
 import net.jcip.annotations.NotThreadSafe;

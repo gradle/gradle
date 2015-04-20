@@ -21,30 +21,24 @@ import java.util.List;
 
 public class InternalTestProgressEvent implements Serializable {
 
-    private final String testStructure;
-    private final String testOutcome;
     private final long eventTime;
+    private final String eventType;
     private final InternalTestDescriptor descriptor;
     private final InternalTestResult result;
 
-    public InternalTestProgressEvent(String testStructure, String testOutcome, long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        this.testStructure = testStructure;
-        this.testOutcome = testOutcome;
+    public InternalTestProgressEvent(long eventTime, String eventType, InternalTestDescriptor descriptor, InternalTestResult result) {
         this.eventTime = eventTime;
+        this.eventType = eventType;
         this.descriptor = descriptor;
         this.result = result;
     }
 
-    public String getTestStructure() {
-        return testStructure;
-    }
-
-    public String getTestOutcome() {
-        return testOutcome;
-    }
-
     public long getEventTime() {
         return eventTime;
+    }
+
+    public String getEventType() {
+        return eventType;
     }
 
     public InternalTestDescriptor getDescriptor() {
@@ -59,13 +53,19 @@ public class InternalTestProgressEvent implements Serializable {
 
         private final Object id;
         private final String name;
+        private final String testKind;
+        private final String suiteName;
         private final String className;
+        private final String methodName;
         private final Object parentId;
 
-        public InternalTestDescriptor(Object id, String name, String className, Object parentId) {
+        public InternalTestDescriptor(Object id, String name, String testKind, String suiteName, String className, String methodName, Object parentId) {
             this.id = id;
             this.name = name;
+            this.testKind = testKind;
+            this.suiteName = suiteName;
             this.className = className;
+            this.methodName = methodName;
             this.parentId = parentId;
         }
 
@@ -77,8 +77,20 @@ public class InternalTestProgressEvent implements Serializable {
             return name;
         }
 
+        public String getTestKind() {
+            return testKind;
+        }
+
+        public String getSuiteName() {
+            return suiteName;
+        }
+
         public String getClassName() {
             return className;
+        }
+
+        public String getMethodName() {
+            return methodName;
         }
 
         public Object getParentId() {

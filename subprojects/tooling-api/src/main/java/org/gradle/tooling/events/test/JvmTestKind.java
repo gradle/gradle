@@ -13,31 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling;
-
-import org.gradle.api.Incubating;
+package org.gradle.tooling.events.test;
 
 /**
- * Some information about the test suite having failed as part of running a build.
- *
- * @since 2.4
+ * Enumerates the different kinds of JVM tests. This allows to differentiate between test suites, atomic tests, etc.
  */
-@Incubating
-public interface TestSuiteFailedEvent extends TestProgressEvent {
+public enum JvmTestKind {
+
+    SUITE("Test suite"),
+    ATOMIC("Atomic test"),
+    UNKNOWN("Unknown test kind");
+
+    private final String label;
+
+    JvmTestKind(String label) {
+        this.label = label;
+    }
 
     /**
-     * The description of the test suite having failed.
+     * Returns a label for the test kind. The label can be used to generate a prettified version of the test descriptor.
      *
-     * @return The description
+     * @return a label corresponding to the test kind
      */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The result of running the test suite with a failure.
-     *
-     * @return The result
-     */
-    TestFailure getTestResult();
+    public String getLabel() {
+        return label;
+    }
 
 }

@@ -18,13 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -43,14 +37,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.FailureVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -58,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,23 +196,18 @@ public class ProviderConnection {
                 this.buildProgressListener.onEvent(new TestProgressEventVersion1() {
 
                     @Override
-                    public String getTestStructure() {
-                        return testProgressEvent.getTestStructure();
-                    }
-
-                    @Override
-                    public String getTestOutcome() {
-                        return testProgressEvent.getTestOutcome();
-                    }
-
-                    @Override
                     public long getEventTime() {
                         return testProgressEvent.getEventTime();
                     }
 
                     @Override
+                    public String getEventType() {
+                        return testProgressEvent.getEventType();
+                    }
+
+                    @Override
                     public TestDescriptorVersion1 getDescriptor() {
-                        return new TestDescriptorVersion1() {
+                        return new JvmTestDescriptorVersion1() {
 
                             @Override
                             public Object getId() {
@@ -239,8 +220,23 @@ public class ProviderConnection {
                             }
 
                             @Override
+                            public String getTestKind() {
+                                return testProgressEvent.getDescriptor().getTestKind();
+                            }
+
+                            @Override
+                            public String getSuiteName() {
+                                return testProgressEvent.getDescriptor().getSuiteName();
+                            }
+
+                            @Override
                             public String getClassName() {
                                 return testProgressEvent.getDescriptor().getClassName();
+                            }
+
+                            @Override
+                            public String getMethodName() {
+                                return testProgressEvent.getDescriptor().getMethodName();
                             }
 
                             @Override
@@ -266,44 +262,14 @@ public class ProviderConnection {
                             }
 
                             @Override
-                            public List<FailureVersion1> getFailures() {
-                                List<InternalFailure> resultFailures = testProgressEvent.getResult().getFailures();
-                                ArrayList<FailureVersion1> failures = new ArrayList<FailureVersion1>(resultFailures.size());
-                                for (final InternalFailure resultFailure : resultFailures) {
-                                    failures.add(toFailure(resultFailure));
-                                }
-                                return failures;
+                            public List<? extends FailureVersion1> getFailures() {
+                                return testProgressEvent.getResult().getFailures();
                             }
-
                         };
                     }
-
                 });
             }
         }
-
-        private static FailureVersion1 toFailure(final InternalFailure resultFailure) {
-            if (resultFailure==null) {
-                return null;
-            }
-            return new FailureVersion1() {
-                @Override
-                public String getMessage() {
-                    return resultFailure.getMessage();
-                }
-
-                @Override
-                public String getDescription() {
-                    return resultFailure.getDescription();
-                }
-
-                @Override
-                public FailureVersion1 getCause() {
-                    return toFailure(resultFailure.getCause());
-                }
-            };
-        }
-
     }
 
 }

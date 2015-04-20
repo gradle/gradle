@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.events.internal;
+
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.StartEvent;
 
 /**
- * Some information about having run a test successfully.
- *
- * @since 2.4
+ * Default implementation of the {@code StartEvent} interface.
  */
-@Incubating
-public interface TestSuccess {
+public final class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
 
-    /**
-     * Returns the time when the test started execution.
-     *
-     * @return The start time, in milliseconds since the epoch
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time when the test completed execution.
-     *
-     * @return The end time, in milliseconds since the epoch
-     */
-    long getEndTime();
+    public DefaultStartEvent(long eventTime, String eventDescription, OperationDescriptor descriptor) {
+        super(eventTime, eventDescription, descriptor);
+    }
 
 }

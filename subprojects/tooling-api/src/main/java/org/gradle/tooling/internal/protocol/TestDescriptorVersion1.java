@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
-@Incubating
 public interface TestDescriptorVersion1 {
 
     /**
@@ -37,13 +36,6 @@ public interface TestDescriptorVersion1 {
      * @return The name of the test, never null
      */
     String getName();
-
-    /**
-     * Returns the name of the test class, if any.
-     *
-     * @return The name of the test class, can be null
-     */
-    String getClassName();
 
     /**
      * Returns the id of the parent of this test, if any.

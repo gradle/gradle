@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.model
 
-import org.gradle.api.Incubating;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.junit.Rule
 
-/**
- * Some information about the test suite being started as part of running a build.
- *
- * @since 2.4
- */
-@Incubating
-public interface TestSuiteStartedEvent extends TestProgressEvent{
+class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
 
-    /**
-     * The description of the test suite being started.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
+    @Rule Sample sample = new Sample(testDirectoryProvider)
 
+    @UsesSample("modelRules/modelDsl")
+    def "dsl creation example works"() {
+        when:
+        sample sample
+
+        then:
+        succeeds "hello"
+        output.contains("Hello John Smith!")
+    }
 }

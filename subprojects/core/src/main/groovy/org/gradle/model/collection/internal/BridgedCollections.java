@@ -91,6 +91,7 @@ public abstract class BridgedCollections {
 
                         ModelCreator storeCreator = ModelCreators.bridgedInstance(storeReference, container)
                                 .ephemeral(true)
+                                .hidden(true)
                                 .descriptor(itemDescriptorGenerator.transform(storeNodeName))
                                 .build();
 
@@ -101,6 +102,7 @@ public abstract class BridgedCollections {
 
                         ModelCreator instantiatorCreator = ModelCreators.bridgedInstance(instantiatorReference, container.getEntityInstantiator())
                                 .ephemeral(true)
+                                .hidden(true)
                                 .descriptor(itemDescriptorGenerator.transform(instantiatorNodeName))
                                 .build();
 

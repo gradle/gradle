@@ -188,6 +188,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(taskFactoryPath, ITaskFactory.class), services.get(ITaskFactory.class))
                 .descriptor("Project.<init>.taskFactory")
                 .ephemeral(true)
+                .hidden(true)
                 .build();
 
         modelRegistry.createOrReplace(taskFactoryCreator);
@@ -196,6 +197,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .descriptor("Project.<init>.serviceRegistry()")
                         .ephemeral(true)
+                        .hidden(true)
                         .build()
         );
 
@@ -207,6 +209,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 })
                         .descriptor("Project.<init>.buildDir()")
                         .ephemeral(true)
+                        .hidden(true)
                         .build()
         );
 
@@ -214,6 +217,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .descriptor("Project.<init>.projectIdentifier()")
                         .ephemeral(true)
+                        .hidden(true)
                         .build()
         );
 
@@ -221,6 +225,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
                         .descriptor("Project.<init>.extensions()")
                         .ephemeral(true)
+                        .hidden(true)
                         .build()
         );
     }

@@ -96,5 +96,7 @@ public interface MutableModelNode extends ModelNode {
      */
     void ensureUsable();
 
+    void setHidden(boolean hidden);
+
     boolean isMutable();
 }

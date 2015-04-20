@@ -13,40 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+import org.gradle.tooling.Failure;
+
+import java.util.List;
 
 /**
- * Describes a test.
+ * Provides information about the failed execution of an operation.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestDescriptor {
+public interface FailureOutcome extends Outcome {
 
     /**
-     * Returns the name of the test.
+     * Returns the exceptions that occurred while running the operation, if any.
      *
-     * @return the name of the test, never null
+     * @return the exceptions, empty if the operation failed without any exceptions
      */
-    String getName();
-
-    /**
-     * Returns the name of the test class, if any.
-     *
-     * @return the name of the test class, can be null
-     */
-    String getClassName();
-
-    /**
-     * Returns the parent of this test, if any.
-     *
-     * @return the parent of this test, can be null
-     */
-    @Nullable
-    TestDescriptor getParent();
+    List<? extends Failure> getFailures();
 
 }
