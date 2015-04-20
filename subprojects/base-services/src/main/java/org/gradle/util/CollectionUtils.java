@@ -604,4 +604,51 @@ public abstract class CollectionUtils {
         }));
     }
 
+    /**
+     * Converts the type of the parameter of an Iterable to a superclass type.
+     *
+     * It's not possible to simply cast an Iterable to it's superclass type.
+     *
+     * @param clazz the item type of the Iterable
+     * @param iterable the object to convert
+     * @param <T> item type
+     * @return converted Iterable
+     */
+    public static <T> Iterable<T> castIterable(final Class<T> clazz, final Iterable<? extends T> iterable) {
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return castIterator(clazz, iterable.iterator());
+            }
+        };
+    }
+
+    /**
+     * Converts the type of the parameter of an Iterator to a superclass type.
+     *
+     * It's not possible to simply cast an Iterator to it's superclass type.
+     *
+     * @param clazz the item type of the Iterator
+     * @param iterator the object to convert
+     * @param <T> item type
+     * @return converted Iterator
+     */
+    public static <T> Iterator<T> castIterator(Class<T> clazz, final Iterator<? extends T> iterator) {
+        return new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return iterator.next();
+            }
+
+            @Override
+            public void remove() {
+                iterator.remove();
+            }
+        };
+    }
 }

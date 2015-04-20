@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.specs.Spec;
@@ -107,5 +108,9 @@ public abstract class DelegatingFileCollection implements FileCollection, Minima
             return ((MinimalFileSet) delegate).getDisplayName();
         }
         return getDelegate().toString();
+    }
+
+    public Iterable<DirectoryTree> getAsDirectoryTrees() {
+        return getDelegate().getAsDirectoryTrees();
     }
 }

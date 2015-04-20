@@ -50,6 +50,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
 
     private final File dir;
+
     private PatternSet patternSet;
     private boolean postfix;
     private final FileSystem fileSystem = FileSystems.getDefault();
@@ -186,5 +187,9 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public DirectoryFileTree postfix() {
         postfix = true;
         return this;
+    }
+
+    public PatternSet getPatternSet() {
+        return patternSet;
     }
 }
