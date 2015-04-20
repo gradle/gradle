@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Denotes that the {@link RuleSource} method rule carrying this annotation creates a new top level element in the model space.
  * <p>
  * The method must advertise a name and type for the model element.
- * The name is defined either by the name of the method, or the {@link #value} of the annotation.
+ * The name is defined either by the name of the method, or the {@link #value} of this annotation.
  * The type is defined differently depending on whether the new element is {@link Managed} or not.
 
  * <h3>Creating managed model elements</h3>

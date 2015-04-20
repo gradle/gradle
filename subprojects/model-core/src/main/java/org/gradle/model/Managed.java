@@ -64,7 +64,6 @@ import java.lang.annotation.Target;
  * All {@link Enum} types are also allowed.
  * <p>
  * Properties that are themselves of a managed type are also supported.
- * If no setter is provided, the property is considered inherent and defaults to an “empty” instance of the type.
  * <p>
  * Currently, the only collection type that is supported is {@link org.gradle.model.collection.ManagedSet}.
  * <p>
@@ -80,7 +79,7 @@ import java.lang.annotation.Target;
  * <p>
  * Managed types can contain getter methods that return calculated values, based on other properties.
  * For example, a “name” property may return the concatenation of a “firstName” and “lastName” property.
- * When using Java 8, such properties can be implemented as interface default methods.
+ * When using Java 8 or later, such properties can be implemented as interface default methods.
  * Alternatively, the managed type can be implemented as an abstract class with the calculated property implemented as a non-abstract getter method.
  * In both cases, the implementation of the calculated property getter may not call any setter method.
  *
