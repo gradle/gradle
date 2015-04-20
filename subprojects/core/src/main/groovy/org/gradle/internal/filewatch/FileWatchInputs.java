@@ -35,7 +35,9 @@ public class FileWatchInputs {
         return directories;
     }
 
-    public List<File> getFiles() { return files; }
+    public List<File> getFiles() {
+        return files;
+    }
 
     public static Builder newBuilder() {
         return new Builder();
