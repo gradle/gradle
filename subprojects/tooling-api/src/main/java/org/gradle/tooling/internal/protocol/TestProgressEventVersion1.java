@@ -17,6 +17,8 @@ package org.gradle.tooling.internal.protocol;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
 public interface TestProgressEventVersion1 {
 

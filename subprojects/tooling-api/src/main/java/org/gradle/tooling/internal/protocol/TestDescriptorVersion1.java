@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
-@Incubating
 public interface TestDescriptorVersion1 {
 
     /**

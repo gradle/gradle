@@ -15,12 +15,11 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
-@Incubating
 public interface JvmTestDescriptorVersion1 extends TestDescriptorVersion1 {
 
     String KIND_SUITE = "SUITE";
