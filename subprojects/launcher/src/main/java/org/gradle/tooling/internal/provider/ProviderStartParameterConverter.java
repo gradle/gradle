@@ -67,6 +67,11 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
+        if (parameters.getTestIncludePatterns()!=null) {
+            // TODO: find a way to use the pattern
+            startParameter.setTaskNames(Collections.singletonList("test"));
+        }
+
         new PropertiesToStartParameterConverter().convert(properties, startParameter);
 
         List<String> arguments = parameters.getArguments(Collections.<String>emptyList());

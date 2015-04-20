@@ -92,6 +92,14 @@ public interface ProjectConnection {
     BuildLauncher newBuild();
 
     /**
+     * Creates a tests launcher which can be used to execute tests on a build.
+     *
+     * @return the launcher.
+     * @since 2.5
+     */
+    TestsLauncher newTestsLauncher();
+
+    /**
      * Creates a builder which can be used to query the model of the given type.
      *
      * <p>Any of following models types may be available, depending on the version of Gradle being used by the target

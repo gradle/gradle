@@ -56,6 +56,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
+        private List<String> testIncludePatterns;
 
         private Builder() {
         }
@@ -130,7 +131,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
+
+        public Builder setTestIncludePatterns(List<String> patterns) {
+            this.testIncludePatterns = patterns;
+            return this;
+        }
+
+        public void addProgressListener(ProgressListener listener) {
             legacyProgressListeners.add(listener);
         }
 
@@ -157,8 +164,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
                 new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
+            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, testIncludePatterns,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
+
         }
     }
 
@@ -178,9 +186,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
+    private final List<String> testIncludePatterns;
 
     private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, List<String> testIncludePatterns,
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
@@ -192,6 +201,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
+        this.testIncludePatterns = testIncludePatterns;
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
@@ -293,4 +303,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     public BuildCancellationToken getCancellationToken() {
         return ((CancellationTokenInternal) cancellationToken).getToken();
     }
+
+    public List<String> getTestIncludePatterns() { return testIncludePatterns; }
 }
