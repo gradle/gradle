@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
+
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
 
     private final ProjectTaskLister taskLister;
@@ -86,13 +88,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     private List<LaunchableGradleTask> tasks(Project project) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(new LaunchableGradleTask()
-                    .setPath(task.getPath())
-                    .setName(task.getName())
-                    .setGroup(task.getGroup())
-                    .setDisplayName(task.toString())
-                    .setDescription(task.getDescription())
-                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
+            tasks.add(buildFromTask(LaunchableGradleTask.class, task));
         }
         return tasks;
     }

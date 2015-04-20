@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
@@ -28,6 +27,8 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
+
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
@@ -77,14 +78,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(new LaunchableGradleProjectTask()
+                out.add(
+                        buildFromTask(LaunchableGradleProjectTask.class, t)
                                 .setProject(owner)
-                                .setPath(t.getPath())
-                                .setName(t.getName())
-                                .setGroup(t.getGroup())
-                                .setDisplayName(t.toString())
-                                .setDescription(t.getDescription())
-                                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))
                 );
             }
         }
