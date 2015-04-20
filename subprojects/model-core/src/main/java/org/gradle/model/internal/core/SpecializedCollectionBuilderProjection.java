@@ -23,9 +23,9 @@ import org.gradle.model.internal.type.ModelType;
 public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
 
     private final ModelType<P> publicType;
-    private final SpecializedCollectionBuilderFactory<P> factory;
+    private final SpecializedCollectionBuilderFactory<P, E> factory;
 
-    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, final SpecializedCollectionBuilderFactory<P> factory) {
+    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, final SpecializedCollectionBuilderFactory<P, E> factory) {
         super(publicType, true, true);
         this.publicType = publicType;
         this.factory = factory;
@@ -33,8 +33,9 @@ public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<
 
     @Override
     protected ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        P specializedCollectionBuilder =  factory.create(modelNode, ruleDescriptor);
-        return InstanceModelView.of(modelNode.getPath(), publicType, specializedCollectionBuilder);
+        P instance = factory.create(modelNode, ruleDescriptor);
+        return new SpecializedCollectionBuilderView<P, E>(modelNode.getPath(), publicType, instance);
+
     }
 
     @Override

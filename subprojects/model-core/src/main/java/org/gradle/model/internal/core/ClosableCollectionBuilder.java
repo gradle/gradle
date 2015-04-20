@@ -17,8 +17,7 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-public abstract class SpecializedCollectionBuilderFactory<S extends CollectionBuilder<T>, T> {
-    public abstract S create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor);
+public interface ClosableCollectionBuilder<E> extends CollectionBuilder<E> {
+    void close();
 }

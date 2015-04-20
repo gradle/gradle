@@ -32,7 +32,7 @@ public class CollectionBuilderCreators {
 
     public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name, final Class<T> typeClass,
                                                                                final Class<C> containerClass,
-                                                                               SpecializedCollectionBuilderFactory<C> collectionBuilderFactory,
+                                                                               SpecializedCollectionBuilderFactory<C, T> collectionBuilderFactory,
                                                                                String descriptor,
                                                                                BiAction<? super MutableModelNode, ? super T> initializeAction) {
 
@@ -42,11 +42,6 @@ public class CollectionBuilderCreators {
         }, ModelType.of(typeClass)).build();
 
         ModelReference<CollectionBuilder<T>> containerReference = ModelReference.of(name, DefaultCollectionBuilder.typeOf(typeClass));
-
-
-        SpecializedCollectionBuilderProjection<C, T> specializedCollectionBuilderProjection = new SpecializedCollectionBuilderProjection<C, T>(
-                ModelType.of(containerClass),
-                collectionBuilderFactory);
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
@@ -63,8 +58,8 @@ public class CollectionBuilderCreators {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(specializedCollectionBuilderProjection)
                 .withProjection(new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction))
+                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), collectionBuilderFactory))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }

@@ -69,16 +69,15 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
-        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer>() {
+        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer, ComponentSpec>() {
             @Override
             public ComponentSpecContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                return new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
+                DefaultComponentSpecContainer componentSpecs = new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
+                return new ComponentSpecContainerGroovyDecorator(componentSpecs, ModelType.of(ComponentSpecContainer.class), ruleDescriptor);
             }
         }, descriptor, new ComponentSpecInitializationAction());
-
         modelRegistry.createOrReplace(componentsCreator);
     }
-
 
 
     @SuppressWarnings("UnusedDeclaration")
@@ -213,4 +212,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    private class ComponentSpecContainerGroovyDecorator extends SpecializedCollectionBuilderGroovyDecorator<ComponentSpec> implements ComponentSpecContainer {
+        public ComponentSpecContainerGroovyDecorator(CollectionBuilder<ComponentSpec> rawInstance, ModelType<ComponentSpecContainer> type, ModelRuleDescriptor ruleDescriptor) {
+            super(rawInstance, type, ruleDescriptor);
+        }
+    }
 }

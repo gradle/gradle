@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.plugins;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiActions;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -28,10 +27,7 @@ import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.SpecializedCollectionBuilderFactory;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -58,19 +54,18 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, Instantiator instantiator) {
+    public NativeBinariesTestPlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
     }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
-
         String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
-
-        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new SpecializedCollectionBuilderFactory<TestSuiteContainer>() {
+        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new SpecializedCollectionBuilderFactory<TestSuiteContainer, TestSuiteSpec>() {
             @Override
-            public DefaultTestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                return new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
+            public TestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+                DefaultTestSuiteContainer instance = new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
+                return new TestSuiteContainerGroovyDecorator(instance, ModelType.of(TestSuiteContainer.class), ruleDescriptor);
             }
         }, descriptor, new ComponentSpecInitializationAction());
 
@@ -122,6 +117,12 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                     }
                 }
             });
+        }
+    }
+
+    private class TestSuiteContainerGroovyDecorator extends SpecializedCollectionBuilderGroovyDecorator<TestSuiteSpec> implements TestSuiteContainer {
+        public TestSuiteContainerGroovyDecorator(CollectionBuilder<TestSuiteSpec> rawInstance, ModelType<TestSuiteContainer> type, ModelRuleDescriptor ruleDescriptor) {
+            super(rawInstance, type, ruleDescriptor);
         }
     }
 }

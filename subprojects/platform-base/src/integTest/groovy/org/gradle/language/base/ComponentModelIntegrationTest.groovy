@@ -19,6 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
+import spock.lang.Ignore
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -229,5 +230,67 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureHasCause("This collection does not support element removal.")
+    }
+
+
+
+    def "componentSpecContainer is groovy decorated when used in rules"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            import org.gradle.model.collection.*
+
+            class ComponentSpecContainerRules extends RuleSource {
+                @Mutate
+                void addComponents(ComponentSpecContainer componentSpecs) {
+                    componentSpecs.anotherCustom(CustomComponent) {
+                    }
+                }
+
+                @Mutate
+                void addComponentTasks(TaskContainer tasks, ComponentSpecContainer componentSpecs) {
+                    tasks.create("printMainComponent") {
+                        doLast{
+                            //reference by name
+                            println "Main component: " + componentSpecs.main.name
+                        }
+
+                    }
+                }
+            }
+
+            apply type: ComponentSpecContainerRules
+        '''
+
+        when:
+        succeeds "printMainComponent"
+        then:
+        output.contains("Main component: main")
+    }
+
+    // this exposes a problem with the CollectionBuilder view
+    // as they don't noticed when get closed
+    @Ignore
+    def "CollectionBuilder<ComponentSpec> is closed when used as input"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            import org.gradle.model.collection.*
+
+            class ComponentSpecContainerRules extends RuleSource {
+
+                @Mutate
+                void addComponentTasks(TaskContainer tasks, CollectionBuilder<ComponentSpec> componentSpecs) {
+                    componentSpecs.all {
+                        // some stuff here
+                    }
+                }
+            }
+
+            apply type: ComponentSpecContainerRules
+        '''
+
+        when:
+        fails "tasks"
     }
 }
