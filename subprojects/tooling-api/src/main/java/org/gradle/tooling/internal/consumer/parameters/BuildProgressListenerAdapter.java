@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.events.FailureOutcome;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.SuccessOutcome;

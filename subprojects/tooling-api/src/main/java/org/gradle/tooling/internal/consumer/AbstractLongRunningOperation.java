@@ -19,7 +19,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.io.File;

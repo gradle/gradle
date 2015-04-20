@@ -196,7 +196,7 @@ An application can now receive test progress events as a build is executed. Usin
 as tests run during the build.
 
 An application receives test events using the
-[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-) method.
+[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.events.test.TestProgressListener-) method.
 
 The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
 

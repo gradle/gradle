@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
@@ -21,7 +21,7 @@ import org.gradle.tooling.events.ProgressEvent;
 /**
  * A listener which is notified when the tests that are executed as part of running a build make progress.
  *
- * @see BuildLauncher#addTestProgressListener(TestProgressListener)
+ * @see org.gradle.tooling.BuildLauncher#addTestProgressListener(TestProgressListener)
  * @since 2.4
  */
 @Incubating

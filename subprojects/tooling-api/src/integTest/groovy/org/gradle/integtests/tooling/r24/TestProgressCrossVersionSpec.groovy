@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.TestProgressListener
+import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.test.JvmTestKind
 import org.gradle.tooling.model.gradle.BuildInvocations

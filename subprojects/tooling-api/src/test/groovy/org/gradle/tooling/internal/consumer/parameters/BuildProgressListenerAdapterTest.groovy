@@ -17,7 +17,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.TestProgressListener
+import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.events.FailureEvent
 import org.gradle.tooling.events.SkippedEvent
 import org.gradle.tooling.events.StartEvent
