@@ -77,12 +77,12 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
 
             @Override
             public List<String> getJvmArguments() {
-                return jvmArguments;
+                return effectiveJvmArguments;
             }
 
             @Override
-            public List<String> getEffectiveJvmArguments() {
-                return effectiveJvmArguments;
+            public List<String> getRequestedJvmArguments() {
+                return jvmArguments;
             }
 
             @Override
@@ -92,12 +92,12 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
 
             @Override
             public Map<String, String> getSystemProperties() {
-                return systemProperties;
+                return effectiveSystemProperties;
             }
 
             @Override
-            public Map<String, String> getEffectiveSystemProperties() {
-                return effectiveSystemProperties;
+            public Map<String, String> getRequestedSystemProperties() {
+                return systemProperties;
             }
         };
     }
