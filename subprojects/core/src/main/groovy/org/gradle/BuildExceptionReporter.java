@@ -165,7 +165,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                     prefix.append("  ");
                     details.details.style(Info).text("> ").style(Normal);
 
-                    return new LinePrefixingStyledTextOutput(details.details, prefix);
+                    return new LinePrefixingStyledTextOutput(details.details, prefix, false);
                 }
             });
         } else {
