@@ -33,6 +33,6 @@ public interface FailureOutcome extends Outcome {
      *
      * @return the exceptions, empty if the operation failed without any exceptions
      */
-    List<Failure> getFailures();
+    List<? extends Failure> getFailures();
 
 }
