@@ -22,10 +22,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
-import org.gradle.tooling.internal.provider.InternalFailure;
-import org.gradle.tooling.internal.provider.InternalTestFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
-import org.gradle.tooling.internal.provider.InternalTestStartedProgressEvent;
+import org.gradle.tooling.internal.provider.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +72,7 @@ class ClientForwardingTestListener implements TestListener {
         }
     }
 
-    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
+    private static InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
         Object id = ((TestDescriptorInternal) suite).getId();
         String name = suite.getName();
         String displayName = suite.toString();
@@ -84,10 +81,10 @@ class ClientForwardingTestListener implements TestListener {
         String className = suite.getClassName();
         String methodName = null;
         Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
+        return new InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
     }
 
-    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
+    private static InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
         Object id = ((TestDescriptorInternal) test).getId();
         String name = test.getName();
         String displayName = test.toString();
@@ -96,11 +93,11 @@ class ClientForwardingTestListener implements TestListener {
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
+        return new InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
     }
 
-    private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+    private static InternalTestResult toTestResult(TestResult result) {
+        return new InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
     }
 
     private static List<InternalFailure> convertExceptions(List<Throwable> exceptions) {
