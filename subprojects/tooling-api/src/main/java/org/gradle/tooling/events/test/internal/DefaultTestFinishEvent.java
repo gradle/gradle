@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.internal.BaseFinishEvent;
 import org.gradle.tooling.events.test.TestFinishEvent;
@@ -27,7 +26,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
  */
 public final class DefaultTestFinishEvent extends BaseFinishEvent implements TestFinishEvent {
 
-    public DefaultTestFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
+    public DefaultTestFinishEvent(long eventTime, String displayName, TestOperationDescriptor descriptor, OperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 
