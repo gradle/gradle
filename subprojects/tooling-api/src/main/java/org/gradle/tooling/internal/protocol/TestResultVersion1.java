@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @since 2.4
  */
-public interface TestResultVersion1 {
+public interface TestResultVersion1 extends InternalProtocolInterface {
 
     /**
      * Returns the time the test execution started.

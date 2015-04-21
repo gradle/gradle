@@ -21,9 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -31,26 +31,27 @@ import org.gradle.util.TestPrecondition
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion("<2.4")
+    def "ignores listeners when Gradle version does not generate test events"() {
+        given:
+        goodCode()
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener({ throw new RuntimeException() } as TestProgressListener).run()
+        }
+
+        then:
+        noExceptionThrown()
+    }
 
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events when requesting a model"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+        goodCode()
 
         when: "asking for a model and specifying some test task(s) to run first"
         List<ProgressEvent> result = new ArrayList<ProgressEvent>()
@@ -72,21 +73,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.4")
     def "receive test progress events when launching a build"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+        goodCode()
 
         when: "launching a build"
         List<ProgressEvent> result = new ArrayList<ProgressEvent>()
@@ -104,26 +91,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
     def "build aborts if a test listener throws an exception"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+        goodCode()
 
         when: "launching a build"
         withConnection {
@@ -144,21 +116,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.4")
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+        goodCode()
 
         when: "launching a build"
         List<ProgressEvent> resultsOfFirstListener = new ArrayList<ProgressEvent>()
@@ -685,4 +643,21 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
     }
 
+    def goodCode() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+    }
 }

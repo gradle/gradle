@@ -45,6 +45,27 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
         return eventType;
     }
 
+    @Override
+    public String getDisplayName() {
+        return String.format("%s %s", descriptor.getDisplayName(), typeDisplayName(eventType));
+    }
+
+    private String typeDisplayName(String eventType) {
+        if (eventType.equals(EVENT_TYPE_STARTED)) {
+            return "started";
+        }
+        if (eventType.equals(EVENT_TYPE_SUCCEEDED)) {
+            return "succeeded";
+        }
+        if (eventType.equals(EVENT_TYPE_FAILED)) {
+            return "failed";
+        }
+        if (eventType.equals(EVENT_TYPE_SKIPPED)) {
+            return "skipped";
+        }
+        throw new IllegalArgumentException("Unknown event type.");
+    }
+
     public InternalTestDescriptor getDescriptor() {
         return descriptor;
     }
@@ -58,15 +79,17 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
         private final Object id;
         private final String name;
         private final String testKind;
+        private final String displayName;
         private final String suiteName;
         private final String className;
         private final String methodName;
         private final Object parentId;
 
-        public InternalTestDescriptor(Object id, String name, String testKind, String suiteName, String className, String methodName, Object parentId) {
+        public InternalTestDescriptor(Object id, String name, String testKind, String displayName, String suiteName, String className, String methodName, Object parentId) {
             this.id = id;
             this.name = name;
             this.testKind = testKind;
+            this.displayName = displayName;
             this.suiteName = suiteName;
             this.className = className;
             this.methodName = methodName;
@@ -75,6 +98,11 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
 
         public Object getId() {
             return id;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
         }
 
         public String getName() {

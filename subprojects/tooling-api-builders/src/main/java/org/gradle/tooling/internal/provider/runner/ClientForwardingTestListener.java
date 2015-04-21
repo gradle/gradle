@@ -76,23 +76,25 @@ class ClientForwardingTestListener implements TestListener {
     private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
         Object id = ((TestDescriptorInternal) suite).getId();
         String name = suite.getName();
+        String displayName = suite.toString();
         String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
         Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, suiteName, className, methodName, parentId);
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
     }
 
     private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
         Object id = ((TestDescriptorInternal) test).getId();
         String name = test.getName();
+        String displayName = test.toString();
         String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, suiteName, className, methodName, parentId);
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {

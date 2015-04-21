@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.events.FailureOutcome;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.SuccessOutcome;
@@ -28,6 +27,7 @@ import org.gradle.tooling.events.internal.DefaultSuccessEvent;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
@@ -70,36 +70,27 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         String eventType = event.getEventType();
         if (TestProgressEventVersion1.EVENT_TYPE_STARTED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            String eventDescription = toEventDescription(testDescriptor, "started");
+            String eventDescription = event.getDisplayName();
             return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
         } else if (TestProgressEventVersion1.EVENT_TYPE_FAILED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = toEventDescription(testDescriptor, "failed");
+            String eventDescription = event.getDisplayName();
             FailureOutcome outcome = toTestFailure(event.getResult());
             return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.EVENT_TYPE_SKIPPED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = toEventDescription(testDescriptor, "skipped");
+            String eventDescription = event.getDisplayName();
             SuccessOutcome outcome = toTestSuccess(event.getResult());
             return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else if (TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = toEventDescription(testDescriptor, "succeeded");
+            String eventDescription = event.getDisplayName();
             SuccessOutcome outcome = toTestSuccess(event.getResult());
             return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
         } else {
             return null;
         }
     }
-
-    private String toEventDescription(TestOperationDescriptor testDescriptor, String progressLabel) {
-        if (testDescriptor instanceof JvmTestOperationDescriptor) {
-            return String.format("%s '%s' %s.", ((JvmTestOperationDescriptor) testDescriptor).getJvmTestKind().getLabel(), testDescriptor.getName(), progressLabel);
-        } else {
-            return String.format("Generic test '%s' %s.", testDescriptor.getName(), progressLabel);
-        }
-    }
-
 
     private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
         if (fromCache) {
