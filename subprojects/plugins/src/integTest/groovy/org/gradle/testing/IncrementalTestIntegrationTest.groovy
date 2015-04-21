@@ -104,15 +104,15 @@ public class BarTest {
 
         then:
         //asserting on output because test results are kept in between invocations
-        !result.output.contains("executed test test(BarTest)")
-        result.output.contains("executed test test(FooTest)")
+        !result.output.contains("executed Test test(BarTest)")
+        result.output.contains("executed Test test(FooTest)")
 
         when:
         result = executer.withTasks("test", "-Dtest.single=Bar").run()
 
         then:
-        result.output.contains("executed test test(BarTest)")
-        !result.output.contains("executed test test(FooTest)")
+        result.output.contains("executed Test test(BarTest)")
+        !result.output.contains("executed Test test(FooTest)")
 
         when:
         result = executer.withTasks("test", "-Dtest.single=Bar").run()
