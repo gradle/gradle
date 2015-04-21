@@ -267,8 +267,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
             assert event.result instanceof TestSkippedResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
         }
     }
 
@@ -310,8 +310,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
             assert event.result instanceof TestSuccessResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
         }
     }
 
@@ -354,9 +354,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
             assert event.result instanceof TestFailureResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
-            assert event.result.outcome.failures.size() == 1
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
+            assert event.result.failures.size() == 1
         }
     }
 
@@ -431,8 +431,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
             assert event.result instanceof TestSkippedResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
         }
     }
 
@@ -476,8 +476,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
             assert event.result instanceof TestSuccessResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
         }
     }
 
@@ -522,9 +522,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
             assert event.result instanceof TestFailureResult
-            assert event.result.outcome.startTime == 1
-            assert event.result.outcome.endTime == 2
-            assert event.result.outcome.failures.size() == 1
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
+            assert event.result.failures.size() == 1
         }
     }
 
