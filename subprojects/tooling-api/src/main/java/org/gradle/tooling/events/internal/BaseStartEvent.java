@@ -20,12 +20,12 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.StartEvent;
 
 /**
- * Default implementation of the {@code StartEvent} interface.
+ * Base implementation of the {@code StartEvent} interface.
  */
-public final class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
+public abstract class BaseStartEvent extends BaseProgressEvent implements StartEvent {
 
-    public DefaultStartEvent(long eventTime, String eventDescription, OperationDescriptor descriptor) {
-        super(eventTime, eventDescription, descriptor);
+    protected BaseStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
+        super(eventTime, displayName, descriptor);
     }
 
 }

@@ -22,12 +22,9 @@ import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.internal.DefaultFailureEvent;
 import org.gradle.tooling.events.internal.DefaultSkippedEvent;
-import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultSuccessEvent;
-import org.gradle.tooling.events.test.JvmTestKind;
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.test.*;
+import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
@@ -67,21 +64,22 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         if (event instanceof TestStartedProgressEventVersion1) {
-            return startedEvent((TestStartedProgressEventVersion1) event);
+            return testStartedEvent((TestStartedProgressEventVersion1) event);
         } else if (event instanceof TestFinishedProgressEventVersion1) {
-            return finishedEvent((TestFinishedProgressEventVersion1) event);
+            return testFinishedEvent((TestFinishedProgressEventVersion1) event);
+        } else {
+            return null;
         }
-        return null;
     }
 
-    private ProgressEvent startedEvent(TestStartedProgressEventVersion1 event) {
+    private TestStartEvent testStartedEvent(TestStartedProgressEventVersion1 event) {
+        long eventTime = event.getEventTime();
+        String displayName = event.getDisplayName();
         TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
-        String eventDescription = event.getDisplayName();
-        final long eventTime = event.getEventTime();
-        return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
+        return new DefaultTestStartEvent(eventTime, displayName, testDescriptor);
     }
 
-    private ProgressEvent finishedEvent(TestFinishedProgressEventVersion1 event) {
+    private ProgressEvent testFinishedEvent(TestFinishedProgressEventVersion1 event) {
         TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
         String eventDescription = event.getDisplayName();
         final long eventTime = event.getEventTime();
@@ -98,14 +96,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         throw new IllegalArgumentException("Cannot adapt progress event: " + event);
     }
 
-    private TestOperationDescriptor removeTestDescriptor(TestDescriptorVersion1 testDescriptor) {
-        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.remove(testDescriptor.getId());
-        if (cachedTestDescriptor == null) {
-            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
-        }
-        return cachedTestDescriptor;
-    }
-
     private TestOperationDescriptor addTestDescriptor(TestDescriptorVersion1 testDescriptor) {
         TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
         if (cachedTestDescriptor != null) {
@@ -115,6 +105,14 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
         testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
         return newTestDescriptor;
+    }
+
+    private TestOperationDescriptor removeTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.remove(testDescriptor.getId());
+        if (cachedTestDescriptor == null) {
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
+        }
+        return cachedTestDescriptor;
     }
 
     private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
