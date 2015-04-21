@@ -75,52 +75,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private TestFinishEvent testFinishedEvent(final TestFinishedProgressEventVersion1 event) {
+        long eventTime = event.getEventTime();
+        String displayName = event.getDisplayName();
         TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
-        String eventDescription = event.getDisplayName();
-        final long eventTime = event.getEventTime();
-        if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestFailureResult() {
-                @Override
-                public long getStartTime() {
-                    return event.getResult().getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return event.getResult().getEndTime();
-                }
-
-                @Override
-                public List<? extends Failure> getFailures() {
-                    return toFailures(event.getResult());
-                }
-            });
-        } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSkippedResult() {
-                @Override
-                public long getStartTime() {
-                    return event.getResult().getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return event.getResult().getEndTime();
-                }
-            });
-        } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSuccessResult() {
-                @Override
-                public long getStartTime() {
-                    return event.getResult().getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return event.getResult().getEndTime();
-                }
-            });
-        }
-        throw new IllegalArgumentException("Cannot adapt progress event: " + event);
+        TestOperationResult result = toTestResult(event.getResult());
+        return new DefaultTestFinishEvent(eventTime, displayName, testDescriptor, result);
     }
 
     private TestOperationDescriptor addTestDescriptor(TestDescriptorVersion1 testDescriptor) {
@@ -219,6 +178,53 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             return JvmTestKind.ATOMIC;
         } else {
             return JvmTestKind.UNKNOWN;
+        }
+    }
+
+    private TestOperationResult toTestResult(final TestResultVersion1 result) {
+        if (result.getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+            return new TestSuccessResult() {
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+            };
+        } else if (result.getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+            return new TestSkippedResult() {
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+            };
+        } else if (result.getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+            return new TestFailureResult() {
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+
+                @Override
+                public List<? extends Failure> getFailures() {
+                    return toFailures(result);
+                }
+            };
+        } else {
+            return null;
         }
     }
 
