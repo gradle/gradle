@@ -21,7 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
- * Describes a test for which an event has occurred.
+ * Describes a test operation for which an event has occurred.
  *
  * @since 2.4
  */
@@ -29,17 +29,25 @@ import org.gradle.tooling.events.OperationDescriptor;
 public interface TestOperationDescriptor extends OperationDescriptor {
 
     /**
-     * Returns the name of the test.
+     * Returns the name of the test operation.
      *
-     * @return The name of the test.
+     * @return The name of the test operation.
      */
     @Override
     String getName();
 
     /**
-     * Returns the parent of this test, if any.
+     * Returns a human consumable display name for the test operation.
      *
-     * @return The parent of this test.
+     * @return The display name of the test operation.
+     */
+    @Override
+    String getDisplayName();
+
+    /**
+     * Returns the parent of the test operation, if any.
+     *
+     * @return The parent of the test operation.
      */
     @Override
     @Nullable
