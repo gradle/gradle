@@ -17,11 +17,39 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A test launcher allows execution of tests from the tooling api, by defining include/exclude filters.
+ *
+ * @since 2.5
+ */
 @Incubating
 public interface TestsLauncher extends ConfigurableLauncher {
+    /**
+     * Adds a selection of tests to be executed thanks to the provided patterns.
+     *
+     * @param patterns patterns of tests to be included
+     *
+     * @return this instance
+     */
     TestsLauncher addTestsByPattern(String... patterns);
 
+    /**
+     * Adds test classes to the list of tests to be executed. The name of the class
+     * is a fully qualified class name.
+     *
+     * @param testClasses some test classes to be added to the test execution.
+     *
+     * @return this instance
+     */
     TestsLauncher addJvmTestClasses(String... testClasses);
 
+    /**
+     * Adds test methods from a class to be executed.
+     *
+     * @param testClass the test class which includes some test methods to be included
+     * @param methods the names of the test methods to be included
+     *
+     * @return this instance
+     */
     TestsLauncher addJvmTestMethods(String testClass, String... methods);
 }

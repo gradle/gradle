@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -53,12 +52,95 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                         .addJvmTestClasses('example.MyTest')
                         .addTestProgressListener {
                             result.add(it)
-                    println it
                         }
                         .run()
         }
 
         then: "the test is executed"
+        assert result.size()>0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute single test with pattern"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest1.java") << """
+            package example;
+            public class MyTest1 {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        file("src/test/java/example/MyTest2.java") << """
+            package example;
+            public class MyTest2 {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test pattern to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                        .addJvmTestClasses('example.MyTest1')
+                        .addTestProgressListener {
+                            result.add(it)
+                        }
+                        .run()
+        }
+
+        then: "the test is executed and doesn't fail"
+        assert result.size()>0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute single test method"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test method to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                        .addJvmTestMethods('example.MyTest', 'foo')
+                        .addTestProgressListener {
+                    result.add(it)
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
         assert result.size()>0
     }
 }
