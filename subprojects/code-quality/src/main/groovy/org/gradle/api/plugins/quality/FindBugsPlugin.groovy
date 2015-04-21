@@ -90,6 +90,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             omitVisitors = { extension.omitVisitors }
             excludeFilter = { extension.excludeFilter }
             includeFilter = { extension.includeFilter }
+            extraArgs = { extension.extraArgs }
  
         }
         task.reports.all { Report report ->

@@ -78,4 +78,9 @@ class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying bugs to exclude from being reported.
      */
     File excludeFilter
+
+    /**
+     * Any additional arguments (not covered here more explicitly) to be passed along to FindBugs
+     */
+    List<String> extraArgs
 }

@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.gradle.api.InvalidUserDataException;
@@ -47,6 +48,7 @@ public class FindBugsSpecBuilder {
     private Collection<String> omitVisitors;
     private File excludeFilter;
     private File includeFilter;
+    private List<String> extraArgs;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -128,6 +130,11 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
+    public FindBugsSpecBuilder withExtraArgs(List<String> extraArgs) {
+        this.extraArgs = extraArgs;
+        return this;
+    }
+
     public FindBugsSpecBuilder withDebugging(boolean debugEnabled){
         this.debugEnabled = debugEnabled;
         return this;
@@ -201,6 +208,12 @@ public class FindBugsSpecBuilder {
         if (has(includeFilter)) {
             args.add("-include");
             args.add(includeFilter.getPath());
+        }
+
+        if (has(extraArgs)) {
+            for (String extraArg : extraArgs) {
+                args.add( extraArg );
+            }
         }
 
         for (File classFile : classes.getFiles()) {
