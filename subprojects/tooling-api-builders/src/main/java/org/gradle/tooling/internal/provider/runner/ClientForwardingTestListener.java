@@ -43,7 +43,7 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite)));
     }
 
     @Override
@@ -53,7 +53,7 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test)));
     }
 
     @Override

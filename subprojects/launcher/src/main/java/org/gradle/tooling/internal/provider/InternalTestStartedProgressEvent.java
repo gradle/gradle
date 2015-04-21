@@ -19,12 +19,12 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.tooling.internal.protocol.TestStartedProgressEventVersion1;
 
 public class InternalTestStartedProgressEvent extends InternalTestProgressEvent implements TestStartedProgressEventVersion1 {
-    public InternalTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        super(eventTime, descriptor, result);
+    public InternalTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
+        super(eventTime, descriptor);
     }
 
     @Override
-    protected String typeDisplayName() {
-        return "started";
+    public String getDisplayName() {
+        return String.format("%s started", getDescriptor().getDisplayName());
     }
 }

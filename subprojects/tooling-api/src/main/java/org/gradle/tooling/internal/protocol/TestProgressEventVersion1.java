@@ -39,12 +39,4 @@ public interface TestProgressEventVersion1 extends InternalProtocolInterface {
      * @return The test description
      */
     TestDescriptorVersion1 getDescriptor();
-
-    /**
-     * Returns the result of running the test successfully or with a failure.
-     *
-     * @return The test result
-     */
-    TestResultVersion1 getResult();
-
 }

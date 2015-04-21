@@ -24,34 +24,20 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
-
     private final long eventTime;
     private final InternalTestDescriptor descriptor;
-    private final InternalTestResult result;
 
-    protected InternalTestProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
+    protected InternalTestProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
-        this.result = result;
     }
 
     public long getEventTime() {
         return eventTime;
     }
 
-    @Override
-    public String getDisplayName() {
-        return String.format("%s %s", descriptor.getDisplayName(), typeDisplayName());
-    }
-
-    protected abstract String typeDisplayName();
-
     public InternalTestDescriptor getDescriptor() {
         return descriptor;
-    }
-
-    public InternalTestResult getResult() {
-        return result;
     }
 
     public static class InternalTestDescriptor implements Serializable, JvmTestDescriptorVersion1 {

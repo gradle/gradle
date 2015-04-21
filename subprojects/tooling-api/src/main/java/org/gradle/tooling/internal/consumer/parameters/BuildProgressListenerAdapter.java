@@ -66,52 +66,55 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        final long eventTime = event.getEventTime();
         if (event instanceof TestStartedProgressEventVersion1) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            String eventDescription = event.getDisplayName();
-            return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
+            return startedEvent((TestStartedProgressEventVersion1) event);
         } else if (event instanceof TestFinishedProgressEventVersion1) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = event.getDisplayName();
-            if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-                FailureOutcome outcome = toTestFailure(event.getResult());
-                return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
-            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-                SuccessOutcome outcome = toTestSuccess(event.getResult());
-                return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
-            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-                SuccessOutcome outcome = toTestSuccess(event.getResult());
-                return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
-            }
-            throw new IllegalArgumentException("Cannot adapt progress event: " + event);
+            return finishedEvent((TestFinishedProgressEventVersion1) event);
         }
         return null;
     }
 
-    private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
-        if (fromCache) {
-            TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
-            if (cachedTestDescriptor == null) {
-                throw new IllegalStateException(String.format("%s not available.", toString(testDescriptor)));
-            } else {
-                // when we access the test descriptor from the cache, it is because we have received a test finished event
-                // once the test has finished, we can remove the test from the cache since no child will access it anymore
-                // (all children have already finished before)
-                this.testDescriptorCache.remove(testDescriptor.getId());
-                return cachedTestDescriptor;
-            }
-        } else {
-            TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
-            if (cachedTestDescriptor != null) {
-                throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
-            } else {
-                final TestOperationDescriptor parent = getParentTestDescriptor(testDescriptor);
-                TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
-                testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
-                return newTestDescriptor;
-            }
+    private ProgressEvent startedEvent(TestStartedProgressEventVersion1 event) {
+        TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
+        String eventDescription = event.getDisplayName();
+        final long eventTime = event.getEventTime();
+        return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
+    }
+
+    private ProgressEvent finishedEvent(TestFinishedProgressEventVersion1 event) {
+        TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
+        String eventDescription = event.getDisplayName();
+        final long eventTime = event.getEventTime();
+        if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+            FailureOutcome outcome = toTestFailure(event.getResult());
+            return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
+        } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+            SuccessOutcome outcome = toTestSuccess(event.getResult());
+            return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
+        } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+            SuccessOutcome outcome = toTestSuccess(event.getResult());
+            return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
         }
+        throw new IllegalArgumentException("Cannot adapt progress event: " + event);
+    }
+
+    private TestOperationDescriptor removeTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.remove(testDescriptor.getId());
+        if (cachedTestDescriptor == null) {
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
+        }
+        return cachedTestDescriptor;
+    }
+
+    private TestOperationDescriptor addTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
+        if (cachedTestDescriptor != null) {
+            throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
+        }
+        final TestOperationDescriptor parent = getParentTestDescriptor(testDescriptor);
+        TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
+        testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
+        return newTestDescriptor;
     }
 
     private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {

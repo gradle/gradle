@@ -21,11 +21,24 @@ import org.gradle.tooling.internal.protocol.TestFinishedProgressEventVersion1;
 import static org.gradle.tooling.internal.protocol.TestResultVersion1.*;
 
 public class InternalTestFinishedProgressEvent extends InternalTestProgressEvent implements TestFinishedProgressEventVersion1 {
+    private final InternalTestResult result;
+
     public InternalTestFinishedProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        super(eventTime, descriptor, result);
+        super(eventTime, descriptor);
+        this.result = result;
     }
 
-    protected String typeDisplayName() {
+    @Override
+    public InternalTestResult getResult() {
+        return result;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return String.format("%s %s", getDescriptor().getDisplayName(), typeDisplayName());
+    }
+
+    private String typeDisplayName() {
         if (getResult().getResultType().equals(RESULT_SUCCESSFUL)) {
             return "succeeded";
         }

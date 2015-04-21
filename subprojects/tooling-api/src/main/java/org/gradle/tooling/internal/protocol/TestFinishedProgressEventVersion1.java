@@ -22,4 +22,10 @@ package org.gradle.tooling.internal.protocol;
  * @since 2.4
  */
 public interface TestFinishedProgressEventVersion1 extends TestProgressEventVersion1 {
+    /**
+     * Returns the result of running the test.
+     *
+     * @return The test result
+     */
+    TestResultVersion1 getResult();
 }
