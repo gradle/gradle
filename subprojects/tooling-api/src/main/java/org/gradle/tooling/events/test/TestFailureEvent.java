@@ -18,7 +18,6 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FailureEvent;
-import org.gradle.tooling.events.FailureOutcome;
 
 /**
  * An event that informs about a test operation having finished its execution with a failure.
@@ -27,11 +26,4 @@ import org.gradle.tooling.events.FailureOutcome;
  */
 @Incubating
 public interface TestFailureEvent extends TestProgressEvent, FailureEvent {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    FailureOutcome getOutcome();
-
 }

@@ -18,6 +18,7 @@ package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.FailureEvent;
 import org.gradle.tooling.events.FailureOutcome;
+import org.gradle.tooling.events.FailureResult;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -25,16 +26,21 @@ import org.gradle.tooling.events.OperationDescriptor;
  */
 public abstract class BaseFailureEvent extends BaseProgressEvent implements FailureEvent {
 
-    private final FailureOutcome outcome;
+    private final FailureResult result;
 
-    protected BaseFailureEvent(long eventTime, String displayName, OperationDescriptor descriptor, FailureOutcome outcome) {
+    protected BaseFailureEvent(long eventTime, String displayName, OperationDescriptor descriptor, final FailureOutcome outcome) {
         super(eventTime, displayName, descriptor);
-        this.outcome = outcome;
+        result = new FailureResult() {
+            @Override
+            public FailureOutcome getOutcome() {
+                return outcome;
+            }
+        };
     }
 
     @Override
-    public FailureOutcome getOutcome() {
-        return outcome;
+    public FailureResult getResult() {
+        return result;
     }
 
 }

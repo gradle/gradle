@@ -269,8 +269,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
         }
     }
 
@@ -311,8 +311,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
         }
     }
 
@@ -354,9 +354,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
-            assert event.outcome.failures.size() == 1
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
+            assert event.result.outcome.failures.size() == 1
         }
     }
 
@@ -430,8 +430,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
         }
     }
 
@@ -474,8 +474,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
         }
     }
 
@@ -519,9 +519,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.outcome.startTime == 1
-            assert event.outcome.endTime == 2
-            assert event.outcome.failures.size() == 1
+            assert event.result.outcome.startTime == 1
+            assert event.result.outcome.endTime == 2
+            assert event.result.outcome.failures.size() == 1
         }
     }
 

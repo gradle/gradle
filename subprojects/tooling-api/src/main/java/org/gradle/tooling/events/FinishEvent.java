@@ -27,10 +27,10 @@ import org.gradle.api.Incubating;
 public interface FinishEvent extends ProgressEvent {
 
     /**
-     * Returns the outcome of the finished operation.
+     * Returns the result of the finished operation.
      *
-     * @return the outcome of the finished operation
+     * @return the result of the finished operation
      */
-    Outcome getOutcome();
+    OperationResult getResult();
 
 }

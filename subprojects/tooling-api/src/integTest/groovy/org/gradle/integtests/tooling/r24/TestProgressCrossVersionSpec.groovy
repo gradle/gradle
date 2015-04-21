@@ -235,32 +235,32 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testSucceededEvent = result[4]
         testSucceededEvent instanceof SuccessEvent &&
-                testSucceededEvent.eventTime >= testSucceededEvent.outcome.endTime &&
+                testSucceededEvent.eventTime >= testSucceededEvent.result.outcome.endTime &&
                 testSucceededEvent.displayName == "Test foo(example.MyTest) succeeded" &&
                 testSucceededEvent.descriptor == testStartedEvent.descriptor &&
-                testSucceededEvent.outcome.startTime > 0 &&
-                testSucceededEvent.outcome.endTime > testSucceededEvent.outcome.startTime
+                testSucceededEvent.result.outcome.startTime > 0 &&
+                testSucceededEvent.result.outcome.endTime > testSucceededEvent.result.outcome.startTime
         def testClassSucceededEvent = result[5]
         testClassSucceededEvent instanceof SuccessEvent &&
-                testClassSucceededEvent.eventTime >= testClassSucceededEvent.outcome.endTime &&
+                testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.outcome.endTime &&
                 testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
                 testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassSucceededEvent.outcome.startTime > 0 &&
-                testClassSucceededEvent.outcome.endTime > testClassSucceededEvent.outcome.startTime
+                testClassSucceededEvent.result.outcome.startTime > 0 &&
+                testClassSucceededEvent.result.outcome.endTime > testClassSucceededEvent.result.outcome.startTime
         def testProcessSucceededEvent = result[6]
         testProcessSucceededEvent instanceof SuccessEvent &&
-                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.outcome.endTime &&
+                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.outcome.endTime &&
                 testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
                 testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessSucceededEvent.outcome.startTime > 0 &&
-                testProcessSucceededEvent.outcome.endTime > testProcessSucceededEvent.outcome.startTime
+                testProcessSucceededEvent.result.outcome.startTime > 0 &&
+                testProcessSucceededEvent.result.outcome.endTime > testProcessSucceededEvent.result.outcome.startTime
         def rootSucceededEvent = result[7]
         rootSucceededEvent instanceof SuccessEvent &&
-                rootSucceededEvent.eventTime >= rootSucceededEvent.outcome.endTime &&
+                rootSucceededEvent.eventTime >= rootSucceededEvent.result.outcome.endTime &&
                 rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
                 rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
-                rootSucceededEvent.outcome.startTime > 0 &&
-                rootSucceededEvent.outcome.endTime > rootSucceededEvent.outcome.startTime
+                rootSucceededEvent.result.outcome.startTime > 0 &&
+                rootSucceededEvent.result.outcome.endTime > rootSucceededEvent.result.outcome.startTime
     }
 
     @ToolingApiVersion(">=2.4")
@@ -352,42 +352,42 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testFailedEvent = result[4]
         testFailedEvent instanceof FailureEvent &&
-                testFailedEvent.eventTime >= testFailedEvent.outcome.endTime &&
+                testFailedEvent.eventTime >= testFailedEvent.result.outcome.endTime &&
                 testFailedEvent.displayName == "Test foo(example.MyTest) failed" &&
                 testFailedEvent.descriptor == testStartedEvent.descriptor &&
-                testFailedEvent.outcome.startTime > 0 &&
-                testFailedEvent.outcome.endTime > testFailedEvent.outcome.startTime &&
-                testFailedEvent.outcome.failures.size() == 1 &&
-                testFailedEvent.outcome.failures[0].message == 'broken' &&
-                testFailedEvent.outcome.failures[0].description.startsWith("java.lang.RuntimeException: broken") &&
-                testFailedEvent.outcome.failures[0].description.contains("at example.MyTest.foo(MyTest.java:6)") &&
-                testFailedEvent.outcome.failures[0].causes.size() == 1 &&
-                testFailedEvent.outcome.failures[0].causes[0].message == 'nope' &&
-                testFailedEvent.outcome.failures[0].causes[0].causes.empty
+                testFailedEvent.result.outcome.startTime > 0 &&
+                testFailedEvent.result.outcome.endTime > testFailedEvent.result.outcome.startTime &&
+                testFailedEvent.result.outcome.failures.size() == 1 &&
+                testFailedEvent.result.outcome.failures[0].message == 'broken' &&
+                testFailedEvent.result.outcome.failures[0].description.startsWith("java.lang.RuntimeException: broken") &&
+                testFailedEvent.result.outcome.failures[0].description.contains("at example.MyTest.foo(MyTest.java:6)") &&
+                testFailedEvent.result.outcome.failures[0].causes.size() == 1 &&
+                testFailedEvent.result.outcome.failures[0].causes[0].message == 'nope' &&
+                testFailedEvent.result.outcome.failures[0].causes[0].causes.empty
         def testClassFailedEvent = result[5]
         testClassFailedEvent instanceof FailureEvent &&
-                testClassFailedEvent.eventTime >= testClassFailedEvent.outcome.endTime &&
+                testClassFailedEvent.eventTime >= testClassFailedEvent.result.outcome.endTime &&
                 testClassFailedEvent.displayName == "Test class example.MyTest failed" &&
                 testClassFailedEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassFailedEvent.outcome.startTime > 0 &&
-                testClassFailedEvent.outcome.endTime > testClassFailedEvent.outcome.startTime &&
-                testClassFailedEvent.outcome.failures.size() == 0
+                testClassFailedEvent.result.outcome.startTime > 0 &&
+                testClassFailedEvent.result.outcome.endTime > testClassFailedEvent.result.outcome.startTime &&
+                testClassFailedEvent.result.outcome.failures.size() == 0
         def testProcessFailedEvent = result[6]
         testProcessFailedEvent instanceof FailureEvent &&
-                testProcessFailedEvent.eventTime >= testProcessFailedEvent.outcome.endTime &&
+                testProcessFailedEvent.eventTime >= testProcessFailedEvent.result.outcome.endTime &&
                 testProcessFailedEvent.displayName == "Gradle Test Executor 2 failed" &&
                 testProcessFailedEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessFailedEvent.outcome.startTime > 0 &&
-                testProcessFailedEvent.outcome.endTime > testProcessFailedEvent.outcome.startTime &&
-                testProcessFailedEvent.outcome.failures.size() == 0
+                testProcessFailedEvent.result.outcome.startTime > 0 &&
+                testProcessFailedEvent.result.outcome.endTime > testProcessFailedEvent.result.outcome.startTime &&
+                testProcessFailedEvent.result.outcome.failures.size() == 0
         def rootFailedEvent = result[7]
         rootFailedEvent instanceof FailureEvent &&
-                rootFailedEvent.eventTime >= rootFailedEvent.outcome.endTime &&
+                rootFailedEvent.eventTime >= rootFailedEvent.result.outcome.endTime &&
                 rootFailedEvent.displayName == "Gradle Test Run :test failed" &&
                 rootFailedEvent.descriptor == rootStartedEvent.descriptor &&
-                rootFailedEvent.outcome.startTime > 0 &&
-                rootFailedEvent.outcome.endTime > rootFailedEvent.outcome.startTime &&
-                rootFailedEvent.outcome.failures.size() == 0
+                rootFailedEvent.result.outcome.startTime > 0 &&
+                rootFailedEvent.result.outcome.endTime > rootFailedEvent.result.outcome.startTime &&
+                rootFailedEvent.result.outcome.failures.size() == 0
     }
 
     @ToolingApiVersion(">=2.4")
@@ -483,25 +483,25 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testSkippedEvent.descriptor == testStartedEvent.descriptor
         def testClassSucceededEvent = result[5]
         testClassSucceededEvent instanceof SuccessEvent &&
-                testClassSucceededEvent.eventTime >= testClassSucceededEvent.outcome.endTime &&
+                testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.outcome.endTime &&
                 testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
                 testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassSucceededEvent.outcome.startTime > 0 &&
-                testClassSucceededEvent.outcome.endTime > testClassSucceededEvent.outcome.startTime
+                testClassSucceededEvent.result.outcome.startTime > 0 &&
+                testClassSucceededEvent.result.outcome.endTime > testClassSucceededEvent.result.outcome.startTime
         def testProcessSucceededEvent = result[6]
         testProcessSucceededEvent instanceof SuccessEvent &&
-                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.outcome.endTime &&
+                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.outcome.endTime &&
                 testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
                 testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessSucceededEvent.outcome.startTime > 0 &&
-                testProcessSucceededEvent.outcome.endTime > testProcessSucceededEvent.outcome.startTime
+                testProcessSucceededEvent.result.outcome.startTime > 0 &&
+                testProcessSucceededEvent.result.outcome.endTime > testProcessSucceededEvent.result.outcome.startTime
         def rootSucceededEvent = result[7]
         rootSucceededEvent instanceof SuccessEvent &&
-                rootSucceededEvent.eventTime >= rootSucceededEvent.outcome.endTime &&
+                rootSucceededEvent.eventTime >= rootSucceededEvent.result.outcome.endTime &&
                 rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
                 rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
-                rootSucceededEvent.outcome.startTime > 0 &&
-                rootSucceededEvent.outcome.endTime > rootSucceededEvent.outcome.startTime
+                rootSucceededEvent.result.outcome.startTime > 0 &&
+                rootSucceededEvent.result.outcome.endTime > rootSucceededEvent.result.outcome.startTime
     }
 
     @ToolingApiVersion(">=2.4")

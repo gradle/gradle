@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
- * An event that informs about an operation having finished its execution successfully.
- *
- * @since 2.4
+ * Describes the success with which an operation finished.
  */
-@Incubating
-public interface SuccessEvent extends FinishEvent {
+public interface SuccessResult extends OperationResult {
+
+    @Override
+    SuccessOutcome getOutcome();
+
 }

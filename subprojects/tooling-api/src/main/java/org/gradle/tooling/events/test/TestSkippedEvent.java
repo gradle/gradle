@@ -18,7 +18,6 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.SkippedEvent;
-import org.gradle.tooling.events.SuccessOutcome;
 
 /**
  * An event that informs about a test operation having skipped its execution.
@@ -27,11 +26,4 @@ import org.gradle.tooling.events.SuccessOutcome;
  */
 @Incubating
 public interface TestSkippedEvent extends TestProgressEvent, SkippedEvent {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    SuccessOutcome getOutcome();
-
 }

@@ -19,22 +19,29 @@ package org.gradle.tooling.events.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.SkippedEvent;
 import org.gradle.tooling.events.SuccessOutcome;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
  * Default implementation of the {@code SkippedEvent} interface.
  */
 public abstract class BaseSkippedEvent extends BaseProgressEvent implements SkippedEvent {
 
-    private final SuccessOutcome outcome;
+    private final SuccessResult result;
 
-    protected BaseSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
+    protected BaseSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, final SuccessOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
-        this.outcome = outcome;
+        result = new SuccessResult() {
+            @Override
+            public SuccessOutcome getOutcome() {
+                return outcome;
+            }
+        };
+
     }
 
     @Override
-    public SuccessOutcome getOutcome() {
-        return outcome;
+    public SuccessResult getResult() {
+        return result;
     }
 
 }
