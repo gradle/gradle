@@ -973,6 +973,11 @@
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
                 </sample>
+                <para>If your Ivy repository has descriptors that don't pass the Ivy XML schema validation you can use the <literal>validateDescriptors</literal> option.
+                    By default Gradle will validate the descriptors.</para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with validation of descriptors disabled">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-validate-descriptors-disabled"/>
+                </sample>
             </section>
             <section>
                 <title>Accessing password protected Ivy repositories</title>

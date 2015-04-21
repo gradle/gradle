@@ -44,6 +44,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def "default values"() {
         expect:
         repository.url == null
+        repository.validateDescriptors
         !repository.resolve.dynamicMode
     }
 
@@ -236,6 +237,25 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             name == 'name'
             artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact']
             ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy']
+        }
+    }
+
+    def "disables validation of ivy descriptors for this repository"() {
+        repository.name = 'name'
+        repository.url = 'http://host/'
+        repository.validateDescriptors = false
+
+        given:
+        fileResolver.resolveUri('http://host/') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', null) >> transport()
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        with(resolver) {
+            it instanceof IvyResolver
+            !validateDescriptors
         }
     }
 

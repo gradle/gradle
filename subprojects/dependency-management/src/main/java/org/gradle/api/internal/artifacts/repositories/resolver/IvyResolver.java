@@ -40,14 +40,17 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private final boolean dynamicResolve;
     private final MetaDataParser<DefaultIvyModuleResolveMetaData> metaDataParser;
+    private final boolean validateDescriptors;
     private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
+                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleComponentArtifactMetaData> artifactFileStore,
+                       boolean validateDescriptors) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
         this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
         this.dynamicResolve = dynamicResolve;
+        this.validateDescriptors = validateDescriptors;
     }
 
     @Override
@@ -78,6 +81,10 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         this.m2Compatible = m2compatible;
     }
 
+    public boolean isValidateDescriptors() {
+        return validateDescriptors;
+    }
+
     public void addArtifactLocation(URI baseUri, String pattern) {
         addArtifactPattern(toResourcePattern(baseUri, pattern));
     }
@@ -103,7 +110,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        MutableModuleComponentResolveMetaData metaData = metaDataParser.parseMetaData(context, cachedResource);
+        MutableModuleComponentResolveMetaData metaData = metaDataParser.parseMetaData(context, cachedResource, validateDescriptors);
         checkMetadataConsistency(moduleComponentIdentifier, metaData);
         return metaData;
     }
