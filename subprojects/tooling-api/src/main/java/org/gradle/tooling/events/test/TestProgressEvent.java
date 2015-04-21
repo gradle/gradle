@@ -44,7 +44,8 @@ public interface TestProgressEvent extends ProgressEvent {
     String getDisplayName();
 
     /**
-     * Returns the description of the underlying test operation for which progress is reported.
+     * Returns the description of the underlying test operation for which progress is reported. For JVM-based tests,
+     * the descriptor is of sub-type {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.
      *
      * @return The description of the underlying test operation.
      */

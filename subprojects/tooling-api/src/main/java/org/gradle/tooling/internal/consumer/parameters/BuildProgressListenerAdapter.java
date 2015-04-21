@@ -52,13 +52,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private void broadcastTestProgressEvent(TestProgressEventVersion1 event) {
-        ProgressEvent testProgressEvent = toTestProgressEvent(event);
+        TestProgressEvent testProgressEvent = toTestProgressEvent(event);
         if (testProgressEvent != null) {
             testProgressListeners.getSource().statusChanged(testProgressEvent);
         }
     }
 
-    private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
+    private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         if (event instanceof TestStartedProgressEventVersion1) {
             return testStartedEvent((TestStartedProgressEventVersion1) event);
         } else if (event instanceof TestFinishedProgressEventVersion1) {
@@ -133,11 +133,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 }
 
                 @Override
-                public String toString() {
-                    return getDisplayName();
-                }
-
-                @Override
                 public String getDisplayName() {
                     return jvmTestDescriptor.getDisplayName();
                 }
@@ -167,17 +162,16 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     return parent;
                 }
 
+                @Override
+                public String toString() {
+                    return getDisplayName();
+                }
             };
         } else {
             return new TestOperationDescriptor() {
                 @Override
                 public String getName() {
                     return testDescriptor.getName();
-                }
-
-                @Override
-                public String toString() {
-                    return getDisplayName();
                 }
 
                 @Override
@@ -188,6 +182,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestOperationDescriptor getParent() {
                     return parent;
+                }
+
+                @Override
+                public String toString() {
+                    return getDisplayName();
                 }
             };
         }
