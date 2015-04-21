@@ -16,31 +16,24 @@
 
 package org.gradle.tooling.events.internal;
 
+import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.SkippedEvent;
-import org.gradle.tooling.events.SuccessOutcome;
-import org.gradle.tooling.events.SuccessResult;
+import org.gradle.tooling.events.OperationResult;
 
 /**
- * Default implementation of the {@code SkippedEvent} interface.
+ * Base implementation of the {@code FinishEvent} interface.
  */
-public abstract class BaseSkippedEvent extends BaseProgressEvent implements SkippedEvent {
+public abstract class BaseFinishEvent extends BaseProgressEvent implements FinishEvent {
 
-    private final SuccessResult result;
+    private final OperationResult result;
 
-    protected BaseSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, final SuccessOutcome outcome) {
-        super(eventTime, eventDescription, descriptor);
-        result = new SuccessResult() {
-            @Override
-            public SuccessOutcome getOutcome() {
-                return outcome;
-            }
-        };
-
+    public BaseFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
+        super(eventTime, displayName, descriptor);
+        this.result = result;
     }
 
     @Override
-    public SuccessResult getResult() {
+    public OperationResult getResult() {
         return result;
     }
 

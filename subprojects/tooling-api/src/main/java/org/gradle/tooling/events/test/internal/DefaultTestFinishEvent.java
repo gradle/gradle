@@ -17,23 +17,28 @@
 package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.SuccessOutcome;
-import org.gradle.tooling.events.internal.BaseSkippedEvent;
+import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.internal.BaseFinishEvent;
+import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.events.test.TestSkippedEvent;
 
 /**
- * Implementation of the {@code TestSkippedEvent} interface.
+ * Implementation of the {@code TestFinishEvent} interface.
  */
-public final class DefaultTestSkippedEvent extends BaseSkippedEvent implements TestSkippedEvent {
+public final class DefaultTestFinishEvent extends BaseFinishEvent implements TestFinishEvent {
 
-    public DefaultTestSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
-        super(eventTime, eventDescription, descriptor, outcome);
+    public DefaultTestFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
+        super(eventTime, displayName, descriptor, result);
     }
 
     @Override
     public TestOperationDescriptor getDescriptor() {
         return (TestOperationDescriptor) super.getDescriptor();
+    }
+
+    @Override
+    public OperationResult getResult() {
+        return (OperationResult) super.getResult();
     }
 
 }

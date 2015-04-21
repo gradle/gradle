@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test;
-
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.SkippedEvent;
+package org.gradle.tooling.events;
 
 /**
- * An event that informs about a test operation having skipped its execution.
- *
- * @since 2.4
+ * Describes the result of running a test operation.
  */
-@Incubating
-public interface TestSkippedEvent extends TestProgressEvent, SkippedEvent {
+public interface TestOperationResult extends OperationResult {
+
+    @Override
+    Outcome getOutcome();
+
 }

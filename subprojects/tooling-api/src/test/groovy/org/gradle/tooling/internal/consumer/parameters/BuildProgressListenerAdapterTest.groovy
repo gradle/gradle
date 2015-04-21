@@ -17,10 +17,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.FailureEvent
-import org.gradle.tooling.events.SkippedEvent
-import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.SuccessEvent
+import org.gradle.tooling.events.*
 import org.gradle.tooling.events.test.JvmTestKind
 import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.internal.protocol.*
@@ -263,12 +260,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite skipped"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
+            assert event.result instanceof SkippedResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -305,12 +303,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite succeeded"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
+            assert event.result instanceof SuccessResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -348,12 +347,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite failed"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
+            assert event.result instanceof FailureResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
             assert event.result.outcome.failures.size() == 1
@@ -423,13 +423,14 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test skipped"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
+            assert event.result instanceof SkippedResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -467,13 +468,14 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test succeeded"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
+            assert event.result instanceof SuccessResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -512,13 +514,14 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test failed"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
+            assert event.result instanceof FailureResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
             assert event.result.outcome.failures.size() == 1

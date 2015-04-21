@@ -17,14 +17,10 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.FailureOutcome;
-import org.gradle.tooling.events.ProgressEvent;
-import org.gradle.tooling.events.SuccessOutcome;
+import org.gradle.tooling.events.*;
 import org.gradle.tooling.events.test.*;
-import org.gradle.tooling.events.test.internal.DefaultTestFailureEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestSkippedEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestSuccessEvent;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
@@ -79,19 +75,31 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return new DefaultTestStartEvent(eventTime, displayName, testDescriptor);
     }
 
-    private TestProgressEvent testFinishedEvent(TestFinishedProgressEventVersion1 event) {
+    private TestFinishEvent testFinishedEvent(final TestFinishedProgressEventVersion1 event) {
         TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
         String eventDescription = event.getDisplayName();
         final long eventTime = event.getEventTime();
         if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-            FailureOutcome outcome = toTestFailure(event.getResult());
-            return new DefaultTestFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new FailureResult() {
+                @Override
+                public FailureOutcome getOutcome() {
+                    return toTestFailure(event.getResult());
+                }
+            });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-            SuccessOutcome outcome = toTestSuccess(event.getResult());
-            return new DefaultTestSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new SkippedResult() {
+                @Override
+                public Outcome getOutcome() {
+                    return toTestSuccess(event.getResult());
+                }
+            });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-            SuccessOutcome outcome = toTestSuccess(event.getResult());
-            return new DefaultTestSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new SuccessResult() {
+                @Override
+                public SuccessOutcome getOutcome() {
+                    return toTestSuccess(event.getResult());
+                }
+            });
         }
         throw new IllegalArgumentException("Cannot adapt progress event: " + event);
     }
