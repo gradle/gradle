@@ -16,23 +16,15 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.FailureOutcome;
+import org.gradle.tooling.events.FailureResult;
 
 /**
- * An event that informs about a test operation having finished its execution.
- *
- * @since 2.4
+ * Describes the failure with which an operation finished.
  */
-@Incubating
-public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
+public interface TestFailureResult extends TestOperationResult, FailureResult {
 
-    /**
-     * Returns the result of the finished test operation.
-     *
-     * @return the result of the finished test operation
-     */
     @Override
-    TestOperationResult getResult();
+    FailureOutcome getOutcome();
 
 }

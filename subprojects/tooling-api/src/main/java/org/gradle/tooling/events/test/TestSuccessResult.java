@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.test;
+
+import org.gradle.tooling.events.SuccessOutcome;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
- * Describes the result of running a test operation.
+ * Describes the success with which an operation finished.
  */
-public interface TestOperationResult extends OperationResult {
+public interface TestSuccessResult extends TestOperationResult, SuccessResult {
 
     @Override
-    Outcome getOutcome();
+    SuccessOutcome getOutcome();
 
 }

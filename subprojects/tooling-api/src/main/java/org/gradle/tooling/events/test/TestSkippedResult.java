@@ -16,23 +16,10 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.SkippedResult;
 
 /**
- * An event that informs about a test operation having finished its execution.
- *
- * @since 2.4
+ * Describes that an operation was skipped.
  */
-@Incubating
-public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
-
-    /**
-     * Returns the result of the finished test operation.
-     *
-     * @return the result of the finished test operation
-     */
-    @Override
-    TestOperationResult getResult();
-
+public interface TestSkippedResult extends TestOperationResult, SkippedResult {
 }

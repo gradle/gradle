@@ -17,7 +17,9 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.*;
+import org.gradle.tooling.events.FailureOutcome;
+import org.gradle.tooling.events.Outcome;
+import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
@@ -80,21 +82,21 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         String eventDescription = event.getDisplayName();
         final long eventTime = event.getEventTime();
         if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new FailureResult() {
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestFailureResult() {
                 @Override
                 public FailureOutcome getOutcome() {
                     return toTestFailure(event.getResult());
                 }
             });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new SkippedResult() {
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSkippedResult() {
                 @Override
                 public Outcome getOutcome() {
                     return toTestSuccess(event.getResult());
                 }
             });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new SuccessResult() {
+            return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSuccessResult() {
                 @Override
                 public SuccessOutcome getOutcome() {
                     return toTestSuccess(event.getResult());
