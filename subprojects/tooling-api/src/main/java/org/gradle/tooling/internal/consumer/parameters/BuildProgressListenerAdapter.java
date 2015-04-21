@@ -127,6 +127,16 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 }
 
                 @Override
+                public String toString() {
+                    return getDisplayName();
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return jvmTestDescriptor.getDisplayName();
+                }
+
+                @Override
                 public JvmTestKind getJvmTestKind() {
                     return toJvmTestKind(jvmTestDescriptor);
                 }
@@ -157,6 +167,16 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public String getName() {
                     return testDescriptor.getName();
+                }
+
+                @Override
+                public String toString() {
+                    return getDisplayName();
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return testDescriptor.getDisplayName();
                 }
 
                 @Override

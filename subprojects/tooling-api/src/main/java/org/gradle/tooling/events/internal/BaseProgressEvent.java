@@ -45,6 +45,11 @@ abstract class BaseProgressEvent implements ProgressEvent {
     }
 
     @Override
+    public String toString() {
+        return getDescription();
+    }
+
+    @Override
     public OperationDescriptor getDescriptor() {
         return descriptor;
     }
