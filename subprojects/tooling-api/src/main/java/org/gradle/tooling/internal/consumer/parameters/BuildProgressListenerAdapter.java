@@ -84,6 +84,21 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
             return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestFailureResult() {
                 @Override
+                public long getStartTime() {
+                    return event.getResult().getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return event.getResult().getEndTime();
+                }
+
+                @Override
+                public List<? extends Failure> getFailures() {
+                    return toFailures(event.getResult());
+                }
+
+                @Override
                 public FailureOutcome getOutcome() {
                     return toTestFailure(event.getResult());
                 }
@@ -91,12 +106,32 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
             return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSkippedResult() {
                 @Override
+                public long getStartTime() {
+                    return event.getResult().getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return event.getResult().getEndTime();
+                }
+
+                @Override
                 public Outcome getOutcome() {
                     return toTestSuccess(event.getResult());
                 }
             });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
             return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSuccessResult() {
+                @Override
+                public long getStartTime() {
+                    return event.getResult().getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return event.getResult().getEndTime();
+                }
+
                 @Override
                 public SuccessOutcome getOutcome() {
                     return toTestSuccess(event.getResult());
@@ -125,7 +160,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return cachedTestDescriptor;
     }
 
-    private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
+    private static TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             final JvmTestDescriptorVersion1 jvmTestDescriptor = (JvmTestDescriptorVersion1) testDescriptor;
             return new JvmTestOperationDescriptor() {
@@ -205,7 +240,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private SuccessOutcome toTestSuccess(final TestResultVersion1 testResult) {
+    private static SuccessOutcome toTestSuccess(final TestResultVersion1 testResult) {
         return new SuccessOutcome() {
 
             @Override
@@ -221,7 +256,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         };
     }
 
-    private FailureOutcome toTestFailure(final TestResultVersion1 testResult) {
+    private static FailureOutcome toTestFailure(final TestResultVersion1 testResult) {
         return new FailureOutcome() {
 
             @Override
@@ -236,15 +271,18 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
             @Override
             public List<Failure> getFailures() {
-                List<? extends FailureVersion1> origFailures = testResult.getFailures();
-                List<Failure> failures = new ArrayList<Failure>(origFailures.size());
-                for (FailureVersion1 origFailure : origFailures) {
-                    failures.add(toFailure(origFailure));
-                }
-                return failures;
+                return toFailures(testResult);
             }
 
         };
+    }
+
+    private static List<Failure> toFailures(TestResultVersion1 testResult) {
+        List<Failure> failures = new ArrayList<Failure>();
+        for (FailureVersion1 origFailure : testResult.getFailures()) {
+            failures.add(toFailure(origFailure));
+        }
+        return failures;
     }
 
     private static Failure toFailure(FailureVersion1 origFailure) {
@@ -276,7 +314,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private String toString(TestDescriptorVersion1 testDescriptor) {
+    private static String toString(TestDescriptorVersion1 testDescriptor) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return String.format("TestOperationDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
                     testDescriptor.getId(), testDescriptor.getName(), ((JvmTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());

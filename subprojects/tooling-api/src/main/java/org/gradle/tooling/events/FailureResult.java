@@ -16,12 +16,20 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.tooling.Failure;
+
+import java.util.List;
+
 /**
  * Describes the failure with which an operation finished.
  */
 public interface FailureResult extends OperationResult {
 
-    @Override
-    FailureOutcome getOutcome();
+    /**
+     * Returns the exceptions that occurred while running the operation, if any.
+     *
+     * @return the exceptions, empty if the operation failed without any exceptions
+     */
+    List<? extends Failure> getFailures();
 
 }
