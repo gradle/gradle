@@ -24,26 +24,32 @@ public class InternalTestDescriptor implements Serializable, JvmTestDescriptorVe
 
     private final Object id;
     private final String name;
-    private final String testKind;
     private final String displayName;
+    private final String testKind;
     private final String suiteName;
     private final String className;
     private final String methodName;
     private final Object parentId;
 
-    public InternalTestDescriptor(Object id, String name, String testKind, String displayName, String suiteName, String className, String methodName, Object parentId) {
+    public InternalTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId) {
         this.id = id;
         this.name = name;
-        this.testKind = testKind;
         this.displayName = displayName;
+        this.testKind = testKind;
         this.suiteName = suiteName;
         this.className = className;
         this.methodName = methodName;
         this.parentId = parentId;
     }
 
+    @Override
     public Object getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -51,26 +57,27 @@ public class InternalTestDescriptor implements Serializable, JvmTestDescriptorVe
         return displayName;
     }
 
-    public String getName() {
-        return name;
-    }
-
+    @Override
     public String getTestKind() {
         return testKind;
     }
 
+    @Override
     public String getSuiteName() {
         return suiteName;
     }
 
+    @Override
     public String getClassName() {
         return className;
     }
 
+    @Override
     public String getMethodName() {
         return methodName;
     }
 
+    @Override
     public Object getParentId() {
         return parentId;
     }

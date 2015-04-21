@@ -58,6 +58,34 @@ class ClientForwardingTestListener implements TestListener {
         eventConsumer.dispatch(new InternalTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
     }
 
+    private static InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
+        Object id = ((TestDescriptorInternal) suite).getId();
+        String name = suite.getName();
+        String displayName = suite.toString();
+        String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
+        String suiteName = suite.getName();
+        String className = suite.getClassName();
+        String methodName = null;
+        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
+        return new InternalTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private static InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
+        Object id = ((TestDescriptorInternal) test).getId();
+        String name = test.getName();
+        String displayName = test.toString();
+        String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
+        String suiteName = null;
+        String className = test.getClassName();
+        String methodName = test.getName();
+        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
+        return new InternalTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private static InternalTestResult toTestResult(TestResult result) {
+        return new InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+    }
+
     private static String toResultType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
@@ -70,34 +98,6 @@ class ClientForwardingTestListener implements TestListener {
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }
-    }
-
-    private static InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
-        Object id = ((TestDescriptorInternal) suite).getId();
-        String name = suite.getName();
-        String displayName = suite.toString();
-        String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
-        String suiteName = suite.getName();
-        String className = suite.getClassName();
-        String methodName = null;
-        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
-    }
-
-    private static InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
-        Object id = ((TestDescriptorInternal) test).getId();
-        String name = test.getName();
-        String displayName = test.toString();
-        String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
-        String suiteName = null;
-        String className = test.getClassName();
-        String methodName = test.getName();
-        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
-    }
-
-    private static InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
     }
 
     private static List<InternalFailure> convertExceptions(List<Throwable> exceptions) {
