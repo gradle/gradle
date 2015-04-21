@@ -17,9 +17,9 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.*
-import org.gradle.tooling.events.test.JvmTestKind
-import org.gradle.tooling.events.test.TestProgressListener
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.test.*
 import org.gradle.tooling.internal.protocol.*
 import spock.lang.Specification
 
@@ -266,7 +266,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.result instanceof SkippedResult
+            assert event.result instanceof TestSkippedResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -309,7 +309,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.result instanceof SuccessResult
+            assert event.result instanceof TestSuccessResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -353,7 +353,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
-            assert event.result instanceof FailureResult
+            assert event.result instanceof TestFailureResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
             assert event.result.outcome.failures.size() == 1
@@ -430,7 +430,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.result instanceof SkippedResult
+            assert event.result instanceof TestSkippedResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -475,7 +475,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.result instanceof SuccessResult
+            assert event.result instanceof TestSuccessResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
         }
@@ -521,7 +521,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
             assert event.descriptor.parent == null
-            assert event.result instanceof FailureResult
+            assert event.result instanceof TestFailureResult
             assert event.result.outcome.startTime == 1
             assert event.result.outcome.endTime == 2
             assert event.result.outcome.failures.size() == 1
