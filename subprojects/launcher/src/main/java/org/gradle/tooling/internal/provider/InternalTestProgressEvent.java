@@ -23,6 +23,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.tooling.internal.protocol.TestResultVersion1.*;
+
 public class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
 
     private final long eventTime;
@@ -54,13 +56,13 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
         if (eventType.equals(EVENT_TYPE_STARTED)) {
             return "started";
         }
-        if (eventType.equals(EVENT_TYPE_SUCCEEDED)) {
+        if (getResult().getResultType().equals(RESULT_SUCCESSFUL)) {
             return "succeeded";
         }
-        if (eventType.equals(EVENT_TYPE_FAILED)) {
+        if (getResult().getResultType().equals(RESULT_FAILED)) {
             return "failed";
         }
-        if (eventType.equals(EVENT_TYPE_SKIPPED)) {
+        if (getResult().getResultType().equals(RESULT_SKIPPED)) {
             return "skipped";
         }
         throw new IllegalArgumentException("Unknown event type.");
@@ -133,14 +135,21 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
 
     public static class InternalTestResult implements Serializable, TestResultVersion1 {
 
+        private final String result;
         private final long startTime;
         private final long endTime;
         private final List<InternalFailure> failures;
 
-        public InternalTestResult(long startTime, long endTime, List<InternalFailure> failures) {
+        public InternalTestResult(String result, long startTime, long endTime, List<InternalFailure> failures) {
+            this.result = result;
             this.startTime = startTime;
             this.endTime = endTime;
             this.failures = failures == null ? Collections.<InternalFailure>emptyList() : failures;
+        }
+
+        @Override
+        public String getResultType() {
+            return result;
         }
 
         public long getStartTime() {

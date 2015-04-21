@@ -33,6 +33,9 @@ import org.gradle.tooling.internal.protocol.*;
 
 import java.util.*;
 
+import static org.gradle.tooling.internal.protocol.TestProgressEventVersion1.EVENT_TYPE_FINISHED;
+import static org.gradle.tooling.internal.protocol.TestProgressEventVersion1.EVENT_TYPE_STARTED;
+
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
@@ -68,28 +71,26 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         final long eventTime = event.getEventTime();
         String eventType = event.getEventType();
-        if (TestProgressEventVersion1.EVENT_TYPE_STARTED.equals(eventType)) {
+        if (EVENT_TYPE_STARTED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
             String eventDescription = event.getDisplayName();
             return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
-        } else if (TestProgressEventVersion1.EVENT_TYPE_FAILED.equals(eventType)) {
+        } else if (EVENT_TYPE_FINISHED.equals(eventType)) {
             TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             String eventDescription = event.getDisplayName();
-            FailureOutcome outcome = toTestFailure(event.getResult());
-            return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
-        } else if (TestProgressEventVersion1.EVENT_TYPE_SKIPPED.equals(eventType)) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = event.getDisplayName();
-            SuccessOutcome outcome = toTestSuccess(event.getResult());
-            return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
-        } else if (TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED.equals(eventType)) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = event.getDisplayName();
-            SuccessOutcome outcome = toTestSuccess(event.getResult());
-            return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
-        } else {
-            return null;
+            if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+                FailureOutcome outcome = toTestFailure(event.getResult());
+                return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
+            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+                SuccessOutcome outcome = toTestSuccess(event.getResult());
+                return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
+            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+                SuccessOutcome outcome = toTestSuccess(event.getResult());
+                return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
+            }
+            throw new IllegalArgumentException("Cannot adapt progress event: " + event);
         }
+        return null;
     }
 
     private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {

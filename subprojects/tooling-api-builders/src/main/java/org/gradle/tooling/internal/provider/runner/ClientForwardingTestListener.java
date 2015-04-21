@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.TestResultVersion1;
 import org.gradle.tooling.internal.provider.InternalFailure;
 import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
 
@@ -46,7 +47,7 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), toEventType(result), toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
@@ -56,18 +57,18 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), toEventType(result), toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForTest(test), toTestResult(result)));
     }
 
-    private String toEventType(TestResult result) {
+    private static String toResultType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED;
+                return TestResultVersion1.RESULT_SUCCESSFUL;
             case SKIPPED:
-                return TestProgressEventVersion1.EVENT_TYPE_SKIPPED;
+                return TestResultVersion1.RESULT_SKIPPED;
             case FAILURE:
-                return TestProgressEventVersion1.EVENT_TYPE_FAILED;
+                return TestResultVersion1.RESULT_FAILED;
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }
@@ -98,7 +99,7 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+        return new InternalTestProgressEvent.InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
     }
 
     private static List<InternalFailure> convertExceptions(List<Throwable> exceptions) {
