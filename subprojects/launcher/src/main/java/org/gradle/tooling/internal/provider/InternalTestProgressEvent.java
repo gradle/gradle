@@ -23,18 +23,14 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.tooling.internal.protocol.TestResultVersion1.*;
-
-public class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
+public abstract class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
 
     private final long eventTime;
-    private final String eventType;
     private final InternalTestDescriptor descriptor;
     private final InternalTestResult result;
 
-    public InternalTestProgressEvent(long eventTime, String eventType, InternalTestDescriptor descriptor, InternalTestResult result) {
+    protected InternalTestProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
         this.eventTime = eventTime;
-        this.eventType = eventType;
         this.descriptor = descriptor;
         this.result = result;
     }
@@ -43,30 +39,12 @@ public class InternalTestProgressEvent implements Serializable, TestProgressEven
         return eventTime;
     }
 
-    public String getEventType() {
-        return eventType;
-    }
-
     @Override
     public String getDisplayName() {
-        return String.format("%s %s", descriptor.getDisplayName(), typeDisplayName(eventType));
+        return String.format("%s %s", descriptor.getDisplayName(), typeDisplayName());
     }
 
-    private String typeDisplayName(String eventType) {
-        if (eventType.equals(EVENT_TYPE_STARTED)) {
-            return "started";
-        }
-        if (getResult().getResultType().equals(RESULT_SUCCESSFUL)) {
-            return "succeeded";
-        }
-        if (getResult().getResultType().equals(RESULT_FAILED)) {
-            return "failed";
-        }
-        if (getResult().getResultType().equals(RESULT_SKIPPED)) {
-            return "skipped";
-        }
-        throw new IllegalArgumentException("Unknown event type.");
-    }
+    protected abstract String typeDisplayName();
 
     public InternalTestDescriptor getDescriptor() {
         return descriptor;

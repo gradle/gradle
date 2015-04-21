@@ -21,10 +21,11 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
 import org.gradle.tooling.internal.provider.InternalFailure;
+import org.gradle.tooling.internal.provider.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
+import org.gradle.tooling.internal.provider.InternalTestStartedProgressEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,22 +43,22 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForSuite(suite), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), null));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForTest(test), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
     }
 
     private static String toResultType(TestResult result) {
