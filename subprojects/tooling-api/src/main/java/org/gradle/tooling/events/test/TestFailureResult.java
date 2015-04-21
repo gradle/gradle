@@ -16,15 +16,22 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.tooling.events.FailureOutcome;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
 
+import java.util.List;
+
 /**
- * Describes the failure with which an operation finished.
+ * Describes how a test operation finished with failures.
  */
 public interface TestFailureResult extends TestOperationResult, FailureResult {
 
+    /**
+     * Returns the exceptions that occurred while running the test operation, if any.
+     *
+     * @return the exceptions, empty if the test operation failed without any exceptions
+     */
     @Override
-    FailureOutcome getOutcome();
+    List<? extends Failure> getFailures();
 
 }

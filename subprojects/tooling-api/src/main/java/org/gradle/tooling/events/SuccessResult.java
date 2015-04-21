@@ -17,11 +17,7 @@
 package org.gradle.tooling.events;
 
 /**
- * Describes the success with which an operation finished.
+ * Describes how an operation finished successfully.
  */
 public interface SuccessResult extends OperationResult {
-
-    @Override
-    SuccessOutcome getOutcome();
-
 }

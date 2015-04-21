@@ -17,9 +17,6 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.FailureOutcome;
-import org.gradle.tooling.events.Outcome;
-import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
@@ -97,11 +94,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 public List<? extends Failure> getFailures() {
                     return toFailures(event.getResult());
                 }
-
-                @Override
-                public FailureOutcome getOutcome() {
-                    return toTestFailure(event.getResult());
-                }
             });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
             return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSkippedResult() {
@@ -114,11 +106,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 public long getEndTime() {
                     return event.getResult().getEndTime();
                 }
-
-                @Override
-                public Outcome getOutcome() {
-                    return toTestSuccess(event.getResult());
-                }
             });
         } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
             return new DefaultTestFinishEvent(eventTime, eventDescription, testDescriptor, new TestSuccessResult() {
@@ -130,11 +117,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public long getEndTime() {
                     return event.getResult().getEndTime();
-                }
-
-                @Override
-                public SuccessOutcome getOutcome() {
-                    return toTestSuccess(event.getResult());
                 }
             });
         }
@@ -238,43 +220,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         } else {
             return JvmTestKind.UNKNOWN;
         }
-    }
-
-    private static SuccessOutcome toTestSuccess(final TestResultVersion1 testResult) {
-        return new SuccessOutcome() {
-
-            @Override
-            public long getStartTime() {
-                return testResult.getStartTime();
-            }
-
-            @Override
-            public long getEndTime() {
-                return testResult.getEndTime();
-            }
-
-        };
-    }
-
-    private static FailureOutcome toTestFailure(final TestResultVersion1 testResult) {
-        return new FailureOutcome() {
-
-            @Override
-            public long getStartTime() {
-                return testResult.getStartTime();
-            }
-
-            @Override
-            public long getEndTime() {
-                return testResult.getEndTime();
-            }
-
-            @Override
-            public List<Failure> getFailures() {
-                return toFailures(testResult);
-            }
-
-        };
     }
 
     private static List<Failure> toFailures(TestResultVersion1 testResult) {

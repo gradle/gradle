@@ -19,7 +19,7 @@ package org.gradle.tooling.events.test;
 import org.gradle.tooling.events.SkippedResult;
 
 /**
- * Describes that an operation was skipped.
+ * Describes how a test operation was skipped.
  */
 public interface TestSkippedResult extends TestOperationResult, SkippedResult {
 }

@@ -35,6 +35,4 @@ public interface OperationResult {
      */
     long getEndTime();
 
-    Outcome getOutcome();
-
 }

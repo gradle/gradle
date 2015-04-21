@@ -16,15 +16,10 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.tooling.events.SuccessOutcome;
 import org.gradle.tooling.events.SuccessResult;
 
 /**
- * Describes the success with which an operation finished.
+ * Describes how a test operation finished successfully.
  */
 public interface TestSuccessResult extends TestOperationResult, SuccessResult {
-
-    @Override
-    SuccessOutcome getOutcome();
-
 }

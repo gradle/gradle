@@ -17,14 +17,9 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.tooling.events.OperationResult;
-import org.gradle.tooling.events.Outcome;
 
 /**
  * Describes the result of running a test operation.
  */
 public interface TestOperationResult extends OperationResult {
-
-    @Override
-    Outcome getOutcome();
-
 }

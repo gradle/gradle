@@ -17,7 +17,7 @@
 package org.gradle.tooling.events;
 
 /**
- * Describes that an operation was skipped.
+ * Describes how an operation was skipped.
  */
 public interface SkippedResult extends OperationResult {
 }

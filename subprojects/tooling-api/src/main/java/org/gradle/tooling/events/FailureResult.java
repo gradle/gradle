@@ -21,7 +21,7 @@ import org.gradle.tooling.Failure;
 import java.util.List;
 
 /**
- * Describes the failure with which an operation finished.
+ * Describes how an operation finished with failures.
  */
 public interface FailureResult extends OperationResult {
 
