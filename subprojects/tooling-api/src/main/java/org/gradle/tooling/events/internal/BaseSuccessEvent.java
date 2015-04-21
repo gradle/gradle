@@ -17,17 +17,17 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.SkippedEvent;
+import org.gradle.tooling.events.SuccessEvent;
 import org.gradle.tooling.events.SuccessOutcome;
 
 /**
- * Default implementation of the {@code SkippedEvent} interface.
+ * Default implementation of the {@code SuccessEvent} interface.
  */
-public final class DefaultSkippedEvent extends BaseProgressEvent implements SkippedEvent {
+public abstract class BaseSuccessEvent extends BaseProgressEvent implements SuccessEvent {
 
     private final SuccessOutcome outcome;
 
-    public DefaultSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
+    protected BaseSuccessEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
         super(eventTime, eventDescription, descriptor);
         this.outcome = outcome;
     }

@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.FailureEvent;
 import org.gradle.tooling.events.FailureOutcome;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.BaseFailureEvent;
+import org.gradle.tooling.events.test.TestFailureEvent;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
- * Default implementation of the {@code FailureEvent} interface.
+ * Implementation of the {@code TestFailureEvent} interface.
  */
-public final class DefaultFailureEvent extends BaseProgressEvent implements FailureEvent {
+public final class DefaultTestFailureEvent extends BaseFailureEvent implements TestFailureEvent {
 
-    private final FailureOutcome outcome;
-
-    public DefaultFailureEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, FailureOutcome outcome) {
-        super(eventTime, eventDescription, descriptor);
-        this.outcome = outcome;
+    public DefaultTestFailureEvent(long eventTime, String displayName, OperationDescriptor descriptor, FailureOutcome outcome) {
+        super(eventTime, displayName, descriptor, outcome);
     }
 
     @Override
-    public FailureOutcome getOutcome() {
-        return outcome;
+    public TestOperationDescriptor getDescriptor() {
+        return (TestOperationDescriptor) super.getDescriptor();
     }
 
 }

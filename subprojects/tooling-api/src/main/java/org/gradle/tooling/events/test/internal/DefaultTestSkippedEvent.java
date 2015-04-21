@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal;
+package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.SuccessEvent;
 import org.gradle.tooling.events.SuccessOutcome;
+import org.gradle.tooling.events.internal.BaseSkippedEvent;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.TestSkippedEvent;
 
 /**
- * Default implementation of the {@code SuccessEvent} interface.
+ * Implementation of the {@code TestSkippedEvent} interface.
  */
-public final class DefaultSuccessEvent extends BaseProgressEvent implements SuccessEvent {
+public final class DefaultTestSkippedEvent extends BaseSkippedEvent implements TestSkippedEvent {
 
-    private final SuccessOutcome outcome;
-
-    public DefaultSuccessEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
-        super(eventTime, eventDescription, descriptor);
-        this.outcome = outcome;
+    public DefaultTestSkippedEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
+        super(eventTime, eventDescription, descriptor, outcome);
     }
 
     @Override
-    public SuccessOutcome getOutcome() {
-        return outcome;
+    public TestOperationDescriptor getDescriptor() {
+        return (TestOperationDescriptor) super.getDescriptor();
     }
 
 }
