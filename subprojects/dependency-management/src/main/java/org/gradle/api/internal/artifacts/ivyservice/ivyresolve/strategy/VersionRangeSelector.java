@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.api.Transformer;
 
 /**
  * Matches version ranges: [1.0,2.0] matches all versions greater or equal to 1.0 and lower or equal
@@ -89,34 +90,36 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
             + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN);
 
-    private final String upperBound;
+    private final Version upperBound;
     private final boolean upperInclusive;
-    private final String lowerBound;
+    private final Version lowerBound;
     private final boolean lowerInclusive;
-    private final Comparator<String> comparator;
+    private final Comparator<Version> comparator;
+    private final Transformer<Version, String> parser;
 
-    public VersionRangeSelector(String selector, Comparator<String> comparator) {
+    public VersionRangeSelector(String selector, Comparator<Version> comparator, Transformer<Version, String> parser) {
         super(selector);
         this.comparator = comparator;
+        this.parser = parser;
 
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
-            lowerBound = matcher.group(1);
+            lowerBound = parser.transform(matcher.group(1));
             lowerInclusive = selector.startsWith(OPEN_INC);
-            upperBound = matcher.group(2);
+            upperBound = parser.transform(matcher.group(2));
             upperInclusive = selector.endsWith(CLOSE_INC);
         } else {
             matcher = LOWER_INFINITE_RANGE.matcher(selector);
             if (matcher.matches()) {
                 lowerBound = null;
                 lowerInclusive = true;
-                upperBound = matcher.group(1);
+                upperBound = parser.transform(matcher.group(1));
                 upperInclusive = selector.endsWith(CLOSE_INC);
             } else {
                 matcher = UPPER_INFINITE_RANGE.matcher(selector);
                 if (matcher.matches()) {
-                    lowerBound = matcher.group(1);
+                    lowerBound = parser.transform(matcher.group(1));
                     lowerInclusive = selector.startsWith(OPEN_INC);
                     upperBound = null;
                     upperInclusive = true;
@@ -140,10 +143,11 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        if (lowerBound != null && !isHigher(candidate, lowerBound, lowerInclusive)) {
+        Version candidateVersion = parser.transform(candidate);
+        if (lowerBound != null && !isHigher(candidateVersion, lowerBound, lowerInclusive)) {
             return false;
         }
-        if (upperBound != null && !isLower(candidate, upperBound, upperInclusive)) {
+        if (upperBound != null && !isLower(candidateVersion, upperBound, upperInclusive)) {
             return false;
         }
         return true;
@@ -152,15 +156,21 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     /**
      * Tells if version1 is lower than version2.
      */
-    private boolean isLower(String version1, String version2, boolean inclusive) {
+    private boolean isLower(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
+        if (result < 0 && !inclusive && version1.isQualified() && !version2.isQualified() && 0 == comparator.compare(version1.getBaseVersion(), version2.getBaseVersion())) {
+            // This is a special version that although less than version2 is
+            // still greater than those lower than it.  E.g 1.0-SNAPSHOT < 1.0
+            // or 2.1-dev < 2.1
+            return false;
+        }
         return result <= (inclusive ? 0 : -1);
     }
 
     /**
      * Tells if version1 is higher than version2.
      */
-    private boolean isHigher(String version1, String version2, boolean inclusive) {
+    private boolean isHigher(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
     }

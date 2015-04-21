@@ -71,16 +71,18 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         accept("[1.0,2.0]", "1.5-dev-1")
         accept("[1.0,2.0]", "1.2.3-rc-2")
         accept("[1.0,2.0]", "2.0-final")
+        accept("[1.0,2.0]", "2.0-SNAPSHOT")
 
         accept("[1.0-dev-1,2.0[", "1.0")
         accept("[1.0,2.0-rc-2[", "2.0-rc-1")
-        accept("[1.0,2.0[", "2.0-final")
 
         accept("]1.0-dev-1,2.0]", "1.0")
         accept("]1.0-rc-2,2.0]", "1.0-rc-3")
 
         accept("]1.0-dev-1,1.0-dev-3[", "1.0-dev-2")
         accept("]1.0-dev-1,1.0-rc-1[", "1.0-dev-99")
+        
+        accept("[1.0-SNAPSHOT,2.0]", "1.0-SNAPSHOT")
     }
 
     def "rejects candidate versions that don't fall into the selector's range"() {
@@ -130,6 +132,16 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
 
         !accept("]1.0-dev-1,1.0-dev-3[", "1.0-dev-3")
         !accept("]1.0-dev-1,1.0-rc-1[", "1.0-final-0")
+        
+        !accept("[1.0,2.0[", "2.0-SNAPSHOT")
+        !accept("[1.0,2.0)", "2.0-SNAPSHOT") // equivalent to '[1.0,2.0['
+        !accept("[1.0,2.0[", "2.0-dev-1")
+        !accept("[1.0,2.0)", "2.0-rc-1")
+        !accept("[1.0,2.0[", "2.0-final")
+        
+        !accept("[1.0,2.0)", "1.0-dev-1")
+        !accept("[1.0,2.0)", "1.0-rc-1")
+        !accept("[1.0,2.0)", "1.0-SNAPSHOT")
     }
 
     def "metadata-aware accept method delivers same results"() {
@@ -150,6 +162,6 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator().asStringComparator())
+        return new VersionRangeSelector(selector, new DefaultVersionComparator().asVersionComparator(), new VersionParser())
     }
 }
