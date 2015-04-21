@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.4")
-    @TargetGradleVersion("<2.4")
+    @TargetGradleVersion(">=1.0-milestone-8 <2.4")
     def "ignores listeners when Gradle version does not generate test events"() {
         given:
         goodCode()
