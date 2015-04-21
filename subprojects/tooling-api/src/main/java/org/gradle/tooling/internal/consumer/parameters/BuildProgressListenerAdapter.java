@@ -47,8 +47,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     @Override
-    public List<String> getSubscribedEvents() {
-        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_PROGRESS);
+    public List<String> getSubscribedOperations() {
+        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_EXECUTION);
     }
 
     @Override

@@ -33,14 +33,14 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = new BuildProgressListenerAdapter([])
 
         then:
-        adapter.getSubscribedEvents() == []
+        adapter.getSubscribedOperations() == []
 
         when:
         final TestProgressListener listener = Mock(TestProgressListener)
         adapter = new BuildProgressListenerAdapter([listener])
 
         then:
-        adapter.getSubscribedEvents() == [BuildProgressListenerVersion1.TEST_PROGRESS]
+        adapter.getSubscribedOperations() == [BuildProgressListenerVersion1.TEST_EXECUTION]
     }
 
     def "only TestProgressEventVersionX instances are processed"() {

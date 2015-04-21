@@ -23,24 +23,28 @@ import java.util.List;
 public interface BuildProgressListenerVersion1 {
 
     /**
-     * The constant for the test progress event type.
+     * The constant for the test execution operations.
      */
-    String TEST_PROGRESS = "TEST_PROGRESS";
+    String TEST_EXECUTION = "TEST_EXECUTION";
 
     /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
      *
-     * The event types implemented in Gradle 2.4 are: <ul> <li>{@link org.gradle.tooling.internal.protocol.TestProgressEventVersion1}</li> </ul>
+     * The event types implemented in Gradle 2.4 are:
+     *
+     * <ul>
+     *     <li>{@link org.gradle.tooling.internal.protocol.TestProgressEventVersion1}</li>
+     * </ul>
      *
      * @param event The issued progress event
      */
     void onEvent(Object event);
 
     /**
-     * Returns the type of events that the listener wants to subscribe to.
+     * Returns the type of operations that the listener wants to subscribe to.
      *
-     * @return the type of events to be notified about
+     * @return the type of operations to be notified about
      */
-    List<String> getSubscribedEvents();
+    List<String> getSubscribedOperations();
 
 }
