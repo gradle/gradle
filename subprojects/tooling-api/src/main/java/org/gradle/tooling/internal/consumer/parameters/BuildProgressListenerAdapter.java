@@ -18,8 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.test.*;
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
+import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
@@ -183,46 +182,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private TestOperationResult toTestResult(final TestResultVersion1 result) {
         if (result.getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-            return new TestSuccessResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
+            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result.getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-            return new TestSkippedResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
+            return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result.getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-            return new TestFailureResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-
-                @Override
-                public List<? extends Failure> getFailures() {
-                    return toFailures(result);
-                }
-            };
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result));
         } else {
             return null;
         }
