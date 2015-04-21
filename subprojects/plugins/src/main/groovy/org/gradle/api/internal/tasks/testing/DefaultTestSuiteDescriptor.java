@@ -25,7 +25,7 @@ public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor implement
 
     @Override
     public String toString() {
-        return String.format("test '%s'", getName());
+        return String.format("Test suite '%s'", getName());
     }
 
     public boolean isComposite() {

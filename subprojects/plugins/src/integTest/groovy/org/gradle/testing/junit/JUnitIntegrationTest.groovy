@@ -354,25 +354,25 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         ExecutionResult result = executer.withTasks("test").run()
 
         then:
-        assert containsLine(result.getOutput(), "START [tests] [Gradle Test Run :test]")
-        assert containsLine(result.getOutput(), "FINISH [tests] [Gradle Test Run :test] [FAILURE] [4]")
+        assert containsLine(result.getOutput(), "START [Gradle Test Run :test] [Gradle Test Run :test]")
+        assert containsLine(result.getOutput(), "FINISH [Gradle Test Run :test] [Gradle Test Run :test] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]")
-        assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1] [FAILURE] [4]")
+        assert containsLine(result.getOutput(), "START [Gradle Test Executor 1] [Gradle Test Executor 1]")
+        assert containsLine(result.getOutput(), "FINISH [Gradle Test Executor 1] [Gradle Test Executor 1] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [test class SomeOtherTest] [SomeOtherTest]")
-        assert containsLine(result.getOutput(), "FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]")
-        assert containsLine(result.getOutput(), "START [test pass(SomeOtherTest)] [pass]")
-        assert containsLine(result.getOutput(), "FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]")
+        assert containsLine(result.getOutput(), "START [Test class SomeOtherTest] [SomeOtherTest]")
+        assert containsLine(result.getOutput(), "FINISH [Test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]")
+        assert containsLine(result.getOutput(), "START [Test pass(SomeOtherTest)] [pass]")
+        assert containsLine(result.getOutput(), "FINISH [Test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]")
 
-        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]")
-        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]")
-        assert containsLine(result.getOutput(), "START [test fail(SomeTest)] [fail]")
-        assert containsLine(result.getOutput(), "FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]")
-        assert containsLine(result.getOutput(), "START [test knownError(SomeTest)] [knownError]")
-        assert containsLine(result.getOutput(), "FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]")
-        assert containsLine(result.getOutput(), "START [test unknownError(SomeTest)] [unknownError]")
-        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException]")
+        assert containsLine(result.getOutput(), "START [Test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "FINISH [Test class SomeTest] [SomeTest] [FAILURE] [3]")
+        assert containsLine(result.getOutput(), "START [Test fail(SomeTest)] [fail]")
+        assert containsLine(result.getOutput(), "FINISH [Test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]")
+        assert containsLine(result.getOutput(), "START [Test knownError(SomeTest)] [knownError]")
+        assert containsLine(result.getOutput(), "FINISH [Test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]")
+        assert containsLine(result.getOutput(), "START [Test unknownError(SomeTest)] [unknownError]")
+        assert containsLine(result.getOutput(), "FINISH [Test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException]")
     }
 
     def canListenForTestResultsWhenJUnit3IsUsed() {
@@ -404,14 +404,14 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         ExecutionResult result = executer.withTasks("test").run()
 
         then:
-        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]")
-        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest]")
-        assert containsLine(result.getOutput(), "START [test testPass(SomeTest)] [testPass]")
-        assert containsLine(result.getOutput(), "FINISH [test testPass(SomeTest)] [testPass] [null]")
-        assert containsLine(result.getOutput(), "START [test testFail(SomeTest)] [testFail]")
-        assert containsLine(result.getOutput(), "FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]")
-        assert containsLine(result.getOutput(), "START [test testError(SomeTest)] [testError]")
-        assert containsLine(result.getOutput(), "FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
+        assert containsLine(result.getOutput(), "START [Test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "FINISH [Test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "START [Test testPass(SomeTest)] [testPass]")
+        assert containsLine(result.getOutput(), "FINISH [Test testPass(SomeTest)] [testPass] [null]")
+        assert containsLine(result.getOutput(), "START [Test testFail(SomeTest)] [testFail]")
+        assert containsLine(result.getOutput(), "FINISH [Test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]")
+        assert containsLine(result.getOutput(), "START [Test testError(SomeTest)] [testError]")
+        assert containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
