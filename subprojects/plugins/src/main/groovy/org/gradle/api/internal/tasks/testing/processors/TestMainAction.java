@@ -59,7 +59,7 @@ public class TestMainAction implements Runnable {
 
         @Override
         public String toString() {
-            return "tests";
+            return getName();
         }
     }
 }

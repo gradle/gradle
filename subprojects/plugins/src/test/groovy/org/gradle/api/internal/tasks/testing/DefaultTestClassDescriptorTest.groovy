@@ -24,6 +24,6 @@ class DefaultTestClassDescriptorTest extends Specification {
         DefaultTestClassDescriptor descriptor = new DefaultTestClassDescriptor('id', '<class-name>')
 
         expect:
-        descriptor.toString() == 'test class <class-name>'
+        descriptor.toString() == 'Test class <class-name>'
     }
 }

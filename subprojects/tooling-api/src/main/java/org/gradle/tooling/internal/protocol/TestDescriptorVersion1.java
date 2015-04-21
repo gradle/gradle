@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 2.4
  */
-public interface TestDescriptorVersion1 {
+public interface TestDescriptorVersion1 extends InternalProtocolInterface {
 
     /**
      * Returns the id that uniquely identifies the test.
@@ -29,6 +29,11 @@ public interface TestDescriptorVersion1 {
      * @return The unique id of the test, never null
      */
     Object getId();
+
+    /**
+     * Returns a human consumable display name for the test.
+     */
+    String getDisplayName();
 
     /**
      * Returns the name of the test.

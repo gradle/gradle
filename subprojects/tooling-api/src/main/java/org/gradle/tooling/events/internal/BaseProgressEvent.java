@@ -40,8 +40,13 @@ abstract class BaseProgressEvent implements ProgressEvent {
     }
 
     @Override
-    public String getDescription() {
+    public String getDisplayName() {
         return eventDescription;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     @Override

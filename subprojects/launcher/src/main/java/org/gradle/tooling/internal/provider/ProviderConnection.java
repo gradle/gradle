@@ -191,83 +191,8 @@ public class ProviderConnection {
 
         @Override
         public void dispatch(Object event) {
-            if (event instanceof InternalTestProgressEvent) {
-                final InternalTestProgressEvent testProgressEvent = (InternalTestProgressEvent) event;
-                this.buildProgressListener.onEvent(new TestProgressEventVersion1() {
-
-                    @Override
-                    public long getEventTime() {
-                        return testProgressEvent.getEventTime();
-                    }
-
-                    @Override
-                    public String getEventType() {
-                        return testProgressEvent.getEventType();
-                    }
-
-                    @Override
-                    public TestDescriptorVersion1 getDescriptor() {
-                        return new JvmTestDescriptorVersion1() {
-
-                            @Override
-                            public Object getId() {
-                                return testProgressEvent.getDescriptor().getId();
-                            }
-
-                            @Override
-                            public String getName() {
-                                return testProgressEvent.getDescriptor().getName();
-                            }
-
-                            @Override
-                            public String getTestKind() {
-                                return testProgressEvent.getDescriptor().getTestKind();
-                            }
-
-                            @Override
-                            public String getSuiteName() {
-                                return testProgressEvent.getDescriptor().getSuiteName();
-                            }
-
-                            @Override
-                            public String getClassName() {
-                                return testProgressEvent.getDescriptor().getClassName();
-                            }
-
-                            @Override
-                            public String getMethodName() {
-                                return testProgressEvent.getDescriptor().getMethodName();
-                            }
-
-                            @Override
-                            public Object getParentId() {
-                                return testProgressEvent.getDescriptor().getParentId();
-                            }
-
-                        };
-                    }
-
-                    @Override
-                    public TestResultVersion1 getResult() {
-                        return new TestResultVersion1() {
-
-                            @Override
-                            public long getStartTime() {
-                                return testProgressEvent.getResult().getStartTime();
-                            }
-
-                            @Override
-                            public long getEndTime() {
-                                return testProgressEvent.getResult().getEndTime();
-                            }
-
-                            @Override
-                            public List<? extends FailureVersion1> getFailures() {
-                                return testProgressEvent.getResult().getFailures();
-                            }
-                        };
-                    }
-                });
+            if (event instanceof TestProgressEventVersion1) {
+                this.buildProgressListener.onEvent(event);
             }
         }
     }

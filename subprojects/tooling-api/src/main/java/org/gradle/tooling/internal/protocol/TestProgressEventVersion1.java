@@ -20,12 +20,10 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 2.4
  */
-public interface TestProgressEventVersion1 {
+public interface TestProgressEventVersion1 extends InternalProtocolInterface {
 
-    String EVENT_TYPE_STARTED = "STARTED";
-    String EVENT_TYPE_SKIPPED = "SKIPPED";
-    String EVENT_TYPE_SUCCEEDED = "SUCCEEDED";
-    String EVENT_TYPE_FAILED = "FAILED";
+    String EVENT_TYPE_STARTED = "TEST-STARTED";
+    String EVENT_TYPE_FINISHED = "TEST-FINISHED";
 
     /**
      * Returns the time when the event happened.
@@ -33,6 +31,11 @@ public interface TestProgressEventVersion1 {
      * @return The event time
      */
     long getEventTime();
+
+    /**
+     * Returns a human consumable display name for this event.
+     */
+    String getDisplayName();
 
     /**
      * Returns the type of the test progress event. See the constants on this interface for the supported event types.

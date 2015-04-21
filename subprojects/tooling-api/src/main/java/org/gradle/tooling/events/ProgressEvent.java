@@ -37,11 +37,11 @@ public interface ProgressEvent {
     long getEventTime();
 
     /**
-     * Returns a short description of the event.
+     * Returns a human consumable short description of the event.
      *
      * @return The short description of the event.
      */
-    String getDescription();
+    String getDisplayName();
 
     /**
      * Returns the description of the underlying operation for which progress is reported.

@@ -25,6 +25,6 @@ class DefaultTestSuiteDescriptorTest extends Specification {
         DefaultTestSuiteDescriptor descriptor = new DefaultTestSuiteDescriptor('id', '<suite-name>')
 
         expect:
-        descriptor.toString() == 'test \'<suite-name>\''
+        descriptor.toString() == "Test suite '<suite-name>'"
     }
 }

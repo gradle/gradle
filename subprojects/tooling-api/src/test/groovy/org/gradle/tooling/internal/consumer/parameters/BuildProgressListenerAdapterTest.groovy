@@ -55,7 +55,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         0 * listener.statusChanged(_)
     }
 
-    def "only TestProgressEventVersionX instances with known outcome are processed"() {
+    def "only TestProgressEventVersionX instances of known type are processed"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = new BuildProgressListenerAdapter([listener])
@@ -106,7 +106,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getParentId() >> null
 
         TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
 
@@ -114,66 +114,6 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message.contains('not available')
-
-        when:
-        TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
-        _ * succeededEvent.getEventTime() >> 999
-        _ * succeededEvent.getDescriptor() >> testDescriptor
-
-        adapter.onEvent(succeededEvent)
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message.contains('not available')
-
-        when:
-        TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
-        _ * failedEvent.getEventTime() >> 999
-        _ * failedEvent.getDescriptor() >> testDescriptor
-
-        adapter.onEvent(failedEvent)
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message.contains('not available')
-
-        when:
-        skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
-        _ * skippedEvent.getEventTime() >> 999
-        _ * skippedEvent.getDescriptor() >> testDescriptor
-
-        adapter.onEvent(skippedEvent)
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message.contains('not available')
-
-        when:
-        succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
-        _ * succeededEvent.getEventTime() >> 999
-        _ * succeededEvent.getDescriptor() >> testDescriptor
-
-        adapter.onEvent(succeededEvent)
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message.contains('not available')
-
-        when:
-        failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
-        _ * failedEvent.getEventTime() >> 999
-        _ * failedEvent.getDescriptor() >> testDescriptor
-
-        adapter.onEvent(failedEvent)
-
-        then:
-        e = thrown(IllegalStateException)
         e.message.contains('not available')
     }
 
@@ -248,6 +188,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
         _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDisplayName() >> 'test suite started'
         _ * startEvent.getDescriptor() >> testDescriptor
 
         adapter.onEvent(startEvent)
@@ -255,7 +196,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test suite 'some test suite' started."
+            assert event.displayName == "test suite started"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.className == null
@@ -275,15 +216,20 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testDescriptor.getTestKind() >> JvmTestDescriptorVersion1.KIND_SUITE
         _ * testDescriptor.getParentId() >> null
 
-        TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
+        def startEvent = Mock(TestProgressEventVersion1)
         _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
+        def result = Mock(TestResultVersion1)
+        _ * result.resultType >> TestResultVersion1.RESULT_SKIPPED
+
+        def skippedEvent = Mock(TestProgressEventVersion1)
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * skippedEvent.getEventTime() >> 999
+        _ * skippedEvent.getDisplayName() >> 'test suite skipped'
         _ * skippedEvent.getDescriptor() >> testDescriptor
+        _ * skippedEvent.getResult() >> result
 
         adapter.onEvent(startEvent) // skippedEvent always assumes a previous startEvent
         adapter.onEvent(skippedEvent)
@@ -291,7 +237,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test suite 'some test suite' skipped."
+            assert event.displayName == "test suite skipped"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
@@ -318,10 +264,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
+        _ * testResult.getResultType() >> TestResultVersion1.RESULT_SUCCESSFUL
 
         TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * succeededEvent.getEventTime() >> 999
+        _ * succeededEvent.getDisplayName() >> 'test suite succeeded'
         _ * succeededEvent.getDescriptor() >> testDescriptor
         _ * succeededEvent.getResult() >> testResult
 
@@ -331,7 +279,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test suite 'some test suite' succeeded."
+            assert event.displayName == "test suite succeeded"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.className == null
@@ -361,11 +309,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
+        _ * testResult.resultType >> TestResultVersion1.RESULT_FAILED
         _ * testResult.getFailures() >> [Stub(FailureVersion1)]
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * failedEvent.getEventTime() >> 999
+        _ * failedEvent.getDisplayName() >> 'test suite failed'
         _ * failedEvent.getDescriptor() >> testDescriptor
         _ * failedEvent.getResult() >> testResult
 
@@ -375,7 +325,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Test suite 'some test suite' failed."
+            assert event.displayName == "test suite failed"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
@@ -400,6 +350,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         TestProgressEventVersion1 startEvent = Mock(TestProgressEventVersion1)
         _ * startEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_STARTED
         _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDisplayName() >> 'test started'
         _ * startEvent.getDescriptor() >> testDescriptor
 
         adapter.onEvent(startEvent)
@@ -407,7 +358,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Atomic test 'some test' started."
+            assert event.displayName == "test started"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null
@@ -432,10 +383,15 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
+        def result = Mock(TestResultVersion1)
+        _ * result.resultType >> TestResultVersion1.RESULT_SKIPPED
+
         TestProgressEventVersion1 skippedEvent = Mock(TestProgressEventVersion1)
-        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SKIPPED
+        _ * skippedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * skippedEvent.getEventTime() >> 999
+        _ * skippedEvent.getDisplayName() >> 'test skipped'
         _ * skippedEvent.getDescriptor() >> testDescriptor
+        _ * skippedEvent.getResult() >> result
 
         adapter.onEvent(startEvent) // skippedEvent always assumes a previous startEvent
         adapter.onEvent(skippedEvent)
@@ -443,7 +399,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SkippedEvent) >> { SkippedEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Atomic test 'some test' skipped."
+            assert event.displayName == "test skipped"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.className == 'Foo'
@@ -471,11 +427,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
+        _ * testResult.resultType >> TestResultVersion1.RESULT_SUCCESSFUL
 
         TestProgressEventVersion1 succeededEvent = Mock(TestProgressEventVersion1)
-        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_SUCCEEDED
+        _ * succeededEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDescriptor() >> testDescriptor
+        _ * succeededEvent.getDisplayName() >> 'test succeeded'
         _ * succeededEvent.getResult() >> testResult
 
         adapter.onEvent(startEvent) // succeededEvent always assumes a previous startEvent
@@ -484,7 +442,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as SuccessEvent) >> { SuccessEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Atomic test 'some test' succeeded."
+            assert event.displayName == "test succeeded"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null
@@ -514,10 +472,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
         _ * testResult.getFailures() >> [Stub(FailureVersion1)]
+        _ * testResult.resultType >> TestResultVersion1.RESULT_FAILED
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
-        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FAILED
+        _ * failedEvent.getEventType() >> TestProgressEventVersion1.EVENT_TYPE_FINISHED
         _ * failedEvent.getEventTime() >> 999
+        _ * failedEvent.getDisplayName() >> 'test failed'
         _ * failedEvent.getDescriptor() >> testDescriptor
         _ * failedEvent.getResult() >> testResult
 
@@ -527,7 +487,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as FailureEvent) >> { FailureEvent event ->
             assert event.eventTime == 999
-            assert event.description == "Atomic test 'some test' failed."
+            assert event.displayName == "test failed"
             assert event.descriptor.name == 'some test'
             assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
             assert event.descriptor.parent == null
