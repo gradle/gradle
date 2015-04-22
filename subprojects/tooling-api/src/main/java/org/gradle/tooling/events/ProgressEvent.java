@@ -29,8 +29,7 @@ import org.gradle.api.Incubating;
 public interface ProgressEvent {
 
     /**
-     * Returns the time this event was triggered. Note that the event time is independent from the time something happened in the underlying operation that is monitored (execution of tests, tasks, the
-     * build, etc.).
+     * Returns the time this event was triggered.
      *
      * @return The event time, in milliseconds since the epoch.
      */
@@ -44,9 +43,9 @@ public interface ProgressEvent {
     String getDisplayName();
 
     /**
-     * Returns the description of the underlying operation for which progress is reported.
+     * Returns the description of the operation for which progress is reported.
      *
-     * @return The description of the underlying operation.
+     * @return The description of the operation.
      */
     OperationDescriptor getDescriptor();
 
