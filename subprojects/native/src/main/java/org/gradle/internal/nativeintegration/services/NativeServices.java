@@ -54,7 +54,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
-    public static void initialize(File userHomeDir) {
+    public static synchronized void initialize(File userHomeDir) {
         File nativeDir = new File(userHomeDir, "native");
         if (useNativePlatform) {
             try {
@@ -74,7 +74,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         initialized = true;
     }
 
-    public static NativeServices getInstance() {
+    public static synchronized NativeServices getInstance() {
         if (!initialized) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
             // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
