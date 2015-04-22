@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestDescriptor;
-
 public class DecoratingTestDescriptor implements TestDescriptorInternal {
     private final TestDescriptorInternal descriptor;
     private final TestDescriptorInternal parent;
@@ -32,7 +30,7 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.toString();
     }
 
-    public TestDescriptor getParent() {
+    public TestDescriptorInternal getParent() {
         return parent;
     }
 

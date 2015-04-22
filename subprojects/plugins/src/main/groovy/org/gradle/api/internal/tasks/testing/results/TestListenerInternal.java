@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestResult;
 
-public class UnknownTestDescriptor implements TestDescriptorInternal {
+public interface TestListenerInternal {
+    void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent);
 
-    public Object getId() {
-        return "Unknown test (possible bug, please report)";
-    }
+    void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent);
 
-    public String getName() {
-        return "Unknown test (possible bug, please report)";
-    }
-
-    public String getClassName() {
-        return null;
-    }
-
-    public boolean isComposite() {
-        return false;
-    }
-
-    public TestDescriptorInternal getParent() {
-        return null;
-    }
+    void output(TestDescriptorInternal testDescriptor, TestOutputEvent event);
 }
