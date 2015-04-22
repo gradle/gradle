@@ -21,9 +21,10 @@ import org.junit.Rule
 
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-    def trigger = file("trigger.out")
+    def trigger = file(".gradle/trigger.out")
 
     def setup() {
+        file(".gradle").mkdirs()
         executer.withArgument("--watch")
 
         buildFile << """
@@ -50,12 +51,16 @@ gradle.buildFinished {
 """
     }
 
-    def planToRebuild() {
+    def goingToRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }
 
-    def planToStop() {
+    def goingToStop() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "being done"))
+    }
+
+    def goingToWait() {
+        trigger.bytes = []
     }
 
     private writeTrigger(DefaultTriggerDetails triggerDetails) {

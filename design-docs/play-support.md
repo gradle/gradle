@@ -593,7 +593,7 @@ def triggered(TriggerDetails) {
 - ~~If Gradle build succeeds, we wait for trigger and print some sort of helpful message.~~
 - ~~If Gradle build fails, we still wait for trigger.~~
 - ~~Configuration errors should be treated in the same way as execution failures.~~
-- On Ctrl+C, Gradle exits and daemon cancels build.
+- On Ctrl+C, Gradle exits and cancels build.
 - ~~When "trigger" is tripped, a build runs.~~
 - Test coverage that watch mode works through the tooling API
     - Client receives logging output, progress events and test events from each build execution until cancelled.

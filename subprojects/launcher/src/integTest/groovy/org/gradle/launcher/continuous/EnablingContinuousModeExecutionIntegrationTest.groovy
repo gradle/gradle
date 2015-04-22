@@ -21,39 +21,60 @@ import spock.lang.IgnoreIf
 
 @IgnoreIf({!TestPrecondition.JDK7_OR_LATER})
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
+    def gradle
+    def srcFile = file("src.file")
+
+    void startGradle(String task="tasks") {
+        gradle = executer.withTasks(task).start()
+    }
+
+    private void waitForStop() {
+        gradle.waitForFinish()
+    }
+
+    private void waitForBuildFinished() {
+        server.sync()
+    }
+
+    def afterBuild(Closure c) {
+        server.waitFor()
+        c.call()
+        server.release()
+    }
+
     def "can enable continuous mode"() {
         when:
-        planToStop()
+        goingToStop()
         and:
-        def gradle = executer.withTasks("tasks").start()
+        startGradle()
         then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
     }
 
     def "warns about incubating feature"() {
         when:
-        planToStop()
+        goingToStop()
         and:
-        def gradle = executer.withTasks("tasks").start()
+        startGradle()
         then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
         gradle.standardOutput.contains("Continuous mode is an incubating feature.")
     }
 
     def "prints useful messages when in continuous mode"() {
         when:
-        planToRebuild()
+        goingToRebuild()
         and:
-        def gradle = executer.withTasks("tasks").start()
+        startGradle()
         then:
-        server.sync()
+        waitForBuildFinished()
         when:
-        planToStop()
+        goingToStop()
         then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
         gradle.standardOutput.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.")
         gradle.standardOutput.contains("REBUILD triggered due to test")
         gradle.standardOutput.contains("STOP triggered due to being done")
@@ -67,20 +88,20 @@ task fail << {
 }
 """
         when:
-        planToRebuild()
+        goingToRebuild()
         and:
-        def gradle = executer.withTasks("fail").start()
+        startGradle("fail")
         then:
-        server.sync()
+        waitForBuildFinished()
         when:
-        planToRebuild()
+        goingToRebuild()
         then:
-        server.sync()
+        waitForBuildFinished()
         when:
-        planToStop()
+        goingToStop()
         then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
         gradle.standardOutput.count("BUILD FAILED") == 3
     }
 
@@ -90,27 +111,37 @@ task fail << {
 throw new GradleException("config error")
 """
         when:
-        planToRebuild()
+        goingToRebuild()
         and:
-        def gradle = executer.withTasks("tasks").start()
+        startGradle()
         then:
-        server.sync()
+        waitForBuildFinished()
         when:
-        planToRebuild()
+        goingToRebuild()
         then:
-        server.sync()
+        waitForBuildFinished()
         when:
-        planToStop()
+        goingToStop()
         then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
+        gradle.errorOutput.count("config error") == 3
         gradle.standardOutput.count("BUILD FAILED") == 3
+    }
+
+    def validSource() {
+        srcFile.text = "WORKS"
+    }
+    def invalidSource() {
+        srcFile.text = "BROKEN"
+    }
+    def changeSource() {
+        srcFile << "NEWLINE"
     }
 
     def "keeps running when build succeeds, fails and succeeds"() {
         given:
-        def srcFile = file("src.file")
-        srcFile.text = "WORKS"
+        validSource()
         buildFile << """
 task maybeFail << {
     def srcFile = file("${srcFile.toURI()}")
@@ -120,25 +151,63 @@ task maybeFail << {
 }
 """
         when:
-        planToRebuild()
+        goingToRebuild()
         and:
-        def gradle = executer.withTasks("maybeFail").start()
+        startGradle("maybeFail")
+        and:
+        afterBuild {
+            invalidSource()
+        }
+        and:
+        goingToRebuild()
+        and:
+        afterBuild {
+            validSource()
+        }
+        and:
+        goingToStop()
         then:
-        server.waitFor()
-        when:
-        srcFile.text = "BROKEN"
-        server.release()
-        planToRebuild()
-        then:
-        server.waitFor()
-        when:
-        srcFile.text = "WORKS"
-        server.release()
-        planToStop()
-        then:
-        server.sync()
-        gradle.waitForFinish()
+        waitForBuildFinished()
+        waitForStop()
         gradle.standardOutput.count("BUILD SUCCESSFUL") == 2
         gradle.standardOutput.count("BUILD FAILED") == 1
+    }
+
+    def "rebuilds when a file changes"() {
+        given:
+        def outputFile = file("build/output.out")
+        validSource()
+        buildFile << """
+task succeed {
+    def output = file("${outputFile.toURI()}")
+    inputs.files file("${srcFile.toURI()}")
+    outputs.files output
+    doLast {
+        output.parentFile.mkdirs()
+        output << "did work"
+    }
+}
+"""
+        when:
+        goingToWait()
+        and:
+        startGradle("succeed")
+        and:
+        afterBuild {
+            changeSource()
+        }
+        and:
+        goingToWait()
+        and:
+        afterBuild {
+            changeSource()
+        }
+        and:
+        goingToStop()
+        then:
+        waitForBuildFinished()
+        waitForStop()
+        gradle.standardOutput.count("BUILD SUCCESSFUL") == 3
+        outputFile.text.count("did work") == 3
     }
 }
