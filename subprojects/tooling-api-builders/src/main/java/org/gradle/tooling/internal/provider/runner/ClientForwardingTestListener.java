@@ -15,9 +15,11 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -29,7 +31,7 @@ import java.util.List;
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListener {
+class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
 
@@ -38,50 +40,49 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     @Override
-    public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite)));
+    public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), adapt(testDescriptor)));
     }
 
     @Override
-    public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
+    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), adapt(testDescriptor), adapt(testResult)));
     }
 
     @Override
-    public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test)));
+    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
+        // Don't forward
     }
 
-    @Override
-    public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
+    private static DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
+        return testDescriptor.isComposite() ? toTestDescriptorForSuite(testDescriptor) : toTestDescriptorForTest(testDescriptor);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
-        Object id = ((TestDescriptorInternal) suite).getId();
+    private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
+        Object id = suite.getId();
         String name = suite.getName();
         String displayName = suite.toString();
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
-        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
+        Object parentId = suite.getParent() != null ? suite.getParent().getId() : null;
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
-        Object id = ((TestDescriptorInternal) test).getId();
+    private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
+        Object id = test.getId();
         String name = test.getName();
         String displayName = test.toString();
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
-        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
+        Object parentId = test.getParent() != null ? test.getParent().getId() : null;
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static AbstractTestResult toTestResult(TestResult result) {
+    private static AbstractTestResult adapt(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
