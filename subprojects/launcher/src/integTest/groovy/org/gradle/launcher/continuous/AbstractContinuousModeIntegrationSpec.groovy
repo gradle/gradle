@@ -16,9 +16,51 @@
 
 package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.junit.Rule
 
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    def trigger = file("trigger.out")
+
     def setup() {
         executer.withArgument("--watch")
+
+        buildFile << """
+
+import org.gradle.launcher.continuous.*
+import org.gradle.internal.event.*
+
+def triggerFile = file("${trigger.toURI()}")
+gradle.buildFinished {
+    def trigger = null
+    try {
+        triggerFile.withObjectInputStream { instream ->
+            trigger = instream.readObject()
+        }
+    } catch (Exception e) {}
+
+    if (trigger!=null) {
+        def listenerManager = gradle.services.get(ListenerManager)
+        def triggerListener = listenerManager.getBroadcaster(TriggerListener)
+        triggerListener.triggered(trigger)
+    }
+    new URL("${server.uri}").text // wait for test
+}
+"""
+    }
+
+    def planToRebuild() {
+        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
+    }
+
+    def planToStop() {
+        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "being done"))
+    }
+
+    private writeTrigger(DefaultTriggerDetails triggerDetails) {
+        ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(trigger))
+        os.writeObject(triggerDetails)
+        os.close()
     }
 }

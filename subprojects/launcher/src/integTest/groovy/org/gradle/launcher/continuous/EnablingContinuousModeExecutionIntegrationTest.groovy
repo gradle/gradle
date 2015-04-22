@@ -16,46 +16,11 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.junit.Rule
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
+@IgnoreIf({!TestPrecondition.JDK7_OR_LATER})
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-    def trigger = file("trigger.out")
-
-    def setup() {
-        buildFile << """
-import org.gradle.launcher.continuous.*
-import org.gradle.internal.event.*
-
-def triggerFile = file("${trigger.toURI()}")
-gradle.buildFinished {
-    def inputStream = new ObjectInputStream(new FileInputStream(triggerFile))
-    def trigger = inputStream.readObject()
-    inputStream.close()
-
-    def listenerManager = gradle.services.get(ListenerManager)
-    def triggerListener = listenerManager.getBroadcaster(TriggerListener)
-    triggerListener.triggered(trigger)
-    new URL("${server.uri}").text // wait for test
-}
-"""
-    }
-
-    def planToRebuild() {
-        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
-    }
-
-    def planToStop() {
-        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "being done"))
-    }
-
-    private writeTrigger(DefaultTriggerDetails triggerDetails) {
-        ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(trigger))
-        os.writeObject(triggerDetails)
-        os.close()
-    }
-
     def "can enable continuous mode"() {
         when:
         planToStop()
@@ -92,5 +57,88 @@ gradle.buildFinished {
         gradle.standardOutput.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.")
         gradle.standardOutput.contains("REBUILD triggered due to test")
         gradle.standardOutput.contains("STOP triggered due to being done")
+    }
+
+    def "keeps running even when build fails"() {
+        given:
+        buildFile << """
+task fail << {
+    throw new GradleException("always fails")
+}
+"""
+        when:
+        planToRebuild()
+        and:
+        def gradle = executer.withTasks("fail").start()
+        then:
+        server.sync()
+        when:
+        planToRebuild()
+        then:
+        server.sync()
+        when:
+        planToStop()
+        then:
+        server.sync()
+        gradle.waitForFinish()
+        gradle.standardOutput.count("BUILD FAILED") == 3
+    }
+
+    def "keeps running even when build fails due to script error"() {
+        given:
+        buildFile << """
+throw new GradleException("config error")
+"""
+        when:
+        planToRebuild()
+        and:
+        def gradle = executer.withTasks("tasks").start()
+        then:
+        server.sync()
+        when:
+        planToRebuild()
+        then:
+        server.sync()
+        when:
+        planToStop()
+        then:
+        server.sync()
+        gradle.waitForFinish()
+        gradle.standardOutput.count("BUILD FAILED") == 3
+    }
+
+    def "keeps running when build succeeds, fails and succeeds"() {
+        given:
+        def srcFile = file("src.file")
+        srcFile.text = "WORKS"
+        buildFile << """
+task maybeFail << {
+    def srcFile = file("${srcFile.toURI()}")
+    if (srcFile.text != "WORKS") {
+        throw new GradleException("always fails")
+    }
+}
+"""
+        when:
+        planToRebuild()
+        and:
+        def gradle = executer.withTasks("maybeFail").start()
+        then:
+        server.waitFor()
+        when:
+        srcFile.text = "BROKEN"
+        server.release()
+        planToRebuild()
+        then:
+        server.waitFor()
+        when:
+        srcFile.text = "WORKS"
+        server.release()
+        planToStop()
+        then:
+        server.sync()
+        gradle.waitForFinish()
+        gradle.standardOutput.count("BUILD SUCCESSFUL") == 2
+        gradle.standardOutput.count("BUILD FAILED") == 1
     }
 }
