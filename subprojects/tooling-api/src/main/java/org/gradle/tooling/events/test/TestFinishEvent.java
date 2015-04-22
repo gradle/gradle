@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.FinishEvent;
 
 /**
- * An event that informs about an operation having finished its execution.
+ * An event that informs about a test operation having finished its execution.
  *
  * @since 2.4
  */
 @Incubating
-public interface FinishEvent extends ProgressEvent {
+public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
 
     /**
-     * Returns the result of the finished operation.
+     * Returns the result of the finished test operation.
      *
-     * @return the result of the finished operation
+     * @return the result of the finished test operation
      */
-    OperationResult getResult();
+    @Override
+    TestOperationResult getResult();
 
 }

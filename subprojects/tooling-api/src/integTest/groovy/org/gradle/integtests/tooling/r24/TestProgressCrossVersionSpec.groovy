@@ -21,9 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.*
-import org.gradle.tooling.events.test.JvmTestKind
-import org.gradle.tooling.events.test.TestProgressListener
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.4")
-    @TargetGradleVersion("<2.4")
+    @TargetGradleVersion(">=1.0-milestone-8 <2.4")
     def "ignores listeners when Gradle version does not generate test events"() {
         given:
         goodCode()
@@ -54,12 +54,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some test task(s) to run first"
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         result.add(event)
                     }
                 }).get()
@@ -76,12 +76,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         result.add(event)
                     }
                 }).run()
@@ -102,7 +102,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
                 }).run()
@@ -119,23 +119,23 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        List<ProgressEvent> resultsOfFirstListener = new ArrayList<ProgressEvent>()
-        List<ProgressEvent> resultsOfLastListener = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
+        List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         resultsOfFirstListener.add(event)
                     }
                 }).addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
                 }).addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         resultsOfLastListener.add(event)
                     }
                 }).run()
@@ -169,12 +169,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -234,33 +234,37 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testStartedEvent.descriptor.methodName == 'foo' &&
                 testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testSucceededEvent = result[4]
-        testSucceededEvent instanceof SuccessEvent &&
-                testSucceededEvent.eventTime >= testSucceededEvent.outcome.endTime &&
+        testSucceededEvent instanceof FinishEvent &&
+                testSucceededEvent.eventTime >= testSucceededEvent.result.endTime &&
                 testSucceededEvent.displayName == "Test foo(example.MyTest) succeeded" &&
                 testSucceededEvent.descriptor == testStartedEvent.descriptor &&
-                testSucceededEvent.outcome.startTime > 0 &&
-                testSucceededEvent.outcome.endTime > testSucceededEvent.outcome.startTime
+                testSucceededEvent.result instanceof TestSuccessResult &&
+                testSucceededEvent.result.startTime > 0 &&
+                testSucceededEvent.result.endTime > testSucceededEvent.result.startTime
         def testClassSucceededEvent = result[5]
-        testClassSucceededEvent instanceof SuccessEvent &&
-                testClassSucceededEvent.eventTime >= testClassSucceededEvent.outcome.endTime &&
+        testClassSucceededEvent instanceof FinishEvent &&
+                testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.endTime &&
                 testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
                 testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassSucceededEvent.outcome.startTime > 0 &&
-                testClassSucceededEvent.outcome.endTime > testClassSucceededEvent.outcome.startTime
+                testClassSucceededEvent.result instanceof TestSuccessResult &&
+                testClassSucceededEvent.result.startTime > 0 &&
+                testClassSucceededEvent.result.endTime > testClassSucceededEvent.result.startTime
         def testProcessSucceededEvent = result[6]
-        testProcessSucceededEvent instanceof SuccessEvent &&
-                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.outcome.endTime &&
+        testProcessSucceededEvent instanceof FinishEvent &&
+                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.endTime &&
                 testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
                 testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessSucceededEvent.outcome.startTime > 0 &&
-                testProcessSucceededEvent.outcome.endTime > testProcessSucceededEvent.outcome.startTime
+                testProcessSucceededEvent.result instanceof TestSuccessResult &&
+                testProcessSucceededEvent.result.startTime > 0 &&
+                testProcessSucceededEvent.result.endTime > testProcessSucceededEvent.result.startTime
         def rootSucceededEvent = result[7]
-        rootSucceededEvent instanceof SuccessEvent &&
-                rootSucceededEvent.eventTime >= rootSucceededEvent.outcome.endTime &&
+        rootSucceededEvent instanceof FinishEvent &&
+                rootSucceededEvent.eventTime >= rootSucceededEvent.result.endTime &&
                 rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
                 rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
-                rootSucceededEvent.outcome.startTime > 0 &&
-                rootSucceededEvent.outcome.endTime > rootSucceededEvent.outcome.startTime
+                rootSucceededEvent.result instanceof TestSuccessResult &&
+                rootSucceededEvent.result.startTime > 0 &&
+                rootSucceededEvent.result.endTime > rootSucceededEvent.result.startTime
     }
 
     @ToolingApiVersion(">=2.4")
@@ -286,12 +290,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -351,43 +355,47 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testStartedEvent.descriptor.methodName == 'foo' &&
                 testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testFailedEvent = result[4]
-        testFailedEvent instanceof FailureEvent &&
-                testFailedEvent.eventTime >= testFailedEvent.outcome.endTime &&
+        testFailedEvent instanceof FinishEvent &&
+                testFailedEvent.eventTime >= testFailedEvent.result.endTime &&
                 testFailedEvent.displayName == "Test foo(example.MyTest) failed" &&
                 testFailedEvent.descriptor == testStartedEvent.descriptor &&
-                testFailedEvent.outcome.startTime > 0 &&
-                testFailedEvent.outcome.endTime > testFailedEvent.outcome.startTime &&
-                testFailedEvent.outcome.failures.size() == 1 &&
-                testFailedEvent.outcome.failures[0].message == 'broken' &&
-                testFailedEvent.outcome.failures[0].description.startsWith("java.lang.RuntimeException: broken") &&
-                testFailedEvent.outcome.failures[0].description.contains("at example.MyTest.foo(MyTest.java:6)") &&
-                testFailedEvent.outcome.failures[0].causes.size() == 1 &&
-                testFailedEvent.outcome.failures[0].causes[0].message == 'nope' &&
-                testFailedEvent.outcome.failures[0].causes[0].causes.empty
+                testFailedEvent.result instanceof TestFailureResult &&
+                testFailedEvent.result.startTime > 0 &&
+                testFailedEvent.result.endTime > testFailedEvent.result.startTime &&
+                testFailedEvent.result.failures.size() == 1 &&
+                testFailedEvent.result.failures[0].message == 'broken' &&
+                testFailedEvent.result.failures[0].description.startsWith("java.lang.RuntimeException: broken") &&
+                testFailedEvent.result.failures[0].description.contains("at example.MyTest.foo(MyTest.java:6)") &&
+                testFailedEvent.result.failures[0].causes.size() == 1 &&
+                testFailedEvent.result.failures[0].causes[0].message == 'nope' &&
+                testFailedEvent.result.failures[0].causes[0].causes.empty
         def testClassFailedEvent = result[5]
-        testClassFailedEvent instanceof FailureEvent &&
-                testClassFailedEvent.eventTime >= testClassFailedEvent.outcome.endTime &&
+        testClassFailedEvent instanceof FinishEvent &&
+                testClassFailedEvent.eventTime >= testClassFailedEvent.result.endTime &&
                 testClassFailedEvent.displayName == "Test class example.MyTest failed" &&
                 testClassFailedEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassFailedEvent.outcome.startTime > 0 &&
-                testClassFailedEvent.outcome.endTime > testClassFailedEvent.outcome.startTime &&
-                testClassFailedEvent.outcome.failures.size() == 0
+                testClassFailedEvent.result instanceof TestFailureResult &&
+                testClassFailedEvent.result.startTime > 0 &&
+                testClassFailedEvent.result.endTime > testClassFailedEvent.result.startTime &&
+                testClassFailedEvent.result.failures.size() == 0
         def testProcessFailedEvent = result[6]
-        testProcessFailedEvent instanceof FailureEvent &&
-                testProcessFailedEvent.eventTime >= testProcessFailedEvent.outcome.endTime &&
+        testProcessFailedEvent instanceof FinishEvent &&
+                testProcessFailedEvent.eventTime >= testProcessFailedEvent.result.endTime &&
                 testProcessFailedEvent.displayName == "Gradle Test Executor 2 failed" &&
                 testProcessFailedEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessFailedEvent.outcome.startTime > 0 &&
-                testProcessFailedEvent.outcome.endTime > testProcessFailedEvent.outcome.startTime &&
-                testProcessFailedEvent.outcome.failures.size() == 0
+                testProcessFailedEvent.result instanceof TestFailureResult &&
+                testProcessFailedEvent.result.startTime > 0 &&
+                testProcessFailedEvent.result.endTime > testProcessFailedEvent.result.startTime &&
+                testProcessFailedEvent.result.failures.size() == 0
         def rootFailedEvent = result[7]
-        rootFailedEvent instanceof FailureEvent &&
-                rootFailedEvent.eventTime >= rootFailedEvent.outcome.endTime &&
+        rootFailedEvent instanceof FinishEvent &&
+                rootFailedEvent.eventTime >= rootFailedEvent.result.endTime &&
                 rootFailedEvent.displayName == "Gradle Test Run :test failed" &&
                 rootFailedEvent.descriptor == rootStartedEvent.descriptor &&
-                rootFailedEvent.outcome.startTime > 0 &&
-                rootFailedEvent.outcome.endTime > rootFailedEvent.outcome.startTime &&
-                rootFailedEvent.outcome.failures.size() == 0
+                rootFailedEvent.result instanceof TestFailureResult &&
+                rootFailedEvent.result.startTime > 0 &&
+                rootFailedEvent.result.endTime > rootFailedEvent.result.startTime &&
+                rootFailedEvent.result.failures.size() == 0
     }
 
     @ToolingApiVersion(">=2.4")
@@ -412,12 +420,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -477,31 +485,35 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testStartedEvent.descriptor.methodName == 'foo' &&
                 testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testSkippedEvent = result[4]
-        testSkippedEvent instanceof SkippedEvent &&
+        testSkippedEvent instanceof FinishEvent &&
                 testSkippedEvent.eventTime > 0 &&
                 testSkippedEvent.displayName == "Test foo(example.MyTest) skipped" &&
-                testSkippedEvent.descriptor == testStartedEvent.descriptor
+                testSkippedEvent.descriptor == testStartedEvent.descriptor &&
+                testSkippedEvent.result instanceof TestSkippedResult
         def testClassSucceededEvent = result[5]
-        testClassSucceededEvent instanceof SuccessEvent &&
-                testClassSucceededEvent.eventTime >= testClassSucceededEvent.outcome.endTime &&
+        testClassSucceededEvent instanceof FinishEvent &&
+                testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.endTime &&
                 testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
                 testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
-                testClassSucceededEvent.outcome.startTime > 0 &&
-                testClassSucceededEvent.outcome.endTime > testClassSucceededEvent.outcome.startTime
+                testClassSucceededEvent.result instanceof TestSuccessResult &&
+                testClassSucceededEvent.result.startTime > 0 &&
+                testClassSucceededEvent.result.endTime > testClassSucceededEvent.result.startTime
         def testProcessSucceededEvent = result[6]
-        testProcessSucceededEvent instanceof SuccessEvent &&
-                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.outcome.endTime &&
+        testProcessSucceededEvent instanceof FinishEvent &&
+                testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.endTime &&
                 testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
                 testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
-                testProcessSucceededEvent.outcome.startTime > 0 &&
-                testProcessSucceededEvent.outcome.endTime > testProcessSucceededEvent.outcome.startTime
+                testProcessSucceededEvent.result instanceof TestSuccessResult &&
+                testProcessSucceededEvent.result.startTime > 0 &&
+                testProcessSucceededEvent.result.endTime > testProcessSucceededEvent.result.startTime
         def rootSucceededEvent = result[7]
-        rootSucceededEvent instanceof SuccessEvent &&
-                rootSucceededEvent.eventTime >= rootSucceededEvent.outcome.endTime &&
+        rootSucceededEvent instanceof FinishEvent &&
+                rootSucceededEvent.eventTime >= rootSucceededEvent.result.endTime &&
                 rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
                 rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
-                rootSucceededEvent.outcome.startTime > 0 &&
-                rootSucceededEvent.outcome.endTime > rootSucceededEvent.outcome.startTime
+                rootSucceededEvent.result instanceof TestSuccessResult &&
+                rootSucceededEvent.result.startTime > 0 &&
+                rootSucceededEvent.result.endTime > rootSucceededEvent.result.startTime
     }
 
     @ToolingApiVersion(">=2.4")
@@ -560,12 +572,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        Queue<ProgressEvent> result = new ConcurrentLinkedQueue<ProgressEvent>()
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }
@@ -640,12 +652,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        Queue<ProgressEvent> result = new ConcurrentLinkedQueue<ProgressEvent>()
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
-                    void statusChanged(ProgressEvent event) {
+                    void statusChanged(TestProgressEvent event) {
                         assert event != null
                         result.add(event)
                     }

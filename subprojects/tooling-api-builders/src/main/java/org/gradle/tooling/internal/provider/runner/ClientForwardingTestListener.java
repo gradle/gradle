@@ -21,10 +21,8 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
-import org.gradle.tooling.internal.provider.InternalFailure;
-import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
+import org.gradle.tooling.internal.provider.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,22 +40,50 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForSuite(suite), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite)));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForSuite(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForSuite(suite), toTestResult(result)));
     }
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_STARTED, toTestDescriptorForTest(test), null));
+        eventConsumer.dispatch(new InternalTestStartedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test)));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(System.currentTimeMillis(), TestProgressEventVersion1.EVENT_TYPE_FINISHED, toTestDescriptorForTest(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestFinishedProgressEvent(System.currentTimeMillis(), toTestDescriptorForTest(test), toTestResult(result)));
+    }
+
+    private static InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
+        Object id = ((TestDescriptorInternal) suite).getId();
+        String name = suite.getName();
+        String displayName = suite.toString();
+        String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
+        String suiteName = suite.getName();
+        String className = suite.getClassName();
+        String methodName = null;
+        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
+        return new InternalTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private static InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
+        Object id = ((TestDescriptorInternal) test).getId();
+        String name = test.getName();
+        String displayName = test.toString();
+        String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
+        String suiteName = null;
+        String className = test.getClassName();
+        String methodName = test.getName();
+        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
+        return new InternalTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private static InternalTestResult toTestResult(TestResult result) {
+        return new InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
     }
 
     private static String toResultType(TestResult result) {
@@ -72,34 +98,6 @@ class ClientForwardingTestListener implements TestListener {
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }
-    }
-
-    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForSuite(TestDescriptor suite) {
-        Object id = ((TestDescriptorInternal) suite).getId();
-        String name = suite.getName();
-        String displayName = suite.toString();
-        String testKind = JvmTestDescriptorVersion1.KIND_SUITE;
-        String suiteName = suite.getName();
-        String className = suite.getClassName();
-        String methodName = null;
-        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
-    }
-
-    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptorForTest(TestDescriptor test) {
-        Object id = ((TestDescriptorInternal) test).getId();
-        String name = test.getName();
-        String displayName = test.toString();
-        String testKind = JvmTestDescriptorVersion1.KIND_ATOMIC;
-        String suiteName = null;
-        String className = test.getClassName();
-        String methodName = test.getName();
-        Object parentId = test.getParent() != null ? ((TestDescriptorInternal) test.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, testKind, displayName, suiteName, className, methodName, parentId);
-    }
-
-    private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
     }
 
     private static List<InternalFailure> convertExceptions(List<Throwable> exceptions) {

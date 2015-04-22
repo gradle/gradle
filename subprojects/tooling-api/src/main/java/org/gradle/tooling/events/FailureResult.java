@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
+
+import java.util.List;
 
 /**
- * Provides information about the successful execution of an operation.
- *
- * @since 2.4
+ * Describes how an operation finished with failures.
  */
-@Incubating
-public interface SuccessOutcome extends Outcome {
+public interface FailureResult extends OperationResult {
+
+    /**
+     * Returns the exceptions that occurred while running the operation, if any.
+     *
+     * @return the exceptions, empty if the operation failed without any exceptions
+     */
+    List<? extends Failure> getFailures();
+
 }

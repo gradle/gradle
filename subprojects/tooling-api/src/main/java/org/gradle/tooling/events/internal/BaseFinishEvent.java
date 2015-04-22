@@ -16,25 +16,25 @@
 
 package org.gradle.tooling.events.internal;
 
+import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.SuccessEvent;
-import org.gradle.tooling.events.SuccessOutcome;
+import org.gradle.tooling.events.OperationResult;
 
 /**
- * Default implementation of the {@code SuccessEvent} interface.
+ * Base implementation of the {@code FinishEvent} interface.
  */
-public final class DefaultSuccessEvent extends BaseProgressEvent implements SuccessEvent {
+public abstract class BaseFinishEvent extends BaseProgressEvent implements FinishEvent {
 
-    private final SuccessOutcome outcome;
+    private final OperationResult result;
 
-    public DefaultSuccessEvent(long eventTime, String eventDescription, OperationDescriptor descriptor, SuccessOutcome outcome) {
-        super(eventTime, eventDescription, descriptor);
-        this.outcome = outcome;
+    public BaseFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
+        super(eventTime, displayName, descriptor);
+        this.result = result;
     }
 
     @Override
-    public SuccessOutcome getOutcome() {
-        return outcome;
+    public OperationResult getResult() {
+        return result;
     }
 
 }

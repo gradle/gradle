@@ -16,21 +16,8 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
- * An event that informs about an operation having finished its execution.
- *
- * @since 2.4
+ * Describes how an operation was skipped.
  */
-@Incubating
-public interface FinishEvent extends ProgressEvent {
-
-    /**
-     * Returns the result of the finished operation.
-     *
-     * @return the result of the finished operation
-     */
-    OperationResult getResult();
-
+public interface SkippedResult extends OperationResult {
 }

@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
- * An event that informs about an operation having skipped its execution. A skipped operation
- * is considered a successful operation since nothing failed.
- *
- * @since 2.4
+ * Describes how a test operation finished successfully.
  */
-@Incubating
-public interface SkippedEvent extends SuccessEvent {
+public interface TestSuccessResult extends TestOperationResult, SuccessResult {
 }

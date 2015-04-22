@@ -16,21 +16,23 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
- * An event that informs about an operation having finished its execution.
- *
- * @since 2.4
+ * Describes the result of running an operation.
  */
-@Incubating
-public interface FinishEvent extends ProgressEvent {
+public interface OperationResult {
 
     /**
-     * Returns the result of the finished operation.
+     * Returns the time when the operation started its execution.
      *
-     * @return the result of the finished operation
+     * @return The start time, in milliseconds since the epoch.
      */
-    OperationResult getResult();
+    long getStartTime();
+
+    /**
+     * Returns the time when the operation finished its execution.
+     *
+     * @return The end time, in milliseconds since the epoch.
+     */
+    long getEndTime();
 
 }

@@ -31,16 +31,16 @@ public interface TestDescriptorVersion1 extends InternalProtocolInterface {
     Object getId();
 
     /**
-     * Returns a human consumable display name for the test.
-     */
-    String getDisplayName();
-
-    /**
      * Returns the name of the test.
      *
      * @return The name of the test, never null
      */
     String getName();
+
+    /**
+     * Returns a human consumable display name for the test.
+     */
+    String getDisplayName();
 
     /**
      * Returns the id of the parent of this test, if any.

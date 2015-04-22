@@ -25,12 +25,12 @@ import org.gradle.tooling.events.ProgressEvent;
 abstract class BaseProgressEvent implements ProgressEvent {
 
     private final long eventTime;
-    private final String eventDescription;
+    private final String displayName;
     private final OperationDescriptor descriptor;
 
-    BaseProgressEvent(long eventTime, String eventDescription, OperationDescriptor descriptor) {
+    BaseProgressEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
         this.eventTime = eventTime;
-        this.eventDescription = eventDescription;
+        this.displayName = displayName;
         this.descriptor = descriptor;
     }
 
@@ -41,17 +41,17 @@ abstract class BaseProgressEvent implements ProgressEvent {
 
     @Override
     public String getDisplayName() {
-        return eventDescription;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
+        return displayName;
     }
 
     @Override
     public OperationDescriptor getDescriptor() {
         return descriptor;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
 }

@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.events.test;
+
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.FailureResult;
 
 import java.util.List;
 
 /**
- * Provides information about the failed execution of an operation.
- *
- * @since 2.4
+ * Describes how a test operation finished with failures.
  */
-@Incubating
-public interface FailureOutcome extends Outcome {
+public interface TestFailureResult extends TestOperationResult, FailureResult {
 
     /**
-     * Returns the exceptions that occurred while running the operation, if any.
+     * Returns the exceptions that occurred while running the test operation, if any.
      *
-     * @return the exceptions, empty if the operation failed without any exceptions
+     * @return the exceptions, empty if the test operation failed without any exceptions
      */
+    @Override
     List<? extends Failure> getFailures();
 
 }

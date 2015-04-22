@@ -36,7 +36,7 @@ public interface OperationDescriptor {
     /**
      * Returns a human consumable display name for the operation.
      *
-     * @return The name of the operation.
+     * @return The display name of the operation.
      */
     String getDisplayName();
 

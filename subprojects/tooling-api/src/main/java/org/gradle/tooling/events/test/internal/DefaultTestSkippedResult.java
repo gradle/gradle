@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.test.TestSkippedResult;
 
 /**
- * An event that informs about an operation having finished its execution.
- *
- * @since 2.4
+ * Implementation of the {@code TestSkippedResult} interface.
  */
-@Incubating
-public interface FinishEvent extends ProgressEvent {
+public final class DefaultTestSkippedResult implements TestSkippedResult {
 
-    /**
-     * Returns the result of the finished operation.
-     *
-     * @return the result of the finished operation
-     */
-    OperationResult getResult();
+    private final long startTime;
+    private final long endTime;
+
+    public DefaultTestSkippedResult(long startTime, long endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    @Override
+    public long getStartTime() {
+        return startTime;
+    }
+
+    @Override
+    public long getEndTime() {
+        return endTime;
+    }
 
 }

@@ -16,12 +16,11 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.ProgressEvent;
 
 /**
  * A listener which is notified when the tests that are executed as part of running a build make progress.
  *
- * @see org.gradle.tooling.BuildLauncher#addTestProgressListener(TestProgressListener)
+ * @see org.gradle.tooling.LongRunningOperation#addTestProgressListener(TestProgressListener)
  * @since 2.4
  */
 @Incubating
@@ -32,21 +31,16 @@ public interface TestProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>StartEvent</li>
-     *     <li>FinishEvent</li>
-     *        <ul>
-     *          <li>SkippedEvent</li>
-     *          <li>SuccessEvent</li>
-     *          <li>FailureEvent</li>
-     *        </ul>
+     *    <li>TestStartEvent</li>
+     *    <li>TestFinishEvent</li>
      * </ul>
      *
-     * You can find out more about the test for which progress is reported by querying
-     * the event's descriptor of type {@code org.gradle.tooling.events.test.TestOperationDescriptor} or its subtype
-     * {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.
+     * You can find out more about the test operation for which progress is reported
+     * by querying the descriptor of the event type.
      *
-     * @param event An event describing the test status change.
+     * @param event An event describing the test operation progress.
+     * @see TestProgressEvent#getDescriptor()
      */
-    void statusChanged(ProgressEvent event);
+    void statusChanged(TestProgressEvent event);
 
 }

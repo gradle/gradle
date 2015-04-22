@@ -13,30 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
- * An outcome represents the result of the execution of an operation.
- *
- * @since 2.4
+ * Describes how an operation finished successfully.
  */
-@Incubating
-public interface Outcome {
-
-    /**
-     * Returns the time when the operation started its execution.
-     *
-     * @return The start time, in milliseconds since the epoch.
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time when the operation finished its execution.
-     *
-     * @return The end time, in milliseconds since the epoch.
-     */
-    long getEndTime();
-
+public interface SuccessResult extends OperationResult {
 }

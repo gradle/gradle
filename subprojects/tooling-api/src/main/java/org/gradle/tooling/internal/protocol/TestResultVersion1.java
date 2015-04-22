@@ -24,10 +24,16 @@ import java.util.List;
  * @since 2.4
  */
 public interface TestResultVersion1 extends InternalProtocolInterface {
+
     String RESULT_SUCCESSFUL = "TEST-SUCCESSFUL";
     String RESULT_FAILED = "TEST-FAILED";
     String RESULT_SKIPPED = "TEST-SKIPPED";
 
+    /**
+     * Returns the result type.
+     *
+     * @return The test result ype.
+     */
     String getResultType();
 
     /**

@@ -17,24 +17,12 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.FailureOutcome;
-import org.gradle.tooling.events.ProgressEvent;
-import org.gradle.tooling.events.SuccessOutcome;
-import org.gradle.tooling.events.internal.DefaultFailureEvent;
-import org.gradle.tooling.events.internal.DefaultSkippedEvent;
-import org.gradle.tooling.events.internal.DefaultStartEvent;
-import org.gradle.tooling.events.internal.DefaultSuccessEvent;
-import org.gradle.tooling.events.test.JvmTestKind;
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.test.*;
+import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
 
 import java.util.*;
-
-import static org.gradle.tooling.internal.protocol.TestProgressEventVersion1.EVENT_TYPE_FINISHED;
-import static org.gradle.tooling.internal.protocol.TestProgressEventVersion1.EVENT_TYPE_STARTED;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -50,8 +38,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     @Override
-    public List<String> getSubscribedEvents() {
-        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_PROGRESS);
+    public List<String> getSubscribedOperations() {
+        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_EXECUTION);
     }
 
     @Override
@@ -62,74 +50,63 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private void broadcastTestProgressEvent(TestProgressEventVersion1 event) {
-        ProgressEvent testProgressEvent = toTestProgressEvent(event);
+        TestProgressEvent testProgressEvent = toTestProgressEvent(event);
         if (testProgressEvent != null) {
             testProgressListeners.getSource().statusChanged(testProgressEvent);
         }
     }
 
-    private synchronized ProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        final long eventTime = event.getEventTime();
-        String eventType = event.getEventType();
-        if (EVENT_TYPE_STARTED.equals(eventType)) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            String eventDescription = event.getDisplayName();
-            return new DefaultStartEvent(eventTime, eventDescription, testDescriptor);
-        } else if (EVENT_TYPE_FINISHED.equals(eventType)) {
-            TestOperationDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            String eventDescription = event.getDisplayName();
-            if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
-                FailureOutcome outcome = toTestFailure(event.getResult());
-                return new DefaultFailureEvent(eventTime, eventDescription, testDescriptor, outcome);
-            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
-                SuccessOutcome outcome = toTestSuccess(event.getResult());
-                return new DefaultSkippedEvent(eventTime, eventDescription, testDescriptor, outcome);
-            } else if (event.getResult().getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
-                SuccessOutcome outcome = toTestSuccess(event.getResult());
-                return new DefaultSuccessEvent(eventTime, eventDescription, testDescriptor, outcome);
-            }
-            throw new IllegalArgumentException("Cannot adapt progress event: " + event);
-        }
-        return null;
-    }
-
-    private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
-        if (fromCache) {
-            TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
-            if (cachedTestDescriptor == null) {
-                throw new IllegalStateException(String.format("%s not available.", toString(testDescriptor)));
-            } else {
-                // when we access the test descriptor from the cache, it is because we have received a test finished event
-                // once the test has finished, we can remove the test from the cache since no child will access it anymore
-                // (all children have already finished before)
-                this.testDescriptorCache.remove(testDescriptor.getId());
-                return cachedTestDescriptor;
-            }
+    private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
+        if (event instanceof TestStartedProgressEventVersion1) {
+            return testStartedEvent((TestStartedProgressEventVersion1) event);
+        } else if (event instanceof TestFinishedProgressEventVersion1) {
+            return testFinishedEvent((TestFinishedProgressEventVersion1) event);
         } else {
-            TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
-            if (cachedTestDescriptor != null) {
-                throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
-            } else {
-                final TestOperationDescriptor parent = getParentTestDescriptor(testDescriptor);
-                TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
-                testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
-                return newTestDescriptor;
-            }
+            return null;
         }
     }
 
-    private TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
+    private TestStartEvent testStartedEvent(TestStartedProgressEventVersion1 event) {
+        long eventTime = event.getEventTime();
+        String displayName = event.getDisplayName();
+        TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
+        return new DefaultTestStartEvent(eventTime, displayName, testDescriptor);
+    }
+
+    private TestFinishEvent testFinishedEvent(final TestFinishedProgressEventVersion1 event) {
+        long eventTime = event.getEventTime();
+        String displayName = event.getDisplayName();
+        TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
+        TestOperationResult result = toTestResult(event.getResult());
+        return new DefaultTestFinishEvent(eventTime, displayName, testDescriptor, result);
+    }
+
+    private TestOperationDescriptor addTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
+        if (cachedTestDescriptor != null) {
+            throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
+        }
+        final TestOperationDescriptor parent = getParentTestDescriptor(testDescriptor);
+        TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
+        testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
+        return newTestDescriptor;
+    }
+
+    private TestOperationDescriptor removeTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+        TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.remove(testDescriptor.getId());
+        if (cachedTestDescriptor == null) {
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
+        }
+        return cachedTestDescriptor;
+    }
+
+    private static TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             final JvmTestDescriptorVersion1 jvmTestDescriptor = (JvmTestDescriptorVersion1) testDescriptor;
             return new JvmTestOperationDescriptor() {
                 @Override
                 public String getName() {
                     return jvmTestDescriptor.getName();
-                }
-
-                @Override
-                public String toString() {
-                    return getDisplayName();
                 }
 
                 @Override
@@ -162,17 +139,16 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     return parent;
                 }
 
+                @Override
+                public String toString() {
+                    return getDisplayName();
+                }
             };
         } else {
             return new TestOperationDescriptor() {
                 @Override
                 public String getName() {
                     return testDescriptor.getName();
-                }
-
-                @Override
-                public String toString() {
-                    return getDisplayName();
                 }
 
                 @Override
@@ -183,6 +159,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestOperationDescriptor getParent() {
                     return parent;
+                }
+
+                @Override
+                public String toString() {
+                    return getDisplayName();
                 }
             };
         }
@@ -199,46 +180,24 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private SuccessOutcome toTestSuccess(final TestResultVersion1 testResult) {
-        return new SuccessOutcome() {
-
-            @Override
-            public long getStartTime() {
-                return testResult.getStartTime();
-            }
-
-            @Override
-            public long getEndTime() {
-                return testResult.getEndTime();
-            }
-
-        };
+    private TestOperationResult toTestResult(final TestResultVersion1 result) {
+        if (result.getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result.getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+            return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
+        } else if (result.getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result));
+        } else {
+            return null;
+        }
     }
 
-    private FailureOutcome toTestFailure(final TestResultVersion1 testResult) {
-        return new FailureOutcome() {
-
-            @Override
-            public long getStartTime() {
-                return testResult.getStartTime();
-            }
-
-            @Override
-            public long getEndTime() {
-                return testResult.getEndTime();
-            }
-
-            @Override
-            public List<Failure> getFailures() {
-                List<? extends FailureVersion1> origFailures = testResult.getFailures();
-                List<Failure> failures = new ArrayList<Failure>(origFailures.size());
-                for (FailureVersion1 origFailure : origFailures) {
-                    failures.add(toFailure(origFailure));
-                }
-                return failures;
-            }
-
-        };
+    private static List<Failure> toFailures(TestResultVersion1 testResult) {
+        List<Failure> failures = new ArrayList<Failure>();
+        for (FailureVersion1 origFailure : testResult.getFailures()) {
+            failures.add(toFailure(origFailure));
+        }
+        return failures;
     }
 
     private static Failure toFailure(FailureVersion1 origFailure) {
@@ -270,7 +229,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private String toString(TestDescriptorVersion1 testDescriptor) {
+    private static String toString(TestDescriptorVersion1 testDescriptor) {
         if (testDescriptor instanceof JvmTestDescriptorVersion1) {
             return String.format("TestOperationDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
                     testDescriptor.getId(), testDescriptor.getName(), ((JvmTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());

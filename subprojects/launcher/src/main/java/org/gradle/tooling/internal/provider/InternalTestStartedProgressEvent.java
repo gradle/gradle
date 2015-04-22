@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events;
+package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.internal.protocol.TestStartedProgressEventVersion1;
 
-/**
- * An event that informs about an operation having finished its execution with a failure.
- *
- * @since 2.4
- */
-@Incubating
-public interface FailureEvent extends FinishEvent {
+public class InternalTestStartedProgressEvent extends InternalTestProgressEvent implements TestStartedProgressEventVersion1 {
+    public InternalTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
+        super(eventTime, descriptor);
+    }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    FailureOutcome getOutcome();
-
+    public String getDisplayName() {
+        return String.format("%s started", getDescriptor().getDisplayName());
+    }
 }

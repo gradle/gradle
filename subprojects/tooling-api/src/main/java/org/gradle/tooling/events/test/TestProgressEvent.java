@@ -17,40 +17,39 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * Describes a test operation for which an event has occurred.
+ * Root interface for all events that signal progress while executing a test operation.
  *
  * @since 2.4
  */
 @Incubating
-public interface TestOperationDescriptor extends OperationDescriptor {
+public interface TestProgressEvent extends ProgressEvent {
 
     /**
-     * Returns the name of the test operation.
+     * Returns the time this event was triggered.
      *
-     * @return The name of the test operation.
+     * @return The event time, in milliseconds since the epoch.
      */
     @Override
-    String getName();
+    long getEventTime();
 
     /**
-     * Returns a human consumable display name for the test operation.
+     * Returns a human consumable short description of the event.
      *
-     * @return The display name of the test operation.
+     * @return The short description of the event.
      */
     @Override
     String getDisplayName();
 
     /**
-     * Returns the parent of the test operation, if any.
+     * Returns the description of the underlying test operation for which progress is reported. For JVM-based tests,
+     * the descriptor is of sub-type {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.
      *
-     * @return The parent of the test operation.
+     * @return The description of the underlying test operation.
      */
     @Override
-    @Nullable
-    OperationDescriptor getParent();
+    TestOperationDescriptor getDescriptor();
 
 }

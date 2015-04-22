@@ -97,7 +97,7 @@ public class ProviderConnection {
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         BuildProgressListenerVersion1 buildProgressListener = providerParameters.getBuildProgressListener(null);
-        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedEvents().contains(BuildProgressListenerVersion1.TEST_PROGRESS);
+        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(BuildProgressListenerVersion1.TEST_EXECUTION);
         BuildEventConsumer buildEventConsumer = listenToTestProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress);
         return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
