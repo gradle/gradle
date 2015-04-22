@@ -41,12 +41,12 @@ class ClientForwardingTestListener implements TestListenerInternal {
 
     @Override
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(System.currentTimeMillis(), adapt(testDescriptor)));
+        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(startEvent.getStartTime(), adapt(testDescriptor)));
     }
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(System.currentTimeMillis(), adapt(testDescriptor), adapt(testResult)));
+        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(completeEvent.getEndTime(), adapt(testDescriptor), adapt(testResult)));
     }
 
     @Override
