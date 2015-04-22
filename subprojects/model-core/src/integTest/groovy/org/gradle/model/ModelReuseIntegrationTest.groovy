@@ -29,7 +29,7 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute {
             requireIsolatedDaemons()
             withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
-            withDaemonIdleTimeoutSecs(5)
+            withDaemonIdleTimeoutSecs(10)
         }
         EnableModelDsl.enable(executer)
     }
