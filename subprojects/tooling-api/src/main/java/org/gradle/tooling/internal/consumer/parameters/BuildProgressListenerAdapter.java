@@ -29,7 +29,7 @@ import java.util.*;
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
+class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final Map<Object, TestOperationDescriptor> testDescriptorCache = new HashMap<Object, TestOperationDescriptor>();
@@ -40,41 +40,41 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     @Override
     public List<String> getSubscribedOperations() {
-        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_EXECUTION);
+        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(InternalBuildProgressListener.TEST_EXECUTION);
     }
 
     @Override
     public void onEvent(final Object event) {
-        if (event instanceof TestProgressEventVersion1) {
-            broadcastTestProgressEvent((TestProgressEventVersion1) event);
+        if (event instanceof InternalTestProgressEvent) {
+            broadcastTestProgressEvent((InternalTestProgressEvent) event);
         }
     }
 
-    private void broadcastTestProgressEvent(TestProgressEventVersion1 event) {
+    private void broadcastTestProgressEvent(InternalTestProgressEvent event) {
         TestProgressEvent testProgressEvent = toTestProgressEvent(event);
         if (testProgressEvent != null) {
             testProgressListeners.getSource().statusChanged(testProgressEvent);
         }
     }
 
-    private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        if (event instanceof TestStartedProgressEventVersion1) {
-            return testStartedEvent((TestStartedProgressEventVersion1) event);
-        } else if (event instanceof TestFinishedProgressEventVersion1) {
-            return testFinishedEvent((TestFinishedProgressEventVersion1) event);
+    private synchronized TestProgressEvent toTestProgressEvent(final InternalTestProgressEvent event) {
+        if (event instanceof InternalTestStartedProgressEvent) {
+            return testStartedEvent((InternalTestStartedProgressEvent) event);
+        } else if (event instanceof InternalTestFinishedProgressEvent) {
+            return testFinishedEvent((InternalTestFinishedProgressEvent) event);
         } else {
             return null;
         }
     }
 
-    private TestStartEvent testStartedEvent(TestStartedProgressEventVersion1 event) {
+    private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {
         long eventTime = event.getEventTime();
         String displayName = event.getDisplayName();
         TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
         return new DefaultTestStartEvent(eventTime, displayName, testDescriptor);
     }
 
-    private TestFinishEvent testFinishedEvent(final TestFinishedProgressEventVersion1 event) {
+    private TestFinishEvent testFinishedEvent(final InternalTestFinishedProgressEvent event) {
         long eventTime = event.getEventTime();
         String displayName = event.getDisplayName();
         TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
@@ -82,7 +82,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return new DefaultTestFinishEvent(eventTime, displayName, testDescriptor, result);
     }
 
-    private TestOperationDescriptor addTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+    private TestOperationDescriptor addTestDescriptor(InternalTestDescriptor testDescriptor) {
         TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
         if (cachedTestDescriptor != null) {
             throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
@@ -93,7 +93,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return newTestDescriptor;
     }
 
-    private TestOperationDescriptor removeTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+    private TestOperationDescriptor removeTestDescriptor(InternalTestDescriptor testDescriptor) {
         TestOperationDescriptor cachedTestDescriptor = this.testDescriptorCache.remove(testDescriptor.getId());
         if (cachedTestDescriptor == null) {
             throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
@@ -101,9 +101,9 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return cachedTestDescriptor;
     }
 
-    private static TestOperationDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestOperationDescriptor parent) {
-        if (testDescriptor instanceof JvmTestDescriptorVersion1) {
-            final JvmTestDescriptorVersion1 jvmTestDescriptor = (JvmTestDescriptorVersion1) testDescriptor;
+    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor testDescriptor, final TestOperationDescriptor parent) {
+        if (testDescriptor instanceof InternalJvmTestDescriptor) {
+            final InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) testDescriptor;
             return new JvmTestOperationDescriptor() {
                 @Override
                 public String getName() {
@@ -170,53 +170,53 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private static JvmTestKind toJvmTestKind(JvmTestDescriptorVersion1 jvmTestDescriptor) {
+    private static JvmTestKind toJvmTestKind(InternalJvmTestDescriptor jvmTestDescriptor) {
         String jvmTestKind = jvmTestDescriptor.getTestKind();
-        if (JvmTestDescriptorVersion1.KIND_SUITE.equals(jvmTestKind)) {
+        if (InternalJvmTestDescriptor.KIND_SUITE.equals(jvmTestKind)) {
             return JvmTestKind.SUITE;
-        } else if (JvmTestDescriptorVersion1.KIND_ATOMIC.equals(jvmTestKind)) {
+        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(jvmTestKind)) {
             return JvmTestKind.ATOMIC;
         } else {
             return JvmTestKind.UNKNOWN;
         }
     }
 
-    private TestOperationResult toTestResult(final TestResultVersion1 result) {
-        if (result instanceof TestSuccessResultVersion1) {
+    private TestOperationResult toTestResult(final InternalTestResult result) {
+        if (result instanceof InternalTestSuccessResult) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof TestSkippedResultVersion1) {
+        } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof TestFailureResultVersion1) {
+        } else if (result instanceof InternalTestFailureResult) {
             return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result));
         } else {
             return null;
         }
     }
 
-    private static List<Failure> toFailures(TestResultVersion1 testResult) {
+    private static List<Failure> toFailures(InternalTestResult testResult) {
         List<Failure> failures = new ArrayList<Failure>();
-        for (FailureVersion1 origFailure : testResult.getFailures()) {
+        for (InternalFailure origFailure : testResult.getFailures()) {
             failures.add(toFailure(origFailure));
         }
         return failures;
     }
 
-    private static Failure toFailure(FailureVersion1 origFailure) {
+    private static Failure toFailure(InternalFailure origFailure) {
         return origFailure == null ? null : new DefaultFailure(
                 origFailure.getMessage(),
                 origFailure.getDescription(),
                 toFailure(origFailure.getCauses()));
     }
 
-    private static List<Failure> toFailure(List<? extends FailureVersion1> causes) {
+    private static List<Failure> toFailure(List<? extends InternalFailure> causes) {
         List<Failure> result = new ArrayList<Failure>();
-        for (FailureVersion1 cause : causes) {
+        for (InternalFailure cause : causes) {
             result.add(toFailure(cause));
         }
         return result;
     }
 
-    private TestOperationDescriptor getParentTestDescriptor(TestDescriptorVersion1 testDescriptor) {
+    private TestOperationDescriptor getParentTestDescriptor(InternalTestDescriptor testDescriptor) {
         Object parentId = testDescriptor.getParentId();
         if (parentId == null) {
             return null;
@@ -230,10 +230,10 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private static String toString(TestDescriptorVersion1 testDescriptor) {
-        if (testDescriptor instanceof JvmTestDescriptorVersion1) {
+    private static String toString(InternalTestDescriptor testDescriptor) {
+        if (testDescriptor instanceof InternalJvmTestDescriptor) {
             return String.format("TestOperationDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
-                    testDescriptor.getId(), testDescriptor.getName(), ((JvmTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());
+                    testDescriptor.getId(), testDescriptor.getName(), ((InternalJvmTestDescriptor) testDescriptor).getClassName(), testDescriptor.getParentId());
         } else {
             return String.format("TestOperationDescriptor[id(%s), name(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getParentId());
         }

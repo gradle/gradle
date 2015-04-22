@@ -16,15 +16,23 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.TestSkippedResultVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 
-public class InternalTestSkippedResult extends InternalTestResult implements TestSkippedResultVersion1 {
-    public InternalTestSkippedResult(long startTime, long endTime) {
-        super(startTime, endTime);
+public class DefaultTestFinishedProgressEvent extends AbstractTestProgressEvent implements InternalTestFinishedProgressEvent {
+    private final AbstractTestResult result;
+
+    public DefaultTestFinishedProgressEvent(long eventTime, DefaultTestDescriptor descriptor, AbstractTestResult result) {
+        super(eventTime, descriptor);
+        this.result = result;
     }
 
     @Override
-    public String getOutcomeDescription() {
-        return "skipped";
+    public AbstractTestResult getResult() {
+        return result;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
     }
 }

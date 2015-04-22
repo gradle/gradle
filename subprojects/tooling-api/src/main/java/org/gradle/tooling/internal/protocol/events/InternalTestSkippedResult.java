@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
+ * Represents a test that was not run.
+ *
  * @since 2.4
  */
-public interface TestProgressEventVersion1 extends InternalProtocolInterface {
-    /**
-     * Returns the time when the event happened.
-     *
-     * @return The event time
-     */
-    long getEventTime();
-
-    /**
-     * Returns a human consumable display name for this event.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the description of the test for which progress is reported.
-     *
-     * @return The test description
-     */
-    TestDescriptorVersion1 getDescriptor();
+public interface InternalTestSkippedResult extends InternalTestResult {
 }

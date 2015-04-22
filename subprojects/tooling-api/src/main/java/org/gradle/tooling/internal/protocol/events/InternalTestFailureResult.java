@@ -17,7 +17,9 @@
 package org.gradle.tooling.internal.protocol.events;
 
 /**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
  * @since 2.4
  */
-public interface TestStartedProgressEventVersion1 extends TestProgressEventVersion1 {
+public interface InternalTestFailureResult extends InternalTestResult {
 }

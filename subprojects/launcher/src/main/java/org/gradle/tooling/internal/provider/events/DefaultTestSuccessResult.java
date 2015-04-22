@@ -16,23 +16,15 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.TestFinishedProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
-public class InternalTestFinishedProgressEvent extends InternalTestProgressEvent implements TestFinishedProgressEventVersion1 {
-    private final InternalTestResult result;
-
-    public InternalTestFinishedProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        super(eventTime, descriptor);
-        this.result = result;
+public class DefaultTestSuccessResult extends AbstractTestResult implements InternalTestSuccessResult {
+    public DefaultTestSuccessResult(long startTime, long endTime) {
+        super(startTime, endTime);
     }
 
     @Override
-    public InternalTestResult getResult() {
-        return result;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
+    public String getOutcomeDescription() {
+        return "succeeded";
     }
 }

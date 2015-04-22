@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.JvmTestDescriptorVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 
 import java.io.Serializable;
 
-public class InternalTestDescriptor implements Serializable, JvmTestDescriptorVersion1 {
+public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor {
 
     private final Object id;
     private final String name;
@@ -31,7 +31,7 @@ public class InternalTestDescriptor implements Serializable, JvmTestDescriptorVe
     private final String methodName;
     private final Object parentId;
 
-    public InternalTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId) {
+    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;

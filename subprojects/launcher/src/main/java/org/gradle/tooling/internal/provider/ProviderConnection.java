@@ -37,7 +37,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.events.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -91,8 +91,8 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        BuildProgressListenerVersion1 buildProgressListener = providerParameters.getBuildProgressListener(null);
-        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(BuildProgressListenerVersion1.TEST_EXECUTION);
+        InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
+        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
         BuildEventConsumer buildEventConsumer = listenToTestProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress);
         return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
@@ -178,15 +178,15 @@ public class ProviderConnection {
 
     private static final class BuildProgressListenerInvokingBuildEventConsumer implements BuildEventConsumer {
 
-        private final BuildProgressListenerVersion1 buildProgressListener;
+        private final InternalBuildProgressListener buildProgressListener;
 
-        private BuildProgressListenerInvokingBuildEventConsumer(BuildProgressListenerVersion1 buildProgressListener) {
+        private BuildProgressListenerInvokingBuildEventConsumer(InternalBuildProgressListener buildProgressListener) {
             this.buildProgressListener = buildProgressListener;
         }
 
         @Override
         public void dispatch(Object event) {
-            if (event instanceof TestProgressEventVersion1) {
+            if (event instanceof InternalTestProgressEvent) {
                 this.buildProgressListener.onEvent(event);
             }
         }

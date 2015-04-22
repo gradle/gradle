@@ -16,25 +16,33 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.TestFailureResultVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
-public class InternalTestFailureResult extends InternalTestResult implements TestFailureResultVersion1 {
-    private final List<InternalFailure> failures;
+public abstract class AbstractTestResult implements Serializable, InternalTestResult {
+    private final long startTime;
+    private final long endTime;
 
-    public InternalTestFailureResult(long startTime, long endTime, List<InternalFailure> failures) {
-        super(startTime, endTime);
-        this.failures = failures;
+    public AbstractTestResult(long startTime, long endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
-    @Override
-    public String getOutcomeDescription() {
-        return "failed";
+    public abstract String getOutcomeDescription();
+
+    public long getStartTime() {
+        return startTime;
     }
 
-    @Override
-    public List<InternalFailure> getFailures() {
-        return failures;
+    public long getEndTime() {
+        return endTime;
     }
+
+    public List<DefaultFailure> getFailures() {
+        return Collections.emptyList();
+    }
+
 }

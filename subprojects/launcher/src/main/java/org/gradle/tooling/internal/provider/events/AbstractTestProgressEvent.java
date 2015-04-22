@@ -15,15 +15,15 @@
  */
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 
 import java.io.Serializable;
 
-public abstract class InternalTestProgressEvent implements Serializable, TestProgressEventVersion1 {
+public abstract class AbstractTestProgressEvent implements Serializable, InternalTestProgressEvent {
     private final long eventTime;
-    private final InternalTestDescriptor descriptor;
+    private final DefaultTestDescriptor descriptor;
 
-    protected InternalTestProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
+    protected AbstractTestProgressEvent(long eventTime, DefaultTestDescriptor descriptor) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
     }
@@ -32,7 +32,7 @@ public abstract class InternalTestProgressEvent implements Serializable, TestPro
         return eventTime;
     }
 
-    public InternalTestDescriptor getDescriptor() {
+    public DefaultTestDescriptor getDescriptor() {
         return descriptor;
     }
 

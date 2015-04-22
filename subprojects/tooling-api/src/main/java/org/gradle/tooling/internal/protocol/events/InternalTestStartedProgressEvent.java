@@ -17,11 +17,7 @@
 package org.gradle.tooling.internal.protocol.events;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * Represents a test that was not run.
- *
  * @since 2.4
  */
-public interface TestSkippedResultVersion1 extends TestResultVersion1 {
+public interface InternalTestStartedProgressEvent extends InternalTestProgressEvent {
 }
