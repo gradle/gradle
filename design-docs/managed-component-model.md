@@ -70,17 +70,17 @@ This story doesn't dictate any kind of implementation for the actual model node 
 
 Most of this coverage already exists, need to fill in the gaps:
 
-- Build script can:
-    - Create a component using a registered component type.
-    - Configure components:
-        - With given name
-        - With given type
-        - All components
-    - Apply beforeEach/afterEach rules to components.
-- Plugin can do the above.
-- Reasonable error message when:
-    - Attempting to create a component using a type for which there is no implementation.
-    - Attempting to create a component using default type.
+- ~~Build script can:~~
+   - ~~Create a component using a registered component type.~~
+   - ~~Configure components:~~
+       - ~~With given name~~
+       - ~~With given type~~
+       - ~~All components~~
+   - ~~Apply beforeEach/afterEach rules to components.~~
+- ~~Plugin can do the above.~~
+- ~~Reasonable error message when:~~
+   - ~~Attempting to create a component using a type for which there is no implementation.~~
+   - ~~Attempting to create a component using default type.~~
 
 #### Breaking changes
 

@@ -123,6 +123,7 @@ Currently component container can be only accessed using model rules.
 
 - `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`. 
 - `ComponentSpecContainer` now implements `CollectionBuilder<ComponentSpec`.
+- All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
 
 ### Changes in NativeBinariesTestPlugin
 
