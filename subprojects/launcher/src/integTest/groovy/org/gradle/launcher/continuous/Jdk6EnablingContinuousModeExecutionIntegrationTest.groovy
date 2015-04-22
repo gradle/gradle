@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.cli.CommandLineArgumentException
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
