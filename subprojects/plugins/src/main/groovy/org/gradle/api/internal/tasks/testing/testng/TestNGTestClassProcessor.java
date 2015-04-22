@@ -133,6 +133,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
+
+        if (options.getPreserveOrder() != null) {
+            testNg.setPreserveOrder(options.getPreserveOrder());
+        }
+        if (options.getGroupByInstances() != null) {
+            testNg.setGroupByInstances(options.getGroupByInstances());
+        }
+
         testNg.run();
     }
 
