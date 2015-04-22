@@ -16,19 +16,23 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.Failure;
 
 import java.util.List;
 
 /**
  * Describes how an operation finished with failures.
+ *
+ * @since 2.4
  */
+@Incubating
 public interface FailureResult extends OperationResult {
 
     /**
-     * Returns the exceptions that occurred while running the operation, if any.
+     * Returns the failures that occurred while running the operation, if any.
      *
-     * @return the exceptions, empty if the operation failed without any exceptions
+     * @return the failures, empty if the operation failed without any specific cause.
      */
     List<? extends Failure> getFailures();
 

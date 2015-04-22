@@ -16,9 +16,14 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
+
 /**
  * Describes the result of running an operation.
+ *
+ * @since 2.4
  */
+@Incubating
 public interface OperationResult {
 
     /**

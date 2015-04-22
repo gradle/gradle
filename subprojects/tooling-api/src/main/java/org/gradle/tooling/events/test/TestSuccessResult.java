@@ -16,10 +16,14 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.SuccessResult;
 
 /**
  * Describes how a test operation finished successfully.
+ *
+ * @since 2.4
  */
+@Incubating
 public interface TestSuccessResult extends TestOperationResult, SuccessResult {
 }
