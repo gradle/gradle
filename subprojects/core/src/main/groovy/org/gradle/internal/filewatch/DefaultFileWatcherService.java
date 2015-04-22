@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -30,6 +31,13 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
     private final FileWatcherService fileWatcherService;
+
+    private static class NoOpFileWatcherService implements FileWatcherService {
+        @Override
+        public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
+            return CompositeStoppable.NO_OP_STOPPABLE;
+        }
+    }
 
     public DefaultFileWatcherService(ExecutorFactory executorFactory) {
         this(JavaVersion.current(), DefaultFileWatcherService.class.getClassLoader(), executorFactory);
@@ -52,7 +60,8 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
             }
             return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
         } else {
-            throw new RuntimeException("FileWatcherService is only available on Java 7 compatible JVMs");
+            // TODO: Maybe we'll eventually support Java 6
+            return new NoOpFileWatcherService();
         }
     }
 
