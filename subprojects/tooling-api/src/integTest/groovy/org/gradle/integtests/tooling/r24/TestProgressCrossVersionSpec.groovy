@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.r24
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -23,7 +24,12 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.TestFailureResult
+import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.test.TestProgressListener
+import org.gradle.tooling.events.test.TestSkippedResult
+import org.gradle.tooling.events.test.TestSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -701,5 +707,38 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
+    }
+
+    @TargetGradleVersion('>=2.4')
+    @ToolingApiVersion('>=2.4')
+    @NotYetImplemented
+    def "should receive test events from buildSrc"() {
+        buildFile << """task dummy()"""
+        file("buildSrc/build.gradle") << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+        file("buildSrc/src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when:
+        def result = []
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().forTasks('dummy').addTestProgressListener { TestProgressEvent event ->
+                assert event != null
+                result << event
+            }.run()
+        }
+
+        then:
+        !result.empty
     }
 }
