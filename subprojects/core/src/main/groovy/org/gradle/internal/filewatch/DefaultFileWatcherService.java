@@ -17,6 +17,8 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -31,6 +33,7 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
     private final FileWatcherService fileWatcherService;
+    private final static Logger LOG = Logging.getLogger(DefaultFileWatcherService.class);
 
     private static class NoOpFileWatcherService implements FileWatcherService {
         @Override
@@ -55,14 +58,14 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
             Class clazz;
             try {
                 clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.DefaultFileWatcher");
+                return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Cannot find FileWatcherService implementation class", e);
+                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
             }
-            return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
-        } else {
-            // TODO: Maybe we'll eventually support Java 6
-            return new NoOpFileWatcherService();
         }
+        LOG.warn("Using no-op file watcher service.");
+        // TODO: Maybe we'll eventually support Java 6
+        return new NoOpFileWatcherService();
     }
 
     @Override
