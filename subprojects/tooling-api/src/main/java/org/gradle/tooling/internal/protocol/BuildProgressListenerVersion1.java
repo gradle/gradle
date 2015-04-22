@@ -33,7 +33,7 @@ public interface BuildProgressListenerVersion1 {
      * The event types implemented in Gradle 2.4 are:
      *
      * <ul>
-     *     <li>{@link org.gradle.tooling.internal.protocol.TestProgressEventVersion1}</li>
+     *     <li>{@link org.gradle.tooling.internal.protocol.events.TestProgressEventVersion1}</li>
      * </ul>
      *
      * @param event The issued progress event

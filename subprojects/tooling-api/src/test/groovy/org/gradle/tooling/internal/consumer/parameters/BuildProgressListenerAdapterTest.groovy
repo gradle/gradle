@@ -21,6 +21,14 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.internal.protocol.events.JvmTestDescriptorVersion1
+import org.gradle.tooling.internal.protocol.events.TestDescriptorVersion1
+import org.gradle.tooling.internal.protocol.events.TestFailureResultVersion1
+import org.gradle.tooling.internal.protocol.events.TestFinishedProgressEventVersion1
+import org.gradle.tooling.internal.protocol.events.TestProgressEventVersion1
+import org.gradle.tooling.internal.protocol.events.TestSkippedResultVersion1
+import org.gradle.tooling.internal.protocol.events.TestStartedProgressEventVersion1
+import org.gradle.tooling.internal.protocol.events.TestSuccessResultVersion1
 import spock.lang.Specification
 
 class BuildProgressListenerAdapterTest extends Specification {

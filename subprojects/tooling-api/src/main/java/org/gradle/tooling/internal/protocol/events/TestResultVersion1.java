@@ -13,30 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.FailureVersion1;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
+import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestProgressEventVersion1 extends InternalProtocolInterface {
+public interface TestResultVersion1 extends InternalProtocolInterface {
     /**
-     * Returns the time when the event happened.
+     * Returns the time the test execution started.
      *
-     * @return The event time
+     * @return The start time
      */
-    long getEventTime();
+    long getStartTime();
 
     /**
-     * Returns a human consumable display name for this event.
+     * Returns the time the test execution finished.
+     *
+     * @return The finish time
      */
-    String getDisplayName();
+    long getEndTime();
 
     /**
-     * Returns the description of the test for which progress is reported.
+     * Returns the failures that occurred while running the test, if any.
      *
-     * @return The test description
+     * @return The failures that occurred
      */
-    TestDescriptorVersion1 getDescriptor();
+    List<? extends FailureVersion1> getFailures();
+
 }

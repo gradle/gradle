@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.TestProgressEventVersion1;
 
 import java.io.Serializable;
 

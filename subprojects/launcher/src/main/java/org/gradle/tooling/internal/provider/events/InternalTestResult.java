@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
+import org.gradle.tooling.internal.protocol.events.TestResultVersion1;
 
 import java.io.Serializable;
 import java.util.Collections;

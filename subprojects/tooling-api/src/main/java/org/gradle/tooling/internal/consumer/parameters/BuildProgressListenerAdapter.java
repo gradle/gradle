@@ -21,6 +21,7 @@ import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.events.*;
 
 import java.util.*;
 

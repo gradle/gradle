@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.TestFinishedProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.TestFinishedProgressEventVersion1;
 
 public class InternalTestFinishedProgressEvent extends InternalTestProgressEvent implements TestFinishedProgressEventVersion1 {
     private final InternalTestResult result;

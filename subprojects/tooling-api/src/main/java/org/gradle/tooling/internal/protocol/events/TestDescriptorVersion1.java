@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.

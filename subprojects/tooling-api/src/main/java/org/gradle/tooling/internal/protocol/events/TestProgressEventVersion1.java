@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.protocol.events;
 
-package org.gradle.tooling.internal.protocol;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestFinishedProgressEventVersion1 extends TestProgressEventVersion1 {
+public interface TestProgressEventVersion1 extends InternalProtocolInterface {
     /**
-     * Returns the result of running the test.
+     * Returns the time when the event happened.
      *
-     * @return The test result
+     * @return The event time
      */
-    TestResultVersion1 getResult();
+    long getEventTime();
+
+    /**
+     * Returns a human consumable display name for this event.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the description of the test for which progress is reported.
+     *
+     * @return The test description
+     */
+    TestDescriptorVersion1 getDescriptor();
 }

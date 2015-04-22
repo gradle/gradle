@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * @since 2.4
- */
-public interface TestStartedProgressEventVersion1 extends TestProgressEventVersion1 {
+import org.gradle.tooling.internal.protocol.events.TestSuccessResultVersion1;
+
+public class InternalTestSuccessResult extends InternalTestResult implements TestSuccessResultVersion1 {
+    public InternalTestSuccessResult(long startTime, long endTime) {
+        super(startTime, endTime);
+    }
+
+    @Override
+    public String getOutcomeDescription() {
+        return "succeeded";
+    }
 }

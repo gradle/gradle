@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.4
- */
-public interface TestSuccessResultVersion1 extends TestResultVersion1 {
+import org.gradle.tooling.internal.protocol.events.TestStartedProgressEventVersion1;
+
+public class InternalTestStartedProgressEvent extends InternalTestProgressEvent implements TestStartedProgressEventVersion1 {
+    public InternalTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
+        super(eventTime, descriptor);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return String.format("%s started", getDescriptor().getDisplayName());
+    }
 }

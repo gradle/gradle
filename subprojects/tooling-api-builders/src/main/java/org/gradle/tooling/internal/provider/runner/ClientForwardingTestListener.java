@@ -20,8 +20,8 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.provider.*;
+import org.gradle.tooling.internal.protocol.events.JvmTestDescriptorVersion1;
+import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.TestStartedProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.events.TestSkippedResultVersion1;
 
-public class InternalTestStartedProgressEvent extends InternalTestProgressEvent implements TestStartedProgressEventVersion1 {
-    public InternalTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
-        super(eventTime, descriptor);
+public class InternalTestSkippedResult extends InternalTestResult implements TestSkippedResultVersion1 {
+    public InternalTestSkippedResult(long startTime, long endTime) {
+        super(startTime, endTime);
     }
 
     @Override
-    public String getDisplayName() {
-        return String.format("%s started", getDescriptor().getDisplayName());
+    public String getOutcomeDescription() {
+        return "skipped";
     }
 }

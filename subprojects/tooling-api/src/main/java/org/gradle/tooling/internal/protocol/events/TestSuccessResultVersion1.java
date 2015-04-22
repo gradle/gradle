@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestFailureResultVersion1 extends TestResultVersion1 {
+public interface TestSuccessResultVersion1 extends TestResultVersion1 {
 }
