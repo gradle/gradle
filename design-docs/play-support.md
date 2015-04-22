@@ -600,6 +600,7 @@ def triggered(TriggerDetails) {
     - Client receives ‘cancelled’ exception when cancelled.
     - Cannot use watch mode when requesting a model or running a build action.
 - ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
+- ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
 
 #### Open Issues
 
@@ -611,11 +612,10 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 
 #### Implementation
 
-- Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.
 - Watch project directory (`projectDir`) for changes to trigger re-run
-- Add `InputWatchService` that can be given Files to watch
+- Add `FileWatchService` that can be given Files to watch
 - When files change, mark the file as out of date
-- Re-run trigger polls the watch service for changes at some default rate.  We should allow this to be adjusted (e.g., --watch=1s).
+- Re-run trigger polls the watch service for changes at some default rate ("quiet mode")
 - Ignore build/ .gradle/ etc files.
 
 #### Test Coverage

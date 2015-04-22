@@ -22,6 +22,8 @@ import org.junit.Rule
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     def trigger = file(".gradle/trigger.out")
+    def gradle
+    def srcFile = file("src.file")
 
     def setup() {
         file(".gradle").mkdirs()
@@ -34,6 +36,8 @@ import org.gradle.internal.event.*
 
 def triggerFile = file("${trigger.toURI()}")
 gradle.buildFinished {
+    new URL("${server.uri}").text // wait for test to sync with build
+
     def trigger = null
     try {
         triggerFile.withObjectInputStream { instream ->
@@ -46,20 +50,42 @@ gradle.buildFinished {
         def triggerListener = listenerManager.getBroadcaster(TriggerListener)
         triggerListener.triggered(trigger)
     }
-    new URL("${server.uri}").text // wait for test
 }
 """
     }
 
-    def goingToRebuild() {
+    def validSource() {
+        srcFile.text = "WORKS"
+    }
+    def invalidSource() {
+        srcFile.text = "BROKEN"
+    }
+    def changeSource() {
+        srcFile << "NEWLINE"
+    }
+
+    void startGradle(String task="tasks") {
+        gradle = executer.withTasks(task).start()
+    }
+
+    void waitForStop() {
+        gradle.waitForFinish()
+    }
+
+    def afterBuild(Closure c) {
+        server.waitFor()
+        c.call()
+        server.release()
+    }
+    def triggerRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }
 
-    def goingToStop() {
+    def triggerStop() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "being done"))
     }
 
-    def goingToWait() {
+    def triggerNothing() {
         trigger.bytes = []
     }
 

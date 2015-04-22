@@ -21,59 +21,42 @@ import spock.lang.IgnoreIf
 
 @IgnoreIf({!TestPrecondition.JDK7_OR_LATER})
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
-    def gradle
-    def srcFile = file("src.file")
-
-    void startGradle(String task="tasks") {
-        gradle = executer.withTasks(task).start()
-    }
-
-    private void waitForStop() {
-        gradle.waitForFinish()
-    }
-
-    private void waitForBuildFinished() {
-        server.sync()
-    }
-
-    def afterBuild(Closure c) {
-        server.waitFor()
-        c.call()
-        server.release()
-    }
 
     def "can enable continuous mode"() {
         when:
-        goingToStop()
-        and:
         startGradle()
+        and:
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
         waitForStop()
     }
 
     def "warns about incubating feature"() {
         when:
-        goingToStop()
-        and:
         startGradle()
+        and:
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
         waitForStop()
         gradle.standardOutput.contains("Continuous mode is an incubating feature.")
     }
 
     def "prints useful messages when in continuous mode"() {
         when:
-        goingToRebuild()
-        and:
         startGradle()
+        and:
+        afterBuild {
+            triggerRebuild()
+        }
+        and:
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
-        when:
-        goingToStop()
-        then:
-        waitForBuildFinished()
         waitForStop()
         gradle.standardOutput.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.")
         gradle.standardOutput.contains("REBUILD triggered due to test")
@@ -88,19 +71,20 @@ task fail << {
 }
 """
         when:
-        goingToRebuild()
-        and:
         startGradle("fail")
+        and:
+        afterBuild {
+            triggerRebuild()
+        }
+        and:
+        afterBuild {
+            triggerRebuild()
+        }
+        and:
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
-        when:
-        goingToRebuild()
-        then:
-        waitForBuildFinished()
-        when:
-        goingToStop()
-        then:
-        waitForBuildFinished()
         waitForStop()
         gradle.standardOutput.count("BUILD FAILED") == 3
     }
@@ -111,32 +95,23 @@ task fail << {
 throw new GradleException("config error")
 """
         when:
-        goingToRebuild()
-        and:
         startGradle()
+        and:
+        afterBuild {
+            triggerRebuild()
+        }
+        and:
+        afterBuild {
+            triggerRebuild()
+        }
+        and:
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
-        when:
-        goingToRebuild()
-        then:
-        waitForBuildFinished()
-        when:
-        goingToStop()
-        then:
-        waitForBuildFinished()
         waitForStop()
         gradle.errorOutput.count("config error") == 3
         gradle.standardOutput.count("BUILD FAILED") == 3
-    }
-
-    def validSource() {
-        srcFile.text = "WORKS"
-    }
-    def invalidSource() {
-        srcFile.text = "BROKEN"
-    }
-    def changeSource() {
-        srcFile << "NEWLINE"
     }
 
     def "keeps running when build succeeds, fails and succeeds"() {
@@ -151,23 +126,22 @@ task maybeFail << {
 }
 """
         when:
-        goingToRebuild()
-        and:
         startGradle("maybeFail")
         and:
         afterBuild {
             invalidSource()
+            triggerRebuild()
         }
-        and:
-        goingToRebuild()
         and:
         afterBuild {
             validSource()
+            triggerRebuild()
         }
         and:
-        goingToStop()
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
         waitForStop()
         gradle.standardOutput.count("BUILD SUCCESSFUL") == 2
         gradle.standardOutput.count("BUILD FAILED") == 1
@@ -189,23 +163,22 @@ task succeed {
 }
 """
         when:
-        goingToWait()
-        and:
         startGradle("succeed")
         and:
         afterBuild {
             changeSource()
+            triggerNothing()
         }
-        and:
-        goingToWait()
         and:
         afterBuild {
             changeSource()
+            triggerNothing()
         }
         and:
-        goingToStop()
+        afterBuild {
+            triggerStop()
+        }
         then:
-        waitForBuildFinished()
         waitForStop()
         gradle.standardOutput.count("BUILD SUCCESSFUL") == 3
         outputFile.text.count("did work") == 3
