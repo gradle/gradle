@@ -11,6 +11,11 @@ It should be possible to listen to test execution progress from the Tooling API.
 and is not seen as a project. It should however be easier to implement than the next items.
 - events should be received live, while the build is running, and not as a batch when the build is over
 
+Listening to test events in `buildSrc` requires a way to get access to the `GradleInternal` instance of
+the project generated to compile the build classpath. This `GradleInternal` instance uses its own `ListenerManager`,
+so when the test progress listener is added (in `BuildModelActionRunner`), the listener manager is not the one of
+`buildSrc`.
+
 ### Listening to tests executed from a GradleBuild
 
 A Gradle build may include a `GradleBuild` task which will itself execute tests. It should be possible
