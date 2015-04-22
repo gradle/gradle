@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -70,7 +71,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             targetPlatform "unknown"
-            targetPlatform NativePlatforms.defaultPlatformName
+            targetPlatform "${NativePlatformsTestFixture.defaultPlatformName}"
         }
     }
 }
@@ -79,11 +80,11 @@ model {
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":${NativePlatforms.defaultPlatformName}MainExecutable"
+        executedAndNotSkipped ":${NativePlatformsTestFixture.defaultPlatformName}MainExecutable"
         notExecuted ":unknownMainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/${NativePlatforms.defaultPlatformName}/main").assertExists()
+        executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
         executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
     }
 

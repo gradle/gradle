@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -42,6 +43,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def platforms = Mock(PlatformResolvers)
+    def nativePlatforms = Stub(NativePlatforms)
     def platform = createStub(NativePlatformInternal, "platform1")
 
     def buildType = createStub(BuildType, "buildType1")
@@ -55,7 +57,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         component.targetPlatform("platform1")
 
         when:
-        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, [buildType], [flavor])
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, nativePlatforms, [buildType], [flavor])
         factory.execute(component)
 
         then:
@@ -70,7 +72,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
+                platforms, nativePlatforms, [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
         component.targetPlatform("platform1")
         component.targetBuildTypes("buildType1")
         component.targetFlavors("flavor1")
@@ -92,7 +94,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType], [flavor])
+                platforms, nativePlatforms, [buildType], [flavor])
         factory.execute(component)
 
 
@@ -122,7 +124,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType, buildType2], [flavor])
+                platforms, nativePlatforms, [buildType, buildType2], [flavor])
         factory.execute(component)
 
         then:
@@ -147,7 +149,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         final Flavor flavor2 = createStub(Flavor, "flavor2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType], [flavor, flavor2])
+                platforms, nativePlatforms, [buildType], [flavor, flavor2])
         factory.execute(component)
 
         then:

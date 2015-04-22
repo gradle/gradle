@@ -47,6 +47,7 @@ import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -96,7 +97,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms.withType(NativePlatform.class), buildTypes, flavors);
+            NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
+            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
             return new DefaultRepositories(instantiator, fileResolver, initializer);
         }
 
@@ -116,8 +118,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void registerNativePlatformResolver(PlatformResolvers resolvers) {
-            resolvers.register(new NativePlatformResolver());
+        public void registerNativePlatformResolver(PlatformResolvers resolvers, ServiceRegistry serviceRegistry) {
+            resolvers.register(serviceRegistry.get(NativePlatformResolver.class));
         }
 
         @Defaults
@@ -143,13 +145,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
+            NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
             Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
             Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
             @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction);
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver, taskFactory);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, nativePlatforms, buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);

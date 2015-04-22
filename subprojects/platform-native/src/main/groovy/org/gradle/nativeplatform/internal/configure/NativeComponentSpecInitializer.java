@@ -29,10 +29,10 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -40,6 +40,7 @@ import java.util.*;
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final NativeToolChainRegistryInternal toolChainRegistry;
+    private final NativePlatforms nativePlatforms;
     private final PlatformResolvers platforms;
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
@@ -47,10 +48,11 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
     public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, NativeToolChainRegistryInternal toolChainRegistry,
-                                          PlatformResolvers platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                          PlatformResolvers platforms, NativePlatforms nativePlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;
+        this.nativePlatforms = nativePlatforms;
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
         this.platforms = platforms;
@@ -73,7 +75,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     private List<NativePlatform> resolvePlatforms(TargetedNativeComponentInternal targetedComponent) {
         List<PlatformRequirement> targetPlatforms = targetedComponent.getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
-            PlatformRequirement requirement = DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
+            PlatformRequirement requirement = DefaultPlatformRequirement.create(nativePlatforms.getDefaultPlatformName());
             targetPlatforms = Collections.singletonList(requirement);
         }
         return CollectionUtils.collect(targetPlatforms, new Transformer<NativePlatform, PlatformRequirement>() {

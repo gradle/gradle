@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -205,6 +206,6 @@ model {
         fails "releaseMainExecutable"
 
         then:
-        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatforms.defaultPlatformName}', buildType: 'release']")
+        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")
     }
 }

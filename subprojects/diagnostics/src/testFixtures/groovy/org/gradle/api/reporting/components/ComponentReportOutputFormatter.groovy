@@ -15,11 +15,12 @@
  */
 
 package org.gradle.api.reporting.components
+
 import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain
@@ -36,7 +37,7 @@ class ComponentReportOutputFormatter implements Transformer<String, String> {
     String transform(String original) {
          return original
                 .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
-                .replace("platform: current", "platform: " + NativePlatforms.defaultPlatformName)
+                .replace("platform: current", "platform: " + NativePlatformsTestFixture.defaultPlatformName)
                 .replace("\n", SystemProperties.instance.lineSeparator)
                 .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
                 .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
