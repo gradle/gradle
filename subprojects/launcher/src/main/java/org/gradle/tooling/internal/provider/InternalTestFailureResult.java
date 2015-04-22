@@ -16,23 +16,25 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.internal.protocol.TestFinishedProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.TestFailureResultVersion1;
 
-public class InternalTestFinishedProgressEvent extends InternalTestProgressEvent implements TestFinishedProgressEventVersion1 {
-    private final InternalTestResult result;
+import java.util.List;
 
-    public InternalTestFinishedProgressEvent(long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        super(eventTime, descriptor);
-        this.result = result;
+public class InternalTestFailureResult extends InternalTestResult implements TestFailureResultVersion1 {
+    private final List<InternalFailure> failures;
+
+    public InternalTestFailureResult(long startTime, long endTime, List<InternalFailure> failures) {
+        super(startTime, endTime);
+        this.failures = failures;
     }
 
     @Override
-    public InternalTestResult getResult() {
-        return result;
+    public String getOutcomeDescription() {
+        return "failed";
     }
 
     @Override
-    public String getDisplayName() {
-        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
+    public List<InternalFailure> getFailures() {
+        return failures;
     }
 }

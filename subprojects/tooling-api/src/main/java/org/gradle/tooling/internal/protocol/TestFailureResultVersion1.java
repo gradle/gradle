@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,10 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import java.util.List;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestResultVersion1 extends InternalProtocolInterface {
-    /**
-     * Returns the time the test execution started.
-     *
-     * @return The start time
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time the test execution finished.
-     *
-     * @return The finish time
-     */
-    long getEndTime();
-
-    /**
-     * Returns the failures that occurred while running the test, if any.
-     *
-     * @return The failures that occurred
-     */
-    List<? extends FailureVersion1> getFailures();
-
+public interface TestFailureResultVersion1 extends TestResultVersion1 {
 }

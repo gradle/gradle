@@ -245,10 +245,9 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestSkippedResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.resultType >> TestResultVersion1.RESULT_SKIPPED
 
         def skippedEvent = Mock(TestFinishedProgressEventVersion1)
         _ * skippedEvent.getEventTime() >> 999
@@ -288,10 +287,9 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestSuccessResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getResultType() >> TestResultVersion1.RESULT_SUCCESSFUL
 
         def succeededEvent = Mock(TestFinishedProgressEventVersion1)
         _ * succeededEvent.getEventTime() >> 999
@@ -331,10 +329,9 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestFailureResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.resultType >> TestResultVersion1.RESULT_FAILED
         _ * testResult.getFailures() >> [Stub(FailureVersion1)]
 
         def failedEvent = Mock(TestFinishedProgressEventVersion1)
@@ -408,10 +405,9 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestSkippedResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.resultType >> TestResultVersion1.RESULT_SKIPPED
 
         def skippedEvent = Mock(TestFinishedProgressEventVersion1)
         _ * skippedEvent.getEventTime() >> 999
@@ -453,10 +449,9 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestSuccessResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.resultType >> TestResultVersion1.RESULT_SUCCESSFUL
 
         def succeededEvent = Mock(TestFinishedProgressEventVersion1)
         _ * succeededEvent.getEventTime() >> 999
@@ -498,11 +493,10 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> testDescriptor
 
-        def testResult = Mock(TestResultVersion1)
+        def testResult = Mock(TestFailureResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
         _ * testResult.getFailures() >> [Stub(FailureVersion1)]
-        _ * testResult.resultType >> TestResultVersion1.RESULT_FAILED
 
         def failedEvent = Mock(TestFinishedProgressEventVersion1)
         _ * failedEvent.getEventTime() >> 999

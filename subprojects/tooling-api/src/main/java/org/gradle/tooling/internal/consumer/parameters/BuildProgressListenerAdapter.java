@@ -181,11 +181,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private TestOperationResult toTestResult(final TestResultVersion1 result) {
-        if (result.getResultType().equals(TestResultVersion1.RESULT_SUCCESSFUL)) {
+        if (result instanceof TestSuccessResultVersion1) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result.getResultType().equals(TestResultVersion1.RESULT_SKIPPED)) {
+        } else if (result instanceof TestSkippedResultVersion1) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
-        } else if (result.getResultType().equals(TestResultVersion1.RESULT_FAILED)) {
+        } else if (result instanceof TestFailureResultVersion1) {
             return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result));
         } else {
             return null;

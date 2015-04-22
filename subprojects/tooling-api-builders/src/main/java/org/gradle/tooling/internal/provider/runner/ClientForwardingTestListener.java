@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.JvmTestDescriptorVersion1;
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
 import org.gradle.tooling.internal.provider.*;
 
 import java.util.ArrayList;
@@ -83,18 +82,14 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     private static InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestResult(toResultType(result), result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
-    }
-
-    private static String toResultType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return TestResultVersion1.RESULT_SUCCESSFUL;
+                return new InternalTestSuccessResult(result.getStartTime(), result.getEndTime());
             case SKIPPED:
-                return TestResultVersion1.RESULT_SKIPPED;
+                return new InternalTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return TestResultVersion1.RESULT_FAILED;
+                return new InternalTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

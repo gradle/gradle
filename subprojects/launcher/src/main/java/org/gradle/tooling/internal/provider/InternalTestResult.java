@@ -22,24 +22,16 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class InternalTestResult implements Serializable, TestResultVersion1 {
-
-    private final String result;
+public abstract class InternalTestResult implements Serializable, TestResultVersion1 {
     private final long startTime;
     private final long endTime;
-    private final List<InternalFailure> failures;
 
-    public InternalTestResult(String result, long startTime, long endTime, List<InternalFailure> failures) {
-        this.result = result;
+    public InternalTestResult(long startTime, long endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
-        this.failures = failures == null ? Collections.<InternalFailure>emptyList() : failures;
     }
 
-    @Override
-    public String getResultType() {
-        return result;
-    }
+    public abstract String getOutcomeDescription();
 
     public long getStartTime() {
         return startTime;
@@ -50,7 +42,7 @@ public class InternalTestResult implements Serializable, TestResultVersion1 {
     }
 
     public List<InternalFailure> getFailures() {
-        return failures;
+        return Collections.emptyList();
     }
 
 }
