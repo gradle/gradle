@@ -16,10 +16,14 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.SkippedResult;
 
 /**
  * Describes how a test operation was skipped.
+ *
+ * @since 2.4
  */
+@Incubating
 public interface TestSkippedResult extends TestOperationResult, SkippedResult {
 }

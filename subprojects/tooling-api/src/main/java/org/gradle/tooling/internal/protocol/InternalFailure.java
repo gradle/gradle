@@ -19,32 +19,30 @@ import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.4
  */
-public interface BuildProgressListenerVersion1 {
+public interface InternalFailure {
 
     /**
-     * The constant for the test execution operations.
+     * The message of the failure, if any.
+     *
+     * @return the failure message, can be null
      */
-    String TEST_EXECUTION = "TEST_EXECUTION";
+    String getMessage();
 
     /**
-     * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
+     * The description of the failure, if any.
      *
-     * The event types implemented in Gradle 2.4 are:
-     *
-     * <ul>
-     *     <li>{@link org.gradle.tooling.internal.protocol.TestProgressEventVersion1}</li>
-     * </ul>
-     *
-     * @param event The issued progress event
+     * @return the failure description, can be null
      */
-    void onEvent(Object event);
+    String getDescription();
 
     /**
-     * Returns the type of operations that the listener wants to subscribe to.
+     * The cause of the failure, if any, which is again a failure.
      *
-     * @return the type of operations to be notified about
+     * @return the cause of the failure, can be null
      */
-    List<String> getSubscribedOperations();
+    List<? extends InternalFailure> getCauses();
 
 }

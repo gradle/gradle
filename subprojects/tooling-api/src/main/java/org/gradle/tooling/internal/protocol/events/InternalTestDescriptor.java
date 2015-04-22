@@ -13,44 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface JvmTestDescriptorVersion1 extends TestDescriptorVersion1 {
-
-    String KIND_SUITE = "SUITE";
-    String KIND_ATOMIC = "ATOMIC";
+public interface InternalTestDescriptor extends InternalProtocolInterface {
 
     /**
-     * Returns the kind of test this is. See the constants on this interface for the supported kinds.
+     * Returns the id that uniquely identifies the test.
      *
-     * @return The test kind (test suite, atomic test, etc.).
+     * @return The unique id of the test, never null
      */
-    String getTestKind();
+    Object getId();
 
     /**
-     * Returns the name of the test suite, if any.
+     * Returns the name of the test.
      *
-     * @return The name of the test suite, can be null.
+     * @return The name of the test, never null
      */
-    String getSuiteName();
+    String getName();
 
     /**
-     * Returns the name of the test class, if any.
-     *
-     * @return The name of the test class, can be null.
+     * Returns a human consumable display name for the test.
      */
-    String getClassName();
+    String getDisplayName();
 
     /**
-     * Returns the name of the test method, if any.
+     * Returns the id of the parent of this test, if any.
      *
-     * @return The name of the test method, can be null.
+     * @return The id of the parent of this test, can be null
      */
-    String getMethodName();
+    Object getParentId();
 
 }

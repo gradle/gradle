@@ -14,39 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
+import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestDescriptorVersion1 extends InternalProtocolInterface {
-
+public interface InternalTestResult extends InternalProtocolInterface {
     /**
-     * Returns the id that uniquely identifies the test.
+     * Returns the time the test execution started.
      *
-     * @return The unique id of the test, never null
+     * @return The start time
      */
-    Object getId();
+    long getStartTime();
 
     /**
-     * Returns the name of the test.
+     * Returns the time the test execution finished.
      *
-     * @return The name of the test, never null
+     * @return The finish time
      */
-    String getName();
+    long getEndTime();
 
     /**
-     * Returns a human consumable display name for the test.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the id of the parent of this test, if any.
+     * Returns the failures that occurred while running the test, if any.
      *
-     * @return The id of the parent of this test, can be null
+     * @return The failures that occurred
      */
-    Object getParentId();
+    List<? extends InternalFailure> getFailures();
 
 }

@@ -13,48 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling.internal.protocol;
-
-import java.util.List;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestResultVersion1 extends InternalProtocolInterface {
+public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
 
-    String RESULT_SUCCESSFUL = "TEST-SUCCESSFUL";
-    String RESULT_FAILED = "TEST-FAILED";
-    String RESULT_SKIPPED = "TEST-SKIPPED";
-
-    /**
-     * Returns the result type.
-     *
-     * @return The test result ype.
-     */
-    String getResultType();
+    String KIND_SUITE = "SUITE";
+    String KIND_ATOMIC = "ATOMIC";
 
     /**
-     * Returns the time the test execution started.
+     * Returns the kind of test this is. See the constants on this interface for the supported kinds.
      *
-     * @return The start time
+     * @return The test kind (test suite, atomic test, etc.).
      */
-    long getStartTime();
+    String getTestKind();
 
     /**
-     * Returns the time the test execution finished.
+     * Returns the name of the test suite, if any.
      *
-     * @return The finish time
+     * @return The name of the test suite, can be null.
      */
-    long getEndTime();
+    String getSuiteName();
 
     /**
-     * Returns the failures that occurred while running the test, if any.
+     * Returns the name of the test class, if any.
      *
-     * @return The failures that occurred
+     * @return The name of the test class, can be null.
      */
-    List<? extends FailureVersion1> getFailures();
+    String getClassName();
+
+    /**
+     * Returns the name of the test method, if any.
+     *
+     * @return The name of the test method, can be null.
+     */
+    String getMethodName();
 
 }

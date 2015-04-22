@@ -276,7 +276,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return progressListener;
     }
 
-    public BuildProgressListenerVersion1 getBuildProgressListener() {
+    public InternalBuildProgressListener getBuildProgressListener() {
         return buildProgressListener;
     }
 

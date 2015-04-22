@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.TestResultVersion1;
+import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class InternalTestResult implements Serializable, TestResultVersion1 {
-
-    private final String result;
+public abstract class AbstractTestResult implements Serializable, InternalTestResult {
     private final long startTime;
     private final long endTime;
-    private final List<InternalFailure> failures;
 
-    public InternalTestResult(String result, long startTime, long endTime, List<InternalFailure> failures) {
-        this.result = result;
+    public AbstractTestResult(long startTime, long endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
-        this.failures = failures == null ? Collections.<InternalFailure>emptyList() : failures;
     }
 
-    @Override
-    public String getResultType() {
-        return result;
-    }
+    public abstract String getOutcomeDescription();
 
     public long getStartTime() {
         return startTime;
@@ -49,8 +41,8 @@ public class InternalTestResult implements Serializable, TestResultVersion1 {
         return endTime;
     }
 
-    public List<InternalFailure> getFailures() {
-        return failures;
+    public List<DefaultFailure> getFailures() {
+        return Collections.emptyList();
     }
 
 }

@@ -26,23 +26,6 @@ import org.gradle.tooling.events.ProgressEvent;
  */
 @Incubating
 public interface TestProgressEvent extends ProgressEvent {
-
-    /**
-     * Returns the time this event was triggered.
-     *
-     * @return The event time, in milliseconds since the epoch.
-     */
-    @Override
-    long getEventTime();
-
-    /**
-     * Returns a human consumable short description of the event.
-     *
-     * @return The short description of the event.
-     */
-    @Override
-    String getDisplayName();
-
     /**
      * Returns the description of the underlying test operation for which progress is reported. For JVM-based tests,
      * the descriptor is of sub-type {@code org.gradle.tooling.events.test.JvmTestOperationDescriptor}.

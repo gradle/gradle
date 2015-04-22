@@ -16,10 +16,14 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationResult;
 
 /**
  * Describes the result of running a test operation.
+ *
+ * @since 2.4
  */
+@Incubating
 public interface TestOperationResult extends OperationResult {
 }

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.FailureVersion1;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -23,13 +23,13 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
-public class InternalFailure implements Serializable, FailureVersion1 {
+public class DefaultFailure implements Serializable, InternalFailure {
 
     private final String message;
     private final String description;
-    private final InternalFailure cause;
+    private final DefaultFailure cause;
 
-    public InternalFailure(String message, String description, InternalFailure cause) {
+    public DefaultFailure(String message, String description, DefaultFailure cause) {
         this.message = message;
         this.description = description;
         this.cause = cause;
@@ -44,17 +44,17 @@ public class InternalFailure implements Serializable, FailureVersion1 {
     }
 
     @Override
-    public List<? extends FailureVersion1> getCauses() {
-        return cause == null ? Collections.<FailureVersion1>emptyList() : Collections.singletonList(cause);
+    public List<? extends InternalFailure> getCauses() {
+        return cause == null ? Collections.<InternalFailure>emptyList() : Collections.singletonList(cause);
     }
 
-    public static InternalFailure fromThrowable(Throwable t) {
+    public static DefaultFailure fromThrowable(Throwable t) {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
         Throwable cause = t.getCause();
-        InternalFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new InternalFailure(t.getMessage(), out.toString(), causeFailure);
+        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
+        return new DefaultFailure(t.getMessage(), out.toString(), causeFailure);
     }
 
 }

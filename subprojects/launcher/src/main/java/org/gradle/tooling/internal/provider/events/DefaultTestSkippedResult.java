@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.4
- */
-public interface TestFinishedProgressEventVersion1 extends TestProgressEventVersion1 {
-    /**
-     * Returns the result of running the test.
-     *
-     * @return The test result
-     */
-    TestResultVersion1 getResult();
+import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
+
+public class DefaultTestSkippedResult extends AbstractTestResult implements InternalTestSkippedResult {
+    public DefaultTestSkippedResult(long startTime, long endTime) {
+        super(startTime, endTime);
+    }
+
+    @Override
+    public String getOutcomeDescription() {
+        return "skipped";
+    }
 }

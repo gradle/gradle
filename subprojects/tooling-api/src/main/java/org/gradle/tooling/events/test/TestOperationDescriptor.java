@@ -17,7 +17,6 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -27,30 +26,4 @@ import org.gradle.tooling.events.OperationDescriptor;
  */
 @Incubating
 public interface TestOperationDescriptor extends OperationDescriptor {
-
-    /**
-     * Returns the name of the test operation.
-     *
-     * @return The name of the test operation.
-     */
-    @Override
-    String getName();
-
-    /**
-     * Returns a human consumable display name for the test operation.
-     *
-     * @return The display name of the test operation.
-     */
-    @Override
-    String getDisplayName();
-
-    /**
-     * Returns the parent of the test operation, if any.
-     *
-     * @return The parent of the test operation.
-     */
-    @Override
-    @Nullable
-    OperationDescriptor getParent();
-
 }

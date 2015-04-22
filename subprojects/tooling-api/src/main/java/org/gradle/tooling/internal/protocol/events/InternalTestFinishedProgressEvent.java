@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
  * @since 2.4
  */
-public interface TestStartedProgressEventVersion1 extends TestProgressEventVersion1 {
+public interface InternalTestFinishedProgressEvent extends InternalTestProgressEvent {
+    /**
+     * Returns the result of running the test.
+     *
+     * @return The test result
+     */
+    InternalTestResult getResult();
 }

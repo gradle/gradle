@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface TestProgressEventVersion1 extends InternalProtocolInterface {
+public interface InternalTestProgressEvent extends InternalProtocolInterface {
     /**
      * Returns the time when the event happened.
      *
@@ -38,5 +40,5 @@ public interface TestProgressEventVersion1 extends InternalProtocolInterface {
      *
      * @return The test description
      */
-    TestDescriptorVersion1 getDescriptor();
+    InternalTestDescriptor getDescriptor();
 }

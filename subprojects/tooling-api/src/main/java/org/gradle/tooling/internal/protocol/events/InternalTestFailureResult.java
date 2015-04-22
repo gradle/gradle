@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
 
-import java.util.List;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface FailureVersion1 {
-
-    /**
-     * The message of the failure, if any.
-     *
-     * @return the failure message, can be null
-     */
-    String getMessage();
-
-    /**
-     * The description of the failure, if any.
-     *
-     * @return the failure description, can be null
-     */
-    String getDescription();
-
-    /**
-     * The cause of the failure, if any, which is again a failure.
-     *
-     * @return the cause of the failure, can be null
-     */
-    List<? extends FailureVersion1> getCauses();
-
+public interface InternalTestFailureResult extends InternalTestResult {
 }
