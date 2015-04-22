@@ -17,5 +17,10 @@
 package org.gradle.launcher.continuous;
 
 public interface TriggerDetails {
+    enum Type {
+        REBUILD,
+        STOP
+    }
+    Type getType();
     String getReason();
 }

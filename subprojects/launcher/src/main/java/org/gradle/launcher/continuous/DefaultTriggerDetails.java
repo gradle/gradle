@@ -16,12 +16,21 @@
 
 package org.gradle.launcher.continuous;
 
-public class DefaultTriggerDetails implements TriggerDetails {
+import java.io.Serializable;
 
+public class DefaultTriggerDetails implements TriggerDetails, Serializable {
+
+    private final Type type;
     private final String reason;
 
-    public DefaultTriggerDetails(String reason) {
+    public DefaultTriggerDetails(Type type, String reason) {
+        this.type = type;
         this.reason = reason;
+    }
+
+    @Override
+    public Type getType() {
+        return type;
     }
 
     @Override

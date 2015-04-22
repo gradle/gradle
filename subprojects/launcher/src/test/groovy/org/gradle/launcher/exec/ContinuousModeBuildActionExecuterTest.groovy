@@ -20,6 +20,7 @@ import org.gradle.initialization.*
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.launcher.continuous.BlockingTriggerListener
 import org.gradle.launcher.continuous.DefaultTriggerDetails
+import org.gradle.launcher.continuous.TriggerDetails
 import org.gradle.launcher.continuous.TriggerGenerator
 import org.gradle.launcher.continuous.TriggerGeneratorFactory
 import org.gradle.util.Clock
@@ -29,7 +30,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def underlyingExecuter = new UnderlyingExecuter()
     def triggerGenerator = Mock(TriggerGenerator)
     def triggerGeneratorFactory = Stub(TriggerGeneratorFactory)
-    def triggerDetails = new DefaultTriggerDetails("test reason")
+    def triggerDetails = new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test reason")
     def triggerListener = Mock(BlockingTriggerListener)
     def action = Mock(BuildAction)
     def cancellationToken = Stub(BuildCancellationToken)

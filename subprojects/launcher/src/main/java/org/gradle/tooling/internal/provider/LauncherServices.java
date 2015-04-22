@@ -26,8 +26,10 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.continuous.BlockingTriggerListener;
 import org.gradle.launcher.continuous.DefaultTriggerGeneratorFactory;
 import org.gradle.launcher.continuous.TriggerGeneratorFactory;
+import org.gradle.launcher.continuous.TriggerListener;
 import org.gradle.launcher.exec.*;
 
 import java.util.List;
@@ -51,14 +53,14 @@ public class LauncherServices implements PluginServiceRegistry {
         BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, TriggerGeneratorFactory triggerGeneratorFactory, ServiceRegistry services) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
             ListenerManager listenerManager = services.get(ListenerManager.class);
-            ContinuousModeBuildActionExecuter continuousModeBuildActionExecuter =
-                    new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)), triggerGeneratorFactory);
-            listenerManager.addListener(continuousModeBuildActionExecuter);
-            return continuousModeBuildActionExecuter;
+            BlockingTriggerListener listener = new BlockingTriggerListener();
+            listenerManager.addListener(listener);
+            return new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)), triggerGeneratorFactory, listener);
         }
 
-        TriggerGeneratorFactory createTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService) {
-            return new DefaultTriggerGeneratorFactory(executorFactory, fileWatcherService);
+        TriggerGeneratorFactory createTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService, ServiceRegistry services) {
+            ListenerManager listenerManager = services.get(ListenerManager.class);
+            return new DefaultTriggerGeneratorFactory(executorFactory, fileWatcherService, listenerManager.getBroadcaster(TriggerListener.class));
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

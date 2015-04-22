@@ -25,9 +25,10 @@ import spock.lang.Specification
 class DefaultTriggerGeneratorFactoryTest extends Specification {
     def executorFactory = Mock(ExecutorFactory)
     def fileWatcherFactory = Mock(FileWatcherService)
-    def triggerGeneratorFactory = new DefaultTriggerGeneratorFactory(executorFactory, fileWatcherFactory)
+    def triggerListener = Mock(TriggerListener)
+    def triggerGeneratorFactory = new DefaultTriggerGeneratorFactory(executorFactory, fileWatcherFactory, triggerListener)
     def "creates trigger generator"() {
         expect:
-        triggerGeneratorFactory.newInstance(Mock(TriggerListener)) instanceof DefaultTriggerGenerator
+        triggerGeneratorFactory.newInstance() instanceof DefaultTriggerGenerator
     }
 }

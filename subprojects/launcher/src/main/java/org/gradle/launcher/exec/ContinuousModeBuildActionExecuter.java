@@ -27,29 +27,17 @@ import org.gradle.launcher.continuous.TriggerGeneratorFactory;
 import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    // internal use only
-    public final static String RUNAWAY_COUNT_PROPERTY = "org.gradle.watch.runaway.count";
-    public final static String RUNAWAY_TIMEOUT_PROPERTY = "org.gradle.watch.runaway.timeout";
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final TriggerGeneratorFactory triggerGeneratorFactory;
     private final Logger logger;
     private final BlockingTriggerListener triggerListener;
-    private final int maximumBuildCount;
 
-    private int buildCount;
-
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TriggerGeneratorFactory triggerGeneratorFactory) {
-        this(delegate, triggerGeneratorFactory, new BlockingTriggerListener(Integer.valueOf(System.getProperty(RUNAWAY_TIMEOUT_PROPERTY, "0"))));
-    }
-
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TriggerGeneratorFactory triggerGeneratorFactory, BlockingTriggerListener triggerListener) {
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TriggerGeneratorFactory triggerGeneratorFactory, BlockingTriggerListener triggerListener) {
         this.delegate = delegate;
         this.triggerGeneratorFactory = triggerGeneratorFactory;
         this.triggerListener = triggerListener;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
-        this.buildCount = 0;
-        this.maximumBuildCount = Integer.valueOf(System.getProperty(RUNAWAY_COUNT_PROPERTY, "0"));
     }
 
     @Override
@@ -57,7 +45,7 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
         if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
             // TODO: Put this somewhere else?
-            TriggerGenerator generator = triggerGeneratorFactory.newInstance(triggerListener);
+            TriggerGenerator generator = triggerGeneratorFactory.newInstance();
             generator.start();
             try {
                 return executeMultipleBuilds(action, requestContext, actionParameters);
@@ -80,9 +68,14 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
             if (buildNotStopped(requestContext)) {
                 logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
                 TriggerDetails reason = triggerListener.waitForTrigger();
-                logger.lifecycle("Rebuild triggered due to " + reason.getReason());
-                // reset the time the build started so the total time makes sense
-                requestContext.getBuildTimeClock().reset();
+                logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
+                if (reason.getType() == TriggerDetails.Type.REBUILD) {
+                    // reset the time the build started so the total time makes sense
+                    requestContext.getBuildTimeClock().reset();
+                } else {
+                    // stop building
+                    break;
+                }
             }
         }
         logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
@@ -90,7 +83,6 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     }
 
     private Object executeSingleBuild(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        buildCount++;
         return delegate.execute(action, requestContext, actionParameters);
     }
 
@@ -99,14 +91,7 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     }
 
     private boolean buildNotStopped(BuildRequestContext requestContext) {
-        return underRunawayBuildCount() && !requestContext.getCancellationToken().isCancellationRequested();
+        return !requestContext.getCancellationToken().isCancellationRequested();
     }
 
-    private boolean underRunawayBuildCount() {
-        if (maximumBuildCount==0) {
-            return true;
-        }
-        // This should only happen for integ test builds
-        return buildCount < maximumBuildCount;
-    }
 }

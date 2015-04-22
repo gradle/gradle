@@ -22,14 +22,16 @@ import org.gradle.internal.filewatch.FileWatcherService;
 public class DefaultTriggerGeneratorFactory implements TriggerGeneratorFactory {
     private final ExecutorFactory executorFactory;
     private final FileWatcherService fileWatcherService;
+    private final TriggerListener triggerListener;
 
-    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService) {
+    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService, TriggerListener triggerListener) {
         this.executorFactory = executorFactory;
         this.fileWatcherService = fileWatcherService;
+        this.triggerListener = triggerListener;
     }
 
     @Override
-    public TriggerGenerator newInstance(TriggerListener listener) {
-        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchStrategy(listener, fileWatcherService));
+    public TriggerGenerator newInstance() {
+        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchStrategy(triggerListener, fileWatcherService));
     }
 }

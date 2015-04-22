@@ -30,7 +30,7 @@ class TimeoutStrategy implements TriggerStrategy {
         while (true) {
             try {
                 Thread.sleep(5000);
-                listener.triggered(new DefaultTriggerDetails("5 second timeout"));
+                listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "5 second timeout"));
             } catch (InterruptedException e) {
                 UncheckedException.throwAsUncheckedException(e);
             }

@@ -17,17 +17,14 @@
 package org.gradle.launcher.continuous;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.Clock;
 
 public class BlockingTriggerListener implements TriggerListener {
     private final Object lock;
-    private final long timeoutMs;
     private TriggerDetails currentTrigger;
 
-    public BlockingTriggerListener(long timeoutMs) {
+    public BlockingTriggerListener() {
         this.lock = new Object();
         this.currentTrigger = null;
-        this.timeoutMs = timeoutMs;
     }
 
     /**
@@ -37,19 +34,9 @@ public class BlockingTriggerListener implements TriggerListener {
         try {
             // TODO: Add some logging
             synchronized (lock) {
-                Clock started = new Clock();
                 while (currentTrigger == null) {
-                    if (timeoutMs == 0) {
-                        // wait unconditionally
-                        lock.wait();
-                    } else {
-                        // this should be integ test builds only
-                        lock.wait(50);
-                        long waited = started.getTimeInMs();
-                        if (waited > timeoutMs) {
-                            currentTrigger = new DefaultTriggerDetails("giving up after " + waited + " ms");
-                        }
-                    }
+                    // wait unconditionally
+                    lock.wait();
                 }
                 TriggerDetails lastReason = currentTrigger;
                 currentTrigger = null;

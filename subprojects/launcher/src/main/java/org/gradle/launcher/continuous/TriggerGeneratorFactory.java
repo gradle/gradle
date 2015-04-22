@@ -17,5 +17,5 @@
 package org.gradle.launcher.continuous;
 
 public interface TriggerGeneratorFactory {
-    TriggerGenerator newInstance(TriggerListener listener);
+    TriggerGenerator newInstance();
 }

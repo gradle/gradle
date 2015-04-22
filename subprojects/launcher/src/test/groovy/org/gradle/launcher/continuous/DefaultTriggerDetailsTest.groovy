@@ -21,7 +21,10 @@ import spock.lang.Specification
 
 class DefaultTriggerDetailsTest extends Specification {
     def "can supply reason"() {
+        given:
+        def triggerDetails = new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "reason")
         expect:
-        new DefaultTriggerDetails("reason").reason == "reason"
+        triggerDetails.reason == "reason"
+        triggerDetails.type == TriggerDetails.Type.REBUILD
     }
 }

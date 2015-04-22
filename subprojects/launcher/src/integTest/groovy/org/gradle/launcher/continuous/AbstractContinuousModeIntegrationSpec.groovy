@@ -16,25 +16,9 @@
 
 package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.exec.ContinuousModeBuildActionExecuter
 
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.withArgument("--watch")
-        buildLimit = 1
-        timeoutOnTrigger = 1000
-    }
-
-    def setBuildLimit(int buildCount) {
-        setLimit("-D${ContinuousModeBuildActionExecuter.RUNAWAY_COUNT_PROPERTY}=${buildCount}")
-    }
-
-    def setTimeoutOnTrigger(int timeToWaitForTrigger) {
-        setLimit("-D${ContinuousModeBuildActionExecuter.RUNAWAY_TIMEOUT_PROPERTY}=${timeToWaitForTrigger}")
-    }
-
-    private void setLimit(GString limit) {
-        executer.withGradleOpts(limit.toString())
-        executer.withArgument(limit.toString())
     }
 }

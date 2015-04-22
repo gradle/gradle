@@ -62,7 +62,7 @@ class FileWatchStrategy implements TriggerStrategy {
         }
 
         public void run() {
-            listener.triggered(new DefaultTriggerDetails("file change"));
+            listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
         }
     }
 }

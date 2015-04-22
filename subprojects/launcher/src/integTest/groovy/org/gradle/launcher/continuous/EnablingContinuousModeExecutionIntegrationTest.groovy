@@ -16,31 +16,81 @@
 
 package org.gradle.launcher.continuous
 
-import spock.lang.Ignore
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.junit.Rule
 
-@Ignore
-// @IgnoreIf({!TestPrecondition.JDK7_OR_LATER })
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    def trigger = file("trigger.out")
+
+    def setup() {
+        buildFile << """
+import org.gradle.launcher.continuous.*
+import org.gradle.internal.event.*
+
+def triggerFile = file("${trigger.toURI()}")
+gradle.buildFinished {
+    def inputStream = new ObjectInputStream(new FileInputStream(triggerFile))
+    def trigger = inputStream.readObject()
+    inputStream.close()
+
+    def listenerManager = gradle.services.get(ListenerManager)
+    def triggerListener = listenerManager.getBroadcaster(TriggerListener)
+    triggerListener.triggered(trigger)
+    new URL("${server.uri}").text // wait for test
+}
+"""
+    }
+
+    def planToRebuild() {
+        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
+    }
+
+    def planToStop() {
+        writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "being done"))
+    }
+
+    private writeTrigger(DefaultTriggerDetails triggerDetails) {
+        ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(trigger))
+        os.writeObject(triggerDetails)
+        os.close()
+    }
 
     def "can enable continuous mode"() {
-        expect:
-        succeeds("tasks")
+        when:
+        planToStop()
+        and:
+        def gradle = executer.withTasks("tasks").start()
+        then:
+        server.sync()
+        gradle.waitForFinish()
     }
 
-    @Ignore("Output isn't captured when this comes out")
     def "warns about incubating feature"() {
-        expect:
-        succeeds("tasks")
-        output.contains("Continuous mode is an incubating feature.")
+        when:
+        planToStop()
+        and:
+        def gradle = executer.withTasks("tasks").start()
+        then:
+        server.sync()
+        gradle.waitForFinish()
+        gradle.standardOutput.contains("Continuous mode is an incubating feature.")
     }
 
-    @Ignore("Output isn't captured when this comes out")
     def "prints useful messages when in continuous mode"() {
-        given:
-        buildLimit = 2
-        expect:
-        succeeds("tasks")
-        output.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.")
-        output.contains("Rebuild triggered due to ")
+        when:
+        planToRebuild()
+        and:
+        def gradle = executer.withTasks("tasks").start()
+        then:
+        server.sync()
+        when:
+        planToStop()
+        then:
+        server.sync()
+        gradle.waitForFinish()
+        gradle.standardOutput.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.")
+        gradle.standardOutput.contains("REBUILD triggered due to test")
+        gradle.standardOutput.contains("STOP triggered due to being done")
     }
 }
