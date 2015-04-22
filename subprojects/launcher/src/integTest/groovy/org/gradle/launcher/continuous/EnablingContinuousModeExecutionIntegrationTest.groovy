@@ -18,7 +18,6 @@ package org.gradle.launcher.continuous
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
