@@ -16,10 +16,11 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
-@IgnoreIf({!TestPrecondition.JDK7_OR_LATER})
+@Requires(TestPrecondition.JDK7_OR_LATER)
 public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
 
     def "can enable continuous mode"() {
@@ -147,14 +148,14 @@ task maybeFail << {
         gradle.standardOutput.count("BUILD FAILED") == 1
     }
 
-    def "rebuilds when a file changes"() {
+    def "rebuilds when a file changes, is created, or deleted"() {
         given:
         def outputFile = file("build/output.out")
         validSource()
         buildFile << """
 task succeed {
     def output = file("${outputFile.toURI()}")
-    inputs.files file("${srcFile.toURI()}")
+    inputs.files files("${srcFile.parentFile.toURI()}")
     outputs.files output
     doLast {
         output.parentFile.mkdirs()
@@ -171,7 +172,12 @@ task succeed {
         }
         and:
         afterBuild {
-            changeSource()
+            createSource()
+            triggerNothing()
+        }
+        and:
+        afterBuild {
+            deleteSource()
             triggerNothing()
         }
         and:
@@ -180,7 +186,7 @@ task succeed {
         }
         then:
         waitForStop()
-        gradle.standardOutput.count("BUILD SUCCESSFUL") == 3
-        outputFile.text.count("did work") == 3
+        gradle.standardOutput.count("BUILD SUCCESSFUL") == 4
+        outputFile.text.count("did work") == 4
     }
 }

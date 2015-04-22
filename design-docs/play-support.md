@@ -616,11 +616,11 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 - Add `FileWatchService` that can be given Files to watch
 - When files change, mark the file as out of date
 - Re-run trigger polls the watch service for changes at some default rate ("quiet mode")
-- Ignore build/ .gradle/ etc files.
+- ~~Ignore build/ .gradle/ etc files.~~
 
 #### Test Coverage
 
-- When the project directory files change/are create/are delete, Gradle re-runs using the same set of task selectors.
+- ~~When the project directory files change/are create/are delete, Gradle re-runs using the same set of task selectors.~~
     
 #### Open Issues
 

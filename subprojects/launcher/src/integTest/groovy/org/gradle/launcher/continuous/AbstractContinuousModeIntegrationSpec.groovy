@@ -23,10 +23,11 @@ class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     def trigger = file(".gradle/trigger.out")
     def gradle
-    def srcFile = file("src.file")
+    def srcFile = file("src/file")
 
     def setup() {
-        file(".gradle").mkdirs()
+        trigger.parentFile.mkdirs()
+        srcFile.parentFile.mkdirs()
         executer.withArgument("--watch")
 
         buildFile << """
@@ -64,6 +65,12 @@ gradle.buildFinished {
         srcFile << "NEWLINE"
     }
 
+    def createSource() {
+        def newFile = file("src/new")
+        newFile.text = "new"
+    }
+    def deleteSource() { srcFile.delete() }
+
     void startGradle(String task="tasks") {
         gradle = executer.withTasks(task).start()
     }
@@ -92,6 +99,7 @@ gradle.buildFinished {
     private writeTrigger(DefaultTriggerDetails triggerDetails) {
         ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(trigger))
         os.writeObject(triggerDetails)
+        os.flush()
         os.close()
     }
 }
