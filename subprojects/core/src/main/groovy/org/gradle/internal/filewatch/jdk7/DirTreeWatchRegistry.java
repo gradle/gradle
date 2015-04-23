@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirTreeWatchRegistry.class);
-    protected final Map<Path, DirectoryTree> pathToDirectoryTree;
-    protected final Set<DirectoryTree> liveDirectoryTrees;
+    protected final Map<Path, Set<DirectoryTree>> pathToDirectoryTrees;
+    protected final Map<DirectoryTree, Set<String>> liveDirectoryTreeToSourceKeys;
 
     public static DirTreeWatchRegistry create(WatchStrategy watchStrategy) {
         if(watchStrategy instanceof FileTreeWatchStrategy) {
@@ -46,57 +46,76 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
 
     DirTreeWatchRegistry(WatchStrategy watchStrategy) {
         super(watchStrategy);
-        this.pathToDirectoryTree = new HashMap<Path, DirectoryTree>();
-        this.liveDirectoryTrees = new HashSet<DirectoryTree>();
+        this.pathToDirectoryTrees = new HashMap<Path, Set<DirectoryTree>>();
+        this.liveDirectoryTreeToSourceKeys = new HashMap<DirectoryTree, Set<String>>();
     }
 
     @Override
-    public void enterRegistrationMode() {
-        liveDirectoryTrees.clear();
+    public synchronized void enterRegistrationMode() {
+        liveDirectoryTreeToSourceKeys.clear();
     }
 
     @Override
-    public void exitRegistrationMode() {
-        for(Iterator<Entry<Path, DirectoryTree>> iterator = pathToDirectoryTree.entrySet().iterator(); iterator.hasNext();) {
-            Entry<Path, DirectoryTree> entry = iterator.next();
-            if(!liveDirectoryTrees.contains(entry.getValue())) {
+    public synchronized void exitRegistrationMode() {
+        for(Iterator<Entry<Path, Set<DirectoryTree>>> iterator = pathToDirectoryTrees.entrySet().iterator(); iterator.hasNext();) {
+            Entry<Path, Set<DirectoryTree>> entry = iterator.next();
+            Set<DirectoryTree> updatedDirectories = new HashSet<DirectoryTree>();
+            for(DirectoryTree tree : entry.getValue()) {
+                if(liveDirectoryTreeToSourceKeys.containsKey(tree)) {
+                    updatedDirectories.add(tree);
+                }
+            }
+            if(updatedDirectories.size()==0) {
                 unwatchDirectory(entry.getKey());
                 iterator.remove();
+            } else {
+                entry.setValue(updatedDirectories);
             }
         }
     }
 
     @Override
-    public void register(Iterable<DirectoryTree> trees) throws IOException {
+    public synchronized void register(String sourceKey, Iterable<DirectoryTree> trees) throws IOException {
         for(DirectoryTree originalTree : trees) {
             HashableDirectoryTree tree = new HashableDirectoryTree(originalTree);
-            markLive(tree);
+            markLive(sourceKey, tree);
             Path rootPath = dirToPath(tree.getDir());
-            DirectoryTree existingTree = pathToDirectoryTree.get(rootPath);
-            if(existingTree==null) {
+            Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(rootPath);
+            if(watchedTrees == null) {
+                watchedTrees = new HashSet<DirectoryTree>();
+                pathToDirectoryTrees.put(rootPath, watchedTrees);
+            }
+            if(!watchedTrees.contains(tree)) {
                 registerSubDir(tree, rootPath);
-            } else if (!tree.equals(existingTree)) {
-                throw new IllegalStateException("Watching same root path with multiple DirectoryTrees isn't supported yet.");
             }
         }
     }
 
-    protected boolean markLive(DirectoryTree tree) {
-        return liveDirectoryTrees.add(tree);
+    protected void markLive(String sourceKey, DirectoryTree tree) {
+        Set<String> sourceKeys = liveDirectoryTreeToSourceKeys.get(tree);
+        if(sourceKeys == null) {
+            sourceKeys = new HashSet<String>();
+            liveDirectoryTreeToSourceKeys.put(tree, sourceKeys);
+        }
+        sourceKeys.add(sourceKey);
     }
 
     @Override
-    public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
-        DirectoryTree watchedTree = pathToDirectoryTree.get(changeDetails.getWatchedPath());
-        if(watchedTree != null) {
-            FileTreeElement fileTreeElement = toFileTreeElement(changeDetails, watchedTree);
-            if(!isExcluded(watchedTree, fileTreeElement)) {
-                boolean isDirectory = isDirectory(changeDetails.getFullItemPath());
-                if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
-                    handleNewDirectory(changeDetails, changesNotifier, watchedTree);
-                }
-                if(!isDirectory && isIncluded(watchedTree, fileTreeElement)) {
-                    handleFileChange(changeDetails, changesNotifier, watchedTree);
+    public synchronized void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
+        Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(changeDetails.getWatchedPath());
+        if(watchedTrees != null) {
+            for(DirectoryTree watchedTree : watchedTrees) {
+                if(liveDirectoryTreeToSourceKeys.containsKey(watchedTree)) {
+                    FileTreeElement fileTreeElement = toFileTreeElement(changeDetails, watchedTree);
+                    if (!isExcluded(watchedTree, fileTreeElement)) {
+                        boolean isDirectory = isDirectory(changeDetails.getFullItemPath());
+                        if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
+                            handleNewDirectory(changeDetails, changesNotifier, watchedTree);
+                        }
+                        if (!isDirectory && isIncluded(watchedTree, fileTreeElement)) {
+                            handleFileChange(changeDetails, changesNotifier, watchedTree);
+                        }
+                    }
                 }
             }
         }
@@ -152,11 +171,15 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
                     throws IOException {
                 FileTreeElement fileTreeElement = toFileTreeElement(dir, rootPath.relativize(dir));
                 if (!excludeSpec.isSatisfiedBy(fileTreeElement)) {
-                    watchDirectory(dir);
-                    if(pathToDirectoryTree.containsKey(dir)) {
-                        throw new IllegalStateException("The current implementation doesn't support watching nested directory trees");
+                    Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(dir);
+                    if(watchedTrees == null) {
+                        watchedTrees = new HashSet<DirectoryTree>();
+                        pathToDirectoryTrees.put(dir, watchedTrees);
                     }
-                    pathToDirectoryTree.put(dir, tree);
+                    if(watchedTrees.size()==0) {
+                        watchDirectory(dir);
+                    }
+                    watchedTrees.add(tree);
                     return FileVisitResult.CONTINUE;
                 } else {
                     return FileVisitResult.SKIP_SUBTREE;

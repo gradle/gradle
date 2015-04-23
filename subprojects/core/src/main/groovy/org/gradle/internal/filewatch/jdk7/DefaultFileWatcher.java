@@ -39,7 +39,7 @@ public class DefaultFileWatcher implements FileWatcher {
 
     @Override
     public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
-        fileWatcherTask.registerWatches(inputs);
+        fileWatcherTask.watch(sourceKey, inputs);
     }
 
     @Override
@@ -78,9 +78,9 @@ public class DefaultFileWatcher implements FileWatcher {
             return new FileWatcherChangesNotifier(callback);
         }
 
-        void registerWatches(FileWatchInputs inputs) throws IOException {
-            dirTreeWatchRegistry.register(inputs.getDirectoryTrees());
-            individualFileWatchRegistry.register(inputs.getFiles());
+        void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
+            dirTreeWatchRegistry.register(sourceKey, inputs.getDirectoryTrees());
+            individualFileWatchRegistry.register(sourceKey, inputs.getFiles());
         }
 
         public void run() {
@@ -111,8 +111,6 @@ public class DefaultFileWatcher implements FileWatcher {
 
                     @Override
                     public void onChange(ChangeDetails changeDetails) {
-                        System.out.println("change: " + changeDetails.getFullItemPath());
-
                         dirTreeWatchRegistry.handleChange(changeDetails, changesNotifier);
                         individualFileWatchRegistry.handleChange(changeDetails, changesNotifier);
                     }

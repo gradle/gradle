@@ -40,7 +40,7 @@ abstract class WatchRegistry<T> {
 
     abstract public void exitRegistrationMode();
 
-    abstract public void register(Iterable<T> watchItems) throws IOException;
+    abstract public void register(String sourceKey, Iterable<T> watchItems) throws IOException;
 
     abstract public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier);
 

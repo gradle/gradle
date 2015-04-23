@@ -20,6 +20,8 @@ import org.gradle.api.file.DirectoryTree;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * On Windows, the Java WatchService supports watching a full sub tree.
@@ -36,12 +38,22 @@ class ExtendedDirTreeWatchRegistry extends DirTreeWatchRegistry {
     }
 
     @Override
-    public void register(Iterable<DirectoryTree> trees) throws IOException {
-        for(DirectoryTree tree : trees) {
-            markLive(tree);
+    public synchronized void register(String sourceKey, Iterable<DirectoryTree> trees) throws IOException {
+        for(DirectoryTree originalTree : trees) {
+            DirectoryTree tree = new HashableDirectoryTree(originalTree);
+            markLive(sourceKey, tree);
             Path treePath = dirToPath(tree.getDir());
-            pathToDirectoryTree.put(treePath, tree);
-            subTreeWatchStrategy.watchFileTree(treePath);
+            Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(treePath);
+            if(watchedTrees == null) {
+                watchedTrees = new HashSet<DirectoryTree>();
+                pathToDirectoryTrees.put(treePath, watchedTrees);
+            }
+            if(!watchedTrees.contains(tree)) {
+                watchedTrees.add(tree);
+                if(watchedTrees.size()==1) {
+                    subTreeWatchStrategy.watchFileTree(treePath);
+                }
+            }
         }
     }
 

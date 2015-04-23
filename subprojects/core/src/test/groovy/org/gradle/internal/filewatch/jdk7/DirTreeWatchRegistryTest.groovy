@@ -62,7 +62,7 @@ class DirTreeWatchRegistryTest extends Specification {
         def directoryStream = Mock(DirectoryStream)
 
         when:
-        watchRegistry.register([tree])
+        watchRegistry.register('sourcekey', [tree])
         then: 'results in watchSingleDirectory call'
         tree.getDir() >> dir
         tree.getPatterns() >> new PatternSet()

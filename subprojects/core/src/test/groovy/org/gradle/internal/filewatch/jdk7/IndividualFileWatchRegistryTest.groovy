@@ -37,9 +37,21 @@ class IndividualFileWatchRegistryTest extends Specification {
                 p
             }
         }
-        def file1 = new File("a/b/c")
-        def file2 = new File("a/b/d")
-        def file3 = new File("a/e/f")
+        def file1 = new File("a/b/c") {
+            File getAbsoluteFile() {
+                return this
+            }
+        }
+        def file2 = new File("a/b/d") {
+            File getAbsoluteFile() {
+                return this
+            }
+        }
+        def file3 = new File("a/e/f") {
+            File getAbsoluteFile() {
+                return this
+            }
+        }
         def parent1 = file1.getParentFile()
         def parent2 = file3.getParentFile()
         def parentPath1 = Mock(Path)
@@ -47,7 +59,7 @@ class IndividualFileWatchRegistryTest extends Specification {
         def parentPath2 = Mock(Path)
         dirToPathMocks.put(parent2, parentPath2)
         when: 'multiple files are registered'
-        watchRegistry.register([file1, file2, file3])
+        watchRegistry.register('sourcekey', [file1, file2, file3])
         then: 'should register only unique parent directories'
         1 * watchStrategy.watchSingleDirectory( { it.is(parentPath1) })
         1 * watchStrategy.watchSingleDirectory( { it.is(parentPath2) } )
