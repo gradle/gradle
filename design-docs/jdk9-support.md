@@ -6,7 +6,10 @@ This list is in priority order.
 
 ### Cannot fork build processes (e.g. test execution processes)
 
-See: https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
+See:
+
+- https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
+- https://issues.gradle.org/browse/GRADLE-3287
 
 Proposed solution is to use a classpath manifest jar only on 9 and later.
 
