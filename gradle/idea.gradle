@@ -225,6 +225,10 @@ idea {
                       <option name="heapSize" value="2000" />
                     </component>
                 '''))
+
+                node.append(new NodeBuilder().component(name: 'FrameworkDetectionExcludesConfiguration') {
+                  type(id: 'web')
+                })
             }
         }
     }
