@@ -32,7 +32,7 @@ public interface FailureResult extends OperationResult {
     /**
      * Returns the failures that occurred while running the operation, if any.
      *
-     * @return the failures, empty if the operation failed without any specific cause.
+     * @return the failures, empty if the operation failed without any specific failure information.
      */
     List<? extends Failure> getFailures();
 

@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * Represents a failure. Failures are similar to exceptions but carry less information (only a message, a description and a cause) so
- * they can be used in a wider scope than just Java compilation.
+ * they can be used in a wider scope than just the JVM where the exception failed.
  *
  * @since 2.4
  */

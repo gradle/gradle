@@ -21,13 +21,15 @@ import org.gradle.api.Nullable;
 /**
  * Describes an operation for which an event has occurred.
  *
+ * <p>You can use {@code equals()} to determine whether 2 different descriptors refer to the same operation.</p>
+ *
  * @since 2.4
  */
 @Incubating
 public interface OperationDescriptor {
 
     /**
-     * Returns the name of the operation.
+     * Returns the name of the operation. This name does not necessarily uniquely identify the operation.
      *
      * @return The name of the operation.
      */

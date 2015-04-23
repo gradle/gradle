@@ -20,7 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FinishEvent;
 
 /**
- * An event that informs about a test operation having finished its execution.
+ * An event that informs about a test having finished its execution. You can query the result of the
+ * test using {@link #getResult()}.
  *
  * @since 2.4
  */
@@ -28,7 +29,14 @@ import org.gradle.tooling.events.FinishEvent;
 public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
 
     /**
-     * Returns the result of the finished test operation.
+     * Returns the result of the finished test operation. Currently, the result will be one of the following
+     * sub-types:
+     *
+     * <ul>
+     *     <li>{@link TestSuccessResult}</li>
+     *     <li>{@link TestSkippedResult}</li>
+     *     <li>{@link TestFailureResult}</li>
+     * </ul>
      *
      * @return the result of the finished test operation
      */

@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.StartEvent;
 
 /**
- * An event that informs about a test operation having started its execution.
+ * An event that informs about a test having started its execution.
  *
  * @since 2.4
  */

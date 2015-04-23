@@ -31,12 +31,12 @@ public interface TestProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *    <li>TestStartEvent</li>
-     *    <li>TestFinishEvent</li>
+     *    <li>{@link TestStartEvent}</li>
+     *    <li>{@link TestFinishEvent}</li>
      * </ul>
      *
      * You can find out more about the test operation for which progress is reported
-     * by querying the descriptor of the event type.
+     * by querying the test descriptor using {@link TestProgressEvent#getDescriptor()}.
      *
      * @param event An event describing the test operation progress.
      * @see TestProgressEvent#getDescriptor()
