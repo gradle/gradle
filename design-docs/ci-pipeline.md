@@ -16,6 +16,30 @@ Here is a rough overview of the current structure of the CI pipeline
 
 This pipeline is replicated for the release and master branches.
 
+
+# Add initial jdk9 coverage to Gradle CI pipeline
+
+To verify Gradle working with jdk9 we need basic jdk9 coverage in our CI pipeline
+
+## implementation
+
+- add jdk9 installation to 
+    - the linux vm boxes
+        - update salt-master setup to download jdk9 from java.net
+        - update linux build vms to setup jdk9
+    - the windows vm boxes
+- add  `Linux - Java 1.9 - Quick test` build configuration on teamcity    
+    - running `clean quickTest`
+    - on master
+    - on release
+- setup  `Windows - Java 1.9 - Quick test` build configuration on teamcity
+    - running `clean quickTest`
+    - on master
+    - on release
+
+## open issues
+- convenient update of jdk9 early access releases
+
 # Trigger the coverage builds less frequently
 
 Currently, coverage builds are triggered for each commit. We might change this so that multiple queued up commits are merged into a single build.
