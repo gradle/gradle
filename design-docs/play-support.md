@@ -91,7 +91,7 @@ When running `gradle assemble`, a Jar file will be built for the default templat
 - setup RoutesCompiler task type
 - Compile routes to scala and java
 - Compile templates to scala
-- Compile all scala (app/*/*.{scala,java}, output of: conf/routes, output of: app/views/*.scala.html) files
+- Compile all scala (app/\*/\*.{scala,java}, output of: conf/routes, output of: app/views/\*.scala.html) files
 - Output class files are part of assemble jar file
 
 #### Test cases
@@ -361,9 +361,9 @@ model {
 }
 ```
 
-- Default coffeescript sourceset should be "app/assets/**/*.coffee"
+- Default coffeescript sourceset should be "app/assets/\*\*/\*.coffee"
 - Compiled coffeescript files will be added to the jar under "public"
-- Default javascript sourceset should be "app/assets/**/*.js"
+- Default javascript sourceset should be "app/assets/\*\*/\*.js"
 - Processed javascript sourceset should be added to the jar under "public"
 
 #### Test cases
@@ -634,22 +634,29 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 #### Implementation
 
-- Add inputs to task to `InputWatchService` so that they can be watched
+- Only changes to source files will be monitored in this story. 
+- All files in the project build directory will be ignored in watching.
+- The inputs of tasks will be gathered during the build is executed in a `TaskExecutionListener`'s `beforeExecute` method
+- The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getSourceFiles()` method is considered as the source files for the task. The `getHasSourceFiles()` method will called before calling the `getSourceFiles()`.
+- Extracting the source `DirectoryTree` and/or `File` information from `FileCollection` is done using the new `getAsDirectoryTrees()` method added to `FileCollection`. Review for the `FileCollection` API change is [REVIEW-5481](https://code-review.gradle.org/cru/REVIEW-5481).
+- Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
+- Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete. This requirement will be handled by starting the file watching in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
+
+#### Out of scope
+
 - Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
-- Should stop watching for changes while the build is running.
+  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
 
 #### Test Coverage
 
-- Changing an input file triggers a build (eg change a source file).
-- Adding/removing a file in an input directory triggers a build (eg add/remove a source file from a source directory).
-- Changing/removing an output file triggers a build (eg given `gradle —watch assemble`, change or remove the jar).
-- Adding a file to an output directory does not trigger a build.
-- Changing/removing/adding an intermediate output file does not trigger a build (eg given `gradle —watch assemble` change/remove/add a class file).
+- Changing a source file triggers a build.
+- Adding/removing a file in a source directory triggers a build.
+- Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
 
 #### Open Issues
 
-- Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task. 
-- What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
+- "Should stop watching for changes while the build is running." requirement was conflicting and therefore removed. 
+  - Stopping watching during each build would add a lot of overhead in removing all watches and re-adding them back again.
 
 ### Story: Continuous Gradle mode rebuilds if inputs to the model change
 
