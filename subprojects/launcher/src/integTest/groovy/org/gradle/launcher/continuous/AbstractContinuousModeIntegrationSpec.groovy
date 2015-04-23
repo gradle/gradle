@@ -37,7 +37,8 @@ import org.gradle.internal.event.*
 
 def triggerFile = file("${trigger.toURI()}")
 gradle.buildFinished {
-    new URL("${server.uri}").text // wait for test to sync with build
+    // wait for test to sync with build
+    new URL("${server.uri}").text
 
     def trigger = null
     try {
@@ -83,7 +84,9 @@ gradle.buildFinished {
         server.waitFor()
         c.call()
         server.release()
+        server.waitForDisconnect()
     }
+
     def triggerRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }
