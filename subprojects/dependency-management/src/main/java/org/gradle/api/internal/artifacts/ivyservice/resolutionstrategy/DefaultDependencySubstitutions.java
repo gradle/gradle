@@ -39,34 +39,34 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
-    private final Set<Action<? super DependencySubstitution<? super ComponentSelector>>> substitutionRules;
+    private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
     private final NotationParser<Object, ProjectComponentIdentifier> projectIdentifierNotationParser;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultDependencySubstitutions() {
-        this(new LinkedHashSet<Action<? super DependencySubstitution<? super ComponentSelector>>>());
+        this(new LinkedHashSet<Action<? super DependencySubstitution>>());
     }
 
-    DefaultDependencySubstitutions(Set<Action<? super DependencySubstitution<? super ComponentSelector>>> substitutionRules) {
+    DefaultDependencySubstitutions(Set<Action<? super DependencySubstitution>> substitutionRules) {
         this.substitutionRules = substitutionRules;
         this.moduleIdentifierNotationParser = createModuleIdentifierNotationParser();
         this.projectIdentifierNotationParser = createProjectIdentifierNotationParser();
     }
 
     @Override
-    public Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule() {
+    public Action<DependencySubstitution> getDependencySubstitutionRule() {
         return Actions.composite(substitutionRules);
     }
 
-    private void addRule(Action<? super DependencySubstitution<? super ComponentSelector>> rule) {
+    private void addRule(Action<? super DependencySubstitution> rule) {
         mutationValidator.validateMutation(MutationValidator.MutationType.STRATEGY);
         substitutionRules.add(rule);
     }
 
     @Override
-    public DependencySubstitutions all(Action<? super DependencySubstitution<? super ComponentSelector>> rule) {
+    public DependencySubstitutions all(Action<? super DependencySubstitution> rule) {
         addRule(rule);
         return this;
     }
@@ -131,7 +131,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     @Override
     public DependencySubstitutionsInternal copy() {
-        return new DefaultDependencySubstitutions(new LinkedHashSet<Action<? super DependencySubstitution<? super ComponentSelector>>>(substitutionRules));
+        return new DefaultDependencySubstitutions(new LinkedHashSet<Action<? super DependencySubstitution>>(substitutionRules));
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
@@ -193,7 +193,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    private static class ModuleIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution<ComponentSelector>> {
+    private static class ModuleIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution> {
         private final Action<? super ModuleDependencySubstitution> delegate;
         private final ModuleIdentifier id;
 
@@ -215,7 +215,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    private static class ProjectIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution<ComponentSelector>> {
+    private static class ProjectIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution> {
         private final Action<? super ProjectDependencySubstitution> delegate;
         private final ProjectComponentIdentifier id;
 
@@ -233,7 +233,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    private static class TypeFilteringDependencySubstitutionAction<T extends DependencySubstitution<?>> implements Action<DependencySubstitution<ComponentSelector>> {
+    private static class TypeFilteringDependencySubstitutionAction<T extends DependencySubstitution> implements Action<DependencySubstitution> {
         private final Class<T> type;
         private final Action<? super T> delegate;
 
@@ -244,14 +244,14 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         @SuppressWarnings("unchecked")
-        public void execute(DependencySubstitution<ComponentSelector> substitution) {
+        public void execute(DependencySubstitution substitution) {
             if (type.isAssignableFrom(substitution.getClass())) {
                 delegate.execute((T) substitution);
             }
         }
     }
 
-    private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution<? extends ComponentSelector>> {
+    private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution> {
         private final Action<? super DependencyResolveDetails> delegate;
 
         public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate) {
@@ -259,8 +259,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
 
         @Override
-        public void execute(DependencySubstitution<? extends ComponentSelector> substitution) {
-            DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal<?>) substitution);
+        public void execute(DependencySubstitution substitution) {
+            DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution);
             delegate.execute(details);
         }
     }

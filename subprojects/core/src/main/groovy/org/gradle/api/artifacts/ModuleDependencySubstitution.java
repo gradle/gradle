@@ -27,7 +27,13 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface ModuleDependencySubstitution extends DependencySubstitution<ModuleComponentSelector> {
+public interface ModuleDependencySubstitution extends DependencySubstitution {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ModuleComponentSelector getRequested();
+
     /**
      * Allows to override the version when the dependency {@link #getRequested()} is resolved.
      * Can be used to select a version that is different than requested.

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
@@ -49,7 +48,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * @return the dependency substitution rule (may aggregate multiple rules)
      */
-    Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule();
+    Action<DependencySubstitution> getDependencySubstitutionRule();
 
     /**
      * @return the version selection rules object

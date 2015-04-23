@@ -17,9 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleDependencySubstitution;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-public interface ModuleDependencySubstitutionInternal extends ModuleDependencySubstitution, DependencySubstitutionInternal<ModuleComponentSelector> {
+public interface ModuleDependencySubstitutionInternal extends ModuleDependencySubstitution, DependencySubstitutionInternal {
     void useVersion(String version, ComponentSelectionReason selectionReason);
 }
