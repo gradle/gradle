@@ -30,8 +30,8 @@ To verify Gradle working with jdk9 we need basic jdk9 coverage in our CI pipelin
         
 - add  `Linux - Java 1.9 - Quick test` build configuration on teamcity    
     - running `clean quickTest`
-    - on master
-    - on release
+    - for `master` pipeline
+    - for `release` pipeline
 
 ## open issues
 - no 64bit windows jdk9 available yet (Build b60)
@@ -45,11 +45,13 @@ At the moment there is no 64bit windows jdk9 available yet (Build b60)
 ## implementation
 
 - add jdk9 installation to the windows vm boxes
+    - update salt-master win-repo setup to download jdk9 from java.net
+    - update windows build vms to install jdk9
 - setup  `Windows - Java 1.9 - Quick test` build configuration on teamcity
     - running `clean quickTest`
-    - on master
-    - on release
-
+    - for `master` pipeline
+    - for `release` pipeline
+    
 ## open issues
 - convenient update of jdk9 early access releases
 
