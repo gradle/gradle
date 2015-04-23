@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
 
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     def trigger = file(".gradle/trigger.out")
-    def gradle
+    GradleHandle gradle
     def srcFile = file("src/file")
 
     def setup() {

@@ -65,6 +65,7 @@ public class EnablingContinuousModeExecutionIntegrationTest extends AbstractCont
 
     def "keeps running even when build fails"() {
         given:
+        executer.withStackTraceChecksDisabled()
         buildFile << """
 task fail << {
     throw new GradleException("always fails")
@@ -91,6 +92,7 @@ task fail << {
 
     def "keeps running even when build fails due to script error"() {
         given:
+        executer.withStackTraceChecksDisabled()
         buildFile << """
 throw new GradleException("config error")
 """
@@ -116,6 +118,7 @@ throw new GradleException("config error")
 
     def "keeps running when build succeeds, fails and succeeds"() {
         given:
+        executer.withStackTraceChecksDisabled()
         validSource()
         buildFile << """
 task maybeFail << {
