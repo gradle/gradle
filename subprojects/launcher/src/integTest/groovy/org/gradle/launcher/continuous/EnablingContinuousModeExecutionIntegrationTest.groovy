@@ -112,7 +112,7 @@ throw new GradleException("config error")
         }
         then:
         waitForStop()
-        gradle.errorOutput.count("config error") == 3
+        gradle.errorOutput.count("> config error") == 3
         gradle.standardOutput.count("BUILD FAILED") == 3
     }
 
