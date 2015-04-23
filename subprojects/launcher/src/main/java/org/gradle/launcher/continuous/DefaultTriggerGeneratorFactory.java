@@ -17,21 +17,21 @@
 package org.gradle.launcher.continuous;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.filewatch.FileWatcherService;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 
 public class DefaultTriggerGeneratorFactory implements TriggerGeneratorFactory {
     private final ExecutorFactory executorFactory;
-    private final FileWatcherService fileWatcherService;
+    private final FileWatcherFactory fileWatcherFactory;
     private final TriggerListener triggerListener;
 
-    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService, TriggerListener triggerListener) {
+    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory, TriggerListener triggerListener) {
         this.executorFactory = executorFactory;
-        this.fileWatcherService = fileWatcherService;
+        this.fileWatcherFactory = fileWatcherFactory;
         this.triggerListener = triggerListener;
     }
 
     @Override
     public TriggerGenerator newInstance() {
-        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchStrategy(triggerListener, fileWatcherService));
+        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchStrategy(triggerListener, fileWatcherFactory));
     }
 }

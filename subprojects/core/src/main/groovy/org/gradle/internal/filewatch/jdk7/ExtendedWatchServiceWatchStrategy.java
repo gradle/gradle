@@ -17,11 +17,13 @@
 package org.gradle.internal.filewatch.jdk7;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
 /**
@@ -43,7 +45,8 @@ class ExtendedWatchServiceWatchStrategy extends WatchServiceWatchStrategy implem
     }
 
     @Override
-    public void watchFileTree(Path path) throws IOException {
-        path.register(watchService, WATCH_KINDS, EXTENDED_WATCH_MODIFIERS);
+    public Stoppable watchFileTree(Path path) throws IOException {
+        WatchKey watchKey = path.register(watchService, WATCH_KINDS, EXTENDED_WATCH_MODIFIERS);
+        return new WatchKeyStoppable(watchKey);
     }
 }

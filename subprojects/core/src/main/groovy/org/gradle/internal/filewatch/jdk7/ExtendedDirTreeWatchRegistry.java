@@ -38,6 +38,7 @@ class ExtendedDirTreeWatchRegistry extends DirTreeWatchRegistry {
     @Override
     public void register(Iterable<DirectoryTree> trees) throws IOException {
         for(DirectoryTree tree : trees) {
+            markLive(tree);
             Path treePath = dirToPath(tree.getDir());
             pathToDirectoryTree.put(treePath, tree);
             subTreeWatchStrategy.watchFileTree(treePath);

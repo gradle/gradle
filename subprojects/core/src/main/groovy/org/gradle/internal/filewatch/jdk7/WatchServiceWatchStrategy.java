@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch.jdk7;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.internal.Cast;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -49,8 +50,9 @@ class WatchServiceWatchStrategy implements WatchStrategy {
     }
 
     @Override
-    public void watchSingleDirectory(Path path) throws IOException {
-        path.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+    public Stoppable watchSingleDirectory(Path path) throws IOException {
+        WatchKey watchKey = path.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+        return new WatchKeyStoppable(watchKey);
     }
 
     @Override
@@ -105,6 +107,19 @@ class WatchServiceWatchStrategy implements WatchStrategy {
             return ChangeDetails.ChangeType.DELETE;
         } else {
             return ChangeDetails.ChangeType.MODIFY;
+        }
+    }
+
+    public static class WatchKeyStoppable implements Stoppable {
+        private final WatchKey watchKey;
+
+        public WatchKeyStoppable(WatchKey watchKey) {
+            this.watchKey = watchKey;
+        }
+
+        @Override
+        public void stop() {
+            watchKey.cancel();
         }
     }
 }

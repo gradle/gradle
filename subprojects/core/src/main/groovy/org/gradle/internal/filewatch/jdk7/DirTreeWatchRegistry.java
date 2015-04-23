@@ -19,19 +19,22 @@ package org.gradle.internal.filewatch.jdk7;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirTreeWatchRegistry.class);
     protected final Map<Path, DirectoryTree> pathToDirectoryTree;
+    protected final Set<DirectoryTree> liveDirectoryTrees;
 
     public static DirTreeWatchRegistry create(WatchStrategy watchStrategy) {
         if(watchStrategy instanceof FileTreeWatchStrategy) {
@@ -44,14 +47,45 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     DirTreeWatchRegistry(WatchStrategy watchStrategy) {
         super(watchStrategy);
         this.pathToDirectoryTree = new HashMap<Path, DirectoryTree>();
+        this.liveDirectoryTrees = new HashSet<DirectoryTree>();
     }
 
-    public void register(Iterable<DirectoryTree> trees) throws IOException {
-        for(DirectoryTree tree : trees) {
-            registerSubDir(tree, dirToPath(tree.getDir()));
+    @Override
+    public void enterRegistrationMode() {
+        liveDirectoryTrees.clear();
+    }
+
+    @Override
+    public void exitRegistrationMode() {
+        for(Iterator<Entry<Path, DirectoryTree>> iterator = pathToDirectoryTree.entrySet().iterator(); iterator.hasNext();) {
+            Entry<Path, DirectoryTree> entry = iterator.next();
+            if(!liveDirectoryTrees.contains(entry.getValue())) {
+                unwatchDirectory(entry.getKey());
+                iterator.remove();
+            }
         }
     }
 
+    @Override
+    public void register(Iterable<DirectoryTree> trees) throws IOException {
+        for(DirectoryTree originalTree : trees) {
+            HashableDirectoryTree tree = new HashableDirectoryTree(originalTree);
+            markLive(tree);
+            Path rootPath = dirToPath(tree.getDir());
+            DirectoryTree existingTree = pathToDirectoryTree.get(rootPath);
+            if(existingTree==null) {
+                registerSubDir(tree, rootPath);
+            } else if (!tree.equals(existingTree)) {
+                throw new IllegalStateException("Watching same root path with multiple DirectoryTrees isn't supported yet.");
+            }
+        }
+    }
+
+    protected boolean markLive(DirectoryTree tree) {
+        return liveDirectoryTrees.add(tree);
+    }
+
+    @Override
     public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
         DirectoryTree watchedTree = pathToDirectoryTree.get(changeDetails.getWatchedPath());
         if(watchedTree != null) {
@@ -119,6 +153,9 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
                 FileTreeElement fileTreeElement = toFileTreeElement(dir, rootPath.relativize(dir));
                 if (!excludeSpec.isSatisfiedBy(fileTreeElement)) {
                     watchDirectory(dir);
+                    if(pathToDirectoryTree.containsKey(dir)) {
+                        throw new IllegalStateException("The current implementation doesn't support watching nested directory trees");
+                    }
                     pathToDirectoryTree.put(dir, tree);
                     return FileVisitResult.CONTINUE;
                 } else {
@@ -129,7 +166,7 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 FileTreeElement fileTreeElement = toFileTreeElement(file, rootPath.relativize(file));
-                if (fileSpec.isSatisfiedBy(fileTreeElement)) {
+                if (!containsValidFiles.get() && fileSpec.isSatisfiedBy(fileTreeElement)) {
                     containsValidFiles.set(true);
                 }
                 return FileVisitResult.CONTINUE;
@@ -146,5 +183,51 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     // subclass hook for unit tests
     protected Path walkFileTree(Path start, FileVisitor<? super Path> visitor) throws IOException {
         return Files.walkFileTree(start, visitor);
+    }
+
+    static class HashableDirectoryTree implements DirectoryTree {
+        private final File dir;
+        private final PatternSet patterns;
+
+        public HashableDirectoryTree(DirectoryTree tree) {
+            this.dir = tree.getDir();
+            this.patterns = tree.getPatterns();
+
+        }
+
+        @Override
+        public File getDir() {
+            return dir;
+        }
+
+        @Override
+        public PatternSet getPatterns() {
+            return patterns;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            HashableDirectoryTree that = (HashableDirectoryTree) o;
+
+            if (!dir.equals(that.dir)) {
+                return false;
+            }
+            return patterns.equals(that.patterns);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = dir.hashCode();
+            result = 31 * result + patterns.hashCode();
+            return result;
+        }
     }
 }

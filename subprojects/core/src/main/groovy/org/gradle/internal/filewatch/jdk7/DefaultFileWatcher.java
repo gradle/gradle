@@ -18,33 +18,128 @@ package org.gradle.internal.filewatch.jdk7;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.FileWatchInputs;
-import org.gradle.internal.filewatch.FileWatcherService;
+import org.gradle.internal.filewatch.FileWatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultFileWatcher implements FileWatcherService {
-    private final ExecutorService executor;
+public class DefaultFileWatcher implements FileWatcher {
+    private final FileWatcherStopper stopper;
+    private final FileWatcherTask fileWatcherTask;
 
-    public DefaultFileWatcher(ExecutorService executor) {
-        this.executor = executor;
+    public DefaultFileWatcher(ExecutorService executor, WatchStrategy watchStrategy, Runnable callback) throws IOException {
+        AtomicBoolean runningFlag = new AtomicBoolean(true);
+        this.fileWatcherTask = new FileWatcherTask(watchStrategy, runningFlag, callback);
+        Future<?> taskCompletion = executor.submit(fileWatcherTask);
+        this.stopper = new FileWatcherStopper(runningFlag, taskCompletion);
     }
 
     @Override
-    public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
-        AtomicBoolean runningFlag = new AtomicBoolean(true);
-        Future<?> taskCompletion = executor.submit(new FileWatcherTask(createWatchStrategy(), inputs, runningFlag, callback));
-        return new FileWatcherStopper(runningFlag, taskCompletion);
+    public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
+        fileWatcherTask.registerWatches(inputs);
     }
 
-    protected WatchStrategy createWatchStrategy() throws IOException {
-        return WatchServiceWatchStrategy.createWatchStrategy();
+    @Override
+    public void stop() {
+        stopper.stop();
+    }
+
+    @Override
+    public void enterRegistrationMode() {
+        fileWatcherTask.enterRegistrationMode();
+    }
+
+    @Override
+    public void exitRegistrationMode() {
+        fileWatcherTask.exitRegistrationMode();
+    }
+
+    static class FileWatcherTask implements Runnable {
+        private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcherTask.class);
+        static final int POLL_TIMEOUT_MILLIS = 250;
+        private final AtomicBoolean runningFlag;
+        private final FileWatcherChangesNotifier changesNotifier;
+        private final WatchStrategy watchStrategy;
+        private final DirTreeWatchRegistry dirTreeWatchRegistry;
+        private final IndividualFileWatchRegistry individualFileWatchRegistry;
+
+        public FileWatcherTask(WatchStrategy watchStrategy, AtomicBoolean runningFlag, Runnable callback) throws IOException {
+            this.changesNotifier = createChangesNotifier(callback);
+            this.runningFlag = runningFlag;
+            this.watchStrategy = watchStrategy;
+            this.dirTreeWatchRegistry = DirTreeWatchRegistry.create(watchStrategy);
+            this.individualFileWatchRegistry = new IndividualFileWatchRegistry(watchStrategy);
+        }
+
+        protected FileWatcherChangesNotifier createChangesNotifier(Runnable callback) {
+            return new FileWatcherChangesNotifier(callback);
+        }
+
+        void registerWatches(FileWatchInputs inputs) throws IOException {
+            dirTreeWatchRegistry.register(inputs.getDirectoryTrees());
+            individualFileWatchRegistry.register(inputs.getFiles());
+        }
+
+        public void run() {
+            try {
+                try {
+                    watchLoop();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            } finally {
+                watchStrategy.close();
+            }
+        }
+
+        protected void watchLoop() throws InterruptedException {
+            changesNotifier.reset();
+            while (watchLoopRunning()) {
+                watchStrategy.pollChanges(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, new WatchHandler() {
+                    @Override
+                    public void onActivation() {
+                        changesNotifier.eventReceived();
+                    }
+
+                    @Override
+                    public void onOverflow() {
+                        changesNotifier.notifyChanged();
+                    }
+
+                    @Override
+                    public void onChange(ChangeDetails changeDetails) {
+                        System.out.println("change: " + changeDetails.getFullItemPath());
+
+                        dirTreeWatchRegistry.handleChange(changeDetails, changesNotifier);
+                        individualFileWatchRegistry.handleChange(changeDetails, changesNotifier);
+                    }
+                });
+                changesNotifier.handlePendingChanges();
+            }
+        }
+
+        protected boolean watchLoopRunning() {
+            return runningFlag.get() && !Thread.currentThread().isInterrupted();
+        }
+
+        public void enterRegistrationMode() {
+            dirTreeWatchRegistry.enterRegistrationMode();
+            individualFileWatchRegistry.enterRegistrationMode();
+        }
+
+        public void exitRegistrationMode() {
+            dirTreeWatchRegistry.exitRegistrationMode();
+            individualFileWatchRegistry.exitRegistrationMode();
+        }
     }
 
     static class FileWatcherStopper implements Stoppable {
         private final AtomicBoolean runningFlag;
         private final Future<?> taskCompletion;
+
         private static final int STOP_TIMEOUT_SECONDS = 10;
 
         public FileWatcherStopper(AtomicBoolean runningFlag, Future<?> taskCompletion) {

@@ -19,24 +19,45 @@ package org.gradle.internal.filewatch.jdk7;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 abstract class WatchRegistry<T> {
     private final WatchStrategy watchStrategy;
+    private final Map<Path, Stoppable> watchHandles;
 
     WatchRegistry(WatchStrategy watchStrategy) {
         this.watchStrategy = watchStrategy;
+        this.watchHandles = new HashMap<Path, Stoppable>();
     }
+
+    abstract public void enterRegistrationMode();
+
+    abstract public void exitRegistrationMode();
 
     abstract public void register(Iterable<T> watchItems) throws IOException;
 
     abstract public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier);
 
     protected void watchDirectory(Path path) throws IOException {
-        watchStrategy.watchSingleDirectory(path);
+        Stoppable stoppable = watchStrategy.watchSingleDirectory(path);
+        watchHandles.put(path, stoppable);
+    }
+
+    protected boolean isWatching(Path path) {
+        return watchHandles.containsKey(path);
+    }
+
+    protected void unwatchDirectory(Path path) {
+        Stoppable stoppable = watchHandles.remove(path);
+        if(stoppable != null) {
+            stoppable.stop();
+        }
     }
 
     // subclass hook for unit tests

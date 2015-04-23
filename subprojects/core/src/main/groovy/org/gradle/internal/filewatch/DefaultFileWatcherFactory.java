@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -28,36 +27,56 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultFileWatcherService implements FileWatcherService, Stoppable {
+public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
     private final ExecutorService executor;
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
-    private final FileWatcherService fileWatcherService;
-    private final static Logger LOG = Logging.getLogger(DefaultFileWatcherService.class);
+    private final FileWatcherFactory fileWatcherFactory;
+    private final static Logger LOG = Logging.getLogger(DefaultFileWatcherFactory.class);
 
-    private static class NoOpFileWatcherService implements FileWatcherService {
+    private static class NoOpFileWatcherFactory implements FileWatcherFactory {
         @Override
-        public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
-            return CompositeStoppable.NO_OP_STOPPABLE;
+        public FileWatcher createFileWatcher(Runnable callback) throws IOException {
+            return new FileWatcher() {
+                @Override
+                public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
+
+                }
+
+                @Override
+                public void enterRegistrationMode() {
+
+                }
+
+                @Override
+                public void exitRegistrationMode() {
+
+                }
+
+                @Override
+                public void stop() {
+
+                }
+            };
         }
     }
 
-    public DefaultFileWatcherService(ExecutorFactory executorFactory) {
-        this(JavaVersion.current(), DefaultFileWatcherService.class.getClassLoader(), executorFactory);
+    public DefaultFileWatcherFactory(ExecutorFactory executorFactory) {
+        this(JavaVersion.current(), DefaultFileWatcherFactory.class.getClassLoader(), executorFactory);
     }
 
-    DefaultFileWatcherService(JavaVersion javaVersion, ClassLoader classLoader, ExecutorFactory executorFactory) {
+    DefaultFileWatcherFactory(JavaVersion javaVersion, ClassLoader classLoader, ExecutorFactory executorFactory) {
         this.javaVersion = javaVersion;
         this.classLoader = classLoader;
         this.executor = executorFactory.create("filewatcher");
-        this.fileWatcherService = createFileWatcherService();
+        this.fileWatcherFactory = createFileWatcherFactory();
     }
 
-    protected FileWatcherService createFileWatcherService() {
+    protected FileWatcherFactory createFileWatcherFactory() {
         if(javaVersion.isJava7Compatible()) {
             Class clazz;
             try {
-                clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.DefaultFileWatcher");
+                clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
             } catch (ClassNotFoundException e) {
                 LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
@@ -65,7 +84,7 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
         }
         LOG.debug("Using no-op file watcher service.");
         // TODO: Maybe we'll eventually support Java 6
-        return new NoOpFileWatcherService();
+        return new NoOpFileWatcherFactory();
     }
 
     @Override
@@ -74,7 +93,7 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
     }
 
     @Override
-    public Stoppable watch(FileWatchInputs inputs, Runnable callback) throws IOException {
-        return fileWatcherService.watch(inputs, callback);
+    public FileWatcher createFileWatcher(Runnable callback) throws IOException {
+        return fileWatcherFactory.createFileWatcher(callback);
     }
 }

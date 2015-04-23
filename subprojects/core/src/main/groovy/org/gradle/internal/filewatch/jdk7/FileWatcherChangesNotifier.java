@@ -21,7 +21,7 @@ package org.gradle.internal.filewatch.jdk7;
  *
  * Quiet period handling is currently implemented in this class.
  *
- * {@link FileWatcherTask} will call the addPendingChange method for each change it notices.
+ * {@link DefaultFileWatcher.FileWatcherTask} will call the addPendingChange method for each change it notices.
  * At the end of the polling loop, it will call the handlePendingChanges method.
  * handlePendingChanges method will get called every time the poll times out in the watch loop of FileWatcherTask.
  *

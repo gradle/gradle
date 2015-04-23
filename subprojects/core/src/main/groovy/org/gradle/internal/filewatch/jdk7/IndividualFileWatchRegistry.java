@@ -19,34 +19,67 @@ package org.gradle.internal.filewatch.jdk7;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 class IndividualFileWatchRegistry extends WatchRegistry<File> {
     private final Map<Path, Set<File>> individualFilesByParentPath;
+    private final Set<File> liveFiles;
 
     IndividualFileWatchRegistry(WatchStrategy watchStrategy) {
         super(watchStrategy);
         individualFilesByParentPath = new HashMap<Path, Set<File>>();
+        liveFiles = new HashSet<File>();
     }
 
+    @Override
+    public void enterRegistrationMode() {
+        liveFiles.clear();
+    }
+
+    @Override
+    public void exitRegistrationMode() {
+        for(Iterator<Map.Entry<Path, Set<File>>> iterator = individualFilesByParentPath.entrySet().iterator(); iterator.hasNext();) {
+            Map.Entry<Path, Set<File>> entry = iterator.next();
+            Set<File> files = entry.getValue();
+            removeDeadFiles(files);
+            if(files.isEmpty()) {
+                unwatchDirectory(entry.getKey());
+                iterator.remove();
+            }
+        }
+    }
+
+    private void removeDeadFiles(Set<File> files) {
+        for(Iterator<File> iterator = files.iterator(); iterator.hasNext();) {
+            File file = iterator.next();
+            if(!liveFiles.contains(file)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    @Override
     public void register(Iterable<File> files) throws IOException {
+        Set<Path> addedParents = new HashSet<Path>();
         for (File file : files) {
+            liveFiles.add(file);
             Path parent = dirToPath(file.getParentFile());
             Set<File> children = individualFilesByParentPath.get(parent);
             if (children == null) {
                 children = new LinkedHashSet<File>();
                 individualFilesByParentPath.put(parent, children);
+                addedParents.add(parent);
             }
             children.add(file.getAbsoluteFile());
         }
-        for (Path parent : individualFilesByParentPath.keySet()) {
-            watchDirectory(parent);
+        for (Path parent : addedParents) {
+            if(!isWatching(parent)) {
+                watchDirectory(parent);
+            }
         }
     }
 
+    @Override
     public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
         Set<File> files = individualFilesByParentPath.get(changeDetails.getWatchedPath());
         if(files != null) {

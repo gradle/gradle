@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch.jdk7;
-
-import org.gradle.internal.concurrent.Stoppable;
+package org.gradle.internal.filewatch;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
-interface FileTreeWatchStrategy extends WatchStrategy {
-    Stoppable watchFileTree(Path path) throws IOException;
+public interface FileWatcherFactory {
+    FileWatcher createFileWatcher(Runnable callback) throws IOException;
 }

@@ -16,12 +16,14 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import org.gradle.internal.concurrent.Stoppable;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 interface WatchStrategy {
-    void watchSingleDirectory(Path path) throws IOException;
+    Stoppable watchSingleDirectory(Path path) throws IOException;
     boolean pollChanges(long timeout, TimeUnit unit, WatchHandler watchHandler) throws InterruptedException;
     void close();
 }
