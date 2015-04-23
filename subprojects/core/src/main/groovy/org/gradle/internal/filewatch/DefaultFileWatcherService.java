@@ -63,7 +63,7 @@ public class DefaultFileWatcherService implements FileWatcherService, Stoppable 
                 LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
             }
         }
-        LOG.warn("Using no-op file watcher service.");
+        LOG.debug("Using no-op file watcher service.");
         // TODO: Maybe we'll eventually support Java 6
         return new NoOpFileWatcherService();
     }
