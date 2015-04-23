@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.events.task.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
@@ -44,6 +45,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     public static class Builder {
         private final List<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
         private final List<TestProgressListener> testProgressListeners = new ArrayList<TestProgressListener>();
+        private final List<TaskProgressListener> taskProgressListeners = new ArrayList<TaskProgressListener>();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -137,6 +139,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             testProgressListeners.add(listener);
         }
 
+        public void addTaskProgressListener(TaskProgressListener listener) {
+            taskProgressListeners.add(listener);
+        }
+
         public void setCancellationToken(CancellationToken cancellationToken) {
             this.cancellationToken = cancellationToken;
         }
@@ -146,9 +152,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.progressListeners);
-            BuildProgressListenerAdapter testProgressListenerAdapter = new BuildProgressListenerAdapter(this.testProgressListeners);
+            BuildProgressListenerAdapter buildProgressListenerAdapter = new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners);
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
-                    progressListenerAdapter, testProgressListenerAdapter, cancellationToken);
+                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 

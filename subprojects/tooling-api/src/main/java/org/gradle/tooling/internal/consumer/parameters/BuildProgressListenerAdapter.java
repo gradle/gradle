@@ -15,38 +15,97 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.test.*;
-import org.gradle.tooling.events.test.internal.*;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.task.TaskFailureResult;
+import org.gradle.tooling.events.task.TaskFinishEvent;
+import org.gradle.tooling.events.task.TaskOperationDescriptor;
+import org.gradle.tooling.events.task.TaskOperationResult;
+import org.gradle.tooling.events.task.TaskProgressEvent;
+import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.task.TaskSkippedResult;
+import org.gradle.tooling.events.task.TaskStartEvent;
+import org.gradle.tooling.events.task.TaskSuccessResult;
+import org.gradle.tooling.events.task.internal.DefaultTaskFinishedEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
+import org.gradle.tooling.events.test.JvmTestKind;
+import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.TestFinishEvent;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationResult;
+import org.gradle.tooling.events.test.TestProgressEvent;
+import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.test.TestStartEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
+import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.events.*;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements InternalBuildProgressListener {
+class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
+    private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
     private final Map<Object, TestOperationDescriptor> testDescriptorCache = new HashMap<Object, TestOperationDescriptor>();
 
-    BuildProgressListenerAdapter(List<TestProgressListener> testListeners) {
+    BuildProgressListenerAdapter(List<TestProgressListener> testListeners, List<TaskProgressListener> taskListeners) {
         this.testProgressListeners.addAll(testListeners);
+        this.taskProgressListeners.addAll(taskListeners);
     }
 
     @Override
     public List<String> getSubscribedOperations() {
-        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(InternalBuildProgressListener.TEST_EXECUTION);
+        if (this.testProgressListeners.isEmpty() && this.taskProgressListeners.isEmpty()) {
+            return Collections.<String>emptyList();
+        }
+        if (this.taskProgressListeners.isEmpty()) {
+            return Collections.singletonList(InternalBuildProgressListener.TEST_EXECUTION);
+        } else if (this.testProgressListeners.isEmpty()) {
+            return Collections.singletonList(InternalTaskProgressListener.TASK_EXECUTION);
+        }
+        return Arrays.asList(InternalBuildProgressListener.TEST_EXECUTION, InternalTaskProgressListener.TASK_EXECUTION);
     }
 
     @Override
     public void onEvent(final Object event) {
         if (event instanceof InternalTestProgressEvent) {
             broadcastTestProgressEvent((InternalTestProgressEvent) event);
+        } else if (event instanceof InternalTaskProgressEvent) {
+            broadcastTaskProgressEvent((InternalTaskProgressEvent) event);
         }
     }
 
@@ -57,6 +116,23 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
         }
     }
 
+    private void broadcastTaskProgressEvent(InternalTaskProgressEvent event) {
+        TaskProgressEvent taskProgressEvent = toTaskProgressEvent(event);
+        if (taskProgressEvent != null) {
+            taskProgressListeners.getSource().statusChanged(taskProgressEvent);
+        }
+    }
+
+    private synchronized TaskProgressEvent toTaskProgressEvent(InternalTaskProgressEvent event) {
+        if (event instanceof InternalTaskStartedProgressEvent) {
+            return taskStartedEvent((InternalTaskStartedProgressEvent) event);
+        }
+        if (event instanceof InternalTaskFinishedProgressEvent) {
+            return taskFinishedEvent((InternalTaskFinishedProgressEvent) event);
+        }
+        return null;
+    }
+
     private synchronized TestProgressEvent toTestProgressEvent(final InternalTestProgressEvent event) {
         if (event instanceof InternalTestStartedProgressEvent) {
             return testStartedEvent((InternalTestStartedProgressEvent) event);
@@ -65,6 +141,133 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
         } else {
             return null;
         }
+    }
+
+    private TaskStartEvent taskStartedEvent(InternalTaskStartedProgressEvent event) {
+        TaskOperationDescriptor descriptor = toTaskDescriptor(event);
+        return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    }
+
+    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskStartedProgressEvent event) {
+        return new TaskOperationDescriptor() {
+            @Override
+            public String getTaskPath() {
+                return (String) event.getDescriptor().getId();
+            }
+
+            @Override
+            public String getState() {
+                return "started";
+            }
+
+            @Override
+            public String getName() {
+                return event.getDisplayName();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return event.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public OperationDescriptor getParent() {
+                return null;
+            }
+        };
+    }
+
+    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskFinishedProgressEvent event) {
+        return new TaskOperationDescriptor() {
+            @Override
+            public String getTaskPath() {
+                return (String) event.getDescriptor().getId();
+            }
+
+            @Override
+            public String getState() {
+                return event instanceof InternalTaskSkippedProgressEvent?"skipped":"finished";
+            }
+
+            @Override
+            public String getName() {
+                return event.getDisplayName();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return event.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public OperationDescriptor getParent() {
+                return null;
+            }
+        };
+    }
+
+    private TaskFinishEvent taskFinishedEvent(InternalTaskFinishedProgressEvent event) {
+        TaskOperationDescriptor descriptor = toTaskDescriptor(event);
+        return new DefaultTaskFinishedEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
+    }
+
+    private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
+        if (result instanceof InternalTaskSkippedResult) {
+            return new TaskSkippedResult() {
+                @Override
+                public boolean isUpToDate() {
+                    return ((InternalTaskSkippedResult) result).isUpToDate();
+                }
+
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+            };
+        }
+        if (result instanceof InternalTaskFailureResult) {
+            return new TaskFailureResult() {
+                @Override
+                public List<? extends Failure> getFailures() {
+                    InternalFailure failure = result.getFailure();
+                    if (failure == null) {
+                        return Collections.emptyList();
+                    }
+                    return Collections.singletonList(toFailure(failure));
+                }
+
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+            };
+        }
+        if (result instanceof InternalTaskSuccessResult) {
+            return new TaskSuccessResult() {
+                @Override
+                public long getStartTime() {
+                    return result.getStartTime();
+                }
+
+                @Override
+                public long getEndTime() {
+                    return result.getEndTime();
+                }
+            };
+        }
+        return null;
     }
 
     private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {

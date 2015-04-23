@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.events.task.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
@@ -85,6 +86,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     public T addTestProgressListener(TestProgressListener listener) {
         operationParamsBuilder.addTestProgressListener(listener);
+        return getThis();
+    }
+
+    public T addTaskProgressListener(TaskProgressListener listener) {
+        operationParamsBuilder.addTaskProgressListener(listener);
         return getThis();
     }
 

@@ -38,6 +38,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -99,8 +100,9 @@ public class ProviderConnection {
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
         boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-        BuildEventConsumer buildEventConsumer = listenToTestProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress);
+        boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalTaskProgressListener.TASK_EXECUTION);
+        BuildEventConsumer buildEventConsumer = listenToTestProgress || listenToTaskProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress);
         return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
     }
 
@@ -192,7 +194,7 @@ public class ProviderConnection {
 
         @Override
         public void dispatch(Object event) {
-            if (event instanceof InternalTestProgressEvent) {
+            if (event instanceof InternalTestProgressEvent || event instanceof InternalTaskProgressEvent) {
                 this.buildProgressListener.onEvent(event);
             }
         }

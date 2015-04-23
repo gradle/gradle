@@ -49,6 +49,10 @@ public class BuildModelActionRunner implements BuildActionRunner {
             BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
             gradle.addListener(new ClientForwardingTestListener(eventConsumer));
         }
+        if (buildModelAction.isSendTaskProgressEvents()) {
+            BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+            gradle.addListener(new ClientForwardingTaskListener(eventConsumer));
+        }
 
         if (buildModelAction.isRunTasks()) {
             buildController.run();
