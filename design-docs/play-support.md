@@ -549,6 +549,7 @@ See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4
     - Similar to what the spike did
     - Build loop delegates to wrapped BuildActionExecuter
     - After build, executor waits for a trigger from somewhere else
+- On Ctrl+C, Gradle exits and cancels build.
 
 ```
 pseudo:
@@ -593,18 +594,13 @@ def triggered(TriggerDetails) {
 - ~~If Gradle build succeeds, we wait for trigger and print some sort of helpful message.~~
 - ~~If Gradle build fails, we still wait for trigger.~~
 - ~~Configuration errors should be treated in the same way as execution failures.~~
-- On Ctrl+C, Gradle exits and cancels build.
 - ~~When "trigger" is tripped, a build runs.~~
+- ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
+- ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
 - Test coverage that watch mode works through the tooling API
     - Client receives logging output, progress events and test events from each build execution until cancelled.
     - Client receives ‘cancelled’ exception when cancelled.
     - Cannot use watch mode when requesting a model or running a build action.
-- ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
-- ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
-
-#### Open Issues
-
-- NA
 
 ### Story: Continuous Gradle mode triggered by file change
 
@@ -615,7 +611,7 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 - Watch project directory (`projectDir`) for changes to trigger re-run
 - Add `FileWatchService` that can be given Files to watch
 - When files change, mark the file as out of date
-- Re-run trigger polls the watch service for changes at some default rate ("quiet mode")
+- Re-run trigger polls the watch service for changes at some default rate ("quiet period")
 - ~~Ignore build/ .gradle/ etc files.~~
 
 #### Test Coverage
@@ -626,7 +622,7 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 
 - Use JDK7+ WatchService ~~The implementation for Java 1.7 `java.nio.file.WatchService` in Java 7 or even Java 8 isn't using a native file notification OS API on MacOSX. ([details](http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else), [JDK-7133447]( https://bugs.openjdk.java.net/browse/JDK-7133447), [openjdk mailing list](http://mail.openjdk.java.net/pipermail/nio-dev/2014-August/002691.html)) This doesn't scale to 1000s of input files. There are several [native file notification OS API wrappers for Java](http://wiki.netbeans.org/NativeFileNotifications) if performance is an issue. However there isn't a well-maintained file notification library with a suitable license. Play framework uses [JNotify](http://jnotify.sourceforge.net) [for native file notifications on MacOSX](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L77-L88). JNotify is a dead project hosted in Sourceforge and not even available in maven central or jcenter. It looks like it's only available in Typesafe's maven repository.~~
     
-- Just Fail ~~Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .~~
+- Just Fail for JDK6 (see Story above) ~~Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .~~
 
 ### Story: Continuous Gradle mode triggered by task input changes
 
@@ -642,20 +638,21 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 - Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
 - Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete. This requirement will be handled by starting the file watching in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
 
-#### Out of scope
-
-- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
-  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
-
 #### Test Coverage
 
 - Changing a source file triggers a build.
 - Adding/removing a file in a source directory triggers a build.
 - Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
+- Changing a source file to a task that was not selected should not trigger a build.
+- Adding/removing a file to a task that was not selected should not trigger a build.
+- Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
+- Changing a source file that is an input to two or more tasks should trigger a build.
+- Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src', include: "**/*.java")` should not trigger a build when foo.bar changes)
 
-#### Open Issues
+### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
-- "Should stop watching for changes while the build is running." requirement was conflicting and therefore removed. 
+- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
+  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
   - Stopping watching during each build would add a lot of overhead in removing all watches and re-adding them back again.
 
 ### Story: Continuous Gradle mode rebuilds if inputs to the model change
@@ -664,19 +661,20 @@ Monitor files that are inputs to the model for changes too.
 
 TBD
 
-### Additional Notes 
+### Open Issues
 
 TODO: See if these make sense incorporated in another story/Feature.
 
 - When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
 - If previous build started any service, stop that service before rebuilding.
-- Uses Gradle daemon to run build.
 - Collect up all input files as build runs.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 - Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
 - Just use Java 7 watcher for now. We can improve performance on OS X and Windows later. 
     - Do this by adding stuff to native-platform. Could potentially spit out a warning on these platforms.
 - Fail when running on Java 6. We can fix this by using native-platform later, rather than polling.
+- Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task. 
+- What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
 
 ## Feature: Keep running Play application up-to-date when source changes
 
@@ -691,47 +689,87 @@ Note that this story does not address reloading the application when source file
 
 ```gradle
 model {
-    deployments {
-        // one per Play application
-        play(WebApplicationDeployment) {
-            httpPort
-            forkOptions
+    components {
+        play(PlayApplicationSpec) {
+            deployments {
+                dev(PlayDevApplicationDeployment) {
+                    httpPort
+                    forkOptions
+                }
+            }
         }
     }
 }
 ```
 
-Web application plugin:
+Base deployment plugin:
 
-- Defines the concept of a 'web application'.
-- Defines the concept of a 'web deployment': a web application hosted by a web server
-- Defines `run` lifecycle task for a deployment
+- Defines the concept of a 'deployable component'
+- Defines the concept of a 'deployment' that can be owned by a deployable component
+- Defines `run` lifecycle task for a deployment.
+
+Web application plugin: 
+
+- Defines the concept of a 'web application' as a deployable component.
+- Defines the concept of a 'web deployment': a web application hosted by a web server.
 
 Play plugin:
 
-- Defines a Play application as-a web application
-- Defines a ${deployment}Run task for starting and deploying application.
-- Configures `run` to depend on ${deployment}Run and ${deployment}Run to depend on the output of the play application.
+- Defines a Play application as-a web application.
+- Adds a 'dev' PlayDevApplicationDeployment automatically for each play component.
+- Defines a ${component}${deployment}Run task for starting and deploying application.
+- Configures `run` to depend on ${component}${deployment}Run and ${component}${deployment}Run to depend on the output of the play application.
 
-When the Run task is executed for a deployment, Gradle will:
+When the Run task is executed for a deployment for a PlayDevApplicationDeployment, Gradle will:
 
 - Build the web application
 - Start the web server
 - Deploy the web application to the web server
-- Add the running deployment to the container of 'running deployments' for the build
+
+Component Model Report might look like this:
+
+    project (aka 'model')
+    +-- components
+    |   +-- <component-name>
+    |       +-- deployments
+    |           +-- <deployment-name>
+    |               +-- configuration (port, etc)
+    |               +-- tasks
+    |                   +-- start
+    |                   +-- run
+    |                   +-- stop   
+
+#### Test Coverage
+
+- When play plugin is applied, a deployment is created for each play component (named 'dev').
+- When play plugin is applied, a Run task is created for each deployment
+    - 'run' lifecycle task depends on each Run task
+    - Run task depends on Play application output
+- Component report shows deployments for components and tasks for start/stop/run
+- Jetty plugin should be made to take advantage of this to make the integration tests faster
+- User can configure deployments for each component
 
 #### Open issues
 
-- Modelling for deployment hosts
-- Modelling of more general 'long-lived processes'
+- Modelling for deployment hosts -- this story focuses on getting some concepts in place for recreating the existing PlayRun task.
+- Keeping track of 'long-lived processes' between Gradle builds in 'continuous mode' and at end of builds.
+- Add the running deployment to the container of 'running deployments' for the build
 
 ### Story: Gradle build stops any running deployments on exit
 
 At the end of the build, Gradle will check to see if there are any running deployments. 
-If so, it will wait for Ctrl-C before stopping each deployment and exiting.
+If so, it will wait for Ctrl+C before stopping each deployment and exiting.
 This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
 
-When run in continuous mode, all running deployments should be stopped before re-executing the build.
+When run in continuous mode, all running deployments should be stopped before re-executing the build.  This is a half-way measure until we can have reloadable applications.
+
+#### Test Coverage
+
+- Print useful messages to the user and that tells them what's running 
+    - PID, Component Name/Deployment Name, type-specific description
+    - Tell the user how to stop 
+- Tooling API coverage for clean-up of deployments
+- Tooling API coverage for a running deployment (what does this look like, a hung build?)
 
 ### Story: Gradle does not restart reloadable deployments when re-executing a build in continuous mode
 
@@ -744,6 +782,16 @@ deployment implementation will not be reloadable.
 #### Open Issues
 
 - New reloadable Jetty plugin that will reload changed content when run in continuous mode
+
+### Story: Domain model for web hosts
+
+- For play, this isn’t super important. The host and deployment are bolted pretty tightly together. What we do have is at this point is:
+    - A web application deployment is a running application usable at an endpoint.
+    - For a play application deployment (which is-a web application) the play server is-an executable thing that provides the deployment. See the ‘managed component model’ spec for other kinds of executable things. The play container can be started/stopped/restarted and this implicitly starts/stops/restarts the deployment. This is just one of several patterns, and isn’t true of all deployments or all hosts.
+- For jee + jetty:
+    - Jetty is an executable thing that can host jee web apps. For each such hosted web app, Jetty provides a web app deployment.
+    - A jee web app has a bunch of deployments defined, that define where (the endpoint) but not how (use Jetty).
+    - A resolution process takes the deployment definitions and wires up Jetty appropriately.
 
 ### Story: Play application reloads content on browser refresh
 
