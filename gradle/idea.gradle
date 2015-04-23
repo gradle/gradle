@@ -234,6 +234,7 @@ idea {
 
         node.append(new XmlParser().parseText('''
             <component name="CompilerWorkspaceConfiguration">
+              <option name="COMPILER_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Dgroovyc.in.process=false" />
               <option name="USE_COMPILE_SERVER" value="false" />
             </component>
         '''))
