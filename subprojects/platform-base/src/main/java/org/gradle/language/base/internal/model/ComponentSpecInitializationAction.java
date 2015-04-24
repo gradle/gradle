@@ -62,4 +62,26 @@ public class ComponentSpecInitializationAction implements BiAction<MutableModelN
                         .build()
         );
     }
+
+
+    /**
+     * Simple action has no fields so same class type results in equals true
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * as we have no fields here we just calculate hash by class identify
+     * */
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

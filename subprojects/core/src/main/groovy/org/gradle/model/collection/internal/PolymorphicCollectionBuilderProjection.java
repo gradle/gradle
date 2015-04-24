@@ -59,8 +59,13 @@ public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilder
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
 
-        return super.equals(o);
+        PolymorphicCollectionBuilderProjection<?> that = (PolymorphicCollectionBuilderProjection<?>) o;
+
+        return !(initializer != null ? !initializer.equals(that.initializer) : that.initializer != null);
     }
 
     @Override
