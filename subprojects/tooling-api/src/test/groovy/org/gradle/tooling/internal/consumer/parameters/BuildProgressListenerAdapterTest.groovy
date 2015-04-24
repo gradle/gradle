@@ -19,9 +19,22 @@ package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskProgressListener
+import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskStartEvent
+import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult
+import org.gradle.tooling.internal.protocol.events.InternalTaskFinishedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult
+import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent
@@ -38,19 +51,48 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = new BuildProgressListenerAdapter([],[])
 
         then:
-        adapter.getSubscribedOperations() == []
+        adapter.subscribedOperations == []
 
         when:
-        final TestProgressListener listener = Mock(TestProgressListener)
+        TestProgressListener listener = Mock()
         adapter = new BuildProgressListenerAdapter([listener],[])
 
         then:
-        adapter.getSubscribedOperations() == [InternalBuildProgressListener.TEST_EXECUTION]
+        adapter.subscribedOperations == [InternalBuildProgressListener.TEST_EXECUTION]
     }
 
-    def "only TestProgressEventVersionX instances are processed"() {
+    def "adapter is only subscribing to task progress events if at least one task progress listener is attached"() {
+        when:
+        def adapter = new BuildProgressListenerAdapter([],[])
+
+        then:
+        adapter.subscribedOperations == []
+
+        when:
+        TaskProgressListener listener = Mock()
+        adapter = new BuildProgressListenerAdapter([],[listener])
+
+        then:
+        adapter.subscribedOperations == [InternalTaskProgressListener.TASK_EXECUTION]
+    }
+
+    def "adapter can subscribe to both test and task progress events"() {
+        when:
+        def adapter = new BuildProgressListenerAdapter([],[])
+
+        then:
+        adapter.subscribedOperations == []
+
+        when:
+        adapter = new BuildProgressListenerAdapter([Mock(TestProgressListener)],[Mock(TaskProgressListener)])
+
+        then:
+        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION,InternalTaskProgressListener.TASK_EXECUTION] as Set
+    }
+
+    def "only TestProgressEventX instances are processed if a test listener is added"() {
         given:
-        final TestProgressListener listener = Mock(TestProgressListener)
+        TestProgressListener listener = Mock()
         def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
@@ -60,13 +102,38 @@ class BuildProgressListenerAdapterTest extends Specification {
         0 * listener.statusChanged(_)
     }
 
-    def "only TestProgressEventVersionX instances of known type are processed"() {
+   def "only TaskProgressEventX instances are processed if a task listener is added"() {
         given:
-        final TestProgressListener listener = Mock(TestProgressListener)
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        adapter.onEvent(new Object())
+
+        then:
+        0 * listener.statusChanged(_)
+    }
+
+    def "only TestProgressEventX instances of known type are processed"() {
+        given:
+        TestProgressListener listener = Mock()
         def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def unknownEvent = Mock(InternalTestProgressEvent)
+        adapter.onEvent(unknownEvent)
+
+        then:
+        0 * listener.statusChanged(_)
+    }
+
+    def "only TaskProgressEventX instances of known type are processed"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def unknownEvent = Mock(InternalTaskProgressEvent)
         adapter.onEvent(unknownEvent)
 
         then:
@@ -96,6 +163,29 @@ class BuildProgressListenerAdapterTest extends Specification {
         e.message.contains('already available')
     }
 
+    def "conversion of start events throws exception if previous start event with same task descriptor exists"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        adapter.onEvent(startEvent)
+        adapter.onEvent(startEvent)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains('already available')
+    }
+
     def "conversion of non-start events throws exception if no previous start event with same test descriptor exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
@@ -110,6 +200,28 @@ class BuildProgressListenerAdapterTest extends Specification {
         def skippedEvent = Mock(InternalTestFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> testDescriptor
+
+        adapter.onEvent(skippedEvent)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains('not available')
+    }
+
+    def "conversion of non-start events throws exception if no previous start event with same task descriptor exists"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ":dummy"
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
+        _ * skippedEvent.getEventTime() >> 999
+        _ * skippedEvent.getDescriptor() >> taskDescriptor
 
         adapter.onEvent(skippedEvent)
 
@@ -171,7 +283,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         notThrown(IllegalStateException)
     }
 
-    def "convert all JvmTestDescriptorVersion1 attributes"() {
+    def "convert all InternalJvmTestDescriptor attributes"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = new BuildProgressListenerAdapter([listener],[])
@@ -208,6 +320,35 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
+    def "convert all InternalTaskDescriptor attributes"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ":someTask"
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getDisplayName() >> 'some task in human readable form'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.displayName == 'some task in human readable form'
+            assert event.descriptor.parent == null
+        }
+    }
+
     def "convert to TestSuiteStartedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
@@ -228,11 +369,38 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as TestStartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite started"
             assert event.descriptor.name == 'some test suite'
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
+            assert event.descriptor.parent == null
+        }
+    }
+
+    def "convert to TaskStartEvent"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDisplayName() >> 'task started'
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        adapter.onEvent(startEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task started"
+            assert event.descriptor.name == 'some task'
             assert event.descriptor.parent == null
         }
     }
@@ -279,6 +447,48 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
+    def "convert to TaskSkippedEvent"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        def testResult = Mock(InternalTaskSkippedResult)
+        _ * testResult.getStartTime() >> 1
+        _ * testResult.getEndTime() >> 2
+        _ * testResult.isUpToDate() >> true
+
+        def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
+        _ * skippedEvent.getEventTime() >> 999
+        _ * skippedEvent.getDisplayName() >> 'task skipped'
+        _ * skippedEvent.getDescriptor() >> taskDescriptor
+        _ * skippedEvent.getResult() >> testResult
+
+        adapter.onEvent(startEvent) // skippedEvent always assumes a previous startEvent
+        adapter.onEvent(skippedEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task skipped"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.parent == null
+            assert event.result instanceof TaskSkippedResult
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
+            assert event.result.upToDate == true
+        }
+    }
+
     def "convert to TestSuiteSucceededEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
@@ -316,6 +526,46 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
             assert event.result instanceof TestSuccessResult
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
+        }
+    }
+
+    def "convert to TaskSucceededEvent"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        def testResult = Mock(InternalTaskSuccessResult)
+        _ * testResult.getStartTime() >> 1
+        _ * testResult.getEndTime() >> 2
+
+        def succeededEvent = Mock(InternalTaskFinishedProgressEvent)
+        _ * succeededEvent.getEventTime() >> 999
+        _ * succeededEvent.getDisplayName() >> 'task succeeded'
+        _ * succeededEvent.getDescriptor() >> taskDescriptor
+        _ * succeededEvent.getResult() >> testResult
+
+        adapter.onEvent(startEvent) // succeededEvent always assumes a previous startEvent
+        adapter.onEvent(succeededEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task succeeded"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.parent == null
+            assert event.result instanceof TaskSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
         }
@@ -359,6 +609,48 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
             assert event.result instanceof TestFailureResult
+            assert event.result.startTime == 1
+            assert event.result.endTime == 2
+            assert event.result.failures.size() == 1
+        }
+    }
+
+    def "convert to TaskFailedEvent"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = new BuildProgressListenerAdapter([],[listener])
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        def testResult = Mock(InternalTaskFailureResult)
+        _ * testResult.getStartTime() >> 1
+        _ * testResult.getEndTime() >> 2
+        _ * testResult.getFailure() >> Stub(InternalFailure)
+
+        def failedEvent = Mock(InternalTaskFinishedProgressEvent)
+        _ * failedEvent.getEventTime() >> 999
+        _ * failedEvent.getDisplayName() >> 'task failed'
+        _ * failedEvent.getDescriptor() >> taskDescriptor
+        _ * failedEvent.getResult() >> testResult
+
+        adapter.onEvent(startEvent) // failedEvent always assumes a previous startEvent
+        adapter.onEvent(failedEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task failed"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.parent == null
+            assert event.result instanceof TaskFailureResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
