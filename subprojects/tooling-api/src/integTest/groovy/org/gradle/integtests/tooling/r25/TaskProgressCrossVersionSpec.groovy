@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -274,165 +275,48 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         ]
     }
 
-    /*
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "task progress event ids are unique across multiple task workers"() {
+    def "task progress event can be received if tasks are executed in parallel"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-            test.maxParallelForks = 2
-        """
 
-        file("src/test/java/example/MyTest1.java") << """
-            package example;
-            public class MyTest1 {
-                @org.junit.Test public void alpha() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void beta() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void gamma() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void delta() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
+            @ParallelizableTask
+            class ParTask extends DefaultTask {
+                @TaskAction zzz() { Thread.sleep(1000) }
             }
-        """
-        file("src/test/java/example/MyTest2.java") << """
-            package example;
-            public class MyTest2 {
-                @org.junit.Test public void one() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void two() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void three() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void four() throws Exception {
-                     Thread.sleep(100);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
+
+            task para1(type:ParTask)
+            task para2(type:ParTask)
+            task parallelSleep(dependsOn:[para1,para2])
         """
 
         when:
-        Queue<TaskProgressEvent> result = new ConcurrentLinkedQueue<TaskProgressEvent>()
+        List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild()
+                        .withArguments("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true",'--parallel','--max-workers=2')
+                        .forTasks('parallelSleep')
+                        .addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
                     result << event
                 }.run()
         }
 
-        then: "start and end event is sent for each node in the test tree"
-        result.size() % 2 == 0                // same number of start events as finish events
-        result.size() == 2 * (1 + 2 + 2 + 8)  // 1 root suite, 2 test processes, 2 tests classes, 8 tests (each with a start and finish event)
+        then:
+        result.size() == 2 * tasks.size()
+        assertUnorderedEvents(result, tasks)
 
-        then: "each node in the test tree has its own description"
-        result.collect { it.descriptor }.toSet().size() == 13
-
-        then: "number of nodes under the root suite is equal to the number of test worker processes"
-        result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
+        where:
+        tasks = [
+                para1        : ['started', 'succeeded'],
+                para2        : ['started', 'succeeded'],
+                parallelSleep: ['started', 'succeeded']
+        ]
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
-    @NotYetImplemented
-    def "task progress event ids are unique across multiple tasks, even when run in parallel"() {
-        given:
-        projectDir.createFile('settings.gradle') << """
-            include ':sub1'
-            include ':sub2'
-        """
-        projectDir.createFile('build.gradle')
-
-        [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
-            it.file('build.gradle') << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true
-            test.maxParallelForks = 2
-            test.ignoreFailures = true
-        """
-            it.file("src/test/java/sub/MyUnitTest1${index}.java") << """
-            package sub;
-            public class MyUnitTest1$index {
-                @org.junit.Test public void alpha() throws Exception {
-                     Thread.sleep(300);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void beta() throws Exception {
-                     Thread.sleep(1000);
-                     org.junit.Assert.assertEquals(2, 1);
-                }
-            }
-        """
-            it.file("src/test/java/sub/MyUnitTest2${index}.java") << """
-            package sub;
-            public class MyUnitTest2$index {
-                @org.junit.Test public void one() throws Exception {
-                     Thread.sleep(1000);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void two() throws Exception {
-                     Thread.sleep(300);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void three() throws Exception {
-                     Thread.sleep(300);
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void four() throws Exception {
-                     Thread.sleep(300);
-                     org.junit.Assert.assertEquals(3, 1);
-                }
-            }
-        """
-        }
-
-        when:
-        Queue<TaskProgressEvent> result = new ConcurrentLinkedQueue<TaskProgressEvent>()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.withArguments('--parallel').run()
-        }
-
-        then: "start and end event is sent for each node in the test tree"
-        result.size() % 2 == 0                    // same number of start events as finish events
-        result.size() == 2 * 2 * (1 + 2 + 2 + 6)  // two test tasks with each: 1 root suite, 2 test processes, 2 tests classes, 6 tests (each with a start and finish event)
-
-        then: "each node in the test tree has its own description"
-        result.collect { it.descriptor }.toSet().size() == 2 * 11
-
-        then: "number of nodes under the root suite is equal to the number of test worker processes"
-        result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 2 root suites with no further parent (start & finish events)
-
-        then: "names for root suites and worker suites are consistent"
-        result.findAll { it.descriptor.name =~ 'Gradle Test Run :sub[1|2]:test' }.toSet().size() == 4  // 2 root suites for 2 tasks (start & finish events)
-        result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
-    }
-
+    /*
     @TargetGradleVersion('>=2.5')
     @ToolingApiVersion('>=2.5')
     @NotYetImplemented
@@ -484,14 +368,30 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    private static void assertUnorderedEvents(List<TaskProgressEvent> events, Map<String, List<String>> tasks) {
+        assertEvents(events, tasks, false)
+    }
+
     private static void assertOrderedEvents(List<TaskProgressEvent> events, Map<String, List<String>> tasks) {
+        assertEvents(events, tasks, true)
+    }
+
+    private static void assertEvents(List<TaskProgressEvent> events, Map<String, List<String>> tasks, boolean ordered) {
         int idx = 0
         long oldEndTime = 0
+        if (!ordered) {
+            // reorder events to make sure we can test that all events have their expected
+            // outputs
+            events = events.sort { it.descriptor.taskPath }
+        }
+
         tasks.each { path, List<String> states ->
             states.each { state ->
                 def event = events[idx]
                 assert event.eventTime > 0
-                assert event.eventTime >= oldEndTime
+                if (ordered) {
+                    assert event.eventTime >= oldEndTime
+                }
                 if (path.startsWith(':')) {
                     assert event.descriptor.taskPath == path
                 } else {
@@ -504,27 +404,35 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                     case 'up-to-date':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSkippedResult
-                        assert event.result.startTime >= oldEndTime
+                        if (ordered) {
+                            assert event.result.startTime >= oldEndTime
+                        }
                         assert event.result.endTime >= event.result.startTime
                         assert event.result.upToDate
                         break
                     case 'skipped':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSkippedResult
-                        assert event.result.startTime >= oldEndTime
+                        if (ordered) {
+                            assert event.result.startTime >= oldEndTime
+                        }
                         assert event.result.endTime >= event.result.startTime
                         assert !event.result.upToDate
                         break
                     case 'succeeded':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSuccessResult
-                        assert event.result.startTime >= oldEndTime
+                        if (ordered) {
+                            assert event.result.startTime >= oldEndTime
+                        }
                         assert event.result.endTime >= event.result.startTime
                         break
                     case 'failed':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskFailureResult
-                        assert event.result.startTime >= oldEndTime
+                        if (ordered) {
+                            assert event.result.startTime >= oldEndTime
+                        }
                         assert event.result.endTime >= event.result.startTime
                         break
                     default:
