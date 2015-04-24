@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.tasks;
 
 /**
- * An {@code AntBuilderAware} represents an object which can add itself to Ant tasks, using an
- * {@link org.gradle.api.AntBuilder}.
+ * An {@code AntBuilderAware} represents an object which can add itself to Ant tasks, using an {@link org.gradle.api.AntBuilder}.
  */
-interface AntBuilderAware {
-    def addToAntBuilder(node, String childNodeName)
+public interface AntBuilderAware {
+    Object addToAntBuilder(Object node, String childNodeName);
 }
