@@ -162,7 +162,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
             @Override
             public String getName() {
-                return event.getDisplayName();
+                return event.getDescriptor().getName();
             }
 
             @Override
@@ -192,7 +192,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
             @Override
             public String getName() {
-                return event.getDisplayName();
+                return event.getDescriptor().getName();
             }
 
             @Override

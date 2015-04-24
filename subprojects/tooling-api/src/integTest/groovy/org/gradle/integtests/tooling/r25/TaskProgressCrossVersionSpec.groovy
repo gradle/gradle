@@ -488,8 +488,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         tasks.each { path, List<String> states ->
             states.each { state ->
                 def event = events[idx]
-                assert event.descriptor.taskPath =~ path
-                assert event.displayName =~ state
+                if (path.startsWith(':')) {
+                    assert event.descriptor.taskPath ==path
+                } else {
+                    assert event.descriptor.name == path
+                }
                 idx++
             }
         }
