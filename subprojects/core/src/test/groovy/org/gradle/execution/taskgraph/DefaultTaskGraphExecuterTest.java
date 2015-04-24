@@ -558,6 +558,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(outputs));
             allowing(outputs).getFiles();
             will(returnValue(root.files()));
+            atMost(1).of(state).setStartTime(with(any(long.class)));
+            atMost(1).of(state).setEndTime(with(any(long.class)));
         }});
     }
 
