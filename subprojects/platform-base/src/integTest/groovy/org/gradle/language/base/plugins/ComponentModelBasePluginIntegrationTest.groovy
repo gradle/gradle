@@ -61,12 +61,12 @@ class ComponentModelBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addComponent(CollectionBuilder<ComponentSpec> components) {
+                void addComponent(ComponentSpecContainer components) {
                     components.create("test", ComponentSpecInternal)
                 }
 
                 @Mutate
-                void addValidateTask(CollectionBuilder<Task> tasks, CollectionBuilder<ComponentSpec> components) {
+                void addValidateTask(CollectionBuilder<Task> tasks, ComponentSpecContainer components) {
                     tasks.create("validate") {
                         doLast {
                             println "components.test.sources.test: ${components.test.sources.test.getClass().simpleName}"

@@ -27,14 +27,12 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -76,12 +74,12 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        CollectionBuilder<ComponentSpec> componentSpecs = getModelRegistry().find(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(ComponentSpec.class));
+        ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
         if (componentSpecs != null) {
             Iterables.addAll(components, componentSpecs);
         }
 
-        CollectionBuilder<TestSuiteSpec> testSuites = getModelRegistry().find(ModelPath.path("testSuites"), DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
+        ComponentSpecContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(ComponentSpecContainer.class));
         if (testSuites != null) {
             Iterables.addAll(components, testSuites);
         }
