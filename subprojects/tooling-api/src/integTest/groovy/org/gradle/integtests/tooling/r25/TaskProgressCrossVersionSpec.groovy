@@ -17,19 +17,18 @@
 
 package org.gradle.integtests.tooling.r25
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
+import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskStartEvent
+import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-import java.util.concurrent.ConcurrentLinkedQueue
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
@@ -172,14 +171,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 classes             : ['started', 'up-to-date'],
                 compileTestJava     : ['started', 'succeeded'],
                 processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'up-to-date'],
+                testClasses         : ['started', 'up-to-date'], // not sure why this is up-to-date, although the log says that it did something
                 test                : ['started', 'succeeded']
         ]
     }
 
     /*@ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    @NotYetImplemented
     def "receive task progress events for failed test run"() {
         given:
         buildFile << """
@@ -489,9 +487,34 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
             states.each { state ->
                 def event = events[idx]
                 if (path.startsWith(':')) {
-                    assert event.descriptor.taskPath ==path
+                    assert event.descriptor.taskPath == path
                 } else {
                     assert event.descriptor.name == path
+                }
+                switch (state) {
+                    case 'started':
+                        assert event instanceof TaskStartEvent
+                        break
+                    case 'up-to-date':
+                        assert event instanceof TaskFinishEvent
+                        assert event.result instanceof TaskSkippedResult
+                        assert event.result.upToDate
+                        break
+                    case 'skipped':
+                        assert event instanceof TaskFinishEvent
+                        assert event.result instanceof TaskSkippedResult
+                        assert !event.result.upToDate
+                        break
+                    case 'succeeded':
+                        assert event instanceof TaskFinishEvent
+                        assert event.result instanceof TaskSuccessResult
+                        break
+                    case 'failed':
+                        assert event instanceof TaskFinishEvent
+                        assert event.result instanceof TaskFailureResult
+                        break
+                    default:
+                        throw new RuntimeException("Illegal state [$state]. Please check your test.")
                 }
                 idx++
             }

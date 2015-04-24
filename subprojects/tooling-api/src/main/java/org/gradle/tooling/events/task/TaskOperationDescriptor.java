@@ -26,6 +26,4 @@ import org.gradle.tooling.events.OperationDescriptor;
 @Incubating
 public interface TaskOperationDescriptor extends OperationDescriptor {
     String getTaskPath();
-
-    String getState();
 }
