@@ -20,6 +20,7 @@
       <version>1.0</version>
       <type>zip</type>
       <scope>provided</scope>
+      <optional>false</optional>
     </dependency>
     <dependency>
       <groupId>group4</groupId>
@@ -27,24 +28,28 @@
       <version>1.0</version>
       <type>war</type>
       <scope>provided</scope>
+      <optional>false</optional>
     </dependency>
     <dependency>
       <groupId>group6</groupId>
       <artifactId>testRuntime</artifactId>
       <version>1.0</version>
       <scope>test</scope>
+      <optional>false</optional>
     </dependency>
     <dependency>
       <groupId>group2</groupId>
       <artifactId>providedCompile</artifactId>
       <version>1.0</version>
       <scope>provided</scope>
+      <optional>false</optional>
     </dependency>
     <dependency>
       <groupId>group1</groupId>
       <artifactId>compile</artifactId>
       <version>1.0</version>
       <scope>compile</scope>
+      <optional>false</optional>
       <exclusions>
         <exclusion>
           <artifactId>excludeArtifact</artifactId>
@@ -63,12 +68,14 @@
           <groupId>excludeGroup2</groupId>
         </exclusion>
       </exclusions>
+      <optional>false</optional>
     </dependency>
     <dependency>
       <groupId>group5</groupId>
       <artifactId>testCompile</artifactId>
       <version>1.0</version>
       <scope>test</scope>
+      <optional>false</optional>
     </dependency>
   </dependencies>
 </project>

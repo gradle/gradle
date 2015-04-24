@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.gradle.mvn3.org.apache.maven.settings.Settings;
-import org.gradle.mvn3.org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.building.SettingsBuildingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

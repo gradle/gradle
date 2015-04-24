@@ -16,7 +16,6 @@
 
 package org.gradle.api.publication.maven.internal.wagon;
 
-
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.TransferFailedException;
@@ -227,6 +226,16 @@ public class RepositoryTransportDeployWagon implements Wagon {
 
     @Override
     public final int getTimeout() {
+        return 0;
+    }
+
+    @Override
+    public final void setReadTimeout(int i) {
+
+    }
+
+    @Override
+    public final int getReadTimeout() {
         return 0;
     }
 

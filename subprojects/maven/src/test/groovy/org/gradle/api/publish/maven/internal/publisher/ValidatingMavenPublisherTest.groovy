@@ -22,7 +22,7 @@ import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
-import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification

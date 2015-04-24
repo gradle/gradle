@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal.deployer;
 
 import groovy.lang.Closure;
+
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -37,7 +38,7 @@ import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMeta
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.mvn3.org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.building.SettingsBuildingException;
 
 import java.io.File;
 import java.util.Set;

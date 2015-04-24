@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal.deployer;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -41,8 +42,6 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     // todo remove this property once configuration can handle normal file system dependencies
     private List<File> protocolProviderJars = new ArrayList<File>();
 
-    private boolean uniqueVersion = true;
-
     public BaseMavenDeployer(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager,
                              MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
@@ -51,7 +50,6 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile);
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
-        deployAction.setUniqueVersion(isUniqueVersion());
         deployAction.setRepositories(remoteRepository, remoteSnapshotRepository);
         for (File wagonProviderJar : getJars()) {
             deployAction.addWagonJar(wagonProviderJar);
@@ -92,10 +90,12 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     public boolean isUniqueVersion() {
-        return uniqueVersion;
+        return true;
     }
 
     public void setUniqueVersion(boolean uniqueVersion) {
-        this.uniqueVersion = uniqueVersion;
+        if (!uniqueVersion) {
+            throw new GradleException("This Gradle version does not support deployment of non-unique snapshot versions");
+        }
     }
 }

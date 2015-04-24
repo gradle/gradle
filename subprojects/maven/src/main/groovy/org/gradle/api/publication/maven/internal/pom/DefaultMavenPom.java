@@ -16,8 +16,10 @@
 package org.gradle.api.publication.maven.internal.pom;
 
 import groovy.lang.Closure;
+
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
@@ -43,7 +45,7 @@ public class DefaultMavenPom implements MavenPom {
 
     private PomDependenciesConverter pomDependenciesConverter;
     private FileResolver fileResolver;
-    private MavenProject mavenProject = new MavenProject();
+    private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
     private ActionBroadcast<MavenPom> whenConfiguredActions = new ActionBroadcast<MavenPom>();
     private XmlTransformer withXmlActions = new XmlTransformer();
@@ -55,7 +57,7 @@ public class DefaultMavenPom implements MavenPom {
         this.scopeMappings = scopeMappings;
         this.pomDependenciesConverter = pomDependenciesConverter;
         this.fileResolver = fileResolver;
-        mavenProject.setModelVersion("4.0.0");
+        model.setModelVersion("4.0.0");
     }
 
     public Conf2ScopeMappingContainer getScopeMappings() {
@@ -133,20 +135,20 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public Model getModel() {
-        return mavenProject.getModel();
+        return model;
     }
 
     public DefaultMavenPom setModel(Object model) {
-        this.mavenProject = new MavenProject((Model) model);
+        this.model = (Model) model;
         return this;
     }
 
     public MavenProject getMavenProject() {
-        return mavenProject;
+        return new MavenProject(model);
     }
 
     public DefaultMavenPom setMavenProject(MavenProject mavenProject) {
-        this.mavenProject = mavenProject;
+        this.model = mavenProject.getModel();
         return this;
     }
 
@@ -160,11 +162,7 @@ public class DefaultMavenPom implements MavenPom {
 
     public DefaultMavenPom getEffectivePom() {
         DefaultMavenPom effectivePom = new DefaultMavenPom(null, this.scopeMappings, pomDependenciesConverter, fileResolver);
-        try {
-            effectivePom.setMavenProject((MavenProject) mavenProject.clone());
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        effectivePom.setModel(model.clone());
         effectivePom.getDependencies().addAll(getGeneratedDependencies());
         effectivePom.withXmlActions = withXmlActions;
         whenConfiguredActions.execute(effectivePom);
@@ -206,7 +204,7 @@ public class DefaultMavenPom implements MavenPom {
         try {
             withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
                 protected void doExecute(Writer writer) throws IOException {
-                    mavenProject.writeModel(writer);
+                    new MavenXpp3Writer().write(writer, getModel());
                 }
             });
         } finally {

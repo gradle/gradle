@@ -77,7 +77,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // TODO:DAZ Get this exception into the cause
         failure.error.contains("peer not authenticated")
     }
@@ -94,7 +94,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // TODO:DAZ Get this exception into the cause
         failure.error.contains("peer not authenticated")
     }
