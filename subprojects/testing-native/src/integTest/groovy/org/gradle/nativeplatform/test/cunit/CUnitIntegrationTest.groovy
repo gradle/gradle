@@ -178,7 +178,13 @@ model {
         output.contains """
     testSuites
         nativeComponentOneTest
-        nativeComponentTwoTest"""
+            source
+                c
+                cunitLauncher
+        nativeComponentTwoTest
+            source
+                c
+                cunitLauncher"""
     }
 
     def "can supply cCompiler macro to cunit sources"() {
