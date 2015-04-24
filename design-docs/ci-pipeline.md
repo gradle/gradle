@@ -23,17 +23,19 @@ To verify Gradle working with jdk9 we need basic jdk9 coverage in our CI pipelin
 
 ## implementation
 
-- add jdk9 installation to 
-    - the linux vm boxes
-        - update salt-master setup to download jdk9 from java.net
-        - update linux build vms to setup jdk9
+- add jdk9 installation the linux vm boxes~~
+    - ~~update salt-master setup to download jdk9 from java.net~~
+    - ~~update linux build vms to setup jdk9~~
         
-- add  `Linux - Java 1.9 - Quick test` build configuration on teamcity    
-    - running `clean quickTest`
-    - for `master` pipeline
+- ~~provide howto about updating jdk9 EA installations in our dev-infrastructure~~
+        
+- ~~add  `Linux - Java 1.9 - Quick test` build configuration on teamcity~~    
+    - ~~running `clean quickTest`~~
+    - ~~for `master` pipeline~~
     - for `release` pipeline
 
 ## open issues
+- we don't currently update the dev2 box as it is unmanaged. plan is to get rid of dev2 in the long run
 - no 64bit windows jdk9 available yet (Build b60)
 - convenient update of jdk9 early access releases
 
