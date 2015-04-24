@@ -663,7 +663,18 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 Monitor files that are inputs to the model for changes too.
 
-TBD
+Model inputs include build.gradle, settings.gradle, gradle.properties, custom configuration files, some web service.
+
+There are a few more inputs that might not be so obvious:
+
+- The gradle-wrapper.properties file.
+- The gradle.properties and init.gradle scripts in ~/.gradle, and their inputs.
+- The plugins and their inputs and dependencies.
+- The contents of the various repositories that the build logic uses, eg to resolve plugins, libraries and so on.
+- The presence/absence of source directories (these affect the new model)
+- The toolchains that the build uses
+- Environment variables, system properties, command-line options provided when Gradle was invoked.
+- Values the user was prompted for, eg from in the IDE.
 
 ### Open Issues
 
@@ -671,7 +682,6 @@ TODO: See if these make sense incorporated in another story/Feature.
 
 - When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
 - If previous build started any service, stop that service before rebuilding.
-- Collect up all input files as build runs.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 - Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
 - Just use Java 7 watcher for now. We can improve performance on OS X and Windows later. 
