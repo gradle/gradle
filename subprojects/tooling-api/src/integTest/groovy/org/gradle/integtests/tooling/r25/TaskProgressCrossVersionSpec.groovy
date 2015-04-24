@@ -320,7 +320,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=2.5')
     @ToolingApiVersion('>=2.5')
     @NotYetImplemented
-    def "should receive test events from buildSrc"() {
+    def "should receive task events from buildSrc"() {
         buildFile << """task dummy()"""
         file("buildSrc/build.gradle") << """
             task taskInBuildSrc()
@@ -355,6 +355,51 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 ':buildSrc:test'                : ['started', 'up-to-date'],
                 ':buildSrc:build'               : ['started', 'up-to-date'],
                 ':dummy'                        : ['started', 'up-to-date']
+        ]
+    }
+
+    @TargetGradleVersion('>=2.5')
+    @ToolingApiVersion('>=2.5')
+    @NotYetImplemented
+    def "should receive task events from GradleBuild"() {
+        buildFile << """task innerBuild(type:GradleBuild) {
+            buildFile = file('other.gradle')
+            tasks = ['innerTask']
+        }"""
+        file("other.gradle") << """
+            task innerTask()
+        """
+
+        when:
+        def result = []
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().forTasks('innerBuild').addTaskProgressListener { TaskProgressEvent event ->
+                assert event != null
+                result << event
+            }.run()
+        }
+
+        then:
+        result.size() == 2 * tasks.size()
+        assertUnorderedEvents(result, tasks)
+
+        where:
+        tasks = [
+                ':innerBuild'                   : ['started', 'succeeded'],
+                ':buildSrc:clean'               : ['started', 'up-to-date'],
+                ':buildSrc:compileJava'         : ['started', 'up-to-date'],
+                ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
+                ':buildSrc:processResources'    : ['started', 'up-to-date'],
+                ':buildSrc:classes'             : ['started', 'up-to-date'],
+                ':buildSrc:jar'                 : ['started', 'succeeded'],
+                ':buildSrc:assemble'            : ['started', 'succeeded'],
+                ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
+                ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
+                ':buildSrc:processTestResources': ['started', 'up-to-date'],
+                ':buildSrc:testClasses'         : ['started', 'up-to-date'],
+                ':buildSrc:test'                : ['started', 'up-to-date'],
+                ':buildSrc:build'               : ['started', 'up-to-date'],
+                ':innerTask'                    : ['started', 'up-to-date']
         ]
     }
 
