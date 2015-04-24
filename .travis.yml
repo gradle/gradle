@@ -7,6 +7,7 @@ script:
   - ./gradlew pullRequestValidation
 env:
   - TERM=dumb
+  - GRADLE_OPTS="-XX:MaxPermSize=256m"
 branches:
   only:
     - master
