@@ -16,18 +16,13 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.internal.core.CollectionBuilderGroovyDecorator;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 
-public class DefaultComponentSpecContainer extends DefaultCollectionBuilder<ComponentSpec> implements ComponentSpecContainer {
-    public DefaultComponentSpecContainer(ModelType<ComponentSpec> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends ComponentSpec>> creatorFunction) {
-        super(elementType, sourceDescriptor, modelNode, creatorFunction);
+public class DefaultComponentSpecContainer extends CollectionBuilderGroovyDecorator<ComponentSpec> implements ComponentSpecContainer {
+    public DefaultComponentSpecContainer(CollectionBuilder<ComponentSpec> delegate) {
+        super(delegate);
     }
 }

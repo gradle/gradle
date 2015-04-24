@@ -16,19 +16,13 @@
 
 package org.gradle.platform.base.internal.test;
 
-import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.internal.core.CollectionBuilderGroovyDecorator;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
-public class DefaultTestSuiteContainer extends DefaultCollectionBuilder<TestSuiteSpec> implements TestSuiteContainer {
-    public DefaultTestSuiteContainer(ModelType<TestSuiteSpec> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                                     BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends TestSuiteSpec>> creatorFunction) {
-        super(elementType, sourceDescriptor, modelNode, creatorFunction);
+public class DefaultTestSuiteContainer extends CollectionBuilderGroovyDecorator<TestSuiteSpec> implements TestSuiteContainer {
+    public DefaultTestSuiteContainer(CollectionBuilder<TestSuiteSpec> delegate) {
+        super(delegate);
     }
 }

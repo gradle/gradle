@@ -89,7 +89,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                     modelNode,
                     DefaultCollectionBuilder.createAndStoreVia(
                             ModelReference.of(ITaskFactory.class),
-                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task .class))
+                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task.class))
                     )
 
             ) {
@@ -104,7 +104,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
             List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size() + 1);
             inputsWithBinary.addAll(inputs);
-            inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(), getSubject().getType(), binary));
+            inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(), getSubject().getType(), binary));
 
             invoke(inputsWithBinary, cast, binary, binary);
         }

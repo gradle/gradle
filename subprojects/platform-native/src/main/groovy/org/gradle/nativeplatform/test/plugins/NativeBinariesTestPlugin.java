@@ -18,19 +18,16 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiActions;
-import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
+import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -61,11 +58,10 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
-        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new SpecializedCollectionBuilderFactory<TestSuiteContainer, TestSuiteSpec>() {
+        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new Transformer<TestSuiteContainer, CollectionBuilder<TestSuiteSpec>>() {
             @Override
-            public TestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                DefaultTestSuiteContainer instance = new DefaultTestSuiteContainer(ModelType.of(TestSuiteSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
-                return new TestSuiteContainerGroovyDecorator(instance, ModelType.of(TestSuiteContainer.class), ruleDescriptor);
+            public TestSuiteContainer transform(CollectionBuilder<TestSuiteSpec> testSuiteSpecs) {
+                return new DefaultTestSuiteContainer(testSuiteSpecs);
             }
         }, descriptor, new ComponentSpecInitializationAction());
 
@@ -120,9 +116,4 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
     }
 
-    private class TestSuiteContainerGroovyDecorator extends SpecializedCollectionBuilderGroovyDecorator<TestSuiteSpec> implements TestSuiteContainer {
-        public TestSuiteContainerGroovyDecorator(CollectionBuilder<TestSuiteSpec> rawInstance, ModelType<TestSuiteContainer> type, ModelRuleDescriptor ruleDescriptor) {
-            super(rawInstance, type, ruleDescriptor);
-        }
-    }
 }

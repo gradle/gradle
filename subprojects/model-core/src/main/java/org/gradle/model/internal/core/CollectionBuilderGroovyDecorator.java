@@ -23,11 +23,8 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -35,146 +32,129 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 // TODO - mix in Groovy support and share with managed set
-public class SpecializedCollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport implements ClosableCollectionBuilder<I> {
-    private final CollectionBuilder<I> rawInstance;
-    private ModelType<? extends CollectionBuilder<I>> type;
-    private ModelRuleDescriptor ruleDescriptor;
-    private boolean closed;
+public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport implements CollectionBuilder<I> {
 
-    public SpecializedCollectionBuilderGroovyDecorator(CollectionBuilder<I> rawInstance, ModelType<? extends CollectionBuilder<I>> type, ModelRuleDescriptor ruleDescriptor) {
-        this.rawInstance = rawInstance;
-        this.type = type;
-        this.ruleDescriptor = ruleDescriptor;
+    private final CollectionBuilder<I> delegate;
+
+    public CollectionBuilderGroovyDecorator(CollectionBuilder<I> delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    public String toString() {
-        return rawInstance.toString();
-    }
-
-    @Override
-    public <S> CollectionBuilder<S> withType(Class<S> withType) {
-        CollectionBuilder<S> ses = rawInstance.withType(withType);
-        return new SpecializedCollectionBuilderGroovyDecorator<S>(ses, DefaultCollectionBuilder.typeOf(withType), ruleDescriptor);
+    public <S> CollectionBuilder<S> withType(Class<S> type) {
+        return delegate.withType(type);
     }
 
     @Override
     public int size() {
-        return rawInstance.size();
+        return delegate.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return rawInstance.isEmpty();
+        return delegate.isEmpty();
     }
 
-    @Nullable
     @Override
-    public I get(String name) {
-        return rawInstance.get(name);
-    }
-
     @Nullable
-    @Override
     public I get(Object name) {
-        return rawInstance.get(name);
+        return delegate.get(name);
+    }
+
+    @Override
+    @Nullable
+    public I get(String name) {
+        return delegate.get(name);
     }
 
     @Override
     public boolean containsKey(Object name) {
-        return rawInstance.containsKey(name);
+        return delegate.containsKey(name);
     }
 
     @Override
     public boolean containsValue(Object item) {
-        return rawInstance.containsValue(item);
+        return delegate.containsValue(item);
     }
 
     @Override
     public Set<String> keySet() {
-        return rawInstance.keySet();
-    }
-
-    @Override
-    public Iterator<I> iterator() {
-        return rawInstance.iterator();
+        return delegate.keySet();
     }
 
     @Override
     public void create(String name) {
-        assertNotClosed();
-        rawInstance.create(name);
+        delegate.create(name);
     }
 
     @Override
     public void create(String name, Action<? super I> configAction) {
-        assertNotClosed();
-        rawInstance.create(name, configAction);
+        delegate.create(name, configAction);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type) {
-        assertNotClosed();
-        rawInstance.create(name, type);
+        delegate.create(name, type);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type, Action<? super S> configAction) {
-        assertNotClosed();
-        rawInstance.create(name, type, configAction);
+        delegate.create(name, type, configAction);
     }
 
     @Override
     public void named(String name, Action<? super I> configAction) {
-        assertNotClosed();
-        rawInstance.named(name, configAction);
+        delegate.named(name, configAction);
     }
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
-        assertNotClosed();
-        rawInstance.named(name, ruleSource);
+        delegate.named(name, ruleSource);
     }
 
     @Override
     public void beforeEach(Action<? super I> configAction) {
-        assertNotClosed();
-        rawInstance.beforeEach(configAction);
+        delegate.beforeEach(configAction);
     }
 
     @Override
     public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
-        assertNotClosed();
-        rawInstance.beforeEach(type, configAction);
+        delegate.beforeEach(type, configAction);
     }
 
     @Override
     public void all(Action<? super I> configAction) {
-        assertNotClosed();
-        rawInstance.all(configAction);
+        delegate.all(configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
-        assertNotClosed();
-        rawInstance.withType(type, configAction);
+        delegate.withType(type, configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
-        rawInstance.withType(type, rules);
+        delegate.withType(type, rules);
     }
 
     @Override
     public void afterEach(Action<? super I> configAction) {
-        assertNotClosed();
-        rawInstance.afterEach(configAction);
+        delegate.afterEach(configAction);
     }
 
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
-        assertNotClosed();
-        rawInstance.afterEach(type, configAction);
+        delegate.afterEach(type, configAction);
+    }
+
+    @Override
+    public Iterator<I> iterator() {
+        return delegate.iterator();
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 
     // TODO - mix this in and validate closure parameters
@@ -225,7 +205,7 @@ public class SpecializedCollectionBuilderGroovyDecorator<I> extends GroovyObject
     // TODO - mix this in
     @Override
     public Object getProperty(String property) {
-        I element = rawInstance.get(property);
+        I element = delegate.get(property);
         if (element == null) {
             throw new MissingPropertyException(property, CollectionBuilder.class);
         }
@@ -251,15 +231,5 @@ public class SpecializedCollectionBuilderGroovyDecorator<I> extends GroovyObject
         return null;
     }
 
-    private void assertNotClosed() {
-        if (closed) {
-            throw new ModelViewClosedException(type, ruleDescriptor);
-        }
-    }
-
-    @Override
-    public void close() {
-        this.closed = true;
-    }
 }
 

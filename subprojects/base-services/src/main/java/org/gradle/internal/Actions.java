@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -201,6 +203,21 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
+    }
+
+    private static final Action<Closeable> UNCHECKED_CLOSE = new Action<Closeable>() {
+        @Override
+        public void execute(Closeable closeable) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    };
+
+    public static Action<Closeable> uncheckedClose() {
+        return UNCHECKED_CLOSE;
     }
 
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.model;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
@@ -32,7 +33,7 @@ public class CollectionBuilderCreators {
 
     public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name, final Class<T> typeClass,
                                                                                final Class<C> containerClass,
-                                                                               SpecializedCollectionBuilderFactory<C, T> collectionBuilderFactory,
+                                                                               Transformer<? extends C, ? super CollectionBuilder<T>> collectionBuilderFactory,
                                                                                String descriptor,
                                                                                BiAction<? super MutableModelNode, ? super T> initializeAction) {
 
@@ -42,6 +43,8 @@ public class CollectionBuilderCreators {
         }, ModelType.of(typeClass)).build();
 
         ModelReference<CollectionBuilder<T>> containerReference = ModelReference.of(name, DefaultCollectionBuilder.typeOf(typeClass));
+
+        PolymorphicCollectionBuilderProjection<T> collectionBuilderProjection = new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction);
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
@@ -58,8 +61,8 @@ public class CollectionBuilderCreators {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction))
-                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), collectionBuilderFactory))
+                .withProjection(collectionBuilderProjection)
+                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), collectionBuilderProjection, collectionBuilderFactory))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }

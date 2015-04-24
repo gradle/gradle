@@ -19,7 +19,6 @@ import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -33,10 +32,8 @@ import org.gradle.language.base.internal.model.ComponentSpecInitializationAction
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -69,11 +66,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
-        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer, ComponentSpec>() {
+        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new Transformer<ComponentSpecContainer, CollectionBuilder<ComponentSpec>>() {
             @Override
-            public ComponentSpecContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                DefaultComponentSpecContainer componentSpecs = new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
-                return new ComponentSpecContainerGroovyDecorator(componentSpecs, ModelType.of(ComponentSpecContainer.class), ruleDescriptor);
+            public ComponentSpecContainer transform(CollectionBuilder<ComponentSpec> componentSpecs) {
+                return new DefaultComponentSpecContainer(componentSpecs);
             }
         }, descriptor, new ComponentSpecInitializationAction());
         modelRegistry.createOrReplace(componentsCreator);
@@ -212,9 +208,4 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private class ComponentSpecContainerGroovyDecorator extends SpecializedCollectionBuilderGroovyDecorator<ComponentSpec> implements ComponentSpecContainer {
-        public ComponentSpecContainerGroovyDecorator(CollectionBuilder<ComponentSpec> rawInstance, ModelType<ComponentSpecContainer> type, ModelRuleDescriptor ruleDescriptor) {
-            super(rawInstance, type, ruleDescriptor);
-        }
-    }
 }

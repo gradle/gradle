@@ -16,26 +16,51 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
+
 public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
 
     private final ModelType<P> publicType;
-    private final SpecializedCollectionBuilderFactory<P, E> factory;
+    private final ModelType<E> elementType;
 
-    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, final SpecializedCollectionBuilderFactory<P, E> factory) {
+    private final Transformer<? extends P, ? super CollectionBuilder<E>> factory;
+    private final ModelAdapter delegateAdapter;
+
+    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, final Transformer<? extends P, ? super CollectionBuilder<E>> factory) {
         super(publicType, true, true);
         this.publicType = publicType;
+        this.elementType = elementType;
+        this.delegateAdapter = delegateAdapter;
         this.factory = factory;
     }
 
     @Override
     protected ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        P instance = factory.create(modelNode, ruleDescriptor);
-        return new SpecializedCollectionBuilderView<P, E>(modelNode.getPath(), publicType, instance);
+        final ModelView<? extends CollectionBuilder<E>> rawView;
+        ModelType<CollectionBuilder<E>> type = DefaultCollectionBuilder.typeOf(elementType);
+        if (writable) {
+            rawView = delegateAdapter.asWritable(type, modelNode, ruleDescriptor, Collections.<ModelView<?>>emptyList());
+        } else {
+            rawView = delegateAdapter.asReadOnly(type, modelNode, ruleDescriptor);
+        }
 
+        if (rawView == null) {
+            throw new IllegalStateException("delegateAdapter " + delegateAdapter + " returned null for type " + type);
+        }
+
+        P instance = factory.transform(rawView.getInstance());
+        return InstanceModelView.of(modelNode.getPath(), publicType, instance, new Action<P>() {
+            @Override
+            public void execute(P es) {
+                rawView.close();
+            }
+        });
     }
 
     @Override
