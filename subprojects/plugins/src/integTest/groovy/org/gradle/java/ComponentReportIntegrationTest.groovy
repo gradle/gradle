@@ -17,12 +17,14 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
+    @RequiresInstalledToolChain
     def "shows details of legacy Java project"() {
         given:
         buildFile << """

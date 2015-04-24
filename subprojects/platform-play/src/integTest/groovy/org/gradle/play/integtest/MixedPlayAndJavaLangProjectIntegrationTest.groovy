@@ -19,6 +19,7 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -55,6 +56,7 @@ class MixedPlayAndJavaLangProjectIntegrationTest extends AbstractIntegrationSpec
 """
     }
 
+    @RequiresInstalledToolChain
     def "assemble builds jvm component and play component binaries"() {
         when:
         succeeds("assemble")

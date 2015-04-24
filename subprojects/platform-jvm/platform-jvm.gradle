@@ -12,6 +12,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ':diagnostics')
+useTestFixtures(project: ':platformNative', sourceSet: 'integTest')
 
 useClassycle()
 strictCompile()

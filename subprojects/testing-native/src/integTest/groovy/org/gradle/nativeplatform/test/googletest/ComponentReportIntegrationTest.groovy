@@ -17,10 +17,12 @@ package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ executable with test suite"() {
         given:
         buildFile << """

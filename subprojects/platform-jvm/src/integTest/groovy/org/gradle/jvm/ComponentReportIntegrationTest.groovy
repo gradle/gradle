@@ -17,6 +17,7 @@ package org.gradle.jvm
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -25,6 +26,7 @@ class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationT
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
+    @RequiresInstalledToolChain
     def "shows details of Java library"() {
         given:
         buildFile << """
@@ -62,6 +64,7 @@ Binaries
 """
     }
 
+    @RequiresInstalledToolChain
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
         given:
@@ -113,6 +116,7 @@ Binaries
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @RequiresInstalledToolChain
     def "shows which jvm libraries are buildable"() {
         given:
         buildFile << """

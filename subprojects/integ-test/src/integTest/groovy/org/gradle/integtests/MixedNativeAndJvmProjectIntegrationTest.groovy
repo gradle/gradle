@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
@@ -87,6 +88,7 @@ model {
         succeeds "validate"
     }
 
+    @RequiresInstalledToolChain
     def "build mixed components in one project"() {
         given:
         file("src/jvmLib/java/org/gradle/test/Test.java") << """
