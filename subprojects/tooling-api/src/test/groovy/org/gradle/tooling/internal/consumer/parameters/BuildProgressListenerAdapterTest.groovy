@@ -35,14 +35,14 @@ class BuildProgressListenerAdapterTest extends Specification {
 
     def "adapter is only subscribing to test progress events if at least one test progress listener is attached"() {
         when:
-        def adapter = new BuildProgressListenerAdapter([])
+        def adapter = new BuildProgressListenerAdapter([],[])
 
         then:
         adapter.getSubscribedOperations() == []
 
         when:
         final TestProgressListener listener = Mock(TestProgressListener)
-        adapter = new BuildProgressListenerAdapter([listener])
+        adapter = new BuildProgressListenerAdapter([listener],[])
 
         then:
         adapter.getSubscribedOperations() == [InternalBuildProgressListener.TEST_EXECUTION]
@@ -51,7 +51,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "only TestProgressEventVersionX instances are processed"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         adapter.onEvent(new Object())
@@ -63,7 +63,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "only TestProgressEventVersionX instances of known type are processed"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def unknownEvent = Mock(InternalTestProgressEvent)
@@ -76,7 +76,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of start events throws exception if previous start event with same test descriptor exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalTestDescriptor)
@@ -99,7 +99,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of non-start events throws exception if no previous start event with same test descriptor exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalTestDescriptor)
@@ -121,7 +121,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of child events throws exception if no previous parent event exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def childTestDescriptor = Mock(InternalTestDescriptor)
@@ -143,7 +143,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "conversion of child events expects parent event exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def parentTestDescriptor = Mock(InternalTestDescriptor)
@@ -174,7 +174,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert all JvmTestDescriptorVersion1 attributes"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -211,7 +211,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteStartedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -240,7 +240,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteSkippedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -282,7 +282,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteSucceededEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -324,7 +324,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSuiteFailedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -368,7 +368,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestStartedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -399,7 +399,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSkippedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -443,7 +443,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestSucceededEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
@@ -487,7 +487,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     def "convert to TestFailedEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
-        def adapter = new BuildProgressListenerAdapter([listener])
+        def adapter = new BuildProgressListenerAdapter([listener],[])
 
         when:
         def testDescriptor = Mock(InternalJvmTestDescriptor)
