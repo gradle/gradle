@@ -83,6 +83,10 @@ normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_
 Tasks in Gradle may define a group attribute, but this group wasn't accessible from the Tooling API. It is now possible to query the
 group of a task from the tooling model.
 
+### Increased visibility of components in model report
+ 
+- TBD
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
