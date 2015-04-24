@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
@@ -56,14 +57,26 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
 
     private static AbstractTaskResult adaptTaskResult(Task task) {
         TaskState state = task.getState();
+        long startTime = startTime(state);
+        long endTime = endTime(state);
         if (state.getSkipped()) {
-            return new DefaultTaskSkippedResult(0, 0, "UP-TO-DATE".equals(state.getSkipMessage()));
+            return new DefaultTaskSkippedResult(startTime, endTime, "UP-TO-DATE".equals(state.getSkipMessage()));
         }
         Throwable failure = state.getFailure();
         if (failure==null) {
-            return new DefaultTaskSuccessResult(0L, 0L);
+            return new DefaultTaskSuccessResult(startTime, endTime);
         }
-        return new DefaultTaskFailureResult(0, 0, DefaultFailure.fromThrowable(failure));
+        return new DefaultTaskFailureResult(startTime, endTime, DefaultFailure.fromThrowable(failure));
+    }
+
+    private static long startTime(TaskState state) {
+        TaskStateInternal internalState = state instanceof TaskStateInternal? (TaskStateInternal) state :null;
+        return internalState!=null?internalState.getStartTime():System.currentTimeMillis();
+    }
+
+    private static long endTime(TaskState state) {
+        TaskStateInternal internalState = state instanceof TaskStateInternal? (TaskStateInternal) state :null;
+        return internalState!=null?internalState.getEndTime():System.currentTimeMillis();
     }
 
     /**
@@ -73,7 +86,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
      */
     @Override
     public void beforeExecute(Task task) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(System.currentTimeMillis(), adapt(task)));
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startTime(task.getState()), adapt(task)));
     }
 
     /**
@@ -84,7 +97,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
      */
     @Override
     public void afterExecute(Task task, TaskState state) {
-        long eventTime = System.currentTimeMillis();
+        long eventTime = endTime(state);
         if (state.getSkipped()) {
             eventConsumer.dispatch(new DefaultTaskSkippedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
         } else {

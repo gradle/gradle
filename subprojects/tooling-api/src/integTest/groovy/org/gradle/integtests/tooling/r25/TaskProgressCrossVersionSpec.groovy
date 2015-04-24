@@ -486,9 +486,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     private static void assertOrderedEvents(List<TaskProgressEvent> events, Map<String, List<String>> tasks) {
         int idx = 0
+        long oldEndTime = 0
         tasks.each { path, List<String> states ->
             states.each { state ->
                 def event = events[idx]
+                assert event.eventTime > 0
+                assert event.eventTime >= oldEndTime
                 if (path.startsWith(':')) {
                     assert event.descriptor.taskPath == path
                 } else {
@@ -501,24 +504,33 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                     case 'up-to-date':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSkippedResult
+                        assert event.result.startTime >= oldEndTime
+                        assert event.result.endTime >= event.result.startTime
                         assert event.result.upToDate
                         break
                     case 'skipped':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSkippedResult
+                        assert event.result.startTime >= oldEndTime
+                        assert event.result.endTime >= event.result.startTime
                         assert !event.result.upToDate
                         break
                     case 'succeeded':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskSuccessResult
+                        assert event.result.startTime >= oldEndTime
+                        assert event.result.endTime >= event.result.startTime
                         break
                     case 'failed':
                         assert event instanceof TaskFinishEvent
                         assert event.result instanceof TaskFailureResult
+                        assert event.result.startTime >= oldEndTime
+                        assert event.result.endTime >= event.result.startTime
                         break
                     default:
                         throw new RuntimeException("Illegal state [$state]. Please check your test.")
                 }
+                oldEndTime = event.eventTime
                 idx++
             }
         }

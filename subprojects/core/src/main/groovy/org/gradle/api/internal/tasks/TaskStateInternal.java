@@ -28,6 +28,8 @@ public class TaskStateInternal implements TaskState {
     private String description;
     private String skippedMessage;
     private boolean skipped;
+    private long startTime;
+    private long endTime;
 
     public TaskStateInternal(String description) {
         this.description = description;
@@ -112,5 +114,21 @@ public class TaskStateInternal implements TaskState {
 
     public String getSkipMessage() {
         return skippedMessage;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 }
