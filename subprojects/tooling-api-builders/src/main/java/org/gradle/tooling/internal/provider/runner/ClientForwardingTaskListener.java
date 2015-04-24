@@ -56,18 +56,14 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
 
     private static AbstractTaskResult adaptTaskResult(Task task) {
         TaskState state = task.getState();
-        if (isSkipped(state)) {
-            return new DefaultTaskSkippedResult(0, 0, !state.getDidWork());
-        }
-        if (state.getDidWork()) {
-            return new DefaultTaskSuccessResult(0L, 0L);
+        if (state.getSkipped()) {
+            return new DefaultTaskSkippedResult(0, 0, "UP-TO-DATE".equals(state.getSkipMessage()));
         }
         Throwable failure = state.getFailure();
-        return new DefaultTaskFailureResult(0, 0, failure != null ? DefaultFailure.fromThrowable(failure) : null);
-    }
-
-    private static boolean isSkipped(TaskState state) {
-        return state.getSkipped() || (!state.getDidWork() && state.getExecuted());
+        if (failure==null) {
+            return new DefaultTaskSuccessResult(0L, 0L);
+        }
+        return new DefaultTaskFailureResult(0, 0, DefaultFailure.fromThrowable(failure));
     }
 
     /**
@@ -89,7 +85,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
     @Override
     public void afterExecute(Task task, TaskState state) {
         long eventTime = System.currentTimeMillis();
-        if (isSkipped(state)) {
+        if (state.getSkipped()) {
             eventConsumer.dispatch(new DefaultTaskSkippedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
         } else {
             eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));

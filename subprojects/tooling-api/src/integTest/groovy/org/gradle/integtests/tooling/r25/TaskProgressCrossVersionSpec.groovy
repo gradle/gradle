@@ -20,6 +20,7 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -171,12 +172,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 classes             : ['started', 'up-to-date'],
                 compileTestJava     : ['started', 'succeeded'],
                 processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'up-to-date'], // not sure why this is up-to-date, although the log says that it did something
+                testClasses         : ['started', 'succeeded'],
                 test                : ['started', 'succeeded']
         ]
     }
 
-    /*@ToolingApiVersion(">=2.5")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
     def "receive task progress events for failed test run"() {
         given:
@@ -185,7 +186,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-            test.ignoreFailures = true
         """
 
         file("src/test/java/MyTest.java") << """
@@ -209,6 +209,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        BuildException ex = thrown()
+        ex.cause.cause.message =~ /Execution failed for task ':test'/
         result.size() == 2 * tasks.size()
         assertOrderedEvents(result, tasks)
 
@@ -219,27 +221,27 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 classes             : ['started', 'up-to-date'],
                 compileTestJava     : ['started', 'succeeded'],
                 processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'up-to-date'],
+                testClasses         : ['started', 'succeeded'],
                 test                : ['started', 'failed']
         ]
     }
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    @NotYetImplemented
-    def "receive task progress events for skipped test run"() {
+    def "receive task progress events for disabled test run"() {
         given:
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            test.enabled = false
         """
 
         file("src/test/java/MyTest.java") << """
             package example;
             public class MyTest {
-                @org.junit.Ignore @org.junit.Test public void foo() throws Exception {
+                @org.junit.Test public void foo() throws Exception {
                      Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
                      org.junit.Assert.assertEquals(1, 2);
                 }
@@ -267,11 +269,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 classes             : ['started', 'up-to-date'],
                 compileTestJava     : ['started', 'succeeded'],
                 processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'up-to-date'],
-                test                : ['started', 'succeeded']
+                testClasses         : ['started', 'succeeded'],
+                test                : ['started', 'skipped']
         ]
     }
 
+    /*
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
     def "task progress event ids are unique across multiple task workers"() {
