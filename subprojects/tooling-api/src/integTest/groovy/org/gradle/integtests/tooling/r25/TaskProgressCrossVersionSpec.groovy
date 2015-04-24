@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import groovy.transform.NotYetImplemented
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -296,7 +297,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .withArguments("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true",'--parallel','--max-workers=2')
+                        .withArguments("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true", '--parallel', '--max-workers=2')
                         .forTasks('parallelSleep')
                         .addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
@@ -316,25 +317,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         ]
     }
 
-    /*
     @TargetGradleVersion('>=2.5')
     @ToolingApiVersion('>=2.5')
     @NotYetImplemented
     def "should receive test events from buildSrc"() {
         buildFile << """task dummy()"""
         file("buildSrc/build.gradle") << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-        file("buildSrc/src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
+            task taskInBuildSrc()
         """
 
         when:
@@ -347,8 +336,27 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        !result.empty
-    }*/
+        result.size() == 2 * tasks.size()
+        assertOrderedEvents(result, tasks)
+
+        where:
+        tasks = [
+                ':buildSrc:clean'               : ['started', 'up-to-date'],
+                ':buildSrc:compileJava'         : ['started', 'up-to-date'],
+                ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
+                ':buildSrc:processResources'    : ['started', 'up-to-date'],
+                ':buildSrc:classes'             : ['started', 'up-to-date'],
+                ':buildSrc:jar'                 : ['started', 'succeeded'],
+                ':buildSrc:assemble'            : ['started', 'succeeded'],
+                ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
+                ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
+                ':buildSrc:processTestResources': ['started', 'up-to-date'],
+                ':buildSrc:testClasses'         : ['started', 'up-to-date'],
+                ':buildSrc:test'                : ['started', 'up-to-date'],
+                ':buildSrc:build'               : ['started', 'up-to-date'],
+                ':dummy'                        : ['started', 'up-to-date']
+        ]
+    }
 
     def goodCode() {
         buildFile << """
