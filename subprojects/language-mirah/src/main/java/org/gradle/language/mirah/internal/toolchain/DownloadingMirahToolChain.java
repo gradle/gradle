@@ -57,7 +57,7 @@ public class DownloadingMirahToolChain implements MirahToolChainInternal {
 
     public ToolProvider select(MirahPlatform targetPlatform) {
         try {
-            Configuration mirahClasspath = resolveDependency(String.format("org.mirah-lang:mirah-compiler:%s", targetPlatform.getMirahVersion()));
+            Configuration mirahClasspath = resolveDependency(String.format("org.mirah:mirah-compiler:%s", targetPlatform.getMirahVersion()));
             Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
             Set<File> resolvedMirahClasspath = mirahClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();

@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  *     }
  *
  *     dependencies {
- * //      compile "org.mirah-lang:mirah-library:2.10.1"
+ * //      compile "org.mirah:mirah-library:2.10.1"
  *     }
  *
  *     def mirahClasspath = mirahRuntime.inferMirahClasspath(configurations.compile)
@@ -94,7 +94,7 @@ public class MirahRuntime {
                 }
 
                 return project.getConfigurations().detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.mirah-lang", "mirah-compiler", mirahVersion));
+                        new DefaultExternalModuleDependency("org.mirah", "mirah-compiler", mirahVersion));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

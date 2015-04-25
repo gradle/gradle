@@ -44,7 +44,7 @@ class MirahRuntimeTest extends Specification {
             it.state == Configuration.State.UNRESOLVED
             it.dependencies.size() == 1
             with(it.dependencies.iterator().next()) {
-                group == "org.mirah-lang"
+                group == "org.mirah"
                 name == "mirah-compiler"
                 version == "2.10.1"
             }

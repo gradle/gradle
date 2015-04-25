@@ -147,7 +147,7 @@ repositories {
 }
 
 dependencies {
-//  compile "org.mirah-lang:mirah-library:$version"
+//  compile "org.mirah:mirah-library:$version"
 }
 """
     }

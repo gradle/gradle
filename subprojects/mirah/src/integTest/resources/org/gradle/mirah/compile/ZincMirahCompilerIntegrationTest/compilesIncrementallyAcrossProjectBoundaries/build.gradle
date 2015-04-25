@@ -6,7 +6,7 @@ subprojects {
     }
 
     dependencies {
-//      compile "org.mirah-lang:mirah-library:$mirahVersion"
+//      compile "org.mirah:mirah-library:$mirahVersion"
     }
 
     tasks.withType(MirahCompile) {

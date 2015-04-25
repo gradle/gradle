@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-//  compile "org.mirah-lang:mirah-library:2.11.1"
+//  compile "org.mirah:mirah-library:2.11.1"
     testCompile "org.mirahtest:mirahtest_2.11:2.1.5"
     testCompile "junit:junit:4.12"
 }
