@@ -20,10 +20,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.internal.tasks.mirah.DefaultScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.mirah.DefaultScalaJavaJointCompileSpecFactory;
-import org.gradle.api.internal.tasks.mirah.ScalaCompileSpec;
-import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.DefaultMirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.DefaultMirahJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -39,22 +39,22 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An abstract Scala compile task sharing common functionality for compiling mirah.
+ * An abstract Mirah compile task sharing common functionality for compiling mirah.
  */
-abstract public class AbstractScalaCompile extends AbstractCompile {
-    protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
-    private final BaseScalaCompileOptions mirahCompileOptions;
+abstract public class AbstractMirahCompile extends AbstractCompile {
+    protected static final Logger LOGGER = Logging.getLogger(AbstractMirahCompile.class);
+    private final BaseMirahCompileOptions mirahCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();
 
-    protected AbstractScalaCompile(BaseScalaCompileOptions mirahCompileOptions) {
+    protected AbstractMirahCompile(BaseMirahCompileOptions mirahCompileOptions) {
         this.mirahCompileOptions = mirahCompileOptions;
     }
 
     /**
-     * Returns the Scala compilation options.
+     * Returns the Mirah compilation options.
      */
     @Nested
-    public BaseScalaCompileOptions getScalaCompileOptions() {
+    public BaseMirahCompileOptions getMirahCompileOptions() {
         return mirahCompileOptions;
     }
 
@@ -66,17 +66,17 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         return compileOptions;
     }
 
-    abstract protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
+    abstract protected org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec);
 
     @TaskAction
     protected void compile() {
-        ScalaJavaJointCompileSpec spec = createSpec();
+        MirahJavaJointCompileSpec spec = createSpec();
         configureIncrementalCompilation(spec);
         getCompiler(spec).execute(spec);
     }
 
-    protected ScalaJavaJointCompileSpec createSpec() {
-        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions).create();
+    protected MirahJavaJointCompileSpec createSpec() {
+        DefaultMirahJavaJointCompileSpec spec = new DefaultMirahJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
@@ -85,11 +85,11 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(mirahCompileOptions);
+        spec.setMirahCompileOptions(mirahCompileOptions);
         return spec;
     }
 
-    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
+    protected void configureIncrementalCompilation(MirahCompileSpec spec) {
 
         Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
         HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
@@ -112,9 +112,9 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         } else {
             analysisMap = Maps.newHashMap();
             for (Project project : getProject().getRootProject().getAllprojects()) {
-                for (AbstractScalaCompile task : project.getTasks().withType(AbstractScalaCompile.class)) {
-                    File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
-                    File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
+                for (AbstractMirahCompile task : project.getTasks().withType(AbstractMirahCompile.class)) {
+                    File publishedCode = task.getMirahCompileOptions().getIncrementalOptions().getPublishedCode();
+                    File analysisFile = task.getMirahCompileOptions().getIncrementalOptions().getAnalysisFile();
                     analysisMap.put(publishedCode, analysisFile);
                 }
             }

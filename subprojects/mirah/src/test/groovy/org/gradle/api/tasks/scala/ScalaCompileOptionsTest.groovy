@@ -20,12 +20,12 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
-class ScalaCompileOptionsTest {
+class MirahCompileOptionsTest {
 
-    private ScalaCompileOptions compileOptions
+    private MirahCompileOptions compileOptions
 
     @Before void setUp() {
-        compileOptions = new ScalaCompileOptions()
+        compileOptions = new MirahCompileOptions()
     }
 
     @Test void testOptionMapDoesNotContainCompileDaemon() {

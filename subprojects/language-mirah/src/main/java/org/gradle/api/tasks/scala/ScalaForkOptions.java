@@ -35,9 +35,9 @@ package org.gradle.api.tasks.mirah;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 /**
- * Fork options for Scala compilation. Only take effect if {@code ScalaCompileOptions.fork}
+ * Fork options for Mirah compilation. Only take effect if {@code MirahCompileOptions.fork}
  * is {@code true}.
  */
-public class ScalaForkOptions extends BaseForkOptions {
+public class MirahForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
 }

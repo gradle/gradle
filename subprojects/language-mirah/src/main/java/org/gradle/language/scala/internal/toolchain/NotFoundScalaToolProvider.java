@@ -22,10 +22,10 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.util.TreeVisitor;
 
-public class NotFoundScalaToolProvider implements ToolProvider {
+public class NotFoundMirahToolProvider implements ToolProvider {
     private Exception exception;
 
-    public NotFoundScalaToolProvider(Exception moduleVersionNotFoundException) {
+    public NotFoundMirahToolProvider(Exception moduleVersionNotFoundException) {
         this.exception = moduleVersionNotFoundException;
     }
 
@@ -52,7 +52,7 @@ public class NotFoundScalaToolProvider implements ToolProvider {
 
     @Override
     public void explain(TreeVisitor<? super String> visitor) {
-        visitor.node("Cannot provide Scala Compiler");
+        visitor.node("Cannot provide Mirah Compiler");
         visitor.startChildren();
         visitor.node(exception.getCause().getMessage());
         visitor.endChildren();

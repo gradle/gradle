@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
 
-class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
+class SampleMirahLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(temporaryFolder, "jvmComponents/mirah")

@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class ScalaPluginGoodBehaviourTest extends WellBehavedPluginTest {
+class MirahPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
         return "build"

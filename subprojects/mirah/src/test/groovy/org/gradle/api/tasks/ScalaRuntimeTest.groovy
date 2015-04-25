@@ -18,24 +18,24 @@ package org.gradle.api.tasks
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
-import org.gradle.api.plugins.mirah.ScalaBasePlugin
+import org.gradle.api.plugins.mirah.MirahBasePlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class ScalaRuntimeTest extends Specification {
+class MirahRuntimeTest extends Specification {
     def project = TestUtil.createRootProject()
 
     def setup() {
-        project.pluginManager.apply(ScalaBasePlugin)
+        project.pluginManager.apply(MirahBasePlugin)
     }
 
-    def "inferred Scala class path contains 'mirah-compiler' repository dependency matching 'mirah-library' Jar found on class path"() {
+    def "inferred Mirah class path contains 'mirah-compiler' repository dependency matching 'mirah-library' Jar found on class path"() {
         project.repositories {
             mavenCentral()
         }
 
         when:
-        def classpath = project.mirahRuntime.inferScalaClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
+        def classpath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
 
         then:
         classpath instanceof LazilyInitializedFileCollection
@@ -53,59 +53,59 @@ class ScalaRuntimeTest extends Specification {
 
     def "inference fails if 'mirahTools' configuration is empty and no repository declared"() {
         when:
-        def mirahClasspath = project.mirahRuntime.inferScalaClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
+        def mirahClasspath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
         mirahClasspath.files
 
         then:
         GradleException e = thrown()
-        e.message == "Cannot infer Scala class path because no repository is declared in $project"
+        e.message == "Cannot infer Mirah class path because no repository is declared in $project"
     }
 
-    def "inference fails if 'mirahTools' configuration is empty and no Scala library Jar is found on class path"() {
+    def "inference fails if 'mirahTools' configuration is empty and no Mirah library Jar is found on class path"() {
         project.repositories {
             mavenCentral()
         }
 
         when:
-        def mirahClasspath = project.mirahRuntime.inferScalaClasspath([new File("other.jar"), new File("other2.jar")])
+        def mirahClasspath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("other2.jar")])
         mirahClasspath.files
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test' declare dependency to mirah-library? Searched classpath:")
+        e.message.startsWith("Cannot infer Mirah class path because no Mirah library Jar was found. Does root project 'test' declare dependency to mirah-library? Searched classpath:")
     }
 
-    def "allows to find Scala Jar on class path"() {
+    def "allows to find Mirah Jar on class path"() {
         when:
-        def file = project.mirahRuntime.findScalaJar([new File("other.jar"), new File("mirah-jdbc-1.5.jar"), new File("mirah-compiler-1.7.jar")], "jdbc")
+        def file = project.mirahRuntime.findMirahJar([new File("other.jar"), new File("mirah-jdbc-1.5.jar"), new File("mirah-compiler-1.7.jar")], "jdbc")
 
         then:
         file.name == "mirah-jdbc-1.5.jar"
     }
 
-    def "returns null if Scala Jar not found"() {
+    def "returns null if Mirah Jar not found"() {
         when:
-        def file = project.mirahRuntime.findScalaJar([new File("other.jar"), new File("mirah-jdbc-1.5.jar"), new File("mirah-compiler-1.7.jar")], "library")
+        def file = project.mirahRuntime.findMirahJar([new File("other.jar"), new File("mirah-jdbc-1.5.jar"), new File("mirah-compiler-1.7.jar")], "library")
 
         then:
         file == null
     }
 
-    def "allows to determine version of Scala Jar"() {
+    def "allows to determine version of Mirah Jar"() {
         expect:
         with(project.mirahRuntime) {
-            getScalaVersion(new File("mirah-compiler-2.9.2.jar")) == "2.9.2"
-            getScalaVersion(new File("mirah-jdbc-2.9.2.jar")) == "2.9.2"
-            getScalaVersion(new File("mirah-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
-            getScalaVersion(new File("mirah-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
+            getMirahVersion(new File("mirah-compiler-2.9.2.jar")) == "2.9.2"
+            getMirahVersion(new File("mirah-jdbc-2.9.2.jar")) == "2.9.2"
+            getMirahVersion(new File("mirah-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
+            getMirahVersion(new File("mirah-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
         }
     }
 
-    def "returns null if Scala version cannot be determined"() {
+    def "returns null if Mirah version cannot be determined"() {
         expect:
         with(project.mirahRuntime) {
-            getScalaVersion(new File("mirah-compiler.jar")) == null
-            getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
+            getMirahVersion(new File("mirah-compiler.jar")) == null
+            getMirahVersion(new File("groovy-compiler-2.1.0.jar")) == null
         }
     }
 }

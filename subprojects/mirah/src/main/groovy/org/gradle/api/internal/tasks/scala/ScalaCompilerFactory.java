@@ -22,14 +22,14 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.tasks.mirah.ScalaCompileOptions;
+import org.gradle.api.tasks.mirah.MirahCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
 import java.io.File;
 import java.util.Set;
 
-public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
+public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompileSpec> {
     private final IsolatedAntBuilder antBuilder;
     private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
@@ -37,7 +37,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
 
-    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath, FileCollection zincClasspath) {
+    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath, FileCollection zincClasspath) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
         this.javaCompilerFactory = javaCompilerFactory;
@@ -47,24 +47,24 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     }
 
     @SuppressWarnings("unchecked")
-    public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
-        ScalaCompileOptions mirahOptions = (ScalaCompileOptions) spec.getScalaCompileOptions();
+    public Compiler<MirahJavaJointCompileSpec> newCompiler(MirahJavaJointCompileSpec spec) {
+        MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
         if (mirahOptions.isUseAnt()) {
-            Compiler<ScalaCompileSpec> mirahCompiler = new AntScalaCompiler(antBuilder, mirahClasspathFiles);
+            Compiler<MirahCompileSpec> mirahCompiler = new AntMirahCompiler(antBuilder, mirahClasspathFiles);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
-            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(mirahCompiler, javaCompiler));
+            return new NormalizingMirahCompiler(new DefaultMirahJavaJointCompiler(mirahCompiler, javaCompiler));
         }
 
         if (!mirahOptions.isFork()) {
-            throw new GradleException("The Zinc based Scala compiler ('mirahCompileOptions.useAnt=false') "
+            throw new GradleException("The Zinc based Mirah compiler ('mirahCompileOptions.useAnt=false') "
                     + "requires forking ('mirahCompileOptions.fork=true'), but the latter is set to 'false'.");
         }
 
         Set<File> zincClasspathFiles = zincClasspath.getFiles();
 
-        // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> mirahCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(mirahClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
-        return new NormalizingScalaCompiler(mirahCompiler);
+        // currently, we leave it to ZincMirahCompiler to also compile the Java code
+        Compiler<MirahJavaJointCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahJavaJointCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
+        return new NormalizingMirahCompiler(mirahCompiler);
     }
 }

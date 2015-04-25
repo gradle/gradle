@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.mirah
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.MirahCoverage
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.startsWith
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+@TargetCoverage({MirahCoverage.DEFAULT})
+class MirahBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
+    @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, temporaryFolder)
 
-    def "defaults mirahClasspath to inferred Scala compiler dependency"() {
+    def "defaults mirahClasspath to inferred Mirah compiler dependency"() {
         file("build.gradle") << """
 apply plugin: "mirah-base"
 
@@ -42,12 +42,12 @@ dependencies {
     customCompile "org.mirah-lang:mirah-library:$version"
 }
 
-task mirahdoc(type: ScalaDoc) {
+task mirahdoc(type: MirahDoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
 task verify << {
-    assert compileCustomScala.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
+    assert compileCustomMirah.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
     assert mirahCustomConsole.classpath.files.any { it.name == "mirah-compiler-${version}.jar" }
     assert mirahdoc.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
 }
@@ -57,7 +57,7 @@ task verify << {
         succeeds("verify")
     }
 
-    def "only resolves source class path feeding into inferred Scala class path if/when the latter is actually used (but not during autowiring)"() {
+    def "only resolves source class path feeding into inferred Mirah class path if/when the latter is actually used (but not during autowiring)"() {
         file("build.gradle") << """
 apply plugin: "mirah-base"
 
@@ -73,7 +73,7 @@ dependencies {
     customCompile "org.mirah-lang:mirah-library:$version"
 }
 
-task mirahdoc(type: ScalaDoc) {
+task mirahdoc(type: MirahDoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
@@ -110,10 +110,10 @@ task verify << {
         """
 
         when:
-        fails "compileScala"
+        fails "compileMirah"
 
         then:
-        failure.assertThatDescription(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
+        failure.assertThatDescription(startsWith("Cannot infer Mirah class path because no Mirah library Jar was found."))
     }
 
 }

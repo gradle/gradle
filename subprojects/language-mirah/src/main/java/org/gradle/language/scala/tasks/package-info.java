@@ -15,7 +15,7 @@
  */
 
 /**
- * Tasks that add support for Scala language.
+ * Tasks that add support for Mirah language.
  */
 @Incubating
 package org.gradle.language.mirah.tasks;

@@ -18,13 +18,13 @@ package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
-import org.gradle.language.mirah.ScalaLanguageSourceSet
+import org.gradle.language.mirah.MirahLanguageSourceSet
 import org.gradle.test.fixtures.file.TestFile
 
-class TestScalaComponent extends IncrementalTestJvmComponent {
+class TestMirahComponent extends IncrementalTestJvmComponent {
 
     String languageName = "mirah"
-    String sourceSetTypeName = ScalaLanguageSourceSet.class.name
+    String sourceSetTypeName = MirahLanguageSourceSet.class.name
 
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''
@@ -43,8 +43,8 @@ class Person2 {
 
     @Override
     void changeSources(List<TestFile> sourceFiles) {
-        def personScalaFile = sourceFiles.find { it.name == "Person.mirah" }
-        personScalaFile.text = personScalaFile.text.replace("name", "lastName")
+        def personMirahFile = sourceFiles.find { it.name == "Person.mirah" }
+        personMirahFile.text = personMirahFile.text.replace("name", "lastName")
     }
 
     @Override

@@ -19,32 +19,32 @@ import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link
- * org.gradle.api.tasks.SourceSet} by the {@code ScalaPlugin}.
+ * A {@code MirahSourceSetConvention} defines the properties and methods added to a {@link
+ * org.gradle.api.tasks.SourceSet} by the {@code MirahPlugin}.
  */
-public interface ScalaSourceSet {
+public interface MirahSourceSet {
     /**
-     * Returns the source to be compiled by the Scala compiler for this source set. This may contain both Java and Scala
+     * Returns the source to be compiled by the Mirah compiler for this source set. This may contain both Java and Mirah
      * source files.
      *
-     * @return The Scala source. Never returns null.
+     * @return The Mirah source. Never returns null.
      */
-    SourceDirectorySet getScala();
+    SourceDirectorySet getMirah();
 
     /**
-     * Configures the Scala source for this set.
+     * Configures the Mirah source for this set.
      *
-     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the Scala source.
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the Mirah source.
      *
-     * @param configureClosure The closure to use to configure the Scala source.
+     * @param configureClosure The closure to use to configure the Mirah source.
      * @return this
      */
-    ScalaSourceSet mirah(Closure configureClosure);
+    MirahSourceSet mirah(Closure configureClosure);
 
     /**
-     * All Scala source for this source set.
+     * All Mirah source for this source set.
      *
-     * @return the Scala source. Never returns null.
+     * @return the Mirah source. Never returns null.
      */
-    SourceDirectorySet getAllScala();
+    SourceDirectorySet getAllMirah();
 }

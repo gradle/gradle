@@ -24,15 +24,15 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
- * Generates HTML API documentation for Scala source files.
+ * Generates HTML API documentation for Mirah source files.
  */
-public class ScalaDoc extends SourceTask {
+public class MirahDoc extends SourceTask {
 
     private File destinationDir;
 
     private FileCollection classpath;
     private FileCollection mirahClasspath;
-    private ScalaDocOptions mirahDocOptions = new ScalaDocOptions();
+    private MirahDocOptions mirahDocOptions = new MirahDocOptions();
     private String title;
 
     @Inject
@@ -67,26 +67,26 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns the classpath to use to load the ScalaDoc tool.
+     * Returns the classpath to use to load the MirahDoc tool.
      */
     @InputFiles
-    public FileCollection getScalaClasspath() {
+    public FileCollection getMirahClasspath() {
         return mirahClasspath;
     }
 
-    public void setScalaClasspath(FileCollection mirahClasspath) {
+    public void setMirahClasspath(FileCollection mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
     }
 
     /**
-     * Returns the ScalaDoc generation options.
+     * Returns the MirahDoc generation options.
      */
     @Nested
-    public ScalaDocOptions getScalaDocOptions() {
+    public MirahDocOptions getMirahDocOptions() {
         return mirahDocOptions;
     }
 
-    public void setScalaDocOptions(ScalaDocOptions mirahDocOptions) {
+    public void setMirahDocOptions(MirahDocOptions mirahDocOptions) {
         this.mirahDocOptions = mirahDocOptions;
     }
 
@@ -104,12 +104,12 @@ public class ScalaDoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        ScalaDocOptions options = getScalaDocOptions();
+        MirahDocOptions options = getMirahDocOptions();
         if (!GUtil.isTrue(options.getDocTitle())) {
             options.setDocTitle(getTitle());
         }
-        AntScalaDoc antScalaDoc = new AntScalaDoc(getAntBuilder());
-        antScalaDoc.execute(getSource(), getDestinationDir(), getClasspath(), getScalaClasspath(), options);
+        AntMirahDoc antMirahDoc = new AntMirahDoc(getAntBuilder());
+        antMirahDoc.execute(getSource(), getDestinationDir(), getClasspath(), getMirahClasspath(), options);
     }
 
 }

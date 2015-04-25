@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import spock.lang.Specification
 
-class DefaultScalaToolProviderTest extends Specification {
+class DefaultMirahToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
     Set<File> mirahcClasspath = Mock()
@@ -31,7 +31,7 @@ class DefaultScalaToolProviderTest extends Specification {
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        DefaultScalaToolProvider mirahToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, mirahcClasspath, zincClasspath)
+        DefaultMirahToolProvider mirahToolProvider = new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, mirahcClasspath, zincClasspath)
 
         when:
         mirahToolProvider.newCompiler(UnknownCompileSpec.class)

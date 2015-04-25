@@ -19,10 +19,10 @@ package org.gradle.language.mirah;
 import org.gradle.platform.base.Platform;
 
 /**
- * Defines and configures a Scala Platform.
+ * Defines and configures a Mirah Platform.
  */
-public interface ScalaPlatform extends Platform {
-    String getScalaVersion();
+public interface MirahPlatform extends Platform {
+    String getMirahVersion();
 
-    String getScalaCompatibilityVersion();
+    String getMirahCompatibilityVersion();
 }

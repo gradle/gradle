@@ -8,7 +8,7 @@ dependencies {
     compile "org.mirah-lang:mirah-library:$mirahVersion"
 }
 
-tasks.withType(ScalaCompile) {
+tasks.withType(MirahCompile) {
     mirahCompileOptions.with {
         useAnt = false
         fork = true

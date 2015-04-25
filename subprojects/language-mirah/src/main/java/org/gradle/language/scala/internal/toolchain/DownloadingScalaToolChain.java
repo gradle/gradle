@@ -24,13 +24,13 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.language.mirah.ScalaPlatform;
+import org.gradle.language.mirah.MirahPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 import java.io.File;
 import java.util.Set;
 
-public class DownloadingScalaToolChain implements ScalaToolChainInternal {
+public class DownloadingMirahToolChain implements MirahToolChainInternal {
     public static final String DEFAULT_ZINC_VERSION = "0.3.0";
 
     private ProjectFinder projectFinder;
@@ -39,7 +39,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final JavaVersion javaVersion;
 
-    public DownloadingScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+    public DownloadingMirahToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
@@ -48,23 +48,23 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     }
 
     public String getName() {
-        return String.format("Scala Toolchain");
+        return String.format("Mirah Toolchain");
     }
 
     public String getDisplayName() {
-        return String.format("Scala Toolchain (JDK %s (%s))", javaVersion.getMajorVersion(), javaVersion);
+        return String.format("Mirah Toolchain (JDK %s (%s))", javaVersion.getMajorVersion(), javaVersion);
     }
 
-    public ToolProvider select(ScalaPlatform targetPlatform) {
+    public ToolProvider select(MirahPlatform targetPlatform) {
         try {
-            Configuration mirahClasspath = resolveDependency(String.format("org.mirah-lang:mirah-compiler:%s", targetPlatform.getScalaVersion()));
+            Configuration mirahClasspath = resolveDependency(String.format("org.mirah-lang:mirah-compiler:%s", targetPlatform.getMirahVersion()));
             Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
-            Set<File> resolvedScalaClasspath = mirahClasspath.resolve();
+            Set<File> resolvedMirahClasspath = mirahClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
-            return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, resolvedScalaClasspath, resolvedZincClasspath);
+            return new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, resolvedMirahClasspath, resolvedZincClasspath);
 
         } catch(ResolveException resolveException) {
-            return new NotFoundScalaToolProvider(resolveException);
+            return new NotFoundMirahToolProvider(resolveException);
         }
     }
 

@@ -19,7 +19,7 @@ dependencies {
 
     compile project(":core")
     compile project(":languageJvm")
-    compile project(":languageScala")
+    compile project(":languageMirah")
     compile project(":plugins")
 
 
@@ -31,5 +31,5 @@ dependencies {
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
 configure([integTest, daemonIntegTest]) {
-    jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+    jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessMirahCompilerIntegrationTest needs lots of permgen
 }

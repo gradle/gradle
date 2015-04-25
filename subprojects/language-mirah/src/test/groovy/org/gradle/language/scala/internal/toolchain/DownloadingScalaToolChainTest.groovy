@@ -24,22 +24,22 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
-import org.gradle.api.internal.tasks.mirah.ScalaCompileSpec
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec
 import org.gradle.internal.text.TreeFormatter
-import org.gradle.language.mirah.ScalaPlatform
+import org.gradle.language.mirah.MirahPlatform
 import spock.lang.Specification
 
-class DownloadingScalaToolChainTest extends Specification {
+class DownloadingMirahToolChainTest extends Specification {
 
     ConfigurationContainer configurationContainer = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
     DependencyHandler dependencyHandler = Mock()
     ProjectFinder projectFinder = Mock()
-    DownloadingScalaToolChain mirahToolChain = new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler)
-    ScalaPlatform mirahPlatform = Mock()
+    DownloadingMirahToolChain mirahToolChain = new DownloadingMirahToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler)
+    MirahPlatform mirahPlatform = Mock()
 
     def setup() {
-        _ * mirahPlatform.getScalaVersion() >> "2.10.4"
+        _ * mirahPlatform.getMirahVersion() >> "2.10.4"
     }
 
     def "tools available when compiler dependencies can be resolved"() {
@@ -54,29 +54,29 @@ class DownloadingScalaToolChainTest extends Specification {
         when:
         dependencyNotAvailable("mirah-compiler")
         def toolProvider = mirahToolChain.select(mirahPlatform)
-        toolProvider.newCompiler(ScalaCompileSpec.class)
+        toolProvider.newCompiler(MirahCompileSpec.class)
 
         then:
         !toolProvider.isAvailable()
         TreeFormatter mirahcErrorFormatter = new TreeFormatter()
         toolProvider.explain(mirahcErrorFormatter)
-        mirahcErrorFormatter.toString() == "Cannot provide Scala Compiler: Cannot resolve 'mirah-compiler'."
+        mirahcErrorFormatter.toString() == "Cannot provide Mirah Compiler: Cannot resolve 'mirah-compiler'."
         def e = thrown(GradleException)
-        e.message == "Cannot provide Scala Compiler: Cannot resolve 'mirah-compiler'."
+        e.message == "Cannot provide Mirah Compiler: Cannot resolve 'mirah-compiler'."
 
         when:
         dependencyAvailable("mirah-compiler")
         dependencyNotAvailable("zinc")
         toolProvider = mirahToolChain.select(mirahPlatform)
-        toolProvider.newCompiler(ScalaCompileSpec.class)
+        toolProvider.newCompiler(MirahCompileSpec.class)
 
         then:
         def zincErrorFormatter = new TreeFormatter()
         !toolProvider.isAvailable()
         toolProvider.explain(zincErrorFormatter)
-        zincErrorFormatter.toString() == "Cannot provide Scala Compiler: Cannot resolve 'zinc'."
+        zincErrorFormatter.toString() == "Cannot provide Mirah Compiler: Cannot resolve 'zinc'."
         e = thrown(GradleException)
-        e.message == "Cannot provide Scala Compiler: Cannot resolve 'zinc'."
+        e.message == "Cannot provide Mirah Compiler: Cannot resolve 'zinc'."
     }
 
     private void dependencyAvailable(String dependency) {

@@ -19,8 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.api.tasks.mirah.ScalaCompile
-import org.gradle.api.tasks.mirah.ScalaDoc
+import org.gradle.api.tasks.mirah.MirahCompile
+import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.util.TestUtil
 import org.junit.Test
 
@@ -30,60 +30,60 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
-class ScalaPluginTest {
+class MirahPluginTest {
     private final Project project = TestUtil.createRootProject()
-    private final ScalaPlugin mirahPlugin = new ScalaPlugin()
+    private final MirahPlugin mirahPlugin = new MirahPlugin()
 
     @Test void appliesTheJavaPluginToTheProject() {
         mirahPlugin.apply(project)
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
     }
 
-    @Test void addsScalaConventionToEachSourceSetAndAppliesMappings() {
+    @Test void addsMirahConventionToEachSourceSetAndAppliesMappings() {
         mirahPlugin.apply(project)
 
         def sourceSet = project.sourceSets.main
-        assertThat(sourceSet.mirah.displayName, equalTo("main Scala source"))
+        assertThat(sourceSet.mirah.displayName, equalTo("main Mirah source"))
         assertThat(sourceSet.mirah.srcDirs, equalTo(toLinkedSet(project.file("src/main/mirah"))))
 
         sourceSet = project.sourceSets.test
-        assertThat(sourceSet.mirah.displayName, equalTo("test Scala source"))
+        assertThat(sourceSet.mirah.displayName, equalTo("test Mirah source"))
         assertThat(sourceSet.mirah.srcDirs, equalTo(toLinkedSet(project.file("src/test/mirah"))))
     }
 
     @Test void addsCompileTaskForEachSourceSet() {
         mirahPlugin.apply(project)
 
-        def task = project.tasks['compileScala']
-        assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles the main Scala source.'))
+        def task = project.tasks['compileMirah']
+        assertThat(task, instanceOf(MirahCompile.class))
+        assertThat(task.description, equalTo('Compiles the main Mirah source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.main.compileClasspath))
         assertThat(task.source as List, equalTo(project.sourceSets.main.mirah  as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
-        task = project.tasks['compileTestScala']
-        assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles the test Scala source.'))
+        task = project.tasks['compileTestMirah']
+        assertThat(task, instanceOf(MirahCompile.class))
+        assertThat(task.description, equalTo('Compiles the test Mirah source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.test.compileClasspath))
         assertThat(task.source as List, equalTo(project.sourceSets.test.mirah as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
     }
 
-    @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+    @Test public void dependenciesOfJavaPluginTasksIncludeMirahCompileTasks() {
         mirahPlugin.apply(project)
 
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
-        assertThat(task, dependsOn(hasItem('compileScala')))
+        assertThat(task, dependsOn(hasItem('compileMirah')))
 
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
-        assertThat(task, dependsOn(hasItem('compileTestScala')))
+        assertThat(task, dependsOn(hasItem('compileTestMirah')))
     }
     
-    @Test void addsScalaDocTasksToTheProject() {
+    @Test void addsMirahDocTasksToTheProject() {
         mirahPlugin.apply(project)
 
-        def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
-        assertThat(task, instanceOf(ScalaDoc.class))
+        def task = project.tasks[MirahPlugin.SCALA_DOC_TASK_NAME]
+        assertThat(task, instanceOf(MirahDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))
         assertThat(task.source as List, equalTo(project.sourceSets.main.mirah as List))
@@ -91,10 +91,10 @@ class ScalaPluginTest {
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
-    @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
+    @Test void configuresMirahDocTasksDefinedByTheBuildScript() {
         mirahPlugin.apply(project)
 
-        def task = project.task('otherScaladoc', type: ScalaDoc)
+        def task = project.task('otherMirahdoc', type: MirahDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }

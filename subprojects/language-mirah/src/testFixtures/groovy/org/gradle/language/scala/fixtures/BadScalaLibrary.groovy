@@ -18,7 +18,7 @@ package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 
-class BadScalaLibrary {
+class BadMirahLibrary {
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''
 package compile.test;

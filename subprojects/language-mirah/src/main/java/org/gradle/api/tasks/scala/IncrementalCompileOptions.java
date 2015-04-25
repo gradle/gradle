@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.Serializable;
 
 /**
- * Options for incremental compilation of Scala code. Only used for compilation with Zinc.
+ * Options for incremental compilation of Mirah code. Only used for compilation with Zinc.
  */
 @Incubating
 public class IncrementalCompileOptions implements Serializable {
@@ -51,10 +51,10 @@ public class IncrementalCompileOptions implements Serializable {
 
     /**
      * Returns the directory or archive path by which the code produced by this task
-     * is published to other {@code ScalaCompile} tasks.
+     * is published to other {@code MirahCompile} tasks.
      *
      * @return the directory or archive path by which the code produced by this task
-     * is published to other {@code ScalaCompile} tasks
+     * is published to other {@code MirahCompile} tasks
      */
     // only an input for other task instances
     public File getPublishedCode() {
@@ -63,7 +63,7 @@ public class IncrementalCompileOptions implements Serializable {
 
     /**
      * Sets the directory or archive path by which the code produced by this task
-     * is published to other {@code ScalaCompile} tasks.
+     * is published to other {@code MirahCompile} tasks.
      */
     public void setPublishedCode(File publishedCode) {
         this.publishedCode = publishedCode;

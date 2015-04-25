@@ -36,24 +36,24 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.mirah.ScalaForkOptions;
+import org.gradle.api.tasks.mirah.MirahForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
+public class DaemonMirahCompiler<T extends MirahJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> zincClasspath;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
+    public DaemonMirahCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
         super(daemonWorkingDir, delegate, daemonFactory);
         this.zincClasspath = zincClasspath;
     }
 
     @Override
     protected DaemonForkOptions toDaemonOptions(T spec) {
-        return createJavaForkOptions(spec).mergeWith(createScalaForkOptions(spec));
+        return createJavaForkOptions(spec).mergeWith(createMirahForkOptions(spec));
     }
 
     private DaemonForkOptions createJavaForkOptions(T spec) {
@@ -61,8 +61,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(), options.getJvmArgs());
     }
 
-    private DaemonForkOptions createScalaForkOptions(T spec) {
-        ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
+    private DaemonForkOptions createMirahForkOptions(T spec) {
+        MirahForkOptions options = spec.getMirahCompileOptions().getForkOptions();
         List<String> sharedPackages = Arrays.asList("mirah", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 options.getJvmArgs(), zincClasspath, sharedPackages);

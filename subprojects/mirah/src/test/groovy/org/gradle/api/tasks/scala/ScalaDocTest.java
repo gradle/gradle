@@ -28,8 +28,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 @RunWith(JMock.class)
-public class ScalaDocTest extends AbstractTaskTest {
-    private ScalaDoc mirahDoc;
+public class MirahDocTest extends AbstractTaskTest {
+    private MirahDoc mirahDoc;
 
     @Override
     public AbstractTask getTask() {
@@ -38,11 +38,11 @@ public class ScalaDocTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        mirahDoc = createTask(ScalaDoc.class);
+        mirahDoc = createTask(MirahDoc.class);
     }
 
     @Test
-    public void testScalaIncludes() {
+    public void testMirahIncludes() {
         assertSame(mirahDoc.include(TEST_PATTERN_1, TEST_PATTERN_2), mirahDoc);
         assertEquals(mirahDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
@@ -51,7 +51,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     }
 
     @Test
-    public void testScalaExcludes() {
+    public void testMirahExcludes() {
         assertSame(mirahDoc.exclude(TEST_PATTERN_1, TEST_PATTERN_2), mirahDoc);
         assertEquals(mirahDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 

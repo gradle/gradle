@@ -23,31 +23,31 @@ import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-class DefaultScalaSourceSetTest {
+class DefaultMirahSourceSetTest {
     static {
         NativeServicesTestFixture.initialize()
     }
 
-    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", [resolve: {it as File}] as FileResolver)
+    private final DefaultMirahSourceSet sourceSet = new DefaultMirahSourceSet("<set-display-name>", [resolve: {it as File}] as FileResolver)
 
     @Test
     public void defaultValues() {
         assertThat(sourceSet.mirah, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.mirah, isEmpty())
-        assertThat(sourceSet.mirah.displayName, equalTo('<set-display-name> Scala source'))
+        assertThat(sourceSet.mirah.displayName, equalTo('<set-display-name> Mirah source'))
         assertThat(sourceSet.mirah.filter.includes, equalTo(['**/*.mirah', '**/*.java'] as Set))
         assertThat(sourceSet.mirah.filter.excludes, isEmpty())
 
-        assertThat(sourceSet.allScala, instanceOf(DefaultSourceDirectorySet))
-        assertThat(sourceSet.allScala, isEmpty())
-        assertThat(sourceSet.allScala.displayName, equalTo('<set-display-name> Scala source'))
-        assertThat(sourceSet.allScala.source, hasItem(sourceSet.mirah))
-        assertThat(sourceSet.allScala.filter.includes, equalTo(['**/*.mirah'] as Set))
-        assertThat(sourceSet.allScala.filter.excludes, isEmpty())
+        assertThat(sourceSet.allMirah, instanceOf(DefaultSourceDirectorySet))
+        assertThat(sourceSet.allMirah, isEmpty())
+        assertThat(sourceSet.allMirah.displayName, equalTo('<set-display-name> Mirah source'))
+        assertThat(sourceSet.allMirah.source, hasItem(sourceSet.mirah))
+        assertThat(sourceSet.allMirah.filter.includes, equalTo(['**/*.mirah'] as Set))
+        assertThat(sourceSet.allMirah.filter.excludes, isEmpty())
     }
 
     @Test
-    public void canConfigureScalaSource() {
+    public void canConfigureMirahSource() {
         sourceSet.mirah { srcDir 'src/mirah' }
         assertThat(sourceSet.mirah.srcDirs, equalTo([new File('src/mirah').canonicalFile] as Set))
     }

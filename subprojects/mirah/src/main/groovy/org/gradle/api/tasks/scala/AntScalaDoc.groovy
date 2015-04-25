@@ -20,26 +20,26 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.project.IsolatedAntBuilder
 
-class AntScalaDoc {
-    private static Logger logger = LoggerFactory.getLogger(AntScalaDoc)
+class AntMirahDoc {
+    private static Logger logger = LoggerFactory.getLogger(AntMirahDoc)
 
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
 
-    def AntScalaDoc(IsolatedAntBuilder antBuilder) {
+    def AntMirahDoc(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
         this.bootclasspathFiles = []
         this.extensionDirs = []
     }
 
-    def AntScalaDoc(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
+    def AntMirahDoc(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
         this.antBuilder = antBuilder
         this.bootclasspathFiles = bootclasspathFiles
         this.extensionDirs = extensionDirs
     }
 
-    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> mirahClasspath, ScalaDocOptions docOptions) {
+    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> mirahClasspath, MirahDocOptions docOptions) {
         antBuilder.withClasspath(mirahClasspath).execute { ant ->
             taskdef(resource: 'mirah/tools/ant/antlib.xml')
 

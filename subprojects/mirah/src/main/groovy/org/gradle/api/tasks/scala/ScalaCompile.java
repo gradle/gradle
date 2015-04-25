@@ -22,51 +22,51 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.mirah.CleaningScalaCompiler;
-import org.gradle.api.internal.tasks.mirah.ScalaCompileSpec;
-import org.gradle.api.internal.tasks.mirah.ScalaCompilerFactory;
-import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.CleaningMirahCompiler;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompilerFactory;
+import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.language.mirah.tasks.AbstractScalaCompile;
+import org.gradle.language.mirah.tasks.AbstractMirahCompile;
 
 import javax.inject.Inject;
 
 /**
- * Compiles Scala source files, and optionally, Java source files.
+ * Compiles Mirah source files, and optionally, Java source files.
  */
-public class ScalaCompile extends AbstractScalaCompile {
+public class MirahCompile extends AbstractMirahCompile {
 
     private FileCollection mirahClasspath;
     private FileCollection zincClasspath;
 
-    private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
+    private org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler;
 
     @Inject
-    public ScalaCompile() {
-        super(new ScalaCompileOptions());
+    public MirahCompile() {
+        super(new MirahCompileOptions());
     }
 
     @Nested
     @Override
-    public ScalaCompileOptions getScalaCompileOptions() {
-        return (ScalaCompileOptions) super.getScalaCompileOptions();
+    public MirahCompileOptions getMirahCompileOptions() {
+        return (MirahCompileOptions) super.getMirahCompileOptions();
     }
 
     /**
-     * Returns the classpath to use to load the Scala compiler.
+     * Returns the classpath to use to load the Mirah compiler.
      */
     @InputFiles
-    public FileCollection getScalaClasspath() {
+    public FileCollection getMirahClasspath() {
         return mirahClasspath;
     }
 
-    public void setScalaClasspath(FileCollection mirahClasspath) {
+    public void setMirahClasspath(FileCollection mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
     }
 
     /**
-     * Returns the classpath to use to load the Zinc incremental compiler. This compiler in turn loads the Scala compiler.
+     * Returns the classpath to use to load the Zinc incremental compiler. This compiler in turn loads the Mirah compiler.
      */
     @InputFiles
     public FileCollection getZincClasspath() {
@@ -80,29 +80,29 @@ public class ScalaCompile extends AbstractScalaCompile {
     /**
      * For testing only.
      */
-    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler) {
+    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
-    protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
-        assertScalaClasspathIsNonEmpty();
+    protected org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec) {
+        assertMirahClasspathIsNonEmpty();
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            ScalaCompilerFactory mirahCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
+            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getMirahClasspath(), getZincClasspath());
             compiler = mirahCompilerFactory.newCompiler(spec);
-            if (getScalaCompileOptions().isUseAnt()) {
-                compiler = new CleaningScalaCompiler(compiler, getOutputs());
+            if (getMirahCompileOptions().isUseAnt()) {
+                compiler = new CleaningMirahCompiler(compiler, getOutputs());
             }
         }
         return compiler;
     }
 
     @Override
-    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
-        if (getScalaCompileOptions().isUseAnt()) {
+    protected void configureIncrementalCompilation(MirahCompileSpec spec) {
+        if (getMirahCompileOptions().isUseAnt()) {
             // Don't use incremental compilation with ant-backed compiler
             return;
         }
@@ -110,9 +110,9 @@ public class ScalaCompile extends AbstractScalaCompile {
     }
 
 
-    protected void assertScalaClasspathIsNonEmpty() {
-        if (getScalaClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".mirahClasspath' must not be empty. If a Scala compile dependency is provided, "
+    protected void assertMirahClasspathIsNonEmpty() {
+        if (getMirahClasspath().isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".mirahClasspath' must not be empty. If a Mirah compile dependency is provided, "
                     + "the 'mirah-base' plugin will attempt to configure 'mirahClasspath' automatically. Alternatively, you may configure 'mirahClasspath' explicitly.");
         }
     }

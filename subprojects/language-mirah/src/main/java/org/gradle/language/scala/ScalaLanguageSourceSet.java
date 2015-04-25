@@ -21,9 +21,9 @@ import org.gradle.jvm.Classpath;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A set of sources passed to the Scala compiler.
+ * A set of sources passed to the Mirah compiler.
  */
 @Incubating
-public interface ScalaLanguageSourceSet extends LanguageSourceSet {
+public interface MirahLanguageSourceSet extends LanguageSourceSet {
     Classpath getCompileClasspath();
 }

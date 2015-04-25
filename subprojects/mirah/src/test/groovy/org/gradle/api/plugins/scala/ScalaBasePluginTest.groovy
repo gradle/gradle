@@ -21,8 +21,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.mirah.ScalaCompile
-import org.gradle.api.tasks.mirah.ScalaDoc
+import org.gradle.api.tasks.mirah.MirahCompile
+import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
@@ -34,12 +34,12 @@ import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-public class ScalaBasePluginTest {
+public class MirahBasePluginTest {
     private final DefaultProject project = TestUtil.createRootProject()
 
     @Before
     void before() {
-        project.pluginManager.apply(ScalaBasePlugin)
+        project.pluginManager.apply(MirahBasePlugin)
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ScalaBasePluginTest {
 
     @Test
     void addsZincConfigurationToTheProject() {
-        def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
+        def configuration = project.configurations.getByName(MirahBasePlugin.ZINC_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
@@ -58,7 +58,7 @@ public class ScalaBasePluginTest {
     @Test
     void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         project.sourceSets.create('custom')
-        def task = project.tasks.compileCustomScala
+        def task = project.tasks.compileCustomMirah
         task.mirahCompileOptions.useAnt = false
         assert task.zincClasspath instanceof Configuration
         assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
@@ -67,25 +67,25 @@ public class ScalaBasePluginTest {
     @Test
     void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
         project.sourceSets.create('custom')
-        def task = project.tasks.compileCustomScala
+        def task = project.tasks.compileCustomMirah
         task.mirahCompileOptions.useAnt = true
         assert task.zincClasspath instanceof Configuration
         assert task.zincClasspath.empty
     }
 
     @Test
-    void addsScalaConventionToNewSourceSet() {
+    void addsMirahConventionToNewSourceSet() {
         def sourceSet = project.sourceSets.create('custom')
-        assertThat(sourceSet.mirah.displayName, equalTo("custom Scala source"))
+        assertThat(sourceSet.mirah.displayName, equalTo("custom Mirah source"))
         assertThat(sourceSet.mirah.srcDirs, equalTo(toLinkedSet(project.file("src/custom/mirah"))))
     }
 
     @Test
     void addsCompileTaskForNewSourceSet() {
         project.sourceSets.create('custom')
-        def task = project.tasks['compileCustomScala']
-        assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Scala source.'))
+        def task = project.tasks['compileCustomMirah']
+        assertThat(task, instanceOf(MirahCompile.class))
+        assertThat(task.description, equalTo('Compiles the custom Mirah source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
         assertThat(task.source as List, equalTo(project.sourceSets.custom.mirah as List))
         assertThat(task, dependsOn('compileCustomJava'))
@@ -95,10 +95,10 @@ public class ScalaBasePluginTest {
     void preconfiguresIncrementalCompileOptions() {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
-        ScalaCompile task = project.tasks['compileCustomScala']
+        MirahCompile task = project.tasks['compileCustomMirah']
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.mirahCompileOptions.incrementalOptions.analysisFile, equalTo(new File("$project.buildDir/tmp/mirah/compilerAnalysis/compileCustomScala.analysis")))
+        assertThat(task.mirahCompileOptions.incrementalOptions.analysisFile, equalTo(new File("$project.buildDir/tmp/mirah/compilerAnalysis/compileCustomMirah.analysis")))
         assertThat(task.mirahCompileOptions.incrementalOptions.publishedCode, equalTo(project.tasks['customJar'].archivePath))
     }
 
@@ -106,7 +106,7 @@ public class ScalaBasePluginTest {
     void incrementalCompileOptionsCanBeOverridden() {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
-        ScalaCompile task = project.tasks['compileCustomScala']
+        MirahCompile task = project.tasks['compileCustomMirah']
         task.mirahCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
         task.mirahCompileOptions.incrementalOptions.publishedCode = new File("/my/published/code.jar")
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
@@ -116,22 +116,22 @@ public class ScalaBasePluginTest {
     }
 
     @Test
-    void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+    void dependenciesOfJavaPluginTasksIncludeMirahCompileTasks() {
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
-        assertThat(task, dependsOn(hasItem('compileCustomScala')))
+        assertThat(task, dependsOn(hasItem('compileCustomMirah')))
     }
 
     @Test
     void configuresCompileTasksDefinedByTheBuildScript() {
-        def task = project.task('otherCompile', type: ScalaCompile)
+        def task = project.task('otherCompile', type: MirahCompile)
         assertThat(task.source, isEmpty())
         assertThat(task, dependsOn())
     }
 
     @Test
-    void configuresScalaDocTasksDefinedByTheBuildScript() {
-        def task = project.task('otherScaladoc', type: ScalaDoc)
+    void configuresMirahDocTasksDefinedByTheBuildScript() {
+        def task = project.task('otherMirahdoc', type: MirahDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task, dependsOn())

@@ -18,15 +18,15 @@ package org.gradle.language.mirah
 
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
-import org.gradle.language.mirah.fixtures.BadScalaLibrary
-import org.gradle.language.mirah.fixtures.TestScalaComponent
+import org.gradle.language.mirah.fixtures.BadMirahLibrary
+import org.gradle.language.mirah.fixtures.TestMirahComponent
 
-class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
-    TestJvmComponent app = new TestScalaComponent()
+class MirahLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
+    TestJvmComponent app = new TestMirahComponent()
 
     def "reports failure to compile bad mirah sources"() {
         when:
-        def badApp = new BadScalaLibrary()
+        def badApp = new BadMirahLibrary()
         badApp.sources*.writeToDir(file("src/myLib/mirah"))
 
         and:

@@ -16,11 +16,11 @@
 
 package org.gradle.mirah.compile
 
-import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.MirahCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({MirahCoverage.DEFAULT})
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-class AntInProcessOlderScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}
+class AntInProcessOlderMirahCompilerIntegrationTest extends AbstractAntInProcessMirahCompilerIntegrationTest {}

@@ -22,15 +22,15 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.mirah.IncrementalCompileOptions;
-import org.gradle.api.tasks.mirah.ScalaForkOptions;
+import org.gradle.api.tasks.mirah.MirahForkOptions;
 
 import java.util.List;
 
 /**
- * Options for Scala platform compilation, excluding any options for compilation with Ant.
+ * Options for Mirah platform compilation, excluding any options for compilation with Ant.
  */
 @Incubating
-public class BaseScalaCompileOptions extends AbstractOptions {
+public class BaseMirahCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -56,7 +56,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private MirahForkOptions forkOptions = new MirahForkOptions();
 
     private IncrementalCompileOptions incrementalOptions = new IncrementalCompileOptions();
 
@@ -195,14 +195,14 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Options for running the Scala compiler in a separate process. These options only take effect
+     * Options for running the Mirah compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
      */
-    public ScalaForkOptions getForkOptions() {
+    public MirahForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(ScalaForkOptions forkOptions) {
+    public void setForkOptions(MirahForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 

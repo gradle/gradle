@@ -5,7 +5,7 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJava")
     compile project(":languageJvm")
-    // keep in sync with ScalaLanguagePlugin code
+    // keep in sync with MirahLanguagePlugin code
     provided("com.typesafe.zinc:zinc:0.3.0")
 
     testCompile libraries.groovy

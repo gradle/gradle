@@ -33,17 +33,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Scala {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Mirah {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-    private static final Logger LOGGER = Logging.getLogger(NormalizingScalaCompiler.class);
-    private final Compiler<ScalaJavaJointCompileSpec> delegate;
+public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileSpec> {
+    private static final Logger LOGGER = Logging.getLogger(NormalizingMirahCompiler.class);
+    private final Compiler<MirahJavaJointCompileSpec> delegate;
 
-    public NormalizingScalaCompiler(Compiler<ScalaJavaJointCompileSpec> delegate) {
+    public NormalizingMirahCompiler(Compiler<MirahJavaJointCompileSpec> delegate) {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
+    public WorkResult execute(MirahJavaJointCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);
         resolveNonStringsInCompilerArgs(spec);
@@ -52,11 +52,11 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveAndFilterSourceFiles(final ScalaJavaJointCompileSpec spec) {
+    private void resolveAndFilterSourceFiles(final MirahJavaJointCompileSpec spec) {
         spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
     }
 
-    private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
+    private void resolveClasspath(MirahJavaJointCompileSpec spec) {
         ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
@@ -66,13 +66,13 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         }
     }
 
-    private void resolveNonStringsInCompilerArgs(ScalaJavaJointCompileSpec spec) {
+    private void resolveNonStringsInCompilerArgs(MirahJavaJointCompileSpec spec) {
         // in particular, this is about GStrings
         spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
-    private void logSourceFiles(ScalaJavaJointCompileSpec spec) {
-        if (!spec.getScalaCompileOptions().isListFiles()) {
+    private void logSourceFiles(MirahJavaJointCompileSpec spec) {
+        if (!spec.getMirahCompileOptions().isListFiles()) {
             return;
         }
 
@@ -86,7 +86,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         LOGGER.quiet(builder.toString());
     }
 
-    private void logCompilerArguments(ScalaJavaJointCompileSpec spec) {
+    private void logCompilerArguments(MirahJavaJointCompileSpec spec) {
         if (!LOGGER.isDebugEnabled()) {
             return;
         }
@@ -96,11 +96,11 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
 
-    private WorkResult delegateAndHandleErrors(ScalaJavaJointCompileSpec spec) {
+    private WorkResult delegateAndHandleErrors(MirahJavaJointCompileSpec spec) {
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {
-            if (spec.getScalaCompileOptions().isFailOnError()) {
+            if (spec.getMirahCompileOptions().isFailOnError()) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

@@ -17,13 +17,13 @@ package org.gradle.mirah.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
+class MirahTestIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, temporaryFolder)
 
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """

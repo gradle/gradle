@@ -25,9 +25,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Options for the ScalaDoc tool.
+ * Options for the MirahDoc tool.
  */
-public class ScalaDocOptions extends AbstractOptions {
+public class MirahDocOptions extends AbstractOptions {
     private boolean deprecation = true;
     private boolean unchecked = true;
     private String windowTitle;

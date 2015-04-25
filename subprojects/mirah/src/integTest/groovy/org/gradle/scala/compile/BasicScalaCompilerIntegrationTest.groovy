@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
 
-abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class BasicMirahCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         args("-i", "-PmirahVersion=$version")
         buildFile << buildScript()
@@ -38,7 +38,7 @@ DeprecationLogger.whileDisabled {
         goodCode()
 
         expect:
-        succeeds("compileScala")
+        succeeds("compileMirah")
         output.contains(logStatement())
         file("build/classes/main/compile/test/Person.class").exists()
     }
@@ -48,7 +48,7 @@ DeprecationLogger.whileDisabled {
         badCode()
 
         expect:
-        fails("compileScala")
+        fails("compileMirah")
         output.contains(logStatement())
         errorOutput.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
@@ -61,11 +61,11 @@ DeprecationLogger.whileDisabled {
         and:
         buildFile <<
 """
-compileScala.mirahCompileOptions.failOnError = false
+compileMirah.mirahCompileOptions.failOnError = false
 """
 
         expect:
-        succeeds("compileScala")
+        succeeds("compileMirah")
         output.contains(logStatement())
         errorOutput.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
@@ -80,7 +80,7 @@ compileScala.mirahCompileOptions.failOnError = false
 """
 apply plugin: "application"
 mainClassName = "Main"
-compileScala.mirahCompileOptions.encoding = "ISO8859_7"
+compileMirah.mirahCompileOptions.encoding = "ISO8859_7"
 """
 
         expect:
@@ -94,7 +94,7 @@ compileScala.mirahCompileOptions.encoding = "ISO8859_7"
         goodCode()
 
         when:
-        run("compileScala")
+        run("compileMirah")
 
         then:
         def fullDebug = classFile("build/classes/main/compile/test/Person.class")
@@ -105,9 +105,9 @@ compileScala.mirahCompileOptions.encoding = "ISO8859_7"
         when:
         buildFile <<
 """
-compileScala.mirahCompileOptions.debugLevel = "line"
+compileMirah.mirahCompileOptions.debugLevel = "line"
 """
-        run("compileScala")
+        run("compileMirah")
 
         then:
         def linesOnly = classFile("build/classes/main/compile/test/Person.class")
@@ -121,9 +121,9 @@ compileScala.mirahCompileOptions.debugLevel = "line"
         when:
         buildFile <<
 """
-compileScala.mirahCompileOptions.debugLevel = "none"
+compileMirah.mirahCompileOptions.debugLevel = "none"
 """
-        run("compileScala")
+        run("compileMirah")
 
         then:
         def noDebug = classFile("build/classes/main/compile/test/Person.class")
@@ -132,7 +132,7 @@ compileScala.mirahCompileOptions.debugLevel = "none"
         !noDebug.debugIncludesLocalVariables
     }
 
-    def failsWithGoodErrorMessageWhenScalaToolsNotConfigured() {
+    def failsWithGoodErrorMessageWhenMirahToolsNotConfigured() {
 
     }
 

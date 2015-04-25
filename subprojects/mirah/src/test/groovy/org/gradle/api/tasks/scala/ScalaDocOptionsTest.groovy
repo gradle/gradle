@@ -20,9 +20,9 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
-public class ScalaDocOptionsTest {
+public class MirahDocOptionsTest {
 
-    private ScalaDocOptions docOptions = new ScalaDocOptions()
+    private MirahDocOptions docOptions = new MirahDocOptions()
 
     @Test public void testOptionMapContainsDeprecation() {
         assertOnOffValue('deprecation', 'deprecation', true)

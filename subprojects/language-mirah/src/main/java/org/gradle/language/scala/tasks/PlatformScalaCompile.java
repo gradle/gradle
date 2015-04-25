@@ -17,32 +17,32 @@
 package org.gradle.language.mirah.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.language.mirah.ScalaPlatform;
+import org.gradle.language.mirah.MirahPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import javax.inject.Inject;
 
 /**
- * A platform-aware Scala compile task.
+ * A platform-aware Mirah compile task.
  */
 @Incubating
-public class PlatformScalaCompile extends AbstractScalaCompile {
+public class PlatformMirahCompile extends AbstractMirahCompile {
 
-    private ScalaPlatform platform;
+    private MirahPlatform platform;
 
     @Inject
-    public PlatformScalaCompile() {
-        super(new BaseScalaCompileOptions());
+    public PlatformMirahCompile() {
+        super(new BaseMirahCompileOptions());
     }
 
-    public ScalaPlatform getPlatform() {
+    public MirahPlatform getPlatform() {
         return platform;
     }
 
-    public void setPlatform(ScalaPlatform platform) {
+    public void setPlatform(MirahPlatform platform) {
         this.platform = platform;
     }
 
@@ -52,7 +52,7 @@ public class PlatformScalaCompile extends AbstractScalaCompile {
     }
 
     @Override
-    protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
+    protected Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec) {
         return CompilerUtil.castCompiler(getToolResolver().resolveCompiler(spec.getClass(), getPlatform()).get());
     }
 }

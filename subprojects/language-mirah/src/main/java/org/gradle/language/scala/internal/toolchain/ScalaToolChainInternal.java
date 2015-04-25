@@ -16,9 +16,9 @@
 
 package org.gradle.language.mirah.internal.toolchain;
 
-import org.gradle.language.mirah.ScalaPlatform;
-import org.gradle.language.mirah.toolchain.ScalaToolChain;
+import org.gradle.language.mirah.MirahPlatform;
+import org.gradle.language.mirah.toolchain.MirahToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
-public interface ScalaToolChainInternal extends ScalaToolChain, ToolChainInternal<ScalaPlatform> {
+public interface MirahToolChainInternal extends MirahToolChain, ToolChainInternal<MirahPlatform> {
 }

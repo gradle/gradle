@@ -24,22 +24,22 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 /**
  * Cleaning compiler for mirah. Not required for compiling with Zinc.
  */
-public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec> {
-    private final Compiler<ScalaJavaJointCompileSpec> compiler;
+public class CleaningMirahCompiler extends CleaningJavaCompilerSupport<MirahJavaJointCompileSpec> {
+    private final Compiler<MirahJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
-    public CleaningScalaCompiler(Compiler<ScalaJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
+    public CleaningMirahCompiler(Compiler<MirahJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }
 
     @Override
-    protected Compiler<ScalaJavaJointCompileSpec> getCompiler() {
+    protected Compiler<MirahJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 
     @Override
-    protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
+    protected StaleClassCleaner createCleaner(MirahJavaJointCompileSpec spec) {
         return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

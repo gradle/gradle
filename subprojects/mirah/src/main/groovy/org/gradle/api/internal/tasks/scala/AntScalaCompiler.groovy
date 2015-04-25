@@ -18,31 +18,31 @@ package org.gradle.api.internal.tasks.mirah
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.mirah.ScalaCompileOptions
+import org.gradle.api.tasks.mirah.MirahCompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.GUtil
 import org.gradle.util.VersionNumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
+class AntMirahCompiler implements Compiler<MirahCompileSpec> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntMirahCompiler)
 
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
     private Iterable<File> mirahClasspath
 
-    def AntScalaCompiler(IsolatedAntBuilder antBuilder, Iterable<File> mirahClasspath) {
+    def AntMirahCompiler(IsolatedAntBuilder antBuilder, Iterable<File> mirahClasspath) {
         this.mirahClasspath = mirahClasspath
         this.antBuilder = antBuilder
         this.bootclasspathFiles = []
         this.extensionDirs = []
     }
 
-    WorkResult execute(ScalaCompileSpec spec) {
+    WorkResult execute(MirahCompileSpec spec) {
         def destinationDir = spec.destinationDir
-        ScalaCompileOptions mirahCompileOptions = spec.mirahCompileOptions as ScalaCompileOptions
+        MirahCompileOptions mirahCompileOptions = spec.mirahCompileOptions as MirahCompileOptions
 
         def backend = chooseBackend(spec)
         def options = [destDir: destinationDir, target: backend] + mirahCompileOptions.optionMap()
@@ -75,7 +75,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         return { true } as WorkResult
     }
 
-    private VersionNumber sniffScalaVersion(Iterable<File> classpath) {
+    private VersionNumber sniffMirahVersion(Iterable<File> classpath) {
         def classLoader = new URLClassLoader(classpath*.toURI()*.toURL() as URL[], (ClassLoader) null)
         try {
             def clazz = classLoader.loadClass("mirah.util.Properties")
@@ -87,13 +87,13 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         }
     }
 
-    private String chooseBackend(ScalaCompileSpec spec) {
+    private String chooseBackend(MirahCompileSpec spec) {
         def maxSupported
-        def mirahVersion = sniffScalaVersion(mirahClasspath)
+        def mirahVersion = sniffMirahVersion(mirahClasspath)
         if (mirahVersion >= VersionNumber.parse("2.10.0-M5")) {
             maxSupported = VersionNumber.parse("1.7")
         } else {
-            // prior to Scala 2.10.0-M5, mirahc Ant task only supported "jvm-1.5" and "msil" backends
+            // prior to Mirah 2.10.0-M5, mirahc Ant task only supported "jvm-1.5" and "msil" backends
             maxSupported = VersionNumber.parse("1.5")
         }
 

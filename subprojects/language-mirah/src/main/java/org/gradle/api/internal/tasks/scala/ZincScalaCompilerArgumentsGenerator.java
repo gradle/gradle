@@ -17,15 +17,15 @@
 package org.gradle.api.internal.tasks.mirah;
 
 import com.google.common.collect.Lists;
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 import java.util.List;
 
-public class ZincScalaCompilerArgumentsGenerator {
-    public List<String> generate(ScalaCompileSpec spec) {
+public class ZincMirahCompilerArgumentsGenerator {
+    public List<String> generate(MirahCompileSpec spec) {
         List<String> result = Lists.newArrayList();
 
-        BaseScalaCompileOptions options = spec.getScalaCompileOptions();
+        BaseMirahCompileOptions options = spec.getMirahCompileOptions();
         addFlag("-deprecation", options.isDeprecation(), result);
         addFlag("-unchecked", options.isUnchecked(), result);
         addConcatenatedOption("-g:", options.getDebugLevel(), result);

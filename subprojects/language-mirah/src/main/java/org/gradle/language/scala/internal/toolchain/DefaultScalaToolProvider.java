@@ -18,10 +18,10 @@ package org.gradle.language.mirah.internal.toolchain;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.mirah.DaemonScalaCompiler;
-import org.gradle.api.internal.tasks.mirah.NormalizingScalaCompiler;
-import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.mirah.ZincScalaCompiler;
+import org.gradle.api.internal.tasks.mirah.DaemonMirahCompiler;
+import org.gradle.api.internal.tasks.mirah.NormalizingMirahCompiler;
+import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ZincMirahCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -30,27 +30,27 @@ import org.gradle.util.TreeVisitor;
 import java.io.File;
 import java.util.Set;
 
-public class DefaultScalaToolProvider implements ToolProvider {
+public class DefaultMirahToolProvider implements ToolProvider {
     public static final String DEFAULT_ZINC_VERSION = "0.3.5.3";
 
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;
-    private final Set<File> resolvedScalaClasspath;
+    private final Set<File> resolvedMirahClasspath;
     private final Set<File> resolvedZincClasspath;
 
-    public DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultMirahToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedMirahClasspath, Set<File> resolvedZincClasspath) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
-        this.resolvedScalaClasspath = resolvedScalaClasspath;
+        this.resolvedMirahClasspath = resolvedMirahClasspath;
         this.resolvedZincClasspath = resolvedZincClasspath;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
-        if (ScalaJavaJointCompileSpec.class.isAssignableFrom(spec)) {
+        if (MirahJavaJointCompileSpec.class.isAssignableFrom(spec)) {
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            Compiler<ScalaJavaJointCompileSpec> mirahCompiler = new ZincScalaCompiler(resolvedScalaClasspath, resolvedZincClasspath);
-            return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedZincClasspath));
+            Compiler<MirahJavaJointCompileSpec> mirahCompiler = new ZincMirahCompiler(resolvedMirahClasspath, resolvedZincClasspath);
+            return (Compiler<T>) new NormalizingMirahCompiler(new DaemonMirahCompiler<MirahJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedZincClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

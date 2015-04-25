@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
+public class MirahToolChainServiceRegistry implements PluginServiceRegistry {
 
     public void registerGlobalServices(ServiceRegistration registration) {
     }
@@ -40,8 +40,8 @@ public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
 
 
     private static class ProjectScopeCompileServices {
-        ScalaToolChainInternal createScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-            return new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler);
+        MirahToolChainInternal createMirahToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+            return new DownloadingMirahToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler);
         }
     }
 }

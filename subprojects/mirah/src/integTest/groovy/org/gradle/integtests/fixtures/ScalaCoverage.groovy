@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-class ScalaCoverage {
+class MirahCoverage {
 
     static final boolean USE_SINGLE_VERSION_ONLY = GradleContextualExecuter.isDaemon()
 

@@ -17,8 +17,8 @@
 package org.gradle.language.mirah.plugins
 
 import org.gradle.integtests.language.AbstractJvmPluginLanguageIntegrationTest
-import org.gradle.language.mirah.ScalaLanguageSourceSet
+import org.gradle.language.mirah.MirahLanguageSourceSet
 
-class ScalaLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest {
-    String sourceSetTypeName = ScalaLanguageSourceSet.class.simpleName
+class MirahLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest {
+    String sourceSetTypeName = MirahLanguageSourceSet.class.simpleName
 }

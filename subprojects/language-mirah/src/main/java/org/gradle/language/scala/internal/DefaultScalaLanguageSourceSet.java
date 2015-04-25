@@ -19,15 +19,15 @@ package org.gradle.language.mirah.internal;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
-import org.gradle.language.mirah.ScalaLanguageSourceSet;
+import org.gradle.language.mirah.MirahLanguageSourceSet;
 
-public class DefaultScalaLanguageSourceSet extends BaseLanguageSourceSet implements ScalaLanguageSourceSet {
+public class DefaultMirahLanguageSourceSet extends BaseLanguageSourceSet implements MirahLanguageSourceSet {
 
     private final EmptyClasspath compileClasspath = new EmptyClasspath();
 
     @Override
     protected String getTypeName() {
-        return "Scala source";
+        return "Mirah source";
     }
 
     public Classpath getCompileClasspath() {

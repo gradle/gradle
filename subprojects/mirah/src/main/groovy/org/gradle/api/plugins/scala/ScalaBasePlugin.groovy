@@ -18,20 +18,20 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.DefaultScalaSourceSet
+import org.gradle.api.internal.tasks.DefaultMirahSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.ScalaRuntime
+import org.gradle.api.tasks.MirahRuntime
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.mirah.ScalaCompile
-import org.gradle.api.tasks.mirah.ScalaDoc
-import org.gradle.language.mirah.internal.toolchain.DefaultScalaToolProvider
+import org.gradle.api.tasks.mirah.MirahCompile
+import org.gradle.api.tasks.mirah.MirahDoc
+import org.gradle.language.mirah.internal.toolchain.DefaultMirahToolProvider
 
 import javax.inject.Inject
 
-class ScalaBasePlugin implements Plugin<Project> {
+class MirahBasePlugin implements Plugin<Project> {
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
     static final String SCALA_RUNTIME_EXTENSION_NAME = "mirahRuntime"
@@ -39,10 +39,10 @@ class ScalaBasePlugin implements Plugin<Project> {
     private final FileResolver fileResolver
 
     private Project project
-    private ScalaRuntime mirahRuntime
+    private MirahRuntime mirahRuntime
 
     @Inject
-    ScalaBasePlugin(FileResolver fileResolver) {
+    MirahBasePlugin(FileResolver fileResolver) {
         this.fileResolver = fileResolver
     }
 
@@ -52,38 +52,38 @@ class ScalaBasePlugin implements Plugin<Project> {
         def javaPlugin = project.plugins.getPlugin(JavaBasePlugin.class)
 
         configureConfigurations(project)
-        configureScalaRuntimeExtension()
+        configureMirahRuntimeExtension()
         configureCompileDefaults()
         configureSourceSetDefaults(javaPlugin)
-        configureScaladoc()
+        configureMirahdoc()
     }
 
     private void configureConfigurations(Project project) {
         project.configurations.create(ZINC_CONFIGURATION_NAME)
                 .setVisible(false)
-                .setDescription("The Zinc incremental compiler to be used for this Scala project.")
+                .setDescription("The Zinc incremental compiler to be used for this Mirah project.")
     }
 
-    private void configureScalaRuntimeExtension() {
-        mirahRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime, project)
+    private void configureMirahRuntimeExtension() {
+        mirahRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, MirahRuntime, project)
     }
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.mirah = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
+            sourceSet.convention.plugins.mirah = new DefaultMirahSourceSet(sourceSet.displayName, fileResolver)
             sourceSet.mirah.srcDir { project.file("src/$sourceSet.name/mirah") }
             sourceSet.allJava.source(sourceSet.mirah)
             sourceSet.allSource.source(sourceSet.mirah)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.mirah.contains(element.file) }
 
-            configureScalaCompile(javaPlugin, sourceSet)
-            configureScalaConsole(sourceSet)
+            configureMirahCompile(javaPlugin, sourceSet)
+            configureMirahConsole(sourceSet)
         }
     }
 
-    private void configureScalaCompile(JavaBasePlugin javaPlugin, SourceSet sourceSet) {
+    private void configureMirahCompile(JavaBasePlugin javaPlugin, SourceSet sourceSet) {
         def taskName = sourceSet.getCompileTaskName('mirah')
-        def mirahCompile = project.tasks.create(taskName, ScalaCompile)
+        def mirahCompile = project.tasks.create(taskName, MirahCompile)
         mirahCompile.dependsOn sourceSet.compileJavaTaskName
         javaPlugin.configureForSourceSet(sourceSet, mirahCompile)
         mirahCompile.description = "Compiles the $sourceSet.mirah."
@@ -105,26 +105,26 @@ class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureScalaConsole(SourceSet sourceSet) {
+    private void configureMirahConsole(SourceSet sourceSet) {
         def taskName = sourceSet.getTaskName("mirah", "Console")
         def mirahConsole = project.tasks.create(taskName, JavaExec)
         mirahConsole.dependsOn(sourceSet.runtimeClasspath)
-        mirahConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
+        mirahConsole.description = "Starts a Mirah REPL with the $sourceSet.name runtime class path."
         mirahConsole.main = "mirah.tools.nsc.MainGenericRunner"
-        mirahConsole.conventionMapping.classpath = { mirahRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
+        mirahConsole.conventionMapping.classpath = { mirahRuntime.inferMirahClasspath(sourceSet.runtimeClasspath) }
         mirahConsole.systemProperty("mirah.usejavacp", true)
         mirahConsole.standardInput = System.in
         mirahConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
     private void configureCompileDefaults() {
-        project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.mirahClasspath = { mirahRuntime.inferScalaClasspath(compile.classpath) }
+        project.tasks.withType(MirahCompile.class) { MirahCompile compile ->
+            compile.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.mirahCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:$DefaultScalaToolProvider.DEFAULT_ZINC_VERSION")
+                        zinc("com.typesafe.zinc:zinc:$DefaultMirahToolProvider.DEFAULT_ZINC_VERSION")
                     }
                 }
                 config
@@ -132,11 +132,11 @@ class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureScaladoc() {
-        project.tasks.withType(ScalaDoc) { ScalaDoc mirahDoc ->
+    private void configureMirahdoc() {
+        project.tasks.withType(MirahDoc) { MirahDoc mirahDoc ->
             mirahDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/mirahdoc") }
             mirahDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferScalaClasspath(mirahDoc.classpath) }
+            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(mirahDoc.classpath) }
         }
     }
 }

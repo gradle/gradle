@@ -16,13 +16,13 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture;
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
+public class MirahProjectIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider);
+    public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, testDirectoryProvider);
 
     @Test
     public void handlesJavaSourceOnly() {

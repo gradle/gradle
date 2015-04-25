@@ -27,11 +27,11 @@ import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.language.mirah.ScalaLanguageSourceSet;
-import org.gradle.language.mirah.internal.DefaultScalaLanguageSourceSet;
-import org.gradle.language.mirah.internal.DefaultScalaPlatform;
-import org.gradle.language.mirah.tasks.PlatformScalaCompile;
-import org.gradle.language.mirah.toolchain.ScalaToolChain;
+import org.gradle.language.mirah.MirahLanguageSourceSet;
+import org.gradle.language.mirah.internal.DefaultMirahLanguageSourceSet;
+import org.gradle.language.mirah.internal.DefaultMirahPlatform;
+import org.gradle.language.mirah.tasks.PlatformMirahCompile;
+import org.gradle.language.mirah.toolchain.MirahToolChain;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
@@ -45,11 +45,11 @@ import java.util.Map;
 
 
 /**
- * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
- * Registers "mirah" language support with the {@link org.gradle.language.mirah.ScalaLanguageSourceSet}.
+ * Plugin for compiling Mirah code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
+ * Registers "mirah" language support with the {@link org.gradle.language.mirah.MirahLanguageSourceSet}.
  */
 @Incubating
-public class ScalaLanguagePlugin implements Plugin<Project> {
+public class MirahLanguagePlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
@@ -60,25 +60,25 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Model
-        ScalaToolChain mirahToolChain(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ScalaToolChain.class);
+        MirahToolChain mirahToolChain(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(MirahToolChain.class);
         }
 
         @LanguageType
-        void registerLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
+        void registerLanguage(LanguageTypeBuilder<MirahLanguageSourceSet> builder) {
             builder.setLanguageName("mirah");
-            builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
+            builder.defaultImplementation(DefaultMirahLanguageSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Scala());
+            languages.add(new Mirah());
         }
     }
 
-    private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
-        public Class<ScalaLanguageSourceSet> getSourceSetType() {
-            return ScalaLanguageSourceSet.class;
+    private static class Mirah implements LanguageTransform<MirahLanguageSourceSet, JvmByteCode> {
+        public Class<MirahLanguageSourceSet> getSourceSetType() {
+            return MirahLanguageSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {
@@ -96,19 +96,19 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                 }
 
                 public Class<? extends DefaultTask> getTaskType() {
-                    return PlatformScalaCompile.class;
+                    return PlatformMirahCompile.class;
                 }
 
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
-                    PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    ScalaLanguageSourceSet mirahSourceSet = (ScalaLanguageSourceSet) sourceSet;
+                    PlatformMirahCompile compile = (PlatformMirahCompile) task;
+                    MirahLanguageSourceSet mirahSourceSet = (MirahLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
                     JavaPlatform javaPlatform = binary.getTargetPlatform();
                     // TODO RG resolve the mirah platform from the binary
 
-                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                    compile.setPlatform(new DefaultMirahPlatform("2.10.4"));
                     File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
-                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
+                    compile.getMirahCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
                     compile.setDescription(String.format("Compiles %s.", mirahSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());

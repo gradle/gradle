@@ -16,14 +16,14 @@
 
 package org.gradle.mirah.compile
 
-abstract class AbstractAntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+abstract class AbstractAntForkingMirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
     }
 
     String compilerConfiguration() {
         '''
-compileScala.mirahCompileOptions.with {
+compileMirah.mirahCompileOptions.with {
     useAnt = true
     fork = true
     forkOptions.memoryMaximumSize = "512m"

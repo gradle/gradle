@@ -18,12 +18,12 @@ package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.mirah.ScalaLanguageSourceSet
+import org.gradle.language.mirah.MirahLanguageSourceSet
 
 class TestJointCompiledComponent extends TestJvmComponent {
 
     String languageName = "mirah"
-    String sourceSetTypeName = ScalaLanguageSourceSet.class.name
+    String sourceSetTypeName = MirahLanguageSourceSet.class.name
 
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''

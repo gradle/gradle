@@ -20,7 +20,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
+class MirahPluginIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
     def "can apply mirah plugin when running under java 8"() {

@@ -24,10 +24,10 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({MirahCoverage.DEFAULT})
+class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, temporaryFolder)
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
@@ -47,7 +47,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     """
-        writeScalaTestSource("src/main/mirah")
+        writeMirahTestSource("src/main/mirah")
         file('build.gradle') << """
                     println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                     apply plugin:'mirah'
@@ -60,16 +60,16 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         compile 'org.mirah-lang:mirah-library:2.11.1'
                     }
 
-                    compileScala {
+                    compileMirah {
                         mirahCompileOptions.useAnt = ${useAnt}
                         mirahCompileOptions.fork = ${forkMode}
                     }
                     """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run().output
+        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileMirah").run().output
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        file("build/classes/main/org/test/MirahClazz.class").exists()
 
         where:
         forkMode | useAnt
@@ -82,7 +82,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.WINDOWS)
     def "mirah compilation works when gradle is started with no java_home defined"() {
         given:
-        writeScalaTestSource("src/main/mirah");
+        writeMirahTestSource("src/main/mirah");
         file('build.gradle') << """
                     apply plugin:'mirah'
 
@@ -97,15 +97,15 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
-        executer.withEnvironmentVars(envVars).withTasks("compileScala").run()
+        executer.withEnvironmentVars(envVars).withTasks("compileMirah").run()
         then:
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        file("build/classes/main/org/test/MirahClazz.class").exists()
     }
 
-    private writeScalaTestSource(String srcDir) {
-        file(srcDir, 'org/test/ScalaClazz.mirah') << """
+    private writeMirahTestSource(String srcDir) {
+        file(srcDir, 'org/test/MirahClazz.mirah') << """
         package org.test{
-            object ScalaClazz {
+            object MirahClazz {
                 def main(args: Array[String]) {
                     println("Hello, world!")
                 }

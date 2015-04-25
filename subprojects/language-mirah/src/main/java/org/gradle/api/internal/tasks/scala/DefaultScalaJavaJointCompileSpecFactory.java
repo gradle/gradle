@@ -21,29 +21,29 @@ import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec;
 import org.gradle.api.tasks.compile.CompileOptions;
 
-public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultScalaJavaJointCompileSpec> {
-    public DefaultScalaJavaJointCompileSpecFactory(CompileOptions compileOptions) {
+public class DefaultMirahJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultMirahJavaJointCompileSpec> {
+    public DefaultMirahJavaJointCompileSpecFactory(CompileOptions compileOptions) {
         super(compileOptions);
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getCommandLineSpec() {
-        return new DefaultCommandLineScalaJavaJointCompileSpec();
+    protected DefaultMirahJavaJointCompileSpec getCommandLineSpec() {
+        return new DefaultCommandLineMirahJavaJointCompileSpec();
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getForkingSpec() {
-        return new DefaultForkingScalaJavaJointCompileSpec();
+    protected DefaultMirahJavaJointCompileSpec getForkingSpec() {
+        return new DefaultForkingMirahJavaJointCompileSpec();
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getDefaultSpec() {
-        return new DefaultScalaJavaJointCompileSpec();
+    protected DefaultMirahJavaJointCompileSpec getDefaultSpec() {
+        return new DefaultMirahJavaJointCompileSpec();
     }
 
-    private static class DefaultCommandLineScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+    private static class DefaultCommandLineMirahJavaJointCompileSpec extends DefaultMirahJavaJointCompileSpec implements CommandLineJavaCompileSpec {
     }
 
-    private static class DefaultForkingScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements ForkingJavaCompileSpec {
+    private static class DefaultForkingMirahJavaJointCompileSpec extends DefaultMirahJavaJointCompileSpec implements ForkingJavaCompileSpec {
     }
 }

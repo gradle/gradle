@@ -17,30 +17,30 @@
 package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
-public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
-    private BaseScalaCompileOptions options;
+public class DefaultMirahJavaJointCompileSpec extends DefaultJavaCompileSpec implements MirahJavaJointCompileSpec {
+    private BaseMirahCompileOptions options;
     private Iterable<File> mirahClasspath;
     private Iterable<File> zincClasspath;
     private Map<File, File> analysisMap;
 
-    public BaseScalaCompileOptions getScalaCompileOptions() {
+    public BaseMirahCompileOptions getMirahCompileOptions() {
         return options;
     }
 
-    public void setScalaCompileOptions(BaseScalaCompileOptions options) {
+    public void setMirahCompileOptions(BaseMirahCompileOptions options) {
         this.options = options;
     }
 
-    public Iterable<File> getScalaClasspath() {
+    public Iterable<File> getMirahClasspath() {
         return mirahClasspath;
     }
 
-    public void setScalaClasspath(Iterable<File> mirahClasspath) {
+    public void setMirahClasspath(Iterable<File> mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
     }
 

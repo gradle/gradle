@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
@@ -39,13 +39,13 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.util.HashSet;
 
-public class ScalaCompileTest extends AbstractCompileTest {
+public class MirahCompileTest extends AbstractCompileTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private ScalaCompile mirahCompile;
+    private MirahCompile mirahCompile;
 
-    private Compiler<ScalaJavaJointCompileSpec> mirahCompiler;
+    private Compiler<MirahJavaJointCompileSpec> mirahCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private FileCollection mirahClasspath;
 
@@ -61,7 +61,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     @Before
     public void setUp() {
-        mirahCompile = createTask(ScalaCompile.class);
+        mirahCompile = createTask(MirahCompile.class);
         mirahCompiler = context.mock(Compiler.class);
         mirahCompile.setCompiler(mirahCompiler);
 
@@ -74,14 +74,14 @@ public class ScalaCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(mirahCompile);
         context.checking(new Expectations() {{
             allowing(mirahClasspath).isEmpty(); will(returnValue(false));
-            one(mirahCompiler).execute((ScalaJavaJointCompileSpec) with(IsNull.notNullValue()));
+            one(mirahCompiler).execute((MirahJavaJointCompileSpec) with(IsNull.notNullValue()));
         }});
 
         mirahCompile.execute();
     }
 
     @Test
-    public void testMoansIfScalaClasspathIsEmpty() {
+    public void testMoansIfMirahClasspathIsEmpty() {
         setUpMocksAndAttributes(mirahCompile);
         context.checking(new Expectations() {{
             allowing(mirahClasspath).isEmpty(); will(returnValue(true));
@@ -93,7 +93,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         mirahCompile.execute();
     }
 
-    protected void setUpMocksAndAttributes(final ScalaCompile compile) {
+    protected void setUpMocksAndAttributes(final MirahCompile compile) {
         compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
@@ -101,7 +101,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
         mirahClasspath = context.mock(FileTree.class);
-        compile.setScalaClasspath(mirahClasspath);
+        compile.setMirahClasspath(mirahClasspath);
         final FileTree classpath = context.mock(FileTree.class);
         final FileTree zincClasspath = context.mock(FileTree.class);
 
@@ -112,7 +112,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         }});
         compile.setClasspath(classpath);
         compile.setZincClasspath(zincClasspath);
-        compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
+        compile.getMirahCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
     }
 
 

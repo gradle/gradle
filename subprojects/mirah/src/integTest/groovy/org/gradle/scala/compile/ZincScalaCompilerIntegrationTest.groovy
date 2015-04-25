@@ -15,39 +15,39 @@
  */
 package org.gradle.mirah.compile
 
-import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.MirahCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+@TargetCoverage({MirahCoverage.DEFAULT})
+class ZincMirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     String compilerConfiguration() {
         """
-compileScala.mirahCompileOptions.with {
+compileMirah.mirahCompileOptions.with {
     useAnt = false
 }
         """
     }
 
     String logStatement() {
-        "Compiling with Zinc Scala compiler"
+        "Compiling with Zinc Mirah compiler"
     }
 
-    def compilesScalaCodeIncrementally() {
+    def compilesMirahCodeIncrementally() {
         setup:
         def person = file("build/classes/main/Person.class")
         def house = file("build/classes/main/House.class")
         def other = file("build/classes/main/Other.class")
-        run("compileScala")
+        run("compileMirah")
 
         when:
         file("src/main/mirah/Person.mirah").delete()
         file("src/main/mirah/Person.mirah") << "class Person"
         args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
-        run("compileScala")
+        run("compileMirah")
 
         then:
         person.exists()
@@ -63,13 +63,13 @@ compileScala.mirahCompileOptions.with {
         def person = file("build/classes/main/Person.class")
         def house = file("build/classes/main/House.class")
         def other = file("build/classes/main/Other.class")
-        run("compileScala")
+        run("compileMirah")
 
         when:
         file("src/main/mirah/Person.java").delete()
         file("src/main/mirah/Person.java") << "public class Person {}"
         args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
-        run("compileScala")
+        run("compileMirah")
 
         then:
         person.lastModified() != old(person.lastModified())
@@ -82,13 +82,13 @@ compileScala.mirahCompileOptions.with {
         def person = file("prj1/build/classes/main/Person.class")
         def house = file("prj2/build/classes/main/House.class")
         def other = file("prj2/build/classes/main/Other.class")
-        run("compileScala")
+        run("compileMirah")
 
         when:
         file("prj1/src/main/mirah/Person.mirah").delete()
         file("prj1/src/main/mirah/Person.mirah") << "class Person"
         args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
-        run("compileScala")
+        run("compileMirah")
 
         then:
         person.lastModified() != old(person.lastModified())

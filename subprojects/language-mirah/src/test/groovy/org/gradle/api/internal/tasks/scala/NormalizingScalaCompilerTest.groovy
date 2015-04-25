@@ -20,13 +20,13 @@ import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions
 import spock.lang.Specification
 
-class NormalizingScalaCompilerTest extends Specification {
-    Compiler<ScalaJavaJointCompileSpec> target = Mock()
-    DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec()
-    NormalizingScalaCompiler compiler = new NormalizingScalaCompiler(target)
+class NormalizingMirahCompilerTest extends Specification {
+    Compiler<MirahJavaJointCompileSpec> target = Mock()
+    DefaultMirahJavaJointCompileSpec spec = new DefaultMirahJavaJointCompileSpec()
+    NormalizingMirahCompiler compiler = new NormalizingMirahCompiler(target)
 
     def setup() {
         spec.destinationDir = new File("dest")
@@ -34,7 +34,7 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.classpath = files("Dep1.jar", "Dep2.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
-        spec.mirahCompileOptions = new BaseScalaCompileOptions()
+        spec.mirahCompileOptions = new BaseMirahCompileOptions()
     }
 
     def "delegates to target compiler after resolving source and classpaths"() {
@@ -100,7 +100,7 @@ class NormalizingScalaCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        1 * target.execute(_) >> { ScalaJavaJointCompileSpec spec ->
+        1 * target.execute(_) >> { MirahJavaJointCompileSpec spec ->
             assert spec.compileOptions.compilerArgs.every { it instanceof String }
         }
     }

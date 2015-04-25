@@ -17,12 +17,12 @@ package org.gradle.api.tasks.mirah;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 /**
- * Options for Scala compilation, including the use of the Ant-backed compiler.
+ * Options for Mirah compilation, including the use of the Ant-backed compiler.
  */
-public class ScalaCompileOptions extends BaseScalaCompileOptions {
+public class MirahCompileOptions extends BaseMirahCompileOptions {
     private static final ImmutableMap<String, String> FIELD_NAMES_TO_ANT_PROPERTIES = new ImmutableMap.Builder<String, String>()
             .put("loggingLevel", "logging")
             .put("loggingPhases", "logphase")
@@ -44,7 +44,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
     /**
      * Tells whether to use Ant for compilation. If {@code true}, the standard Ant mirahc (or fsc) task will be used for
-     * Scala and Java joint compilation. If {@code false}, the Zinc incremental compiler will be used
+     * Mirah and Java joint compilation. If {@code false}, the Zinc incremental compiler will be used
      * instead. The latter can be significantly faster, especially if there are few source code changes
      * between compiler runs. Defaults to {@code true}.
      */
@@ -60,7 +60,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     }
 
     /**
-     * Whether to run the Scala compiler in a separate process. Defaults to {@code false}
+     * Whether to run the Mirah compiler in a separate process. Defaults to {@code false}
      * for the Ant based compiler ({@code useAnt = true}), and to {@code true} for the Zinc
      * based compiler ({@code useAnt = false}).
      */
@@ -103,7 +103,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
                 || fieldName.equals("forkOptions")
                 || fieldName.equals("useAnt")
                 || fieldName.equals("incrementalOptions")
-                || fieldName.equals("targetCompatibility") // handled directly by AntScalaCompiler
+                || fieldName.equals("targetCompatibility") // handled directly by AntMirahCompiler
                 || fieldName.equals("optimize") && !isOptimize();
     }
 

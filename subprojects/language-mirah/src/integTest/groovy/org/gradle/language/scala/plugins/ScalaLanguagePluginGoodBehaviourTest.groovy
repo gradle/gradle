@@ -18,7 +18,7 @@ package org.gradle.language.mirah.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class ScalaLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest {
+class MirahLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {
         "mirah-lang"

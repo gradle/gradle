@@ -16,6 +16,6 @@
 
 
 /**
- * Scala {@link org.gradle.api.Task} implementations.
+ * Mirah {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.mirah;

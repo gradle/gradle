@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
-public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    BaseScalaCompileOptions getScalaCompileOptions();
+public interface MirahCompileSpec extends JvmLanguageCompileSpec {
+    BaseMirahCompileOptions getMirahCompileOptions();
 
     Map<File, File> getAnalysisMap();
 

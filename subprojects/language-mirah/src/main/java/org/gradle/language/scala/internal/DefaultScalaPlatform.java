@@ -16,35 +16,35 @@
 
 package org.gradle.language.mirah.internal;
 
-import org.gradle.language.mirah.ScalaPlatform;
+import org.gradle.language.mirah.MirahPlatform;
 import org.gradle.util.VersionNumber;
 
-public class DefaultScalaPlatform implements ScalaPlatform {
+public class DefaultMirahPlatform implements MirahPlatform {
     private final String mirahCompatibilityVersion;
     private final String mirahVersion;
 
-    public DefaultScalaPlatform(String mirahVersion) {
+    public DefaultMirahPlatform(String mirahVersion) {
         this(VersionNumber.parse(mirahVersion));
     }
 
-    public DefaultScalaPlatform(VersionNumber versionNumber) {
+    public DefaultMirahPlatform(VersionNumber versionNumber) {
         this.mirahVersion = versionNumber.getMajor() + "." + versionNumber.getMinor() + "." + versionNumber.getMicro();
         this.mirahCompatibilityVersion = versionNumber.getMajor() + "." + versionNumber.getMinor();
     }
 
-    public String getScalaVersion() {
+    public String getMirahVersion() {
         return mirahVersion;
     }
 
-    public String getScalaCompatibilityVersion() {
+    public String getMirahCompatibilityVersion() {
         return mirahCompatibilityVersion;
     }
 
     public String getDisplayName() {
-        return String.format("Scala Platform (Scala %s)", mirahVersion);
+        return String.format("Mirah Platform (Mirah %s)", mirahVersion);
     }
 
     public String getName() {
-        return String.format("ScalaPlatform%s", mirahVersion);
+        return String.format("MirahPlatform%s", mirahVersion);
     }
 }

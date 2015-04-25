@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
+class SamplesMirahZincIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'mirah/zinc')
 

@@ -16,29 +16,29 @@
 package org.gradle.mirah.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
+class IncrementalMirahCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ForkScalaCompileInDaemonModeFixture daemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ForkMirahCompileInDaemonModeFixture daemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
         expect:
-        run('compileScala').assertTasksSkipped(':compileJava')
+        run('compileMirah').assertTasksSkipped(':compileJava')
 
         when:
         file('build.gradle').text += '''
-            compileScala.options.debug = false
+            compileMirah.options.debug = false
 '''
         then:
-        run('compileScala').assertTasksSkipped(':compileJava')
+        run('compileMirah').assertTasksSkipped(':compileJava')
 
-        run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
+        run('compileMirah').assertTasksSkipped(':compileJava', ':compileMirah')
     }
 
     def recompilesDependentClasses() {
@@ -49,12 +49,12 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/mirah/IPerson.mirah').assertIsFile().copyFrom(file('NewIPerson.mirah'))
 
         then:
-        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileMirah'.")
     }
 
     @Issue("GRADLE-2548")
     @Ignore
-    def recompilesScalaWhenJavaChanges() {
+    def recompilesMirahWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'mirah'
 
@@ -80,6 +80,6 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         //the build should fail because the interface the mirah class needs has changed
-        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileMirah'.")
     }
 }

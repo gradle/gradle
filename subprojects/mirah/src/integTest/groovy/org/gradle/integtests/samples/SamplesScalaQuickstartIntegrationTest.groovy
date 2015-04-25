@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -28,10 +28,10 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
+class SamplesMirahQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/quickstart')
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
+    @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     private TestFile projectDir
 
@@ -60,7 +60,7 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canBuildScalaDoc() {
+    public void canBuildMirahDoc() {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load mirah into the daemon as it exhausts permgen
             return

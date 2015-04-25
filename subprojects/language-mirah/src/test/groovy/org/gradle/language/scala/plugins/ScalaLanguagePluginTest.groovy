@@ -18,19 +18,19 @@ package org.gradle.language.mirah.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.mirah.ScalaLanguageSourceSet
+import org.gradle.language.mirah.MirahLanguageSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class ScalaLanguagePluginTest extends AbstractLanguagePluginSpec {
+class MirahLanguagePluginTest extends AbstractLanguagePluginSpec {
 
     @Override
     Class<Plugin> getPluginClass() {
-        return ScalaLanguagePlugin
+        return MirahLanguagePlugin
     }
 
     @Override
     Class<? extends LanguageSourceSet> getLanguageSourceSet() {
-        return ScalaLanguageSourceSet
+        return MirahLanguageSourceSet
     }
 
     @Override

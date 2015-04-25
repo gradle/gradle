@@ -18,27 +18,27 @@ package org.gradle.api.plugins.mirah;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.mirah.ScalaDoc
+import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.api.plugins.JavaBasePlugin
 
-public class ScalaPlugin implements Plugin<Project> {
+public class MirahPlugin implements Plugin<Project> {
     // tasks
     public static final String SCALA_DOC_TASK_NAME = "mirahdoc";
 
     public void apply(Project project) {
-        project.pluginManager.apply(ScalaBasePlugin);
+        project.pluginManager.apply(MirahBasePlugin);
         project.pluginManager.apply(JavaPlugin);
 
-        configureScaladoc(project);
+        configureMirahdoc(project);
     }
 
-    private void configureScaladoc(final Project project) {
-        project.getTasks().withType(ScalaDoc.class) {ScalaDoc mirahDoc ->
+    private void configureMirahdoc(final Project project) {
+        project.getTasks().withType(MirahDoc.class) {MirahDoc mirahDoc ->
             mirahDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
             mirahDoc.source = project.sourceSets.main.mirah
         }
-        ScalaDoc mirahDoc = project.tasks.create(SCALA_DOC_TASK_NAME, ScalaDoc.class)
-        mirahDoc.description = "Generates Scaladoc for the main source code.";
+        MirahDoc mirahDoc = project.tasks.create(SCALA_DOC_TASK_NAME, MirahDoc.class)
+        mirahDoc.description = "Generates Mirahdoc for the main source code.";
         mirahDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

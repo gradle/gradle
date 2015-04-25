@@ -34,33 +34,33 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
+public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, Serializable {
+    private static final Logger LOGGER = Logging.getLogger(ZincMirahCompiler.class);
     private final Iterable<File> mirahClasspath;
     private Iterable<File> zincClasspath;
 
-    public ZincScalaCompiler(Iterable<File> mirahClasspath, Iterable<File> zincClasspath) {
+    public ZincMirahCompiler(Iterable<File> mirahClasspath, Iterable<File> zincClasspath) {
         this.mirahClasspath = mirahClasspath;
         this.zincClasspath = zincClasspath;
     }
 
-    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
+    public WorkResult execute(MirahJavaJointCompileSpec spec) {
         return Compiler.execute(mirahClasspath, zincClasspath, spec);
     }
 
-    // need to defer loading of Zinc/sbt/Scala classes until we are
+    // need to defer loading of Zinc/sbt/Mirah classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(Iterable<File> mirahClasspath, Iterable<File> zincClasspath, ScalaJavaJointCompileSpec spec) {
-            LOGGER.info("Compiling with Zinc Scala compiler.");
+        static WorkResult execute(Iterable<File> mirahClasspath, Iterable<File> zincClasspath, MirahJavaJointCompileSpec spec) {
+            LOGGER.info("Compiling with Zinc Mirah compiler.");
 
             xsbti.Logger logger = new SbtLoggerAdapter();
 
             com.typesafe.zinc.Compiler compiler = createCompiler(mirahClasspath, zincClasspath, logger);
-            List<String> mirahcOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
+            List<String> mirahcOptions = new ZincMirahCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
-                    mirahcOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
+                    mirahcOptions, javacOptions, spec.getMirahCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
             }
@@ -90,7 +90,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         }
 
         static com.typesafe.zinc.Compiler createCompiler(Iterable<File> mirahClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
-            ScalaLocation mirahLocation = ScalaLocation.fromPath(Lists.newArrayList(mirahClasspath));
+            MirahLocation mirahLocation = MirahLocation.fromPath(Lists.newArrayList(mirahClasspath));
             SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
             Setup setup = Setup.create(mirahLocation, sbtJars, Jvm.current().getJavaHome(), true);
             if (LOGGER.isDebugEnabled()) {

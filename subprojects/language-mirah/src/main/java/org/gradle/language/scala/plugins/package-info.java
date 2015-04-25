@@ -15,7 +15,7 @@
  */
 
 /**
- * Base plugins that add support for Scala language.
+ * Base plugins that add support for Mirah language.
  */
 @Incubating
 package org.gradle.language.mirah.plugins;

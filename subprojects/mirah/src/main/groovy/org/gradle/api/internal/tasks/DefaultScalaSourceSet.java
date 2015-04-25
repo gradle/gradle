@@ -19,31 +19,31 @@ import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.ScalaSourceSet;
+import org.gradle.api.tasks.MirahSourceSet;
 import org.gradle.util.ConfigureUtil;
 
-public class DefaultScalaSourceSet implements ScalaSourceSet {
+public class DefaultMirahSourceSet implements MirahSourceSet {
     private final SourceDirectorySet mirah;
-    private final SourceDirectorySet allScala;
+    private final SourceDirectorySet allMirah;
 
-    public DefaultScalaSourceSet(String displayName, FileResolver fileResolver) {
-        mirah = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
+    public DefaultMirahSourceSet(String displayName, FileResolver fileResolver) {
+        mirah = new DefaultSourceDirectorySet(String.format("%s Mirah source", displayName), fileResolver);
         mirah.getFilter().include("**/*.java", "**/*.mirah");
-        allScala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
-        allScala.getFilter().include("**/*.mirah");
-        allScala.source(mirah);
+        allMirah = new DefaultSourceDirectorySet(String.format("%s Mirah source", displayName), fileResolver);
+        allMirah.getFilter().include("**/*.mirah");
+        allMirah.source(mirah);
     }
 
-    public SourceDirectorySet getScala() {
+    public SourceDirectorySet getMirah() {
         return mirah;
     }
 
-    public ScalaSourceSet mirah(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getScala());
+    public MirahSourceSet mirah(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getMirah());
         return this;
     }
 
-    public SourceDirectorySet getAllScala() {
-        return allScala;
+    public SourceDirectorySet getAllMirah() {
+        return allMirah;
     }
 }

@@ -22,16 +22,16 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-public class DefaultScalaJavaJointCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-    private final Compiler<ScalaCompileSpec> mirahCompiler;
+public class DefaultMirahJavaJointCompiler implements Compiler<MirahJavaJointCompileSpec> {
+    private final Compiler<MirahCompileSpec> mirahCompiler;
     private final Compiler<JavaCompileSpec> javaCompiler;
 
-    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> mirahCompiler, Compiler<JavaCompileSpec> javaCompiler) {
+    public DefaultMirahJavaJointCompiler(Compiler<MirahCompileSpec> mirahCompiler, Compiler<JavaCompileSpec> javaCompiler) {
         this.mirahCompiler = mirahCompiler;
         this.javaCompiler = javaCompiler;
     }
 
-    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
+    public WorkResult execute(MirahJavaJointCompileSpec spec) {
         mirahCompiler.execute(spec);
 
         PatternFilterable patternSet = new PatternSet();

@@ -16,8 +16,8 @@
 
 package org.gradle.mirah.compile
 
-import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.MirahCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-class AntInProcessScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}
+@TargetCoverage({MirahCoverage.DEFAULT})
+class AntInProcessMirahCompilerIntegrationTest extends AbstractAntInProcessMirahCompilerIntegrationTest {}

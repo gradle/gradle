@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.mirah
 
-import org.gradle.language.mirah.tasks.BaseScalaCompileOptions
+import org.gradle.language.mirah.tasks.BaseMirahCompileOptions
 import spock.lang.Specification
 
-class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
-    def generator = new ZincScalaCompilerArgumentsGenerator()
-    def spec = new DefaultScalaJavaJointCompileSpec()
+class ZincMirahCompilerArgumentsGeneratorTest extends Specification {
+    def generator = new ZincMirahCompilerArgumentsGenerator()
+    def spec = new DefaultMirahJavaJointCompileSpec()
 
     def setup() {
-        spec.setScalaCompileOptions(new BaseScalaCompileOptions())
+        spec.setMirahCompileOptions(new BaseMirahCompileOptions())
     }
 
     def "default options"() {

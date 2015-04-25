@@ -18,8 +18,8 @@ package org.gradle.language.mirah
 
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.mirah.fixtures.TestScalaComponent
+import org.gradle.language.mirah.fixtures.TestMirahComponent
 
-class ScalaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
-    TestJvmComponent testComponent = new TestScalaComponent()
+class MirahLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
+    TestJvmComponent testComponent = new TestMirahComponent()
 }

@@ -19,7 +19,7 @@ package org.gradle.language.mirah.toolchain;
 import org.gradle.platform.base.ToolChain;
 
 /**
- * A set of tools for building Scala applications
+ * A set of tools for building Mirah applications
  */
-public interface ScalaToolChain extends ToolChain {
+public interface MirahToolChain extends ToolChain {
 }

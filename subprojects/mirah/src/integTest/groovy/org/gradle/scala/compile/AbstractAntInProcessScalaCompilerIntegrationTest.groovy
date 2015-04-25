@@ -16,18 +16,18 @@
 
 package org.gradle.mirah.compile
 
-import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.MirahCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
-abstract class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+@TargetCoverage({MirahCoverage.DEFAULT})
+abstract class AbstractAntInProcessMirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
     }
 
     String compilerConfiguration() {
         '''
-compileScala.mirahCompileOptions.with {
+compileMirah.mirahCompileOptions.with {
     useAnt = true
 }
 '''

@@ -21,18 +21,18 @@ import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
-class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
+class DefaultMirahJavaJointCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
         CompileOptions options = new CompileOptions()
         options.fork = fork
         options.forkOptions.executable = executable
-        DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options)
+        DefaultMirahJavaJointCompileSpecFactory factory = new DefaultMirahJavaJointCompileSpecFactory(options)
 
         when:
         def spec = factory.create()
 
         then:
-        spec instanceof DefaultScalaJavaJointCompileSpec
+        spec instanceof DefaultMirahJavaJointCompileSpec
         ForkingJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsForking
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 

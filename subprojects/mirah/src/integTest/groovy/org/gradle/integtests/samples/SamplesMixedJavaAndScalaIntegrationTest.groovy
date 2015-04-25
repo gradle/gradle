@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -27,10 +27,10 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
+class SamplesMixedJavaAndMirahIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/mixedJavaAndScala')
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/mixedJavaAndMirah')
+    @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     @Test
     public void canBuildJar() {
@@ -45,7 +45,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
 
         // Check contents of Jar
         TestFile jarContents = file('jar')
-        projectDir.file("build/libs/mixedJavaAndScala-1.0.jar").unzipTo(jarContents)
+        projectDir.file("build/libs/mixedJavaAndMirah-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/Person.class',
@@ -67,13 +67,13 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
         javadocsDir.file("index.html").assertIsFile()
-        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
+        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndMirah 1.0 API'))
         javadocsDir.file("org/gradle/sample/Person.html").assertIsFile()
         javadocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
 
         TestFile mirahdocsDir = projectDir.file("build/docs/mirahdoc")
         mirahdocsDir.file("index.html").assertIsFile()
-        mirahdocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
+        mirahdocsDir.file("index.html").assertContents(containsString('mixedJavaAndMirah 1.0 API'))
         mirahdocsDir.file("org/gradle/sample/impl/PersonImpl.html").assertIsFile()
         mirahdocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
         mirahdocsDir.file("org/gradle/sample/impl/PersonList.html").assertIsFile()
