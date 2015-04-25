@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  *     }
  *
  *     dependencies {
- *         compile "org.mirah-lang:mirah-library:2.10.1"
+ * //      compile "org.mirah-lang:mirah-library:2.10.1"
  *     }
  *
  *     def mirahClasspath = mirahRuntime.inferMirahClasspath(configurations.compile)

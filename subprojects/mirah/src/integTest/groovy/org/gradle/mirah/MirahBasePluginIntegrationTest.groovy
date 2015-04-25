@@ -39,7 +39,7 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.mirah-lang:mirah-library:$version"
+//  customCompile "org.mirah-lang:mirah-library:$version"
 }
 
 task mirahdoc(type: MirahDoc) {
@@ -70,7 +70,7 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.mirah-lang:mirah-library:$version"
+//  customCompile "org.mirah-lang:mirah-library:$version"
 }
 
 task mirahdoc(type: MirahDoc) {

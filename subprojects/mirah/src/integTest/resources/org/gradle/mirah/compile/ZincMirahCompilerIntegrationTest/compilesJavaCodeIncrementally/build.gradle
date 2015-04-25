@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.mirah-lang:mirah-library:$mirahVersion"
+//  compile "org.mirah-lang:mirah-library:$mirahVersion"
 }
 
 tasks.withType(MirahCompile) {
