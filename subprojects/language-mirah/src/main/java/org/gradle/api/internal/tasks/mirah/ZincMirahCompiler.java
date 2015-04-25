@@ -51,12 +51,11 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
 
             org.mirah.tool.Mirahc compiler = new Mirahc();
             List<String> mirahcOptions = new ZincMirahCompilerArgumentsGenerator().generate(spec);
+            /*
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
                     mirahcOptions, javacOptions, spec.getMirahCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", true);
-            if (LOGGER.isDebugEnabled()) {
-                Inputs.debug(inputs, logger);
-            }
+            */
 
             int result = compiler.compile(mirahcOptions.toArray(new String[0]));
             
