@@ -26,8 +26,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.jvm.Jvm;
-import mirah.Option;
-import xsbti.F0;
+// import mirah.Option;
 
 import java.io.File;
 import java.io.Serializable;
