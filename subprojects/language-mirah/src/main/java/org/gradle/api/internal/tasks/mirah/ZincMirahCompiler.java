@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.mirah;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.typesafe.zinc.*;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.language.base.internal.compile.Compiler;
