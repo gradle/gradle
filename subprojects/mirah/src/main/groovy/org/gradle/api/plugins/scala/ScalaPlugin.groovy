@@ -23,7 +23,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 
 public class MirahPlugin implements Plugin<Project> {
     // tasks
-    public static final String SCALA_DOC_TASK_NAME = "mirahdoc";
+    public static final String MIRAH_DOC_TASK_NAME = "mirahdoc";
 
     public void apply(Project project) {
         project.pluginManager.apply(MirahBasePlugin);
@@ -37,7 +37,7 @@ public class MirahPlugin implements Plugin<Project> {
             mirahDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
             mirahDoc.source = project.sourceSets.main.mirah
         }
-        MirahDoc mirahDoc = project.tasks.create(SCALA_DOC_TASK_NAME, MirahDoc.class)
+        MirahDoc mirahDoc = project.tasks.create(MIRAH_DOC_TASK_NAME, MirahDoc.class)
         mirahDoc.description = "Generates Mirahdoc for the main source code.";
         mirahDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }

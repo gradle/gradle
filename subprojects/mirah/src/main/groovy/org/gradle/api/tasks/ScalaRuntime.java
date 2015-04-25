@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  */
 @Incubating
 public class MirahRuntime {
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("mirah-(\\w.*?)-(\\d.*).jar");
+    private static final Pattern MIRAH_JAR_PATTERN = Pattern.compile("mirah-(\\w.*?)-(\\d.*).jar");
 
     private final Project project;
 
@@ -124,7 +124,7 @@ public class MirahRuntime {
     @Nullable
     public File findMirahJar(Iterable<File> classpath, String appendix) {
         for (File file : classpath) {
-            Matcher matcher = SCALA_JAR_PATTERN.matcher(file.getName());
+            Matcher matcher = MIRAH_JAR_PATTERN.matcher(file.getName());
             if (matcher.matches() && matcher.group(1).equals(appendix)) {
                 return file;
             }
@@ -145,7 +145,7 @@ public class MirahRuntime {
      */
     @Nullable
     public String getMirahVersion(File mirahJar) {
-        Matcher matcher = SCALA_JAR_PATTERN.matcher(mirahJar.getName());
+        Matcher matcher = MIRAH_JAR_PATTERN.matcher(mirahJar.getName());
         return matcher.matches() ? matcher.group(2) : null;
     }
 }

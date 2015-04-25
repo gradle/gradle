@@ -82,7 +82,7 @@ class MirahPluginTest {
     @Test void addsMirahDocTasksToTheProject() {
         mirahPlugin.apply(project)
 
-        def task = project.tasks[MirahPlugin.SCALA_DOC_TASK_NAME]
+        def task = project.tasks[MirahPlugin.MIRAH_DOC_TASK_NAME]
         assertThat(task, instanceOf(MirahDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))

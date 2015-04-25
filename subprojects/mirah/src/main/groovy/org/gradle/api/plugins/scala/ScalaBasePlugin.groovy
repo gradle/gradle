@@ -34,7 +34,7 @@ import javax.inject.Inject
 class MirahBasePlugin implements Plugin<Project> {
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
-    static final String SCALA_RUNTIME_EXTENSION_NAME = "mirahRuntime"
+    static final String MIRAH_RUNTIME_EXTENSION_NAME = "mirahRuntime"
 
     private final FileResolver fileResolver
 
@@ -65,7 +65,7 @@ class MirahBasePlugin implements Plugin<Project> {
     }
 
     private void configureMirahRuntimeExtension() {
-        mirahRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, MirahRuntime, project)
+        mirahRuntime = project.extensions.create(MIRAH_RUNTIME_EXTENSION_NAME, MirahRuntime, project)
     }
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
