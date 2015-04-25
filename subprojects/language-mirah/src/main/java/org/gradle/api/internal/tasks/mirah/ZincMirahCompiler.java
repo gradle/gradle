@@ -60,7 +60,7 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
             List<String> mirahcOptions = new ZincMirahCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
-                    mirahcOptions, javacOptions, spec.getMirahCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
+                    mirahcOptions, javacOptions, spec.getMirahCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
             }
@@ -72,21 +72,6 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
             }
 
             return new SimpleWorkResult(true);
-        }
-
-        private static IncOptions getIncOptions() {
-            //The values are based on what I have found in sbt-compiler-maven-plugin.googlecode.com and zinc documentation
-            //Hard to say what effect they have on the incremental build
-            int transitiveStep = 3;
-            double recompileAllFraction = 0.5d;
-            boolean relationsDebug = false;
-            boolean apiDebug = false;
-            int apiDiffContextSize = 5;
-            Option<File> apiDumpDirectory = Option.empty();
-            boolean transactional = false;
-            Option<File> backup = Option.empty();
-
-            return new IncOptions(transitiveStep, recompileAllFraction, relationsDebug, apiDebug, apiDiffContextSize, apiDumpDirectory, transactional, backup);
         }
 
         static com.typesafe.zinc.Compiler createCompiler(Iterable<File> mirahClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
