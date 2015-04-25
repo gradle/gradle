@@ -6,7 +6,7 @@ dependencies {
     compile project(":languageJava")
     compile project(":languageJvm")
     // keep in sync with MirahLanguagePlugin code
-    provided("com.typesafe.zinc:zinc:0.3.0")
+    provided("org.mirah:mirah:0.1.5-SNAPSHOT")
 
     testCompile libraries.groovy
 }

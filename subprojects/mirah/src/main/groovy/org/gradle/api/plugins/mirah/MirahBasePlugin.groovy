@@ -124,7 +124,7 @@ class MirahBasePlugin implements Plugin<Project> {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.mirahCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:$DefaultMirahToolProvider.DEFAULT_ZINC_VERSION")
+                        zinc("org.mirah:mirah:$DefaultMirahToolProvider.DEFAULT_ZINC_VERSION")
                     }
                 }
                 config

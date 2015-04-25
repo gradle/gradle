@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DownloadingMirahToolChain implements MirahToolChainInternal {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
+    public static final String DEFAULT_ZINC_VERSION = "0.1.5-SNAPSHOT";
 
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
@@ -58,7 +58,7 @@ public class DownloadingMirahToolChain implements MirahToolChainInternal {
     public ToolProvider select(MirahPlatform targetPlatform) {
         try {
             Configuration mirahClasspath = resolveDependency(String.format("org.mirah:mirah-compiler:%s", targetPlatform.getMirahVersion()));
-            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
+            Configuration zincClasspath = resolveDependency(String.format("org.mirah:mirah:%s", DEFAULT_ZINC_VERSION));
             Set<File> resolvedMirahClasspath = mirahClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
             return new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, resolvedMirahClasspath, resolvedZincClasspath);
