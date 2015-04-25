@@ -1,0 +1,17 @@
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
+dependencies {
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJava")
+    compile project(":languageJvm")
+    // keep in sync with ScalaLanguagePlugin code
+    provided("com.typesafe.zinc:zinc:0.3.0")
+
+    testCompile libraries.groovy
+}
+
+strictCompile()
+useTestFixtures()
+useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
+useTestFixtures(project: ":platformBase")
