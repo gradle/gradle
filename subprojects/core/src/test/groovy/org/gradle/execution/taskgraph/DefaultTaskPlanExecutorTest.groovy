@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
@@ -27,6 +28,8 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
     def "executes tasks until no further tasks remain"() {
         def task = Mock(TaskInternal)
+        def state = Mock(TaskStateInternal)
+        task.getState() >> state
         def taskInfo = new TaskInfo(task)
 
         when:
