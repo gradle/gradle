@@ -103,15 +103,12 @@ public class MirahCompileTest extends AbstractCompileTest {
         mirahClasspath = context.mock(FileTree.class);
         compile.setMirahClasspath(mirahClasspath);
         final FileTree classpath = context.mock(FileTree.class);
-        final FileTree zincClasspath = context.mock(FileTree.class);
 
         context.checking(new Expectations(){{
             allowing(mirahClasspath).getFiles(); will(returnValue(new HashSet<File>()));
             allowing(classpath).getFiles(); will(returnValue(new HashSet<File>()));
-            allowing(zincClasspath).getFiles(); will(returnValue(new HashSet<File>()));
         }});
         compile.setClasspath(classpath);
-        compile.setZincClasspath(zincClasspath);
         compile.getMirahCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
     }
 

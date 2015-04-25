@@ -27,7 +27,6 @@ import org.gradle.api.tasks.MirahRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.mirah.MirahCompile
 import org.gradle.api.tasks.mirah.MirahDoc
-import org.gradle.language.mirah.internal.toolchain.DefaultMirahToolProvider
 
 import javax.inject.Inject
 
@@ -120,15 +119,6 @@ class MirahBasePlugin implements Plugin<Project> {
     private void configureCompileDefaults() {
         project.tasks.withType(MirahCompile.class) { MirahCompile compile ->
             compile.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(compile.classpath) }
-            compile.conventionMapping.zincClasspath = {
-                def config = project.configurations[ZINC_CONFIGURATION_NAME]
-                if (!compile.mirahCompileOptions.useAnt && config.dependencies.empty) {
-                    project.dependencies {
-                        zinc("org.mirah:mirah:$DefaultMirahToolProvider.DEFAULT_ZINC_VERSION")
-                    }
-                }
-                config
-            }
         }
     }
 

@@ -32,21 +32,19 @@ import java.util.List;
 public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincMirahCompiler.class);
     private final Iterable<File> mirahClasspath;
-    private Iterable<File> zincClasspath;
 
-    public ZincMirahCompiler(Iterable<File> mirahClasspath, Iterable<File> zincClasspath) {
+    public ZincMirahCompiler(Iterable<File> mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
-        this.zincClasspath = zincClasspath;
     }
 
     public WorkResult execute(MirahJavaJointCompileSpec spec) {
-        return Compiler.execute(mirahClasspath, zincClasspath, spec);
+        return Compiler.execute(mirahClasspath, spec);
     }
 
     // need to defer loading of Zinc/sbt/Mirah classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(Iterable<File> mirahClasspath, Iterable<File> zincClasspath, MirahJavaJointCompileSpec spec) {
+        static WorkResult execute(Iterable<File> mirahClasspath, MirahJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Mirah compiler.");
 
             org.mirah.tool.Mirahc compiler = new Mirahc();

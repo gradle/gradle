@@ -38,7 +38,6 @@ import javax.inject.Inject;
 public class MirahCompile extends AbstractMirahCompile {
 
     private FileCollection mirahClasspath;
-    private FileCollection zincClasspath;
 
     private org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler;
 
@@ -66,18 +65,6 @@ public class MirahCompile extends AbstractMirahCompile {
     }
 
     /**
-     * Returns the classpath to use to load the Zinc incremental compiler. This compiler in turn loads the Mirah compiler.
-     */
-    @InputFiles
-    public FileCollection getZincClasspath() {
-        return zincClasspath;
-    }
-
-    public void setZincClasspath(FileCollection zincClasspath) {
-        this.zincClasspath = zincClasspath;
-    }
-
-    /**
      * For testing only.
      */
     public void setCompiler(org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler) {
@@ -91,7 +78,7 @@ public class MirahCompile extends AbstractMirahCompile {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getMirahClasspath(), getZincClasspath());
+            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getMirahClasspath());
             compiler = mirahCompilerFactory.newCompiler(spec);
             if (getMirahCompileOptions().isUseAnt()) {
                 compiler = new CleaningMirahCompiler(compiler, getOutputs());

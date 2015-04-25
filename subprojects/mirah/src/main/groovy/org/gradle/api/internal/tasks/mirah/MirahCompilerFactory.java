@@ -34,16 +34,14 @@ public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompi
     private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
     private FileCollection mirahClasspath;
-    private FileCollection zincClasspath;
     private final File rootProjectDirectory;
 
-    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath, FileCollection zincClasspath) {
+    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
         this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
         this.mirahClasspath = mirahClasspath;
-        this.zincClasspath = zincClasspath;
     }
 
     @SuppressWarnings("unchecked")
@@ -61,10 +59,8 @@ public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompi
                     + "requires forking ('mirahCompileOptions.fork=true'), but the latter is set to 'false'.");
         }
 
-        Set<File> zincClasspathFiles = zincClasspath.getFiles();
-
         // currently, we leave it to ZincMirahCompiler to also compile the Java code
-        Compiler<MirahJavaJointCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahJavaJointCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
+        Compiler<MirahJavaJointCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahJavaJointCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
         return new NormalizingMirahCompiler(mirahCompiler);
     }
 }

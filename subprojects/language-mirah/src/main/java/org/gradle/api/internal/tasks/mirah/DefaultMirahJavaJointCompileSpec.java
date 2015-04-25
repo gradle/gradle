@@ -25,7 +25,6 @@ import java.util.Map;
 public class DefaultMirahJavaJointCompileSpec extends DefaultJavaCompileSpec implements MirahJavaJointCompileSpec {
     private BaseMirahCompileOptions options;
     private Iterable<File> mirahClasspath;
-    private Iterable<File> zincClasspath;
     private Map<File, File> analysisMap;
 
     public BaseMirahCompileOptions getMirahCompileOptions() {
@@ -42,14 +41,6 @@ public class DefaultMirahJavaJointCompileSpec extends DefaultJavaCompileSpec imp
 
     public void setMirahClasspath(Iterable<File> mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
-    }
-
-    public Iterable<File> getZincClasspath() {
-        return zincClasspath;
-    }
-
-    public void setZincClasspath(Iterable<File> zincClasspath) {
-        this.zincClasspath = zincClasspath;
     }
 
     public Map<File, File> getAnalysisMap() {

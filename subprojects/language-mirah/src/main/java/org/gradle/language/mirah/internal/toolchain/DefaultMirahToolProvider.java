@@ -31,26 +31,22 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultMirahToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.5.3";
-
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;
     private final Set<File> resolvedMirahClasspath;
-    private final Set<File> resolvedZincClasspath;
 
-    public DefaultMirahToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedMirahClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultMirahToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedMirahClasspath) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
         this.resolvedMirahClasspath = resolvedMirahClasspath;
-        this.resolvedZincClasspath = resolvedZincClasspath;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (MirahJavaJointCompileSpec.class.isAssignableFrom(spec)) {
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            Compiler<MirahJavaJointCompileSpec> mirahCompiler = new ZincMirahCompiler(resolvedMirahClasspath, resolvedZincClasspath);
-            return (Compiler<T>) new NormalizingMirahCompiler(new DaemonMirahCompiler<MirahJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedZincClasspath));
+            Compiler<MirahJavaJointCompileSpec> mirahCompiler = new ZincMirahCompiler(resolvedMirahClasspath);
+            return (Compiler<T>) new NormalizingMirahCompiler(new DaemonMirahCompiler<MirahJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedMirahClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

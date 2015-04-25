@@ -26,12 +26,11 @@ class DefaultMirahToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
     Set<File> mirahcClasspath = Mock()
-    Set<File> zincClasspath = Mock()
     ProjectFinder projectFinder = Mock()
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        DefaultMirahToolProvider mirahToolProvider = new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, mirahcClasspath, zincClasspath)
+        DefaultMirahToolProvider mirahToolProvider = new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, mirahcClasspath)
 
         when:
         mirahToolProvider.newCompiler(UnknownCompileSpec.class)

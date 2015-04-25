@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.mirah
 
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
@@ -53,24 +52,6 @@ public class MirahBasePluginTest {
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
-    }
-
-    @Test
-    void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
-        project.sourceSets.create('custom')
-        def task = project.tasks.compileCustomMirah
-        task.mirahCompileOptions.useAnt = false
-        assert task.zincClasspath instanceof Configuration
-        assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
-    }
-
-    @Test
-    void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
-        project.sourceSets.create('custom')
-        def task = project.tasks.compileCustomMirah
-        task.mirahCompileOptions.useAnt = true
-        assert task.zincClasspath instanceof Configuration
-        assert task.zincClasspath.empty
     }
 
     @Test

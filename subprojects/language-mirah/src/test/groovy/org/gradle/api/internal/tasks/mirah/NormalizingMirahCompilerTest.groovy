@@ -32,7 +32,6 @@ class NormalizingMirahCompilerTest extends Specification {
         spec.destinationDir = new File("dest")
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.classpath = files("Dep1.jar", "Dep2.jar")
-        spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
         spec.mirahCompileOptions = new BaseMirahCompileOptions()
     }
