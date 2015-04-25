@@ -24,8 +24,8 @@ import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 
 
-class ForkScalaCompileInDaemonModeFixture extends InitScriptExecuterFixture {
-    ForkScalaCompileInDaemonModeFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+class ForkMirahCompileInDaemonModeFixture extends InitScriptExecuterFixture {
+    ForkMirahCompileInDaemonModeFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
@@ -33,13 +33,13 @@ class ForkScalaCompileInDaemonModeFixture extends InitScriptExecuterFixture {
     String initScriptContent() {
         return """
 allprojects {
-    tasks.withType(ScalaCompile) {
-        scalaCompileOptions.fork = true
-        scalaCompileOptions.useAnt = false
+    tasks.withType(MirahCompile) {
+        mirahCompileOptions.fork = true
+        mirahCompileOptions.useAnt = false
     }
-    tasks.withType(ScalaDoc) {
+    tasks.withType(MirahDoc) {
         doFirst {
-            throw new GradleException("Can't execute scaladoc while testing with the daemon due to permgen exhaustion")
+            throw new GradleException("Can't execute mirahdoc while testing with the daemon due to permgen exhaustion")
         }
     }
 }
