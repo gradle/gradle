@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scala.test
+package org.gradle.mirah.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -27,26 +27,26 @@ class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
 
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
-apply plugin: 'scala'
+apply plugin: 'mirah'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:2.11.1"
-    testCompile "org.scalatest:scalatest_2.11:2.1.5"
+    compile "org.mirah-lang:mirah-library:2.11.1"
+    testCompile "org.mirahtest:mirahtest_2.11:2.1.5"
     testCompile "junit:junit:4.12"
 }
         """
 
         when:
-        file("src/test/scala/MultiLineNameTest.scala") << """
+        file("src/test/mirah/MultiLineNameTest.mirah") << """
 package org.gradle
 
-import org.scalatest.FunSuite
+import org.mirahtest.FunSuite
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.mirahtest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class MultiLineSuite extends FunSuite {

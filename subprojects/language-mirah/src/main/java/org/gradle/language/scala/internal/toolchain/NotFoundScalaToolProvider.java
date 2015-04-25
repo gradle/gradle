@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain;
+package org.gradle.language.mirah.internal.toolchain;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.text.TreeFormatter;

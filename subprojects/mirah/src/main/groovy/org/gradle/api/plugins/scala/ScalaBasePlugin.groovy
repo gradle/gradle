@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala
+package org.gradle.api.plugins.mirah
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
@@ -25,21 +25,21 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
+import org.gradle.api.tasks.mirah.ScalaCompile
+import org.gradle.api.tasks.mirah.ScalaDoc
+import org.gradle.language.mirah.internal.toolchain.DefaultScalaToolProvider
 
 import javax.inject.Inject
 
 class ScalaBasePlugin implements Plugin<Project> {
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
-    static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
+    static final String SCALA_RUNTIME_EXTENSION_NAME = "mirahRuntime"
 
     private final FileResolver fileResolver
 
     private Project project
-    private ScalaRuntime scalaRuntime
+    private ScalaRuntime mirahRuntime
 
     @Inject
     ScalaBasePlugin(FileResolver fileResolver) {
@@ -65,16 +65,16 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScalaRuntimeExtension() {
-        scalaRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime, project)
+        mirahRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime, project)
     }
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
-            sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala") }
-            sourceSet.allJava.source(sourceSet.scala)
-            sourceSet.allSource.source(sourceSet.scala)
-            sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
+            sourceSet.convention.plugins.mirah = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
+            sourceSet.mirah.srcDir { project.file("src/$sourceSet.name/mirah") }
+            sourceSet.allJava.source(sourceSet.mirah)
+            sourceSet.allSource.source(sourceSet.mirah)
+            sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.mirah.contains(element.file) }
 
             configureScalaCompile(javaPlugin, sourceSet)
             configureScalaConsole(sourceSet)
@@ -82,20 +82,20 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScalaCompile(JavaBasePlugin javaPlugin, SourceSet sourceSet) {
-        def taskName = sourceSet.getCompileTaskName('scala')
-        def scalaCompile = project.tasks.create(taskName, ScalaCompile)
-        scalaCompile.dependsOn sourceSet.compileJavaTaskName
-        javaPlugin.configureForSourceSet(sourceSet, scalaCompile)
-        scalaCompile.description = "Compiles the $sourceSet.scala."
-        scalaCompile.source = sourceSet.scala
+        def taskName = sourceSet.getCompileTaskName('mirah')
+        def mirahCompile = project.tasks.create(taskName, ScalaCompile)
+        mirahCompile.dependsOn sourceSet.compileJavaTaskName
+        javaPlugin.configureForSourceSet(sourceSet, mirahCompile)
+        mirahCompile.description = "Compiles the $sourceSet.mirah."
+        mirahCompile.source = sourceSet.mirah
         project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
 
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set
         project.gradle.projectsEvaluated {
-            scalaCompile.scalaCompileOptions.incrementalOptions.with {
+            mirahCompile.mirahCompileOptions.incrementalOptions.with {
                 if (!analysisFile) {
-                    analysisFile = new File("$project.buildDir/tmp/scala/compilerAnalysis/${scalaCompile.name}.analysis")
+                    analysisFile = new File("$project.buildDir/tmp/mirah/compilerAnalysis/${mirahCompile.name}.analysis")
                 }
                 if (!publishedCode) {
                     def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
@@ -106,23 +106,23 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScalaConsole(SourceSet sourceSet) {
-        def taskName = sourceSet.getTaskName("scala", "Console")
-        def scalaConsole = project.tasks.create(taskName, JavaExec)
-        scalaConsole.dependsOn(sourceSet.runtimeClasspath)
-        scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
-        scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.conventionMapping.classpath = { scalaRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
-        scalaConsole.systemProperty("scala.usejavacp", true)
-        scalaConsole.standardInput = System.in
-        scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
+        def taskName = sourceSet.getTaskName("mirah", "Console")
+        def mirahConsole = project.tasks.create(taskName, JavaExec)
+        mirahConsole.dependsOn(sourceSet.runtimeClasspath)
+        mirahConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
+        mirahConsole.main = "mirah.tools.nsc.MainGenericRunner"
+        mirahConsole.conventionMapping.classpath = { mirahRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
+        mirahConsole.systemProperty("mirah.usejavacp", true)
+        mirahConsole.standardInput = System.in
+        mirahConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
     private void configureCompileDefaults() {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(compile.classpath) }
+            compile.conventionMapping.mirahClasspath = { mirahRuntime.inferScalaClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
-                if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
+                if (!compile.mirahCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
                         zinc("com.typesafe.zinc:zinc:$DefaultScalaToolProvider.DEFAULT_ZINC_VERSION")
                     }
@@ -133,10 +133,10 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScaladoc() {
-        project.tasks.withType(ScalaDoc) { ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            scalaDoc.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(scalaDoc.classpath) }
+        project.tasks.withType(ScalaDoc) { ScalaDoc mirahDoc ->
+            mirahDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/mirahdoc") }
+            mirahDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
+            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferScalaClasspath(mirahDoc.classpath) }
         }
     }
 }

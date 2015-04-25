@@ -1,16 +1,16 @@
 subprojects {
-    apply plugin: "scala"
+    apply plugin: "mirah"
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        compile "org.scala-lang:scala-library:$scalaVersion"
+        compile "org.mirah-lang:mirah-library:$mirahVersion"
     }
 
     tasks.withType(ScalaCompile) {
-        scalaCompileOptions.with {
+        mirahCompileOptions.with {
             useAnt = false
             fork = true
         }

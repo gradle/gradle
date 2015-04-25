@@ -27,7 +27,7 @@ public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
-        testFile("build.gradle").write("apply plugin: 'scala'");
+        testFile("build.gradle").write("apply plugin: 'mirah'");
         testFile("settings.gradle").write("rootProject.name='javaOnly'");
         inTestDirectory().withTasks("build").run();
         testFile("build/libs/javaOnly.jar").assertExists();

@@ -18,6 +18,6 @@
  * Tasks that add support for Scala language.
  */
 @Incubating
-package org.gradle.language.scala.tasks;
+package org.gradle.language.mirah.tasks;
 
 import org.gradle.api.Incubating;

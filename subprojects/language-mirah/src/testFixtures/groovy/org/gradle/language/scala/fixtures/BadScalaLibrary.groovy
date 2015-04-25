@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.fixtures
+package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 
 class BadScalaLibrary {
     List<JvmSourceFile> sources = [
-            new JvmSourceFile("compile/test", "Person.scala", '''
+            new JvmSourceFile("compile/test", "Person.mirah", '''
 package compile.test;
 
 class Person(name: String, age: Integer) {
     def toString(): String = name + ", " + age;
 }'''),
-            new JvmSourceFile("compile/test", "Person2.scala", '''
+            new JvmSourceFile("compile/test", "Person2.mirah", '''
 package compile.test;
 
 class Person2 {
@@ -36,8 +36,8 @@ class Person2 {
     ]
 
     List<String> compilerErrors = [
-            "Person.scala:5: overriding method toString in class Object of type ()String",
-            "Person2.scala:4: class Person2 needs to be abstract, since method test is not defined"
+            "Person.mirah:5: overriding method toString in class Object of type ()String",
+            "Person2.mirah:4: class Person2 needs to be abstract, since method test is not defined"
 
     ]
 }

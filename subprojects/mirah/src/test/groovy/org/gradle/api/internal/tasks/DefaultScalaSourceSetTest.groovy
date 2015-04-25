@@ -32,23 +32,23 @@ class DefaultScalaSourceSetTest {
 
     @Test
     public void defaultValues() {
-        assertThat(sourceSet.scala, instanceOf(DefaultSourceDirectorySet))
-        assertThat(sourceSet.scala, isEmpty())
-        assertThat(sourceSet.scala.displayName, equalTo('<set-display-name> Scala source'))
-        assertThat(sourceSet.scala.filter.includes, equalTo(['**/*.scala', '**/*.java'] as Set))
-        assertThat(sourceSet.scala.filter.excludes, isEmpty())
+        assertThat(sourceSet.mirah, instanceOf(DefaultSourceDirectorySet))
+        assertThat(sourceSet.mirah, isEmpty())
+        assertThat(sourceSet.mirah.displayName, equalTo('<set-display-name> Scala source'))
+        assertThat(sourceSet.mirah.filter.includes, equalTo(['**/*.mirah', '**/*.java'] as Set))
+        assertThat(sourceSet.mirah.filter.excludes, isEmpty())
 
         assertThat(sourceSet.allScala, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.allScala, isEmpty())
         assertThat(sourceSet.allScala.displayName, equalTo('<set-display-name> Scala source'))
-        assertThat(sourceSet.allScala.source, hasItem(sourceSet.scala))
-        assertThat(sourceSet.allScala.filter.includes, equalTo(['**/*.scala'] as Set))
+        assertThat(sourceSet.allScala.source, hasItem(sourceSet.mirah))
+        assertThat(sourceSet.allScala.filter.includes, equalTo(['**/*.mirah'] as Set))
         assertThat(sourceSet.allScala.filter.excludes, isEmpty())
     }
 
     @Test
     public void canConfigureScalaSource() {
-        sourceSet.scala { srcDir 'src/scala' }
-        assertThat(sourceSet.scala.srcDirs, equalTo([new File('src/scala').canonicalFile] as Set))
+        sourceSet.mirah { srcDir 'src/mirah' }
+        assertThat(sourceSet.mirah.srcDirs, equalTo([new File('src/mirah').canonicalFile] as Set))
     }
 }

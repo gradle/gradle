@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.mirah
 
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
-import org.gradle.language.scala.fixtures.TestJointCompiledComponent
+import org.gradle.language.mirah.fixtures.TestJointCompiledComponent
 
 class JointScalaLangIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJointCompiledComponent()

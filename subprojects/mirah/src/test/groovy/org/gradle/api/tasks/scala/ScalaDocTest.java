@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
@@ -29,33 +29,33 @@ import static org.junit.Assert.assertSame;
 
 @RunWith(JMock.class)
 public class ScalaDocTest extends AbstractTaskTest {
-    private ScalaDoc scalaDoc;
+    private ScalaDoc mirahDoc;
 
     @Override
     public AbstractTask getTask() {
-        return scalaDoc;
+        return mirahDoc;
     }
 
     @Before
     public void setUp() {
-        scalaDoc = createTask(ScalaDoc.class);
+        mirahDoc = createTask(ScalaDoc.class);
     }
 
     @Test
     public void testScalaIncludes() {
-        assertSame(scalaDoc.include(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
-        assertEquals(scalaDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertSame(mirahDoc.include(TEST_PATTERN_1, TEST_PATTERN_2), mirahDoc);
+        assertEquals(mirahDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
-        assertSame(scalaDoc.include(TEST_PATTERN_3), scalaDoc);
-        assertEquals(scalaDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertSame(mirahDoc.include(TEST_PATTERN_3), mirahDoc);
+        assertEquals(mirahDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
     @Test
     public void testScalaExcludes() {
-        assertSame(scalaDoc.exclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
-        assertEquals(scalaDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertSame(mirahDoc.exclude(TEST_PATTERN_1, TEST_PATTERN_2), mirahDoc);
+        assertEquals(mirahDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
-        assertSame(scalaDoc.exclude(TEST_PATTERN_3), scalaDoc);
-        assertEquals(scalaDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertSame(mirahDoc.exclude(TEST_PATTERN_3), mirahDoc);
+        assertEquals(mirahDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 }

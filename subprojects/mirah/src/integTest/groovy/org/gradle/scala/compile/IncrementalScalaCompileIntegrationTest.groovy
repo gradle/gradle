@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scala.compile
+package org.gradle.mirah.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
@@ -46,7 +46,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         run("classes")
 
         when: // Update interface, compile should fail
-        file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
+        file('src/main/mirah/IPerson.mirah').assertIsFile().copyFrom(file('NewIPerson.mirah'))
 
         then:
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
@@ -56,20 +56,20 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Ignore
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
-            apply plugin: 'scala'
+            apply plugin: 'mirah'
 
             repositories {
                 mavenCentral()
             }
 
             dependencies {
-                compile 'org.scala-lang:scala-library:2.11.1'
+                compile 'org.mirah-lang:mirah-library:2.11.1'
             }
         """
 
         file("src/main/java/Person.java") << "public interface Person { String getName(); }"
 
-        file("src/main/scala/DefaultPerson.scala") << """class DefaultPerson(name: String) extends Person {
+        file("src/main/mirah/DefaultPerson.mirah") << """class DefaultPerson(name: String) extends Person {
     def getName(): String = name
 }"""
         when:
@@ -79,7 +79,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Person.java").text = "public interface Person { String fooBar(); }"
 
         then:
-        //the build should fail because the interface the scala class needs has changed
+        //the build should fail because the interface the mirah class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 }

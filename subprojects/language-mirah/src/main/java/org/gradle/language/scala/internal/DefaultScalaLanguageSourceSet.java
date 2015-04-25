@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal;
+package org.gradle.language.mirah.internal;
 
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
-import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.mirah.ScalaLanguageSourceSet;
 
 public class DefaultScalaLanguageSourceSet extends BaseLanguageSourceSet implements ScalaLanguageSourceSet {
 

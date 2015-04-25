@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.mirah.compile
 
 abstract class AbstractAntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
@@ -23,7 +23,7 @@ abstract class AbstractAntForkingScalaCompilerIntegrationTest extends BasicScala
 
     String compilerConfiguration() {
         '''
-compileScala.scalaCompileOptions.with {
+compileScala.mirahCompileOptions.with {
     useAnt = true
     fork = true
     forkOptions.memoryMaximumSize = "512m"
@@ -32,7 +32,7 @@ compileScala.scalaCompileOptions.with {
     }
 
     String logStatement() {
-        "Compiling with Ant scalac task"
+        "Compiling with Ant mirahc task"
     }
 
     String getErrorOutput() {

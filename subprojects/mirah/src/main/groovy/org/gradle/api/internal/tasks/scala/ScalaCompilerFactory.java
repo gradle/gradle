@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.api.tasks.mirah.ScalaCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
@@ -33,38 +33,38 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     private final IsolatedAntBuilder antBuilder;
     private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
-    private FileCollection scalaClasspath;
+    private FileCollection mirahClasspath;
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
 
-    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath, FileCollection zincClasspath) {
+    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath, FileCollection zincClasspath) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
         this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
-        this.scalaClasspath = scalaClasspath;
+        this.mirahClasspath = mirahClasspath;
         this.zincClasspath = zincClasspath;
     }
 
     @SuppressWarnings("unchecked")
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
-        ScalaCompileOptions scalaOptions = (ScalaCompileOptions) spec.getScalaCompileOptions();
-        Set<File> scalaClasspathFiles = scalaClasspath.getFiles();
-        if (scalaOptions.isUseAnt()) {
-            Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder, scalaClasspathFiles);
+        ScalaCompileOptions mirahOptions = (ScalaCompileOptions) spec.getScalaCompileOptions();
+        Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
+        if (mirahOptions.isUseAnt()) {
+            Compiler<ScalaCompileSpec> mirahCompiler = new AntScalaCompiler(antBuilder, mirahClasspathFiles);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
-            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
+            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(mirahCompiler, javaCompiler));
         }
 
-        if (!scalaOptions.isFork()) {
-            throw new GradleException("The Zinc based Scala compiler ('scalaCompileOptions.useAnt=false') "
-                    + "requires forking ('scalaCompileOptions.fork=true'), but the latter is set to 'false'.");
+        if (!mirahOptions.isFork()) {
+            throw new GradleException("The Zinc based Scala compiler ('mirahCompileOptions.useAnt=false') "
+                    + "requires forking ('mirahCompileOptions.fork=true'), but the latter is set to 'false'.");
         }
 
         Set<File> zincClasspathFiles = zincClasspath.getFiles();
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
-        return new NormalizingScalaCompiler(scalaCompiler);
+        Compiler<ScalaJavaJointCompileSpec> mirahCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(mirahClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
+        return new NormalizingScalaCompiler(mirahCompiler);
     }
 }

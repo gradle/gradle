@@ -16,9 +16,9 @@
 
 
 /**
- * Defines tools that can build scala applications.
+ * Defines tools that can build mirah applications.
  */
 @Incubating
-package org.gradle.language.scala.toolchain;
+package org.gradle.language.mirah.toolchain;
 
 import org.gradle.api.Incubating;

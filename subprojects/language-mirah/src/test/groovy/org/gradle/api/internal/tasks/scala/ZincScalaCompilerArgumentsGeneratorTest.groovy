@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala
+package org.gradle.api.internal.tasks.mirah
 
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions
+import org.gradle.language.mirah.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
 
 class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
@@ -33,35 +33,35 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def "can suppress deprecation flag"() {
-        spec.scalaCompileOptions.deprecation = false
+        spec.mirahCompileOptions.deprecation = false
 
         expect:
         !generator.generate(spec).contains("-deprecation")
     }
 
     def "can suppress unchecked flag"() {
-        spec.scalaCompileOptions.unchecked = false
+        spec.mirahCompileOptions.unchecked = false
 
         expect:
         !generator.generate(spec).contains("-unchecked")
     }
 
     def "generates debug level option"() {
-        spec.scalaCompileOptions.debugLevel = "someLevel"
+        spec.mirahCompileOptions.debugLevel = "someLevel"
 
         expect:
         generator.generate(spec).contains("-g:someLevel")
     }
 
     def "generates optimize flag"() {
-        spec.scalaCompileOptions.optimize = true
+        spec.mirahCompileOptions.optimize = true
 
         expect:
         generator.generate(spec).contains("-optimise")
     }
 
     def "generates encoding option"() {
-        spec.scalaCompileOptions.encoding = "some encoding"
+        spec.mirahCompileOptions.encoding = "some encoding"
 
         when:
         def args = generator.generate(spec)
@@ -72,21 +72,21 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def "generates verbose flag"() {
-        spec.scalaCompileOptions.debugLevel = "verbose"
+        spec.mirahCompileOptions.debugLevel = "verbose"
 
         expect:
         generator.generate(spec).contains("-verbose")
     }
 
     def "generates debug flag"() {
-        spec.scalaCompileOptions.debugLevel = "debug"
+        spec.mirahCompileOptions.debugLevel = "debug"
 
         expect:
         generator.generate(spec).contains("-Ydebug")
     }
 
     def "generates logging phases options"() {
-        spec.scalaCompileOptions.loggingPhases = ["foo", "bar", "baz"]
+        spec.mirahCompileOptions.loggingPhases = ["foo", "bar", "baz"]
 
         when:
         def args = generator.generate(spec)
@@ -98,7 +98,7 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def "adds any additional parameters"() {
-        spec.scalaCompileOptions.additionalParameters = ["-other", "value"]
+        spec.mirahCompileOptions.additionalParameters = ["-other", "value"]
 
         when:
         def args = generator.generate(spec)

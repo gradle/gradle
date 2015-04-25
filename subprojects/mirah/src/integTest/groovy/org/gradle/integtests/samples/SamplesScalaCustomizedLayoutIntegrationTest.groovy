@@ -26,7 +26,7 @@ import org.junit.Test
 
 class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/customizedLayout')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/customizedLayout')
     @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     @Test

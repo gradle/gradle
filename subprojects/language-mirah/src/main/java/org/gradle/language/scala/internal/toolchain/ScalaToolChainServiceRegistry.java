@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain;
+package org.gradle.language.mirah.internal.toolchain;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;

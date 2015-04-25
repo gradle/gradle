@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.fixtures
+package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
-import org.gradle.language.scala.ScalaLanguageSourceSet
+import org.gradle.language.mirah.ScalaLanguageSourceSet
 import org.gradle.test.fixtures.file.TestFile
 
 class TestScalaComponent extends IncrementalTestJvmComponent {
 
-    String languageName = "scala"
+    String languageName = "mirah"
     String sourceSetTypeName = ScalaLanguageSourceSet.class.name
 
     List<JvmSourceFile> sources = [
-            new JvmSourceFile("compile/test", "Person.scala", '''
+            new JvmSourceFile("compile/test", "Person.mirah", '''
 package compile.test;
 
 class Person(name: String, age: Integer) {
     override def toString(): String = name + ", " + age;
 }'''),
-            new JvmSourceFile("compile/test", "Person2.scala", '''
+            new JvmSourceFile("compile/test", "Person2.mirah", '''
 package compile.test;
 
 class Person2 {
@@ -43,13 +43,13 @@ class Person2 {
 
     @Override
     void changeSources(List<TestFile> sourceFiles) {
-        def personScalaFile = sourceFiles.find { it.name == "Person.scala" }
+        def personScalaFile = sourceFiles.find { it.name == "Person.mirah" }
         personScalaFile.text = personScalaFile.text.replace("name", "lastName")
     }
 
     @Override
     void writeAdditionalSources(TestFile testFile) {
-        testFile.file("scala/Extra.scala") << """
+        testFile.file("mirah/Extra.mirah") << """
 object Extra {
   def someMethod(args: Array[String]) {
   }

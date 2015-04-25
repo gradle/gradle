@@ -18,6 +18,6 @@
  * Base plugins that add support for Scala language.
  */
 @Incubating
-package org.gradle.language.scala.plugins;
+package org.gradle.language.mirah.plugins;
 
 import org.gradle.api.Incubating;

@@ -1,9 +1,9 @@
-apply plugin: 'scala'
+apply plugin: 'mirah'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.mirah-lang:mirah-library:2.11.1'
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.mirah
 
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.scala.fixtures.TestScalaComponent
+import org.gradle.language.mirah.fixtures.TestScalaComponent
 
 class ScalaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestScalaComponent()

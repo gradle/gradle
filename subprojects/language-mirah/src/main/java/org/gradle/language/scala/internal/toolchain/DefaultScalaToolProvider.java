@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain;
+package org.gradle.language.mirah.internal.toolchain;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
-import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
+import org.gradle.api.internal.tasks.mirah.DaemonScalaCompiler;
+import org.gradle.api.internal.tasks.mirah.NormalizingScalaCompiler;
+import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ZincScalaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -49,8 +49,8 @@ public class DefaultScalaToolProvider implements ToolProvider {
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (ScalaJavaJointCompileSpec.class.isAssignableFrom(spec)) {
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new ZincScalaCompiler(resolvedScalaClasspath, resolvedZincClasspath);
-            return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir, scalaCompiler, compilerDaemonManager, resolvedZincClasspath));
+            Compiler<ScalaJavaJointCompileSpec> mirahCompiler = new ZincScalaCompiler(resolvedScalaClasspath, resolvedZincClasspath);
+            return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedZincClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

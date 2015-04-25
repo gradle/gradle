@@ -23,7 +23,7 @@ import org.junit.Rule
 
 class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')
+    @Rule Sample sample = new Sample(temporaryFolder, 'mirah/zinc')
 
     def canBuildJar() {
         given:

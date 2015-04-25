@@ -17,4 +17,4 @@
 /**
  * Types for Scala language support.
  */
-package org.gradle.language.scala;
+package org.gradle.language.mirah;

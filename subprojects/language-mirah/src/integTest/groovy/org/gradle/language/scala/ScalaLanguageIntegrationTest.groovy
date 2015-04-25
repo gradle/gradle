@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.mirah
 
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
-import org.gradle.language.scala.fixtures.BadScalaLibrary
-import org.gradle.language.scala.fixtures.TestScalaComponent
+import org.gradle.language.mirah.fixtures.BadScalaLibrary
+import org.gradle.language.mirah.fixtures.TestScalaComponent
 
 class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestScalaComponent()
 
-    def "reports failure to compile bad scala sources"() {
+    def "reports failure to compile bad mirah sources"() {
         when:
         def badApp = new BadScalaLibrary()
-        badApp.sources*.writeToDir(file("src/myLib/scala"))
+        badApp.sources*.writeToDir(file("src/myLib/mirah"))
 
         and:
         buildFile << """

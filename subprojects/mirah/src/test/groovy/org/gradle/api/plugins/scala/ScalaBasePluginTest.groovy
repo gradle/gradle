@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala
+package org.gradle.api.plugins.mirah
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.configurations.Configurations
@@ -21,8 +21,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.api.tasks.mirah.ScalaCompile
+import org.gradle.api.tasks.mirah.ScalaDoc
 import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
@@ -59,7 +59,7 @@ public class ScalaBasePluginTest {
     void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
-        task.scalaCompileOptions.useAnt = false
+        task.mirahCompileOptions.useAnt = false
         assert task.zincClasspath instanceof Configuration
         assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
     }
@@ -68,7 +68,7 @@ public class ScalaBasePluginTest {
     void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
-        task.scalaCompileOptions.useAnt = true
+        task.mirahCompileOptions.useAnt = true
         assert task.zincClasspath instanceof Configuration
         assert task.zincClasspath.empty
     }
@@ -76,8 +76,8 @@ public class ScalaBasePluginTest {
     @Test
     void addsScalaConventionToNewSourceSet() {
         def sourceSet = project.sourceSets.create('custom')
-        assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
-        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
+        assertThat(sourceSet.mirah.displayName, equalTo("custom Scala source"))
+        assertThat(sourceSet.mirah.srcDirs, equalTo(toLinkedSet(project.file("src/custom/mirah"))))
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ScalaBasePluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
-        assertThat(task.source as List, equalTo(project.sourceSets.custom.scala as List))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.mirah as List))
         assertThat(task, dependsOn('compileCustomJava'))
     }
 
@@ -98,8 +98,8 @@ public class ScalaBasePluginTest {
         ScalaCompile task = project.tasks['compileCustomScala']
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(project.tasks['customJar'].archivePath))
+        assertThat(task.mirahCompileOptions.incrementalOptions.analysisFile, equalTo(new File("$project.buildDir/tmp/mirah/compilerAnalysis/compileCustomScala.analysis")))
+        assertThat(task.mirahCompileOptions.incrementalOptions.publishedCode, equalTo(project.tasks['customJar'].archivePath))
     }
 
     @Test
@@ -107,12 +107,12 @@ public class ScalaBasePluginTest {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
-        task.scalaCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
-        task.scalaCompileOptions.incrementalOptions.publishedCode = new File("/my/published/code.jar")
+        task.mirahCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
+        task.mirahCompileOptions.incrementalOptions.publishedCode = new File("/my/published/code.jar")
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile, equalTo(new File("/my/file")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(new File("/my/published/code.jar")))
+        assertThat(task.mirahCompileOptions.incrementalOptions.analysisFile, equalTo(new File("/my/file")))
+        assertThat(task.mirahCompileOptions.incrementalOptions.publishedCode, equalTo(new File("/my/published/code.jar")))
     }
 
     @Test
@@ -132,7 +132,7 @@ public class ScalaBasePluginTest {
     @Test
     void configuresScalaDocTasksDefinedByTheBuildScript() {
         def task = project.task('otherScaladoc', type: ScalaDoc)
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
+        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task, dependsOn())
     }

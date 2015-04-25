@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
@@ -22,7 +22,7 @@ import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 /**
- * Cleaning compiler for scala. Not required for compiling with Zinc.
+ * Cleaning compiler for mirah. Not required for compiling with Zinc.
  */
 public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec> {
     private final Compiler<ScalaJavaJointCompileSpec> compiler;

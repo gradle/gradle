@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.environment
+package org.gradle.mirah.environment
 
 import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -31,15 +31,15 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
-    def "scala java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
+    def "mirah java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         if (GradleContextualExecuter.daemon && !(forkMode && !useAnt)) {
-            // don't load up scala in process when testing with the daemon as it blows out permgen
+            // don't load up mirah in process when testing with the daemon as it blows out permgen
             return
         }
 
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
-        file("src/main/scala/org/test/JavaClazz.java") << """
+        file("src/main/mirah/org/test/JavaClazz.java") << """
                     package org.test;
                     public class JavaClazz {
                         public static void main(String... args){
@@ -47,22 +47,22 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     """
-        writeScalaTestSource("src/main/scala")
+        writeScalaTestSource("src/main/mirah")
         file('build.gradle') << """
                     println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
-                    apply plugin:'scala'
+                    apply plugin:'mirah'
 
                     repositories {
                         mavenCentral()
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.11.1'
+                        compile 'org.mirah-lang:mirah-library:2.11.1'
                     }
 
                     compileScala {
-                        scalaCompileOptions.useAnt = ${useAnt}
-                        scalaCompileOptions.fork = ${forkMode}
+                        mirahCompileOptions.useAnt = ${useAnt}
+                        mirahCompileOptions.fork = ${forkMode}
                     }
                     """
         when:
@@ -80,18 +80,18 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "scala compilation works when gradle is started with no java_home defined"() {
+    def "mirah compilation works when gradle is started with no java_home defined"() {
         given:
-        writeScalaTestSource("src/main/scala");
+        writeScalaTestSource("src/main/mirah");
         file('build.gradle') << """
-                    apply plugin:'scala'
+                    apply plugin:'mirah'
 
                     repositories {
                         mavenCentral()
                     }
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.11.1'
+                        compile 'org.mirah-lang:mirah-library:2.11.1'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
@@ -103,7 +103,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private writeScalaTestSource(String srcDir) {
-        file(srcDir, 'org/test/ScalaClazz.scala') << """
+        file(srcDir, 'org/test/ScalaClazz.mirah') << """
         package org.test{
             object ScalaClazz {
                 def main(args: Array[String]) {

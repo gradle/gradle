@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.fixtures
+package org.gradle.language.mirah.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.scala.ScalaLanguageSourceSet
+import org.gradle.language.mirah.ScalaLanguageSourceSet
 
 class TestJointCompiledComponent extends TestJvmComponent {
 
-    String languageName = "scala"
+    String languageName = "mirah"
     String sourceSetTypeName = ScalaLanguageSourceSet.class.name
 
     List<JvmSourceFile> sources = [
-            new JvmSourceFile("compile/test", "Person.scala", '''
+            new JvmSourceFile("compile/test", "Person.mirah", '''
 package compile.test;
 
 class Person(name: String, age: Integer) {
@@ -44,7 +44,7 @@ class Person2 {
 
     @Override
     List<String> getSourceFileExtensions() {
-        return ["java", "scala"]
+        return ["java", "mirah"]
     }
 
 }

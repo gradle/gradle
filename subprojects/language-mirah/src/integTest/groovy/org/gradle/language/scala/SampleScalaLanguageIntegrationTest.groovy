@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.mirah
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -24,9 +24,9 @@ import org.junit.Rule
 class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample sample = new Sample(temporaryFolder, "jvmComponents/scala")
+    Sample sample = new Sample(temporaryFolder, "jvmComponents/mirah")
 
-    def "can build scala based jvm component"() {
+    def "can build mirah based jvm component"() {
         setup:
         executer.inDirectory(sample.dir)
 

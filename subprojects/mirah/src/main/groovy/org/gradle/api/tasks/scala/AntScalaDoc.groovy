@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala
+package org.gradle.api.tasks.mirah
 
 import org.gradle.api.file.FileCollection
 import org.slf4j.Logger
@@ -39,13 +39,13 @@ class AntScalaDoc {
         this.extensionDirs = extensionDirs
     }
 
-    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> scalaClasspath, ScalaDocOptions docOptions) {
-        antBuilder.withClasspath(scalaClasspath).execute { ant ->
-            taskdef(resource: 'scala/tools/ant/antlib.xml')
+    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> mirahClasspath, ScalaDocOptions docOptions) {
+        antBuilder.withClasspath(mirahClasspath).execute { ant ->
+            taskdef(resource: 'mirah/tools/ant/antlib.xml')
 
             Map options = ['destDir': targetDir] + docOptions.optionMap()
 
-            scaladoc(options) {
+            mirahdoc(options) {
                 source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
                 bootclasspathFiles.each {file ->
                     bootclasspath(location: file)

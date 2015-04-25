@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala
+package org.gradle.api.tasks.mirah
 
 import org.junit.Before
 import org.junit.Test
@@ -86,7 +86,7 @@ class ScalaCompileOptionsTest {
     }
 
     @Test void testOptionMapContainsListFiles() {
-        assertBooleanValue('listFiles', 'scalacdebugging', false)
+        assertBooleanValue('listFiles', 'mirahcdebugging', false)
     }
 
     @Test void testOptionMapContainsLoggingLevelIfSpecified() {

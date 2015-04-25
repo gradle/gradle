@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scala
+package org.gradle.mirah
 import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -26,9 +26,9 @@ import static org.hamcrest.Matchers.startsWith
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
 
-    def "defaults scalaClasspath to inferred Scala compiler dependency"() {
+    def "defaults mirahClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
-apply plugin: "scala-base"
+apply plugin: "mirah-base"
 
 sourceSets {
     custom
@@ -39,17 +39,17 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.scala-lang:scala-library:$version"
+    customCompile "org.mirah-lang:mirah-library:$version"
 }
 
-task scaladoc(type: ScalaDoc) {
+task mirahdoc(type: ScalaDoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
 task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+    assert compileCustomScala.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
+    assert mirahCustomConsole.classpath.files.any { it.name == "mirah-compiler-${version}.jar" }
+    assert mirahdoc.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
 }
 """
 
@@ -59,7 +59,7 @@ task verify << {
 
     def "only resolves source class path feeding into inferred Scala class path if/when the latter is actually used (but not during autowiring)"() {
         file("build.gradle") << """
-apply plugin: "scala-base"
+apply plugin: "mirah-base"
 
 sourceSets {
     custom
@@ -70,10 +70,10 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.scala-lang:scala-library:$version"
+    customCompile "org.mirah-lang:mirah-library:$version"
 }
 
-task scaladoc(type: ScalaDoc) {
+task mirahdoc(type: ScalaDoc) {
     classpath = sourceSets.custom.runtimeClasspath
 }
 
@@ -87,10 +87,10 @@ task verify << {
         succeeds("verify")
     }
 
-    def "not specifying a scala runtime produces decent error message"() {
+    def "not specifying a mirah runtime produces decent error message"() {
         given:
         buildFile << """
-            apply plugin: "scala-base"
+            apply plugin: "mirah-base"
 
             sourceSets {
                 main {}
@@ -105,7 +105,7 @@ task verify << {
             }
         """
 
-        file("src/main/scala/Thing.scala") << """
+        file("src/main/mirah/Thing.mirah") << """
             class Thing
         """
 

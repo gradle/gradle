@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scala
+package org.gradle.mirah
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
@@ -23,9 +23,9 @@ import spock.lang.Issue
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
-    def "can apply scala plugin when running under java 8"() {
+    def "can apply mirah plugin when running under java 8"() {
         file("build.gradle") << """
-apply plugin: "scala"
+apply plugin: "mirah"
 
 task someTask
 """

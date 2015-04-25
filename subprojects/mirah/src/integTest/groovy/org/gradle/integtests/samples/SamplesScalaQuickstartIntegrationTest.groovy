@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.containsString
 
 class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/quickstart')
     @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     private TestFile projectDir
@@ -62,13 +62,13 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canBuildScalaDoc() {
         if (GradleContextualExecuter.isDaemon()) {
-            // don't load scala into the daemon as it exhausts permgen
+            // don't load mirah into the daemon as it exhausts permgen
             return
         }
 
-        executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
+        executer.inDirectory(projectDir).withTasks('clean', 'mirahdoc').run()
 
-        projectDir.file('build/docs/scaladoc/index.html').assertExists()
-        projectDir.file('build/docs/scaladoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))
+        projectDir.file('build/docs/mirahdoc/index.html').assertExists()
+        projectDir.file('build/docs/mirahdoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))
     }
 }

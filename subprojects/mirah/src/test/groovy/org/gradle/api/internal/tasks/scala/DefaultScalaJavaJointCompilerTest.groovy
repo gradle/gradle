@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala
+package org.gradle.api.internal.tasks.mirah
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
@@ -21,13 +21,13 @@ import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 
 class DefaultScalaJavaJointCompilerTest extends Specification {
-    private final Compiler<ScalaCompileSpec> scalaCompiler = Mock()
+    private final Compiler<ScalaCompileSpec> mirahCompiler = Mock()
     private final Compiler<JavaCompileSpec> javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
     private final ScalaJavaJointCompileSpec spec = Mock()
-    private final DefaultScalaJavaJointCompiler compiler = new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler)
+    private final DefaultScalaJavaJointCompiler compiler = new DefaultScalaJavaJointCompiler(mirahCompiler, javaCompiler)
 
     def executesScalaCompilerThenJavaCompiler() {
         given:
@@ -38,7 +38,7 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
 
         then:
         result.didWork
-        1 * scalaCompiler.execute(spec)
+        1 * mirahCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         javaSource.isEmpty() >> false
@@ -54,7 +54,7 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
 
         then:
         result.didWork
-        1 * scalaCompiler.execute(spec)
+        1 * mirahCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         _ * javaSource.isEmpty() >> true

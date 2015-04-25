@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.containsString
 
 class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'mirah/mixedJavaAndScala')
     @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
 
     @Test
@@ -58,12 +58,12 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canBuildDocs() {
         if (GradleContextualExecuter.isDaemon()) {
-            // don't load scala into the daemon as it exhausts permgen
+            // don't load mirah into the daemon as it exhausts permgen
             return
         }
 
         TestFile projectDir = sample.dir
-        executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'scaladoc').run()
+        executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'mirahdoc').run()
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
         javadocsDir.file("index.html").assertIsFile()
@@ -71,12 +71,12 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
         javadocsDir.file("org/gradle/sample/Person.html").assertIsFile()
         javadocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
 
-        TestFile scaladocsDir = projectDir.file("build/docs/scaladoc")
-        scaladocsDir.file("index.html").assertIsFile()
-        scaladocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
-        scaladocsDir.file("org/gradle/sample/impl/PersonImpl.html").assertIsFile()
-        scaladocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
-        scaladocsDir.file("org/gradle/sample/impl/PersonList.html").assertIsFile()
+        TestFile mirahdocsDir = projectDir.file("build/docs/mirahdoc")
+        mirahdocsDir.file("index.html").assertIsFile()
+        mirahdocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
+        mirahdocsDir.file("org/gradle/sample/impl/PersonImpl.html").assertIsFile()
+        mirahdocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
+        mirahdocsDir.file("org/gradle/sample/impl/PersonList.html").assertIsFile()
     }
 
 }

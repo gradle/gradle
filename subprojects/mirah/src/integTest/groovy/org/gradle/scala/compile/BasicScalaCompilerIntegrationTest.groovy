@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.mirah.compile
 
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
@@ -23,7 +23,7 @@ import org.gradle.util.VersionNumber
 
 abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
-        args("-i", "-PscalaVersion=$version")
+        args("-i", "-PmirahVersion=$version")
         buildFile << buildScript()
         buildFile <<
 """
@@ -61,7 +61,7 @@ DeprecationLogger.whileDisabled {
         and:
         buildFile <<
 """
-compileScala.scalaCompileOptions.failOnError = false
+compileScala.mirahCompileOptions.failOnError = false
 """
 
         expect:
@@ -80,7 +80,7 @@ compileScala.scalaCompileOptions.failOnError = false
 """
 apply plugin: "application"
 mainClassName = "Main"
-compileScala.scalaCompileOptions.encoding = "ISO8859_7"
+compileScala.mirahCompileOptions.encoding = "ISO8859_7"
 """
 
         expect:
@@ -105,7 +105,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
         when:
         buildFile <<
 """
-compileScala.scalaCompileOptions.debugLevel = "line"
+compileScala.mirahCompileOptions.debugLevel = "line"
 """
         run("compileScala")
 
@@ -115,13 +115,13 @@ compileScala.scalaCompileOptions.debugLevel = "line"
         linesOnly.debugIncludesLineNumbers
         !linesOnly.debugIncludesLocalVariables
 
-        // older versions of scalac Ant task don't handle 'none' correctly
+        // older versions of mirahc Ant task don't handle 'none' correctly
         if (versionNumber < VersionNumber.parse("2.10.0-AAA")) { return }
 
         when:
         buildFile <<
 """
-compileScala.scalaCompileOptions.debugLevel = "none"
+compileScala.mirahCompileOptions.debugLevel = "none"
 """
         run("compileScala")
 
@@ -138,7 +138,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
 
     def buildScript() {
 """
-apply plugin: "scala"
+apply plugin: "mirah"
 
 repositories {
     mavenCentral()
@@ -147,7 +147,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.scala-lang:scala-library:$version"
+    compile "org.mirah-lang:mirah-library:$version"
 }
 """
     }
@@ -157,11 +157,11 @@ dependencies {
     abstract String logStatement()
 
     def goodCode() {
-        file("src/main/scala/compile/test/Person.scala") <<
+        file("src/main/mirah/compile/test/Person.mirah") <<
 """
 package compile.test
 
-import scala.collection.JavaConversions._
+import mirah.collection.JavaConversions._
 
 class Person(val name: String, val age: Int) {
     def hello() {
@@ -170,7 +170,7 @@ class Person(val name: String, val age: Int) {
     }
 }
 """
-        file("src/main/scala/compile/test/Person2.scala") <<
+        file("src/main/mirah/compile/test/Person2.mirah") <<
 """
 package compile.test
 
@@ -194,7 +194,7 @@ object Main {
     }
 }
 """
-        def file = file("src/main/scala/Main.scala")
+        def file = file("src/main/mirah/Main.mirah")
         file.parentFile.mkdirs()
         file.withWriter(encoding) { writer ->
             writer.write(code)
@@ -206,7 +206,7 @@ object Main {
     }
 
     def badCode() {
-        file("src/main/scala/compile/test/Person.scala") <<
+        file("src/main/mirah/compile/test/Person.mirah") <<
 """
 package compile.test
 

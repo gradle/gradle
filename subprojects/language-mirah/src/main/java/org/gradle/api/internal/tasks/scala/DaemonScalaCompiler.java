@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.mirah;
 
 /*
  * Copyright 2012 the original author or authors.
@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.api.tasks.mirah.ScalaForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
@@ -63,7 +63,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
     private DaemonForkOptions createScalaForkOptions(T spec) {
         ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
-        List<String> sharedPackages = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
+        List<String> sharedPackages = Arrays.asList("mirah", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 options.getJvmArgs(), zincClasspath, sharedPackages);
     }

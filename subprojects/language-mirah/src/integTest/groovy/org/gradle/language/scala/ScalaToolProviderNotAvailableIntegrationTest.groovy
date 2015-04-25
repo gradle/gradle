@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.mirah
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.scala.fixtures.TestScalaComponent
+import org.gradle.language.mirah.fixtures.TestScalaComponent
 
 class ScalaToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSpec {
     TestJvmComponent app = new TestScalaComponent()
@@ -37,14 +37,14 @@ class ScalaToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSp
     """
     }
 
-    def "provide decent error message when scala tools not available"() {
+    def "provide decent error message when mirah tools not available"() {
         given:
         app.writeSources(file("src/myLib"))
         app.writeResources(file("src/myLib/resources"))
         when:
         fails("assemble")
         then:
-        errorOutput.contains("Cannot provide Scala Compiler: Cannot resolve external dependency org.scala-lang:scala-compiler:2.10.4 because no repositories are defined.")
+        errorOutput.contains("Cannot provide Scala Compiler: Cannot resolve external dependency org.mirah-lang:mirah-compiler:2.10.4 because no repositories are defined.")
 
     }
 }

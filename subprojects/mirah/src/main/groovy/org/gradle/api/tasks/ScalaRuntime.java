@@ -28,29 +28,29 @@ import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
- * {@link org.gradle.api.plugins.scala.ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
+ * {@link org.gradle.api.plugins.mirah.ScalaBasePlugin} as a project extension named {@code mirahRuntime}.
  *
  * <p>Example usage:
  *
  * <pre autoTested="">
- *     apply plugin: "scala"
+ *     apply plugin: "mirah"
  *
  *     repositories {
  *         mavenCentral()
  *     }
  *
  *     dependencies {
- *         compile "org.scala-lang:scala-library:2.10.1"
+ *         compile "org.mirah-lang:mirah-library:2.10.1"
  *     }
  *
- *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compile)
- *     // The returned class path can be used to configure the 'scalaClasspath' property of tasks
+ *     def mirahClasspath = mirahRuntime.inferScalaClasspath(configurations.compile)
+ *     // The returned class path can be used to configure the 'mirahClasspath' property of tasks
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>
  */
 @Incubating
 public class ScalaRuntime {
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
+    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("mirah-(\\w.*?)-(\\d.*).jar");
 
     private final Project project;
 
@@ -59,18 +59,18 @@ public class ScalaRuntime {
     }
 
     /**
-     * Searches the specified class path for a 'scala-library' Jar, and returns a class path
-     * containing a corresponding (same version) 'scala-compiler' Jar and its dependencies.
+     * Searches the specified class path for a 'mirah-library' Jar, and returns a class path
+     * containing a corresponding (same version) 'mirah-compiler' Jar and its dependencies.
      *
-     * <p>If the (deprecated) 'scalaTools' configuration is explicitly configured, no repository
-     * is declared for the project, no 'scala-library' Jar is found on the specified class path,
-     * or its version cannot be determined, a class path with the contents of the 'scalaTools'
+     * <p>If the (deprecated) 'mirahTools' configuration is explicitly configured, no repository
+     * is declared for the project, no 'mirah-library' Jar is found on the specified class path,
+     * or its version cannot be determined, a class path with the contents of the 'mirahTools'
      * configuration is returned.
      *
      * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
      *
-     * @param classpath a class path containing a 'scala-library' Jar
-     * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
+     * @param classpath a class path containing a 'mirah-library' Jar
+     * @return a class path containing a corresponding 'mirah-compiler' Jar and its dependencies
      */
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.files(Runnable)
@@ -82,19 +82,19 @@ public class ScalaRuntime {
                     throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));
                 }
 
-                File scalaLibraryJar = findScalaJar(classpath, "library");
-                if (scalaLibraryJar == null) {
+                File mirahLibraryJar = findScalaJar(classpath, "library");
+                if (mirahLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
-                            + "Does %s declare dependency to scala-library? Searched classpath: %s.", project, classpath));
+                            + "Does %s declare dependency to mirah-library? Searched classpath: %s.", project, classpath));
                 }
 
-                String scalaVersion = getScalaVersion(scalaLibraryJar);
-                if (scalaVersion == null) {
-                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
+                String mirahVersion = getScalaVersion(mirahLibraryJar);
+                if (mirahVersion == null) {
+                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", mirahLibraryJar, project));
                 }
 
                 return project.getConfigurations().detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion));
+                        new DefaultExternalModuleDependency("org.mirah-lang", "mirah-compiler", mirahVersion));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
@@ -113,8 +113,8 @@ public class ScalaRuntime {
     }
 
     /**
-     * Searches the specified class path for a Scala Jar file (scala-compiler, scala-library,
-     * scala-jdbc, etc.) with the specified appendix (compiler, library, jdbc, etc.).
+     * Searches the specified class path for a Scala Jar file (mirah-compiler, mirah-library,
+     * mirah-jdbc, etc.) with the specified appendix (compiler, library, jdbc, etc.).
      * If no such file is found, {@code null} is returned.
      *
      * @param classpath the class path to search
@@ -133,19 +133,19 @@ public class ScalaRuntime {
     }
 
     /**
-     * Determines the version of a Scala Jar file (scala-compiler, scala-library,
-     * scala-jdbc, etc.). If the version cannot be determined, or the file is not a Scala
+     * Determines the version of a Scala Jar file (mirah-compiler, mirah-library,
+     * mirah-jdbc, etc.). If the version cannot be determined, or the file is not a Scala
      * Jar file, {@code null} is returned.
      *
      * <p>Implementation note: The version is determined by parsing the file name, which
-     * is expected to match the pattern 'scala-[component]-[version].jar'.
+     * is expected to match the pattern 'mirah-[component]-[version].jar'.
      *
-     * @param scalaJar a Scala Jar file
+     * @param mirahJar a Scala Jar file
      * @return the version of the Scala Jar file
      */
     @Nullable
-    public String getScalaVersion(File scalaJar) {
-        Matcher matcher = SCALA_JAR_PATTERN.matcher(scalaJar.getName());
+    public String getScalaVersion(File mirahJar) {
+        Matcher matcher = SCALA_JAR_PATTERN.matcher(mirahJar.getName());
         return matcher.matches() ? matcher.group(2) : null;
     }
 }

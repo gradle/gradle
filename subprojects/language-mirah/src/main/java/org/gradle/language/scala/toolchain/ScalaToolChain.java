@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.toolchain;
+package org.gradle.language.mirah.toolchain;
 
 import org.gradle.platform.base.ToolChain;
 

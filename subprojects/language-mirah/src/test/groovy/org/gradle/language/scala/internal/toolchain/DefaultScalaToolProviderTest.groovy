@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain
+package org.gradle.language.mirah.internal.toolchain
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
@@ -25,16 +25,16 @@ import spock.lang.Specification
 class DefaultScalaToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
-    Set<File> scalacClasspath = Mock()
+    Set<File> mirahcClasspath = Mock()
     Set<File> zincClasspath = Mock()
     ProjectFinder projectFinder = Mock()
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, scalacClasspath, zincClasspath)
+        DefaultScalaToolProvider mirahToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, mirahcClasspath, zincClasspath)
 
         when:
-        scalaToolProvider.newCompiler(UnknownCompileSpec.class)
+        mirahToolProvider.newCompiler(UnknownCompileSpec.class)
 
         then:
         def ex = thrown(IllegalArgumentException)

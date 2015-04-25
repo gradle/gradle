@@ -39,7 +39,7 @@ public interface ScalaSourceSet {
      * @param configureClosure The closure to use to configure the Scala source.
      * @return this
      */
-    ScalaSourceSet scala(Closure configureClosure);
+    ScalaSourceSet mirah(Closure configureClosure);
 
     /**
      * All Scala source for this source set.

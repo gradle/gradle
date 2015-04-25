@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 /*
  * Copyright 2007-2008 the original author or authors.

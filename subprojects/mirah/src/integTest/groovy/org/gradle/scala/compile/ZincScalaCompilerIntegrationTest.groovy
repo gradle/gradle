@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.scala.compile
+package org.gradle.mirah.compile
 
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -26,7 +26,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
 
     String compilerConfiguration() {
         """
-compileScala.scalaCompileOptions.with {
+compileScala.mirahCompileOptions.with {
     useAnt = false
 }
         """
@@ -44,9 +44,9 @@ compileScala.scalaCompileOptions.with {
         run("compileScala")
 
         when:
-        file("src/main/scala/Person.scala").delete()
-        file("src/main/scala/Person.scala") << "class Person"
-        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        file("src/main/mirah/Person.mirah").delete()
+        file("src/main/mirah/Person.mirah") << "class Person"
+        args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -66,9 +66,9 @@ compileScala.scalaCompileOptions.with {
         run("compileScala")
 
         when:
-        file("src/main/scala/Person.java").delete()
-        file("src/main/scala/Person.java") << "public class Person {}"
-        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        file("src/main/mirah/Person.java").delete()
+        file("src/main/mirah/Person.java") << "public class Person {}"
+        args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -85,9 +85,9 @@ compileScala.scalaCompileOptions.with {
         run("compileScala")
 
         when:
-        file("prj1/src/main/scala/Person.scala").delete()
-        file("prj1/src/main/scala/Person.scala") << "class Person"
-        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        file("prj1/src/main/mirah/Person.mirah").delete()
+        file("prj1/src/main/mirah/Person.mirah") << "class Person"
+        args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
         then:

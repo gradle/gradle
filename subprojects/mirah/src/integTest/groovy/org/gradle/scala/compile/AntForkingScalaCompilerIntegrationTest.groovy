@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+package org.gradle.mirah.compile
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 

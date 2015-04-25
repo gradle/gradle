@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain;
+package org.gradle.language.mirah.internal.toolchain;
 
-import org.gradle.language.scala.ScalaPlatform;
-import org.gradle.language.scala.toolchain.ScalaToolChain;
+import org.gradle.language.mirah.ScalaPlatform;
+import org.gradle.language.mirah.toolchain.ScalaToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
 public interface ScalaToolChainInternal extends ScalaToolChain, ToolChainInternal<ScalaPlatform> {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -23,16 +23,16 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 public class DefaultScalaJavaJointCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-    private final Compiler<ScalaCompileSpec> scalaCompiler;
+    private final Compiler<ScalaCompileSpec> mirahCompiler;
     private final Compiler<JavaCompileSpec> javaCompiler;
 
-    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> scalaCompiler, Compiler<JavaCompileSpec> javaCompiler) {
-        this.scalaCompiler = scalaCompiler;
+    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> mirahCompiler, Compiler<JavaCompileSpec> javaCompiler) {
+        this.mirahCompiler = mirahCompiler;
         this.javaCompiler = javaCompiler;
     }
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        scalaCompiler.execute(spec);
+        mirahCompiler.execute(spec);
 
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");

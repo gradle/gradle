@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala;
+package org.gradle.api.plugins.mirah;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.api.tasks.mirah.ScalaDoc
 import org.gradle.api.plugins.JavaBasePlugin
 
 public class ScalaPlugin implements Plugin<Project> {
     // tasks
-    public static final String SCALA_DOC_TASK_NAME = "scaladoc";
+    public static final String SCALA_DOC_TASK_NAME = "mirahdoc";
 
     public void apply(Project project) {
         project.pluginManager.apply(ScalaBasePlugin);
@@ -33,12 +33,12 @@ public class ScalaPlugin implements Plugin<Project> {
     }
 
     private void configureScaladoc(final Project project) {
-        project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
-            scalaDoc.source = project.sourceSets.main.scala
+        project.getTasks().withType(ScalaDoc.class) {ScalaDoc mirahDoc ->
+            mirahDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
+            mirahDoc.source = project.sourceSets.main.mirah
         }
-        ScalaDoc scalaDoc = project.tasks.create(SCALA_DOC_TASK_NAME, ScalaDoc.class)
-        scalaDoc.description = "Generates Scaladoc for the main source code.";
-        scalaDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
+        ScalaDoc mirahDoc = project.tasks.create(SCALA_DOC_TASK_NAME, ScalaDoc.class)
+        mirahDoc.description = "Generates Scaladoc for the main source code.";
+        mirahDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

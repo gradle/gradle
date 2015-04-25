@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala;
+package org.gradle.language.mirah;
 
 import org.gradle.api.Incubating;
 import org.gradle.jvm.Classpath;

@@ -23,22 +23,22 @@ import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.util.ConfigureUtil;
 
 public class DefaultScalaSourceSet implements ScalaSourceSet {
-    private final SourceDirectorySet scala;
+    private final SourceDirectorySet mirah;
     private final SourceDirectorySet allScala;
 
     public DefaultScalaSourceSet(String displayName, FileResolver fileResolver) {
-        scala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
-        scala.getFilter().include("**/*.java", "**/*.scala");
+        mirah = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
+        mirah.getFilter().include("**/*.java", "**/*.mirah");
         allScala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
-        allScala.getFilter().include("**/*.scala");
-        allScala.source(scala);
+        allScala.getFilter().include("**/*.mirah");
+        allScala.source(mirah);
     }
 
     public SourceDirectorySet getScala() {
-        return scala;
+        return mirah;
     }
 
-    public ScalaSourceSet scala(Closure configureClosure) {
+    public ScalaSourceSet mirah(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getScala());
         return this;
     }

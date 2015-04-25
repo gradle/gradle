@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
 
 /**
  * Options for Scala compilation, including the use of the Ant-backed compiler.
@@ -29,7 +29,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             .put("targetCompatibility", "target")
             .put("optimize", "optimise")
             .put("daemonServer", "server")
-            .put("listFiles", "scalacdebugging")
+            .put("listFiles", "mirahcdebugging")
             .put("debugLevel", "debuginfo")
             .put("additionalParameters", "addparams")
             .build();
@@ -43,7 +43,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     private String daemonServer;
 
     /**
-     * Tells whether to use Ant for compilation. If {@code true}, the standard Ant scalac (or fsc) task will be used for
+     * Tells whether to use Ant for compilation. If {@code true}, the standard Ant mirahc (or fsc) task will be used for
      * Scala and Java joint compilation. If {@code false}, the Zinc incremental compiler will be used
      * instead. The latter can be significantly faster, especially if there are few source code changes
      * between compiler runs. Defaults to {@code true}.
@@ -83,7 +83,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         this.useCompileDaemon = useCompileDaemon;
     }
 
-    // NOTE: Does not work for scalac 2.7.1 due to a bug in the Ant task
+    // NOTE: Does not work for mirahc 2.7.1 due to a bug in the Ant task
     /**
      * Server (host:port) on which the compile daemon is running.
      * The host must share disk access with the client process.

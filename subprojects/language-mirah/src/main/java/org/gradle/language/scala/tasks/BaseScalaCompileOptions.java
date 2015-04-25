@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.tasks;
+package org.gradle.language.mirah.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
-import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.api.tasks.mirah.IncrementalCompileOptions;
+import org.gradle.api.tasks.mirah.ScalaForkOptions;
 
 import java.util.List;
 

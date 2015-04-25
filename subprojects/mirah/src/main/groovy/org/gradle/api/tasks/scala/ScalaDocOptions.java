@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.tasks.compile.AbstractOptions;

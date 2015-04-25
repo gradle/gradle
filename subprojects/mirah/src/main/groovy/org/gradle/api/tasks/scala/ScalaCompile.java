@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
@@ -22,13 +22,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
-import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
-import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.CleaningScalaCompiler;
+import org.gradle.api.internal.tasks.mirah.ScalaCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ScalaCompilerFactory;
+import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.language.scala.tasks.AbstractScalaCompile;
+import org.gradle.language.mirah.tasks.AbstractScalaCompile;
 
 import javax.inject.Inject;
 
@@ -37,7 +37,7 @@ import javax.inject.Inject;
  */
 public class ScalaCompile extends AbstractScalaCompile {
 
-    private FileCollection scalaClasspath;
+    private FileCollection mirahClasspath;
     private FileCollection zincClasspath;
 
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
@@ -58,11 +58,11 @@ public class ScalaCompile extends AbstractScalaCompile {
      */
     @InputFiles
     public FileCollection getScalaClasspath() {
-        return scalaClasspath;
+        return mirahClasspath;
     }
 
-    public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
+    public void setScalaClasspath(FileCollection mirahClasspath) {
+        this.mirahClasspath = mirahClasspath;
     }
 
     /**
@@ -91,8 +91,8 @@ public class ScalaCompile extends AbstractScalaCompile {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
-            compiler = scalaCompilerFactory.newCompiler(spec);
+            ScalaCompilerFactory mirahCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
+            compiler = mirahCompilerFactory.newCompiler(spec);
             if (getScalaCompileOptions().isUseAnt()) {
                 compiler = new CleaningScalaCompiler(compiler, getOutputs());
             }
@@ -112,8 +112,8 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
-                    + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
+            throw new InvalidUserDataException("'" + getName() + ".mirahClasspath' must not be empty. If a Scala compile dependency is provided, "
+                    + "the 'mirah-base' plugin will attempt to configure 'mirahClasspath' automatically. Alternatively, you may configure 'mirahClasspath' explicitly.");
         }
     }
 }

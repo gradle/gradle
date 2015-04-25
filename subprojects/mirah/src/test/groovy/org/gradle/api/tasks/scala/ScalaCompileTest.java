@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
@@ -43,54 +43,54 @@ public class ScalaCompileTest extends AbstractCompileTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private ScalaCompile scalaCompile;
+    private ScalaCompile mirahCompile;
 
-    private Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
+    private Compiler<ScalaJavaJointCompileSpec> mirahCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private FileCollection scalaClasspath;
+    private FileCollection mirahClasspath;
 
     @Override
     public AbstractCompile getCompile() {
-        return scalaCompile;
+        return mirahCompile;
     }
 
     @Override
     public ConventionTask getTask() {
-        return scalaCompile;
+        return mirahCompile;
     }
 
     @Before
     public void setUp() {
-        scalaCompile = createTask(ScalaCompile.class);
-        scalaCompiler = context.mock(Compiler.class);
-        scalaCompile.setCompiler(scalaCompiler);
+        mirahCompile = createTask(ScalaCompile.class);
+        mirahCompiler = context.mock(Compiler.class);
+        mirahCompile.setCompiler(mirahCompiler);
 
-        GFileUtils.touch(new File(srcDir, "incl/file.scala"));
+        GFileUtils.touch(new File(srcDir, "incl/file.mirah"));
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
     }
 
     @Test
     public void testExecuteDoingWork() {
-        setUpMocksAndAttributes(scalaCompile);
+        setUpMocksAndAttributes(mirahCompile);
         context.checking(new Expectations() {{
-            allowing(scalaClasspath).isEmpty(); will(returnValue(false));
-            one(scalaCompiler).execute((ScalaJavaJointCompileSpec) with(IsNull.notNullValue()));
+            allowing(mirahClasspath).isEmpty(); will(returnValue(false));
+            one(mirahCompiler).execute((ScalaJavaJointCompileSpec) with(IsNull.notNullValue()));
         }});
 
-        scalaCompile.execute();
+        mirahCompile.execute();
     }
 
     @Test
     public void testMoansIfScalaClasspathIsEmpty() {
-        setUpMocksAndAttributes(scalaCompile);
+        setUpMocksAndAttributes(mirahCompile);
         context.checking(new Expectations() {{
-            allowing(scalaClasspath).isEmpty(); will(returnValue(true));
+            allowing(mirahClasspath).isEmpty(); will(returnValue(true));
         }});
 
         thrown.expect(TaskExecutionException.class);
-        thrown.expectCause(new CauseMatcher(InvalidUserDataException.class, "'testTask.scalaClasspath' must not be empty"));
+        thrown.expectCause(new CauseMatcher(InvalidUserDataException.class, "'testTask.mirahClasspath' must not be empty"));
 
-        scalaCompile.execute();
+        mirahCompile.execute();
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
@@ -100,13 +100,13 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        scalaClasspath = context.mock(FileTree.class);
-        compile.setScalaClasspath(scalaClasspath);
+        mirahClasspath = context.mock(FileTree.class);
+        compile.setScalaClasspath(mirahClasspath);
         final FileTree classpath = context.mock(FileTree.class);
         final FileTree zincClasspath = context.mock(FileTree.class);
 
         context.checking(new Expectations(){{
-            allowing(scalaClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(mirahClasspath).getFiles(); will(returnValue(new HashSet<File>()));
             allowing(classpath).getFiles(); will(returnValue(new HashSet<File>()));
             allowing(zincClasspath).getFiles(); will(returnValue(new HashSet<File>()));
         }});

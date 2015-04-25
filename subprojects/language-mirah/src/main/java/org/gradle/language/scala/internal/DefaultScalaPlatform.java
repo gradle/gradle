@@ -14,37 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal;
+package org.gradle.language.mirah.internal;
 
-import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.language.mirah.ScalaPlatform;
 import org.gradle.util.VersionNumber;
 
 public class DefaultScalaPlatform implements ScalaPlatform {
-    private final String scalaCompatibilityVersion;
-    private final String scalaVersion;
+    private final String mirahCompatibilityVersion;
+    private final String mirahVersion;
 
-    public DefaultScalaPlatform(String scalaVersion) {
-        this(VersionNumber.parse(scalaVersion));
+    public DefaultScalaPlatform(String mirahVersion) {
+        this(VersionNumber.parse(mirahVersion));
     }
 
     public DefaultScalaPlatform(VersionNumber versionNumber) {
-        this.scalaVersion = versionNumber.getMajor() + "." + versionNumber.getMinor() + "." + versionNumber.getMicro();
-        this.scalaCompatibilityVersion = versionNumber.getMajor() + "." + versionNumber.getMinor();
+        this.mirahVersion = versionNumber.getMajor() + "." + versionNumber.getMinor() + "." + versionNumber.getMicro();
+        this.mirahCompatibilityVersion = versionNumber.getMajor() + "." + versionNumber.getMinor();
     }
 
     public String getScalaVersion() {
-        return scalaVersion;
+        return mirahVersion;
     }
 
     public String getScalaCompatibilityVersion() {
-        return scalaCompatibilityVersion;
+        return mirahCompatibilityVersion;
     }
 
     public String getDisplayName() {
-        return String.format("Scala Platform (Scala %s)", scalaVersion);
+        return String.format("Scala Platform (Scala %s)", mirahVersion);
     }
 
     public String getName() {
-        return String.format("ScalaPlatform%s", scalaVersion);
+        return String.format("ScalaPlatform%s", mirahVersion);
     }
 }

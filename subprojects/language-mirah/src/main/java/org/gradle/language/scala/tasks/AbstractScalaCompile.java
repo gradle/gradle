@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.tasks;
+package org.gradle.language.mirah.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
-import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.DefaultScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.DefaultScalaJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.mirah.ScalaCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -39,15 +39,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An abstract Scala compile task sharing common functionality for compiling scala.
+ * An abstract Scala compile task sharing common functionality for compiling mirah.
  */
 abstract public class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
-    private final BaseScalaCompileOptions scalaCompileOptions;
+    private final BaseScalaCompileOptions mirahCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();
 
-    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        this.scalaCompileOptions = scalaCompileOptions;
+    protected AbstractScalaCompile(BaseScalaCompileOptions mirahCompileOptions) {
+        this.mirahCompileOptions = mirahCompileOptions;
     }
 
     /**
@@ -55,7 +55,7 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
      */
     @Nested
     public BaseScalaCompileOptions getScalaCompileOptions() {
-        return scalaCompileOptions;
+        return mirahCompileOptions;
     }
 
     /**
@@ -85,7 +85,7 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(scalaCompileOptions);
+        spec.setScalaCompileOptions(mirahCompileOptions);
         return spec;
     }
 
@@ -96,8 +96,8 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         spec.setAnalysisMap(filteredMap);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
-            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
+            LOGGER.debug("Analysis file: {}", mirahCompileOptions.getIncrementalOptions().getAnalysisFile());
+            LOGGER.debug("Published code: {}", mirahCompileOptions.getIncrementalOptions().getPublishedCode());
             LOGGER.debug("Analysis map: {}", filteredMap);
         }
     }
@@ -107,8 +107,8 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
         Map<File, File> analysisMap;
 
-        if (extraProperties.has("scalaCompileAnalysisMap")) {
-            analysisMap = (Map) extraProperties.get("scalaCompileAnalysisMap");
+        if (extraProperties.has("mirahCompileAnalysisMap")) {
+            analysisMap = (Map) extraProperties.get("mirahCompileAnalysisMap");
         } else {
             analysisMap = Maps.newHashMap();
             for (Project project : getProject().getRootProject().getAllprojects()) {
@@ -118,7 +118,7 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
                     analysisMap.put(publishedCode, analysisFile);
                 }
             }
-            extraProperties.set("scalaCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
+            extraProperties.set("mirahCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
         }
         return analysisMap;
     }

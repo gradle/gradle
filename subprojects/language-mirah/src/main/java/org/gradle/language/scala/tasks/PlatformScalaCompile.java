@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.tasks;
+package org.gradle.language.mirah.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.language.mirah.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import javax.inject.Inject;

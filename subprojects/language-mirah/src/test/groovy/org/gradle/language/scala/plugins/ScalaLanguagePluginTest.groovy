@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.plugins
+package org.gradle.language.mirah.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.scala.ScalaLanguageSourceSet
+import org.gradle.language.mirah.ScalaLanguageSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
 class ScalaLanguagePluginTest extends AbstractLanguagePluginSpec {
@@ -35,6 +35,6 @@ class ScalaLanguagePluginTest extends AbstractLanguagePluginSpec {
 
     @Override
     String getLanguageId() {
-        return "scala"
+        return "mirah"
     }
 }

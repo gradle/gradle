@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.mirah.tasks.BaseScalaCompileOptions;
 
 import java.io.File;
 import java.util.Map;

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala
+package org.gradle.api.internal.tasks.mirah
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions
+import org.gradle.language.mirah.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
 
 class NormalizingScalaCompilerTest extends Specification {
@@ -34,7 +34,7 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.classpath = files("Dep1.jar", "Dep2.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
-        spec.scalaCompileOptions = new BaseScalaCompileOptions()
+        spec.mirahCompileOptions = new BaseScalaCompileOptions()
     }
 
     def "delegates to target compiler after resolving source and classpaths"() {
@@ -69,7 +69,7 @@ class NormalizingScalaCompilerTest extends Specification {
     def "ignores compile failure when failOnError is false"() {
         target.execute(spec) >> { throw new CompilationFailedException() }
 
-        spec.scalaCompileOptions.failOnError = false
+        spec.mirahCompileOptions.failOnError = false
 
         when:
         def result = compiler.execute(spec)

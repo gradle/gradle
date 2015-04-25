@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.internal.toolchain;
+package org.gradle.language.mirah.internal.toolchain;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.language.mirah.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 import java.io.File;
@@ -57,9 +57,9 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
 
     public ToolProvider select(ScalaPlatform targetPlatform) {
         try {
-            Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", targetPlatform.getScalaVersion()));
+            Configuration mirahClasspath = resolveDependency(String.format("org.mirah-lang:mirah-compiler:%s", targetPlatform.getScalaVersion()));
             Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
-            Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
+            Set<File> resolvedScalaClasspath = mirahClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
             return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, resolvedScalaClasspath, resolvedZincClasspath);
 

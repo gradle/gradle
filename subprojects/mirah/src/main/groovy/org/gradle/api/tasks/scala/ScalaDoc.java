@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -31,8 +31,8 @@ public class ScalaDoc extends SourceTask {
     private File destinationDir;
 
     private FileCollection classpath;
-    private FileCollection scalaClasspath;
-    private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
+    private FileCollection mirahClasspath;
+    private ScalaDocOptions mirahDocOptions = new ScalaDocOptions();
     private String title;
 
     @Inject
@@ -71,11 +71,11 @@ public class ScalaDoc extends SourceTask {
      */
     @InputFiles
     public FileCollection getScalaClasspath() {
-        return scalaClasspath;
+        return mirahClasspath;
     }
 
-    public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
+    public void setScalaClasspath(FileCollection mirahClasspath) {
+        this.mirahClasspath = mirahClasspath;
     }
 
     /**
@@ -83,11 +83,11 @@ public class ScalaDoc extends SourceTask {
      */
     @Nested
     public ScalaDocOptions getScalaDocOptions() {
-        return scalaDocOptions;
+        return mirahDocOptions;
     }
 
-    public void setScalaDocOptions(ScalaDocOptions scalaDocOptions) {
-        this.scalaDocOptions = scalaDocOptions;
+    public void setScalaDocOptions(ScalaDocOptions mirahDocOptions) {
+        this.mirahDocOptions = mirahDocOptions;
     }
 
     /**

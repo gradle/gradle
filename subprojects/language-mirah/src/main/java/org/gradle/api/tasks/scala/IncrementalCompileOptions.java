@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.scala;
+package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
