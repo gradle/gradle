@@ -57,7 +57,7 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-//                      compile 'org.mirah:mirah-library:2.11.1'
+//                      compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
                     }
 
                     compileMirah {
@@ -91,7 +91,7 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-//                      compile 'org.mirah:mirah-library:2.11.1'
+//                      compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }

@@ -63,7 +63,7 @@ class IncrementalMirahCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-//              compile 'org.mirah:mirah-library:2.11.1'
+//              compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
             }
         """
 
