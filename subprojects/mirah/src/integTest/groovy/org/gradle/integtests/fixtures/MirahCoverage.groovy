@@ -24,7 +24,7 @@ class MirahCoverage {
 
     static final String NEWEST = "0.1.5-SNAPSHOT"
 
-    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["2.10.4", NEWEST]
+    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["0.1.4", NEWEST]
 
     static final String[] OLDER = USE_SINGLE_VERSION_ONLY ? ["2.8.2"] : ["2.8.2", "2.9.2"]
 

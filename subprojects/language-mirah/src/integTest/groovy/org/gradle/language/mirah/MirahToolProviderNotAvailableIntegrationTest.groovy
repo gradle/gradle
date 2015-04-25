@@ -44,7 +44,7 @@ class MirahToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSp
         when:
         fails("assemble")
         then:
-        errorOutput.contains("Cannot provide Mirah Compiler: Cannot resolve external dependency org.mirah:mirah-compiler:2.10.4 because no repositories are defined.")
+        errorOutput.contains("Cannot provide Mirah Compiler: Cannot resolve external dependency org.mirah:mirah-compiler:0.1.4 because no repositories are defined.")
 
     }
 }

@@ -39,7 +39,7 @@ class DownloadingMirahToolChainTest extends Specification {
     MirahPlatform mirahPlatform = Mock()
 
     def setup() {
-        _ * mirahPlatform.getMirahVersion() >> "2.10.4"
+        _ * mirahPlatform.getMirahVersion() >> "0.1.4"
     }
 
     def "tools available when compiler dependencies can be resolved"() {

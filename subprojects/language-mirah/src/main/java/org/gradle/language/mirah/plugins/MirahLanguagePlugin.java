@@ -106,7 +106,7 @@ public class MirahLanguagePlugin implements Plugin<Project> {
                     JavaPlatform javaPlatform = binary.getTargetPlatform();
                     // TODO RG resolve the mirah platform from the binary
 
-                    compile.setPlatform(new DefaultMirahPlatform("2.10.4"));
+                    compile.setPlatform(new DefaultMirahPlatform("0.1.4"));
                     File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
                     compile.getMirahCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
