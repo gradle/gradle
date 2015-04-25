@@ -18,7 +18,6 @@
 package org.gradle.integtests.tooling.r25
 
 import groovy.transform.NotYetImplemented
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -297,7 +296,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .withArguments("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true", '--parallel', '--max-workers=2')
+                        .withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2')
                         .forTasks('parallelSleep')
                         .addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
