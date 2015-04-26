@@ -46,6 +46,7 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
     private static class Compiler {
         static WorkResult execute(Iterable<File> mirahClasspath, MirahJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Mirah compiler.");
+            java.util.logging.Logger.getLogger("org.mirah").setLevel(java.util.logging.Level.OFF); // Logging is disabled by default.
 
             org.mirah.tool.Mirahc compiler = new Mirahc();
             List<String> mirahcOptions = new MirahCompilerArgumentsBuilder(spec).build();
