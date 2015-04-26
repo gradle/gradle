@@ -153,8 +153,8 @@ public class MirahCompilerArgumentsBuilder {
                 args.add(compileOptions.getEncoding());
             }
         }
-        if (compileOptions.getBootClasspath() != null) { //TODO: move bootclasspath to platform
-            args.add("-bootclasspath");
+        if (compileOptions.getBootClasspath() != null) {
+            args.add("--bootclasspath");
             args.add(compileOptions.getBootClasspath());
         }
         if (compileOptions.getExtensionDirs() != null) {
