@@ -44,14 +44,14 @@ class DownloadingMirahToolChainTest extends Specification {
 
     def "tools available when compiler dependencies can be resolved"() {
         when:
-        dependencyAvailable("mirah-compiler")
+        dependencyAvailable("mirah")
         then:
         mirahToolChain.select(mirahPlatform).isAvailable()
     }
 
     def "tools not available when compiler dependencies cannot be resolved"() {
         when:
-        dependencyNotAvailable("mirah-compiler")
+        dependencyNotAvailable("mirah")
         def toolProvider = mirahToolChain.select(mirahPlatform)
         toolProvider.newCompiler(MirahCompileSpec.class)
 
@@ -59,9 +59,9 @@ class DownloadingMirahToolChainTest extends Specification {
         !toolProvider.isAvailable()
         TreeFormatter mirahcErrorFormatter = new TreeFormatter()
         toolProvider.explain(mirahcErrorFormatter)
-        mirahcErrorFormatter.toString() == "Cannot provide Mirah Compiler: Cannot resolve 'mirah-compiler'."
+        mirahcErrorFormatter.toString() == "Cannot provide Mirah Compiler: Cannot resolve 'mirah'."
         def e = thrown(GradleException)
-        e.message == "Cannot provide Mirah Compiler: Cannot resolve 'mirah-compiler'."
+        e.message == "Cannot provide Mirah Compiler: Cannot resolve 'mirah'."
     }
 
     private void dependencyAvailable(String dependency) {
