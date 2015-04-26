@@ -76,8 +76,8 @@ public class MirahCompilerArgumentsBuilder {
         addLauncherOptions();
         addMainOptions();
         addClasspath();
-        addSourceFiles();
         addCustomizations();
+        addSourceFiles();
 
         return args;
     }
