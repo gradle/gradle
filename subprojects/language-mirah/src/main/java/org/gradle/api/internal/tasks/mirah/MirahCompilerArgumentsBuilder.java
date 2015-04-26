@@ -109,10 +109,12 @@ public class MirahCompilerArgumentsBuilder {
             return;
         }
 
-        String sourceCompatibility = spec.getSourceCompatibility();
-        if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
-            args.add("-source");
-            args.add(sourceCompatibility);
+        if (false) {
+            String sourceCompatibility = spec.getSourceCompatibility();
+            if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
+                args.add("-source");
+                args.add(sourceCompatibility);
+            }
         }
         String targetCompatibility = spec.getTargetCompatibility();
         if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
