@@ -28,7 +28,7 @@ public class DefaultMirahSourceSet implements MirahSourceSet {
 
     public DefaultMirahSourceSet(String displayName, FileResolver fileResolver) {
         mirah = new DefaultSourceDirectorySet(String.format("%s Mirah source", displayName), fileResolver);
-        mirah.getFilter().include("**/*.java", "**/*.mirah");
+        mirah.getFilter().include("**/*.mirah");
         allMirah = new DefaultSourceDirectorySet(String.format("%s Mirah source", displayName), fileResolver);
         allMirah.getFilter().include("**/*.mirah");
         allMirah.source(mirah);
