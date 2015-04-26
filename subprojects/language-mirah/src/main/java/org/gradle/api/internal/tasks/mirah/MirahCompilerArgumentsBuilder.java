@@ -36,7 +36,7 @@ public class MirahCompilerArgumentsBuilder {
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
     private boolean includeClasspath = true;
-    private boolean includeSourceFiles;
+    private boolean includeSourceFiles = true;
     private boolean includeCustomizations = true;
 
     private List<String> args;
