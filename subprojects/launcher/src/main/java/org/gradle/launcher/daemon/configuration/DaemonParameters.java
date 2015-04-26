@@ -99,11 +99,11 @@ public class DaemonParameters {
         return javaHome;
     }
 
-    public String getEffectiveJavaExecutable() {
+    public File getEffectiveJavaExecutable() {
         if (javaHome == null) {
-            return Jvm.current().getJavaExecutable().getAbsolutePath();
+            return Jvm.current().getJavaExecutable();
         }
-        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
+        return Jvm.forHome(javaHome).getJavaExecutable();
     }
 
     public DaemonParameters setJavaHome(File javaHome) {
