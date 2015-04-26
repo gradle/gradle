@@ -136,14 +136,16 @@ public class MirahCompilerArgumentsBuilder {
         if (!compileOptions.isWarnings()) {
             args.add("-nowarn");
         }
-        if (compileOptions.isDebug()) {
-            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+        if (false) {
+            if (compileOptions.isDebug()) {
+                if (compileOptions.getDebugOptions().getDebugLevel() != null) {
+                    args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+                } else {
+                    args.add("-g");
+                }
             } else {
-                args.add("-g");
+                args.add("-g:none");
             }
-        } else {
-            args.add("-g:none");
         }
         if (compileOptions.getEncoding() != null) {
             args.add("-encoding");
