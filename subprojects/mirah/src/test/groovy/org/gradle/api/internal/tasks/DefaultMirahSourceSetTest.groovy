@@ -35,7 +35,7 @@ class DefaultMirahSourceSetTest {
         assertThat(sourceSet.mirah, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.mirah, isEmpty())
         assertThat(sourceSet.mirah.displayName, equalTo('<set-display-name> Mirah source'))
-        assertThat(sourceSet.mirah.filter.includes, equalTo(['**/*.mirah', '**/*.java'] as Set))
+        assertThat(sourceSet.mirah.filter.includes, equalTo(['**/*.mirah'] as Set))
         assertThat(sourceSet.mirah.filter.excludes, isEmpty())
 
         assertThat(sourceSet.allMirah, instanceOf(DefaultSourceDirectorySet))
