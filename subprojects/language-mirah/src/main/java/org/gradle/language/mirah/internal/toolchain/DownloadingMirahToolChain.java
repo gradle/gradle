@@ -57,7 +57,7 @@ public class DownloadingMirahToolChain implements MirahToolChainInternal {
 
     public ToolProvider select(MirahPlatform targetPlatform) {
         try {
-            Configuration mirahClasspath = resolveDependency(String.format("org.mirah:mirah-compiler:%s", targetPlatform.getMirahVersion()));
+            Configuration mirahClasspath = resolveDependency(String.format("org.mirah:mirah:%s", targetPlatform.getMirahVersion()));
             Set<File> resolvedMirahClasspath = mirahClasspath.resolve();
             return new DefaultMirahToolProvider(projectFinder, compilerDaemonManager, resolvedMirahClasspath);
 
