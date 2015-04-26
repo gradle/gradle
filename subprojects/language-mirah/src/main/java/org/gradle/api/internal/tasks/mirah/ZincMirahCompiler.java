@@ -48,7 +48,7 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
             LOGGER.info("Compiling with Zinc Mirah compiler.");
 
             org.mirah.tool.Mirahc compiler = new Mirahc();
-            List<String> mirahcOptions = new ZincMirahCompilerArgumentsGenerator().generate(spec);
+            List<String> mirahcOptions = new MirahCompilerArgumentsBuilder(spec).build();
             /*
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
