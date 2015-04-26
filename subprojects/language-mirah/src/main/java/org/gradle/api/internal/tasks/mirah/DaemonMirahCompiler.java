@@ -63,7 +63,7 @@ public class DaemonMirahCompiler<T extends MirahJavaJointCompileSpec> extends Ab
 
     private DaemonForkOptions createMirahForkOptions(T spec) {
         MirahForkOptions options = spec.getMirahCompileOptions().getForkOptions();
-        List<String> sharedPackages = Arrays.asList("mirah", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
+        List<String> sharedPackages = Arrays.asList("org.mirah", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 options.getJvmArgs(), zincClasspath, sharedPackages);
     }
