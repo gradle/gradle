@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.mirah;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
@@ -27,11 +27,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JavaCompilerArgumentsBuilder {
+public class MirahCompilerArgumentsBuilder {
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
-    private final JavaCompileSpec spec;
+    private final MirahJavaJointCompileSpec spec;
 
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
@@ -41,31 +41,31 @@ public class JavaCompilerArgumentsBuilder {
 
     private List<String> args;
 
-    public JavaCompilerArgumentsBuilder(JavaCompileSpec spec) {
+    public MirahCompilerArgumentsBuilder(MirahJavaJointCompileSpec spec) {
         this.spec = spec;
     }
 
-    public JavaCompilerArgumentsBuilder includeLauncherOptions(boolean flag) {
+    public MirahCompilerArgumentsBuilder includeLauncherOptions(boolean flag) {
         includeLauncherOptions = flag;
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeMainOptions(boolean flag) {
+    public MirahCompilerArgumentsBuilder includeMainOptions(boolean flag) {
         includeMainOptions = flag;
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeClasspath(boolean flag) {
+    public MirahCompilerArgumentsBuilder includeClasspath(boolean flag) {
         includeClasspath = flag;
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeSourceFiles(boolean flag) {
+    public MirahCompilerArgumentsBuilder includeSourceFiles(boolean flag) {
         includeSourceFiles = flag;
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeCustomizations(boolean flag) {
+    public MirahCompilerArgumentsBuilder includeCustomizations(boolean flag) {
         includeCustomizations = flag;
         return this;
     }
