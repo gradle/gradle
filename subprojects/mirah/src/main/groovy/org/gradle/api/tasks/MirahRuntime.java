@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
  */
 @Incubating
 public class MirahRuntime {
-    private static final Pattern MIRAH_JAR_PATTERN = Pattern.compile("mirah-(\\w.*?)-(\\d.*).jar");
+    private static final Pattern MIRAH_JAR_PATTERN = Pattern.compile("mirah(?:-(\\w.*?))?-(\\d.*).jar");
 
     private final Project project;
 
@@ -82,7 +82,7 @@ public class MirahRuntime {
                     throw new GradleException(String.format("Cannot infer Mirah class path because no repository is declared in %s", project));
                 }
 
-                File mirahLibraryJar = findMirahJar(classpath, "library");
+                File mirahLibraryJar = findMirahJar(classpath, null);
                 if (mirahLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Mirah class path because no Mirah library Jar was found. "
                             + "Does %s declare dependency to mirah-library? Searched classpath: %s.", project, classpath));
