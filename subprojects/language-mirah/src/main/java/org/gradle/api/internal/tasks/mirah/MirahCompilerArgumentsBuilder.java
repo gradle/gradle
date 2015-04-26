@@ -187,7 +187,7 @@ public class MirahCompilerArgumentsBuilder {
 
         Iterable<File> classpath = spec.getClasspath();
         if (classpath != null && classpath.iterator().hasNext()) {
-            args.add("-classpath");
+            args.add("--classpath");
             args.add(toFileCollection(classpath).getAsPath());
         }
     }
