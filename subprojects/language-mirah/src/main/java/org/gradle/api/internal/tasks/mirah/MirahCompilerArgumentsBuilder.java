@@ -84,15 +84,6 @@ public class MirahCompilerArgumentsBuilder {
 
     private void addCustomizations() {
         if (includeCustomizations) {
-            /*This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options). The -XD backdoor switch is used to set it, as described in a comment
-            in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper). This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
-            Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
-            when using the daemon, especially when using small heap and building a large project.
-            Due to a bug (https://builds.gradle.org/viewLog.html?buildId=284033&tab=buildResultsDiv&buildTypeId=Gradle_Master_Performance_PerformanceExperimentsLinux) no instances of
-            SharedNameTable are actually ever reused. It has been fixed for JDK9 and we should consider not using this option with JDK9 as not using it  will quite probably improve the
-            performance of compilation.
-            Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
-            args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
         }
     }
 

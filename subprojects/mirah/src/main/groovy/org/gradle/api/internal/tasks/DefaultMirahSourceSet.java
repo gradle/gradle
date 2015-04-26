@@ -35,6 +35,7 @@ public class DefaultMirahSourceSet implements MirahSourceSet {
     }
 
     public SourceDirectorySet getMirah() {
+    		org.gradle.api.logging.Logging.getLogger(DefaultMirahSourceSet.class).info("mirah="+mirah+".");
         return mirah;
     }
 

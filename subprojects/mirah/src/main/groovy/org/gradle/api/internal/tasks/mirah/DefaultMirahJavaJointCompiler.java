@@ -32,21 +32,6 @@ public class DefaultMirahJavaJointCompiler implements Compiler<MirahJavaJointCom
     }
 
     public WorkResult execute(MirahJavaJointCompileSpec spec) {
-        mirahCompiler.execute(spec);
-
-        PatternFilterable patternSet = new PatternSet();
-        patternSet.include("**/*.java");
-        FileTree javaSource = spec.getSource().getAsFileTree().matching(patternSet);
-        if (!javaSource.isEmpty()) {
-            spec.setSource(javaSource);
-            javaCompiler.execute(spec);
-        }
-
-        return new WorkResult() {
-            public boolean getDidWork() {
-                return true;
-            }
-        };
+        return mirahCompiler.execute(spec);
     }
-
 }
