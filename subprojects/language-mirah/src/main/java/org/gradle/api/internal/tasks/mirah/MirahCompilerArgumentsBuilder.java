@@ -161,11 +161,13 @@ public class MirahCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
-        FileCollection sourcepath = compileOptions.getSourcepath();
-        Iterable<File> classpath = spec.getClasspath();
-        if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
-            args.add("-sourcepath");
-            args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
+        if (false) {
+            FileCollection sourcepath = compileOptions.getSourcepath();
+            Iterable<File> classpath = spec.getClasspath();
+            if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
+                args.add("-sourcepath");
+                args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
+            }
         }
         if (compileOptions.getCompilerArgs() != null) {
             args.addAll(compileOptions.getCompilerArgs());
