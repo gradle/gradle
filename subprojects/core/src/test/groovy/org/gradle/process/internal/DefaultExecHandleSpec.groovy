@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
@@ -255,7 +256,7 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         result.rethrowFailure()
-        1 * streamsHandler.connectStreams(_ as Process, "foo proc")
+        1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as ExecutorFactory)
         1 * streamsHandler.start()
         1 * streamsHandler.stop()
         0 * streamsHandler._
