@@ -118,7 +118,7 @@ public class MirahCompilerArgumentsBuilder {
         }
         String targetCompatibility = spec.getTargetCompatibility();
         if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
-            args.add("-target");
+            args.add("--jvm");
             args.add(targetCompatibility);
         }
         File destinationDir = spec.getDestinationDir();
