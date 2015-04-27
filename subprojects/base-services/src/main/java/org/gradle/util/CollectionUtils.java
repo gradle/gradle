@@ -605,50 +605,28 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * Converts the type of the parameter of an Iterable to a superclass type.
+     * Casts an Iterable&lt;? extends T&gt; to Iterable&lt;T&gt;
      *
-     * It's not possible to simply cast an Iterable to it's superclass type.
-     *
-     * @param clazz the item type of the Iterable
-     * @param iterable the object to convert
-     * @param <T> item type
-     * @return converted Iterable
+     * @param clazz the item type to cast to
+     * @param iterable the instance to cast
+     * @param T item type
+     * @return same iterable instance, just make the compiler happy
      */
-    public static <T> Iterable<T> castIterable(final Class<T> clazz, final Iterable<? extends T> iterable) {
-        return new Iterable<T>() {
-            @Override
-            public Iterator<T> iterator() {
-                return castIterator(clazz, iterable.iterator());
-            }
-        };
+    @SuppressWarnings("unchecked")
+    public static <T> Iterable<T> castIterable(Class<T> clazz, Iterable<? extends T> iterable) {
+        return (Iterable<T>)iterable;
     }
 
     /**
-     * Converts the type of the parameter of an Iterator to a superclass type.
+     * Casts an Iterator&lt;? extends T&gt; to Iterator&lt;T&gt;
      *
-     * It's not possible to simply cast an Iterator to it's superclass type.
-     *
-     * @param clazz the item type of the Iterator
-     * @param iterator the object to convert
-     * @param <T> item type
-     * @return converted Iterator
+     * @param clazz the item type to cast to
+     * @param iterator the instance to cast
+     * @param T item type
+     * @return same iterator instance, just make the compiler happy
      */
-    public static <T> Iterator<T> castIterator(Class<T> clazz, final Iterator<? extends T> iterator) {
-        return new Iterator<T>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public T next() {
-                return iterator.next();
-            }
-
-            @Override
-            public void remove() {
-                iterator.remove();
-            }
-        };
+    @SuppressWarnings("unchecked")
+    public static <T> Iterator<T> castIterator(Class<T> clazz, Iterator<? extends T> iterator) {
+        return (Iterator<T>)iterator;
     }
 }

@@ -378,4 +378,24 @@ class CollectionUtilsTest extends Specification {
     Action action(Closure c) {
         new ClosureBackedAction(c)
     }
+
+    // for castIterable and castIterator, just test that method returns the same instance as given as input
+    // real testing is only possible in Java code at compile time since the behaviour of castIterable/castIterator is only to make the Java compiler happy
+    def "casting iterable"() {
+        given:
+        def iterable = [1, 2, 3]
+        when:
+        def casted = castIterable(Number, iterable)
+        then:
+        iterable.is(casted)
+    }
+
+    def "casting iterator"() {
+        given:
+        def iterator = [1, 2, 3].iterator()
+        when:
+        def casted = castIterator(Number, iterator)
+        then:
+        iterator.is(casted)
+    }
 }
