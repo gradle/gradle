@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
-    String output
 
     @Override
     DaemonGradleExecuter getExecuter() {
@@ -40,14 +39,12 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void stopDaemonsNow() {
-        def result = executer.withArguments("--stop", "--info").run()
-        output = result.output
+        result = executer.withArguments("--stop", "--info").run()
     }
 
     void buildSucceeds(String script = '') {
         file('build.gradle') << script
-        def result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
-        output = result.output
+        result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
     }
 
     DaemonsFixture getDaemons() {

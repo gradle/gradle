@@ -15,25 +15,18 @@
  */
 
 package org.gradle.model
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
-class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
+class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
-        executer = new DaemonGradleExecuter(distribution, testDirectoryProvider)
-        executer.beforeExecute {
-            requireIsolatedDaemons()
-            withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
-            withDaemonIdleTimeoutSecs(10)
-        }
         EnableModelDsl.enable(executer)
-    }
 
-    def cleanup() {
-        executer.withArgument("--stop").run()
+        executer.beforeExecute {
+            withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
+        }
     }
 
     String hashFor(String prefix) {
