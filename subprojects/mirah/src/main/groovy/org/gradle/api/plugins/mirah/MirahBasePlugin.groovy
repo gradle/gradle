@@ -110,7 +110,7 @@ class MirahBasePlugin implements Plugin<Project> {
         mirahConsole.dependsOn(sourceSet.runtimeClasspath)
         mirahConsole.description = "Starts a Mirah REPL with the $sourceSet.name runtime class path."
         mirahConsole.main = "mirah.tools.nsc.MainGenericRunner"
-        mirahConsole.conventionMapping.classpath = { mirahRuntime.inferMirahClasspath(sourceSet.runtimeClasspath) }
+        mirahConsole.conventionMapping.classpath = { mirahRuntime.inferMirahClasspath(project.getBuildscript().getConfigurations().getAt("classpath")) }
         mirahConsole.systemProperty("mirah.usejavacp", true)
         mirahConsole.standardInput = System.in
         mirahConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
@@ -118,7 +118,7 @@ class MirahBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults() {
         project.tasks.withType(MirahCompile.class) { MirahCompile compile ->
-            compile.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(compile.classpath) }
+            compile.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(project.getBuildscript().getConfigurations().getAt("classpath")) }
         }
     }
 
@@ -126,7 +126,7 @@ class MirahBasePlugin implements Plugin<Project> {
         project.tasks.withType(MirahDoc) { MirahDoc mirahDoc ->
             mirahDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/mirahdoc") }
             mirahDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(mirahDoc.classpath) }
+            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(project.getBuildscript().getConfigurations().getAt("classpath")) }
         }
     }
 }
