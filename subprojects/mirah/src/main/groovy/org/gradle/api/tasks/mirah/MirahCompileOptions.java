@@ -20,44 +20,14 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 /**
- * Options for Mirah compilation, including the use of the Ant-backed compiler.
+ * Options for Mirah compilation.
  */
 public class MirahCompileOptions extends BaseMirahCompileOptions {
-    private static final ImmutableMap<String, String> FIELD_NAMES_TO_ANT_PROPERTIES = new ImmutableMap.Builder<String, String>()
-            .put("loggingLevel", "logging")
-            .put("loggingPhases", "logphase")
-            .put("targetCompatibility", "target")
-            .put("optimize", "optimise")
-            .put("daemonServer", "server")
-            .put("listFiles", "mirahcdebugging")
-            .put("debugLevel", "debuginfo")
-            .put("additionalParameters", "addparams")
-            .build();
-
     private boolean fork;
-
-    private boolean useAnt = true;
 
     private boolean useCompileDaemon;
 
     private String daemonServer;
-
-    /**
-     * Tells whether to use Ant for compilation. If {@code true}, the standard Ant mirahc (or fsc) task will be used for
-     * Mirah and Java joint compilation. If {@code false}, the Zinc incremental compiler will be used
-     * instead. The latter can be significantly faster, especially if there are few source code changes
-     * between compiler runs. Defaults to {@code true}.
-     */
-    public boolean isUseAnt() {
-        return useAnt;
-    }
-
-    public void setUseAnt(boolean useAnt) {
-        this.useAnt = useAnt;
-        if (!useAnt) {
-            setFork(true);
-        }
-    }
 
     /**
      * Whether to run the Mirah compiler in a separate process. Defaults to {@code false}
@@ -97,45 +67,5 @@ public class MirahCompileOptions extends BaseMirahCompileOptions {
     public void setDaemonServer(String daemonServer) {
         this.daemonServer = daemonServer;
     }
-
-    protected boolean excludeFromAntProperties(String fieldName) {
-        return fieldName.equals("useCompileDaemon")
-                || fieldName.equals("forkOptions")
-                || fieldName.equals("useAnt")
-                || fieldName.equals("incrementalOptions")
-                || fieldName.equals("targetCompatibility") // handled directly by AntMirahCompiler
-                || fieldName.equals("optimize") && !isOptimize();
-    }
-
-    protected String getAntPropertyName(String fieldName) {
-        if (FIELD_NAMES_TO_ANT_PROPERTIES.containsKey(fieldName)) {
-            return FIELD_NAMES_TO_ANT_PROPERTIES.get(fieldName);
-        }
-        return fieldName;
-    }
-
-    protected Object getAntPropertyValue(String fieldName, Object value) {
-        if (fieldName.equals("deprecation")) {
-            return toOnOffString(isDeprecation());
-        }
-        if (fieldName.equals("unchecked")) {
-            return toOnOffString(isUnchecked());
-        }
-        if (fieldName.equals("optimize")) {
-            return toOnOffString(isOptimize());
-        }
-        if (fieldName.equals("loggingPhases")) {
-            return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
-        }
-        if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(getAdditionalParameters());
-        }
-        return value;
-    }
-
-    private String toOnOffString(boolean flag) {
-        return flag ? "on" : "off";
-    }
-
 
 }

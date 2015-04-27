@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.*;
 import org.gradle.util.GUtil;
 
@@ -34,11 +33,6 @@ public class MirahDoc extends SourceTask {
     private FileCollection mirahClasspath;
     private MirahDocOptions mirahDocOptions = new MirahDocOptions();
     private String title;
-
-    @Inject
-    protected IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Returns the directory to generate the API documentation into.
@@ -108,8 +102,6 @@ public class MirahDoc extends SourceTask {
         if (!GUtil.isTrue(options.getDocTitle())) {
             options.setDocTitle(getTitle());
         }
-        AntMirahDoc antMirahDoc = new AntMirahDoc(getAntBuilder());
-        antMirahDoc.execute(getSource(), getDestinationDir(), getClasspath(), getMirahClasspath(), options);
     }
 
 }

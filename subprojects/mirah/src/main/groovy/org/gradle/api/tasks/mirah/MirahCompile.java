@@ -17,7 +17,6 @@ package org.gradle.api.tasks.mirah;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
@@ -74,26 +73,13 @@ public class MirahCompile extends AbstractMirahCompile {
         assertMirahClasspathIsNonEmpty();
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
-            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, compilerDaemonFactory, getMirahClasspath());
+            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), compilerDaemonFactory, getMirahClasspath());
             compiler = mirahCompilerFactory.newCompiler(spec);
-            if (getMirahCompileOptions().isUseAnt()) {
-                compiler = new CleaningMirahCompiler(compiler, getOutputs());
-            }
+            compiler = new CleaningMirahCompiler(compiler, getOutputs());
         }
         return compiler;
     }
-
-    @Override
-    protected void configureIncrementalCompilation(MirahCompileSpec spec) {
-        if (getMirahCompileOptions().isUseAnt()) {
-            // Don't use incremental compilation with ant-backed compiler
-            return;
-        }
-        super.configureIncrementalCompilation(spec);
-    }
-
 
     protected void assertMirahClasspathIsNonEmpty() {
         if (getMirahClasspath().isEmpty()) {

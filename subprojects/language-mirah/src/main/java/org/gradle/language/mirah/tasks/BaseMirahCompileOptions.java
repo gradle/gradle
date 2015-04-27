@@ -27,7 +27,7 @@ import org.gradle.api.tasks.mirah.MirahForkOptions;
 import java.util.List;
 
 /**
- * Options for Mirah platform compilation, excluding any options for compilation with Ant.
+ * Options for Mirah platform compilation.
  */
 @Incubating
 public class BaseMirahCompileOptions extends AbstractOptions {

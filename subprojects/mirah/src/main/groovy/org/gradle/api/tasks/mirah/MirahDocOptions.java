@@ -191,30 +191,4 @@ public class MirahDocOptions extends AbstractOptions {
         this.additionalParameters = additionalParameters;
     }
 
-    @Override
-    protected String getAntPropertyName(String fieldName) {
-        if (fieldName.equals("additionalParameters")) {
-            return "addParams";
-        }
-        return fieldName;
-    }
-
-    @Override
-    protected Object getAntPropertyValue(String fieldName, Object value) {
-        if (fieldName.equals("deprecation")) {
-            return toOnOffString(deprecation);
-        }
-        if (fieldName.equals("unchecked")) {
-            return toOnOffString(unchecked);
-        }
-        if (fieldName.equals("additionalParameters")) {
-            return additionalParameters.isEmpty() ? ' ' : Joiner.on(' ').join(additionalParameters);
-        }
-        return value;
-    }
-
-    private String toOnOffString(boolean value) {
-        return value ? "on" : "off";
-    }
-
 }

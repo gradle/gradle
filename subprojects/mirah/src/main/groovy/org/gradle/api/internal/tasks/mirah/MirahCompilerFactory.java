@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
@@ -30,14 +29,12 @@ import java.io.File;
 import java.util.Set;
 
 public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
-    private final IsolatedAntBuilder antBuilder;
     private final CompilerDaemonFactory compilerDaemonFactory;
     private FileCollection mirahClasspath;
     private final File rootProjectDirectory;
 
-    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath) {
+    public MirahCompilerFactory(File rootProjectDirectory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath) {
         this.rootProjectDirectory = rootProjectDirectory;
-        this.antBuilder = antBuilder;
         this.compilerDaemonFactory = compilerDaemonFactory;
         this.mirahClasspath = mirahClasspath;
     }
@@ -46,11 +43,6 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     public Compiler<MirahCompileSpec> newCompiler(MirahCompileSpec spec) {
         MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
-        if (mirahOptions.isUseAnt()) {
-            Compiler<MirahCompileSpec> mirahCompiler = new AntMirahCompiler(antBuilder, mirahClasspathFiles);
-            return new NormalizingMirahCompiler(mirahCompiler);
-        }
-
         if (!mirahOptions.isFork()) {
             throw new GradleException("The Zinc based Mirah compiler ('mirahCompileOptions.useAnt=false') "
                     + "requires forking ('mirahCompileOptions.fork=true'), but the latter is set to 'false'.");

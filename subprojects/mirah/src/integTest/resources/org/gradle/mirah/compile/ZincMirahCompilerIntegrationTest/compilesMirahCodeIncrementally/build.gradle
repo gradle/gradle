@@ -10,7 +10,6 @@ dependencies {
 
 tasks.withType(MirahCompile) {
     mirahCompileOptions.with {
-        useAnt = false
         fork = true
     }
 }

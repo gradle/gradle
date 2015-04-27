@@ -106,7 +106,9 @@ public class MirahCompileTest extends AbstractCompileTest {
 
         context.checking(new Expectations(){{
             allowing(mirahClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(mirahClasspath).iterator(); will(returnValue(new HashSet<File>().iterator()));
             allowing(classpath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(classpath).iterator(); will(returnValue(new HashSet<File>().iterator()));
         }});
         compile.setClasspath(classpath);
         compile.getMirahCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
