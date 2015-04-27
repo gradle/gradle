@@ -34,7 +34,7 @@ class Install extends Sync {
             if (graph.hasTask(path)) {
                 // Do this early to ensure that the properties we need have been set, and fail early
                 if (!project.hasProperty(installDirPropertyName)) {
-                    throw new RuntimeException("You can't install without setting the $installDirPropertyName property.")
+                    throw new RuntimeException("You cannot install without setting the $installDirPropertyName property.")
                 }
                 installDir = project.file(this.project."$installDirPropertyName")
                 if (installDir.file) {
