@@ -268,6 +268,22 @@ Please see [https://youtrack.jetbrains.com/issue/TW-40615](https://youtrack.jetb
 
 If you are affected by this issue, you can install a pre-release version of the Gradle plugin for TeamCity which is available via the above link.
 
+### Class reuse across builds when using the Daemon
+
+Due to the [performance improvements enabled by reusing classes across builds with the Daemon](#improved-performance-of-gradle-daemon-via-class-reuse), 
+builds that equate static state to build state may behave differently with Gradle 2.4.
+
+Previously, classes were not reused across builds.
+This meant that each build created a new class object and therefore fresh static class state.
+It was therefore theoretically possible to use static state of classes loaded during the build as a kind of “build state”,
+which was reset for each build.
+This was never a supported feature or recommended technique.
+
+Now, due to classes being reused this is no longer possible.
+Class objects are reused across builds, including their static state.
+
+The recommended way of achieving “build state” is to use a root project extension, or extra property.
+
 ### Model DSL changes
 
 There have been some changes to the behaviour of the `model { ... }` block:
