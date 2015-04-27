@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.file;
+package org.gradle.api.internal.file;
+
+import org.gradle.api.file.DirectoryTree;
 
 import java.io.File;
 

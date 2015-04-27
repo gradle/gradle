@@ -28,7 +28,7 @@ public interface BackedByDirectoryTrees {
     /**
      * Converts this collection to a collection of {@link DirectoryTree} instances.
      *
-     * The DirectoryTree instance will implement {@link org.gradle.api.file.FileBackedDirectoryTree} when it's backed by files that don't change (a single file).
+     * The DirectoryTree instance will implement {@link FileBackedDirectoryTree} when it's backed by files that don't change (a single file).
      *
      * @return this collection as a collection of {@link DirectoryTree}s. Never returns null.
      */

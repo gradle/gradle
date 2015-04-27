@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileBackedDirectoryTree;
+import org.gradle.api.internal.file.FileBackedDirectoryTree;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
