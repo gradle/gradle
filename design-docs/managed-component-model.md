@@ -201,6 +201,48 @@ Currently the DSL supports nested, eager, configuration of these elements:
 
 Some replacement for this nesting should be offered, and the configuration deferred.
 
+## Story: Component source sets are not realized unless required
+
+This story changes the `sources` property of `ComponentSpec` to be of type (the new with this story) `ModelMap<LanguageSourceSet>`.
+The model map will be entirely model graph backed, and not “bridge” a collection.
+This allows actually creating the source sets to be deferred.    
+    
+`ModelMap` is replacement for the existing `CollectionBuilder`, and `DomainObjectContainer` from non-rules world.
+It should actually extend `CollectionBuilder`, which will later be removed and inlined into `ModelMap`.
+`ModelMap` does not need to actually implement `Map` at this time.
+Existing usages of `CollectionBuilder` do not necessarily need to be changed to `ModelMap`.
+However, if it makes things easier (e.g. reuse of projections) then we should do this.
+If so, `CollectionBuilder` must go through a deprecate cycle and still be usable (e.g. as a type binding target) for one release.
+
+After the change, the DSL for working with component source sets should be largely unchanged.
+Particularly, the familiar nested closure syntax.
+It is not a requirement that `ModelMap` is structurally compatible with NamedDomainObjectSet and friends, but supports the same patterns in so far as `CollectionBuilder` already does.
+
+### Test Coverage 
+
+- Component spec source sets are not realised when only another property of the component is required (e.g. rule depends on `component.binaries`)
+- Only required component source set is realised (e.g. rule depends on `component.sources.main` does not realise `component.sources.other`)
+- Specification of source set for component in DSL does not eagerly create the source set (i.e. existing container DSL syntax can still be used, but source set is no longer eagerly created)
+- Can use `withType()`, `named()` etc. methods to attach rules to specific source sets
+
+### Breaking changes / Deprecations
+
+- `component.sources` no longer a `DomainObjectSet`
+- `component.source(Action)` no longer operates on a `PolymorphicDomainObjectContainer`
+- Potential deprecation (for removal in next release) of `CollectionBuilder` (replaced by `ModelMap`)
+
+### Open questions
+
+- Implications for FunctionalSourceSet and project level source set container?
+
+## Story: Component binaries are not realized unless required
+
+TODO
+
+## Story: Binary tasks are not realized unless required
+
+TODO
+
 # Feature 3: Plugin author uses managed types to extend the software model
 
 This feature allows a plugin author to extend certain key types using a managed type:
