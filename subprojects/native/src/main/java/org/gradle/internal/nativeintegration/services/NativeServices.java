@@ -54,7 +54,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
-    public static synchronized void initialize(File userHomeDir) {
+    public static void initialize(File userHomeDir) {
+        initialize(userHomeDir, true);
+    }
+
+    public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
         File nativeDir = new File(userHomeDir, "native");
         if (useNativePlatform) {
             try {
@@ -67,7 +71,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 useNativePlatform = false;
             }
         }
-        if (OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows() && initializeJNA) {
             // JNA is still being used by jansi
             new JnaBootPathConfigurer().configure(nativeDir);
         }
