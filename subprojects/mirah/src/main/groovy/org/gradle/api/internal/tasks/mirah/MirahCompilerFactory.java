@@ -43,10 +43,6 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     public Compiler<MirahCompileSpec> newCompiler(MirahCompileSpec spec) {
         MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
-        if (!mirahOptions.isFork()) {
-            throw new GradleException("The Zinc based Mirah compiler ('mirahCompileOptions.useAnt=false') "
-                    + "requires forking ('mirahCompileOptions.fork=true'), but the latter is set to 'false'.");
-        }
 
         // currently, we leave it to ZincMirahCompiler to also compile the Java code
         Compiler<MirahCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
