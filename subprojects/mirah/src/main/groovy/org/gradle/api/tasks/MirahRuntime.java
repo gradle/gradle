@@ -94,7 +94,7 @@ public class MirahRuntime {
                 }
 
                 return project.getConfigurations().detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.mirah", "mirah-compiler", mirahVersion));
+                        new DefaultExternalModuleDependency("org.mirah", "mirah", mirahVersion));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
