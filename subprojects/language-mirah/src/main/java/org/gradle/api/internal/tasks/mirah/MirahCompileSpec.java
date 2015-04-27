@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.mirah;
 
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 

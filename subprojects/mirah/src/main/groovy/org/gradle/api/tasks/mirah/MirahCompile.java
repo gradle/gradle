@@ -19,7 +19,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.mirah.CleaningMirahCompiler;
@@ -77,8 +76,7 @@ public class MirahCompile extends AbstractMirahCompile {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getMirahClasspath());
+            MirahCompilerFactory mirahCompilerFactory = new MirahCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, compilerDaemonFactory, getMirahClasspath());
             compiler = mirahCompilerFactory.newCompiler(spec);
             if (getMirahCompileOptions().isUseAnt()) {
                 compiler = new CleaningMirahCompiler(compiler, getOutputs());

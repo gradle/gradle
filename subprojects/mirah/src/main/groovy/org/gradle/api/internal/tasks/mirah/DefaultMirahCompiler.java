@@ -24,11 +24,9 @@ import org.gradle.api.tasks.util.PatternSet;
 
 public class DefaultMirahCompiler implements Compiler<MirahCompileSpec> {
     private final Compiler<MirahCompileSpec> mirahCompiler;
-    private final Compiler<JavaCompileSpec> javaCompiler;
 
-    public DefaultMirahCompiler(Compiler<MirahCompileSpec> mirahCompiler, Compiler<JavaCompileSpec> javaCompiler) {
+    public DefaultMirahCompiler(Compiler<MirahCompileSpec> mirahCompiler) {
         this.mirahCompiler = mirahCompiler;
-        this.javaCompiler = javaCompiler;
     }
 
     public WorkResult execute(MirahCompileSpec spec) {

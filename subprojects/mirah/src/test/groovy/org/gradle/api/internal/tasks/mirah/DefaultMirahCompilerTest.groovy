@@ -22,12 +22,11 @@ import spock.lang.Specification
 
 class DefaultMirahCompilerTest extends Specification {
     private final Compiler<MirahCompileSpec> mirahCompiler = Mock()
-    private final Compiler<JavaCompileSpec> javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
     private final MirahCompileSpec spec = Mock()
-    private final DefaultMirahCompiler compiler = new DefaultMirahCompiler(mirahCompiler, javaCompiler)
+    private final DefaultMirahCompiler compiler = new DefaultMirahCompiler(mirahCompiler)
 
     def executesMirahCompilerThenJavaCompiler() {
         given:
@@ -43,7 +42,6 @@ class DefaultMirahCompilerTest extends Specification {
         1 * sourceTree.matching(!null) >> javaSource
         javaSource.isEmpty() >> false
         1 * spec.setSource(javaSource)
-        1 * javaCompiler.execute(spec)
     }
 
     def doesNotInvokeJavaCompilerWhenNoJavaSource() {
@@ -58,6 +56,5 @@ class DefaultMirahCompilerTest extends Specification {
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         _ * javaSource.isEmpty() >> true
-        0 * javaCompiler._
     }
 }

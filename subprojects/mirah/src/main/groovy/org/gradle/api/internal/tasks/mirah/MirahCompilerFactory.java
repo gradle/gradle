@@ -31,15 +31,13 @@ import java.util.Set;
 
 public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     private final IsolatedAntBuilder antBuilder;
-    private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
     private FileCollection mirahClasspath;
     private final File rootProjectDirectory;
 
-    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath) {
+    public MirahCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, CompilerDaemonFactory compilerDaemonFactory, FileCollection mirahClasspath) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
-        this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
         this.mirahClasspath = mirahClasspath;
     }
@@ -50,8 +48,7 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
         if (mirahOptions.isUseAnt()) {
             Compiler<MirahCompileSpec> mirahCompiler = new AntMirahCompiler(antBuilder, mirahClasspathFiles);
-            Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
-            return new NormalizingMirahCompiler(new DefaultMirahCompiler(mirahCompiler, javaCompiler));
+            return new NormalizingMirahCompiler(new DefaultMirahCompiler(mirahCompiler));
         }
 
         if (!mirahOptions.isFork()) {
