@@ -123,13 +123,13 @@ Most of this coverage already exists, need to fill in the gaps:
 
 #### Test Coverage
 
-- ~~Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)~~
-- ~~`binaries` node is displayed for each component in the component report~~
-- ~~Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)~~
-- ~~Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`~~
-- ~~`binaries.«binary»` node is displayed for each source set of each component in the component container~~
-- ~~Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)~~
-- ~~Removal of binaries throws `UnsupportedOperationException`~~
+- ~Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)~
+- ~`binaries` node is displayed for each component in the component report~
+- ~Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)~
+- ~Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`~
+- ~`binaries.«binary»` node is displayed for each source set of each component in the component container~
+- ~Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)~
+- ~Removal of binaries throws `UnsupportedOperationException`~
 
 #### Breaking changes
 
@@ -205,8 +205,8 @@ Some replacement for this nesting should be offered, and the configuration defer
 
 This story changes the `sources` property of `ComponentSpec` to be of type (the new with this story) `ModelMap<LanguageSourceSet>`.
 The model map will be entirely model graph backed, and not “bridge” a collection.
-This allows actually creating the source sets to be deferred.
-
+This allows actually creating the source sets to be deferred.    
+    
 `ModelMap` is replacement for the existing `CollectionBuilder`, and `DomainObjectContainer` from non-rules world.
 It should actually extend `CollectionBuilder`, which will later be removed and inlined into `ModelMap`.
 `ModelMap` does not need to actually implement `Map` at this time.
@@ -218,7 +218,7 @@ After the change, the DSL for working with component source sets should be large
 Particularly, the familiar nested closure syntax.
 It is not a requirement that `ModelMap` is structurally compatible with NamedDomainObjectSet and friends, but supports the same patterns in so far as `CollectionBuilder` already does.
 
-### Test Coverage
+### Test Coverage 
 
 - Component spec source sets are not realised when only another property of the component is required (e.g. rule depends on `component.binaries`)
 - Only required component source set is realised (e.g. rule depends on `component.sources.main` does not realise `component.sources.other`)
