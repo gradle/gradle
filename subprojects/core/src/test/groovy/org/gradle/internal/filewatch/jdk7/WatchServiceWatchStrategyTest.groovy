@@ -25,7 +25,7 @@ class WatchServiceWatchStrategyTest extends Specification {
     def "test interactions in polling changes"() {
         given:
         WatchService watchService = Mock(WatchService)
-        WatchServiceWatchStrategy watchStrategy = WatchServiceWatchStrategy.createWatchStrategy(watchService)
+        WatchServiceWatchStrategy watchStrategy = new WatchServiceWatchStrategy(watchService)
         def watchHandler = Mock(WatchHandler)
         def watchKey = Mock(WatchKey)
         def path = Mock(Path)
@@ -53,7 +53,7 @@ class WatchServiceWatchStrategyTest extends Specification {
     def "path should get registered to watch service"() {
         given:
         WatchService watchService = Mock(WatchService)
-        WatchServiceWatchStrategy watchStrategy = WatchServiceWatchStrategy.createWatchStrategy(watchService)
+        WatchServiceWatchStrategy watchStrategy = new WatchServiceWatchStrategy(watchService)
         def path = Mock(Path)
         when:
         watchStrategy.watchSingleDirectory(path)
@@ -66,7 +66,7 @@ class WatchServiceWatchStrategyTest extends Specification {
     def "close calls close on WatchService"() {
         given:
         WatchService watchService = Mock(WatchService)
-        WatchServiceWatchStrategy watchStrategy = WatchServiceWatchStrategy.createWatchStrategy(watchService)
+        WatchServiceWatchStrategy watchStrategy = new WatchServiceWatchStrategy(watchService)
         when:
         watchStrategy.close()
         then:

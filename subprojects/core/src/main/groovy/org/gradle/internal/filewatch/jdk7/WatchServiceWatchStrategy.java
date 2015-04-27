@@ -33,18 +33,6 @@ class WatchServiceWatchStrategy implements WatchStrategy {
     static final WatchEvent.Kind[] WATCH_KINDS = new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY};
     protected final WatchService watchService;
 
-    public static WatchStrategy createWatchStrategy() throws IOException {
-        return createWatchStrategy(FileSystems.getDefault().newWatchService());
-    }
-
-    public static WatchStrategy createWatchStrategy(WatchService watchService) throws IOException {
-        if(ExtendedWatchServiceWatchStrategy.isSupported()) {
-            return new ExtendedWatchServiceWatchStrategy(watchService);
-        } else {
-            return new WatchServiceWatchStrategy(watchService);
-        }
-    }
-
     WatchServiceWatchStrategy(WatchService watchService) {
         this.watchService = watchService;
     }

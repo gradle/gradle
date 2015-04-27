@@ -41,6 +41,6 @@ public class Jdk7FileWatcherFactory implements FileWatcherFactory {
      * @throws IOException
      */
     protected WatchStrategy createWatchStrategy() throws IOException {
-        return WatchServiceWatchStrategy.createWatchStrategy();
+        return new WatchStrategyFactory().createWatchStrategy();
     }
 }
