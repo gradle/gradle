@@ -80,8 +80,8 @@ normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_
 
 ### Task group accessible from the Tooling API
 
-Tasks in Gradle may define a group attribute, but this group wasn't accessible from the Tooling API. It is now possible to query the
-group of a task from the tooling model.
+Tasks in Gradle may define a _group_ attribute, but this group wasn't accessible from the Tooling API before. It is now possible to query the
+group of a task through `org.gradle.tooling.model.Task#getGroup`.
 
 ### Increased visibility of components in model report
  
