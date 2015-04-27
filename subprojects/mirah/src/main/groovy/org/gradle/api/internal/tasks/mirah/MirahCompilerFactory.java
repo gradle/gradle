@@ -48,7 +48,7 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
         if (mirahOptions.isUseAnt()) {
             Compiler<MirahCompileSpec> mirahCompiler = new AntMirahCompiler(antBuilder, mirahClasspathFiles);
-            return new NormalizingMirahCompiler(new DefaultMirahCompiler(mirahCompiler));
+            return new NormalizingMirahCompiler(mirahCompiler);
         }
 
         if (!mirahOptions.isFork()) {
