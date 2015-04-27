@@ -132,18 +132,13 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
 
         CollectionBuilderModelProjection<?> that = (CollectionBuilderModelProjection<?>) o;
 
-        if (baseItemType != null ? !baseItemType.equals(that.baseItemType) : that.baseItemType != null) {
-            return false;
-        }
-        return !(baseItemModelType != null ? !baseItemModelType.equals(that.baseItemModelType) : that.baseItemModelType != null);
-
+        return baseItemType.equals(that.baseItemType) && baseItemModelType.equals(that.baseItemModelType);
     }
 
     @Override
     public int hashCode() {
-        int result = baseItemType != null ? baseItemType.hashCode() : 0;
-        result = 31 * result + (baseItemModelType != null ? baseItemModelType.hashCode() : 0);
+        int result = baseItemType.hashCode();
+        result = 31 * result + baseItemModelType.hashCode();
         return result;
     }
-
 }

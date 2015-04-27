@@ -59,17 +59,21 @@ public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilder
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        //noinspection EqualsBetweenInconvertibleTypes
         if (!super.equals(o)) {
             return false;
         }
 
         PolymorphicCollectionBuilderProjection<?> that = (PolymorphicCollectionBuilderProjection<?>) o;
 
-        return !(initializer != null ? !initializer.equals(that.initializer) : that.initializer != null);
+        return initializer.equals(that.initializer);
+
     }
 
     @Override
     public int hashCode() {
-        return initializer != null ? initializer.hashCode() : 0;
+        int result = super.hashCode();
+        result = 31 * result + initializer.hashCode();
+        return result;
     }
 }
