@@ -19,9 +19,7 @@ package org.gradle.launcher.continuous;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.filewatch.FileWatchInputs;
-import org.gradle.internal.filewatch.FileWatcher;
-import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,14 +53,20 @@ class FileWatchStrategy implements TriggerStrategy {
         // TODO: Enforce quiet period here?
     }
 
-    static class FileChangeCallback implements Runnable {
+    static class FileChangeCallback implements FileWatcherListener {
         private final TriggerListener listener;
 
         private FileChangeCallback(TriggerListener listener) {
             this.listener = listener;
         }
 
-        public void run() {
+        @Override
+        public void onOverflow() {
+            listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "overflow in filewatching"));
+        }
+
+        @Override
+        public void onChange(FileChangeDetails fileChangeDetails) {
             listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
         }
     }

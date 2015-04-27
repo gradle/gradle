@@ -36,7 +36,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     private static class NoOpFileWatcherFactory implements FileWatcherFactory {
         @Override
-        public FileWatcher createFileWatcher(Runnable callback) throws IOException {
+        public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
             return new FileWatcher() {
                 @Override
                 public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
@@ -93,7 +93,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     }
 
     @Override
-    public FileWatcher createFileWatcher(Runnable callback) throws IOException {
-        return fileWatcherFactory.createFileWatcher(callback);
+    public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
+        return fileWatcherFactory.createFileWatcher(listener);
     }
 }

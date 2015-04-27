@@ -16,8 +16,7 @@
 
 package org.gradle.internal.filewatch;
 
-import java.io.IOException;
-
-public interface FileWatcherFactory {
-    FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException;
+public interface FileWatcherListener {
+    void onOverflow();
+    void onChange(FileChangeDetails fileChangeDetails);
 }

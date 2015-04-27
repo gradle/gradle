@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.filewatch.FileWatcherListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,19 +102,20 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     }
 
     @Override
-    public synchronized void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
+    public synchronized void handleChange(ChangeDetails changeDetails, FileWatcherListener listener) {
         Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(changeDetails.getWatchedPath());
         if(watchedTrees != null) {
             for(DirectoryTree watchedTree : watchedTrees) {
-                if(liveDirectoryTreeToSourceKeys.containsKey(watchedTree)) {
+                Set<String> sourceKeys = liveDirectoryTreeToSourceKeys.get(watchedTree);
+                if(sourceKeys != null) {
                     FileTreeElement fileTreeElement = toFileTreeElement(changeDetails, watchedTree);
                     if (!isExcluded(watchedTree, fileTreeElement)) {
                         boolean isDirectory = isDirectory(changeDetails.getFullItemPath());
                         if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
-                            handleNewDirectory(changeDetails, changesNotifier, watchedTree);
+                            handleNewDirectory(changeDetails, listener, watchedTree, sourceKeys);
                         }
                         if (!isDirectory && isIncluded(watchedTree, fileTreeElement)) {
-                            handleFileChange(changeDetails, changesNotifier, watchedTree);
+                            handleFileChange(changeDetails, listener, watchedTree, sourceKeys);
                         }
                     }
                 }
@@ -122,23 +124,23 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     }
 
     // we should handle new directories even when they aren't explicitly included since "includes" pattern is for files
-    protected void handleNewDirectory(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier, DirectoryTree watchedTree) {
+    protected void handleNewDirectory(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree, Set<String> sourceKeys) {
         try {
             boolean containsValidFiles = registerSubDir(watchedTree, changeDetails.getFullItemPath());
             if(containsValidFiles) {
                 // newly created directory with files will trigger a change. empty directory won't trigger a change
-                changesNotifier.addPendingChange();
+                listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
             }
         } catch (IOException e) {
             // ignore
             LOGGER.warn("IOException in registering sub tree " + changeDetails.getFullItemPath().toString(), e);
             // trigger change in case of IOException
-            changesNotifier.addPendingChange();
+            listener.onOverflow();
         }
     }
 
-    protected void handleFileChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier, DirectoryTree watchedTree) {
-        changesNotifier.addPendingChange();
+    protected void handleFileChange(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree, Set<String> sourceKeys) {
+        listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
     }
 
     private boolean isIncluded(DirectoryTree watchedTree, FileTreeElement fileTreeElement) {

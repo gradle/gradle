@@ -16,6 +16,8 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import org.gradle.internal.filewatch.FileWatcherListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -86,12 +88,15 @@ class IndividualFileWatchRegistry extends WatchRegistry<File> {
     }
 
     @Override
-    public synchronized void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier) {
+    public synchronized void handleChange(ChangeDetails changeDetails, FileWatcherListener listener) {
         Set<File> files = individualFilesByParentPath.get(changeDetails.getWatchedPath());
         if(files != null) {
             File file = changeDetails.getFullItemPath().toFile().getAbsoluteFile();
-            if(files.contains(file) && liveFilesToSourceKeys.containsKey(file)) {
-                changesNotifier.addPendingChange();
+            if(files.contains(file)) {
+                Set<String> sourceKeys = liveFilesToSourceKeys.get(file);
+                if(sourceKeys != null) {
+                    listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
+                }
             }
         }
     }

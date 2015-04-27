@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch.jdk7;
 
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherListener;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -30,8 +31,8 @@ public class Jdk7FileWatcherFactory implements FileWatcherFactory {
     }
 
     @Override
-    public FileWatcher createFileWatcher(Runnable callback) throws IOException {
-        return new DefaultFileWatcher(executor, createWatchStrategy(), callback);
+    public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
+        return new DefaultFileWatcher(executor, createWatchStrategy(), listener);
     }
 
     /**

@@ -19,6 +19,7 @@ package org.gradle.internal.filewatch.jdk7;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.FileWatchInputs;
 import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +31,9 @@ public class DefaultFileWatcher implements FileWatcher {
     private final FileWatcherStopper stopper;
     private final FileWatcherTask fileWatcherTask;
 
-    public DefaultFileWatcher(ExecutorService executor, WatchStrategy watchStrategy, Runnable callback) throws IOException {
+    public DefaultFileWatcher(ExecutorService executor, WatchStrategy watchStrategy, FileWatcherListener listener) throws IOException {
         AtomicBoolean runningFlag = new AtomicBoolean(true);
-        this.fileWatcherTask = new FileWatcherTask(watchStrategy, runningFlag, callback);
+        this.fileWatcherTask = new FileWatcherTask(watchStrategy, runningFlag, listener);
         Future<?> taskCompletion = executor.submit(fileWatcherTask);
         this.stopper = new FileWatcherStopper(runningFlag, taskCompletion);
     }
@@ -61,21 +62,17 @@ public class DefaultFileWatcher implements FileWatcher {
         private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcherTask.class);
         static final int POLL_TIMEOUT_MILLIS = 250;
         private final AtomicBoolean runningFlag;
-        private final FileWatcherChangesNotifier changesNotifier;
         private final WatchStrategy watchStrategy;
         private final DirTreeWatchRegistry dirTreeWatchRegistry;
         private final IndividualFileWatchRegistry individualFileWatchRegistry;
+        private final FileWatcherListener listener;
 
-        public FileWatcherTask(WatchStrategy watchStrategy, AtomicBoolean runningFlag, Runnable callback) throws IOException {
-            this.changesNotifier = createChangesNotifier(callback);
+        public FileWatcherTask(WatchStrategy watchStrategy, AtomicBoolean runningFlag, FileWatcherListener listener) throws IOException {
+            this.listener = listener;
             this.runningFlag = runningFlag;
             this.watchStrategy = watchStrategy;
             this.dirTreeWatchRegistry = DirTreeWatchRegistry.create(watchStrategy);
             this.individualFileWatchRegistry = new IndividualFileWatchRegistry(watchStrategy);
-        }
-
-        protected FileWatcherChangesNotifier createChangesNotifier(Runnable callback) {
-            return new FileWatcherChangesNotifier(callback);
         }
 
         void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
@@ -96,26 +93,19 @@ public class DefaultFileWatcher implements FileWatcher {
         }
 
         protected void watchLoop() throws InterruptedException {
-            changesNotifier.reset();
             while (watchLoopRunning()) {
                 watchStrategy.pollChanges(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, new WatchHandler() {
                     @Override
-                    public void onActivation() {
-                        changesNotifier.eventReceived();
-                    }
-
-                    @Override
                     public void onOverflow() {
-                        changesNotifier.notifyChanged();
+                        listener.onOverflow();
                     }
 
                     @Override
                     public void onChange(ChangeDetails changeDetails) {
-                        dirTreeWatchRegistry.handleChange(changeDetails, changesNotifier);
-                        individualFileWatchRegistry.handleChange(changeDetails, changesNotifier);
+                        dirTreeWatchRegistry.handleChange(changeDetails, listener);
+                        individualFileWatchRegistry.handleChange(changeDetails, listener);
                     }
                 });
-                changesNotifier.handlePendingChanges();
             }
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.internal.filewatch.FileChangeDetails
 import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherFactory
 import org.gradle.util.UsesNativeServices
@@ -40,7 +41,7 @@ class FileWatchStrategyTest extends Specification {
         given:
         def callback = new FileWatchStrategy.FileChangeCallback(listener)
         when:
-        callback.run()
+        callback.onChange(new FileChangeDetails(FileChangeDetails.ChangeType.CREATE, new File("newfile"), ['sourceKey']))
         then:
         1 * listener.triggered(_)
     }

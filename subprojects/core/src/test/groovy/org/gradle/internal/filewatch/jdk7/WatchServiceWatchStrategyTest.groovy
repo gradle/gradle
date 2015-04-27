@@ -35,7 +35,6 @@ class WatchServiceWatchStrategyTest extends Specification {
         watchStrategy.pollChanges(250, TimeUnit.MILLISECONDS, watchHandler)
         then:
         watchService.poll(250, TimeUnit.MILLISECONDS) >> watchKey
-        1 * watchHandler.onActivation()
         watchKey.watchable() >> path
         watchKey.pollEvents() >> [watchEvent]
         watchEvent.kind() >> StandardWatchEventKinds.ENTRY_MODIFY

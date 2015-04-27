@@ -47,7 +47,6 @@ class WatchServiceWatchStrategy implements WatchStrategy {
     public boolean pollChanges(long timeout, TimeUnit unit, WatchHandler watchHandler) throws InterruptedException {
         WatchKey watchKey = watchService.poll(timeout, unit);
         if (watchKey != null) {
-            watchHandler.onActivation();
             handleWatchKey(watchKey, watchHandler);
             return true;
         }

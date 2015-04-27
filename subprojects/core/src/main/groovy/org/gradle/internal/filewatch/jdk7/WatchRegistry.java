@@ -20,12 +20,13 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.filewatch.FileChangeDetails;
+import org.gradle.internal.filewatch.FileWatcherListener;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 abstract class WatchRegistry<T> {
     private final WatchStrategy watchStrategy;
@@ -42,7 +43,7 @@ abstract class WatchRegistry<T> {
 
     abstract public void register(String sourceKey, Iterable<T> watchItems) throws IOException;
 
-    abstract public void handleChange(ChangeDetails changeDetails, FileWatcherChangesNotifier changesNotifier);
+    abstract public void handleChange(ChangeDetails changeDetails, FileWatcherListener listener);
 
     protected void watchDirectory(Path path) throws IOException {
         Stoppable stoppable = watchStrategy.watchSingleDirectory(path);
@@ -78,5 +79,17 @@ abstract class WatchRegistry<T> {
         public CustomFileTreeElement(File file, RelativePath relativePath) {
             super(file, relativePath, null, null);
         }
+    }
+
+    static Map<ChangeDetails.ChangeType, FileChangeDetails.ChangeType> changeTypeMap;
+    static {
+        changeTypeMap = new EnumMap<ChangeDetails.ChangeType, FileChangeDetails.ChangeType>(ChangeDetails.ChangeType.class);
+        changeTypeMap.put(ChangeDetails.ChangeType.CREATE, FileChangeDetails.ChangeType.CREATE);
+        changeTypeMap.put(ChangeDetails.ChangeType.MODIFY, FileChangeDetails.ChangeType.MODIFY);
+        changeTypeMap.put(ChangeDetails.ChangeType.DELETE, FileChangeDetails.ChangeType.DELETE);
+    }
+
+    public FileChangeDetails toFileChangeDetails(ChangeDetails changeDetails, Set<String> sourceKeys) {
+        return new FileChangeDetails(changeTypeMap.get(changeDetails.getChangeType()), changeDetails.getFullItemPath().toFile(), Collections.unmodifiableSet(sourceKeys));
     }
 }

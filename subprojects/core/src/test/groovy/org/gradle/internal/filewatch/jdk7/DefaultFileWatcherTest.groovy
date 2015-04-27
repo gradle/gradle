@@ -17,6 +17,7 @@
 package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.file.DirectoryTree
+import org.gradle.internal.filewatch.FileWatcherListener
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
@@ -29,11 +30,11 @@ class DefaultFileWatcherTest extends Specification {
         given:
         def executor = Mock(ExecutorService)
         def watchStrategy = Mock(WatchStrategy)
-        def callback = Mock(Runnable)
+        def listener = Mock(FileWatcherListener)
         def directoryTree = Mock(DirectoryTree)
         def future = Mock(Future)
         when: 'fileWatcher is constructed'
-        def fileWatcher = new DefaultFileWatcher(executor, watchStrategy, callback)
+        def fileWatcher = new DefaultFileWatcher(executor, watchStrategy, listener)
         then:
         1 * executor.submit(_) >> future
         when: "stop is called"
