@@ -43,8 +43,6 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     public Compiler<MirahCompileSpec> newCompiler(MirahCompileSpec spec) {
         MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
-
-        // currently, we leave it to ZincMirahCompiler to also compile the Java code
         Compiler<MirahCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
         return new NormalizingMirahCompiler(mirahCompiler);
     }
