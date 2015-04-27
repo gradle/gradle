@@ -22,7 +22,7 @@ import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 import java.io.File;
 import java.util.Map;
 
-public interface MirahCompileSpec extends JvmLanguageCompileSpec {
+public interface MirahCompileSpec extends JvmLanguageCompileSpec, JavaCompileSpec {
     BaseMirahCompileOptions getMirahCompileOptions();
 
     Map<File, File> getAnalysisMap();
