@@ -30,7 +30,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -125,11 +125,6 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public Iterator<I> iterator() {
-            return rawInstance.iterator();
-        }
-
-        @Override
         public void create(String name) {
             assertNotClosed();
             rawInstance.create(name);
@@ -204,6 +199,11 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.afterEach(type, configAction);
+        }
+
+        @Override
+        public Collection<I> values() {
+            return rawInstance.values();
         }
 
         // TODO - mix this in and validate closure parameters

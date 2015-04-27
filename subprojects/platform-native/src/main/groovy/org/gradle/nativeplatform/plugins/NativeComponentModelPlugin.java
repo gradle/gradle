@@ -154,7 +154,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             Action<NativeComponentSpec> createBinariesAction =
                     new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, nativePlatforms, buildTypes, flavors);
 
-            for (NativeComponentSpec component : nativeComponents) {
+            for (NativeComponentSpec component : nativeComponents.values()) {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
             }
@@ -219,7 +219,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, CollectionBuilder<NativeComponentSpec> nativeComponents) {
-            for (final NativeComponentSpec nativeComponentSpec : nativeComponents) {
+            for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
                 nativeComponentSpec.getSource().withType(DependentSourceSetInternal.class, new Action<DependentSourceSetInternal>() {
                     @Override
                     public void execute(final DependentSourceSetInternal dependentSourceSet) {

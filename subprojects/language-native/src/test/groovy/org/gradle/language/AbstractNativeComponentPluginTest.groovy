@@ -66,7 +66,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         then:
         def components = realizeComponents()
         components.size() == 2
-        components*.name == ["exe", "lib"]
+        components.values()*.name == ["exe", "lib"]
 
         and:
         def exe = components.exe

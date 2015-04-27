@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -30,7 +33,6 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -117,28 +119,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public Set<String> keySet() {
         return modelNode.getLinkNames(elementType);
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private final Iterator<String> names = keySet().iterator();
-
-            @Override
-            public boolean hasNext() {
-                return names.hasNext();
-            }
-
-            @Override
-            public T next() {
-                return get(names.next());
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
     }
 
     @Override
@@ -251,6 +231,16 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
+    }
+
+    @Override
+    public Collection<T> values() {
+        Iterable<T> values = Iterables.transform(keySet(), new Function<String, T>() {
+            public T apply(@Nullable String name) {
+                return get(name);
+            }
+        });
+        return Lists.newArrayList(values);
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {

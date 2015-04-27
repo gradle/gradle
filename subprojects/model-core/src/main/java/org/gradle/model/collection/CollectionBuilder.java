@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -29,7 +30,7 @@ import java.util.Set;
  * @param <T> the contract type for all items
  */
 @Incubating
-public interface CollectionBuilder<T> extends Iterable<T> {
+public interface CollectionBuilder<T> {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.
      *
@@ -226,4 +227,11 @@ public interface CollectionBuilder<T> extends Iterable<T> {
      * @param configAction An action that configures the item. The action is executed when the item is required.
      */
     <S> void afterEach(Class<S> type, Action<? super S> configAction);
+
+    /**
+     * Returns the items in this collection.
+     *
+     * @return The items.
+     */
+    Collection<T> values();
 }

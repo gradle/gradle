@@ -115,7 +115,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeExecutableSpec
+        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec)).values()) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
@@ -149,7 +149,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeLibrarySpec library = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeLibrarySpec
+        NativeLibrarySpec library = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec)).values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'

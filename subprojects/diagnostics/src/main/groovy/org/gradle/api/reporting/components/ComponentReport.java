@@ -77,12 +77,12 @@ public class ComponentReport extends DefaultTask {
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
         ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
         if (componentSpecs != null) {
-            Iterables.addAll(components, componentSpecs);
+            components.addAll(componentSpecs.values());
         }
 
         TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
         if (testSuites != null) {
-            Iterables.addAll(components, testSuites);
+            components.addAll(testSuites.values());
         }
 
         renderer.renderComponents(components);

@@ -24,7 +24,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Set;
 
 public class DelegatingCollectionBuilder<T> implements CollectionBuilder<T> {
@@ -81,11 +81,6 @@ public class DelegatingCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public Set<String> keySet() {
         return delegate.keySet();
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return delegate.iterator();
     }
 
     @Override
@@ -155,6 +150,11 @@ public class DelegatingCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
         delegate.afterEach(type, configAction);
+    }
+
+    @Override
+    public Collection<T> values() {
+        return delegate.values();
     }
 
     private <S extends T> void onCreate(String name, ModelType<S> type) {

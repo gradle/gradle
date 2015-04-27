@@ -77,7 +77,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         public void execute(MutableModelNode modelNode, final CollectionBuilder<BinarySpec> binaries, List<ModelView<?>> inputs) {
             CollectionBuilder<C> componentSpecs = ModelViews.assertType(inputs.get(0), DefaultCollectionBuilder.typeOf(componentType)).getInstance();
 
-            for (final ComponentSpec componentSpec : componentSpecs) {
+            for (final ComponentSpec componentSpec : componentSpecs.values()) {
                 CollectionBuilder<S> typed = binaries.withType(binaryType);
                 CollectionBuilder<S> wrapped = new DelegatingCollectionBuilder<S>(typed, ModelType.of(binaryType), new BiAction<String, ModelType<? extends S>>() {
                     @Override

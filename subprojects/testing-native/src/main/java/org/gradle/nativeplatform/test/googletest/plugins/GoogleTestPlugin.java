@@ -79,7 +79,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
-            for (final NativeComponentSpec component : components) {
+            for (final NativeComponentSpec component : components.values()) {
                 String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
                     @Override
@@ -121,7 +121,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         @Finalize
         public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
-            for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
+            for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
 
                 CppSourceSet testSources = suiteSourceSet.maybeCreate("cpp", CppSourceSet.class);
@@ -136,7 +136,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
                                                  @Path("buildDir") File buildDir,
                                                  ServiceRegistry serviceRegistry,
                                                  ITaskFactory taskFactory) {
-            for (final GoogleTestTestSuiteSpec googleTestTestSuite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
+            for (final GoogleTestTestSuiteSpec googleTestTestSuite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
                 for (NativeBinarySpec testedBinary : googleTestTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
                     if (testedBinary instanceof SharedLibraryBinary) {
                         // TODO:DAZ For now, we only create test suites for static library variants

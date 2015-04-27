@@ -26,7 +26,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -148,13 +148,13 @@ public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport imp
     }
 
     @Override
-    public Iterator<I> iterator() {
-        return delegate.iterator();
+    public String toString() {
+        return delegate.toString();
     }
 
     @Override
-    public String toString() {
-        return delegate.toString();
+    public Collection<I> values() {
+        return delegate.values();
     }
 
     // TODO - mix this in and validate closure parameters

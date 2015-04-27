@@ -79,7 +79,7 @@ public class CUnitPlugin implements Plugin<Project> {
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
         public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
-            for (final NativeComponentSpec component : components) {
+            for (final NativeComponentSpec component : components.values()) {
                 String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
                     @Override
@@ -121,7 +121,7 @@ public class CUnitPlugin implements Plugin<Project> {
         @Finalize
         public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
-            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
+            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
@@ -137,7 +137,7 @@ public class CUnitPlugin implements Plugin<Project> {
 
         @Mutate
         public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
-            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
+            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
                 GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
@@ -159,7 +159,7 @@ public class CUnitPlugin implements Plugin<Project> {
 
         @Mutate
         public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
+            for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
 
                     if (testedBinary instanceof SharedLibraryBinary) {
