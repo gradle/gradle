@@ -35,7 +35,7 @@ class MirahRuntimeTest extends Specification {
         }
 
         when:
-        def classpath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
+        def classpath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("mirah-0.1.3.jar")])
 
         then:
         classpath instanceof LazilyInitializedFileCollection
@@ -45,8 +45,8 @@ class MirahRuntimeTest extends Specification {
             it.dependencies.size() == 1
             with(it.dependencies.iterator().next()) {
                 group == "org.mirah"
-                name == "mirah-compiler"
-                version == "2.10.1"
+                name == "mirah"
+                version == "0.1.3"
             }
         }
     }
