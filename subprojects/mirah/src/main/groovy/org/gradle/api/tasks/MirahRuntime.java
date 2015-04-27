@@ -125,7 +125,7 @@ public class MirahRuntime {
     public File findMirahJar(Iterable<File> classpath, String appendix) {
         for (File file : classpath) {
             Matcher matcher = MIRAH_JAR_PATTERN.matcher(file.getName());
-            if (matcher.matches() && matcher.group(1).equals(appendix)) {
+            if (matcher.matches() && ((appendix==null && matcher.group(1) == null) || matcher.group(1).equals(appendix))) {
                 return file;
             }
         }
