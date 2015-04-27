@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting.components;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
