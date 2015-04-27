@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -48,7 +47,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         if (!nativeLibraries.containsKey(libraryName)) {
             throw new UnknownDomainObjectException(String.format("%s with name '%s' not found.", NativeLibrarySpec.class.getSimpleName(), libraryName));
         }
-        NamedDomainObjectCollection<NativeBinarySpec> projectBinaries = nativeLibraries.get(libraryName).getBinaries().withType(NativeBinarySpec.class);
+        DomainObjectSet<NativeBinarySpec> projectBinaries = nativeLibraries.get(libraryName).getBinaries().withType(NativeBinarySpec.class);
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
         // TODO:DAZ Convert, don't cast
         for (NativeBinarySpec nativeBinarySpec : projectBinaries) {

@@ -27,21 +27,22 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
-import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Base plugin for language support.
@@ -70,7 +71,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             public ComponentSpecContainer transform(CollectionBuilder<ComponentSpec> componentSpecs) {
                 return new DefaultComponentSpecContainer(componentSpecs);
             }
-        }, descriptor, ComponentSpecInitializer.action());
+        }, descriptor, new ComponentSpecInitializationAction());
         modelRegistry.createOrReplace(componentsCreator);
     }
 
@@ -164,26 +165,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Mutate
         void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
             extensions.add("platforms", platforms);
-        }
-
-        @Defaults
-        void registerBinaryFactories(ComponentSpecContainer componentSpecs, final BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            componentSpecs.beforeEach(new Action<ComponentSpec>() {
-                @Override
-                public void execute(ComponentSpec componentSpec) {
-                    ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
-                    binaryFactoryRegistry.copyInto(componentSpecInternal.getBinaries());
-                }
-            });
-        }
-
-        @Defaults
-        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpec binary : componentSpec.getBinaries()) {
-                    binaries.add(binary);
-                }
-            }
         }
 
     }

@@ -134,9 +134,7 @@ Currently component container can be only accessed using model rules.
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`. 
 - `TestSuiteContainer` now implements `CollectionBuilder<TestSuiteSpec`.
 
-### Source sets and binaries cannot be removed from components
-
-### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
+### Source sets cannot be removed from components
 
 ### Configurations that are task inputs are resolved before building the task execution graph
 

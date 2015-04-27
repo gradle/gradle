@@ -16,7 +16,6 @@
 
 package org.gradle.internal
 
-import org.gradle.api.Action
 import spock.lang.Specification
 
 class BiActionsTest extends Specification {
@@ -35,18 +34,5 @@ class BiActionsTest extends Specification {
         then:
         a == ["first a", "second a"]
         b == ["first b", "second b"]
-    }
-
-    def "can wrap an action into a bi action that ignores second argument"() {
-        given:
-        Action<List<String>> action = {a -> a << "added by action" }
-        BiAction<List<String>, Object> biAction = BiActions.usingFirstArgument(action)
-        def argument = []
-
-        when:
-        biAction.execute(argument, null)
-
-        then:
-        argument == ["added by action"]
     }
 }

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.internal.resolve
-
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.DefaultNamedDomainObjectSet
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.DefaultCollectionBuilder
@@ -38,15 +36,12 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
     def binary = Mock(MockNativeLibraryBinary)
-    def binaries = Mock(DefaultNamedDomainObjectSet)
-    def nativeBinaries = Mock(DefaultNamedDomainObjectSet)
+    def binaries = new DefaultDomainObjectSet(NativeBinarySpec, [binary])
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
         library.binaries >> binaries
-        binaries.withType(NativeBinarySpec) >> nativeBinaries
-        nativeBinaries.iterator() >> [binary].iterator()
     }
 
     def "locates binaries for library in same project"() {

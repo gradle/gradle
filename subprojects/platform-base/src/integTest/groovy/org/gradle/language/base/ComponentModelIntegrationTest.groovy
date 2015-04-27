@@ -59,6 +59,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             class LanguageTypeRules extends RuleSource {
                 @LanguageType
                 void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                    builder.setLanguageName("custom")
                     builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }
@@ -77,41 +78,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void withBinaries() {
-        buildFile << """
-            import org.gradle.model.collection.*
-
-            interface CustomBinary extends BinarySpec {
-                String getData();
-            }
-            class DefaultCustomBinary extends BaseBinarySpec implements CustomBinary {
-                final String data = "bar"
-            }
-
-            class BinaryRules extends RuleSource {
-                @BinaryType
-                void registerCustomBinary(BinaryTypeBuilder<CustomBinary> builder) {
-                    builder.defaultImplementation(DefaultCustomBinary)
-                }
-
-                @ComponentBinaries
-                void addBinaries(CollectionBuilder<CustomBinary> binaries, CustomComponent component) {
-                    binaries.create("main", CustomBinary)
-                    binaries.create("test", CustomBinary)
-                }
-            }
-
-            apply type: BinaryRules
-
-            model {
-                components {
-                    test(CustomComponent)
-                }
-            }
-        """
-    }
-
-    def "component sources and binaries containers are visible in model report"() {
+    def "component source container is visible in model report"() {
         when:
         succeeds "model"
 
@@ -119,20 +86,19 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         main
-            binaries
-            sources"""))
+            source"""))
     }
 
-    def "can reference sources container for a component in a rule"() {
+    def "can reference source container for a component in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
             model {
                 tasks {
                     create("printSourceNames") {
-                        def sources = $("components.main.sources")
+                        def source = $("components.main.source")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${source*.name}"
                         }
                     }
                 }
@@ -146,7 +112,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "names: [main]"
     }
 
-    def "component sources container elements are visible in model report"() {
+    def "component source container elements are visible in model report"() {
         given:
         withMainSourceSet()
         buildFile << """
@@ -178,30 +144,27 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         foo
-            binaries
-            sources
+            source
                 bar
         main
-            binaries
-            sources
+            source
                 main
                 test
         test
-            binaries
-            sources
+            source
                 test"""))
     }
 
-    def "can reference sources container elements in a rule"() {
+    def "can reference source container elements in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.main.sources.main")
+                        def source = $("components.main.source.main")
                         doLast {
-                            println "sources display name: ${sources.displayName}"
+                            println "source display name: ${source.displayName}"
                         }
                     }
                 }
@@ -212,10 +175,10 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
+        output.contains "source display name: DefaultCustomLanguageSourceSet 'main:main'"
     }
 
-    def "can reference sources container elements using specialized type in a rule"() {
+    def "can reference source container elements using specialized type in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
@@ -223,10 +186,10 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.source.main") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
-                            println "sources data: ${sourceSet.data}"
+                            println "source data: ${sourceSet.data}"
                         }
                     }
                 }
@@ -239,7 +202,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSourceData"
 
         then:
-        output.contains "sources data: foo"
+        output.contains "source data: foo"
     }
 
     def "cannot remove source sets"() {
@@ -250,12 +213,12 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
             class SourceSetRemovalRules extends RuleSource {
                 @Mutate
-                void clearSourceSets(@Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
+                void clearSourceSets(@Path("components.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
                     sourceSets.clear()
                 }
 
                 @Mutate
-                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
+                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("components.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
                 }
             }
 
@@ -286,11 +249,8 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            source
         someCustomComponent
-            binaries
-            sources
 """))
 
     }
@@ -319,8 +279,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            source
                 bar
                 main"""))
     }
@@ -377,8 +336,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            source
                 bar
                 main"""))
 
@@ -398,8 +356,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
-            binaries
-            sources"""))
+            source"""))
 
     }
 
@@ -426,13 +383,11 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            source
                 bar
                 main
         test
-            binaries
-            sources
+            source
 """))
 
     }
@@ -488,8 +443,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            source
                 bar
                 main"""))
 
@@ -596,104 +550,5 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         projectionType                     | fullQualified
         "CollectionBuilder<ComponentSpec>" | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
         "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
-    }
-
-    def "component binaries container elements are visible in model report"() {
-        given:
-        withBinaries()
-
-        when:
-        succeeds "model"
-
-        then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    components
-        main
-            binaries
-                main
-                test
-            sources
-        test
-            binaries
-                main
-                test
-            sources"""))
-    }
-
-    def "can reference binaries container for a component in a rule"() {
-        given:
-        withBinaries()
-        buildFile << '''
-            model {
-                tasks {
-                    create("printBinaryNames") {
-                        def binaries = $("components.main.binaries")
-                        doLast {
-                            println "names: ${binaries*.name}"
-                        }
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds "printBinaryNames"
-
-        then:
-        output.contains "names: [main, test]"
-    }
-
-    def "can reference binaries container elements using specialized type in a rule"() {
-        given:
-        withBinaries()
-        buildFile << '''
-            import org.gradle.model.collection.*
-
-            class TaskRules extends RuleSource {
-                @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
-                    tasks.create("printBinaryData") {
-                        doLast {
-                            println "binary data: ${binary.data}"
-                        }
-                    }
-                }
-            }
-
-            apply type: TaskRules
-        '''
-
-        when:
-        succeeds "printBinaryData"
-
-        then:
-        output.contains "binary data: bar"
-    }
-
-    def "cannot remove binaries"() {
-        given:
-        withBinaries()
-        buildFile << '''
-            import org.gradle.model.collection.*
-
-            class BinariesRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                    binaries.clear()
-                }
-
-                @Mutate
-                void closeMainComponentBinariesForTasks(CollectionBuilder<Task> tasks, @Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                }
-            }
-
-            apply type: BinariesRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
     }
 }

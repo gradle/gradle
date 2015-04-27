@@ -18,18 +18,17 @@ package org.gradle.platform.base.internal.registry
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.internal.DefaultBinaryContainer
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -55,7 +54,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.ACTION
         registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(ModelType.of(BinarySpecFactoryRegistry))
+        registration.action.subject == ModelReference.of(DefaultBinaryContainer)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {

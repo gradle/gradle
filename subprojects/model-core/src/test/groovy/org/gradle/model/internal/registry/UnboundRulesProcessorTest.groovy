@@ -392,10 +392,5 @@ class UnboundRulesProcessorTest extends Specification {
         def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
             return null
         }
-
-        @Override
-        MutableModelNode getParent() {
-            return null
-        }
     }
 }

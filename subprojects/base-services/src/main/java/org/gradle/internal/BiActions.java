@@ -16,8 +16,6 @@
 
 package org.gradle.internal;
 
-import org.gradle.api.Action;
-
 public abstract class BiActions {
 
     private static final BiAction<Object, Object> NOOP = new BiAction<Object, Object>() {
@@ -44,11 +42,4 @@ public abstract class BiActions {
         };
     }
 
-    public static <A> BiAction<A, Object> usingFirstArgument(final Action<? super A> action) {
-        return new BiAction<A, Object>() {
-            public void execute(A a, Object o) {
-                action.execute(a);
-            }
-        };
-    }
 }

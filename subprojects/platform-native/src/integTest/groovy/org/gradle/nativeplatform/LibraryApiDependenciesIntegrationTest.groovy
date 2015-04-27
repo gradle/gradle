@@ -144,7 +144,9 @@ model {
             binaries.all { binary ->
                 sources {
                     buildTypeSources(CppSourceSet) {
-                        exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
+                        sources {
+                            exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
+                        }
                     }
                 }
             }

@@ -16,13 +16,13 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.platform.base.internal.rules.AddOnlyRuleAwarePolymorphicDomainObjectContainer;
 
-public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
+public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
     private final String name;
     private final ProjectSourceSet projectSourceSet;
 

@@ -137,23 +137,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 
-        @BinaryType
-        void registerSharedLibraryBinaryType(BinaryTypeBuilder<SharedLibraryBinarySpec> builder) {
-            builder.defaultImplementation(DefaultSharedLibraryBinarySpec.class);
-        }
-
-        @BinaryType
-        void registerStaticLibraryBinaryType(BinaryTypeBuilder<StaticLibraryBinarySpec> builder) {
-            builder.defaultImplementation(DefaultStaticLibraryBinarySpec.class);
-        }
-
-        @BinaryType
-        void registerNativeExecutableBinaryType(BinaryTypeBuilder<NativeExecutableBinarySpec> builder) {
-            builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
-        }
-
-        @ComponentBinaries
-        public void createNativeBinaries(CollectionBuilder<NativeBinarySpec> binaries, NativeComponentSpec nativeComponent,
+        // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries
+        @Mutate
+        public void createNativeBinaries(BinaryContainer binaries, CollectionBuilder<NativeComponentSpec> nativeComponents,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
                                          PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
@@ -163,12 +149,15 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
             Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
             @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction);
-            NativeBinariesFactory factory = new DefaultNativeBinariesFactory(binaries, initAction, resolver);
+            NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver, taskFactory);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
                     new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, nativePlatforms, buildTypes, flavors);
 
-            createBinariesAction.execute(nativeComponent);
+            for (NativeComponentSpec component : nativeComponents.values()) {
+                createBinariesAction.execute(component);
+                binaries.addAll(component.getBinaries());
+            }
         }
 
         @Finalize

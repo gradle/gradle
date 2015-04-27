@@ -25,7 +25,6 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
 import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
@@ -38,6 +37,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
@@ -150,9 +151,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"),
-                new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
-        TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider),
-                platform, buildType, new DefaultFlavor("flavorOne"))
+        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
+        return create(DefaultSharedLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
     }
 }

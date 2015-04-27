@@ -18,8 +18,8 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
+import org.gradle.language.base.internal.model.ComponentSpecInitializationAction;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
@@ -63,7 +63,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             public TestSuiteContainer transform(CollectionBuilder<TestSuiteSpec> testSuiteSpecs) {
                 return new DefaultTestSuiteContainer(testSuiteSpecs);
             }
-        }, descriptor, ComponentSpecInitializer.action());
+        }, descriptor, new ComponentSpecInitializationAction());
 
         modelRegistry.createOrReplace(testSuitesCreator);
     }

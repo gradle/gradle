@@ -16,9 +16,7 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.TransformationFileType;
 
@@ -29,7 +27,4 @@ public interface ComponentSpecInternal extends ComponentSpec {
     FunctionalSourceSet getSources();
 
     Set<Class<? extends TransformationFileType>> getInputTypes();
-
-    @Override
-    ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinaries();
 }

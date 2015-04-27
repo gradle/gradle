@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 

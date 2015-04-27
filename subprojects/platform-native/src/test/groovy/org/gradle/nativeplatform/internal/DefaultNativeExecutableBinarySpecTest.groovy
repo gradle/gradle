@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
+import org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.InstallExecutable
@@ -38,17 +38,14 @@ import spock.lang.Specification
 class DefaultNativeExecutableBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
-    def taskFactory = Mock(ITaskFactory)
-    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
+    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, Mock(ITaskFactory)))
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"),
-                new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
+        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
 
         when:
-        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getLifecycleTaskName(), instantiator, taskFactory, executable, namingScheme,
-                Mock(NativeDependencyResolver), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
+        def binary = DefaultNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, instantiator, executable, namingScheme, Mock(NativeDependencyResolver), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
 
         then:
         binary.toString() == "executable 'bigOne:executable'"

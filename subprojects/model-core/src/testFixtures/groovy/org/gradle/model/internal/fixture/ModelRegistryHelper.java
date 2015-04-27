@@ -405,12 +405,27 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
-            return TriActionBackedModelAction.of(ModelReference.of(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
+            return new ModelAction<T>() {
                 @Override
-                public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {
-                    action.execute(modelNode, t, inputs);
+                public ModelReference<T> getSubject() {
+                    return ModelReference.of(path, type);
                 }
-            });
+
+                @Override
+                public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
+                    action.execute(modelNode, object, inputs);
+                }
+
+                @Override
+                public List<ModelReference<?>> getInputs() {
+                    return references;
+                }
+
+                @Override
+                public ModelRuleDescriptor getDescriptor() {
+                    return descriptor;
+                }
+            };
         }
     }
 
