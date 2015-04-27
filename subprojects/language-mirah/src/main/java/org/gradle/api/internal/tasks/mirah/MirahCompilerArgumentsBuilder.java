@@ -31,7 +31,7 @@ public class MirahCompilerArgumentsBuilder {
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
-    private final MirahJavaJointCompileSpec spec;
+    private final MirahCompileSpec spec;
 
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
@@ -41,7 +41,7 @@ public class MirahCompilerArgumentsBuilder {
 
     private List<String> args;
 
-    public MirahCompilerArgumentsBuilder(MirahJavaJointCompileSpec spec) {
+    public MirahCompilerArgumentsBuilder(MirahCompileSpec spec) {
         this.spec = spec;
     }
 

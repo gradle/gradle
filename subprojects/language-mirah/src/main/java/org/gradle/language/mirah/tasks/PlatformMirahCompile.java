@@ -17,7 +17,7 @@
 package org.gradle.language.mirah.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.language.mirah.MirahPlatform;
@@ -52,7 +52,7 @@ public class PlatformMirahCompile extends AbstractMirahCompile {
     }
 
     @Override
-    protected Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec) {
+    protected Compiler<MirahCompileSpec> getCompiler(MirahCompileSpec spec) {
         return CompilerUtil.castCompiler(getToolResolver().resolveCompiler(spec.getClass(), getPlatform()).get());
     }
 }

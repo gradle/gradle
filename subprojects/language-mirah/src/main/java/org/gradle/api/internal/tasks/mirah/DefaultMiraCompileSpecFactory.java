@@ -21,29 +21,29 @@ import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec;
 import org.gradle.api.tasks.compile.CompileOptions;
 
-public class DefaultMirahJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultMirahJavaJointCompileSpec> {
-    public DefaultMirahJavaJointCompileSpecFactory(CompileOptions compileOptions) {
+public class DefaultMirahCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultMirahCompileSpec> {
+    public DefaultMirahCompileSpecFactory(CompileOptions compileOptions) {
         super(compileOptions);
     }
 
     @Override
-    protected DefaultMirahJavaJointCompileSpec getCommandLineSpec() {
-        return new DefaultCommandLineMirahJavaJointCompileSpec();
+    protected DefaultMirahCompileSpec getCommandLineSpec() {
+        return new DefaultCommandLineMirahCompileSpec();
     }
 
     @Override
-    protected DefaultMirahJavaJointCompileSpec getForkingSpec() {
-        return new DefaultForkingMirahJavaJointCompileSpec();
+    protected DefaultMirahCompileSpec getForkingSpec() {
+        return new DefaultForkingMirahCompileSpec();
     }
 
     @Override
-    protected DefaultMirahJavaJointCompileSpec getDefaultSpec() {
-        return new DefaultMirahJavaJointCompileSpec();
+    protected DefaultMirahCompileSpec getDefaultSpec() {
+        return new DefaultMirahCompileSpec();
     }
 
-    private static class DefaultCommandLineMirahJavaJointCompileSpec extends DefaultMirahJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+    private static class DefaultCommandLineMirahCompileSpec extends DefaultMirahCompileSpec implements CommandLineJavaCompileSpec {
     }
 
-    private static class DefaultForkingMirahJavaJointCompileSpec extends DefaultMirahJavaJointCompileSpec implements ForkingJavaCompileSpec {
+    private static class DefaultForkingMirahCompileSpec extends DefaultMirahCompileSpec implements ForkingJavaCompileSpec {
     }
 }

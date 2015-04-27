@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class ZincMirahCompilerArgumentsGeneratorTest extends Specification {
     def generator = new ZincMirahCompilerArgumentsGenerator()
-    def spec = new DefaultMirahJavaJointCompileSpec()
+    def spec = new DefaultMirahCompileSpec()
 
     def setup() {
         spec.setMirahCompileOptions(new BaseMirahCompileOptions())

@@ -35,15 +35,15 @@ import java.util.List;
 /**
  * A Mirah {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileSpec> {
+public class NormalizingMirahCompiler implements Compiler<MirahCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingMirahCompiler.class);
-    private final Compiler<MirahJavaJointCompileSpec> delegate;
+    private final Compiler<MirahCompileSpec> delegate;
 
-    public NormalizingMirahCompiler(Compiler<MirahJavaJointCompileSpec> delegate) {
+    public NormalizingMirahCompiler(Compiler<MirahCompileSpec> delegate) {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(MirahJavaJointCompileSpec spec) {
+    public WorkResult execute(MirahCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);
         resolveNonStringsInCompilerArgs(spec);
@@ -52,11 +52,11 @@ public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileS
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveAndFilterSourceFiles(final MirahJavaJointCompileSpec spec) {
+    private void resolveAndFilterSourceFiles(final MirahCompileSpec spec) {
         spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
     }
 
-    private void resolveClasspath(MirahJavaJointCompileSpec spec) {
+    private void resolveClasspath(MirahCompileSpec spec) {
         ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
@@ -66,12 +66,12 @@ public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileS
         }
     }
 
-    private void resolveNonStringsInCompilerArgs(MirahJavaJointCompileSpec spec) {
+    private void resolveNonStringsInCompilerArgs(MirahCompileSpec spec) {
         // in particular, this is about GStrings
         spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
-    private void logSourceFiles(MirahJavaJointCompileSpec spec) {
+    private void logSourceFiles(MirahCompileSpec spec) {
         if (!spec.getMirahCompileOptions().isListFiles()) {
             return;
         }
@@ -86,7 +86,7 @@ public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileS
         LOGGER.quiet(builder.toString());
     }
 
-    private void logCompilerArguments(MirahJavaJointCompileSpec spec) {
+    private void logCompilerArguments(MirahCompileSpec spec) {
         if (!LOGGER.isDebugEnabled()) {
             return;
         }
@@ -96,7 +96,7 @@ public class NormalizingMirahCompiler implements Compiler<MirahJavaJointCompileS
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
 
-    private WorkResult delegateAndHandleErrors(MirahJavaJointCompileSpec spec) {
+    private WorkResult delegateAndHandleErrors(MirahCompileSpec spec) {
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {

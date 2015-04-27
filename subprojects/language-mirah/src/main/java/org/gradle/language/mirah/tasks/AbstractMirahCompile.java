@@ -20,10 +20,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.internal.tasks.mirah.DefaultMirahJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.mirah.DefaultMirahJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.mirah.DefaultMirahCompileSpec;
+import org.gradle.api.internal.tasks.mirah.DefaultMirahCompileSpecFactory;
 import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
-import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -66,17 +66,17 @@ abstract public class AbstractMirahCompile extends AbstractCompile {
         return compileOptions;
     }
 
-    abstract protected org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec);
+    abstract protected org.gradle.language.base.internal.compile.Compiler<MirahCompileSpec> getCompiler(MirahCompileSpec spec);
 
     @TaskAction
     protected void compile() {
-        MirahJavaJointCompileSpec spec = createSpec();
+        MirahCompileSpec spec = createSpec();
         configureIncrementalCompilation(spec);
         getCompiler(spec).execute(spec);
     }
 
-    protected MirahJavaJointCompileSpec createSpec() {
-        DefaultMirahJavaJointCompileSpec spec = new DefaultMirahJavaJointCompileSpecFactory(compileOptions).create();
+    protected MirahCompileSpec createSpec() {
+        DefaultMirahCompileSpec spec = new DefaultMirahCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());

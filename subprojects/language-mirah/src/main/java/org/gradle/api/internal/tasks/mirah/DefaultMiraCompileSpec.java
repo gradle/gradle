@@ -22,7 +22,7 @@ import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 import java.io.File;
 import java.util.Map;
 
-public class DefaultMirahJavaJointCompileSpec extends DefaultJavaCompileSpec implements MirahJavaJointCompileSpec {
+public class DefaultMirahCompileSpec extends DefaultJavaCompileSpec implements MirahCompileSpec {
     private BaseMirahCompileOptions options;
     private Iterable<File> mirahClasspath;
     private Map<File, File> analysisMap;

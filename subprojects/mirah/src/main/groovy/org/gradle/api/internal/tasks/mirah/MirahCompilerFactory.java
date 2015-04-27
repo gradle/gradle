@@ -29,7 +29,7 @@ import org.gradle.language.base.internal.compile.CompilerFactory;
 import java.io.File;
 import java.util.Set;
 
-public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompileSpec> {
+public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     private final IsolatedAntBuilder antBuilder;
     private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
@@ -45,13 +45,13 @@ public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompi
     }
 
     @SuppressWarnings("unchecked")
-    public Compiler<MirahJavaJointCompileSpec> newCompiler(MirahJavaJointCompileSpec spec) {
+    public Compiler<MirahCompileSpec> newCompiler(MirahCompileSpec spec) {
         MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
         if (mirahOptions.isUseAnt()) {
             Compiler<MirahCompileSpec> mirahCompiler = new AntMirahCompiler(antBuilder, mirahClasspathFiles);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
-            return new NormalizingMirahCompiler(new DefaultMirahJavaJointCompiler(mirahCompiler, javaCompiler));
+            return new NormalizingMirahCompiler(new DefaultMirahCompiler(mirahCompiler, javaCompiler));
         }
 
         if (!mirahOptions.isFork()) {
@@ -60,7 +60,7 @@ public class MirahCompilerFactory implements CompilerFactory<MirahJavaJointCompi
         }
 
         // currently, we leave it to ZincMirahCompiler to also compile the Java code
-        Compiler<MirahJavaJointCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahJavaJointCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
+        Compiler<MirahCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
         return new NormalizingMirahCompiler(mirahCompiler);
     }
 }

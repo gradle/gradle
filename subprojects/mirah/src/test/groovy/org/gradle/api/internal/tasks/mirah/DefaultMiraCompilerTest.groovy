@@ -20,14 +20,14 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 
-class DefaultMirahJavaJointCompilerTest extends Specification {
+class DefaultMirahCompilerTest extends Specification {
     private final Compiler<MirahCompileSpec> mirahCompiler = Mock()
     private final Compiler<JavaCompileSpec> javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
-    private final MirahJavaJointCompileSpec spec = Mock()
-    private final DefaultMirahJavaJointCompiler compiler = new DefaultMirahJavaJointCompiler(mirahCompiler, javaCompiler)
+    private final MirahCompileSpec spec = Mock()
+    private final DefaultMirahCompiler compiler = new DefaultMirahCompiler(mirahCompiler, javaCompiler)
 
     def executesMirahCompilerThenJavaCompiler() {
         given:

@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
@@ -45,7 +45,7 @@ public class MirahCompileTest extends AbstractCompileTest {
 
     private MirahCompile mirahCompile;
 
-    private Compiler<MirahJavaJointCompileSpec> mirahCompiler;
+    private Compiler<MirahCompileSpec> mirahCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private FileCollection mirahClasspath;
 
@@ -74,7 +74,7 @@ public class MirahCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(mirahCompile);
         context.checking(new Expectations() {{
             allowing(mirahClasspath).isEmpty(); will(returnValue(false));
-            one(mirahCompiler).execute((MirahJavaJointCompileSpec) with(IsNull.notNullValue()));
+            one(mirahCompiler).execute((MirahCompileSpec) with(IsNull.notNullValue()));
         }});
 
         mirahCompile.execute();

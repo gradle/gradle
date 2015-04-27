@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class DaemonMirahCompiler<T extends MirahJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
+public class DaemonMirahCompiler<T extends MirahCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> zincClasspath;
 
     public DaemonMirahCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {

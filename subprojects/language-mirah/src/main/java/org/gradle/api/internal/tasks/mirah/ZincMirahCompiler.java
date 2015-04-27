@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, Serializable {
+public class ZincMirahCompiler implements Compiler<MirahCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincMirahCompiler.class);
     private final Iterable<File> mirahClasspath;
 
@@ -37,14 +37,14 @@ public class ZincMirahCompiler implements Compiler<MirahJavaJointCompileSpec>, S
         this.mirahClasspath = mirahClasspath;
     }
 
-    public WorkResult execute(MirahJavaJointCompileSpec spec) {
+    public WorkResult execute(MirahCompileSpec spec) {
         return Compiler.execute(mirahClasspath, spec);
     }
 
     // need to defer loading of Zinc/sbt/Mirah classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(Iterable<File> mirahClasspath, MirahJavaJointCompileSpec spec) {
+        static WorkResult execute(Iterable<File> mirahClasspath, MirahCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Mirah compiler.");
             java.util.logging.Logger.getLogger("org.mirah").setLevel(java.util.logging.Level.OFF); // Logging is disabled by default.
 

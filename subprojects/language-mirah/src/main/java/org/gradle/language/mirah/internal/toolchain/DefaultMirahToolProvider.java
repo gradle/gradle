@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.mirah.DaemonMirahCompiler;
 import org.gradle.api.internal.tasks.mirah.NormalizingMirahCompiler;
-import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.internal.tasks.mirah.ZincMirahCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -43,10 +43,10 @@ public class DefaultMirahToolProvider implements ToolProvider {
 
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
-        if (MirahJavaJointCompileSpec.class.isAssignableFrom(spec)) {
+        if (MirahCompileSpec.class.isAssignableFrom(spec)) {
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            Compiler<MirahJavaJointCompileSpec> mirahCompiler = new ZincMirahCompiler(resolvedMirahClasspath);
-            return (Compiler<T>) new NormalizingMirahCompiler(new DaemonMirahCompiler<MirahJavaJointCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedMirahClasspath));
+            Compiler<MirahCompileSpec> mirahCompiler = new ZincMirahCompiler(resolvedMirahClasspath);
+            return (Compiler<T>) new NormalizingMirahCompiler(new DaemonMirahCompiler<MirahCompileSpec>(projectDir, mirahCompiler, compilerDaemonManager, resolvedMirahClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

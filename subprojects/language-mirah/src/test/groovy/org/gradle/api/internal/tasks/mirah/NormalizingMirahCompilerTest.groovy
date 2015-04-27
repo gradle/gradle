@@ -24,8 +24,8 @@ import org.gradle.language.mirah.tasks.BaseMirahCompileOptions
 import spock.lang.Specification
 
 class NormalizingMirahCompilerTest extends Specification {
-    Compiler<MirahJavaJointCompileSpec> target = Mock()
-    DefaultMirahJavaJointCompileSpec spec = new DefaultMirahJavaJointCompileSpec()
+    Compiler<MirahCompileSpec> target = Mock()
+    DefaultMirahCompileSpec spec = new DefaultMirahCompileSpec()
     NormalizingMirahCompiler compiler = new NormalizingMirahCompiler(target)
 
     def setup() {
@@ -99,7 +99,7 @@ class NormalizingMirahCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        1 * target.execute(_) >> { MirahJavaJointCompileSpec spec ->
+        1 * target.execute(_) >> { MirahCompileSpec spec ->
             assert spec.compileOptions.compilerArgs.every { it instanceof String }
         }
     }

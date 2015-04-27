@@ -18,5 +18,5 @@ package org.gradle.api.internal.tasks.mirah;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 
-public interface MirahJavaJointCompileSpec extends MirahCompileSpec, JavaCompileSpec {
+public interface MirahCompileSpec extends MirahCompileSpec, JavaCompileSpec {
 }

@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.mirah.CleaningMirahCompiler;
 import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.internal.tasks.mirah.MirahCompilerFactory;
-import org.gradle.api.internal.tasks.mirah.MirahJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.mirah.tasks.AbstractMirahCompile;
@@ -39,7 +39,7 @@ public class MirahCompile extends AbstractMirahCompile {
 
     private FileCollection mirahClasspath;
 
-    private org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler;
+    private org.gradle.language.base.internal.compile.Compiler<MirahCompileSpec> compiler;
 
     @Inject
     public MirahCompile() {
@@ -67,11 +67,11 @@ public class MirahCompile extends AbstractMirahCompile {
     /**
      * For testing only.
      */
-    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> compiler) {
+    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<MirahCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
-    protected org.gradle.language.base.internal.compile.Compiler<MirahJavaJointCompileSpec> getCompiler(MirahJavaJointCompileSpec spec) {
+    protected org.gradle.language.base.internal.compile.Compiler<MirahCompileSpec> getCompiler(MirahCompileSpec spec) {
         assertMirahClasspathIsNonEmpty();
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
