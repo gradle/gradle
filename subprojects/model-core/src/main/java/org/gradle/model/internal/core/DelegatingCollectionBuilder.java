@@ -103,8 +103,8 @@ public class DelegatingCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-        onCreate(name, ModelType.of(type));
         delegate.create(name, type, configAction);
+        onCreate(name, ModelType.of(type));
     }
 
     @Override

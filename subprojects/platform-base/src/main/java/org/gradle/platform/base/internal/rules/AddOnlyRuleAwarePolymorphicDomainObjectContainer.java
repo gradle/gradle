@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.platform.base.internal.rules;
+
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-public class AddOnlyDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
-    public AddOnlyDomainObjectSet(Class<? extends T> type) {
-        super(type);
-    }
-
-    public AddOnlyDomainObjectSet(Class<? extends T> type, Collection<T> store) {
-        super(type, store);
+public abstract class AddOnlyRuleAwarePolymorphicDomainObjectContainer<T> extends RuleAwarePolymorphicDomainObjectContainer<T> {
+    public AddOnlyRuleAwarePolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+        super(type, instantiator);
     }
 
     @Override
@@ -57,7 +55,7 @@ public class AddOnlyDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
         private final Iterator<T> delegate;
 
-        private RemovalPreventingDelegatingIterator(Iterator<T> delegate) {
+        public RemovalPreventingDelegatingIterator(Iterator<T> delegate) {
             this.delegate = delegate;
         }
 
@@ -73,7 +71,7 @@ public class AddOnlyDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("This iterator does not support removal");
+            throw new UnsupportedOperationException("This iterator does not support removal.");
         }
     }
 }

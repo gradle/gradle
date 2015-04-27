@@ -99,4 +99,6 @@ public interface MutableModelNode extends ModelNode {
     void setHidden(boolean hidden);
 
     boolean isMutable();
+
+    MutableModelNode getParent();
 }

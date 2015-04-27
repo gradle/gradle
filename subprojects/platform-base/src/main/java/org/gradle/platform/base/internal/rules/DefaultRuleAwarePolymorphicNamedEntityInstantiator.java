@@ -16,21 +16,24 @@
 
 package org.gradle.platform.base.internal.rules;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.Map;
 
 public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements RuleAwarePolymorphicNamedEntityInstantiator<T> {
 
-    private final Map<Class<? extends T>, ModelRuleDescriptor> creators = Maps.newHashMap();
-    private final PolymorphicNamedEntityInstantiator<T> instantiator;
+    private final NamedEntityInstantiator<T> instantiator;
+    private final RuleAwareNamedDomainObjectFactoryRegistry<T> registry;
 
     public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator) {
+        this(instantiator, new DefaultRuleAwareNamedDomainObjectFactoryRegistry<T>(instantiator));
+    }
+
+    public DefaultRuleAwarePolymorphicNamedEntityInstantiator(NamedEntityInstantiator<T> instantiator, RuleAwareNamedDomainObjectFactoryRegistry<T> registry) {
         this.instantiator = instantiator;
+        this.registry = registry;
     }
 
     @Override
@@ -40,20 +43,6 @@ public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements Ru
 
     @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor) {
-        checkCanRegister(type, descriptor);
-        instantiator.registerFactory(type, factory);
-    }
-
-    private void checkCanRegister(Class<? extends T> type, ModelRuleDescriptor descriptor) {
-        ModelRuleDescriptor creator = creators.get(type);
-        if (creator != null) {
-            StringBuilder builder = new StringBuilder("Cannot register a factory for type ")
-                    .append(type.getSimpleName())
-                    .append(" because a factory for this type was already registered by ");
-            creator.describeTo(builder);
-            builder.append(".");
-            throw new GradleException(builder.toString());
-        }
-        creators.put(type, descriptor);
+        registry.registerFactory(type, factory, descriptor);
     }
 }

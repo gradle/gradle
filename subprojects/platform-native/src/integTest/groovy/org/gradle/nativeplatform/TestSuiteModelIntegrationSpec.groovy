@@ -94,7 +94,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    def "test suite source container is visible in model report"() {
+    def "test suite sources and binaries containers are visible in model report"() {
         when:
         succeeds "model"
 
@@ -102,19 +102,20 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains(TextUtil.toPlatformLineSeparators("""
     testSuites
         main
-            source"""))
+            binaries
+            sources"""))
     }
 
-    def "can reference source container for a test suite in a rule"() {
+    def "can reference sources container for a test suite in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
             model {
                 tasks {
                     create("printSourceNames") {
-                        def source = $("testSuites.main.source")
+                        def sources = $("testSuites.main.sources")
                         doLast {
-                            println "names: ${source*.name}"
+                            println "names: ${sources*.name}"
                         }
                     }
                 }
@@ -128,7 +129,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "names: [main]"
     }
 
-    def "test suite source container elements are visible in model report"() {
+    def "test suite sources container elements are visible in model report"() {
         given:
         withMainSourceSet()
         buildFile << """
@@ -160,27 +161,30 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains(TextUtil.toPlatformLineSeparators("""
     testSuites
         foo
-            source
+            binaries
+            sources
                 bar
         main
-            source
+            binaries
+            sources
                 main
                 test
         secondary
-            source
+            binaries
+            sources
                 test"""))
     }
 
-    def "can reference source container elements in a rule"() {
+    def "can reference sources container elements in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def source = $("testSuites.main.source.main")
+                        def sources = $("testSuites.main.sources.main")
                         doLast {
-                            println "source display name: ${source.displayName}"
+                            println "sources display name: ${sources.displayName}"
                         }
                     }
                 }
@@ -191,10 +195,10 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "source display name: DefaultCustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
     }
 
-    def "can reference source container elements using specialized type in a rule"() {
+    def "can reference sources container elements using specialized type in a rule"() {
         given:
         withMainSourceSet()
         buildFile << '''
@@ -202,10 +206,10 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("testSuites.main.source.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("testSuites.main.sources.main") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
-                            println "source data: ${sourceSet.data}"
+                            println "sources data: ${sourceSet.data}"
                         }
                     }
                 }
@@ -218,7 +222,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "printSourceData"
 
         then:
-        output.contains "source data: foo"
+        output.contains "sources data: foo"
     }
 
     def "cannot remove source sets"() {
@@ -229,12 +233,12 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class SourceSetRemovalRules extends RuleSource {
                 @Mutate
-                void clearSourceSets(@Path("testSuites.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
+                void clearSourceSets(@Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
                     sourceSets.clear()
                 }
 
                 @Mutate
-                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("testSuites.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
+                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
                 }
             }
 

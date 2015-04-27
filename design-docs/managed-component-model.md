@@ -123,13 +123,13 @@ Most of this coverage already exists, need to fill in the gaps:
 
 #### Test Coverage
 
-- Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)
-- `binaries` node is displayed for each component in the component report
-- Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)
-- Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`
-- `binaries.«binary»` node is displayed for each source set of each component in the component container
-- Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)
-- Removal of binaries throws `UnsupportedOperationException`
+- ~Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)~
+- ~`binaries` node is displayed for each component in the component report~
+- ~Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)~
+- ~Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`~
+- ~`binaries.«binary»` node is displayed for each source set of each component in the component container~
+- ~Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)~
+- ~Removal of binaries throws `UnsupportedOperationException`~
 
 #### Breaking changes
 

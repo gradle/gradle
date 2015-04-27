@@ -32,15 +32,10 @@ import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
@@ -66,7 +61,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setComponent(NativeComponentSpec component) {
         this.component = component;
-        setBinarySources(((ComponentSpecInternal) component).getSources().copy(getName()));
     }
 
     public Flavor getFlavor() {
