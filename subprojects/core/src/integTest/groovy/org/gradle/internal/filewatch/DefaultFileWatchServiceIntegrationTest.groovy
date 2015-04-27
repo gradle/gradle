@@ -37,7 +37,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     FileWatcherFactory fileWatcherFactory
     File testDir
-    long waitForEventsMillis = OperatingSystem.current().isMacOsX() ? 3500L : 1500L
+    long waitForEventsMillis = OperatingSystem.current().isMacOsX() ? 3500L : 2000L
     FileWatcher fileWatcher
     FileWatchInputs.Builder fileWatchInputs
 
