@@ -115,7 +115,7 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
 
     @Override
     public boolean hasDirectoryTrees() {
-        return getDelegate() instanceof BackedByDirectoryTrees;
+        return getDelegate() instanceof BackedByDirectoryTrees && ((BackedByDirectoryTrees)getDelegate()).hasDirectoryTrees();
     }
 
     @Override
