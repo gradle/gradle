@@ -151,16 +151,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      */
     FileTree getAsFileTree();
 
-
-    /**
-     * Converts this collection to a collection of {@link DirectoryTree} instances.
-     *
-     * The DirectoryTree instance will implement {@link FileBackedDirectoryTree} when it's backed by files that don't change (a single file).
-     *
-     * @return this collection as a collection of {@link DirectoryTree}s. Never returns null.
-     */
-    Iterable<DirectoryTree> getAsDirectoryTrees();
-
     /**
      * Ant types which a {@code FileCollection} can be mapped to.
      */

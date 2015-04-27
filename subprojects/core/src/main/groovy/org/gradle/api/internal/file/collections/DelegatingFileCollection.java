@@ -19,11 +19,14 @@ import groovy.lang.Closure;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.BackedByDirectoryTrees;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -31,7 +34,7 @@ import java.util.Set;
  * A file collection that delegates each method call to the
  * file collection returned by {@link #getDelegate()}.
  */
-public abstract class DelegatingFileCollection implements FileCollection, MinimalFileSet {
+public abstract class DelegatingFileCollection implements FileCollectionInternal {
     public abstract FileCollection getDelegate();
 
     public File getSingleFile() throws IllegalStateException {
@@ -110,7 +113,17 @@ public abstract class DelegatingFileCollection implements FileCollection, Minima
         return getDelegate().toString();
     }
 
+    @Override
+    public boolean hasDirectoryTrees() {
+        return getDelegate() instanceof BackedByDirectoryTrees;
+    }
+
+    @Override
     public Iterable<DirectoryTree> getAsDirectoryTrees() {
-        return getDelegate().getAsDirectoryTrees();
+        if(getDelegate() instanceof BackedByDirectoryTrees) {
+            return ((BackedByDirectoryTrees)getDelegate()).getAsDirectoryTrees();
+        } else {
+            return Collections.emptyList();
+        }
     }
 }
