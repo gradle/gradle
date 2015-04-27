@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon
+package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
-import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
-import org.gradle.launcher.daemon.testing.DaemonsFixture
 
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     String output

@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
 class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {

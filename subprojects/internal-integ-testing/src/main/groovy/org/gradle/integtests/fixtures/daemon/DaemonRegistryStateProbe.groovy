@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.testing
+package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.launcher.daemon.testing.AbstractDaemonFixture.State
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonFixture.State
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
     private final DaemonRegistry registry

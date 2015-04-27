@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,48 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.testing
+package org.gradle.integtests.fixtures.daemon
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.launcher.daemon.testing.AbstractDaemonFixture.State
+import org.gradle.util.GradleVersion
 
-class TestableDaemon extends AbstractDaemonFixture {
+class LegacyDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
-    private final DaemonRegistryStateProbe registryProbe
 
-    TestableDaemon(File daemonLog, DaemonRegistry registry) {
+    LegacyDaemon(File daemonLog, String version) {
         super(daemonLog)
-        this.logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
-        this.registryProbe = new DaemonRegistryStateProbe(registry, context)
+        if (GradleVersion.version(version).baseVersion >= GradleVersion.version("2.2")) {
+            logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
+        } else {
+            logFileProbe = new DaemonLogFileStateProbe(daemonLog, context, "Daemon is busy, sleeping until state changes", "Daemon is idle, sleeping until state change")
+        }
     }
 
     protected void waitForState(State state) {
         def expiry = System.currentTimeMillis() + STATE_CHANGE_TIMEOUT
-        def lastRegistryState = registryProbe.currentState
         def lastLogState = logFileProbe.currentState
-        while (expiry > System.currentTimeMillis() && (lastRegistryState != state || lastLogState != state)) {
+        while (expiry > System.currentTimeMillis() && lastLogState != state) {
             Thread.sleep(200)
-            lastRegistryState = registryProbe.currentState
             lastLogState = logFileProbe.currentState
         }
-        if (lastRegistryState == state && lastLogState == state) {
+        if (lastLogState == state) {
             return
         }
         throw new AssertionError("""Timeout waiting for daemon with pid ${context.pid} to reach state ${state}.
-Current registry state is ${lastRegistryState} and current log state is ${lastLogState}.""")
+Current state is ${lastLogState}.""")
     }
 
     @Override
     protected void assertHasState(State state) {
         assert logFileProbe.currentState == state
-        assert registryProbe.currentState == state
     }
 
-    String getLog() {
-        return logFileProbe.log
-    }
-
+    @Override
     int getPort() {
-        return logFileProbe.port
+        throw new UnsupportedOperationException()
     }
 }

@@ -14,11 +14,10 @@ dependencies {
 
     testCompile libraries.groovy
 
+    integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':plugins')
 
     startScriptGenerator project(':plugins')
-
-    testFixturesCompile project(':internalTesting')
 }
 
 useTestFixtures()

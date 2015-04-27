@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
 class DaemonNativeServicesIntegrationTest extends DaemonIntegrationSpec {
     def "native services use daemon base dir" () {
         given:

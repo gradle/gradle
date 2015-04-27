@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def "idle daemon is reused in preference to starting a new daemon"() {
