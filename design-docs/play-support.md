@@ -630,13 +630,19 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 #### Implementation
 
-- Only changes to source files will be monitored in this story. 
+1. Build runs, at the end we have knowledge of the file system inputs for each task
+2. We watch the filesystem for changes
+3. When a change occurs to an input we trigger the build, tearing down all of the file system watches and state
+4. Build ends, we are back at 1.
+
+Constraints / implementation details:
+- Only changes to source files will be monitored in this story.
 - All files in the project build directory will be ignored in watching.
 - The inputs of tasks will be gathered during the build is executed in a `TaskExecutionListener`'s `beforeExecute` method
 - The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getSourceFiles()` method is considered as the source files for the task. The `getHasSourceFiles()` method will called before calling the `getSourceFiles()`.
-- Extracting the source `DirectoryTree` and/or `File` information from `FileCollection` is done using the new `getAsDirectoryTrees()` method added to `FileCollection`. Review for the `FileCollection` API change is [REVIEW-5481](https://code-review.gradle.org/cru/REVIEW-5481).
-- Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
-- Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete. This requirement will be handled by starting the file watching in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
+- Extracting the source `DirectoryTree` and/or `File` information from `FileCollection` is done using the new `getAsDirectoryTrees()` method added to internal `FileCollectionInternal` interface. Review for the `getAsDirectoryTrees` solution is [REVIEW-5481](https://code-review.gradle.org/cru/REVIEW-5481).
+- Changes made when the build is running, are ignored.
+- Should stop watching for changes while the build is running.
 
 #### Test Coverage
 
@@ -648,16 +654,21 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
 - Changing a source file that is an input to two or more tasks should trigger a build.
 - Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src', include: "**/*.java")` should not trigger a build when foo.bar changes)
+
+### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
+
+- Previous constraints apply: only changes to source files are monitored for changes and all changes to files in the project build directory will be ignored.
+- Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete.
+  - this requirement will be handled by starting to watch task input file changes in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
+- Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
+  - Stopping watching during each build would add a lot of overhead in removing all watches and re-adding them back again.
+
+#### Test Coverage
+
 - Changing/adding/removing a source file of a certain task when the build is running
   - a) before the task has been executed (should not start a new build when the current build finishes)
   - b) after the task has been executed (should immediately start a new build when the current build finishes)
   - c) during the task is executing (should immediately start a new build when the current build finishes)
-
-### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
-
-- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
-  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
-  - Stopping watching during each build would add a lot of overhead in removing all watches and re-adding them back again.
 
 ### Story: Continuous Gradle mode rebuilds if inputs to the model change
 
@@ -689,6 +700,9 @@ TODO: See if these make sense incorporated in another story/Feature.
 - Fail when running on Java 6. We can fix this by using native-platform later, rather than polling.
 - Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task.
 - What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
+- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
+  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
+
 
 ## Feature: Keep running Play application up-to-date when source changes
 
