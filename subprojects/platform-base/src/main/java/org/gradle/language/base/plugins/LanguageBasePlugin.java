@@ -115,6 +115,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         modelNode.addLink(ModelCreators.of(tasksNodeReference, BiActions.doNothing())
                                         .withProjection(new UnmanagedModelProjection<Collection<Task>>(taskCollectionType))
                                         .descriptor(descriptor + ".createTasksNode")
+                                        .hidden(true)
                                         .build()
                         );
                         MutableModelNode link = modelNode.getLink(taskNodePath.getName());
