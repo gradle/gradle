@@ -47,13 +47,17 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void withMainSourceSet() {
+    void withCustomLanguage() {
         buildFile << """
             interface CustomLanguageSourceSet extends LanguageSourceSet {
                 String getData();
             }
             class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
                 final String data = "foo"
+
+                public boolean getMayHaveSources() {
+                    true
+                }
             }
 
             class LanguageTypeRules extends RuleSource {
@@ -64,7 +68,12 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply type: LanguageTypeRules
+        """
+    }
 
+    void withMainSourceSet() {
+        withCustomLanguage()
+        buildFile << """
             model {
                 components {
                     main {
@@ -108,6 +117,63 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                     test(CustomComponent)
                 }
             }
+        """
+    }
+
+    void withLanguageTransforms() {
+        withMainSourceSet()
+        buildFile << """
+            import org.gradle.language.base.internal.registry.*
+            import org.gradle.language.base.internal.*
+            import org.gradle.language.base.*
+            import org.gradle.internal.reflect.*
+
+
+            class CustomLanguageTransformation implements LanguageTransform {
+                Class getSourceSetType() {
+                    CustomLanguageSourceSet
+                }
+
+                Class getOutputType() {
+                    CustomTransformationFileType
+                }
+
+                Map<String, Class<?>> getBinaryTools() {
+                    throw new UnsupportedOperationException()
+                }
+
+                SourceTransformTaskConfig getTransformTask() {
+                    new SourceTransformTaskConfig() {
+                        String getTaskPrefix() {
+                            "custom"
+                        }
+
+                        Class<? extends DefaultTask> getTaskType() {
+                            DefaultTask
+                        }
+
+                        void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                        }
+                    }
+                }
+
+                boolean applyToBinary(BinarySpec binary) {
+                    true
+                }
+            }
+
+            class CustomTransformationFileType implements TransformationFileType {
+            }
+
+
+            class LanguageRules extends RuleSource {
+                @Mutate
+                void registerLanguageTransformation(LanguageTransformContainer transforms) {
+                    transforms.add(new CustomLanguageTransformation())
+                }
+            }
+
+            apply type: LanguageRules
         """
     }
 
@@ -598,7 +664,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
     }
 
-    def "component binaries container elements are visible in model report"() {
+    def "component binaries container elements and their tasks containers are visible in model report"() {
         given:
         withBinaries()
 
@@ -611,12 +677,16 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
                 main
+                    tasks
                 test
+                    tasks
             sources
         test
             binaries
                 main
+                    tasks
                 test
+                    tasks
             sources"""))
     }
 
@@ -695,5 +765,29 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         then:
         failureHasCause("This collection does not support element removal.")
+    }
+
+    def "can reference task container of a binary in a rule"() {
+        given:
+        withBinaries()
+        withLanguageTransforms()
+        buildFile << '''
+            model {
+                tasks {
+                    create("printBinaryTaskNames") {
+                        def tasks = $("components.main.binaries.main.tasks")
+                        doLast {
+                            println "names: ${tasks*.name}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printBinaryTaskNames"
+
+        then:
+        output.contains "names: [customMainMainMain]"
     }
 }

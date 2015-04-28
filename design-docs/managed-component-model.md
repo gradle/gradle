@@ -146,8 +146,8 @@ Most of this coverage already exists, need to fill in the gaps:
 
 #### Test Coverage
 
-- Can reference `components.«component».binaries.«binary».task` in a rule (by path, can't bind by type for non top level)
-- `task` node is displayed for each component binary in the component report
+- ~~Can reference `components.«component».binaries.«binary».tasks` in a rule (by path, can't bind by type for non top level)~~
+- ~~`tasks` node is displayed for each component binary in the component report~~
 - Can reference `components.«component».binaries.«binary».tasks.«task»` in a rule (by path, can't bind by type for non top level)
 - Can reference `components.«component».binaries.«binary».tasks.«task»` in a rule as a matching specialisation of `Task`
 - `tasks.«task»` node is displayed for each source set of each component in the component container
