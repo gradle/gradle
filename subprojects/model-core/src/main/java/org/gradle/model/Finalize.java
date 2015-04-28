@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation finalizes the rule subject.
  * <p>
- * Mutate rules execute after {@link Mutate} rules, but before {@link Validate} rules.
+ * Finalize rules execute after {@link Mutate} rules, but before {@link Validate} rules.
  * The first parameter of the rule is the rule subject, which is mutable for the duration of the rule.
  * <p>
  * Please see {@link RuleSource} for more information on method rules.
