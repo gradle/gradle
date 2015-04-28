@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.task.internal;
+package org.gradle.tooling.events.build.internal;
 
+import org.gradle.tooling.events.build.BuildFinishEvent;
+import org.gradle.tooling.events.build.BuildOperationDescriptor;
+import org.gradle.tooling.events.build.BuildOperationResult;
 import org.gradle.tooling.events.internal.BaseFinishEvent;
-import org.gradle.tooling.events.task.TaskFinishEvent;
-import org.gradle.tooling.events.task.TaskOperationDescriptor;
-import org.gradle.tooling.events.task.TaskOperationResult;
 
-public class DefaultTaskFinishedEvent extends BaseFinishEvent implements TaskFinishEvent {
+public class DefaultBuildFinishedEvent extends BaseFinishEvent implements BuildFinishEvent {
 
-    public DefaultTaskFinishedEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
+    public DefaultBuildFinishedEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor, BuildOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 
     @Override
-    public TaskOperationDescriptor getDescriptor() {
-        return (TaskOperationDescriptor) super.getDescriptor();
+    public BuildOperationDescriptor getDescriptor() {
+        return (BuildOperationDescriptor) super.getDescriptor();
     }
 
     @Override
-    public TaskOperationResult getResult() {
-        return (TaskOperationResult) super.getResult();
+    public BuildOperationResult getResult() {
+        return (BuildOperationResult) super.getResult();
     }
+
 }

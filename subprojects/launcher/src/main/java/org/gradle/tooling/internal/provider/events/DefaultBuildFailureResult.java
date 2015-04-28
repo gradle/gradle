@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface InternalTaskProgressListener {
+import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
 
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
+public class DefaultBuildFailureResult extends AbstractBuildAdvanceResult implements InternalBuildFailureResult {
+    private final DefaultFailure failure;
 
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
+    public DefaultBuildFailureResult(DefaultFailure failure) {
+        super("failed");
+        this.failure = failure;
+    }
 
+
+    @Override
+    public DefaultFailure getFailure() {
+        return failure;
+    }
 }

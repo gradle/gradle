@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.build;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Root interface for all events that signal progress while executing a build.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
-
+@Incubating
+public interface BuildProgressEvent extends ProgressEvent {
     /**
-     * The constant for the task execution operations.
+     * Returns the description of the build for which progress is reported.
+     *
+     * @return The description of the underlying build operation.
      */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
+    @Override
+    BuildOperationDescriptor getDescriptor();
 
 }

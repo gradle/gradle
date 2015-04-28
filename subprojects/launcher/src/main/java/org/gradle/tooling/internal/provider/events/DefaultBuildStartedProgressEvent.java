@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface InternalTaskProgressListener {
+import org.gradle.tooling.internal.protocol.events.InternalBuildStartedProgressEvent;
 
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
+public class DefaultBuildStartedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildStartedProgressEvent {
+    public DefaultBuildStartedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
+        super(eventTime, descriptor);
+    }
 
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+    @Override
+    public String getDisplayName() {
+        return String.format("%s started", getDescriptor().getName());
+    }
 }

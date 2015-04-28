@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.provider.events;
 
-package org.gradle.tooling.internal.protocol;
+import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface InternalTaskProgressListener {
-
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+public class DefaultBuildSuccessResult extends AbstractBuildAdvanceResult implements InternalBuildSuccessResult {
+    public DefaultBuildSuccessResult() {
+        super("succeeded");
+    }
 }

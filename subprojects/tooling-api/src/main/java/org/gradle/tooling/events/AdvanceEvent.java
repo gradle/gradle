@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events;
+
+import org.gradle.api.Incubating;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * An event that informs about an operation progressing, with an intermediate result available.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
-
+@Incubating
+public interface AdvanceEvent extends ProgressEvent {
     /**
-     * The constant for the task execution operations.
+     * Returns the result of the current operation.
+     *
+     * @return the result of the current operation
      */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+    OperationResult getResult();
 }

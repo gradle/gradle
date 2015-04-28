@@ -14,21 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
+public interface InternalBuildDescriptor extends InternalProtocolInterface {
 
     /**
-     * The constant for the task execution operations.
+     * Returns the id that uniquely identifies the build.
+     *
+     * @return The unique id of the build, never null
      */
-    String TASK_EXECUTION = "TASK_EXECUTION";
+    Object getId();
 
     /**
-     * The constant for the build execution operations.
+     * Returns the name of the build.
+     *
+     * @return The name of the build, never null
      */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
+    String getName();
+
+    /**
+     * Returns the id of the parent of this build, if any.
+     *
+     * @return The id of the parent of this build, can be null
+     */
+    Object getParentId();
 
 }

@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface InternalTaskProgressListener {
+import org.gradle.tooling.internal.protocol.events.InternalBuildProjectsEvaluatedResult;
 
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+public class DefaultProjectsEvaluatedBuildAdvanceResult extends AbstractBuildAdvanceResult implements InternalBuildProjectsEvaluatedResult {
+    public DefaultProjectsEvaluatedBuildAdvanceResult() {
+        super("projects evaluated");
+    }
 }

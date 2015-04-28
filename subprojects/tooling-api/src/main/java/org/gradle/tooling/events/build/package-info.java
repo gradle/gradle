@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
-
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Build execution specific interfaces and classes related to build notifications.
  */
-public interface InternalTaskProgressListener {
-
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
-}
+package org.gradle.tooling.events.build;

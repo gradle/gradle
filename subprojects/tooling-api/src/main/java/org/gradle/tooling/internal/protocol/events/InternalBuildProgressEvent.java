@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.protocol.events;
+
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
+public interface InternalBuildProgressEvent extends InternalProtocolInterface {
+    /**
+     * Returns the time when the event happened.
+     *
+     * @return The event time
+     */
+    long getEventTime();
 
     /**
-     * The constant for the task execution operations.
+     * Returns a human consumable display name for this event.
      */
-    String TASK_EXECUTION = "TASK_EXECUTION";
+    String getDisplayName();
 
     /**
-     * The constant for the build execution operations.
+     * Returns the description of the build for which progress is reported.
+     *
+     * @return The build description
      */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+    InternalBuildDescriptor getDescriptor();
 }

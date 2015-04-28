@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.build;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.FailureResult;
+
+import java.util.List;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Describes how a build operation finished with failures.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
-
+@Incubating
+public interface BuildFailureResult extends BuildOperationResult, FailureResult {
     /**
-     * The constant for the task execution operations.
+     * Returns the exceptions that occurred while running the build, if any.
+     *
+     * @return the exceptions, empty if the build failed without any exceptions
      */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+    @Override
+    List<? extends Failure> getFailures();
 }

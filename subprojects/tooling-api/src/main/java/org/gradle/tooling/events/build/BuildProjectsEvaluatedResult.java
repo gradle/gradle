@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.build;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Describes that projects were evaluated in a build.
+ *
+ * @since 2.5
  */
-public interface InternalTaskProgressListener {
-
-    /**
-     * The constant for the task execution operations.
-     */
-    String TASK_EXECUTION = "TASK_EXECUTION";
-
-    /**
-     * The constant for the build execution operations.
-     */
-    String BUILD_EXECUTION = "BUILD_EXECUTION";
-
+@Incubating
+public interface BuildProjectsEvaluatedResult extends BuildOperationResult, SuccessResult {
 }
