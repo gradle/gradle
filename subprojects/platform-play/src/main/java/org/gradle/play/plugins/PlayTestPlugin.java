@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.Mutate;
@@ -54,6 +55,7 @@ public class PlayTestPlugin extends RuleSource {
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
             // TODO:DAZ Model a test suite
             final File testSourceDir = fileResolver.resolve("test");
+            final FileCollection testSources = new SimpleFileCollection(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
             final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
@@ -62,7 +64,7 @@ public class PlayTestPlugin extends RuleSource {
                     scalaCompile.dependsOn(binary.getBuildTask());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     scalaCompile.setDestinationDir(testClassesDir);
-                    scalaCompile.setSource(testSourceDir);
+                    scalaCompile.setSource(testSources);
                     String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
                     scalaCompile.setSourceCompatibility(targetCompatibility);
                     scalaCompile.setTargetCompatibility(targetCompatibility);
