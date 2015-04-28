@@ -28,6 +28,7 @@ import java.util.Set;
 class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> implements TestsLauncher {
 
     private final Set<String> testIncludePatterns = new LinkedHashSet<String>();
+    private final Set<String> testExcludePatterns = new LinkedHashSet<String>();
 
     public DefaultTestsLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters, connection);
@@ -36,6 +37,7 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
 
     private void updatePatternList() {
         operationParamsBuilder.setTestIncludePatterns(new ArrayList<String>(testIncludePatterns));
+        operationParamsBuilder.setTestExcludePatterns(new ArrayList<String>(testExcludePatterns));
     }
 
     @Override
@@ -63,6 +65,31 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     public TestsLauncher addJvmTestMethods(String testClass, String... methods) {
         for (String method : methods) {
             testIncludePatterns.add(testClass + "." + method);
+        }
+        updatePatternList();
+        return this;
+    }
+
+    @Override
+    public TestsLauncher excludeTestsByPattern(String... patterns) {
+        Collections.addAll(testExcludePatterns, patterns);
+        updatePatternList();
+        return this;
+    }
+
+    @Override
+    public TestsLauncher excludeJvmTestClasses(String... testClasses) {
+        for (String testClass : testClasses) {
+            testExcludePatterns.add(testClass + ".*");
+        }
+        updatePatternList();
+        return this;
+    }
+
+    @Override
+    public TestsLauncher excludeJvmTestMethods(String testClass, String... methods) {
+        for (String method : methods) {
+            testExcludePatterns.add(testClass + "." + method);
         }
         updatePatternList();
         return this;

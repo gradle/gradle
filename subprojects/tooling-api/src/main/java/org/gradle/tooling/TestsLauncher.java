@@ -52,4 +52,33 @@ public interface TestsLauncher extends ConfigurableLauncher {
      * @return this instance
      */
     TestsLauncher addJvmTestMethods(String testClass, String... methods);
+
+    /**
+     * Adds a selection of tests to be excluded based on the provided patterns.
+     *
+     * @param patterns patterns of tests to be excluded
+     *
+     * @return this instance
+     */
+    TestsLauncher excludeTestsByPattern(String... patterns);
+
+    /**
+     * Excludes test classes from the list of tests to be executed. The name of the class
+     * is a fully qualified class name.
+     *
+     * @param testClasses some test classes to be excluded from test execution.
+     *
+     * @return this instance
+     */
+    TestsLauncher excludeJvmTestClasses(String... testClasses);
+
+    /**
+     * Excludes test methods from a class to be executed.
+     *
+     * @param testClass the test class which includes some test methods to be excluded
+     * @param methods the names of the test methods to be excluded
+     *
+     * @return this instance
+     */
+    TestsLauncher excludeJvmTestMethods(String testClass, String... methods);
 }

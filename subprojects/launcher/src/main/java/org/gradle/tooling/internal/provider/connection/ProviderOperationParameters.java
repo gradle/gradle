@@ -73,4 +73,6 @@ public interface ProviderOperationParameters {
     List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
 
     List<String> getTestIncludePatterns(List<String> defaultIncludePatterns);
+
+    List<String> getTestExcludePatterns(List<String> defaultExcludePatterns);
 }

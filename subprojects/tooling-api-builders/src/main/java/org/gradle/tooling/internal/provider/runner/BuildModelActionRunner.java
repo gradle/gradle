@@ -40,7 +40,9 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final UUIDGenerator generator = new UUIDGenerator();
@@ -103,14 +105,14 @@ public class BuildModelActionRunner implements BuildActionRunner {
         buildController.setResult(buildActionResult);
     }
 
-    private void configureTestExecution(BuildModelAction buildModelAction, GradleInternal gradle) {
+    private void configureTestExecution(BuildModelAction buildModelAction, final GradleInternal gradle) {
         final TestConfiguration testConfiguration = buildModelAction.getTestConfiguration();
 
         // idea: generate a task that we will depend on test tasks with the given filter
         // question: what happens if all projects do not have a test task, or that those
         // projects do not match the filter? Can we add project path(s) to test configuration?
 
-        final String taskName = "toolingTestExecution" + generator.generateId();
+        final List<String> taskNames = new ArrayList<String>();
         if (testConfiguration != null) {
             gradle.addProjectEvaluationListener(new ProjectEvaluationListener() {
                 @Override
@@ -120,17 +122,19 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
                 @Override
                 public void afterEvaluate(Project project, ProjectState state) {
-                    Task toolingTestExecution = project.task(taskName);
-
                     TaskCollection<Test> testTaskCollection = project.getTasks().withType(Test.class);
                     String[] includePatterns = testConfiguration.getIncludePatterns();
+                    String[] excludePatterns = testConfiguration.getExcludePatterns();
+                    if (excludePatterns.length>0) {
+                        throw new UnsupportedOperationException("Excludes are not supported yet");
+                    }
                     for (Test test : testTaskCollection) {
-                        toolingTestExecution.dependsOn(test);
+                        taskNames.add(test.getName());
+                        gradle.getStartParameter().setTaskNames(taskNames);
                         test.getFilter().setIncludePatterns(includePatterns);
                     }
                 }
             });
-            buildModelAction.getStartParameter().setTaskNames(Arrays.asList(taskName));
         }
     }
 

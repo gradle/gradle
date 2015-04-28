@@ -20,14 +20,21 @@ import java.io.Serializable;
 import java.util.List;
 
 public class TestConfiguration implements Serializable {
-    private final String[] includePatterns;
+    private static final String[] EMPTY_ARRAY = new String[0];
 
-    public TestConfiguration(List<String> testIncludePatterns) {
-        this.includePatterns = testIncludePatterns.toArray(new String[testIncludePatterns.size()]);
+    private final String[] includePatterns;
+    private final String[] excludePatterns;
+
+    public TestConfiguration(List<String> testIncludePatterns, List<String> testExcludePatterns) {
+        this.includePatterns = testIncludePatterns==null? EMPTY_ARRAY : testIncludePatterns.toArray(new String[testIncludePatterns.size()]);
+        this.excludePatterns = testExcludePatterns==null? EMPTY_ARRAY : testExcludePatterns.toArray(new String[testExcludePatterns.size()]);
     }
 
     public String[] getIncludePatterns() {
         return includePatterns;
+    }
+    public String[] getExcludePatterns() {
+        return excludePatterns;
     }
 
 }

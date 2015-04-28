@@ -121,9 +121,10 @@ public class ProviderConnection {
             ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
         }
         List<String> testIncludePatterns = providerParameters.getTestIncludePatterns(null);
+        List<String> testExcludePatterns = providerParameters.getTestExcludePatterns(null);
         TestConfiguration testConfiguration = null;
-        if (testIncludePatterns!=null) {
-            testConfiguration = new TestConfiguration(testIncludePatterns);
+        if (testIncludePatterns!=null || testExcludePatterns!=null) {
+            testConfiguration = new TestConfiguration(testIncludePatterns, testExcludePatterns);
         }
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, testConfiguration);
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
