@@ -175,8 +175,8 @@ class CollectionUtilsTest extends Specification {
 
     def "collect values as map"() {
         expect:
-        collectMapValues([1, 2, 3], transformer { it *10}) == [1: 10, 2: 20, 3: 30]
-        collectMapValues([], transformer { it * 10}) == [:]
+        collectMapValues([1, 2, 3], transformer { it * 10 }) == [1: 10, 2: 20, 3: 30]
+        collectMapValues([], transformer { it * 10 }) == [:]
     }
 
     def "every"() {
@@ -379,23 +379,4 @@ class CollectionUtilsTest extends Specification {
         new ClosureBackedAction(c)
     }
 
-    // for castIterable and castIterator, just test that method returns the same instance as given as input
-    // real testing is only possible in Java code at compile time since the behaviour of castIterable/castIterator is only to make the Java compiler happy
-    def "casting iterable"() {
-        given:
-        def iterable = [1, 2, 3]
-        when:
-        def casted = castIterable(Number, iterable)
-        then:
-        iterable.is(casted)
-    }
-
-    def "casting iterator"() {
-        given:
-        def iterator = [1, 2, 3].iterator()
-        when:
-        def casted = castIterator(Number, iterator)
-        then:
-        iterator.is(casted)
-    }
 }

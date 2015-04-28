@@ -197,8 +197,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return true;
     }
 
-    public Iterable<DirectoryTree> getAsDirectoryTrees() {
-        return CollectionUtils.castIterable(DirectoryTree.class, getAsFileTrees());
+    public Iterable<? extends DirectoryTree> getAsDirectoryTrees() {
+        return getAsFileTrees();
     }
 
     public FileCollection filter(Closure filterClosure) {
@@ -226,7 +226,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
     }
-
 
 
 }

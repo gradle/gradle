@@ -32,5 +32,5 @@ public interface BackedByDirectoryTrees {
      *
      * @return this collection as a collection of {@link DirectoryTree}s. Never returns null.
      */
-    Iterable<DirectoryTree> getAsDirectoryTrees();
+    Iterable<? extends DirectoryTree> getAsDirectoryTrees();
 }

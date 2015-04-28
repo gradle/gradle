@@ -604,29 +604,4 @@ public abstract class CollectionUtils {
         }));
     }
 
-    /**
-     * Casts an Iterable&lt;? extends T&gt; to Iterable&lt;T&gt;
-     *
-     * @param clazz the item type to cast to
-     * @param iterable the instance to cast
-     * @param T item type
-     * @return same iterable instance, just make the compiler happy
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Iterable<T> castIterable(Class<T> clazz, Iterable<? extends T> iterable) {
-        return (Iterable<T>)iterable;
-    }
-
-    /**
-     * Casts an Iterator&lt;? extends T&gt; to Iterator&lt;T&gt;
-     *
-     * @param clazz the item type to cast to
-     * @param iterator the instance to cast
-     * @param T item type
-     * @return same iterator instance, just make the compiler happy
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Iterator<T> castIterator(Class<T> clazz, Iterator<? extends T> iterator) {
-        return (Iterator<T>)iterator;
-    }
 }

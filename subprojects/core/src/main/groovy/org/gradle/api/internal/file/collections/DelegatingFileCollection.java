@@ -31,8 +31,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * A file collection that delegates each method call to the
- * file collection returned by {@link #getDelegate()}.
+ * A file collection that delegates each method call to the file collection returned by {@link #getDelegate()}.
  */
 public abstract class DelegatingFileCollection implements FileCollectionInternal {
     public abstract FileCollection getDelegate();
@@ -115,13 +114,13 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
 
     @Override
     public boolean hasDirectoryTrees() {
-        return getDelegate() instanceof BackedByDirectoryTrees && ((BackedByDirectoryTrees)getDelegate()).hasDirectoryTrees();
+        return getDelegate() instanceof BackedByDirectoryTrees && ((BackedByDirectoryTrees) getDelegate()).hasDirectoryTrees();
     }
 
     @Override
-    public Iterable<DirectoryTree> getAsDirectoryTrees() {
-        if(getDelegate() instanceof BackedByDirectoryTrees) {
-            return ((BackedByDirectoryTrees)getDelegate()).getAsDirectoryTrees();
+    public Iterable<? extends DirectoryTree> getAsDirectoryTrees() {
+        if (getDelegate() instanceof BackedByDirectoryTrees) {
+            return ((BackedByDirectoryTrees) getDelegate()).getAsDirectoryTrees();
         } else {
             return Collections.emptyList();
         }
