@@ -44,13 +44,6 @@ class MirahCompileOptionsTest {
         assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
     }
 
-    @Test void testOptionMapContainsOptimize() {
-        assertFalse(compileOptions.optionMap().containsKey('optimise'))
-
-        compileOptions.optimize = true
-        assertThat(compileOptions.optionMap()['optimise'], equalTo('on'))
-    }
-
     @Test void testOptionMapContainsEncodingIfSpecified() {
         assertSimpleStringValue('encoding', 'encoding', null, 'utf8')
     }
