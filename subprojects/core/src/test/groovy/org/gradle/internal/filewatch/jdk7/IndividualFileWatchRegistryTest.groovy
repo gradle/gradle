@@ -20,7 +20,6 @@ import spock.lang.Specification
 
 import java.nio.file.Path
 
-
 class IndividualFileWatchRegistryTest extends Specification {
     Map<File, Path> dirToPathMocks = [:]
 
@@ -59,7 +58,7 @@ class IndividualFileWatchRegistryTest extends Specification {
         def parentPath2 = Mock(Path)
         dirToPathMocks.put(parent2, parentPath2)
         when: 'multiple files are registered'
-        watchRegistry.register('sourcekey', [file1, file2, file3])
+        watchRegistry.register([file1, file2, file3])
         then: 'should register only unique parent directories'
         1 * watchStrategy.watchSingleDirectory( { it.is(parentPath1) })
         1 * watchStrategy.watchSingleDirectory( { it.is(parentPath2) } )

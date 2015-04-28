@@ -35,13 +35,7 @@ public class Jdk7FileWatcherFactory implements FileWatcherFactory {
         return new DefaultFileWatcher(executor, createWatchStrategy(), listener);
     }
 
-    /**
-     * create new stateful WatchStrategy instance
-     *
-     * @return new stateful WatchStrategy instance
-     * @throws IOException
-     */
-    protected WatchStrategy createWatchStrategy() throws IOException {
+    private WatchStrategy createWatchStrategy() throws IOException {
         return new WatchStrategyFactory().createWatchStrategy();
     }
 }

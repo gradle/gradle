@@ -28,77 +28,35 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirTreeWatchRegistry.class);
     protected final Map<Path, Set<DirectoryTree>> pathToDirectoryTrees;
-    protected final Map<DirectoryTree, Set<String>> liveDirectoryTreeToSourceKeys;
 
     public static DirTreeWatchRegistry create(WatchStrategy watchStrategy) {
-        if(watchStrategy instanceof FileTreeWatchStrategy) {
-            return new ExtendedDirTreeWatchRegistry((FileTreeWatchStrategy)watchStrategy);
-        } else {
-            return new DirTreeWatchRegistry(watchStrategy);
-        }
+        return new DirTreeWatchRegistry(watchStrategy);
     }
 
     DirTreeWatchRegistry(WatchStrategy watchStrategy) {
         super(watchStrategy);
         this.pathToDirectoryTrees = new HashMap<Path, Set<DirectoryTree>>();
-        this.liveDirectoryTreeToSourceKeys = new HashMap<DirectoryTree, Set<String>>();
     }
 
     @Override
-    public synchronized void enterRegistrationMode() {
-        liveDirectoryTreeToSourceKeys.clear();
-    }
-
-    @Override
-    public synchronized void exitRegistrationMode() {
-        for(Iterator<Entry<Path, Set<DirectoryTree>>> iterator = pathToDirectoryTrees.entrySet().iterator(); iterator.hasNext();) {
-            Entry<Path, Set<DirectoryTree>> entry = iterator.next();
-            Set<DirectoryTree> updatedDirectories = new HashSet<DirectoryTree>();
-            for(DirectoryTree tree : entry.getValue()) {
-                if(liveDirectoryTreeToSourceKeys.containsKey(tree)) {
-                    updatedDirectories.add(tree);
-                }
-            }
-            if(updatedDirectories.size()==0) {
-                unwatchDirectory(entry.getKey());
-                iterator.remove();
-            } else {
-                entry.setValue(updatedDirectories);
-            }
-        }
-    }
-
-    @Override
-    public synchronized void register(String sourceKey, Iterable<DirectoryTree> trees) throws IOException {
+    public synchronized void register(Iterable<DirectoryTree> trees) throws IOException {
         for(DirectoryTree originalTree : trees) {
             HashableDirectoryTree tree = new HashableDirectoryTree(originalTree);
-            markLive(sourceKey, tree);
             Path rootPath = dirToPath(tree.getDir());
-            Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(rootPath);
-            if(watchedTrees == null) {
-                watchedTrees = new HashSet<DirectoryTree>();
-                pathToDirectoryTrees.put(rootPath, watchedTrees);
-            }
+            Set<DirectoryTree> watchedTrees = getWatchedTreesForPath(rootPath);
             if(!watchedTrees.contains(tree)) {
                 registerSubDir(tree, rootPath);
             }
         }
-    }
-
-    protected void markLive(String sourceKey, DirectoryTree tree) {
-        Set<String> sourceKeys = liveDirectoryTreeToSourceKeys.get(tree);
-        if(sourceKeys == null) {
-            sourceKeys = new HashSet<String>();
-            liveDirectoryTreeToSourceKeys.put(tree, sourceKeys);
-        }
-        sourceKeys.add(sourceKey);
     }
 
     @Override
@@ -106,17 +64,14 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
         Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(changeDetails.getWatchedPath());
         if(watchedTrees != null) {
             for(DirectoryTree watchedTree : watchedTrees) {
-                Set<String> sourceKeys = liveDirectoryTreeToSourceKeys.get(watchedTree);
-                if(sourceKeys != null) {
-                    FileTreeElement fileTreeElement = toFileTreeElement(changeDetails, watchedTree);
-                    if (!isExcluded(watchedTree, fileTreeElement)) {
-                        boolean isDirectory = isDirectory(changeDetails.getFullItemPath());
-                        if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
-                            handleNewDirectory(changeDetails, listener, watchedTree, sourceKeys);
-                        }
-                        if (!isDirectory && isIncluded(watchedTree, fileTreeElement)) {
-                            handleFileChange(changeDetails, listener, watchedTree, sourceKeys);
-                        }
+                FileTreeElement fileTreeElement = toFileTreeElement(changeDetails, watchedTree);
+                if (!isExcluded(watchedTree, fileTreeElement)) {
+                    boolean isDirectory = isDirectory(changeDetails.getFullItemPath());
+                    if (isDirectory && changeDetails.getChangeType() == ChangeDetails.ChangeType.CREATE) {
+                        handleNewDirectory(changeDetails, listener, watchedTree);
+                    }
+                    if (!isDirectory && isIncluded(watchedTree, fileTreeElement)) {
+                        handleFileChange(changeDetails, listener, watchedTree);
                     }
                 }
             }
@@ -124,12 +79,12 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
     }
 
     // we should handle new directories even when they aren't explicitly included since "includes" pattern is for files
-    protected void handleNewDirectory(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree, Set<String> sourceKeys) {
+    protected void handleNewDirectory(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree) {
         try {
             boolean containsValidFiles = registerSubDir(watchedTree, changeDetails.getFullItemPath());
             if(containsValidFiles) {
                 // newly created directory with files will trigger a change. empty directory won't trigger a change
-                listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
+                sendOnChangeEvent(changeDetails, listener);
             }
         } catch (IOException e) {
             // ignore
@@ -139,8 +94,8 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
         }
     }
 
-    protected void handleFileChange(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree, Set<String> sourceKeys) {
-        listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
+    protected void handleFileChange(ChangeDetails changeDetails, FileWatcherListener listener, DirectoryTree watchedTree) {
+        sendOnChangeEvent(changeDetails, listener);
     }
 
     private boolean isIncluded(DirectoryTree watchedTree, FileTreeElement fileTreeElement) {
@@ -170,15 +125,11 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
         walkFileTree(subRootPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                    throws IOException {
+                throws IOException {
                 FileTreeElement fileTreeElement = toFileTreeElement(dir, rootPath.relativize(dir));
                 if (!excludeSpec.isSatisfiedBy(fileTreeElement)) {
-                    Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(dir);
-                    if(watchedTrees == null) {
-                        watchedTrees = new HashSet<DirectoryTree>();
-                        pathToDirectoryTrees.put(dir, watchedTrees);
-                    }
-                    if(watchedTrees.size()==0) {
+                    Set<DirectoryTree> watchedTrees = getWatchedTreesForPath(dir);
+                    if (watchedTrees.size() == 0) {
                         watchDirectory(dir);
                     }
                     watchedTrees.add(tree);
@@ -200,14 +151,23 @@ class DirTreeWatchRegistry extends WatchRegistry<DirectoryTree> {
         return containsValidFiles.get();
     }
 
-    // subclass hook for unit tests
-    protected boolean isDirectory(Path path) {
-        return Files.isDirectory(path);
+    protected Set<DirectoryTree> getWatchedTreesForPath(Path dir) {
+        Set<DirectoryTree> watchedTrees = pathToDirectoryTrees.get(dir);
+        if (watchedTrees == null) {
+            watchedTrees = new HashSet<DirectoryTree>();
+            pathToDirectoryTrees.put(dir, watchedTrees);
+        }
+        return watchedTrees;
     }
 
-    // subclass hook for unit tests
+    // sub-class hook for unit tests
     protected Path walkFileTree(Path start, FileVisitor<? super Path> visitor) throws IOException {
         return Files.walkFileTree(start, visitor);
+    }
+
+    // sub-class hook for unit tests
+    protected boolean isDirectory(Path path) {
+        return Files.isDirectory(path);
     }
 
     static class HashableDirectoryTree implements DirectoryTree {

@@ -23,10 +23,7 @@ import java.io.IOException;
 /**
  * Stateful service for creating for multiple watches on different sets of inputs of {@link org.gradle.api.file.DirectoryTree} or individual {@link java.io.File}s
  *
- * This is designed to be used in a loop so that all watches get registered again every time. The boundaries of the "registration mode" are marked by calling
- * enterRegistrationMode and exitRegistrationMode.
- *
- * All watching can be stopped by calling the stop method.
+ * All watching can be stopped by calling the stop method. This should be done before disposing the FileWatcher instance.
  *
  */
 public interface FileWatcher extends Stoppable {
@@ -34,26 +31,7 @@ public interface FileWatcher extends Stoppable {
      * Starts watching for file changes to given inputs.
      * It is guaranteed that file watching gets activated before this method returns.
      *
-     * The sourceKey parameter is used for continuous watching logic to skip any change events that are happening after
-     * "enterRegistrationMode" has been called, but before watch has been called to re-activate the watch. If the inputs haven't changed,
-     * the watch will be kept active.
-     *
-     * @param sourceKey a unique external key for this watch. For gradle tasks, the unique task path can be used as a key.
      * @param inputs the directories and files to watch for changes
      */
-    void watch(String sourceKey, FileWatchInputs inputs) throws IOException;
-
-    /**
-     * this method should be called before adding any watches
-     *
-     * it is used to mark the boundaries of the watches so that any stale watches from the previous loop can be removed when exiting the registration mode
-     */
-    void enterRegistrationMode();
-
-    /**
-     * this method is for marking the exit boundary of adding watches.
-     *
-     * any stale watches from the previous loop will be removed at this point. watches can be reused in the next "round" of registrations
-     */
-    void exitRegistrationMode();
+    void watch(FileWatchInputs inputs) throws IOException;
 }

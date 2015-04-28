@@ -40,7 +40,7 @@ class FileWatchStrategy implements TriggerStrategy {
         FileWatchInputs inputs = FileWatchInputs.newBuilder().add(dir).build();
         try {
             this.fileWatcher = fileWatcherFactory.createFileWatcher(new FileChangeCallback(listener));
-            this.fileWatcher.watch(null, inputs);
+            this.fileWatcher.watch(inputs);
         } catch (IOException e) {
             // TODO:
             UncheckedException.throwAsUncheckedException(e);

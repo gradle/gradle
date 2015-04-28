@@ -58,7 +58,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitForChanges()
@@ -75,7 +75,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         TestFile gitDir = testDir.createDir(".git")
         File createdFile = gitDir.file("some_git_object")
         createdFile.text = "some git data here, shouldn't trigger a change event"
@@ -89,7 +89,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitForChanges()
@@ -107,7 +107,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         testDir.file('some_temp_file~').text = "This change should be ignored"
         waitForChanges()
         then:
@@ -123,7 +123,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         testDir.createDir('a/b/2').file('some_file').text = "This change should not be noticed"
         waitForChanges()
         then:
@@ -135,7 +135,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def listener = Mock(FileWatcherListener)
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         testDir.createDir('a/b/c')
         testDir.createDir('b')
         testDir.createDir('c/d/e/f/g')
@@ -163,7 +163,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         def nonwatchedfile1 = subdir1.file('file3')
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         nonwatchedfile1.text = 'some change'
         waitForChanges()
         then:
@@ -195,7 +195,7 @@ class DefaultFileWatchServiceIntegrationTest extends Specification {
         }
         when:
         fileWatcher = fileWatcherFactory.createFileWatcher(listener)
-        fileWatcher.watch('sourcekey', fileWatchInputs.build())
+        fileWatcher.watch(fileWatchInputs.build())
         waitForChanges()
         then:
         0 * listener.onChange(_)

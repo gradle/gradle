@@ -22,14 +22,10 @@ import java.nio.file.WatchService;
 
 class WatchStrategyFactory {
     WatchStrategy createWatchStrategy() throws IOException {
-        if(ExtendedWatchServiceWatchStrategy.isSupported()) {
-            return new ExtendedWatchServiceWatchStrategy(createWatchService());
-        } else {
-            return new WatchServiceWatchStrategy(createWatchService());
-        }
+        return new WatchServiceWatchStrategy(createWatchService());
     }
 
-    protected WatchService createWatchService() throws IOException {
+    private WatchService createWatchService() throws IOException {
         return FileSystems.getDefault().newWatchService();
     }
 }

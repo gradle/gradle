@@ -25,52 +25,17 @@ import java.util.*;
 
 class IndividualFileWatchRegistry extends WatchRegistry<File> {
     private final Map<Path, Set<File>> individualFilesByParentPath;
-    private final Map<File, Set<String>> liveFilesToSourceKeys;
 
     IndividualFileWatchRegistry(WatchStrategy watchStrategy) {
         super(watchStrategy);
         individualFilesByParentPath = new HashMap<Path, Set<File>>();
-        liveFilesToSourceKeys = new HashMap<File, Set<String>>();
     }
 
     @Override
-    public synchronized void enterRegistrationMode() {
-        liveFilesToSourceKeys.clear();
-    }
-
-    @Override
-    public synchronized void exitRegistrationMode() {
-        for(Iterator<Map.Entry<Path, Set<File>>> iterator = individualFilesByParentPath.entrySet().iterator(); iterator.hasNext();) {
-            Map.Entry<Path, Set<File>> entry = iterator.next();
-            Set<File> files = entry.getValue();
-            removeDeadFiles(files);
-            if(files.isEmpty()) {
-                unwatchDirectory(entry.getKey());
-                iterator.remove();
-            }
-        }
-    }
-
-    private void removeDeadFiles(Set<File> files) {
-        for(Iterator<File> iterator = files.iterator(); iterator.hasNext();) {
-            File file = iterator.next();
-            if(!liveFilesToSourceKeys.containsKey(file)) {
-                iterator.remove();
-            }
-        }
-    }
-
-    @Override
-    public synchronized void register(String sourceKey, Iterable<File> files) throws IOException {
+    public synchronized void register(Iterable<File> files) throws IOException {
         Set<Path> addedParents = new HashSet<Path>();
         for (File originalFile : files) {
             File file = originalFile.getAbsoluteFile();
-            Set<String> sourceKeys = liveFilesToSourceKeys.get(file);
-            if(sourceKeys == null) {
-                sourceKeys = new HashSet<String>();
-                liveFilesToSourceKeys.put(file, sourceKeys);
-            }
-            sourceKeys.add(sourceKey);
             Path parent = dirToPath(file.getParentFile());
             Set<File> children = individualFilesByParentPath.get(parent);
             if (children == null) {
@@ -93,10 +58,7 @@ class IndividualFileWatchRegistry extends WatchRegistry<File> {
         if(files != null) {
             File file = changeDetails.getFullItemPath().toFile().getAbsoluteFile();
             if(files.contains(file)) {
-                Set<String> sourceKeys = liveFilesToSourceKeys.get(file);
-                if(sourceKeys != null) {
-                    listener.onChange(toFileChangeDetails(changeDetails, sourceKeys));
-                }
+                sendOnChangeEvent(changeDetails, listener);
             }
         }
     }

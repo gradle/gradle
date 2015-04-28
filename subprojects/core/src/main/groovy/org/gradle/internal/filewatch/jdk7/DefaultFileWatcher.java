@@ -39,23 +39,13 @@ public class DefaultFileWatcher implements FileWatcher {
     }
 
     @Override
-    public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
-        fileWatcherTask.watch(sourceKey, inputs);
+    public void watch(FileWatchInputs inputs) throws IOException {
+        fileWatcherTask.watch(inputs);
     }
 
     @Override
     public void stop() {
         stopper.stop();
-    }
-
-    @Override
-    public void enterRegistrationMode() {
-        fileWatcherTask.enterRegistrationMode();
-    }
-
-    @Override
-    public void exitRegistrationMode() {
-        fileWatcherTask.exitRegistrationMode();
     }
 
     static class FileWatcherTask implements Runnable {
@@ -75,9 +65,9 @@ public class DefaultFileWatcher implements FileWatcher {
             this.individualFileWatchRegistry = new IndividualFileWatchRegistry(watchStrategy);
         }
 
-        void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
-            dirTreeWatchRegistry.register(sourceKey, inputs.getDirectoryTrees());
-            individualFileWatchRegistry.register(sourceKey, inputs.getFiles());
+        void watch(FileWatchInputs inputs) throws IOException {
+            dirTreeWatchRegistry.register(inputs.getDirectoryTrees());
+            individualFileWatchRegistry.register(inputs.getFiles());
         }
 
         public void run() {
@@ -111,16 +101,6 @@ public class DefaultFileWatcher implements FileWatcher {
 
         protected boolean watchLoopRunning() {
             return runningFlag.get() && !Thread.currentThread().isInterrupted();
-        }
-
-        public void enterRegistrationMode() {
-            dirTreeWatchRegistry.enterRegistrationMode();
-            individualFileWatchRegistry.enterRegistrationMode();
-        }
-
-        public void exitRegistrationMode() {
-            dirTreeWatchRegistry.exitRegistrationMode();
-            individualFileWatchRegistry.exitRegistrationMode();
         }
     }
 

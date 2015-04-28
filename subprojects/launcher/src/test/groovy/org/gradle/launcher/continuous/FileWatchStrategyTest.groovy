@@ -34,14 +34,14 @@ class FileWatchStrategyTest extends Specification {
         def fileWatchStrategy = new FileWatchStrategy(listener, fileWatcherFactory)
         then:
         1 * fileWatcherFactory.createFileWatcher({ it instanceof FileWatchStrategy.FileChangeCallback }) >> fileWatcher
-        1 * fileWatcher.watch(_, { !it.directoryTrees.empty })
+        1 * fileWatcher.watch({ !it.directoryTrees.empty })
     }
 
     def "file watch change triggers listener"() {
         given:
         def callback = new FileWatchStrategy.FileChangeCallback(listener)
         when:
-        callback.onChange(new FileChangeDetails(FileChangeDetails.ChangeType.CREATE, new File("newfile"), ['sourceKey']))
+        callback.onChange(new FileChangeDetails(FileChangeDetails.ChangeType.CREATE, new File("newfile")))
         then:
         1 * listener.triggered(_)
     }

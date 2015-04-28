@@ -39,17 +39,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
         public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
             return new FileWatcher() {
                 @Override
-                public void watch(String sourceKey, FileWatchInputs inputs) throws IOException {
-
-                }
-
-                @Override
-                public void enterRegistrationMode() {
-
-                }
-
-                @Override
-                public void exitRegistrationMode() {
+                public void watch(FileWatchInputs inputs) throws IOException {
 
                 }
 

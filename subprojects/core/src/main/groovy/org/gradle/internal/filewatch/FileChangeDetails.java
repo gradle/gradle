@@ -27,20 +27,14 @@ public class FileChangeDetails {
 
     private final ChangeType changeType;
     private final File file;
-    private final Iterable<String> sourceKeys;
 
-    public FileChangeDetails(ChangeType changeType, File file, Iterable<String> sourceKeys) {
+    public FileChangeDetails(ChangeType changeType, File file) {
         this.changeType = changeType;
         this.file = file;
-        this.sourceKeys = sourceKeys;
     }
 
     public ChangeType getChangeType() {
         return changeType;
-    }
-
-    public Iterable<String> getSourceKeys() {
-        return sourceKeys;
     }
 
     public File getFile() {
@@ -52,7 +46,6 @@ public class FileChangeDetails {
         return "FileChangeDetails{"
             + "changeType=" + changeType
             + ", file=" + file
-            + ", sourceKeys=" + sourceKeys
             + '}';
     }
 }

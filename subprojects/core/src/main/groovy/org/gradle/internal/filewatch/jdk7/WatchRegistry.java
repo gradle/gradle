@@ -26,7 +26,9 @@ import org.gradle.internal.filewatch.FileWatcherListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 abstract class WatchRegistry<T> {
     private final WatchStrategy watchStrategy;
@@ -37,11 +39,7 @@ abstract class WatchRegistry<T> {
         this.watchHandles = new HashMap<Path, Stoppable>();
     }
 
-    abstract public void enterRegistrationMode();
-
-    abstract public void exitRegistrationMode();
-
-    abstract public void register(String sourceKey, Iterable<T> watchItems) throws IOException;
+    abstract public void register(Iterable<T> watchItems) throws IOException;
 
     abstract public void handleChange(ChangeDetails changeDetails, FileWatcherListener listener);
 
@@ -75,6 +73,10 @@ abstract class WatchRegistry<T> {
         return new CustomFileTreeElement(file, toRelativePath(file, relativePath));
     }
 
+    protected void sendOnChangeEvent(ChangeDetails changeDetails, FileWatcherListener listener) {
+        listener.onChange(toFileChangeDetails(changeDetails));
+    }
+
     private static class CustomFileTreeElement extends DefaultFileTreeElement {
         public CustomFileTreeElement(File file, RelativePath relativePath) {
             super(file, relativePath, null, null);
@@ -89,7 +91,7 @@ abstract class WatchRegistry<T> {
         changeTypeMap.put(ChangeDetails.ChangeType.DELETE, FileChangeDetails.ChangeType.DELETE);
     }
 
-    public FileChangeDetails toFileChangeDetails(ChangeDetails changeDetails, Set<String> sourceKeys) {
-        return new FileChangeDetails(changeTypeMap.get(changeDetails.getChangeType()), changeDetails.getFullItemPath().toFile(), Collections.unmodifiableSet(sourceKeys));
+    public FileChangeDetails toFileChangeDetails(ChangeDetails changeDetails) {
+        return new FileChangeDetails(changeTypeMap.get(changeDetails.getChangeType()), changeDetails.getFullItemPath().toFile());
     }
 }

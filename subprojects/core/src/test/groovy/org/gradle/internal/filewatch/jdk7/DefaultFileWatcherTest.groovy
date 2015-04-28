@@ -16,7 +16,6 @@
 
 package org.gradle.internal.filewatch.jdk7
 
-import org.gradle.api.file.DirectoryTree
 import org.gradle.internal.filewatch.FileWatcherListener
 import spock.lang.Specification
 
@@ -31,7 +30,6 @@ class DefaultFileWatcherTest extends Specification {
         def executor = Mock(ExecutorService)
         def watchStrategy = Mock(WatchStrategy)
         def listener = Mock(FileWatcherListener)
-        def directoryTree = Mock(DirectoryTree)
         def future = Mock(Future)
         when: 'fileWatcher is constructed'
         def fileWatcher = new DefaultFileWatcher(executor, watchStrategy, listener)
