@@ -24,8 +24,10 @@ public class TestConfiguration implements Serializable {
 
     private final String[] includePatterns;
     private final String[] excludePatterns;
+    private final boolean alwaysRunTests;
 
-    public TestConfiguration(List<String> testIncludePatterns, List<String> testExcludePatterns) {
+    public TestConfiguration(List<String> testIncludePatterns, List<String> testExcludePatterns, boolean alwaysRunTests) {
+        this.alwaysRunTests = alwaysRunTests;
         this.includePatterns = testIncludePatterns==null? EMPTY_ARRAY : testIncludePatterns.toArray(new String[testIncludePatterns.size()]);
         this.excludePatterns = testExcludePatterns==null? EMPTY_ARRAY : testExcludePatterns.toArray(new String[testExcludePatterns.size()]);
     }
@@ -37,4 +39,7 @@ public class TestConfiguration implements Serializable {
         return excludePatterns;
     }
 
+    public boolean isAlwaysRunTests() {
+        return alwaysRunTests;
+    }
 }

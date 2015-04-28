@@ -19,8 +19,10 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
@@ -44,6 +46,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BuildModelActionRunner implements BuildActionRunner {
+    private static final Spec<? super Task> FORCE_EXECUTION = new Spec<Task>() {
+        @Override
+        public boolean isSatisfiedBy(Task element) {
+            return false;
+        }
+    };
+
     private final UUIDGenerator generator = new UUIDGenerator();
 
     @Override
@@ -125,6 +134,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
                     String[] includePatterns = testConfiguration.getIncludePatterns();
                     String[] excludePatterns = testConfiguration.getExcludePatterns();
                     for (Test test : testTaskCollection) {
+                        if (testConfiguration.isAlwaysRunTests()) {
+                            test.getOutputs().upToDateWhen(FORCE_EXECUTION);
+                        }
                         taskNames.add(test.getName());
                         gradle.getStartParameter().setTaskNames(taskNames);
                         TestFilter filter = test.getFilter();

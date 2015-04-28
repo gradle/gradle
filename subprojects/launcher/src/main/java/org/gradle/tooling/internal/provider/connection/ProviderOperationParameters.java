@@ -75,4 +75,6 @@ public interface ProviderOperationParameters {
     List<String> getTestIncludePatterns(List<String> defaultIncludePatterns);
 
     List<String> getTestExcludePatterns(List<String> defaultExcludePatterns);
+
+    boolean isAlwaysRunTests(boolean defaultAlwaysRunTests);
 }

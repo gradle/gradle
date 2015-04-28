@@ -94,4 +94,10 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
         updatePatternList();
         return this;
     }
+
+    @Override
+    public TestsLauncher setAlwaysRunTests(boolean alwaysRun) {
+        operationParamsBuilder.setAlwaysRunTests(alwaysRun);
+        return this;
+    }
 }

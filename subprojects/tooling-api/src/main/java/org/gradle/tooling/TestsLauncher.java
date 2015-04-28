@@ -81,4 +81,13 @@ public interface TestsLauncher extends ConfigurableLauncher {
      * @return this instance
      */
     TestsLauncher excludeJvmTestMethods(String testClass, String... methods);
+
+    /**
+     * Indicates that tests have to be executed even if the underlying test task is up-to-date. Defaults to false.
+     *
+     * @param alwaysRun set this to true if you want tests to be executed independently of the up-to-date status of the task
+     *
+     * @return this instance
+     */
+    TestsLauncher setAlwaysRunTests(boolean alwaysRun);
 }
