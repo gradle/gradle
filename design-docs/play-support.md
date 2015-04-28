@@ -636,10 +636,8 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 4. Build ends, we are back at 1.
 
 Constraints / implementation details:
-- Only changes to source files will be monitored in this story.
-- All files in the project build directory will be ignored in watching.
 - The inputs of tasks will be gathered during the build is executed in a `TaskExecutionListener`'s `beforeExecute` method
-- The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getSourceFiles()` method is considered as the source files for the task. The `getHasSourceFiles()` method will called before calling the `getSourceFiles()`.
+- The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getFiles()` method is considered as the inputs for the task.
 - Extracting the source `DirectoryTree` and/or `File` information from `FileCollection` is done using the new `getAsDirectoryTrees()` method added to internal `FileCollectionInternal` interface. Review for the `getAsDirectoryTrees` solution is [REVIEW-5481](https://code-review.gradle.org/cru/REVIEW-5481).
 - Changes made when the build is running, are ignored.
 - Should stop watching for changes while the build is running.
@@ -657,7 +655,7 @@ Constraints / implementation details:
 
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
-- Previous constraints apply: only changes to source files are monitored for changes and all changes to files in the project build directory will be ignored.
+- All files in the project build directory will be ignored in watching. This simplifies the implementation of the story since task input/output analysis isn't strictly required when we ignore file changes in the build directory.
 - Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete.
   - this requirement will be handled by starting to watch task input file changes in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
 - Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
