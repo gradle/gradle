@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -31,11 +32,12 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.DefaultBinaryContainer;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
     private final Instantiator instantiator;
@@ -62,12 +64,12 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
     }
 
-    private static class RegistrationAction implements ModelAction<DefaultBinaryContainer> {
+    private static class RegistrationAction implements ModelAction<BinarySpecFactoryRegistry> {
         private final ModelType<? extends BinarySpec> publicType;
         private final ModelType<? extends BaseBinarySpec> implementationType;
         private final ModelRuleDescriptor descriptor;
         private final Instantiator instantiator;
-        private final ModelReference<DefaultBinaryContainer> subject;
+        private final ModelReference<BinarySpecFactoryRegistry> subject;
         private final List<ModelReference<?>> inputs;
 
         public RegistrationAction(ModelType<? extends BinarySpec> publicType, ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor descriptor, Instantiator instantiator) {
@@ -75,12 +77,12 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
             this.implementationType = implementationType;
             this.descriptor = descriptor;
             this.instantiator = instantiator;
-            this.subject = ModelReference.of(DefaultBinaryContainer.class);
+            this.subject = ModelReference.of(BinarySpecFactoryRegistry.class);
             this.inputs = Collections.<ModelReference<?>>singletonList(ModelReference.of(ITaskFactory.class));
         }
 
         @Override
-        public ModelReference<DefaultBinaryContainer> getSubject() {
+        public ModelReference<BinarySpecFactoryRegistry> getSubject() {
             return subject;
         }
 
@@ -95,14 +97,14 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, final List<ModelView<?>> inputs) {
-            @SuppressWarnings("unchecked")
-            Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
-            binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {
+        public void execute(MutableModelNode modelNode, BinarySpecFactoryRegistry factories, final List<ModelView<?>> inputs) {
+            final Class<BinarySpec> publicClass = uncheckedCast(publicType.getConcreteClass());
+            NamedDomainObjectFactory<BaseBinarySpec> factory = new NamedDomainObjectFactory<BaseBinarySpec>() {
                 public BaseBinarySpec create(String name) {
                     return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator, ModelViews.assertType(inputs.get(0), ModelType.of(ITaskFactory.class)).getInstance());
                 }
-            }, descriptor);
+            };
+            factories.registerFactory(publicClass, factory, descriptor);
         }
     }
 }

@@ -178,11 +178,15 @@ model {
         output.contains """
     testSuites
         nativeComponentOneTest
-            source
+            binaries
+                nativeComponentOneTestCUnitExe
+            sources
                 c
                 cunitLauncher
         nativeComponentTwoTest
-            source
+            binaries
+                nativeComponentTwoTestCUnitExe
+            sources
                 c
                 cunitLauncher"""
     }

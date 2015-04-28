@@ -16,18 +16,19 @@
 
 package org.gradle.platform.base.internal.rules
 
-import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.PolymorphicNamedEntityInstantiator
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
+import org.gradle.model.internal.core.NamedEntityInstantiator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 
 class DefaultRuleAwarePolymorphicNamedEntityInstantiatorTest extends Specification {
 
-    def delegate = Mock(PolymorphicNamedEntityInstantiator)
-    def instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator(delegate)
+    def delegate = Mock(NamedEntityInstantiator)
+    def registry = Mock(RuleAwareNamedDomainObjectFactoryRegistry)
+    def instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator(delegate, registry)
 
-    def "uses delegate to create objects"() {
+    def "uses delegate instantiator to create objects"() {
         given:
         delegate.create("foo", String) >> "bar"
 
@@ -35,26 +36,15 @@ class DefaultRuleAwarePolymorphicNamedEntityInstantiatorTest extends Specificati
         instantiator.create("foo", String) == "bar"
     }
 
-    def "uses delegate to register factories"() {
+    def "uses delegate registry to register factories"() {
         given:
+        def descriptor = new SimpleModelRuleDescriptor("test")
         def factory = Mock(NamedDomainObjectFactory)
 
         when:
-        instantiator.registerFactory(String, factory, null)
+        instantiator.registerFactory(String, factory, descriptor)
 
         then:
-        1 * delegate.registerFactory(String, factory)
-    }
-
-    def "throws error when a factory for the same type is registered more than once"() {
-        given:
-        instantiator.registerFactory(String, {}, new SimpleModelRuleDescriptor("test rule"))
-
-        when:
-        instantiator.registerFactory(String, {}, null)
-
-        then:
-        GradleException e = thrown()
-        e.message == "Cannot register a factory for type String because a factory for this type was already registered by test rule."
+        1 * registry.registerFactory(String, factory, descriptor)
     }
 }

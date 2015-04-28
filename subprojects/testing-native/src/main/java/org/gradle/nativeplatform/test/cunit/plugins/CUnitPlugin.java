@@ -42,6 +42,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
@@ -158,29 +159,38 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
+            testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
+                @Override
+                public void execute(CUnitTestSuiteSpec cUnitTestSuite) {
+                    for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+
+                        if (testedBinary instanceof SharedLibraryBinary) {
+                            // TODO:DAZ For now, we only create test suites for static library variants
+                            continue;
+                        }
+
+                        DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
+                        configure(testBinary, buildDir);
+                        cUnitTestSuite.getBinaries().add(testBinary);
+                    }
+                }
+            });
+        }
+
+        @Mutate
+        public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
-
-                    if (testedBinary instanceof SharedLibraryBinary) {
-                        // TODO:DAZ For now, we only create test suites for static library variants
-                        continue;
-                    }
-
-                    DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
-
-                    configure(testBinary, buildDir);
-
-                    cUnitTestSuite.getBinaries().add(testBinary);
-                    binaries.add(testBinary);
+                    binaries.addAll(cUnitTestSuite.getBinaries().withType(CUnitTestSuiteBinarySpec.class));
                 }
             }
         }
 
         private DefaultCUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuiteSpec cUnitTestSuite, NativeBinarySpec testedBinary, ITaskFactory taskFactory) {
             BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                    .withComponentName(cUnitTestSuite.getBaseName())
-                    .withTypeString("CUnitExe").build();
+                .withComponentName(cUnitTestSuite.getBaseName())
+                .withTypeString("CUnitExe").build();
 
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);

@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.platform.base.internal.rules
 
+import org.gradle.api.Named
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Subject
 
-class AddOnlyDomainObjectSetTest extends Specification {
+class AddOnlyRuleAwarePolymorphicDomainObjectContainerTest extends Specification {
+
+    class ElementType implements Named {
+        String name
+    }
 
     @Subject
-    def set = new AddOnlyDomainObjectSet(String)
+    def container = new AddOnlyRuleAwarePolymorphicDomainObjectContainer(ElementType, DirectInstantiator.INSTANCE) {}
 
     def "clear is not supported"() {
         when:
-        set.clear()
+        container.clear()
 
         then:
         thrown(UnsupportedOperationException)
@@ -34,7 +40,7 @@ class AddOnlyDomainObjectSetTest extends Specification {
 
     def "remove is not supported"() {
         when:
-        set.remove("foo")
+        container.remove("foo")
 
         then:
         thrown(UnsupportedOperationException)
@@ -42,7 +48,7 @@ class AddOnlyDomainObjectSetTest extends Specification {
 
     def "removeAll is not supported"() {
         when:
-        set.removeAll([])
+        container.removeAll([])
 
         then:
         thrown(UnsupportedOperationException)
@@ -50,7 +56,7 @@ class AddOnlyDomainObjectSetTest extends Specification {
 
     def "retainAll is not supported"() {
         when:
-        set.retainAll([])
+        container.retainAll([])
 
         then:
         thrown(UnsupportedOperationException)
@@ -58,7 +64,7 @@ class AddOnlyDomainObjectSetTest extends Specification {
 
     def "iterator does not support removal of elements"() {
         given:
-        def iterator = set.iterator()
+        def iterator = container.iterator()
 
         when:
         iterator.remove()

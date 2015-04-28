@@ -16,12 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
@@ -34,39 +30,23 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 @NotThreadSafe
-public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
+public class DefaultCollectionBuilder<T> extends AbstractCollectionBuilder<T> {
 
-    private final ModelType<T> elementType;
-    private final ModelRuleDescriptor sourceDescriptor;
-    private final MutableModelNode modelNode;
     private final BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends T>> creatorFunction;
 
     public DefaultCollectionBuilder(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
                                     BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends T>> creatorFunction) {
-        this.elementType = elementType;
-        this.sourceDescriptor = sourceDescriptor;
-        this.modelNode = modelNode;
+        super(elementType, modelNode, sourceDescriptor);
         this.creatorFunction = creatorFunction;
     }
 
     @Override
     public String toString() {
         return modelNode.getPrivateData().toString();
-    }
-
-    @Override
-    public int size() {
-        return modelNode.getLinkCount(elementType);
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size() == 0;
     }
 
     @Override
@@ -91,34 +71,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     public <S extends T> CollectionBuilder<S> toSubType(Class<S> type) {
         return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, creatorFunction);
-    }
-
-    @Nullable
-    @Override
-    public T get(Object name) {
-        return get((String) name);
-    }
-
-    @Nullable
-    @Override
-    public T get(String name) {
-        // TODO - lock this down
-        MutableModelNode link = modelNode.getLink(name);
-        if (link == null) {
-            return null;
-        }
-        link.ensureUsable();
-        return link.asWritable(elementType, sourceDescriptor, null).getInstance();
-    }
-
-    @Override
-    public boolean containsKey(Object name) {
-        return name instanceof String && modelNode.hasLink((String) name, elementType);
-    }
-
-    @Override
-    public Set<String> keySet() {
-        return modelNode.getLinkNames(elementType);
     }
 
     @Override
@@ -231,16 +183,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
-    }
-
-    @Override
-    public Collection<T> values() {
-        Iterable<T> values = Iterables.transform(keySet(), new Function<String, T>() {
-            public T apply(@Nullable String name) {
-                return get(name);
-            }
-        });
-        return Lists.newArrayList(values);
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {

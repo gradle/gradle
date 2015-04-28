@@ -239,10 +239,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
                 return DefaultPlatformRequirement.create(defaultPlayPlatform);
             }
-            if (playApplicationSpec.getTargetPlatforms().size() == 1) {
-                return playApplicationSpec.getTargetPlatforms().get(0);
-            }
-            throw new InvalidUserDataException("Play application can only target a single platform");
+            return playApplicationSpec.getTargetPlatforms().get(0);
         }
 
         private void initialiseConfigurations(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {

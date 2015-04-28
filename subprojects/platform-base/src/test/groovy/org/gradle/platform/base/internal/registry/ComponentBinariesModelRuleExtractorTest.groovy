@@ -47,8 +47,8 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Mutate
-        registration.action.subject == ModelReference.of("binaries", DefaultCollectionBuilder.typeOf(BinarySpec))
+        registration.actionRole == ModelActionRole.Finalize
+        registration.action.subject == ModelReference.of("components", DefaultCollectionBuilder.typeOf(ComponentSpec))
 
         where:
         ruleName         | descr

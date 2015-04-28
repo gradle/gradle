@@ -23,14 +23,13 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
+import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -125,6 +124,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 }));
             }
         }));
+
+        Factory<BinarySpecFactoryRegistry> registryFactory = new Factory<BinarySpecFactoryRegistry>() {
+            @Override
+            public BinarySpecFactoryRegistry create() {
+                return new BinarySpecFactoryRegistry();
+            }
+        };
+        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), registryFactory)
+                .descriptor(ruleDescriptor)
+                .ephemeral(true)
+                .hidden(true)
+                .build());
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -163,6 +174,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
             }
+        }
+
+        @Defaults
+        void registerBinaryFactories(BinaryContainer binaries, BinarySpecFactoryRegistry binaryFactoryRegistry) {
+            binaryFactoryRegistry.copyInto(binaries);
         }
 
         private static class CheckForNotBuildableBinariesAction implements Action<Task> {

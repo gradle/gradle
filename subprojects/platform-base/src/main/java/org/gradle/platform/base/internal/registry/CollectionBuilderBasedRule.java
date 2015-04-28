@@ -38,11 +38,11 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
     private ImmutableList<ModelReference<?>> inputs;
     protected int baseTypeParameterIndex;
 
-    public CollectionBuilderBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInput) {
+    public CollectionBuilderBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
         this.subject = subject;
         this.baseType = baseType;
         this.ruleDefinition = ruleDefinition;
-        this.inputs = calculateInputs(Arrays.asList(additionalInput));
+        this.inputs = calculateInputs(Arrays.asList(additionalInputs));
     }
 
     public List<ModelReference<?>> getInputs() {
@@ -75,14 +75,15 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
         return allInputs.build();
     }
 
-    protected void invoke(List<ModelView<?>> inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object ignoredInput) {
-        Object[] args = new Object[inputs.size() + 1];
+    protected void invoke(List<ModelView<?>> inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object... ignoredInputs) {
+        List<Object> ignoredInputsList = Arrays.asList(ignoredInputs);
+        Object[] args = new Object[inputs.size() + 2 - ignoredInputs.length];
         args[0] = collectionBuilder;
         args[baseTypeParameterIndex] = baseTypeParameter;
 
         for (ModelView<?> view : inputs) {
             Object instance = view.getInstance();
-            if (instance == ignoredInput) {
+            if (ignoredInputsList.contains(instance)) {
                 continue;
             }
             for (int i = 0; i < args.length; i++) {

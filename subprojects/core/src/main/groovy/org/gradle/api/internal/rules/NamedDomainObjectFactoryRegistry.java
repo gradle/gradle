@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.rules;
 
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.api.NamedDomainObjectFactory;
 
-import java.util.Set;
+public interface NamedDomainObjectFactoryRegistry<T> {
 
-public interface PolymorphicNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, NamedDomainObjectFactoryRegistry<T> {
-    Set<? extends Class<? extends T>> getCreatableTypes();
+    <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
 }

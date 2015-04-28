@@ -63,7 +63,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelCreator rootCreator = ModelCreators.of(ModelReference.of(ModelPath.ROOT), BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator)));
+        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator), null));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -79,7 +79,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new InvalidModelRuleDeclarationException(creator.getDescriptor(), "Cannot create element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
         }
 
-        registerNode(modelGraph.getRoot(), new ModelElementNode(toCreatorBinder(creator)));
+        ModelNodeInternal root = modelGraph.getRoot();
+        registerNode(root, new ModelElementNode(toCreatorBinder(creator), root));
         return this;
     }
 
@@ -783,15 +784,27 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public void ensureUsable() {
         }
+
+        @Override
+        public MutableModelNode getParent() {
+            return null;
+        }
     }
 
     private class ModelElementNode extends ModelNodeInternal {
         private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
+        private final MutableModelNode parent;
         private Object privateData;
         private ModelType<?> privateDataType;
 
-        public ModelElementNode(CreatorRuleBinder creatorBinder) {
-            super(creatorBinder);
+        public ModelElementNode(CreatorRuleBinder creatorRuleBinder, MutableModelNode parent) {
+            super(creatorRuleBinder);
+            this.parent = parent;
+        }
+
+        @Override
+        public MutableModelNode getParent() {
+            return parent;
         }
 
         @Override
@@ -988,7 +1001,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelElementNode(toCreatorBinder(creator)));
+            registerNode(this, new ModelElementNode(toCreatorBinder(creator), this));
         }
 
         @Override
