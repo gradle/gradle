@@ -31,6 +31,7 @@ import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Defaults;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 
@@ -65,21 +66,14 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     }
 
     static class Rules extends RuleSource {
-        static class Rule extends RuleSource {
-            @Defaults
-            void add(DependencyInsightReportTask task, final ServiceRegistry services) {
-                new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
-                    public Object call() {
-                        BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
-                        return javaProject == null ? null : javaProject.getCompileDependencies();
-                    }
-                });
-            }
-        }
-
         @Defaults
-        void addDefaultDependenciesReportConfiguration(CollectionBuilder<Task> task, ServiceRegistry serviceRegistry) {
-            task.named(DEPENDENCY_INSIGHT_TASK, Rule.class);
+        void addDefaultDependenciesReportConfiguration(@Path("tasks.dependencyInsight") DependencyInsightReportTask task, final ServiceRegistry services) {
+            new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                public Object call() {
+                    BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
+                    return javaProject == null ? null : javaProject.getCompileDependencies();
+                }
+            });
         }
     }
 
