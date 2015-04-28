@@ -43,7 +43,7 @@ public class MirahCompilerFactory implements CompilerFactory<MirahCompileSpec> {
     public Compiler<MirahCompileSpec> newCompiler(MirahCompileSpec spec) {
         MirahCompileOptions mirahOptions = (MirahCompileOptions) spec.getMirahCompileOptions();
         Set<File> mirahClasspathFiles = mirahClasspath.getFiles();
-        Compiler<MirahCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahCompileSpec>(rootProjectDirectory, new ZincMirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
+        Compiler<MirahCompileSpec> mirahCompiler = new DaemonMirahCompiler<MirahCompileSpec>(rootProjectDirectory, new MirahCompiler(mirahClasspathFiles), compilerDaemonFactory, mirahClasspathFiles);
         return new NormalizingMirahCompiler(mirahCompiler);
     }
 }

@@ -29,11 +29,11 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class ZincMirahCompiler implements Compiler<MirahCompileSpec>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(ZincMirahCompiler.class);
+public class MirahCompiler implements Compiler<MirahCompileSpec>, Serializable {
+    private static final Logger LOGGER = Logging.getLogger(MirahCompiler.class);
     private final Iterable<File> mirahClasspath;
 
-    public ZincMirahCompiler(Iterable<File> mirahClasspath) {
+    public MirahCompiler(Iterable<File> mirahClasspath) {
         this.mirahClasspath = mirahClasspath;
     }
 

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 @TargetCoverage({MirahCoverage.DEFAULT})
-class ZincMirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
+class MirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     String compilerConfiguration() {
