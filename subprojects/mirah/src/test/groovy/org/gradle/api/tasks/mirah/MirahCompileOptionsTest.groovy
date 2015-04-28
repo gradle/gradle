@@ -46,11 +46,11 @@ class MirahCompileOptionsTest {
     }
 
     @Test void testOptionMapContainsDeprecation() {
-        assertOnOffValue('deprecation', 'deprecation', true)
+        assertBooleanValue('deprecation', 'deprecation', true)
     }
 
     @Test void testOptionMapContainsUnchecked() {
-        assertOnOffValue('unchecked', 'unchecked', true)
+        assertBooleanValue('unchecked', 'unchecked', true)
     }
 
     @Test void testOptionMapContainsDebugLevelIfSpecified() {
