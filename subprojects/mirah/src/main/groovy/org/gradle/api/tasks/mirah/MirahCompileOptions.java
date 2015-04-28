@@ -25,10 +25,6 @@ import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 public class MirahCompileOptions extends BaseMirahCompileOptions {
     private boolean fork;
 
-    private boolean useCompileDaemon;
-
-    private String daemonServer;
-
     /**
      * Whether to run the Mirah compiler in a separate process. Defaults to {@code false}
      * for the Ant based compiler ({@code useAnt = true}), and to {@code true} for the Zinc
@@ -41,31 +37,4 @@ public class MirahCompileOptions extends BaseMirahCompileOptions {
     public void setFork(boolean fork) {
         this.fork = fork;
     }
-
-    /**
-     * Whether to use the fsc compile daemon.
-     */
-    public boolean isUseCompileDaemon() {
-        return useCompileDaemon;
-    }
-
-    public void setUseCompileDaemon(boolean useCompileDaemon) {
-        this.useCompileDaemon = useCompileDaemon;
-    }
-
-    // NOTE: Does not work for mirahc 2.7.1 due to a bug in the Ant task
-    /**
-     * Server (host:port) on which the compile daemon is running.
-     * The host must share disk access with the client process.
-     * If not specified, launches the daemon on the localhost.
-     * This parameter can only be specified if useCompileDaemon is true.
-     */
-    public String getDaemonServer() {
-        return daemonServer;
-    }
-
-    public void setDaemonServer(String daemonServer) {
-        this.daemonServer = daemonServer;
-    }
-
 }

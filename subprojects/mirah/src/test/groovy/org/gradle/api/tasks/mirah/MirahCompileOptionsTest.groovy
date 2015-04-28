@@ -28,19 +28,6 @@ class MirahCompileOptionsTest {
         compileOptions = new MirahCompileOptions()
     }
 
-    @Test void testOptionMapDoesNotContainCompileDaemon() {
-        String antProperty = 'useCompileDaemon'
-        assertFalse(compileOptions.useCompileDaemon)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.useCompileDaemon = true
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-    }
-
-    @Test void testOptionMapContainsDaemonServerIfSpecified() {
-        assertSimpleStringValue('daemonServer', 'server', null, 'host:9000')
-    }
-
     @Test void testOptionMapContainsFailOnError() {
         assertBooleanValue('failOnError', 'failOnError', true)
     }
