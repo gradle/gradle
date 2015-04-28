@@ -40,8 +40,8 @@ import java.util.Set;
  *
  * dependencies { compile "org.codehaus.groovy:groovy-all:2.1.2" }
  *
- * def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile) // The returned class path can be used to configure the 'groovyClasspath' property of tasks // such as
- * 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly. </pre>
+ * def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile) // The returned class path can be used to configure the 'groovyClasspath' property of tasks
+ * // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly. </pre>
  */
 @Incubating
 public class GroovyRuntime {
