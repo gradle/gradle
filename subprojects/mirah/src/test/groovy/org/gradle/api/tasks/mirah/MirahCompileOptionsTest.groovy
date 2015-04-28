@@ -76,33 +76,6 @@ class MirahCompileOptionsTest {
         assert !compileOptions.optionMap().containsKey("target")
     }
 
-    @Test void testOptionMapContainsValuesForAdditionalParameters() {
-        String antProperty = 'addparams'
-        assertNull(compileOptions.additionalParameters)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.additionalParameters = ['-opt1', '-opt2']
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('-opt1 -opt2' as String))
-    }
-
-    @Test void testOptionMapContainsListFiles() {
-        assertBooleanValue('listFiles', 'mirahcdebugging', false)
-    }
-
-    @Test void testOptionMapContainsLoggingLevelIfSpecified() {
-        assertSimpleStringValue('loggingLevel', 'logging', null, 'verbose')
-    }
-
-    @Test void testOptionMapContainsValueForLoggingPhase() {
-        String antProperty = 'logphase'
-        Map optionMap = compileOptions.optionMap()
-        assertFalse(optionMap.containsKey(antProperty))
-
-        compileOptions.loggingPhases = ['pickler', 'tailcalls']
-        optionMap = compileOptions.optionMap()
-        assertThat(optionMap[antProperty] as String, equalTo('pickler,tailcalls' as String))
-    }
-
     private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
 
