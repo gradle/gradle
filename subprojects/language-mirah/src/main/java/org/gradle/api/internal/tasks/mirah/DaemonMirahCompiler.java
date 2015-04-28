@@ -44,11 +44,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DaemonMirahCompiler<T extends MirahCompileSpec> extends AbstractDaemonCompiler<T> {
-    private final Iterable<File> zincClasspath;
+    private final Iterable<File> mirahCompilerClasspath;
 
-    public DaemonMirahCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
+    public DaemonMirahCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> mirahCompilerClasspath) {
         super(daemonWorkingDir, delegate, daemonFactory);
-        this.zincClasspath = zincClasspath;
+        this.mirahCompilerClasspath = mirahCompilerClasspath;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DaemonMirahCompiler<T extends MirahCompileSpec> extends AbstractDae
         MirahForkOptions options = spec.getMirahCompileOptions().getForkOptions();
         List<String> sharedPackages = Arrays.asList("org.mirah", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                options.getJvmArgs(), zincClasspath, sharedPackages);
+                options.getJvmArgs(), mirahCompilerClasspath, sharedPackages);
     }
 }
 
