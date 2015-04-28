@@ -180,12 +180,14 @@ model {
         nativeComponentOneTest
             binaries
                 nativeComponentOneTestCUnitExe
+                    tasks
             sources
                 c
                 cunitLauncher
         nativeComponentTwoTest
             binaries
                 nativeComponentTwoTestCUnitExe
+                    tasks
             sources
                 c
                 cunitLauncher"""
