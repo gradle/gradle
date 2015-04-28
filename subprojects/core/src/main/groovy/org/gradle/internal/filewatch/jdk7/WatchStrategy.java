@@ -24,6 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 interface WatchStrategy {
     Stoppable watchSingleDirectory(Path path) throws IOException;
-    boolean pollChanges(long timeout, TimeUnit unit, WatchHandler watchHandler) throws InterruptedException;
+    boolean pollChanges(long timeout, TimeUnit unit, WatchListener watchHandler) throws InterruptedException;
     void close();
 }

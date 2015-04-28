@@ -16,7 +16,7 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
-interface WatchHandler {
+interface WatchListener {
     void onOverflow();
     void onChange(ChangeDetails changeDetails);
 }

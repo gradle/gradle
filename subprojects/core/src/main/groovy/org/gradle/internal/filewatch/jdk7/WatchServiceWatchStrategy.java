@@ -44,7 +44,7 @@ class WatchServiceWatchStrategy implements WatchStrategy {
     }
 
     @Override
-    public boolean pollChanges(long timeout, TimeUnit unit, WatchHandler watchHandler) throws InterruptedException {
+    public boolean pollChanges(long timeout, TimeUnit unit, WatchListener watchHandler) throws InterruptedException {
         WatchKey watchKey = watchService.poll(timeout, unit);
         if (watchKey != null) {
             handleWatchKey(watchKey, watchHandler);
@@ -62,7 +62,7 @@ class WatchServiceWatchStrategy implements WatchStrategy {
         }
     }
 
-    protected void handleWatchKey(WatchKey watchKey, WatchHandler watchHandler) {
+    protected void handleWatchKey(WatchKey watchKey, WatchListener watchHandler) {
         Path watchedPath = (Path)watchKey.watchable();
 
         for (WatchEvent<?> event : watchKey.pollEvents()) {

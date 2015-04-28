@@ -26,7 +26,7 @@ class WatchServiceWatchStrategyTest extends Specification {
         given:
         WatchService watchService = Mock(WatchService)
         WatchServiceWatchStrategy watchStrategy = new WatchServiceWatchStrategy(watchService)
-        def watchHandler = Mock(WatchHandler)
+        def watchHandler = Mock(WatchListener)
         def watchKey = Mock(WatchKey)
         def path = Mock(Path)
         def filePath = Mock(Path)
