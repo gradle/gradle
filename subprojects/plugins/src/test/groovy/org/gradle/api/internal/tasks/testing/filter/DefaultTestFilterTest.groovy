@@ -29,6 +29,7 @@ class DefaultTestFilterTest extends Specification {
         expect:
         spec.includePatterns.isEmpty()
         spec.excludePatterns.isEmpty()
+        spec.failIfNoMatchingTestFound
 
         when:
         spec.includeTestsMatching("*fooMethod")
@@ -67,6 +68,14 @@ class DefaultTestFilterTest extends Specification {
 
         when: spec.setExcludePatterns("ok", "")
         then: thrown(InvalidUserDataException)
+    }
+
+    def "can configure failsafe mode"() {
+        when:
+        spec.failIfNoMatchingTestFound = false
+
+        then:
+        !spec.failIfNoMatchingTestFound
     }
 
 }

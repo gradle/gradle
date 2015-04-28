@@ -142,6 +142,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
                         TestFilter filter = test.getFilter();
                         filter.setIncludePatterns(includePatterns);
                         filter.setExcludePatterns(excludePatterns);
+                        filter.setFailIfNoMatchingTestFound(false);
                     }
                 }
             });

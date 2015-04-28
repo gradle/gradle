@@ -27,6 +27,7 @@ public class DefaultTestFilter implements TestFilter {
 
     private Set<String> includeTestNames = new HashSet<String>();
     private Set<String> excludeTestNames = new HashSet<String>();
+    private boolean failIfNoMatchingTest = true;
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -69,6 +70,17 @@ public class DefaultTestFilter implements TestFilter {
             validateName(name);
         }
         this.excludeTestNames = Sets.newHashSet(testNamePatterns);
+        return this;
+    }
+
+    @Override
+    public boolean isFailIfNoMatchingTestFound() {
+        return failIfNoMatchingTest;
+    }
+
+    @Override
+    public TestFilter setFailIfNoMatchingTestFound(boolean fail) {
+        failIfNoMatchingTest = fail;
         return this;
     }
 }

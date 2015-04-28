@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestProgressListener
+import org.gradle.tooling.events.test.TestSuccessResult
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
@@ -289,7 +290,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-
     def "subsequent tests will execute if test filter is different"() {
         given:
         forkingTestBuildFile()
@@ -321,5 +321,96 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         then: "the test method is executed once"
         8 * listener.statusChanged(_ as TestFinishEvent) // 2 runs x 4: test class, test method, test worker, test task
+    }
+
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "build should not fail if filter matches a single test task"() {
+        given:
+        buildFile << """apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+
+            sourceSets {
+                first.java.srcDir 'src/test1/java'
+                second.java.srcDir 'src/test2/java'
+            }
+
+            configurations {
+                firstTestCompile.extendsFrom testCompile
+                secondTestCompile.extendsFrom testCompile
+                firstTestRuntime.extendsFrom testRuntime
+                secondTestRuntime.extendsFrom testRuntime
+            }
+
+            task test1(type:Test) {
+                testClassesDir = sourceSets.first.output.classesDir
+                classpath += sourceSets.first.runtimeClasspath
+            }
+            task test2(type:Test) {
+                testClassesDir = sourceSets.second.output.classesDir
+                classpath += sourceSets.second.runtimeClasspath
+            }
+
+        """
+
+        file("src/test1/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        file("src/test2/java/example/MyTest2.java") << """
+            package example;
+            public class MyTest2 {
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        TestProgressListener listener = Mock()
+        when: "a filter only matches in one task"
+
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addJvmTestMethods('example.MyTest', 'foo')
+                    .addTestProgressListener(listener).run()
+        }
+
+        then: "the build doesn't fail"
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Test foo(example.MyTest)'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Test class example.MyTest'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Gradle Test Executor 1'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Gradle Test Run :test1'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Test class example.MyTest2'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Gradle Test Executor 2'
+        }
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
+            assert event.result instanceof TestSuccessResult
+            assert event.descriptor.displayName == 'Gradle Test Run :test2'
+        }
     }
 }

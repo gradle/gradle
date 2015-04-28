@@ -120,4 +120,23 @@ public interface TestFilter {
      * @since 2.5
      */
     TestFilter setExcludePatterns(String... testNamePatterns);
+
+    /**
+     * Sets the failure behavior whenever no test matches the current filter.
+     *
+     * @param fail if true, an error should be thrown if no test is found matching the filter.
+     * @return this filter object
+     *
+     * @since 2.5
+     */
+    TestFilter setFailIfNoMatchingTestFound(boolean fail);
+
+    /**
+     * Tells if the task should fail if no test matching this filter is found. Default to true.
+     *
+     * @return true if not matching the filter should result in an failure
+     *
+     * @since 2.5
+     */
+    boolean isFailIfNoMatchingTestFound();
 }
