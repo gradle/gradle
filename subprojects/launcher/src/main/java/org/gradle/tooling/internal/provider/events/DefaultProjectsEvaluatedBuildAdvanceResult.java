@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProjectsEvaluatedResult;
 
 public class DefaultProjectsEvaluatedBuildAdvanceResult extends AbstractBuildAdvanceResult implements InternalBuildProjectsEvaluatedResult {
-    public DefaultProjectsEvaluatedBuildAdvanceResult() {
-        super("projects evaluated");
+    public DefaultProjectsEvaluatedBuildAdvanceResult(long startTime, long endTime) {
+        super(startTime, endTime, "projects evaluated");
     }
 }

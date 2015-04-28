@@ -22,13 +22,26 @@ import java.io.Serializable;
 
 public abstract class AbstractBuildAdvanceResult implements Serializable, InternalBuildAdvanceResult {
     private final String description;
+    private final long startTime;
+    private final long endTime;
 
-    public AbstractBuildAdvanceResult(String description) {
+    public AbstractBuildAdvanceResult(long startTime, long endTime, String description) {
         this.description = description;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     public String getOutcomeDescription() {
         return description;
     }
 
+    @Override
+    public long getEndTime() {
+        return endTime;
+    }
+
+    @Override
+    public long getStartTime() {
+        return startTime;
+    }
 }

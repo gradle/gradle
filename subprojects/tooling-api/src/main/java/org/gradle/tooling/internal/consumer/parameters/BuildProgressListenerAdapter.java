@@ -331,7 +331,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
                  */
                 @Override
                 public long getStartTime() {
-                    return 0;
+                    return result.getStartTime();
                 }
 
                 /**
@@ -341,7 +341,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
                  */
                 @Override
                 public long getEndTime() {
-                    return 0;
+                    return result.getEndTime();
                 }
             };
         }
@@ -354,12 +354,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
                 @Override
                 public long getStartTime() {
-                    return 0;
+                    return result.getStartTime();
                 }
 
                 @Override
                 public long getEndTime() {
-                    return 0;
+                    return result.getEndTime();
                 }
             };
         }
@@ -367,12 +367,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new BuildSettingsEvaluatedResult() {
                 @Override
                 public long getStartTime() {
-                    return 0;
+                    return result.getStartTime();
                 }
 
                 @Override
                 public long getEndTime() {
-                    return 0;
+                    return result.getEndTime();
                 }
             };
         }
@@ -380,12 +380,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new BuildProjectsLoadedResult() {
                 @Override
                 public long getStartTime() {
-                    return 0;
+                    return result.getStartTime();
                 }
 
                 @Override
                 public long getEndTime() {
-                    return 0;
+                    return result.getEndTime();
                 }
             };
         }
@@ -393,12 +393,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new BuildProjectsEvaluatedResult() {
                 @Override
                 public long getStartTime() {
-                    return 0;
+                    return result.getStartTime();
                 }
 
                 @Override
                 public long getEndTime() {
-                    return 0;
+                    return result.getEndTime();
                 }
             };
         }

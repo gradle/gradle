@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalBuildSettingsEvaluatedResult;
 
 public class DefaultSettingsEvaluatedBuildAdvanceResult extends AbstractBuildAdvanceResult implements InternalBuildSettingsEvaluatedResult {
-    public DefaultSettingsEvaluatedBuildAdvanceResult() {
-        super("settings evaluated");
+    public DefaultSettingsEvaluatedBuildAdvanceResult(long startTime, long endTime) {
+        super(startTime, endTime, "settings evaluated");
     }
 }

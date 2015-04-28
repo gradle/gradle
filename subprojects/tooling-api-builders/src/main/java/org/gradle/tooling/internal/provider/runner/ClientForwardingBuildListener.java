@@ -41,6 +41,7 @@ import org.gradle.tooling.internal.provider.events.DefaultSettingsEvaluatedBuild
 class ClientForwardingBuildListener implements BuildListener {
 
     private final BuildEventConsumer eventConsumer;
+    private final EventTracker eventTracker = new EventTracker();
 
     ClientForwardingBuildListener(BuildEventConsumer eventConsumer) {
         this.eventConsumer = eventConsumer;
@@ -53,7 +54,7 @@ class ClientForwardingBuildListener implements BuildListener {
      */
     @Override
     public void buildStarted(Gradle gradle) {
-        eventConsumer.dispatch(new DefaultBuildStartedProgressEvent(System.currentTimeMillis(), adapt(gradle)));
+        eventConsumer.dispatch(new DefaultBuildStartedProgressEvent(eventTracker.eventTime(), adapt(gradle)));
     }
 
     /**
@@ -63,11 +64,11 @@ class ClientForwardingBuildListener implements BuildListener {
      */
     @Override
     public void settingsEvaluated(Settings settings) {
-        eventConsumer.dispatch(new DefaultBuildAdvanceProgressEvent(System.currentTimeMillis(), adapt(settings.getGradle()), adaptSettings(settings)));
+        eventConsumer.dispatch(new DefaultBuildAdvanceProgressEvent(eventTracker.eventTime(), adapt(settings.getGradle()), adaptSettings(settings)));
     }
 
     private DefaultSettingsEvaluatedBuildAdvanceResult adaptSettings(Settings settings) {
-        return new DefaultSettingsEvaluatedBuildAdvanceResult();
+        return new DefaultSettingsEvaluatedBuildAdvanceResult(eventTracker.buildStartTime(), eventTracker.eventTime());
     }
 
     /**
@@ -78,9 +79,9 @@ class ClientForwardingBuildListener implements BuildListener {
     @Override
     public void projectsLoaded(Gradle gradle) {
         eventConsumer.dispatch(new DefaultBuildAdvanceProgressEvent(
-                System.currentTimeMillis(),
+                eventTracker.eventTime(),
                 adapt(gradle),
-                new DefaultProjectsLoadedBuildAdvanceResult()));
+                new DefaultProjectsLoadedBuildAdvanceResult(eventTracker.buildStartTime(), eventTracker.eventTime())));
     }
 
     /**
@@ -91,9 +92,9 @@ class ClientForwardingBuildListener implements BuildListener {
     @Override
     public void projectsEvaluated(Gradle gradle) {
         eventConsumer.dispatch(new DefaultBuildAdvanceProgressEvent(
-                System.currentTimeMillis(),
+                eventTracker.eventTime(),
                 adapt(gradle),
-                new DefaultProjectsEvaluatedBuildAdvanceResult()));
+                new DefaultProjectsEvaluatedBuildAdvanceResult(eventTracker.buildStartTime(), eventTracker.eventTime())));
     }
 
     /**
@@ -105,17 +106,17 @@ class ClientForwardingBuildListener implements BuildListener {
     public void buildFinished(BuildResult result) {
         Gradle gradle = result.getGradle();
         eventConsumer.dispatch(new DefaultBuildFinishedProgressEvent(
-                System.currentTimeMillis(),
+                eventTracker.eventTime(),
                 adapt(gradle),
                 adaptResult(result)));
     }
 
-    private static AbstractBuildAdvanceResult adaptResult(BuildResult result) {
+    private AbstractBuildAdvanceResult adaptResult(BuildResult result) {
         Throwable failure = result.getFailure();
         if (failure != null) {
-            return new DefaultBuildFailureResult(DefaultFailure.fromThrowable(failure));
+            return new DefaultBuildFailureResult(eventTracker.buildStartTime(), eventTracker.eventTime(), DefaultFailure.fromThrowable(failure));
         }
-        return new DefaultBuildSuccessResult();
+        return new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime());
     }
 
     private static DefaultBuildDescriptor adapt(Gradle gradle) {
@@ -123,5 +124,24 @@ class ClientForwardingBuildListener implements BuildListener {
             return null;
         }
         return new DefaultBuildDescriptor(System.identityHashCode(gradle), gradle.getGradleVersion(), adapt(gradle.getParent()));
+    }
+
+    /**
+     * Used to track the event times. Separated from the listener itself for consistency
+     * and ease of replacement.
+     */
+    private static class EventTracker {
+        private long buildStartTime = Long.MIN_VALUE;
+
+        public long buildStartTime() {
+            if (buildStartTime ==Long.MIN_VALUE) {
+                buildStartTime = System.currentTimeMillis();
+            }
+            return buildStartTime;
+        }
+
+        public long eventTime() {
+            return System.currentTimeMillis();
+        }
     }
 }

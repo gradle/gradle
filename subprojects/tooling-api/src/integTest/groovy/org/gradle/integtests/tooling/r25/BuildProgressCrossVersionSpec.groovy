@@ -206,18 +206,27 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         1 * listener.statusChanged(_ as BuildStartEvent)
         1 * listener.statusChanged(_ as BuildAdvanceEvent) >> { BuildAdvanceEvent event ->
             def result = event.result
+            assert result.startTime > 0
+            assert result.endTime >= result.startTime
             assert result instanceof BuildSettingsEvaluatedResult
+
         }
         1 * listener.statusChanged(_ as BuildAdvanceEvent) >> { BuildAdvanceEvent event ->
             def result = event.result
+            assert result.startTime > 0
+            assert result.endTime >= result.startTime
             assert result instanceof BuildProjectsLoadedResult
         }
         1 * listener.statusChanged(_ as BuildAdvanceEvent) >> { BuildAdvanceEvent event ->
             def result = event.result
+            assert result.startTime > 0
+            assert result.endTime >= result.startTime
             assert result instanceof BuildProjectsEvaluatedResult
         }
         1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
             def result = event.result
+            assert result.startTime > 0
+            assert result.endTime >= result.startTime
             assert result instanceof BuildFailureResult
             assert result.failures.size() == 1
         }

@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProjectsLoadedResult;
 
 public class DefaultProjectsLoadedBuildAdvanceResult extends AbstractBuildAdvanceResult implements InternalBuildProjectsLoadedResult {
-    public DefaultProjectsLoadedBuildAdvanceResult() {
-        super("projects loaded");
+    public DefaultProjectsLoadedBuildAdvanceResult(long startTime, long endTime) {
+        super(startTime, endTime, "projects loaded");
     }
 }

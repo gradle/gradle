@@ -24,5 +24,20 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
  * @since 2.5
  */
 public interface InternalBuildAdvanceResult extends InternalProtocolInterface {
+    /**
+     * Returns the time the build execution started.
+     *
+     * @return The start time of the build
+     */
+    long getStartTime();
+
+    /**
+     * Returns the time the result was produced.
+     *
+     * @return The time the result was produced.
+     */
+    long getEndTime();
+
+
     String getOutcomeDescription();
 }
