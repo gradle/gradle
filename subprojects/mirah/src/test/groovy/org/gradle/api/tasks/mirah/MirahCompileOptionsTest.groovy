@@ -29,62 +29,43 @@ class MirahCompileOptionsTest {
     }
 
     @Test void testOptionMapContainsFailOnError() {
-        assertBooleanValue('failOnError', 'failOnError', true)
+        assertBooleanValue('failOnError', true)
     }
 
     @Test void testOptionMapContainsDeprecation() {
-        assertBooleanValue('deprecation', 'deprecation', true)
+        assertBooleanValue('deprecation', true)
     }
 
     @Test void testOptionMapContainsUnchecked() {
-        assertBooleanValue('unchecked', 'unchecked', true)
+        assertBooleanValue('unchecked', true)
     }
 
     @Test void testOptionMapContainsDebugLevelIfSpecified() {
-        assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
+        assertSimpleStringValue('debugLevel', null, 'line')
     }
 
     @Test void testOptionMapContainsEncodingIfSpecified() {
-        assertSimpleStringValue('encoding', 'encoding', null, 'utf8')
+        assertSimpleStringValue('encoding', null, 'utf8')
     }
 
     @Test void testOptionMapContainsForce() {
-        assertSimpleStringValue('force', 'force', 'never', 'changed')
+        assertSimpleStringValue('force', 'never', 'changed')
     }
 
     @Test void testOptionMapDoesNotContainTargetCompatibility() {
         assert !compileOptions.optionMap().containsKey("target")
     }
 
-    private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
+    private assertBooleanValue(String fieldName, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('true'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('false'))
     }
 
-    private assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
+    private assertOnOffValue(String fieldName, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('on'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('off'))
     }
 
-    private assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
+    private assertSimpleStringValue(String fieldName, String defaultValue, String testValue) {
         assertThat(compileOptions."${fieldName}" as String, equalTo(defaultValue))
-        if (defaultValue == null) {
-            assertFalse(compileOptions.optionMap().containsKey(antProperty))
-        } else {
-            assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(defaultValue))
-        }
-        compileOptions."${fieldName}" = testValue
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(testValue))
     }
 
 }
