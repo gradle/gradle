@@ -73,8 +73,8 @@ public class JUnitTestClassExecuter {
             ));
         }
 
-        if (!options.getIncludedTests().isEmpty()) {
-            request = request.filterWith(new MethodNameFilter(options.getIncludedTests()));
+        if (!options.getIncludedTests().isEmpty() || !options.getExcludedTests().isEmpty()) {
+            request = request.filterWith(new MethodNameFilter(options.getIncludedTests(), options.getExcludedTests()));
         }
 
         Runner runner = request.getRunner();
@@ -91,8 +91,8 @@ public class JUnitTestClassExecuter {
 
         private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(Iterable<String> includedTests) {
-            matcher = new TestSelectionMatcher(includedTests);
+        public MethodNameFilter(Iterable<String> includedTests, Iterable<String> excludedTests) {
+            matcher = new TestSelectionMatcher(includedTests, excludedTests);
         }
 
         @Override

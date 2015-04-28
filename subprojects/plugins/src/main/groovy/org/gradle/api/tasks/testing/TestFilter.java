@@ -82,6 +82,42 @@ public interface TestFilter {
      *
      * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
      * @return this filter object
+     *
+     * @since 2.5
      */
     TestFilter setIncludePatterns(String... testNamePatterns);
+
+    /**
+     * Appends a test name pattern to the exclude filter. Wildcard '*' is supported,
+     * either test method name or class name is supported.
+     * Examples of test names: "com.foo.FooTest.someMethod", "com.foo.FooTest", "*FooTest*", "com.foo*".
+     * See examples in the docs for {@link TestFilter}.
+     *
+     * @param testNamePattern test name pattern to exclude, can be class or method name, can contain wildcard '*'
+     * @return this filter object
+     *
+     * @since 2.5
+     */
+    TestFilter excludeTestsMatching(String testNamePattern);
+
+    /**
+     * Returns the excluded test name patterns. They can be class or method names and may contain wildcard '*'.
+     * Test name patterns can be appended via {@link #excludeTestsMatching(String)} or set via {@link #setExcludePatterns(String...)}.
+     *
+     * @return excluded test name patterns
+     *
+     * @since 2.5
+     */
+    Set<String> getExcludePatterns();
+
+    /**
+     * Sets the test name patterns to be excluded in the filter. Wildcard '*' is supported.
+     * Replaces any existing test name patterns.
+     *
+     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
+     * @return this filter object
+     *
+     * @since 2.5
+     */
+    TestFilter setExcludePatterns(String... testNamePatterns);
 }

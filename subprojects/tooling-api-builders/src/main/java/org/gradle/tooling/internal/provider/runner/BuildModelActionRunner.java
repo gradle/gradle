@@ -19,11 +19,11 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
-import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.id.UUIDGenerator;
@@ -41,7 +41,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class BuildModelActionRunner implements BuildActionRunner {
@@ -125,13 +124,12 @@ public class BuildModelActionRunner implements BuildActionRunner {
                     TaskCollection<Test> testTaskCollection = project.getTasks().withType(Test.class);
                     String[] includePatterns = testConfiguration.getIncludePatterns();
                     String[] excludePatterns = testConfiguration.getExcludePatterns();
-                    if (excludePatterns.length>0) {
-                        throw new UnsupportedOperationException("Excludes are not supported yet");
-                    }
                     for (Test test : testTaskCollection) {
                         taskNames.add(test.getName());
                         gradle.getStartParameter().setTaskNames(taskNames);
-                        test.getFilter().setIncludePatterns(includePatterns);
+                        TestFilter filter = test.getFilter();
+                        filter.setIncludePatterns(includePatterns);
+                        filter.setExcludePatterns(excludePatterns);
                     }
                 }
             });

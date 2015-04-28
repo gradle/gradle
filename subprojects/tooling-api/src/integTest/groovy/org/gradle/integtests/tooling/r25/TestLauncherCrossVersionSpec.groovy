@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -148,7 +147,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    @NotYetImplemented
     def "can execute single test with an exclude pattern"() {
         given:
         forkingTestBuildFile()

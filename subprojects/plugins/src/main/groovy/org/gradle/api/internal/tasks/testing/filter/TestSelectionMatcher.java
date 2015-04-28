@@ -24,10 +24,14 @@ import java.util.regex.Pattern;
 public class TestSelectionMatcher {
 
     private List<Pattern> includePatterns = new LinkedList<Pattern>();
+    private List<Pattern> excludePatterns = new LinkedList<Pattern>();
 
-    public TestSelectionMatcher(Iterable<String> includedTests) {
+    public TestSelectionMatcher(Iterable<String> includedTests, Iterable<String> excludedPatterns) {
         for (String includedTest : includedTests) {
             includePatterns.add(preparePattern(includedTest));
+        }
+        for (String excludedTest : excludedPatterns) {
+            excludePatterns.add(preparePattern(excludedTest));
         }
     }
 
@@ -48,8 +52,31 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
+        return matchesIncludesPatterns(className, methodName) && !matchesExcludesPatterns(className, methodName);
+    }
+
+    private boolean matchesIncludesPatterns(String className, String methodName) {
+        if (includePatterns.isEmpty()) {
+            return true;
+        }
         String fullName = className + "." + methodName;
         for (Pattern pattern : includePatterns) {
+            if (methodName != null && pattern.matcher(fullName).matches()) {
+                return true;
+            }
+            if (pattern.matcher(className).matches()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean matchesExcludesPatterns(String className, String methodName) {
+        if (excludePatterns.isEmpty()) {
+            return false;
+        }
+        String fullName = className + "." + methodName;
+        for (Pattern pattern : excludePatterns) {
             if (methodName != null && pattern.matcher(fullName).matches()) {
                 return true;
             }
