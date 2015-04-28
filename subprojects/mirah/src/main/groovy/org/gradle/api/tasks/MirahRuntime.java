@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
  *
  *     def mirahClasspath = mirahRuntime.inferMirahClasspath(configurations.compile)
  *     // The returned class path can be used to configure the 'mirahClasspath' property of tasks
- *     // such as 'MirahCompile' or 'MirahDoc', or to execute these and other Mirah tools directly.
+ *     // such as 'MirahCompile', or to execute these and other Mirah tools directly.
  * </pre>
  */
 @Incubating

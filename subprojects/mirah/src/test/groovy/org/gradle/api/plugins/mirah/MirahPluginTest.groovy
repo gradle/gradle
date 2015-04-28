@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.mirah.MirahCompile
-import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.util.TestUtil
 import org.junit.Test
 
@@ -77,25 +76,5 @@ class MirahPluginTest {
 
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileTestMirah')))
-    }
-    
-    @Test void addsMirahDocTasksToTheProject() {
-        mirahPlugin.apply(project)
-
-        def task = project.tasks[MirahPlugin.MIRAH_DOC_TASK_NAME]
-        assertThat(task, instanceOf(MirahDoc.class))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))
-        assertThat(task.source as List, equalTo(project.sourceSets.main.mirah as List))
-        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-    }
-
-    @Test void configuresMirahDocTasksDefinedByTheBuildScript() {
-        mirahPlugin.apply(project)
-
-        def task = project.task('otherMirahdoc', type: MirahDoc)
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }
 }

@@ -54,29 +54,4 @@ class SamplesMixedJavaAndMirahIntegrationTest extends AbstractIntegrationTest {
                 'org/gradle/sample/impl/PersonList.class'
         )
     }
-
-    @Test
-    public void canBuildDocs() {
-        if (GradleContextualExecuter.isDaemon()) {
-            // don't load mirah into the daemon as it exhausts permgen
-            return
-        }
-
-        TestFile projectDir = sample.dir
-        executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'mirahdoc').run()
-
-        TestFile javadocsDir = projectDir.file("build/docs/javadoc")
-        javadocsDir.file("index.html").assertIsFile()
-        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndMirah 1.0 API'))
-        javadocsDir.file("org/gradle/sample/Person.html").assertIsFile()
-        javadocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
-
-        TestFile mirahdocsDir = projectDir.file("build/docs/mirahdoc")
-        mirahdocsDir.file("index.html").assertIsFile()
-        mirahdocsDir.file("index.html").assertContents(containsString('mixedJavaAndMirah 1.0 API'))
-        mirahdocsDir.file("org/gradle/sample/impl/PersonImpl.html").assertIsFile()
-        mirahdocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
-        mirahdocsDir.file("org/gradle/sample/impl/PersonList.html").assertIsFile()
-    }
-
 }

@@ -18,27 +18,13 @@ package org.gradle.api.plugins.mirah;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.api.plugins.JavaBasePlugin
 
 public class MirahPlugin implements Plugin<Project> {
     // tasks
-    public static final String MIRAH_DOC_TASK_NAME = "mirahdoc";
 
     public void apply(Project project) {
         project.pluginManager.apply(MirahBasePlugin);
         project.pluginManager.apply(JavaPlugin);
-
-        configureMirahdoc(project);
-    }
-
-    private void configureMirahdoc(final Project project) {
-        project.getTasks().withType(MirahDoc.class) {MirahDoc mirahDoc ->
-            mirahDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
-            mirahDoc.source = project.sourceSets.main.mirah
-        }
-        MirahDoc mirahDoc = project.tasks.create(MIRAH_DOC_TASK_NAME, MirahDoc.class)
-        mirahDoc.description = "Generates Mirahdoc for the main source code.";
-        mirahDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

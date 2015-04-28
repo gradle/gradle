@@ -58,17 +58,4 @@ class SamplesMirahQuickstartIntegrationTest extends AbstractIntegrationTest {
                 'org/gradle/sample/impl/PersonImpl.class'
         )
     }
-
-    @Test
-    public void canBuildMirahDoc() {
-        if (GradleContextualExecuter.isDaemon()) {
-            // don't load mirah into the daemon as it exhausts permgen
-            return
-        }
-
-        executer.inDirectory(projectDir).withTasks('clean', 'mirahdoc').run()
-
-        projectDir.file('build/docs/mirahdoc/index.html').assertExists()
-        projectDir.file('build/docs/mirahdoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))
-    }
 }

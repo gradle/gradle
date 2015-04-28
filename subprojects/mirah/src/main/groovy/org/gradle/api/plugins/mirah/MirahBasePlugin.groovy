@@ -26,7 +26,6 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.MirahRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.mirah.MirahCompile
-import org.gradle.api.tasks.mirah.MirahDoc
 
 import javax.inject.Inject
 
@@ -54,7 +53,6 @@ class MirahBasePlugin implements Plugin<Project> {
         configureMirahRuntimeExtension()
         configureCompileDefaults()
         configureSourceSetDefaults(javaPlugin)
-        configureMirahdoc()
     }
 
     private void configureConfigurations(Project project) {
@@ -119,14 +117,6 @@ class MirahBasePlugin implements Plugin<Project> {
     private void configureCompileDefaults() {
         project.tasks.withType(MirahCompile.class) { MirahCompile compile ->
             compile.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(project.getBuildscript().getConfigurations().getAt("classpath")) }
-        }
-    }
-
-    private void configureMirahdoc() {
-        project.tasks.withType(MirahDoc) { MirahDoc mirahDoc ->
-            mirahDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/mirahdoc") }
-            mirahDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            mirahDoc.conventionMapping.mirahClasspath = { mirahRuntime.inferMirahClasspath(project.getBuildscript().getConfigurations().getAt("classpath")) }
         }
     }
 }

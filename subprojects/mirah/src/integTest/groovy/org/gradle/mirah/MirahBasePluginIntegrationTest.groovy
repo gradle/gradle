@@ -42,14 +42,9 @@ dependencies {
 //  customCompile "org.mirah:mirah-library:$version"
 }
 
-task mirahdoc(type: MirahDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
-
 task verify << {
     assert compileCustomMirah.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
     assert mirahCustomConsole.classpath.files.any { it.name == "mirah-compiler-${version}.jar" }
-    assert mirahdoc.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
 }
 """
 
@@ -71,10 +66,6 @@ repositories {
 
 dependencies {
 //  customCompile "org.mirah:mirah-library:$version"
-}
-
-task mirahdoc(type: MirahDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
 }
 
 task verify << {

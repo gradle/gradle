@@ -21,7 +21,6 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.mirah.MirahCompile
-import org.gradle.api.tasks.mirah.MirahDoc
 import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
@@ -107,14 +106,6 @@ public class MirahBasePluginTest {
     void configuresCompileTasksDefinedByTheBuildScript() {
         def task = project.task('otherCompile', type: MirahCompile)
         assertThat(task.source, isEmpty())
-        assertThat(task, dependsOn())
-    }
-
-    @Test
-    void configuresMirahDocTasksDefinedByTheBuildScript() {
-        def task = project.task('otherMirahdoc', type: MirahDoc)
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/mirahdoc")))
-        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task, dependsOn())
     }
 }
