@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 
 /**
  * A {@link DelegatingFileCollection} whose delegate is created lazily.
  */
 public abstract class LazilyInitializedFileCollection extends DelegatingFileCollection {
-    private FileCollection delegate;
+    private FileCollectionInternal delegate;
 
-    public abstract FileCollection createDelegate();
+    public abstract FileCollectionInternal createDelegate();
 
     @Override
-    public final synchronized FileCollection getDelegate() {
+    public final synchronized FileCollectionInternal getDelegate() {
         if (delegate == null) {
             delegate = createDelegate();
         }

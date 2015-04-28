@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractFileTree extends AbstractFileCollection implements FileTree {
+public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {

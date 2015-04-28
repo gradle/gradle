@@ -19,8 +19,10 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.util.Collections;
@@ -28,26 +30,18 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Provides information related to the Groovy runtime(s) used in a project. Added by the
- * {@link org.gradle.api.plugins.GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
+ * Provides information related to the Groovy runtime(s) used in a project. Added by the {@link org.gradle.api.plugins.GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
  *
  * <p>Example usage:
  *
- * <pre autoTested="">
- *     apply plugin: "groovy"
+ * <pre autoTested=""> apply plugin: "groovy"
  *
- *     repositories {
- *         mavenCentral()
- *     }
+ * repositories { mavenCentral() }
  *
- *     dependencies {
- *         compile "org.codehaus.groovy:groovy-all:2.1.2"
- *     }
+ * dependencies { compile "org.codehaus.groovy:groovy-all:2.1.2" }
  *
- *     def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile)
- *     // The returned class path can be used to configure the 'groovyClasspath' property of tasks
- *     // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly.
- * </pre>
+ * def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile) // The returned class path can be used to configure the 'groovyClasspath' property of tasks // such as
+ * 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly. </pre>
  */
 @Incubating
 public class GroovyRuntime {
@@ -58,10 +52,9 @@ public class GroovyRuntime {
     }
 
     /**
-     * Searches the specified class path for Groovy Jars ({@code groovy(-indy)}, {@code groovy-all(-indy)})
-     * and returns a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool.
-     * The tool versions will match those of the Groovy Jars found. If no Groovy Jars are found on the specified class
-     * path, a class path with the contents of the {@code groovy} configuration will be returned.
+     * Searches the specified class path for Groovy Jars ({@code groovy(-indy)}, {@code groovy-all(-indy)}) and returns a corresponding class path for executing Groovy tools such as the Groovy
+     * compiler and Groovydoc tool. The tool versions will match those of the Groovy Jars found. If no Groovy Jars are found on the specified class path, a class path with the contents of the {@code
+     * groovy} configuration will be returned.
      *
      * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
      *
@@ -73,14 +66,14 @@ public class GroovyRuntime {
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
-            public FileCollection createDelegate() {
+            public FileCollectionInternal createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", classpath));
                 }
 
                 if (groovyJar.isGroovyAll()) {
-                    return project.files(groovyJar.getFile());
+                    return Cast.cast(FileCollectionInternal.class, project.files(groovyJar.getFile()));
                 }
 
                 if (project.getRepositories().isEmpty()) {
@@ -95,7 +88,7 @@ public class GroovyRuntime {
                     // add groovy-ant to bring in Groovydoc
                     dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
                 }
-                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
+                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()])));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

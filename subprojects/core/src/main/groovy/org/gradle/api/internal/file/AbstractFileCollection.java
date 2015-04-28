@@ -193,10 +193,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
-    public boolean hasDirectoryTrees() {
-        return true;
-    }
-
     public Iterable<? extends DirectoryTree> getAsDirectoryTrees() {
         return getAsFileTrees();
     }

@@ -17,9 +17,19 @@
 package org.gradle.api.internal.file;
 
 
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 
-public interface FileCollectionInternal extends FileCollection, MinimalFileSet, BackedByDirectoryTrees {
+public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
+
+    /**
+     * Converts this collection to a collection of {@link DirectoryTree} instances.
+     *
+     * The DirectoryTree instance will implement {@link FileBackedDirectoryTree} when it's backed by files that don't change (a single file).
+     *
+     * @return this collection as a collection of {@link DirectoryTree}s. Never returns null.
+     */
+    Iterable<? extends DirectoryTree> getAsDirectoryTrees();
 
 }
