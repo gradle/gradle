@@ -29,8 +29,8 @@ To verify Gradle working with jdk9 we need basic jdk9 coverage in our CI pipelin
         
 - ~~provide howto about updating jdk9 EA installations in our dev-infrastructure~~
         
-- ~~add  `Linux - Java 1.9 - Quick test` build configuration on teamcity~~    
-    - ~~running `clean quickTest`~~
+- ~~add  `Linux - Java 1.9` build configuration on teamcity~~    
+    - ~~running `clean platformTest`~~
     - ~~for `master` pipeline~~
     - for `release` pipeline
 
