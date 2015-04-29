@@ -19,20 +19,20 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
 
 public class DefaultTaskSkippedResult extends AbstractTaskResult implements InternalTaskSkippedResult {
-    private final boolean upToDate;
+    private final String skipMessage;
 
-    public DefaultTaskSkippedResult(long startTime, long endTime, boolean upToDate) {
+    public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage) {
         super(startTime, endTime);
-        this.upToDate = upToDate;
+        this.skipMessage = skipMessage;
     }
 
     @Override
     public String getOutcomeDescription() {
-        return upToDate?"up-to-date":"skipped";
+        return getSkipMessage();
     }
 
     @Override
-    public boolean isUpToDate() {
-        return upToDate;
+    public String getSkipMessage() {
+        return skipMessage;
     }
 }

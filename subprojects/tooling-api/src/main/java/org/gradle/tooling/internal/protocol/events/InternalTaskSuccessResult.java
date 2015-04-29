@@ -22,4 +22,5 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.5
  */
 public interface InternalTaskSuccessResult extends InternalTaskResult {
+    String getOutcomeDescription();
 }

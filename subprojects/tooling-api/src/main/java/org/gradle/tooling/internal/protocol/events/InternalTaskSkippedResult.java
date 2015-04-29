@@ -24,5 +24,5 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.5
  */
 public interface InternalTaskSkippedResult extends InternalTaskResult {
-    boolean isUpToDate();
+    String getSkipMessage();
 }

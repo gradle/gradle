@@ -27,9 +27,9 @@ import org.gradle.tooling.events.SkippedResult;
 @Incubating
 public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
     /**
-     * Returns true if this task was skipped because it was up-to-date.
+     * Returns the skipped message asociated with the skipped task.
      *
-     * @return true if this task was skipped because it was up-to-date.
+     * @return the skipped message
      */
-    boolean isUpToDate();
+    String getSkipMessage();
 }

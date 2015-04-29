@@ -26,7 +26,7 @@ public class EventIdGenerator {
     }
 
     public static Object generateId(Task task) {
-        return String.format("%s:%s",generateId(task.getProject().getGradle()),task.getPath());
+        return String.format("%s:%s", generateId(task.getProject().getGradle()), task.getPath());
     }
 
     public static Object generateId(TestDescriptorInternal testDescriptor) {

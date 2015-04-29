@@ -455,12 +455,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                         break
                     case 'up-to-date':
                         assert event instanceof TaskFinishEvent
-                        assert event.result instanceof TaskSkippedResult
+                        assert event.result instanceof TaskSuccessResult
                         if (ordered) {
                             assert event.result.startTime >= oldEndTime
                         }
                         assert event.result.endTime >= event.result.startTime
-                        assert event.result.upToDate
+                        assert event.result.successMessage == 'up-to-date'
                         break
                     case 'skipped':
                         assert event instanceof TaskFinishEvent
@@ -469,7 +469,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                             assert event.result.startTime >= oldEndTime
                         }
                         assert event.result.endTime >= event.result.startTime
-                        assert !event.result.upToDate
+                        assert event.result.skipMessage == 'SKIPPED'
                         break
                     case 'succeeded':
                         assert event instanceof TaskFinishEvent

@@ -663,7 +663,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(InternalTaskSkippedResult)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.isUpToDate() >> true
+        _ * testResult.getSkipMessage() >> 'skipped'
 
         def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
@@ -683,7 +683,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.result instanceof TaskSkippedResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
-            assert event.result.upToDate == true
+            assert event.result.skipMessage == 'skipped'
         }
     }
 
@@ -747,6 +747,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(InternalTaskSuccessResult)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
+        _ * testResult.getOutcomeDescription() >> 'up-to-date'
 
         def succeededEvent = Mock(InternalTaskFinishedProgressEvent)
         _ * succeededEvent.getEventTime() >> 999
@@ -766,6 +767,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.result instanceof TaskSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
+            assert event.result.successMessage == 'up-to-date'
         }
     }
 

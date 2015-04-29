@@ -268,8 +268,8 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         if (result instanceof InternalTaskSkippedResult) {
             return new TaskSkippedResult() {
                 @Override
-                public boolean isUpToDate() {
-                    return ((InternalTaskSkippedResult) result).isUpToDate();
+                public String getSkipMessage() {
+                    return ((InternalTaskSkippedResult) result).getSkipMessage();
                 }
 
                 @Override
@@ -307,6 +307,11 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
         if (result instanceof InternalTaskSuccessResult) {
             return new TaskSuccessResult() {
+                @Override
+                public String getSuccessMessage() {
+                    return ((InternalTaskSuccessResult) result).getOutcomeDescription();
+                }
+
                 @Override
                 public long getStartTime() {
                     return result.getStartTime();
