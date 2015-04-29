@@ -128,8 +128,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "current build progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
         thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 2
-        resultsOfLastListener.size() == 2
+        resultsOfFirstListener.size() > 0
+        resultsOfLastListener.size() > 0
     }
 
     @ToolingApiVersion(">=2.5")
