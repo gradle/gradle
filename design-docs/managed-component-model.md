@@ -142,7 +142,7 @@ Effectively the same treatment that the component spec container received.
 Implementation should refactor `ComponentModelBasePlugin` and `NativeBinariesTestPlugin` so that this behaviour is reused for the test suite container and not
 duplicated.
 
-# Feature 2: Configuration of key parts of the software model is deferred until required
+# Feature 2: Configuration of key parts of the software model are deferrable until required
 
 This feature changes the software model to introduce 'managed map' types instead of `DomainObjectSet`.
 
@@ -152,6 +152,11 @@ This feature changes the software model to introduce 'managed map' types instead
 
 At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component,
 and the tasks of a binary. These rules will be executed as required.
+
+This feature does not require that sources, binaries etc. of the component model are actually deferred under conventional use.
+Some of the infrastructure rules in the component model plugins are currently coarse in that they effectively depend on all the components, forcing realisation.
+This feature does not require changing the implementation of these rules to be more fine grained.
+It does require that the elements are potentially deferrable.
 
 ## Implementation
 
