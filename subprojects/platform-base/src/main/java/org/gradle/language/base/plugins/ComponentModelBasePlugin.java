@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -33,7 +34,8 @@ import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
@@ -70,10 +72,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             public ComponentSpecContainer transform(CollectionBuilder<ComponentSpec> componentSpecs) {
                 return new DefaultComponentSpecContainer(componentSpecs);
             }
-        }, descriptor, ComponentSpecInitializer.action());
-        modelRegistry.createOrReplace(componentsCreator);
+        }, descriptor, BiActions.doNothing());
+        modelRegistry.create(componentsCreator);
+        ((MutableModelNode) modelRegistry.node(ModelPath.ROOT)).applyToAllLinksTransitive(ModelActionRole.Defaults,
+            DirectNodeModelAction.of(
+                ModelReference.of(ComponentSpec.class),
+                new SimpleModelRuleDescriptor(descriptor),
+                ComponentSpecInitializer.action()));
     }
-
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
