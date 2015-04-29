@@ -53,4 +53,8 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     DaemonsFixture getDaemons() {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
+
+    void cleanup() {
+        daemons.killAll()
+    }
 }
