@@ -731,26 +731,95 @@ model {
 Base deployment plugin:
 
 - Defines the concept of a 'deployable component'
-- Defines the concept of a 'deployment' that can be owned by a deployable component
+- Defines the concept of a 'deployment spec' that can be owned by a deployable component
+- Defines the concept of a 'deployable binary' that that represents a binary that can be deployed
 - Defines `run` lifecycle task for a deployment.
+
+    interface DeployableComponentSpec extends ComponentSpec {
+        void deployments(Action<? super PolymorphicDomainObjectContainer<DeploymentSpec>)
+    }
+
+    interface DeployableBinary extends BinarySpec
+
+    interface DeploymentSpec extends Named 
+
+    interface Executable {
+        void start()
+        void stop()
+    }
+
+    interface DeploymentExecutable extends Executable {
+        void deploy(DeployableBinary binary)
+    }
+
+    interface DeploymentResolver<T extends DeploymentExecutable> {
+        T resolve(DeploymentSpec requirement)
+        Class<T> getType()
+    }
+
+    interface DeploymentResolvers {
+        void register(DeploymentResolver<? extends DeploymentExecutable> resolver)
+        <T extends DeploymentExecutable> T resolve(Class<T> type, DeploymentSpec requirement)
+    }
 
 Web application plugin:
 
-- Defines the concept of a 'web application' as a deployable component.
-- Defines the concept of a 'web deployment': a web application hosted by a web server.
+- Defines the concept of a 'web deployment spec': an application hosted by a web server.
+
+    interface WebDeploymentSpec {
+        String getHost()
+        String getPort()
+        String getProtocol()
+    }
 
 Play plugin:
 
-- Defines a Play application as-a web application.
-- Adds a 'dev' PlayDevApplicationDeployment automatically for each play component.
-- Defines a ${component}${deployment}Run task for starting and deploying application.
-- Configures `run` to depend on ${component}${deployment}Run and ${component}${deployment}Run to depend on the output of the play application.
+- Defines a Play deployment spec
+- Adds a 'dev' PlayDeploymentSpec automatically for each play component.
+- registers a deployment resolver for a play application runner
+- Defines a ${binary}${deployment}Run task for each deployment/binary.  Each task will get the deployment spec and the associated binary.
+- When a run task is executed, it will resolve the deployment executable via DeploymentResolvers to get a PlayApplicationRunner.  Then it will deploy the binary and start the executable.
+- Configures `run` to depend on ${binary}${deployment}Run and ${binary}${deployment}Run to depend on the play application binary.
 
-When the Run task is executed for a deployment for a PlayDevApplicationDeployment, Gradle will:
+    interface PlayDeploymentSpec extends WebDeploymentSpec {
+        PlayPlatform platform
+    }
 
-- Build the web application
-- Start the web server
-- Deploy the web application to the web server
+    interface PlayApplicationSpec extends PlatformAwareComponentSpec, DeployableComponentSpec
+
+    interface PlayApplicationBinarySpec extends DeployableBinary
+
+    interface PlayApplicationRunner extends DeploymentExecutable
+
+    class PlayDeploymentResolver implements DeploymentResolver<PlayApplicationRunner>
+
+(The following are included for comparison)
+War plugin:
+
+    interface WarDeploymentSpec extends WebDeploymentSpec {
+        String jeeVersion
+    }
+
+    interface WarComponentSpec extends DeployableComponentSpec
+
+    interface WarBinarySpec extends DeployableBinary {
+        File getWarFile()
+    }
+
+    interface JeeWarContainer extends DeploymentExecutable
+
+Jetty plugin:
+- Defines the concept of a JettyDeploymentRequirement that specifies the Jee and Jetty versions
+- Defines the concept of a WarApplicationDeployment that specifies a war file to be deployed.
+- registers a deployment resolver for a JettyContainer
+
+    interface JettyDeploymentSpec extends WarDeploymentSpec {
+        String jettyVersion
+    }
+
+    class JettyContainer implements JeeWarContainer
+
+    class JettyDeploymentResolver implements DeploymentResolver<JeeWarContainer>
 
 Component Model Report might look like this:
 
