@@ -175,16 +175,20 @@
                 <td>sourceSets.test.allSource.srcDirs (filtered to only include existing directories)</td>
             </tr>
             <tr>
-                <td>sonar.binaries</td>
+                <td>sonar.java.binaries</td>
                 <td>sourceSets.main.runtimeClasspath (filtered to only include directories)</td>
             </tr>
             <tr>
-                <td>sonar.libraries</td>
+                <td>sonar.java.libraries</td>
                 <td>sourceSets.main.runtimeClasspath (filtering to only include files; <literal>rt.jar</literal> added if necessary)</td>
             </tr>
             <tr>
-                <td>sonar.surefire.reportsPath</td>
-                <td>test.testResultsDir (if the directory exists)</td>
+                <td>sonar.java.test.binaries</td>
+                <td>sourceSets.test.runtimeClasspath (filtered to only include directories)</td>
+            </tr>
+            <tr>
+                <td>sonar.java.test.libraries</td>
+                <td>sourceSets.test.runtimeClasspath (filtering to only include files; <literal>rt.jar</literal> added if necessary)</td>
             </tr>
             <tr>
                 <td>sonar.junit.reportsPath</td>

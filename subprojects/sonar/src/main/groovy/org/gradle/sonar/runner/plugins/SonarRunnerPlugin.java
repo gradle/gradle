@@ -223,8 +223,18 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 List<File> testDirectories = nonEmptyOrNull(Iterables.filter(test.getAllSource().getSrcDirs(), FILE_EXISTS));
                 properties.put("sonar.tests", testDirectories);
 
-                properties.put("sonar.binaries", nonEmptyOrNull(Iterables.filter(main.getRuntimeClasspath(), IS_DIRECTORY)));
-                properties.put("sonar.libraries", getLibraries(main));
+                List<File> mainClasspath = nonEmptyOrNull(Iterables.filter(main.getRuntimeClasspath(), IS_DIRECTORY));
+                Collection<File> mainLibraries = getLibraries(main);
+                properties.put("sonar.java.binaries", mainClasspath);
+                properties.put("sonar.java.libraries", mainLibraries);
+                List<File> testClasspath = nonEmptyOrNull(Iterables.filter(test.getRuntimeClasspath(), IS_DIRECTORY));
+                Collection<File> testLibraries = getLibraries(test);
+                properties.put("sonar.java.test.binaries", testClasspath);
+                properties.put("sonar.java.test.libraries", testLibraries);
+
+                // Populate deprecated properties for backward compatibility
+                properties.put("sonar.binaries", mainClasspath);
+                properties.put("sonar.libraries", mainLibraries);
 
                 final Test testTask = (Test) project.getTasks().getByName(JavaPlugin.TEST_TASK_NAME);
 

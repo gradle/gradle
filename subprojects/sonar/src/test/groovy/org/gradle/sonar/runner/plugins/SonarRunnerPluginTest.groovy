@@ -172,16 +172,21 @@ class SonarRunnerPluginTest extends Specification {
         parentProject.sourceSets.main.output.classesDir = "$parentProject.buildDir/out"
         parentProject.sourceSets.main.output.resourcesDir = "$parentProject.buildDir/out"
         parentProject.sourceSets.main.runtimeClasspath += parentProject.files("lib/SomeLib.jar")
+        parentProject.sourceSets.test.output.classesDir = "$parentProject.buildDir/test-out"
+        parentProject.sourceSets.test.output.resourcesDir = "$parentProject.buildDir/test-out"
+        parentProject.sourceSets.test.runtimeClasspath += parentProject.files("lib/junit.jar")
 
         new TestFile(parentProject.projectDir).create {
             src {}
             test {}
             buildDir {
                 out {}
+                "test-out" {}
                 "test-results" {}
             }
             lib {
                 file("SomeLib.jar")
+                file("junit.jar")
             }
         }
 
@@ -191,6 +196,10 @@ class SonarRunnerPluginTest extends Specification {
         then:
         properties["sonar.sources"] == new File(parentProject.projectDir, "src") as String
         properties["sonar.tests"] == new File(parentProject.projectDir, "test") as String
+        properties["sonar.java.binaries"].contains(new File(parentProject.buildDir, "out") as String)
+        properties["sonar.java.libraries"].contains(new File(parentProject.projectDir, "lib/SomeLib.jar") as String)
+        properties["sonar.java.test.binaries"].contains(new File(parentProject.buildDir, "test-out") as String)
+        properties["sonar.java.test.libraries"].contains(new File(parentProject.projectDir, "lib/junit.jar") as String)
         properties["sonar.binaries"].contains(new File(parentProject.buildDir, "out") as String)
         properties["sonar.libraries"].contains(new File(parentProject.projectDir, "lib/SomeLib.jar") as String)
         properties["sonar.surefire.reportsPath"] == new File(parentProject.buildDir, "test-results") as String
