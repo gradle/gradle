@@ -16,11 +16,11 @@
 
 package org.gradle.language.base.internal.model;
 
-import org.gradle.api.*;
-import org.gradle.internal.Actions;
-import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.Transformer;
+import org.gradle.internal.*;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelCreators;
@@ -44,6 +44,20 @@ public class ComponentSpecInitializer {
         return ACTION;
     }
 
+    public static BiAction<MutableModelNode, BinarySpec> binaryAction() {
+        return new BiAction<MutableModelNode, BinarySpec>() {
+            @Override
+            public void execute(MutableModelNode node, BinarySpec spec) {
+                ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
+                ModelReference<BinaryTasksCollection> itemReference = ModelReference.of(node.getPath().child("tasks"), itemType);
+                ModelCreator itemCreator = ModelCreators.unmanagedInstance(itemReference, Factories.constant(spec.getTasks()))
+                    .descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks"))
+                    .build();
+                node.addLink(itemCreator);
+            }
+        };
+    }
+
     private static BiAction<MutableModelNode, ComponentSpec> createAction() {
         Transformer<NamedDomainObjectCollection<LanguageSourceSet>, ComponentSpecInternal> sourcesPropertyTransformer = new Transformer<NamedDomainObjectCollection<LanguageSourceSet>, ComponentSpecInternal>() {
             public NamedDomainObjectCollection<LanguageSourceSet> transform(ComponentSpecInternal componentSpec) {
@@ -65,23 +79,8 @@ public class ComponentSpecInitializer {
                 binaryInternal.setBinarySources(component.getSources().copy(binary.getName()));
             }
         };
-        Action<MutableModelNode> binaryNodeInitializationAction = new Action<MutableModelNode>() {
-            public void execute(final MutableModelNode node) {
-                ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
-                ModelReference<BinaryTasksCollection> itemReference = ModelReference.of(node.getPath().child("tasks"), itemType);
-                ModelCreator itemCreator = ModelCreators.unmanagedInstance(itemReference, new Factory<BinaryTasksCollection>() {
-                    public BinaryTasksCollection create() {
-                        return node.getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
-                    }
-                })
-                    .descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks"))
-                    .build();
-
-                node.addLink(itemCreator);
-            }
-        };
         BiAction<MutableModelNode, ComponentSpec> binariesPropertyRegistrar = domainObjectCollectionModelRegistrar("binaries", binariesType, binariesPropertyTransformer, binaryInitializationAction,
-            binaryNodeInitializationAction);
+            Actions.doNothing());
         @SuppressWarnings("unchecked")
         BiAction<MutableModelNode, ComponentSpec> initializer = BiActions.composite(sourcePropertyRegistrar, binariesPropertyRegistrar);
         return initializer;

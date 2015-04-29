@@ -630,7 +630,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public ModelNode node(ModelPath path) {
+    public MutableModelNode getRoot() {
+        return modelGraph.getRoot();
+    }
+
+    @Override
+    public MutableModelNode node(ModelPath path) {
         return modelGraph.find(path);
     }
 

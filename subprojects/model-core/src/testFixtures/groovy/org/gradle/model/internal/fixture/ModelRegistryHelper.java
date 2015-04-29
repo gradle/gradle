@@ -164,12 +164,17 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public ModelNode node(ModelPath path) {
+    public MutableModelNode getRoot() {
+        return modelRegistry.getRoot();
+    }
+
+    @Override
+    public MutableModelNode node(ModelPath path) {
         return modelRegistry.node(path);
     }
 
     @Nullable
-    public ModelNode node(String path) {
+    public MutableModelNode node(String path) {
         return node(ModelPath.path(path));
     }
 

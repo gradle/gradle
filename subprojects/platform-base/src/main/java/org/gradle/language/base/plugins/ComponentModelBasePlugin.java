@@ -34,7 +34,10 @@ import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DirectNodeModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
@@ -74,11 +77,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }, descriptor, BiActions.doNothing());
         modelRegistry.create(componentsCreator);
-        ((MutableModelNode) modelRegistry.node(ModelPath.ROOT)).applyToAllLinksTransitive(ModelActionRole.Defaults,
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeModelAction.of(
                 ModelReference.of(ComponentSpec.class),
                 new SimpleModelRuleDescriptor(descriptor),
                 ComponentSpecInitializer.action()));
+
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
+            DirectNodeModelAction.of(
+                ModelReference.of(BinarySpec.class),
+                new SimpleModelRuleDescriptor(descriptor),
+                ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
