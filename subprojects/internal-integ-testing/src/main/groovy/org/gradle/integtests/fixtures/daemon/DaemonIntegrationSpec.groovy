@@ -18,7 +18,10 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.daemon })
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     @Override
