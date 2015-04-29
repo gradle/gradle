@@ -53,9 +53,6 @@ public class MavenProjectsCreator {
     }
 
     private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
-        //using jarjar for maven3 classes affects the contents of the effective pom
-        //references to certain Maven standard plugins contain jarjar in the fqn
-        //not sure if this is a problem.
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
                 .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))
                 .setName("mavenCore");
