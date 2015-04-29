@@ -22,8 +22,6 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
-import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.sonar.runner.SonarRunnerExtension
 import org.gradle.sonar.runner.SonarRunnerRootExtension
 import org.gradle.sonar.runner.tasks.SonarRunner
@@ -125,8 +123,6 @@ class SonarRunnerPluginTest extends Specification {
 
         then:
         properties["sonar.projectKey"] == "group:parent"
-        properties["sonar.environment.information.key"] == "Gradle"
-        properties["sonar.environment.information.version"] == parentProject.gradle.gradleVersion
         properties["sonar.working.directory"] == new File(parentProject.buildDir, "sonar") as String
 
         and:
@@ -388,17 +384,6 @@ class SonarRunnerPluginTest extends Specification {
         !properties.any { key, value -> key.startsWith("child.sonar.") }
     }
 
-    def "sets default fork options correctly"() {
-
-        when:
-        JavaForkOptions forkOptions = parentSonarRunnerTask().forkOptions
-        SonarRunnerRootExtension rootExtension = parentProject.extensions.sonarRunner
-
-        then:
-        forkOptions instanceof DefaultJavaForkOptions
-        rootExtension.toolVersion == '2.3'
-    }
-
     def "root extension can configure task fork options"() {
 
         parentProject.sonarRunner {
@@ -416,30 +401,8 @@ class SonarRunnerPluginTest extends Specification {
         forkOptions.allJvmArgs.contains('-XX:MaxPermSize=128m')
     }
 
-    def "sonar java process is configured properly"() {
-
-        when:
-        JavaExecHandleBuilder handleBuilder = parentSonarRunnerTask().prepareExec()
-
-        then:
-        handleBuilder.main == 'org.sonar.runner.Main'
-        handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.3.jar")
-    }
-
     private SonarRunner parentSonarRunnerTask() {
         parentProject.tasks.sonarRunner as SonarRunner
     }
 
-    def "can choose sonar runner version"() {
-
-        parentProject.sonarRunner {
-            toolVersion = '2.4'
-        }
-
-        when:
-        JavaExecHandleBuilder handleBuilder = parentSonarRunnerTask().prepareExec()
-
-        then:
-        handleBuilder.classpath.files*.name.contains("sonar-runner-dist-2.4.jar")
-    }
 }

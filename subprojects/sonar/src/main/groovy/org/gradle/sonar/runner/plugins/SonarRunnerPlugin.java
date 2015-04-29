@@ -24,10 +24,6 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -96,7 +92,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             }
         });
         SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class, actionBroadcast);
-        addConfiguration(project, rootExtension);
         rootExtension.setForkOptions(sonarRunnerTask.getForkOptions());
     }
 
@@ -199,8 +194,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             // prefix subproject keys with parent key, even if subproject keys are set explicitly.
             // Therefore it's better to rely on Sonar's defaults.
             properties.put("sonar.projectKey", getProjectKey(project));
-            properties.put("sonar.environment.information.key", "Gradle");
-            properties.put("sonar.environment.information.version", project.getGradle().getGradleVersion());
             properties.put("sonar.working.directory", new File(project.getBuildDir(), "sonar"));
         }
 
@@ -319,23 +312,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         } else {
             return value.toString();
         }
-    }
-
-    private void addConfiguration(final Project project, final SonarRunnerRootExtension rootExtension) {
-        final Configuration configuration = project.getConfigurations().create(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
-        configuration
-                .setVisible(false)
-                .setTransitive(false)
-                .setDescription("The SonarRunner configuration to use to run analysis")
-                .whenEmpty(new Action<DependencySet>() {
-                    @Override
-                    public void execute(DependencySet dependencies) {
-                        String toolVersion = rootExtension.getToolVersion();
-                        DependencyHandler dependencyHandler = project.getDependencies();
-                        Dependency dependency = dependencyHandler.create("org.codehaus.sonar.runner:sonar-runner-dist:" + toolVersion);
-                        dependencies.add(dependency);
-                    }
-                });
     }
 
     private static void evaluateSonarPropertiesBlocks(ActionBroadcast<? super SonarProperties> propertiesActions, Map<String, Object> properties) {
