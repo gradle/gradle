@@ -91,7 +91,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    @Ignore("This test highlights a bug in org.gradle.initialization.DefaultGradleLauncherFactory which expects buildFinish to be always called")
     def "build aborts if a build listener throws an exception"() {
         given:
         goodCode()
@@ -110,7 +109,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    @Ignore("This test highlights a bug in org.gradle.initialization.DefaultGradleLauncherFactory which expects buildFinish to be always called")
     def "receive current build progress event even if one of multiple build listeners throws an exception"() {
         given:
         goodCode()
@@ -131,8 +129,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "current build progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
         thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 1
-        resultsOfLastListener.size() == 1
+        resultsOfFirstListener.size() == 2
+        resultsOfLastListener.size() == 2
     }
 
     @ToolingApiVersion(">=2.5")

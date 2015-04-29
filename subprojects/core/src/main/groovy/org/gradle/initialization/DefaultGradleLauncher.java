@@ -99,10 +99,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private BuildResult doBuild(Stage upTo) {
         loggingManager.start();
-        buildListener.buildStarted(gradle);
 
         Throwable failure = null;
         try {
+            buildListener.buildStarted(gradle);
             doBuildStages(upTo);
         } catch (Throwable t) {
             failure = exceptionAnalyser.transform(t);
