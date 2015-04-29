@@ -111,6 +111,7 @@ libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
 
     //core:
     dependency "org.apache.maven:maven-core:3.0.4@jar"
+    dependency "org.apache.maven:maven-compat:3.0.4@jar"
     dependency "org.apache.maven:maven-model-builder:3.0.4@jar"
     dependency "org.apache.maven:maven-model:3.0.4@jar"
 
