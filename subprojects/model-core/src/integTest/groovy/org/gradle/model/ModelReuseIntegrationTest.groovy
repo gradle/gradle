@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
+// Requires daemon because reuse right now doesn't handle the build actually changing
 class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
