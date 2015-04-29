@@ -313,10 +313,14 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
 
         }
 
+        @Override
+        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+
+        }
 
         @Override
         def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {

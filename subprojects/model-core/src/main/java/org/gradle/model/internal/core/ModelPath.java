@@ -170,6 +170,16 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return otherParent != null && otherParent.equals(this);
     }
 
+    public boolean isDescendant(@Nullable ModelPath other) {
+        if (other == null) {
+            return false;
+        }
+        if (other.getDepth() <= getDepth()) {
+            return false;
+        }
+        return getComponents().equals(other.getComponents().subList(0, getDepth()));
+    }
+
     public ModelPath descendant(ModelPath path) {
         return path(Iterables.concat(components, path.components));
     }

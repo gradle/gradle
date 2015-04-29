@@ -314,6 +314,7 @@ class DefaultModelRegistryTest extends Specification {
             node.addLink(registry.instanceCreator("parent.foo", "ignore me"))
             node.addLink(registry.instanceCreator("parent.bar", new Bean(value: "bar")))
         }
+        registry.createInstance("other", new Bean(value: "ignore me"))
         mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
 
         registry.realize(ModelPath.path("parent"), ModelType.untyped()) // TODO - should not need this
@@ -321,6 +322,39 @@ class DefaultModelRegistryTest extends Specification {
         expect:
         registry.realize(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
         registry.realize(ModelPath.path("parent.foo"), ModelType.of(String)) == "ignore me"
+
+        and:
+        registry.realize(ModelPath.path("other"), ModelType.of(Bean)).value == "ignore me"
+    }
+
+    def "can attach a mutator to all elements with specific type transitively linked from an element"() {
+        def creatorAction = Mock(Action)
+        def mutatorAction = Mock(Action)
+
+        given:
+        registry.create("parent") { it.unmanagedNode Integer, creatorAction }
+        creatorAction.execute(_) >> { MutableModelNode node ->
+            node.applyToAllLinksTransitive(ModelActionRole.Mutate, registry.action().type(Bean).action(mutatorAction))
+            node.addLink(registry.instanceCreator("parent.foo", "ignore me"))
+            node.addLink(registry.instanceCreator("parent.bar", new Bean(value: "bar")))
+            node.applyToLink(ModelActionRole.Mutate, registry.action().path("parent.bar").node { MutableModelNode bar ->
+                bar.addLink(registry.instanceCreator("parent.bar.child1", new Bean(value: "baz")))
+                bar.addLink(registry.instanceCreator("parent.bar.child2", "ignore me too"))
+            })
+        }
+        registry.createInstance("other", new Bean(value: "ignore me"))
+        mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
+
+        registry.realize(ModelPath.path("parent"), ModelType.untyped()) // TODO - should not need this
+
+        expect:
+        registry.realize(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
+        registry.realize(ModelPath.path("parent.foo"), ModelType.of(String)) == "ignore me"
+        registry.realize(ModelPath.path("parent.bar.child1"), ModelType.of(Bean)).value == "prefix: baz"
+        registry.realize(ModelPath.path("parent.bar.child2"), ModelType.of(String)) == "ignore me too"
+
+        and:
+        registry.realize(ModelPath.path("other"), ModelType.of(Bean)).value == "ignore me"
     }
 
     def "can attach a mutator with inputs to element linked from another element"() {

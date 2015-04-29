@@ -711,6 +711,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
             throw new UnsupportedOperationException();
         }
@@ -953,7 +958,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                         throw new InvalidModelRuleDeclarationException("Rule " + extractedRule.getCreator().getDescriptor() + " cannot be applied at the scope of model element " + scope + " as creation rules cannot be used when applying rule sources to particular elements");
                     }
                 } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
+                    // TODO this is a roundabout path, something like the registrar interface should be implementable by the registry and nodes
                     bind(extractedRule.getActionRole(), extractedRule.getAction(), scope);
                 } else {
                     throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
@@ -983,6 +988,29 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Override
                 public boolean onCreate(ModelNodeInternal node) {
                     bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
+                    return false;
+                }
+            });
+        }
+
+        @Override
+        public <T> void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction<T> action) {
+            if (action.getSubject().getPath() != null) {
+                throw new IllegalArgumentException("Linked element action reference must have null path.");
+            }
+
+            registerListener(new ModelCreationListener() {
+                @Nullable
+                @Override
+                public ModelType<?> matchType() {
+                    return action.getSubject().getType();
+                }
+
+                @Override
+                public boolean onCreate(ModelNodeInternal node) {
+                    if (getPath().isDescendant(node.getPath())) {
+                        bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
+                    }
                     return false;
                 }
             });

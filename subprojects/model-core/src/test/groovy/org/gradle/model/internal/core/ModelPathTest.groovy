@@ -105,10 +105,28 @@ class ModelPathTest extends Specification {
         !ModelPath.ROOT.isDirectChild(ModelPath.path("a.b"))
 
         ModelPath.path("a.b").isDirectChild(ModelPath.path("a.b.c"))
+        !ModelPath.path("a.b").isDirectChild(ModelPath.path("a.b.c.d"))
         !ModelPath.path("a.b").isDirectChild(ModelPath.path("a.a.b"))
         !ModelPath.path("a.b").isDirectChild(ModelPath.path("a.b"))
         !ModelPath.path("a.b").isDirectChild(ModelPath.path("a"))
+        !ModelPath.path("a.b").isDirectChild(ModelPath.path("c.a.b.c"))
         !ModelPath.path("a.b").isDirectChild(null)
+    }
+
+    def "descendant"() {
+        expect:
+        ModelPath.ROOT.isDescendant(ModelPath.path("p"))
+        ModelPath.ROOT.isDescendant(ModelPath.path("a.b"))
+        !ModelPath.ROOT.isDescendant(ModelPath.ROOT)
+
+        ModelPath.path("a.b").isDescendant(ModelPath.path("a.b.c"))
+        ModelPath.path("a.b").isDescendant(ModelPath.path("a.b.c.d.e"))
+        !ModelPath.path("a.b").isDescendant(ModelPath.path("a.a"))
+        !ModelPath.path("a.b").isDescendant(ModelPath.path("a.a.b"))
+        !ModelPath.path("a.b").isDescendant(ModelPath.path("a.b"))
+        !ModelPath.path("a.b").isDescendant(ModelPath.path("a"))
+        !ModelPath.path("a.b").isDescendant(ModelPath.path("c.a.b.c"))
+        !ModelPath.path("a.b").isDescendant(null)
     }
 
     def "can create paths for indirect descendants"() {
