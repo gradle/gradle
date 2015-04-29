@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -31,9 +29,10 @@ class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
-    def cleanup() {
-        if (executer instanceof DaemonGradleExecuter) {
-            new DaemonLogsAnalyzer(executer.daemonBaseDir).killAll()
+    @Override
+    protected void cleanupWhileTestFilesExist() {
+        if (GradleContextualExecuter.daemon) {
+            executer.requireIsolatedDaemons().withArguments("-i", "--stop").run()
         }
     }
 }
