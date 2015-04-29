@@ -35,8 +35,8 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
     private RemoteRepository remoteRepository;
-
     private RemoteRepository remoteSnapshotRepository;
+    private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
     public MavenDeployAction(File pomFile) {
         super(pomFile);
@@ -45,6 +45,10 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
         this.remoteRepository = repository;
         this.remoteSnapshotRepository = snapshotRepository;
+    }
+
+    public void setUniqueVersion(boolean uniqueVersion) {
+        snapshotVersionManager.setUniqueVersion(uniqueVersion);
     }
 
     @Override
@@ -64,6 +68,8 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
         for (Artifact artifact : artifacts) {
             request.addArtifact(artifact);
         }
+
+        snapshotVersionManager.install(repositorySystem, session);
 
         LOGGER.info("Deploying to " + gradleRepo.getUrl());
         repositorySystem.deploy(session, request);
