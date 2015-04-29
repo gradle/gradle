@@ -47,10 +47,11 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
 
     private static DefaultTaskDescriptor adapt(Task taskDescriptor) {
         return new DefaultTaskDescriptor(
-                taskDescriptor.getPath(),
-                taskDescriptor.getName(),
-                taskDescriptor.getDescription(),
-                taskDescriptor.getProject().getPath()
+            EventIdGenerator.generateId(taskDescriptor),
+            taskDescriptor.getPath(),
+            taskDescriptor.getName(),
+            taskDescriptor.getDescription(),
+            taskDescriptor.getProject().getPath()
         );
     }
 
@@ -63,20 +64,20 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
             return new DefaultTaskSkippedResult(startTime, endTime, "UP-TO-DATE".equals(state.getSkipMessage()));
         }
         Throwable failure = state.getFailure();
-        if (failure==null) {
+        if (failure == null) {
             return new DefaultTaskSuccessResult(startTime, endTime);
         }
         return new DefaultTaskFailureResult(startTime, endTime, DefaultFailure.fromThrowable(failure));
     }
 
     private static long startTime(TaskState state) {
-        TaskStateInternal internalState = state instanceof TaskStateInternal? (TaskStateInternal) state :null;
-        return internalState!=null?internalState.getStartTime():System.currentTimeMillis();
+        TaskStateInternal internalState = state instanceof TaskStateInternal ? (TaskStateInternal) state : null;
+        return internalState != null ? internalState.getStartTime() : System.currentTimeMillis();
     }
 
     private static long endTime(TaskState state) {
-        TaskStateInternal internalState = state instanceof TaskStateInternal? (TaskStateInternal) state :null;
-        return internalState!=null?internalState.getEndTime():System.currentTimeMillis();
+        TaskStateInternal internalState = state instanceof TaskStateInternal ? (TaskStateInternal) state : null;
+        return internalState != null ? internalState.getEndTime() : System.currentTimeMillis();
     }
 
     /**

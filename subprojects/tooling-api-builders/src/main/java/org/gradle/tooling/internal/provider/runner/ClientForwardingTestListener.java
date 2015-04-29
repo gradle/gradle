@@ -19,6 +19,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
@@ -59,26 +60,26 @@ class ClientForwardingTestListener implements TestListenerInternal {
     }
 
     private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
-        Object id = suite.getId();
+        Object id = EventIdGenerator.generateId(suite);
         String name = suite.getName();
         String displayName = suite.toString();
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
-        Object parentId = suite.getParent() != null ? suite.getParent().getId() : null;
+        Object parentId = suite.getParent() != null ? EventIdGenerator.generateId(suite.getParent()) : null;
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
     private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
-        Object id = test.getId();
+        Object id = EventIdGenerator.generateId(test);
         String name = test.getName();
         String displayName = test.toString();
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
-        Object parentId = test.getParent() != null ? test.getParent().getId() : null;
+        Object parentId = test.getParent() != null ? EventIdGenerator.generateId(test.getParent()) : null;
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 

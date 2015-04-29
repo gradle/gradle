@@ -208,7 +208,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new TaskOperationDescriptor() {
             @Override
             public String getTaskPath() {
-                return (String) descriptor.getId();
+                return descriptor.getTaskPath();
             }
 
             @Override

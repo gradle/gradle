@@ -45,6 +45,13 @@ public interface InternalTaskDescriptor extends InternalProtocolInterface {
     String getDisplayName();
 
     /**
+     * Returns the path of the task.
+     *
+     * @return the path of the task.
+     */
+    String getTaskPath();
+
+    /**
      * Returns the id of the parent of this task, if any.
      *
      * @return The id of the parent of this task, can be null

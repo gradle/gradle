@@ -123,7 +123,7 @@ class ClientForwardingBuildListener implements BuildListener {
         if (gradle == null) {
             return null;
         }
-        return new DefaultBuildDescriptor(System.identityHashCode(gradle), gradle.getGradleVersion(), adapt(gradle.getParent()));
+        return new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle), gradle.getGradleVersion(), adapt(gradle.getParent()));
     }
 
     /**
