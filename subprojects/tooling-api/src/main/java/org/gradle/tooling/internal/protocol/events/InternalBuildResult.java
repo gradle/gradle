@@ -16,10 +16,28 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.5
  */
-public interface InternalBuildProjectsLoadedResult extends InternalBuildAdvanceResult {
+public interface InternalBuildResult extends InternalProtocolInterface {
+    /**
+     * Returns the time the build execution started.
+     *
+     * @return The start time of the build
+     */
+    long getStartTime();
+
+    /**
+     * Returns the time the result was produced.
+     *
+     * @return The time the result was produced.
+     */
+    long getEndTime();
+
+
+    String getOutcomeDescription();
 }

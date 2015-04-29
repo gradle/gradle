@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
 
-public class DefaultBuildSuccessResult extends AbstractBuildAdvanceResult implements InternalBuildSuccessResult {
+public class DefaultBuildSuccessResult extends AbstractBuildResult implements InternalBuildSuccessResult {
     public DefaultBuildSuccessResult(long startTime, long endTime) {
         super(startTime, endTime, "succeeded");
     }

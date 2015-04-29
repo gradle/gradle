@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Task;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.invocation.Gradle;
 
@@ -34,4 +35,11 @@ public class EventIdGenerator {
     }
 
 
+    public static Object generateId(Settings settings) {
+        return String.format("%s:%s", generateId(settings.getGradle()), System.identityHashCode(settings));
+    }
+
+    public static Object generateId(Gradle gradle, String operationName) {
+        return String.format("%s:%s", generateId(gradle), operationName);
+    }
 }

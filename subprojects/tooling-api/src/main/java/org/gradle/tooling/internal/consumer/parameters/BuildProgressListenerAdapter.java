@@ -19,18 +19,13 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.build.BuildAdvanceEvent;
 import org.gradle.tooling.events.build.BuildFailureResult;
 import org.gradle.tooling.events.build.BuildFinishEvent;
 import org.gradle.tooling.events.build.BuildOperationDescriptor;
 import org.gradle.tooling.events.build.BuildOperationResult;
 import org.gradle.tooling.events.build.BuildProgressEvent;
 import org.gradle.tooling.events.build.BuildProgressListener;
-import org.gradle.tooling.events.build.BuildProjectsEvaluatedResult;
-import org.gradle.tooling.events.build.BuildProjectsLoadedResult;
-import org.gradle.tooling.events.build.BuildSettingsEvaluatedResult;
 import org.gradle.tooling.events.build.BuildSuccessResult;
-import org.gradle.tooling.events.build.internal.DefaultBuildAdvanceEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildFinishedEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
 import org.gradle.tooling.events.task.TaskFailureResult;
@@ -61,15 +56,11 @@ import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
-import org.gradle.tooling.internal.protocol.events.InternalBuildAdvanceProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalBuildAdvanceResult;
 import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalBuildFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalBuildProjectsEvaluatedResult;
-import org.gradle.tooling.internal.protocol.events.InternalBuildProjectsLoadedResult;
-import org.gradle.tooling.internal.protocol.events.InternalBuildSettingsEvaluatedResult;
+import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 import org.gradle.tooling.internal.protocol.events.InternalBuildStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -188,8 +179,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return buildStartedEvent((InternalBuildStartedProgressEvent) event);
         } else if (event instanceof InternalBuildFinishedProgressEvent) {
             return buildFinishedEvent((InternalBuildFinishedProgressEvent) event);
-        } else if (event instanceof InternalBuildAdvanceProgressEvent) {
-            return buildAdvanceEvent((InternalBuildAdvanceProgressEvent) event);
         }
         return null;
     }
@@ -204,7 +193,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
     }
 
-    private static TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
+    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
         return new TaskOperationDescriptor() {
             @Override
             public String getTaskPath() {
@@ -224,12 +213,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             @Nullable
             @Override
             public OperationDescriptor getParent() {
-                return null;
+                return descriptorCache.get(descriptor.getParentId());
             }
         };
     }
 
-    private static BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
+    private BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
         return new BuildOperationDescriptor() {
             @Override
             public String getName() {
@@ -244,7 +233,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             @Nullable
             @Override
             public OperationDescriptor getParent() {
-                return null;
+                return descriptorCache.get(descriptor.getParentId());
             }
         };
     }
@@ -257,11 +246,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     private BuildFinishEvent buildFinishedEvent(InternalBuildFinishedProgressEvent event) {
         BuildOperationDescriptor descriptor = removeBuildDescriptor(event.getDescriptor());
         return new DefaultBuildFinishedEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
-    }
-
-    private BuildAdvanceEvent buildAdvanceEvent(InternalBuildAdvanceProgressEvent event) {
-        BuildOperationDescriptor descriptor = getBuildDescriptor(event.getDescriptor());
-        return new DefaultBuildAdvanceEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
     }
 
     private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
@@ -326,24 +310,19 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return null;
     }
 
-    private static BuildOperationResult toBuildResult(final InternalBuildAdvanceResult result) {
+    private static BuildOperationResult toBuildResult(final InternalBuildResult result) {
         if (result instanceof InternalBuildSuccessResult) {
             return new BuildSuccessResult() {
-                /**
-                 * Returns the time when the operation started its execution.
-                 *
-                 * @return The start time, in milliseconds since the epoch.
-                 */
+                @Override
+                public String getSuccessMessage() {
+                    return result.getOutcomeDescription();
+                }
+
                 @Override
                 public long getStartTime() {
                     return result.getStartTime();
                 }
 
-                /**
-                 * Returns the time when the operation finished its execution.
-                 *
-                 * @return The end time, in milliseconds since the epoch.
-                 */
                 @Override
                 public long getEndTime() {
                     return result.getEndTime();
@@ -357,45 +336,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
                     return Collections.singletonList(toFailure(((InternalBuildFailureResult) result).getFailure()));
                 }
 
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalBuildSettingsEvaluatedResult) {
-            return new BuildSettingsEvaluatedResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalBuildProjectsLoadedResult) {
-            return new BuildProjectsLoadedResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalBuildProjectsEvaluatedResult) {
-            return new BuildProjectsEvaluatedResult() {
                 @Override
                 public long getStartTime() {
                     return result.getStartTime();
@@ -602,9 +542,9 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
     private static Failure toFailure(InternalFailure origFailure) {
         return origFailure == null ? null : new DefaultFailure(
-                origFailure.getMessage(),
-                origFailure.getDescription(),
-                toFailure(origFailure.getCauses()));
+            origFailure.getMessage(),
+            origFailure.getDescription(),
+            toFailure(origFailure.getCauses()));
     }
 
     private static List<Failure> toFailure(List<? extends InternalFailure> causes) {
@@ -632,7 +572,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     private static String toString(InternalTestDescriptor testDescriptor) {
         if (testDescriptor instanceof InternalJvmTestDescriptor) {
             return String.format("TestOperationDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
-                    testDescriptor.getId(), testDescriptor.getName(), ((InternalJvmTestDescriptor) testDescriptor).getClassName(), testDescriptor.getParentId());
+                testDescriptor.getId(), testDescriptor.getName(), ((InternalJvmTestDescriptor) testDescriptor).getClassName(), testDescriptor.getParentId());
         } else {
             return String.format("TestOperationDescriptor[id(%s), name(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getParentId());
         }

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
 
-public class DefaultBuildFailureResult extends AbstractBuildAdvanceResult implements InternalBuildFailureResult {
+public class DefaultBuildFailureResult extends AbstractBuildResult implements InternalBuildFailureResult {
     private final DefaultFailure failure;
 
     public DefaultBuildFailureResult(long startTime, long endTime, DefaultFailure failure) {

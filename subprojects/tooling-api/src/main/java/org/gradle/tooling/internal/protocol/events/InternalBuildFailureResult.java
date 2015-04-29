@@ -23,6 +23,6 @@ import org.gradle.tooling.internal.protocol.InternalFailure;
  *
  * @since 2.5
  */
-public interface InternalBuildFailureResult extends InternalBuildAdvanceResult {
+public interface InternalBuildFailureResult extends InternalBuildResult {
     InternalFailure getFailure();
 }

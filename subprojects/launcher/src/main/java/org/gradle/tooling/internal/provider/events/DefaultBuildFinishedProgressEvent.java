@@ -24,20 +24,20 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildFinishedProgress
  * @since 2.5
  */
 public class DefaultBuildFinishedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildFinishedProgressEvent {
-    private final AbstractBuildAdvanceResult result;
+    private final AbstractBuildResult result;
 
-    public DefaultBuildFinishedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor, AbstractBuildAdvanceResult result) {
+    public DefaultBuildFinishedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor, AbstractBuildResult result) {
         super(eventTime, descriptor);
         this.result = result;
     }
 
     @Override
     public String getDisplayName() {
-        return String.format("Gradle %s finished", getDescriptor().getName());
+        return String.format("%s finished", getDescriptor().getName());
     }
 
     @Override
-    public AbstractBuildAdvanceResult getResult() {
+    public AbstractBuildResult getResult() {
         return result;
     }
 }

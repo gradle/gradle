@@ -19,5 +19,11 @@ package org.gradle.tooling.internal.protocol.events;
 /**
  * @since 2.5
  */
-public interface InternalBuildFinishedProgressEvent extends InternalBuildAdvanceProgressEvent {
+public interface InternalBuildFinishedProgressEvent extends InternalBuildProgressEvent {
+    /**
+     * Returns the result of running the build operation.
+     *
+     * @return The build operation result
+     */
+    InternalBuildResult getResult();
 }

@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildAdvanceResult;
+import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 
 import java.io.Serializable;
 
-public abstract class AbstractBuildAdvanceResult implements Serializable, InternalBuildAdvanceResult {
+public abstract class AbstractBuildResult implements Serializable, InternalBuildResult {
     private final String description;
     private final long startTime;
     private final long endTime;
 
-    public AbstractBuildAdvanceResult(long startTime, long endTime, String description) {
+    public AbstractBuildResult(long startTime, long endTime, String description) {
         this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
