@@ -30,6 +30,7 @@ public class TaskStateInternal implements TaskState {
     private boolean skipped;
     private long startTime;
     private long endTime;
+    private boolean upToDate;
 
     public TaskStateInternal(String description) {
         this.description = description;
@@ -81,8 +82,9 @@ public class TaskStateInternal implements TaskState {
      */
     public void upToDate() {
         skipped("UP-TO-DATE");
+        upToDate = true;
     }
-    
+
     public boolean getExecuting() {
         return executing;
     }
@@ -130,5 +132,9 @@ public class TaskStateInternal implements TaskState {
 
     public void setEndTime(long endTime) {
         this.endTime = endTime;
+    }
+
+    public boolean getUpToDate() {
+        return upToDate;
     }
 }

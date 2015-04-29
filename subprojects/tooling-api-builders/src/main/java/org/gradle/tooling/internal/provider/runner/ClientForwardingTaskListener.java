@@ -61,7 +61,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
         long startTime = startTime(state);
         long endTime = endTime(state);
         if (state.getSkipped()) {
-            return new DefaultTaskSkippedResult(startTime, endTime, "UP-TO-DATE".equals(state.getSkipMessage()));
+            return new DefaultTaskSkippedResult(startTime, endTime, state.getUpToDate());
         }
         Throwable failure = state.getFailure();
         if (failure == null) {
