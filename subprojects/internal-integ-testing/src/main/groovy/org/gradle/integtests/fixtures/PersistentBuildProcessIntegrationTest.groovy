@@ -32,7 +32,7 @@ class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
     @Override
     protected void cleanupWhileTestFilesExist() {
         if (GradleContextualExecuter.daemon) {
-            executer.requireIsolatedDaemons().withArguments("-i", "--stop").run()
+            executer.withArguments("-i", "--stop").run()
         }
     }
 }

@@ -24,9 +24,7 @@ import org.gradle.launcher.daemon.server.health.DaemonStatus
 class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
-        executer
-                .requireIsolatedDaemons()
-                .withGradleOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80")
+        executer.withGradleOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80")
     }
 
     def "when build leaks more than available memory the daemon is expired eagerly"() {
