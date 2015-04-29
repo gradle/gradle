@@ -32,7 +32,6 @@ import org.gradle.tooling.events.build.BuildProgressListener
 import org.gradle.tooling.events.build.BuildStartEvent
 import org.gradle.tooling.events.build.BuildSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
-import spock.lang.Ignore
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
