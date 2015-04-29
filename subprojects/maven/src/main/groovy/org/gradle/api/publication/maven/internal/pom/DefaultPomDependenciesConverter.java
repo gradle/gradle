@@ -123,7 +123,6 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
-        mavenDependency.setOptional(false);
         mavenDependency.setClassifier(classifier);
         mavenDependency.setExclusions(getExclusions(dependency, configurations));
         return mavenDependency;
