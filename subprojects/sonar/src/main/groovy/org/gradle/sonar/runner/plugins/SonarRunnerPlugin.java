@@ -54,11 +54,11 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.CollectionUtils.nonEmptyOrNull;
 
 /**
- * A plugin for analyzing projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner</a>.
+ * A plugin for analyzing projects with the <a href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner</a>.
  * <p>
  * When applied to a project, both the project itself and its subprojects will be analyzed (in a single run).
  * <p>
- * Please see the “Sonar Runner Plugin” chapter of the Gradle User Guide for more information.
+ * Please see the “SonarQube Runner Plugin” chapter of the Gradle User Guide for more information.
  */
 @Incubating
 public class SonarRunnerPlugin implements Plugin<Project> {
@@ -260,7 +260,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     private String getProjectKey(Project project) {
-        // Sonar uses project keys in URL parameters without internally URL-encoding them.
+        // SonarQube uses project keys in URL parameters without internally URL-encoding them.
         // According to my manual tests with sonar-runner plugin based on Sonar Runner 2.0 and Sonar 3.4.1,
         // the current defaults will only cause a problem if project.group or project.name of
         // the Gradle project to which the plugin is applied contains special characters.

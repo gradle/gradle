@@ -14,64 +14,64 @@
   ~ limitations under the License.
   -->
 <chapter id="sonar_runner_plugin">
-    <title>The Sonar Runner Plugin</title>
+    <title>The SonarQube Runner Plugin</title>
     <note>
         <para>
-            The Sonar Runner plugin is currently <link linkend="feature_lifecycle">incubating</link>.
+            The SonarQube Runner plugin is currently <link linkend="feature_lifecycle">incubating</link>.
             Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
         <para>
             It is intended that this plugin will replace the older <link linkend="sonar_plugin">Sonar Plugin</link> in a future Gradle version.
         </para>
     </note>
-    <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
-        a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner</ulink>,
-        a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database.
-        Compared to using the standalone Sonar Runner, the Sonar Runner plugin offers the following benefits:
+    <para>The SonarQube Runner plugin provides integration with <ulink url="http://www.sonarqube.org/">SonarQube</ulink>,
+        a web-based platform for monitoring code quality. It is based on the <ulink url="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner API</ulink>,
+        a SonarQube library that starts source code analysis, and optionally publish all collected information to the SonarQube server.
+        Compared to using the standalone SonarQube Runner CLI, the Gradle SonarQube Runner plugin offers the following benefits:
     </para>
     <variablelist>
         <varlistentry>
-            <term>Automatic provisioning of Sonar Runner</term>
+            <term>Automatic provisioning of SonarQube Runner</term>
             <listitem>
-                <para>The ability to execute the Sonar Runner via a regular Gradle task makes it available anywhere Gradle is available
-                    (developer build, CI server, etc.), without the need to manually download, setup, and maintain a Sonar Runner installation.</para>
+                <para>The ability to execute the SonarQube Runner via a regular Gradle task makes it available anywhere Gradle is available
+                    (developer build, CI server, etc.), without the need to manually download, setup, and maintain a SonarQube Runner installation.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
             <term>Dynamic configuration from Gradle build scripts</term>
             <listitem>
-                <para>All of Gradle's scripting features can be leveraged to configure Sonar Runner as needed.</para>
+                <para>All of Gradle's scripting features can be leveraged to configure SonarQube Runner as needed.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
             <term>Extensive configuration defaults</term>
             <listitem>
-                <para>Gradle already has much of the information needed for Sonar Runner to successfully analyze a project. By preconfiguring
-                    the Sonar Runner based on that information, the need for manual configuration is reduced significantly.</para>
+                <para>Gradle already has much of the information needed for SonarQube to successfully analyze a project. By preconfiguring
+                    the SonarQube Runner properties based on that information, the need for manual configuration is reduced significantly.</para>
             </listitem>
         </varlistentry>
     </variablelist>
 
     <section>
-        <title>Sonar Runner version and compatibility</title>
+        <title>SonarQube Runner version and compatibility</title>
         <para>
-            The default version of the Sonar Runner used by the plugin is 2.3, which makes it compatible with Sonar 3.0 and higher.
-            For compatibility with Sonar versions earlier than 3.0, you can configure the use of an earlier Sonar Runner version (see <xref linkend="sec:specify_sonar_runner_version"/>).
+            The default version of the SonarQube Runner used by the plugin is 2.3, which makes it compatible with SonarQube 3.0 and higher.
+            For compatibility with SonarQube versions earlier than 3.0, you can configure the use of an earlier SonarQube Runner version (see <xref linkend="sec:specify_sonar_runner_version"/>).
         </para>
     </section>
     <section>
         <title>Getting started</title>
-        <para>To get started, apply the Sonar Runner plugin to the project to be analyzed.</para>
-        <sample id="quickstart" dir="sonarRunner/quickstart" title="Applying the Sonar Runner plugin">
+        <para>To get started, apply the SonarQube Runner plugin to the project to be analyzed.</para>
+        <sample id="quickstart" dir="sonarRunner/quickstart" title="Applying the SonarQube Runner plugin">
             <sourcefile file="build.gradle" snippet="apply-plugin"/>
         </sample>
         <para>
-            Assuming a local Sonar server with out-of-the-box settings is up and running, no further mandatory configuration is required.
+            Assuming a local SonarQube server with out-of-the-box settings is up and running, no further mandatory configuration is required.
             Execute <userinput>gradle sonarRunner</userinput> and wait until the build has completed, then open the web page indicated
-            at the bottom of the Sonar Runner output. You should now be able to browse the analysis results.
+            at the bottom of the SonarQube Runner output. You should now be able to browse the analysis results.
         </para>
         <para>
-            Before executing the <literal>sonarRunner</literal> task, all tasks producing output to be analysed by Sonar need to be executed.
+            Before executing the <literal>sonarRunner</literal> task, all tasks producing output to be analysed by SonarQube need to be executed.
             Typically, these are compile tasks, test tasks, and code coverage tasks. To meet these needs, the plugins adds a task dependency
             from <literal>sonarRunner</literal> on <literal>test</literal> if the <literal>java</literal> plugin is applied. Further task dependencies can be
             added as needed.
@@ -79,33 +79,33 @@
     </section>
 
     <section>
-        <title>Configuring the Sonar Runner</title>
-        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension to the project and a
+        <title>Configuring the SonarQube Runner</title>
+        <para>The SonarQube Runner plugin adds a <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension to the project and a
             <apilink class="org.gradle.sonar.runner.SonarRunnerExtension" /> extension to its subprojects,
-            which allows you to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
-            includes connection settings for the Sonar server and database.
+            which allows you to configure the SonarQube Runner via key/value pairs known as <firstterm>SonarQube properties</firstterm>. A typical base line configuration
+            includes connection settings for the SonarQube server and database.
         </para>
-        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
+        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring SonarQube connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
         <para>
-            Alternatively, Sonar properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
+            Alternatively, SonarQube properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
         </para>
         <para>
-            For a complete list of standard Sonar properties, consult the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
-            If you happen to use additional Sonar plugins, consult their documentation.
+            For a complete list of standard SonarQube properties, consult the <ulink url="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube documentation</ulink>.
+            If you happen to use additional SonarQube plugins, consult their documentation.
         </para>
-        <para>In addition to set Sonar properties, the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
-            the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked Sonar Runner process.
+        <para>In addition to set SonarQube properties, the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the SonarQube Runner version and
+            the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked SonarQube Runner process.
         </para>
         <para>
-            The Sonar Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many of the standard Sonar properties.
+            The SonarQube Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many of the standard SonarQube properties.
             The defaults are summarized in the tables below. Notice that additional defaults are provided for projects that have the <literal>java-base</literal>
             or <literal>java</literal> plugin applied. For some properties (notably server and database connection settings), determining a suitable default
-            is left to the Sonar Runner.
+            is left to the SonarQube Runner.
         </para>
         <table>
-            <title>Gradle defaults for standard Sonar properties</title>
+            <title>Gradle defaults for standard SonarQube properties</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -114,7 +114,7 @@
             </thead>
             <tr>
                 <td>sonar.projectKey</td>
-                <td>“$project.group:$project.name” (for root project of analysed hierarchy; left to Sonar Runner otherwise)</td>
+                <td>“$project.group:$project.name” (for root project of analysed hierarchy; left to SonarQube Runner otherwise)</td>
             </tr>
             <tr>
                 <td>sonar.projectName</td>
@@ -206,28 +206,28 @@
         </table>
     </section>
     <section id="sec:specify_sonar_runner_version">
-        <title>Specifying the Sonar Runner version</title>
+        <title>Specifying the SonarQube Runner version</title>
         <para>
-            By default, version 2.3 of the Sonar Runner is used.
+            By default, version 2.3 of the SonarQube Runner is used.
             To specify an alternative version, set the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" method="getToolVersion()"/> property
             of the <literal>sonarRunner</literal> extension of the project the plugin was applied to to the desired version.
-            This will result in the Sonar Runner dependency <literal>org.codehaus.sonar.runner:sonar-runner-dist:«toolVersion»</literal> being used as the Sonar Runner.
+            This will result in the SonarQube Runner dependency <literal>org.codehaus.sonar.runner:sonar-runner-dist:«toolVersion»</literal> being used as the SonarQube Runner.
         </para>
-        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar runner version">
+        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring SonarQube runner version">
             <sourcefile file="build.gradle" snippet="version-settings"/>
         </sample>
     </section>
     <section>
         <title>Analyzing Multi-Project Builds</title>
-        <para>The Sonar Runner is capable of analyzing whole project hierarchies at once. This yields a hierarchical view in the
-            Sonar web interface, with aggregated metrics and the ability to drill down into subprojects. Analyzing a project hierarchy
+        <para>The SonarQube Runner is capable of analyzing whole project hierarchies at once. This yields a hierarchical view in the
+            SonarQube web interface, with aggregated metrics and the ability to drill down into subprojects. Analyzing a project hierarchy
             also takes less time than analyzing each project separately.
         </para>
         <para>
-            To analyze a project hierarchy, apply the Sonar Runner plugin to the root project of the hierarchy.
+            To analyze a project hierarchy, apply the SonarQube Runner plugin to the root project of the hierarchy.
             Typically (but not necessarily) this will be the root project of the Gradle build. Information pertaining to the
             analysis as a whole, like server and database connections settings, have to be configured in the <literal>sonarRunner</literal>
-            block of this project. Any Sonar properties set on the command line also apply to this project.
+            block of this project. Any SonarQube properties set on the command line also apply to this project.
         </para>
         <sample id="multiProject" dir="sonarRunner/multiProject" title="Global configuration settings">
             <sourcefile file="build.gradle" snippet="global-configuration-settings"/>
@@ -246,7 +246,7 @@
             <sourcefile file="build.gradle" snippet="individual-configuration-settings"/>
         </sample>
         <para>
-            To skip Sonar analysis for a particular subproject, set <literal>sonarRunner.skipProject</literal> to <literal>true</literal>.
+            To skip SonarQube analysis for a particular subproject, set <literal>sonarRunner.skipProject</literal> to <literal>true</literal>.
         </para>
         <sample id="multiProject" dir="sonarRunner/multiProject" title="Skipping analysis of a project">
             <sourcefile file="build.gradle" snippet="skip-project"/>
@@ -255,7 +255,7 @@
 
     <section>
         <title>Analyzing Custom Source Sets</title>
-        <para>By default, the Sonar Runner plugin passes on the project's <literal>main</literal> source set as production sources, and the
+        <para>By default, the SonarQube Runner plugin passes on the project's <literal>main</literal> source set as production sources, and the
              project's <literal>test</literal> source set as test sources. This works regardless of the project's source directory layout.
              Additional source sets can be added as needed.
         </para>
@@ -267,21 +267,18 @@
     <section>
         <title>Analyzing languages other than Java</title>
         <para>
-            To analyze code written in a language other than Java, you'll need to set <literal>sonar.project.language</literal> accordingly.
-            However, note that your Sonar server has to have the <ulink url="http://www.sonarsource.com/products/plugins/languages/">Sonar plugin</ulink>
-            that handles that programming language.
+            As of SonarQube 4.2, multi-language projects are supported and each file language will be detected according to its filename suffix.
+            However, note that your SonarQube server has to have the <ulink url="http://www.sonarsource.com/products/plugins/languages/">SonarQube plugin</ulink>
+            that handles that programming language. If you
+            want to enforce a single language for your project, you'll need to set <literal>sonar.project.language</literal> accordingly.
         </para>
         <sample id="advanced" dir="sonarRunner/advanced" title="Analyzing languages other than Java">
             <sourcefile file="build.gradle" snippet="languages" />
         </sample>
-        <para>
-            As of Sonar 3.4, only one language per project can be analyzed. It is, however, possible to analyze a different language
-            for each project in a multi-project build.
-        </para>
     </section>
 
     <section>
-        <title>More on configuring Sonar properties</title>
+        <title>More on configuring SonarQube properties</title>
         <para>
             Let's take a closer look at the <literal>sonarRunner.sonarProperties {}</literal> block. As we have already seen in the examples,
             the <literal>property()</literal> method allows you to set new properties or override existing ones. Furthermore, all properties that have
@@ -301,9 +298,9 @@
     </section>
 
     <section id="sec:sonar_command_line_parameters">
-        <title>Setting Sonar Properties from the Command Line</title>
+        <title>Setting SonarQube Properties from the Command Line</title>
         <para>
-            Sonar Properties can also be set from the command line, by setting a system property named exactly like the Sonar property in question.
+            SonarQube Properties can also be set from the command line, by setting a system property named exactly like the Sonar property in question.
             This can be useful when dealing with sensitive information (e.g. credentials), environment information, or for ad-hoc configuration.
         </para>
         <programlisting>
@@ -315,22 +312,22 @@
                 available to everyone.
             </para>
         </note>
-        <para>A Sonar property value set via a system property overrides any value set in a build script (for the same property). When
+        <para>A SonarQube property value set via a system property overrides any value set in a build script (for the same property). When
             analyzing a project hierarchy, values set via system properties apply to the root project of the analyzed hierarchy.
             Each system property starting with "<literal>"sonar."</literal> will taken into account for the sonar runner setup.
         </para>
     </section>
 
     <section>
-        <title>Controlling the Sonar Runner process</title>
+        <title>Controlling the SonarQube Runner process</title>
         <para>
-            The Sonar Runner is executed in a forked process.
-            This allows fine grained control over memory settings, system properties etc. just for the Sonar Runner process.
+            The SonarQube Runner is executed in a forked process.
+            This allows fine grained control over memory settings, system properties etc. just for the SonarQube Runner process.
             The <literal>forkOptions</literal> property of the <literal>sonarRunner</literal> extension of the project that applies the <literal>sonar-runner</literal> plugin
             (Usually the <literal>rootProject</literal> but not necessarily) allows the process configuration to be specified.
             This property is not available in the <apilink class="org.gradle.sonar.runner.SonarRunnerExtension"/> extension applied to the subprojects.
         </para>
-        <sample id="advanced" dir="sonarRunner/advanced" title="setting custom Sonar Runner fork options">
+        <sample id="advanced" dir="sonarRunner/advanced" title="setting custom SonarQube Runner fork options">
             <sourcefile file="build.gradle" snippet="forkoptions"/>
         </sample>
         <para>
@@ -340,9 +337,9 @@
 
     <section>
         <title>Tasks</title>
-        <para>The Sonar Runner plugin adds the following tasks to the project.</para>
+        <para>The SonarQube Runner plugin adds the following tasks to the project.</para>
         <table>
-            <title>Sonar Runner plugin - tasks</title>
+            <title>SonarQube Runner plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -355,7 +352,7 @@
                 <td><literal>sonarRunner</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.sonar.runner.tasks.SonarRunner"/></td>
-                <td>Analyzes a project hierarchy and stores the results in the Sonar database.</td>
+                <td>Analyzes a project hierarchy with SonarQube.</td>
             </tr>
         </table>
     </section>
