@@ -32,7 +32,7 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "mirah java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
-        if (GradleContextualExecuter.daemon && !(forkMode && !useAnt)) {
+        if (GradleContextualExecuter.daemon && !forkMode) {
             // don't load up mirah in process when testing with the daemon as it blows out permgen
             return
         }
@@ -61,7 +61,6 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     compileMirah {
-                        mirahCompileOptions.useAnt = ${useAnt}
                         mirahCompileOptions.fork = ${forkMode}
                     }
                     """
@@ -72,11 +71,7 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/org/test/MirahClazz.class").exists()
 
         where:
-        forkMode | useAnt
-//        false    | false
-        false    | true
-        true     | false
-        true     | true
+        forkMode << [false, true]
     }
 
     @Requires(TestPrecondition.WINDOWS)

@@ -27,7 +27,6 @@ class MirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
     String compilerConfiguration() {
         """
 compileMirah.mirahCompileOptions.with {
-    useAnt = false
 }
         """
     }
