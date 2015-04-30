@@ -25,7 +25,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
  * A file tree that delegates each method call to the
  * file tree returned by {@link #getDelegate()}.
  */
-public abstract class DelegatingFileTree extends DelegatingFileCollection implements FileTree {
+public abstract class DelegatingFileTree extends DelegatingFileCollection implements FileTreeInternal {
     public abstract FileTreeInternal getDelegate();
 
     public FileTree matching(Closure filterConfigClosure) {
