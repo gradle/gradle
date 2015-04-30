@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -106,11 +107,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(this, fileTree);
+        return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     public FileTree visit(Closure closure) {
-        return visit((FileVisitor) DefaultGroovyMethods.asType(closure, FileVisitor.class));
+        return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
 
     private static class FilteredFileTree extends AbstractFileTree {

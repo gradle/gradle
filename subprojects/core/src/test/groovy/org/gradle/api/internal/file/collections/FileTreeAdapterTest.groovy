@@ -103,6 +103,22 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
+    def getRootsConvertsLocalFileTree() {
+        LocalFileTree tree = Mock()
+        def f = Mock(File)
+        DirectoryFileTree contents = Mock()
+        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+
+        when:
+        def result = adapter.fileSystemRoots.toList()
+
+        then:
+        result == [f]
+        1 * tree.localContents >> [contents]
+        0 * _._
+        contents.getDir() >> f
+    }
+
     def getBuildDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
         TestFileTree tree = Mock()
         TaskDependency expectedDependency = Mock()
@@ -130,7 +146,7 @@ class FileTreeAdapterTest extends Specification {
         filteredAdapter.tree == filtered
         1 * tree.filter(filter) >> filtered
     }
-    
+
     def containsDelegatesToTargetTreeWhenItImplementsRandomAccessFileCollection() {
         TestFileTree tree = Mock()
         File f = new File('a')

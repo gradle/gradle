@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -29,6 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -193,8 +193,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
-    public Iterable<? extends DirectoryTree> getAsDirectoryTrees() {
-        return getAsFileTrees();
+    @Override
+    public Iterable<? extends File> getFileSystemRoots() {
+        return FileUtils.findRoots(this);
     }
 
     public FileCollection filter(Closure filterClosure) {

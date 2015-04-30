@@ -22,16 +22,17 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.Cast;
 
-import java.util.List;
+import java.util.Collection;
 
-public abstract class CompositeFileTree extends CompositeFileCollection implements FileTree {
-    protected List<FileTree> getSourceCollections() {
-        return (List) super.getSourceCollections();
+public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
+    protected Collection<? extends FileTreeInternal> getSourceCollections() {
+        return Cast.uncheckedCast(super.getSourceCollections());
     }
 
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(this, fileTree);
+        return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     public FileTree matching(Closure filterConfigClosure) {

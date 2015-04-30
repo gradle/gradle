@@ -17,19 +17,28 @@
 package org.gradle.api.internal.file;
 
 
-import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+
+import java.io.File;
 
 public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
 
     /**
-     * Converts this collection to a collection of {@link DirectoryTree} instances.
+     * Returns the outermost points on the filesystem that encompass (inclusively) all of the file collection's potential contents.
+     * <p>
+     * The results are guaranteed to be unique.
+     * A zero length iterable may be returned if it is not possible for this file collection to ever contain any files.
+     * The return value is representative of the file collections state at the time.
+     * Mutable file collections may return different values over time.
+     * Immutable file collections will always return the same logical value.
+     * <p>
+     * The term “root” here does not respond to the root of the file system (e.g. "/").
+     * <p>
+     * This method does not distinguish between files or directories, or non existent files.
      *
-     * The DirectoryTree instance will implement {@link FileBackedDirectoryTree} when it's backed by files that don't change (a single file).
-     *
-     * @return this collection as a collection of {@link DirectoryTree}s. Never returns null.
+     * @return the unique outermost file system roots that encompass this file collection's contents
      */
-    Iterable<? extends DirectoryTree> getAsDirectoryTrees();
+    Iterable<? extends File> getFileSystemRoots();
 
 }

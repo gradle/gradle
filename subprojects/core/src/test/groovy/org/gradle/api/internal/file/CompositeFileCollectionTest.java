@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -111,7 +112,7 @@ public class CompositeFileCollectionTest {
 
         assertFalse(collection.contains(file1));
     }
-    
+
     @Test
     public void isEmptyWhenHasNoSets() {
         CompositeFileCollection set = new TestCompositeFileCollection();
@@ -163,7 +164,7 @@ public class CompositeFileCollectionTest {
         }});
         assertThat(collection.getAsFileTrees(), equalTo((Collection) toList(set1, set2)));
     }
-    
+
     @Test
     public void getAsFileTreeDelegatesToEachSet() {
         final File file1 = new File("dir1");
@@ -180,6 +181,21 @@ public class CompositeFileCollectionTest {
         }});
 
         ((CompositeFileTree) fileTree).getSourceCollections();
+    }
+
+    @Test
+    public void getRootsDelegatesToEachSet() {
+        final File file1 = new File("a");
+        final File file2 = new File("a/a");
+
+        context.checking(new Expectations() {{
+            one(source1).getFileSystemRoots();
+            will(returnValue(toSet(file1)));
+            one(source2).getFileSystemRoots();
+            will(returnValue(toSet(file2)));
+        }});
+
+        assertEquals(toSet(file1.getAbsoluteFile()), Sets.newHashSet(collection.getFileSystemRoots()));
     }
 
     @Test
@@ -217,8 +233,8 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void filterDelegatesToEachSet() {
-        final FileCollection filtered1 = context.mock(FileCollection.class);
-        final FileCollection filtered2 = context.mock(FileCollection.class);
+        final FileCollectionInternal filtered1 = context.mock(FileCollectionInternal.class);
+        final FileCollectionInternal filtered2 = context.mock(FileCollectionInternal.class);
         @SuppressWarnings("unchecked")
         final Spec<File> spec = context.mock(Spec.class);
 

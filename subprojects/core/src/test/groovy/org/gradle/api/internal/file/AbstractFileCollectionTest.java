@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -26,8 +27,8 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -185,6 +186,13 @@ public class AbstractFileCollectionTest {
         TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing);
         assertSetContainsForFileSet(collection, toSet("f1", "f2"));
         assertSetContainsForMatchingTask(collection, toSet("f1", "f2"));
+    }
+
+    @Test
+    public void includesRoots() {
+        TestFile testDir = this.testDir.getTestDirectory();
+        TestFileCollection collection = new TestFileCollection(testDir.file("a/a/a"), testDir.file("a/a/b"), testDir.file("a/a/b/a"));
+        assertEquals(toSet(testDir.file("a/a/a"), testDir.file("a/a/b")), Sets.newHashSet(collection.getFileSystemRoots()));
     }
 
     @Test

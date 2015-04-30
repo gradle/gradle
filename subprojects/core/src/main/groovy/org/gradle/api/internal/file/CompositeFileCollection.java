@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -24,6 +26,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.FileUtils;
 
 import java.io.File;
 import java.util.*;
@@ -138,11 +141,21 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         }
     }
 
-    protected List<? extends FileCollection> getSourceCollections() {
+    protected Collection<? extends FileCollectionInternal> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         resolve(context);
         return context.resolveAsFileCollections();
     }
 
     public abstract void resolve(FileCollectionResolveContext context);
+
+    @Override
+    public Iterable<? extends File> getFileSystemRoots() {
+        return FileUtils.findRoots(Iterables.concat(Iterables.transform(getSourceCollections(), new Function<FileCollectionInternal, Iterable<? extends File>>() {
+            @Override
+            public Iterable<? extends File> apply(FileCollectionInternal input) {
+                return input.getFileSystemRoots();
+            }
+        })));
+    }
 }

@@ -16,9 +16,13 @@
 
 package org.gradle.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
@@ -54,4 +58,31 @@ public class FileUtils {
         }
         return file;
     }
+
+    public static Collection<? extends File> findRoots(Iterable<? extends File> files) {
+        List<File> roots = Lists.newLinkedList();
+
+        files:
+        for (File file : files) {
+            File absoluteFile = file.getAbsoluteFile();
+            String path = absoluteFile.getPath();
+            Iterator<File> rootsIterator = roots.iterator();
+
+            while (rootsIterator.hasNext()) {
+                File root = rootsIterator.next();
+                String rootPath = root.getPath();
+                if (path.startsWith(rootPath)) { // is lower than root
+                    continue files;
+                }
+
+                if (rootPath.startsWith(path)) { // is higher than root
+                    rootsIterator.remove();
+                }
+            }
+            roots.add(absoluteFile);
+        }
+
+        return roots;
+    }
+
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
@@ -63,6 +65,11 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             return fileTree.getLocalContents();
         }
         throw new UnsupportedOperationException(String.format("Cannot convert %s to local file system directories.", tree));
+    }
+
+    @Override
+    public Iterable<? extends File> getFileSystemRoots() {
+        return Sets.newHashSet(Iterables.transform(getAsFileTrees(), DirectoryFileTree.GET_DIR));
     }
 
     @Override

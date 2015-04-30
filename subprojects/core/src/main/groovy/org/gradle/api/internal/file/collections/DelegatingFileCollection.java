@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -107,7 +106,8 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
     }
 
     @Override
-    public Iterable<? extends DirectoryTree> getAsDirectoryTrees() {
-        return getDelegate().getAsDirectoryTrees();
+    public Iterable<? extends File> getFileSystemRoots() {
+        return getDelegate().getFileSystemRoots();
     }
+
 }

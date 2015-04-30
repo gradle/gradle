@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
@@ -35,6 +36,13 @@ import java.util.*;
 import static org.gradle.internal.Cast.cast;
 
 public abstract class CollectionUtils {
+
+    public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
+        for (Object o : input) {
+            cast(type, o);
+        }
+        return Cast.uncheckedCast(input);
+    }
 
     public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
         for (T item : source) {

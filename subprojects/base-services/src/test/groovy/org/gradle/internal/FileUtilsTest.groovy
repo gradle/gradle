@@ -22,6 +22,7 @@ import spock.lang.Specification
 
 import static FileUtils.toSafeFileName
 import static FileUtils.assertInWindowsPathLengthLimitation
+import static org.gradle.internal.FileUtils.findRoots
 
 
 class FileUtilsTest extends Specification {
@@ -51,4 +52,21 @@ class FileUtilsTest extends Specification {
         def e = thrown(GradleException);
         e.message.contains("exceeds windows path limitation of 260 character.")
     }
+
+    List<String> toRoots(String... paths) {
+        findRoots(paths.collect { new File("/", it) })*.absolutePath
+    }
+
+    def "can find roots"() {
+        expect:
+        toRoots() == []
+        toRoots("a/a", "a/a") == ["/a/a"]
+        toRoots("a", "b", "c") == ["/a", "/b", "/c"]
+        toRoots("a/a", "a/a/a", "a/b/a") == ["/a/a", "/a/b/a"]
+        toRoots("a/a", "a/a/a", "b/a/a") == ["/a/a", "/b/a/a"]
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == ["/a/a/a/a/a/a/a/a/a", "/a/b"]
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "/b/a/a/a/a/a/a/a/a/a/a/a") == ["/a/a/a/a/a/a/a/a/a", "/a/b", "/b/a/a/a/a/a/a/a/a/a/a/a"]
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "/b/a/a/a/a/a/a/a/a/a/a/a", "/b/a/a/a/a") == ["/a/a/a/a/a/a/a/a/a", "/a/b", "/b/a/a/a/a"]
+    }
+
 }

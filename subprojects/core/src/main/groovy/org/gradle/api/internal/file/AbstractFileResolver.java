@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -238,19 +239,19 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
-    public FileCollection resolveFiles(Object... paths) {
+    public FileCollectionInternal resolveFiles(Object... paths) {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return (FileCollection) paths[0];
+            return Cast.cast(FileCollectionInternal.class, paths[0]);
         }
         return new DefaultConfigurableFileCollection(this, null, paths);
     }
 
-    public FileTree resolveFilesAsTree(Object... paths) {
-        return resolveFiles(paths).getAsFileTree();
+    public FileTreeInternal resolveFilesAsTree(Object... paths) {
+        return Cast.cast(FileTreeInternal.class, resolveFiles(paths).getAsFileTree());
     }
 
-    public FileTree compositeFileTree(List<FileTree> fileTrees) {
-        return new DefaultCompositeFileTree(fileTrees);
+    public FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees) {
+        return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
     public ReadableResource resolveResource(Object path) {
