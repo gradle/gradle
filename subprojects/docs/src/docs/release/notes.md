@@ -15,14 +15,14 @@ In previous Gradle versions you could use a 'Dependency resolve rule' to replace
     }
 
 This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
-These rules allow an external dependency to be replaced with a project dependency, and vice-versa. 
+These rules allow an external dependency to be replaced with a project dependency, and vice-versa.
 
 You replace a project dependency with an external dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
-            withProject(":api") { 
-                useTarget group: "org.utils", name: "api", version: "1.3" 
+            withProject(":api") {
+                useTarget group: "org.utils", name: "api", version: "1.3"
             }
         }
     }
@@ -33,7 +33,7 @@ And replace an external dependency with an project dependency like this:
     resolutionStrategy {
         dependencySubstitution {
             withModule("com.example:my-module") {
-                useTarget project(":project1")  
+                useTarget project(":project1")
             }
         }
     }
@@ -84,7 +84,7 @@ Tasks in Gradle may define a _group_ attribute, but this group wasn't accessible
 group of a task through `org.gradle.tooling.model.Task#getGroup`.
 
 ### Increased visibility of components in model report
- 
+
 - TBD
 
 ## Promoted features
@@ -125,13 +125,13 @@ Currently component container can be only accessed using model rules.
 
 #### Changes in `ComponentSpecContainer`
 
-- `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`. 
+- `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`.
 - `ComponentSpecContainer` now implements `CollectionBuilder<ComponentSpec`.
 - All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
 
 ### Changes in NativeBinariesTestPlugin
 
-- `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`. 
+- `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
 - `TestSuiteContainer` now implements `CollectionBuilder<TestSuiteSpec`.
 
 ### Source sets and binaries cannot be removed from components
@@ -147,6 +147,8 @@ We would like to thank the following community members for making contributions 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - Support GoogleTest for testing C++ binaries
 * [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
 * [Larry North](https://github.com/LarryNorth) - Build improvements.
+* [Tobias Schulte](https://github.com/tschulte) - Documentation improvements
+* [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`
 
 ## Known issues
 
