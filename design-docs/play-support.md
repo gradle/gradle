@@ -901,7 +901,7 @@ the BuildLink API.
 
 #### Implementation
 
-IDEA: Use Tooling API to allow Play BuildLink to connect to a build in continuous mode and:
+Look at existing PlayRun.  Should re-use WorkerProcess infrastructure.
 
 - Receive events when the build is re-executed, including build failures
 
