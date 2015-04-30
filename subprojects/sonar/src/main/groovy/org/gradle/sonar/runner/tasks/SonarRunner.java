@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.util.GUtil;
 import org.sonar.runner.api.ForkedRunner;

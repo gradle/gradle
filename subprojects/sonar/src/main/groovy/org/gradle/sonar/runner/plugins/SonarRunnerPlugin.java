@@ -41,10 +41,7 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.CollectionUtils.nonEmptyOrNull;
@@ -109,7 +106,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         conventionMapping.map("sonarProperties", new Callable<Object>() {
             public Object call() throws Exception {
                 Map<String, Object> properties = Maps.newLinkedHashMap();
-                computeSonarProperties(project, properties, actionBroadcastMap);
+                computeSonarProperties(project, properties, actionBroadcastMap, "");
                 return properties;
             }
         });
@@ -135,7 +132,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         return sonarRunnerTask;
     }
 
-    public void computeSonarProperties(Project project, Map<String, Object> properties, Map<Project, ActionBroadcast<SonarProperties>> sonarPropertiesActionBroadcastMap) {
+    public void computeSonarProperties(Project project, Map<String, Object> properties, Map<Project, ActionBroadcast<SonarProperties>> sonarPropertiesActionBroadcastMap, String prefix) {
         SonarRunnerExtension extension = project.getExtensions().getByType(SonarRunnerExtension.class);
         if (extension.isSkipProject()) {
             return;
@@ -148,12 +145,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             addSystemProperties(rawProperties);
         }
 
-        String projectPrefix = project.getPath().substring(targetProject.getPath().length()).replace(":", ".");
-        if (projectPrefix.startsWith(".")) {
-            projectPrefix = projectPrefix.substring(1);
-        }
-
-        convertProperties(rawProperties, projectPrefix, properties);
+        convertProperties(rawProperties, prefix, properties);
 
         List<Project> enabledChildProjects = Lists.newLinkedList(Iterables.filter(project.getChildProjects().values(), new Predicate<Project>() {
             public boolean apply(Project input) {
@@ -165,18 +157,14 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             return;
         }
 
-        Collections.sort(enabledChildProjects);
-
-        String modules = COMMA_JOINER.join(Iterables.transform(enabledChildProjects, new Function<Project, String>() {
-            public String apply(Project input) {
-                return input.getName();
-            }
-        }));
-
-        properties.put(convertKey("sonar.modules", projectPrefix), modules);
+        List<String> moduleIds = new ArrayList<String>();
         for (Project childProject : enabledChildProjects) {
-            computeSonarProperties(childProject, properties, sonarPropertiesActionBroadcastMap);
+            String moduleId = getProjectKey(childProject);
+            moduleIds.add(moduleId);
+            String modulePrefix = prefix.length() > 0 ? prefix + "." + moduleId : moduleId;
+            computeSonarProperties(childProject, properties, sonarPropertiesActionBroadcastMap, modulePrefix);
         }
+        properties.put(convertKey("sonar.modules", prefix), COMMA_JOINER.join(moduleIds));
     }
 
     private void addGradleDefaults(final Project project, final Map<String, Object> properties) {
@@ -190,11 +178,11 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         properties.put("sonar.dynamicAnalysis", "reuseReports");
 
         if (project.equals(targetProject)) {
-            // We only set project key for root project because Sonar Runner 2.0 will automatically
-            // prefix subproject keys with parent key, even if subproject keys are set explicitly.
-            // Therefore it's better to rely on Sonar's defaults.
+            // Root project
             properties.put("sonar.projectKey", getProjectKey(project));
             properties.put("sonar.working.directory", new File(project.getBuildDir(), "sonar"));
+        } else {
+            properties.put("sonar.moduleKey", getProjectKey(project));
         }
 
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
@@ -266,7 +254,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     private void addSystemProperties(Map<String, Object> properties) {
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
-            if (key.startsWith("sonar.")) {
+            if (key.startsWith("sonar")) {
                 properties.put(key, entry.getValue());
             }
         }
