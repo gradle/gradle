@@ -54,20 +54,24 @@ class FileUtilsTest extends Specification {
         e.message.contains("exceeds windows path limitation of 260 character.")
     }
 
-    List<String> toRoots(String... paths) {
-        findRoots(paths.collect { new File("/", it) }).collect { TextUtil.normaliseFileSeparators(it.absolutePath) }
+    List<File> toRoots(String... paths) {
+        findRoots(paths.collect { new File("/", it) })
+    }
+
+    List<File> files(String... files) {
+        files.collect { new File("/", it) }
     }
 
     def "can find roots"() {
         expect:
         toRoots() == []
-        toRoots("a/a", "a/a") == ["/a/a"]
-        toRoots("a", "b", "c") == ["/a", "/b", "/c"]
-        toRoots("a/a", "a/a/a", "a/b/a") == ["/a/a", "/a/b/a"]
-        toRoots("a/a", "a/a/a", "b/a/a") == ["/a/a", "/b/a/a"]
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == ["/a/a/a/a/a/a/a/a/a", "/a/b"]
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "/b/a/a/a/a/a/a/a/a/a/a/a") == ["/a/a/a/a/a/a/a/a/a", "/a/b", "/b/a/a/a/a/a/a/a/a/a/a/a"]
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "/b/a/a/a/a/a/a/a/a/a/a/a", "/b/a/a/a/a") == ["/a/a/a/a/a/a/a/a/a", "/a/b", "/b/a/a/a/a"]
+        toRoots("a/a", "a/a") == files("a/a")
+        toRoots("a", "b", "c") == files("a", "b", "c")
+        toRoots("a/a", "a/a/a", "a/b/a") == files("a/a", "a/b/a")
+        toRoots("a/a", "a/a/a", "b/a/a") == files("a/a", "b/a/a")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == files("a/a/a/a/a/a/a/a/a", "a/b")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
     }
 
 }
