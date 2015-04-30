@@ -18,6 +18,7 @@ package org.gradle.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.GradleException
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import static FileUtils.toSafeFileName
@@ -54,7 +55,7 @@ class FileUtilsTest extends Specification {
     }
 
     List<String> toRoots(String... paths) {
-        findRoots(paths.collect { new File("/", it) })*.absolutePath
+        findRoots(paths.collect { new File("/", it) }).collect { TextUtil.normaliseFileSeparators(it.absolutePath) }
     }
 
     def "can find roots"() {
