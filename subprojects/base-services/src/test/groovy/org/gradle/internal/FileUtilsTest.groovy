@@ -18,13 +18,11 @@ package org.gradle.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.GradleException
-import org.gradle.util.TextUtil
 import spock.lang.Specification
 
-import static FileUtils.toSafeFileName
 import static FileUtils.assertInWindowsPathLengthLimitation
+import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.findRoots
-
 
 class FileUtilsTest extends Specification {
     def "toSafeFileName encodes unsupported characters"() {
