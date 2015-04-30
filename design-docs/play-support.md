@@ -636,9 +636,10 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 4. Build ends, we are back at 1.
 
 Constraints / implementation details:
-- The inputs of tasks will be gathered during the build is executed in a `TaskExecutionListener`'s `beforeExecute` method
 - The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getFiles()` method is considered as the inputs for the task.
-- Extracting the source `DirectoryTree` and/or `File` information from `FileCollection` is done using the new `getAsDirectoryTrees()` method added to internal `FileCollectionInternal` interface. Review for the `getAsDirectoryTrees` solution is [REVIEW-5481](https://code-review.gradle.org/cru/REVIEW-5481).
+- All task input `FileCollection` instances should be gathered in to a single `org.gradle.api.internal.file.UnionFileCollection` instance. This class implements the `FileCollectionInternal` interface.
+- The `FileCollectionInternal.getFileSystemRoots()` method should be used to find out all roots to watch for changes. The file watcher will watch for all changes on the given directories. All subdirectories under the root directories will be watched for filesystem changes.
+- Filtering of events should be done in the listener by using the `FileCollection.contains` method since the listener will be called for all files/directories under the roots.
 - Changes made when the build is running, are ignored.
 - Should stop watching for changes while the build is running.
 
