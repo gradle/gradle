@@ -134,7 +134,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                     taskPaths.add(((Task) launchable).getPath());
                 } else {
                     throw new GradleException("Only Task or TaskSelector instances are supported: "
-                            + (launchable != null ? launchable.getClass() : "null"));
+                        + (launchable != null ? launchable.getClass() : "null"));
                 }
             }
             this.launchables = launchablesParams;
@@ -167,9 +167,14 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.progressListeners);
-            BuildProgressListenerAdapter buildProgressListenerAdapter = new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildProgressListeners);
+            BuildProgressListenerConfiguration configuration = new BuildProgressListenerConfiguration(
+                this.testProgressListeners,
+                this.taskProgressListeners,
+                this.buildProgressListeners
+            );
+            BuildProgressListenerAdapter buildProgressListenerAdapter = new BuildProgressListenerAdapter(configuration);
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
-                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
+                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 

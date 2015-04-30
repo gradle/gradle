@@ -31,6 +31,7 @@ import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.events.test.TestSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -149,8 +150,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
         thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 1
-        resultsOfLastListener.size() == 1
+        if (GradleVersion.version(targetDist.version.baseVersion.version)>=GradleVersion.version('2.5') && GradleVersion.current().baseVersion>=GradleVersion.version('2.5')) {
+            assert resultsOfFirstListener.size() > 1
+            assert resultsOfLastListener.size() > 1
+        } else {
+            resultsOfFirstListener.size() == 1
+            resultsOfLastListener.size() == 1
+        }
     }
 
     @ToolingApiVersion(">=2.4")

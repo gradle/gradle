@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
@@ -54,6 +55,7 @@ import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
 import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
@@ -91,17 +93,25 @@ import java.util.Map;
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener {
+class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener, InternalFailSafeProgressListenersProvider {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
     private final ListenerBroadcast<BuildProgressListener> buildProgressListeners = new ListenerBroadcast<BuildProgressListener>(BuildProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
+    private final List<Throwable> listenerFailures = new ArrayList<Throwable>();
 
-    BuildProgressListenerAdapter(List<TestProgressListener> testListeners, List<TaskProgressListener> taskListeners, List<BuildProgressListener> buildListeners) {
-        this.testProgressListeners.addAll(testListeners);
-        this.taskProgressListeners.addAll(taskListeners);
-        this.buildProgressListeners.addAll(buildListeners);
+    private boolean failsafeListeners;
+
+    BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {
+        this.testProgressListeners.addAll(configuration.getTestListeners());
+        this.taskProgressListeners.addAll(configuration.getTaskListeners());
+        this.buildProgressListeners.addAll(configuration.getBuildListeners());
+    }
+
+    @Override
+    public void setListenerFailSafeMode(boolean failsafe) {
+        failsafeListeners = failsafe;
     }
 
     @Override
@@ -124,6 +134,18 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
     @Override
     public void onEvent(final Object event) {
+        if (failsafeListeners) {
+            try {
+                doBroadcast(event);
+            } catch (Throwable e) {
+                listenerFailures.add(e);
+            }
+        } else {
+            doBroadcast(event);
+        }
+    }
+
+    private void doBroadcast(Object event) {
         if (event instanceof InternalTestProgressEvent) {
             broadcastTestProgressEvent((InternalTestProgressEvent) event);
         } else if (event instanceof InternalTaskProgressEvent) {
@@ -131,6 +153,10 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         } else if (event instanceof InternalBuildProgressEvent) {
             broadcastBuildProgressEvent((InternalBuildProgressEvent) event);
         }
+    }
+
+    public List<Throwable> getListenerFailures() {
+        return ImmutableList.copyOf(listenerFailures);
     }
 
     private void broadcastTestProgressEvent(InternalTestProgressEvent event) {

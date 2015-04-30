@@ -26,6 +26,7 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -46,6 +47,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
@@ -97,14 +99,14 @@ public class ProviderConnection {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             return new DefaultBuildEnvironment(
-                    params.gradleUserhome,
-                    GradleVersion.current().getVersion(),
-                    params.daemonParams.getEffectiveJavaHome(),
-                    params.daemonParams.getEffectiveJvmArgs(),
-                    params.daemonParams.getJvmArgs(),
-                    params.daemonParams.getAllJvmArgs(),
-                    params.daemonParams.getEffectiveSystemProperties(),
-                    params.daemonParams.getSystemProperties()
+                params.gradleUserhome,
+                GradleVersion.current().getVersion(),
+                params.daemonParams.getEffectiveJavaHome(),
+                params.daemonParams.getEffectiveJvmArgs(),
+                params.daemonParams.getJvmArgs(),
+                params.daemonParams.getAllJvmArgs(),
+                params.daemonParams.getEffectiveSystemProperties(),
+                params.daemonParams.getSystemProperties()
             );
         }
 
@@ -114,9 +116,23 @@ public class ProviderConnection {
         boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalTaskProgressListener.TASK_EXECUTION);
         boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalTaskProgressListener.BUILD_EXECUTION);
         BuildEventConsumer buildEventConsumer = listenToTestProgress || listenToTaskProgress || listenToBuildProgress
-                ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
+            ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
+        }
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
-        return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
+        Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
+        rethrowListenerErrors(buildProgressListener);
+        return out;
+    }
+
+    private void rethrowListenerErrors(InternalBuildProgressListener buildProgressListener) {
+        if (buildProgressListener != null && buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
+            List<Throwable> failures = ((InternalFailSafeProgressListenersProvider) buildProgressListener).getListenerFailures();
+            if (!failures.isEmpty()) {
+                throw new ListenerNotificationException("Build listeners threw unexpected exceptions", failures);
+            }
+        }
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {

@@ -127,8 +127,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "current task progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
         thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 1
-        resultsOfLastListener.size() == 1
+        resultsOfFirstListener.size() >= 1
+        resultsOfLastListener.size() >= 1
     }
 
     @ToolingApiVersion(">=2.5")
