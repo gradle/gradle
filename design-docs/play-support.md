@@ -735,13 +735,14 @@ Base deployment plugin:
 - Defines the concept of a 'deployable binary' that that represents a binary that can be deployed
 - Defines `run` lifecycle task for a deployment.
 
+
     interface DeployableComponentSpec extends ComponentSpec {
         void deployments(Action<? super PolymorphicDomainObjectContainer<DeploymentSpec>)
     }
 
     interface DeployableBinary extends BinarySpec
 
-    interface DeploymentSpec extends Named 
+    interface DeploymentSpec extends Named
 
     interface Executable {
         void start()
@@ -766,6 +767,7 @@ Web application plugin:
 
 - Defines the concept of a 'web deployment spec': an application hosted by a web server.
 
+
     interface WebDeploymentSpec {
         String getHost()
         String getPort()
@@ -780,6 +782,7 @@ Play plugin:
 - Defines a ${binary}${deployment}Run task for each deployment/binary.  Each task will get the deployment spec and the associated binary.
 - When a run task is executed, it will resolve the deployment executable via DeploymentResolvers to get a PlayApplicationRunner.  Then it will deploy the binary and start the executable.
 - Configures `run` to depend on ${binary}${deployment}Run and ${binary}${deployment}Run to depend on the play application binary.
+
 
     interface PlayDeploymentSpec extends WebDeploymentSpec {
         PlayPlatform platform
