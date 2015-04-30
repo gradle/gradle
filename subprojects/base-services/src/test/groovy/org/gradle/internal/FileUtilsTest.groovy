@@ -57,7 +57,7 @@ class FileUtilsTest extends Specification {
     }
 
     List<File> files(String... files) {
-        files.collect { new File("/", it) }
+        files.collect { new File("/", it).absoluteFile }
     }
 
     def "can find roots"() {
