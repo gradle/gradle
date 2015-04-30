@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch.jdk7;
+package org.gradle.internal.filewatch;
 
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.WatchService;
-
-class WatchStrategyFactory {
-    WatchStrategy createWatchStrategy() throws IOException {
-        return new WatchServiceWatchStrategy(createWatchService());
-    }
-
-    private WatchService createWatchService() throws IOException {
-        return FileSystems.getDefault().newWatchService();
-    }
+public enum EventType {
+    CREATE,
+    MODIFY,
+    DELETE,
+    OVERFLOW
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.continuous;
 
-import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.internal.filewatch.*;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Hacky initial implementation for file watching
@@ -35,17 +35,11 @@ class FileWatchStrategy implements TriggerStrategy {
 
     FileWatchStrategy(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
-        DirectoryTree dir = new DirectoryFileTree(new File("."));
-        dir.getPatterns().exclude("build/**/*", ".gradle/**/*");
-        FileWatchInputs inputs = FileWatchInputs.newBuilder().add(dir).build();
-        try {
-            this.fileWatcher = fileWatcherFactory.createFileWatcher(new FileChangeCallback(listener));
-            this.fileWatcher.watch(inputs);
-        } catch (IOException e) {
-            // TODO:
-            UncheckedException.throwAsUncheckedException(e);
-        }
-        // TODO: We need to stop the fileWatcher?
+        DirectoryFileTree directoryFileTree = new DirectoryFileTree(new File("."));
+        directoryFileTree.getPatterns().exclude("build/**/*", ".gradle/**/*");
+        FileCollectionInternal fileCollection = new FileTreeAdapter(directoryFileTree);
+
+        this.fileWatcher = fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), new FileChangeCallback(listener, fileCollection));
     }
 
     @Override
@@ -55,19 +49,23 @@ class FileWatchStrategy implements TriggerStrategy {
 
     static class FileChangeCallback implements FileWatcherListener {
         private final TriggerListener listener;
+        private final FileCollection fileCollection;
 
-        private FileChangeCallback(TriggerListener listener) {
+        private FileChangeCallback(TriggerListener listener, FileCollection fileCollection) {
             this.listener = listener;
+            this.fileCollection = fileCollection;
         }
 
         @Override
-        public void onOverflow() {
-            listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "overflow in filewatching"));
-        }
-
-        @Override
-        public void onChange(FileChangeDetails fileChangeDetails) {
-            listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
+        public FileWatcherEventResult onChange(FileWatcherEvent event) {
+            if(event.getFile() == null || fileCollection.contains(event.getFile())) {
+                listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
+                return FileWatcherEventResults.getContinueResult();
+                // TODO: stop watcher and restart for each new build
+                //return FileWatcherEventResults.getTerminateResult();
+            } else {
+                return FileWatcherEventResults.getContinueResult();
+            }
         }
     }
 }

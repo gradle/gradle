@@ -16,7 +16,9 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.internal.filewatch.FileChangeDetails
+import org.gradle.api.file.FileCollection
+import org.gradle.internal.filewatch.DefaultFileWatcherEvent
+import org.gradle.internal.filewatch.EventType
 import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherFactory
 import org.gradle.util.UsesNativeServices
@@ -33,16 +35,17 @@ class FileWatchStrategyTest extends Specification {
         when:
         def fileWatchStrategy = new FileWatchStrategy(listener, fileWatcherFactory)
         then:
-        1 * fileWatcherFactory.createFileWatcher({ it instanceof FileWatchStrategy.FileChangeCallback }) >> fileWatcher
-        1 * fileWatcher.watch({ !it.directoryTrees.empty })
+        1 * fileWatcherFactory.watch(_, { it instanceof FileWatchStrategy.FileChangeCallback }) >> fileWatcher
     }
 
     def "file watch change triggers listener"() {
         given:
-        def callback = new FileWatchStrategy.FileChangeCallback(listener)
+        def filecollection = Mock(FileCollection)
+        def callback = new FileWatchStrategy.FileChangeCallback(listener, filecollection)
         when:
-        callback.onChange(new FileChangeDetails(FileChangeDetails.ChangeType.CREATE, new File("newfile")))
+        callback.onChange(new DefaultFileWatcherEvent(EventType.CREATE, new File("newfile")))
         then:
+        1 * filecollection.contains(_) >> true
         1 * listener.triggered(_)
     }
 }

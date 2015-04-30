@@ -24,7 +24,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
@@ -36,13 +36,8 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     private static class NoOpFileWatcherFactory implements FileWatcherFactory {
         @Override
-        public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
+        public FileWatcher watch(Iterable<? extends File> roots, FileWatcherListener listener) {
             return new FileWatcher() {
-                @Override
-                public void watch(FileWatchInputs inputs) throws IOException {
-
-                }
-
                 @Override
                 public void stop() {
 
@@ -63,13 +58,13 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     }
 
     protected FileWatcherFactory createFileWatcherFactory() {
-        if(javaVersion.isJava7Compatible()) {
+        if (javaVersion.isJava7Compatible()) {
             Class clazz;
             try {
                 clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
             } catch (ClassNotFoundException e) {
-                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
+                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.", e);
             }
         }
         LOG.debug("Using no-op file watcher service.");
@@ -83,7 +78,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     }
 
     @Override
-    public FileWatcher createFileWatcher(FileWatcherListener listener) throws IOException {
-        return fileWatcherFactory.createFileWatcher(listener);
+    public FileWatcher watch(Iterable<? extends File> roots, FileWatcherListener listener) {
+        return fileWatcherFactory.watch(roots, listener);
     }
 }

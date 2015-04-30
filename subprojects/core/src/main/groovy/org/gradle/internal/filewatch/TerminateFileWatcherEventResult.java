@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch.jdk7;
+package org.gradle.internal.filewatch;
 
-import org.gradle.internal.concurrent.Stoppable;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.concurrent.TimeUnit;
-
-interface WatchStrategy {
-    Stoppable watchSingleDirectory(Path path) throws IOException;
-    boolean pollChanges(long timeout, TimeUnit unit, WatchListener watchHandler) throws InterruptedException;
-    void close();
+public interface TerminateFileWatcherEventResult extends FileWatcherEventResult {
+    Runnable getOnTerminateAction(); // the continuation of what should happen when the file watcher is shut down
 }

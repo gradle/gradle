@@ -16,35 +16,34 @@
 
 package org.gradle.internal.filewatch;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
-public class FileChangeDetails {
-    public enum ChangeType {
-        MODIFY,
-        DELETE,
-        CREATE
-    }
-
-    private final ChangeType changeType;
+public class DefaultFileWatcherEvent implements FileWatcherEvent {
+    private final EventType eventType;
     private final File file;
 
-    public FileChangeDetails(ChangeType changeType, File file) {
-        this.changeType = changeType;
+    public DefaultFileWatcherEvent(EventType eventType, File file) {
+        this.eventType = eventType;
         this.file = file;
     }
 
-    public ChangeType getChangeType() {
-        return changeType;
+    @Override
+    public EventType getEventType() {
+        return eventType;
     }
 
+    @Nullable
+    @Override
     public File getFile() {
         return file;
     }
 
     @Override
     public String toString() {
-        return "FileChangeDetails{"
-            + "changeType=" + changeType
+        return "DefaultFileWatcherEvent{"
+            + "eventType=" + eventType
             + ", file=" + file
             + '}';
     }

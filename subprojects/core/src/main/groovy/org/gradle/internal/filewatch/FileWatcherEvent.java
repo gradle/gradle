@@ -16,8 +16,13 @@
 
 package org.gradle.internal.filewatch;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
-public interface FileWatcherFactory {
-    FileWatcher watch(Iterable<? extends File> roots, FileWatcherListener listener);
+public interface FileWatcherEvent {
+    EventType getEventType(); // some kind of enum, e.g. new? changed? deleted? unknown? (i.e. overflow in WatchService terms)
+
+    @Nullable
+    File getFile(); // null when type == unknown
 }

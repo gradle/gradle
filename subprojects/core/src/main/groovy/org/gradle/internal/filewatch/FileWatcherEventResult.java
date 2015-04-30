@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch.jdk7;
+package org.gradle.internal.filewatch;
 
-interface WatchListener {
-    void onOverflow();
-    void onChange(ChangeDetails changeDetails);
+public interface FileWatcherEventResult {
 }

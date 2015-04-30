@@ -17,6 +17,5 @@
 package org.gradle.internal.filewatch;
 
 public interface FileWatcherListener {
-    void onOverflow();
-    void onChange(FileChangeDetails fileChangeDetails);
+    FileWatcherEventResult onChange(FileWatcherEvent event);
 }
