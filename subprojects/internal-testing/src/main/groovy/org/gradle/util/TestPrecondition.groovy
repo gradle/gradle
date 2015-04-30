@@ -18,7 +18,8 @@ package org.gradle.util
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
-enum TestPrecondition {
+enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
+    NULL_REQUIREMENT({ true }),
     SWING({
         !UNKNOWN_OS.fulfilled
     }),
@@ -124,7 +125,7 @@ enum TestPrecondition {
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     }),
     // TODO:DAZ Should be detecting this based on tool chain, not OS
-    OBJECTIVE_C_SUPPORT({
+        OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     });
 
@@ -142,6 +143,11 @@ enum TestPrecondition {
      */
     boolean isFulfilled() {
         predicate()
+    }
+
+    @Override
+    Boolean create() {
+        return isFulfilled()
     }
 }
 

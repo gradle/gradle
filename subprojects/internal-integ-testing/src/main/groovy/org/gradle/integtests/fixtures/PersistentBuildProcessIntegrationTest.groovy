@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
 
 /**
  * Base class for test that test the behaviour of Gradle when running subsequent builds in the same build process.
  */
-@IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
+@Requires(adhoc = { GradleContextualExecuter.longLivingProcess })
 class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
