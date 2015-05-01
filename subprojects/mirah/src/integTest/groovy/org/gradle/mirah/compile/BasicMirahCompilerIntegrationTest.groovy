@@ -50,7 +50,7 @@ DeprecationLogger.whileDisabled {
         expect:
         fails("compileMirah")
         output.contains(logStatement())
-        errorOutput.contains("type mismatch")
+        errorOutput.contains("Invalid return type int")
         file("build/classes/main").assertHasDescendants()
     }
 
