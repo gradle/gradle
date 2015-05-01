@@ -19,8 +19,6 @@ import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiActions;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -60,7 +58,6 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
-
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore schemaStore;
 
@@ -75,14 +72,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
-        final ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new Transformer<ComponentSpecContainer, CollectionBuilder<ComponentSpec>>() {
-            @Override
-            public ComponentSpecContainer transform(CollectionBuilder<ComponentSpec> componentSpecs) {
-                return DirectInstantiator.instantiate(schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), componentSpecs);
-            }
-        }, descriptor, BiActions.doNothing());
+        ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
+        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
         modelRegistry.create(componentsCreator);
+
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeModelAction.of(
                 ModelReference.of(ComponentSpec.class),

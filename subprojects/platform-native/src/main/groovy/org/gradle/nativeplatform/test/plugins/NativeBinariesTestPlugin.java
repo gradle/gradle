@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiActions;
 import org.gradle.language.base.internal.model.CollectionBuilderCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -27,7 +26,10 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.manage.schema.ModelMapSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -36,7 +38,6 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.test.DefaultTestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
@@ -49,21 +50,20 @@ import java.io.File;
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public NativeBinariesTestPlugin(ModelRegistry modelRegistry) {
+    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
         this.modelRegistry = modelRegistry;
+        this.schemaStore = schemaStore;
     }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
-        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new Transformer<TestSuiteContainer, CollectionBuilder<TestSuiteSpec>>() {
-            @Override
-            public TestSuiteContainer transform(CollectionBuilder<TestSuiteSpec> testSuiteSpecs) {
-                return new DefaultTestSuiteContainer(testSuiteSpecs);
-            }
-        }, descriptor, BiActions.doNothing());
+
+        ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
+        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }

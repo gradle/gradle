@@ -20,6 +20,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicCollectionBuilderProjection;
 import org.gradle.model.internal.core.*;
@@ -31,11 +33,11 @@ import java.util.List;
 
 public class CollectionBuilderCreators {
 
-    public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name, final Class<T> typeClass,
+    public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name,
+                                                                               final Class<T> typeClass,
                                                                                final Class<C> containerClass,
-                                                                               Transformer<? extends C, ? super CollectionBuilder<T>> collectionBuilderFactory,
-                                                                               String descriptor,
-                                                                               BiAction<? super MutableModelNode, ? super T> initializeAction) {
+                                                                               final Class<? extends C> viewClass,
+                                                                               String descriptor) {
 
 
         ModelType<RuleAwareNamedDomainObjectFactoryRegistry<T>> factoryRegistryType = new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<T>>() {
@@ -44,7 +46,7 @@ public class CollectionBuilderCreators {
 
         ModelReference<CollectionBuilder<T>> containerReference = ModelReference.of(name, DefaultCollectionBuilder.typeOf(typeClass));
 
-        PolymorphicCollectionBuilderProjection<T> collectionBuilderProjection = new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), initializeAction);
+        PolymorphicCollectionBuilderProjection<T> collectionBuilderProjection = new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), BiActions.doNothing());
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
@@ -62,7 +64,12 @@ public class CollectionBuilderCreators {
                 .descriptor(descriptor)
                 .ephemeral(true)
                 .withProjection(collectionBuilderProjection)
-                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), collectionBuilderProjection, collectionBuilderFactory))
+                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), collectionBuilderProjection, new Transformer<C, CollectionBuilder<T>>() {
+                    @Override
+                    public C transform(CollectionBuilder<T> delegate) {
+                        return DirectInstantiator.instantiate(viewClass, delegate);
+                    }
+                }))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }
