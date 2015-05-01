@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
@@ -34,11 +35,13 @@ class NativeComponentReportOutputFormatter extends ComponentReportOutputFormatte
 
     @Override
     String transform(String original) {
-        return super.transform(original)
+        return original
             .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
             .replace("platform: current", "platform: " + NativePlatformsTestFixture.defaultPlatformName)
+            .replace("\n", SystemProperties.instance.lineSeparator)
             .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
             .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
             .replaceAll('(?m)(build/binaries/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
+            .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 }
