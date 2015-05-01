@@ -1,11 +1,11 @@
-apply plugin: 'scala'
+apply plugin: 'mirah'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.mirah-lang:mirah-library:2.11.1'
 }
 
 dependencies {
@@ -15,14 +15,14 @@ dependencies {
 
 // START SNIPPET use-fsc
 compileMirah {
-    scalaCompileOptions.useCompileDaemon = true
+    mirahCompileOptions.useCompileDaemon = true
 
     // optionally specify host and port of the daemon:
-    scalaCompileOptions.daemonServer = "localhost:4243"
+    mirahCompileOptions.daemonServer = "localhost:4243"
 }
 // END SNIPPET use-fsc
 
 compileMirah {
     // don't use daemon because it would cause problems for automated testing
-    scalaCompileOptions.useCompileDaemon = false
+    mirahCompileOptions.useCompileDaemon = false
 }

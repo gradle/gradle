@@ -1,24 +1,24 @@
-apply plugin: 'scala'
+apply plugin: 'mirah'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.mirah-lang:mirah-library:2.11.1'
     testCompile 'junit:junit:4.12'
 }
 
 // START SNIPPET custom-source-locations
 sourceSets {
     main {
-        scala {
-            srcDirs = ['src/scala']
+        mirah {
+            srcDirs = ['src/mirah']
         }
     }
     test {
-        scala {
-            srcDirs = ['test/scala']
+        mirah {
+            srcDirs = ['test/mirah']
         }
     }
 }

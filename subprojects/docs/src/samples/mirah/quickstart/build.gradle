@@ -1,17 +1,17 @@
 apply plugin: 'eclipse'
 // START SNIPPET use-plugin
-apply plugin: 'scala'
+apply plugin: 'mirah'
 // END SNIPPET use-plugin
 
-// START SNIPPET scala-dependency
+// START SNIPPET mirah-dependency
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.mirah-lang:mirah-library:2.11.1'
 }
-// END SNIPPET scala-dependency
+// END SNIPPET mirah-dependency
 
 dependencies {
     compile 'commons-collections:commons-collections:3.2'
