@@ -81,12 +81,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 ModelReference.of(ComponentSpec.class),
                 new SimpleModelRuleDescriptor(descriptor),
                 ComponentSpecInitializer.action()));
-
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
-            DirectNodeModelAction.of(
-                ModelReference.of(BinarySpec.class),
-                new SimpleModelRuleDescriptor(descriptor),
-                ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")

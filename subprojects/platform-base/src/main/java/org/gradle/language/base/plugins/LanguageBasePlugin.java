@@ -29,6 +29,7 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
+import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.*;
@@ -137,6 +138,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 .ephemeral(true)
                 .hidden(true)
                 .build());
+
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
+            DirectNodeModelAction.of(
+                ModelReference.of(BinarySpec.class),
+                new SimpleModelRuleDescriptor(descriptor),
+                ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
