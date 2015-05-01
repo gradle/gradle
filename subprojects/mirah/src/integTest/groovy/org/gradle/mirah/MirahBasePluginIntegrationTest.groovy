@@ -38,13 +38,19 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-//  customCompile "org.mirah:mirah-library:$version"
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:$version'
+    }
 }
 
 task verify << {
-    assert compileCustomMirah.mirahClasspath.files.any { it.name == "mirah-compiler-${version}.jar" }
-    assert mirahCustomConsole.classpath.files.any { it.name == "mirah-compiler-${version}.jar" }
+    assert compileCustomMirah.mirahClasspath.files.any { it.name == "mirah-${version}.jar" }
+    assert mirahCustomConsole.classpath.files.any { it.name == "mirah-${version}.jar" }
 }
 """
 
