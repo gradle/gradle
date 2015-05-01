@@ -62,7 +62,6 @@ public class CollectionBuilderCreators {
             }
         })
                 .descriptor(descriptor)
-                .ephemeral(true)
                 .withProjection(collectionBuilderProjection)
                 .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), collectionBuilderProjection, new Transformer<C, CollectionBuilder<T>>() {
                     @Override
