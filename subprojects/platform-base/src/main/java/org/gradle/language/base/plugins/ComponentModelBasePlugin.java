@@ -20,12 +20,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiActions;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
@@ -39,7 +39,10 @@ import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelMapSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 
@@ -59,10 +62,12 @@ import static org.gradle.internal.Cast.uncheckedCast;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
         this.modelRegistry = modelRegistry;
+        this.schemaStore = schemaStore;
     }
 
     public void apply(final ProjectInternal project) {
@@ -70,10 +75,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
+        final ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
         ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new Transformer<ComponentSpecContainer, CollectionBuilder<ComponentSpec>>() {
             @Override
             public ComponentSpecContainer transform(CollectionBuilder<ComponentSpec> componentSpecs) {
-                return new DefaultComponentSpecContainer(componentSpecs);
+                return DirectInstantiator.instantiate(schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), componentSpecs);
             }
         }, descriptor, BiActions.doNothing());
         modelRegistry.create(componentsCreator);
