@@ -215,9 +215,11 @@ object Main {
 """
 package compile.test
 
-class Person(val name: String, val age: Int) {
-    def hello() : String = 42
-}
+class Person
+  def hello:String
+    42
+  end
+end
 """
     }
 
