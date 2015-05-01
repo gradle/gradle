@@ -28,8 +28,11 @@ import java.util.Set;
  * Allows the adding of items to a named collection where instantiation is managed.
  *
  * @param <T> the contract type for all items
+ *
+ * @deprecated use {@link org.gradle.model.ModelMap} instead
  */
 @Incubating
+@Deprecated
 public interface CollectionBuilder<T> {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.

@@ -18,8 +18,8 @@ package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
+import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
-import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
@@ -788,7 +788,7 @@ $type
         fail ProtectedAndPrivateNonAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
     }
 
-    interface SomeMap extends CollectionBuilder<List<String>> {
+    interface SomeMap extends ModelMap<List<String>> {
     }
 
     def "specialized map"() {

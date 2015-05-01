@@ -99,7 +99,7 @@ model {
                 }
 
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.afterEach {
                         version += ".1"
                     }
@@ -200,7 +200,7 @@ BUILD SUCCESSFUL"""))
 
                 static class Rules extends RuleSource {
                     @Mutate
-                    void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                    void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                         componentSpecs.create("sampleLib")
                     }
                 }
@@ -246,12 +246,12 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleComponentInstances(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentInstances(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleComponent")
                 }
 
                 @Mutate
-                void createSampleLibraryInstances(CollectionBuilder<SampleLibrary> componentSpecs) {
+                void createSampleLibraryInstances(ModelMap<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }
@@ -341,7 +341,7 @@ BUILD SUCCESSFUL"""))
                     builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }

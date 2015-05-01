@@ -45,7 +45,6 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
@@ -111,7 +110,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createDefaultPlayApp(CollectionBuilder<PlayApplicationSpec> builder) {
+        void createDefaultPlayApp(ModelMap<PlayApplicationSpec> builder) {
             builder.create("play");
         }
 
@@ -133,7 +132,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void configureDefaultPlaySources(CollectionBuilder<PlayApplicationSpec> playApplicationComponents, ServiceRegistry serviceRegistry) {
+        void configureDefaultPlaySources(ModelMap<PlayApplicationSpec> playApplicationComponents, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             playApplicationComponents.all(new Action<PlayApplicationSpec>() {
@@ -162,14 +161,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failOnMultiplePlayComponents(CollectionBuilder<PlayApplicationSpec> container) {
+        void failOnMultiplePlayComponents(ModelMap<PlayApplicationSpec> container) {
             if (container.size() >= 2) {
                 throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
             }
         }
 
         @Validate
-        void failOnMultipleTargetPlatforms(CollectionBuilder<PlayApplicationSpec> playApplications) {
+        void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
             playApplications.afterEach(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playApplication) {
                     PlayApplicationSpecInternal playApplicationInternal = (PlayApplicationSpecInternal) playApplication;
@@ -181,7 +180,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
+        void createBinaries(ModelMap<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
                             final PlatformResolvers platforms, final PlayPluginConfigurations configurations, final ServiceRegistry serviceRegistry,
                             @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
@@ -249,7 +248,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createTwirlSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+        void createTwirlSourceSets(ModelMap<PlayApplicationSpec> components) {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
@@ -261,7 +260,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createRoutesSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+        void createRoutesSourceSets(ModelMap<PlayApplicationSpec> components) {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
@@ -274,12 +273,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createGeneratedScalaSourceSets(CollectionBuilder<PlayApplicationBinarySpec> binaries, final ServiceRegistry serviceRegistry) {
+        void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpec> binaries, final ServiceRegistry serviceRegistry) {
             createGeneratedScalaSourceSetsForType(TwirlSourceSet.class, binaries, serviceRegistry);
             createGeneratedScalaSourceSetsForType(RoutesSourceSet.class, binaries, serviceRegistry);
         }
 
-        void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, CollectionBuilder<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
+        void createGeneratedScalaSourceSetsForType(final Class<? extends LanguageSourceSet> languageSourceSetType, ModelMap<PlayApplicationBinarySpec> binaries, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             binaries.all(new Action<PlayApplicationBinarySpec>() {
@@ -294,7 +293,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createTwirlCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool = toolResolver.resolveCompiler(TwirlCompileSpec.class, binary.getTargetPlatform());
             for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
@@ -317,7 +316,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createRoutesCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool = toolResolver.resolveCompiler(RoutesCompileSpec.class, binary.getTargetPlatform());
             for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class)) {
@@ -340,7 +339,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createScalaCompileTask(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
@@ -378,7 +377,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createJarTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
+        void createJarTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary) {
             String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
@@ -406,7 +405,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations) {
+        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations) {
             ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, binary.getTargetPlatform());

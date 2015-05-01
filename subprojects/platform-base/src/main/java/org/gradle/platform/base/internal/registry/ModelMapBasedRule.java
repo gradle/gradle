@@ -18,7 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.specs.Spec;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
@@ -30,7 +30,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAction<C> {
+public abstract class ModelMapBasedRule<R, S, T, C> implements ModelAction<C> {
     private final ModelReference<C> subject;
     private final Class<? extends T> baseType;
     private final MethodRuleDefinition<R, ?> ruleDefinition;
@@ -38,7 +38,7 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
     private ImmutableList<ModelReference<?>> inputs;
     protected int baseTypeParameterIndex;
 
-    public CollectionBuilderBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
+    public ModelMapBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
         this.subject = subject;
         this.baseType = baseType;
         this.ruleDefinition = ruleDefinition;
@@ -75,10 +75,10 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
         return allInputs.build();
     }
 
-    protected void invoke(List<ModelView<?>> inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object... ignoredInputs) {
+    protected void invoke(List<ModelView<?>> inputs, ModelMap<S> modelMap, T baseTypeParameter, Object... ignoredInputs) {
         List<Object> ignoredInputsList = Arrays.asList(ignoredInputs);
         Object[] args = new Object[inputs.size() + 2 - ignoredInputs.length];
-        args[0] = collectionBuilder;
+        args[0] = modelMap;
         args[baseTypeParameterIndex] = baseTypeParameter;
 
         for (ModelView<?> view : inputs) {

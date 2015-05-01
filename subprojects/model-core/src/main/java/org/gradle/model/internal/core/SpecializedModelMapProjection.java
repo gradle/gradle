@@ -18,21 +18,21 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 
-public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
+public class SpecializedModelMapProjection<P extends ModelMap<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
 
-    private final Transformer<? extends P, ? super CollectionBuilder<E>> factory;
+    private final Transformer<? extends P, ? super ModelMap<E>> factory;
     private final ModelAdapter delegateAdapter;
 
-    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, final Transformer<? extends P, ? super CollectionBuilder<E>> factory) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, final Transformer<? extends P, ? super ModelMap<E>> factory) {
         super(publicType, true, true);
         this.publicType = publicType;
         this.elementType = elementType;
@@ -42,8 +42,8 @@ public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<
 
     @Override
     protected ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        final ModelView<? extends CollectionBuilder<E>> rawView;
-        ModelType<CollectionBuilder<E>> type = DefaultCollectionBuilder.typeOf(elementType);
+        final ModelView<? extends ModelMap<E>> rawView;
+        ModelType<ModelMap<E>> type = DefaultModelMap.modelMapTypeOf(elementType);
         if (writable) {
             rawView = delegateAdapter.asWritable(type, modelNode, ruleDescriptor, Collections.<ModelView<?>>emptyList());
         } else {
@@ -75,7 +75,7 @@ public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<
             return false;
         }
 
-        SpecializedCollectionBuilderProjection<?, ?> that = (SpecializedCollectionBuilderProjection<?, ?>) o;
+        SpecializedModelMapProjection<?, ?> that = (SpecializedModelMapProjection<?, ?>) o;
 
         return !(publicType != null ? !publicType.equals(that.publicType) : that.publicType != null);
     }

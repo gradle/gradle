@@ -91,15 +91,15 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
     def "children of ephemeral collection nodes are implicitly ephemeral"() {
         when:
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Thing)
+        def iType = DefaultModelMap.instantiatorTypeOf(Thing)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Thing(name: name) } as NamedEntityInstantiator).build())
                 .create("things") {
-            it.ephemeral(true).collection(Thing, iRef)
+            it.ephemeral(true).modelMap(Thing, iRef)
         }
-        registry.mutateCollection("things", Thing) {
+        registry.mutateModelMap("things", Thing) {
             it.create("foo") {
                 it.value = "1"
             }

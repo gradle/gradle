@@ -149,14 +149,14 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
                 }
 
                 @Mutate
-                void addVariantTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addVariantTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
                     variants.each {
                         tasks.create(it.name)
                     }
                 }
 
                 @Mutate
-                void addAllVariantsTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addAllVariantsTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
                     tasks.create("allVariants") { allVariants ->
                         variants.each {
                             allVariants.dependsOn it.name

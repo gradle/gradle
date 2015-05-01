@@ -29,10 +29,10 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
@@ -47,7 +47,7 @@ import java.util.Arrays;
 @Incubating
 public class PlayTestPlugin extends RuleSource {
     @Mutate
-    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
+    void createTestTasks(ModelMap<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
@@ -104,7 +104,7 @@ public class PlayTestPlugin extends RuleSource {
     }
 
     @Mutate
-    void attachTestSuitesToCheckTask(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, final BinaryContainer binaries) {
         // TODO - binaries aren't an input to this rule, they're an input to the action
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override

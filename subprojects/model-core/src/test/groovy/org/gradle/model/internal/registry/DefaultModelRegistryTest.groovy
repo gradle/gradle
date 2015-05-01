@@ -615,15 +615,15 @@ class DefaultModelRegistryTest extends Specification {
     def "getting self closed collection defines all links but does not realise them until graph closed"() {
         given:
         def events = []
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .collection("things", Bean, iRef)
+                .modelMap("things", Bean, iRef)
                 .mutate {
-            it.path "things" type cbType action { c ->
+            it.path "things" type mmType action { c ->
                 events << "collection mutated"
                 c.create("c1") { events << "$it.name created" }
             }
@@ -739,8 +739,8 @@ class DefaultModelRegistryTest extends Specification {
 
     def "only rules that actually have unbound inputs are reported as unbound"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
@@ -753,13 +753,13 @@ class DefaultModelRegistryTest extends Specification {
             }
         }
         .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .mutate {
-            it.path "beans" type cbType action { c ->
+            it.path "beans" type mmType action { c ->
                 c.create("element")
             }
         }
-        .collection("emptyBeans", Bean, iRef)
+        .modelMap("emptyBeans", Bean, iRef)
 
         when:
         registry.bindAllReferences()

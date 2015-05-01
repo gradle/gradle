@@ -33,7 +33,6 @@ import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
@@ -76,7 +75,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
+        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 

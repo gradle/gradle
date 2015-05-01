@@ -25,7 +25,7 @@ import org.gradle.internal.TriAction;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
@@ -55,7 +55,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
-            ModelReference<CollectionBuilder<ComponentSpec>> subject = ModelReference.of(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(ModelType.of(ComponentSpec.class)));
+            ModelReference<ModelMap<ComponentSpec>> subject = ModelReference.of(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ModelType.of(ComponentSpec.class)));
             ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition);
 
             return new ExtractedModelAction(ModelActionRole.Finalize, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
@@ -66,28 +66,28 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        visitCollectionBuilderSubject(dataCollector, ruleDefinition, BinarySpec.class);
+        visitSubject(dataCollector, ruleDefinition, BinarySpec.class);
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
     }
 
-    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends CollectionBuilderBasedRule<R, S, ComponentSpec, CollectionBuilder<ComponentSpec>> {
+    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ModelMap<ComponentSpec>> {
 
         private final Class<C> componentType;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<CollectionBuilder<ComponentSpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
+        public ComponentBinariesRule(ModelReference<ModelMap<ComponentSpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(subject, componentType, ruleDefinition);
             this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
-        public void execute(final MutableModelNode modelNode, final CollectionBuilder<ComponentSpec> componentSpecs, final List<ModelView<?>> collectionBuilderRuleInputs) {
+        public void execute(final MutableModelNode modelNode, final ModelMap<ComponentSpec> componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
             TriAction<MutableModelNode, C, List<ModelView<?>>> action = new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode componentModelNode, C component, List<ModelView<?>> componentRuleInputs) {
                     ComponentSpecInternal componentSpecInternal = uncheckedCast(componentModelNode.getPrivateData());
                     MutableModelNode binariesNode = componentModelNode.getLink("binaries");
-                    PolymorphicDomainObjectContainerBackedCollectionBuilder<BinarySpec> binarySpecs = new PolymorphicDomainObjectContainerBackedCollectionBuilder<BinarySpec>(
+                    PolymorphicDomainObjectContainerBackedModelMap<BinarySpec> binarySpecs = new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
                             componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
                     );
                     invoke(componentRuleInputs, binarySpecs.withType(binaryType), componentSpecInternal);
@@ -104,31 +104,31 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private static class PolymorphicDomainObjectContainerBackedCollectionBuilder<T extends Named> extends AbstractCollectionBuilder<T> {
+    private static class PolymorphicDomainObjectContainerBackedModelMap<T extends Named> extends AbstractModelMap<T> {
 
         private final PolymorphicDomainObjectContainer<T> container;
         private Class<T> elementClass;
 
-        private PolymorphicDomainObjectContainerBackedCollectionBuilder(PolymorphicDomainObjectContainer<T> container, ModelType<T> elementType, MutableModelNode modelNode,
-                                                                        ModelRuleDescriptor sourceDescriptor) {
+        private PolymorphicDomainObjectContainerBackedModelMap(PolymorphicDomainObjectContainer<T> container, ModelType<T> elementType, MutableModelNode modelNode,
+                                                               ModelRuleDescriptor sourceDescriptor) {
             super(elementType, modelNode, sourceDescriptor);
             this.container = container;
             this.elementClass = elementType.getConcreteClass();
         }
 
         @Override
-        public <S> CollectionBuilder<S> withType(Class<S> type) {
+        public <S> ModelMap<S> withType(Class<S> type) {
             if (type.equals(elementClass)) {
                 return uncheckedCast(this);
             }
 
             if (elementClass.isAssignableFrom(type)) {
                 Class<? extends T> castType = uncheckedCast(type);
-                CollectionBuilder<? extends T> subType = toSubtype(castType);
+                ModelMap<? extends T> subType = toSubtype(castType);
                 return uncheckedCast(subType);
             }
 
-            return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends S>>() {
+            return new DefaultModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends S>>() {
                 @Override
                 public ModelCreators.Builder apply(MutableModelNode parent, ModelReference<? extends S> reference) {
                     throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", reference.getType(), elementType.toString()));
@@ -136,9 +136,9 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             });
         }
 
-        private <S extends T> CollectionBuilder<S> toSubtype(Class<S> itemSubtype) {
+        private <S extends T> ModelMap<S> toSubtype(Class<S> itemSubtype) {
             PolymorphicDomainObjectContainer<S> castContainer = uncheckedCast(container);
-            return new PolymorphicDomainObjectContainerBackedCollectionBuilder<S>(castContainer, ModelType.of(itemSubtype), modelNode, sourceDescriptor);
+            return new PolymorphicDomainObjectContainerBackedModelMap<S>(castContainer, ModelType.of(itemSubtype), modelNode, sourceDescriptor);
         }
 
         @Override

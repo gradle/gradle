@@ -17,11 +17,11 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 
 /**
  * A container of {@link TestSuiteSpec} instances.
  */
 @Incubating
-public interface TestSuiteContainer extends CollectionBuilder<TestSuiteSpec> {
+public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
 }

@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core
+package org.gradle.model;
 
-import org.gradle.model.collection.CollectionBuilder
-import spock.lang.Specification
+import org.gradle.api.Incubating;
+import org.gradle.model.collection.CollectionBuilder;
 
-class CollectionBuilderGroovyDecoratorTest extends Specification {
-    def viewState = Mock(ModelViewState)
-    def target = Mock(CollectionBuilder)
-    def collection = new CollectionBuilderGroovyDecorator<String>(target, viewState)
+/**
+ * Model backed map like structure allowing adding of items where instantiation is managed.
+ *
+ * @param <T> the contract type for all items
+ */
+@Incubating
+public interface ModelMap<T> extends CollectionBuilder<T> {
 
-    def "asserts can mutate typed view"() {
-        given:
-        target.withType(Integer) >> Stub(CollectionBuilder)
-
-        when:
-        collection.withType(Integer).create("thing")
-
-        then:
-        1 * viewState.assertCanMutate()
-    }
+    @Override
+    <S> ModelMap<S> withType(Class<S> type);
 }

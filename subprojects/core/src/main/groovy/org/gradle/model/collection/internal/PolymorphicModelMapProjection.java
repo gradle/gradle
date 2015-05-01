@@ -19,26 +19,23 @@ package org.gradle.model.collection.internal;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
-public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilderModelProjection<T> {
+public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
 
     private final BiAction<? super MutableModelNode, ? super T> initializer;
 
-    public PolymorphicCollectionBuilderProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
+    public PolymorphicModelMapProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
         super(baseItemType);
         this.initializer = initializer;
     }
 
     @Override
     protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> getCreatorFunction() {
-        return DefaultCollectionBuilder.createUsingParentNode(baseItemModelType, initializer);
+        return DefaultModelMap.createUsingParentNode(baseItemModelType, initializer);
     }
 
     @Override
@@ -64,7 +61,7 @@ public class PolymorphicCollectionBuilderProjection<T> extends CollectionBuilder
             return false;
         }
 
-        PolymorphicCollectionBuilderProjection<?> that = (PolymorphicCollectionBuilderProjection<?>) o;
+        PolymorphicModelMapProjection<?> that = (PolymorphicModelMapProjection<?>) o;
 
         return initializer.equals(that.initializer);
 

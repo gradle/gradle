@@ -134,6 +134,10 @@ TODO
 Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
 This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
 
+### Deprecation of org.gradle.model.collection.CollectionBuilder
+
+Use org.gradle.model.ModelMap instead.
+
 ### Changes in ComponentModelBasePlugin
 
 #### Removal of `componentSpec` project extension
@@ -144,13 +148,13 @@ Currently component container can be only accessed using model rules.
 #### Changes in `ComponentSpecContainer`
 
 - `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`.
-- `ComponentSpecContainer` now implements `CollectionBuilder<ComponentSpec`.
+- `ComponentSpecContainer` now implements `ModelMap<ComponentSpec>`.
 - All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
 
 ### Changes in NativeBinariesTestPlugin
 
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
-- `TestSuiteContainer` now implements `CollectionBuilder<TestSuiteSpec`.
+- `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
 
 ### Source sets and binaries cannot be removed from components
 

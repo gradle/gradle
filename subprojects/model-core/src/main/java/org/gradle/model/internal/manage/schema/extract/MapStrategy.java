@@ -17,8 +17,8 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.CollectionBuilderGroovyDecorator;
+import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -28,7 +28,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 
 /**
- * Currently only handles interfaces with no type parameters that directly extend CollectionBuilder.
+ * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
 public class MapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
@@ -52,11 +52,11 @@ public class MapStrategy implements ModelSchemaExtractionStrategy {
             return null;
         }
         ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
-        if (!parameterizedSuperType.getRawType().equals(CollectionBuilder.class)) {
+        if (!parameterizedSuperType.getRawType().equals(ModelMap.class)) {
             return null;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-        Class<?> proxyImpl = generator.generate(CollectionBuilderGroovyDecorator.class, contractType);
+        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.class, contractType);
         return new ModelSchemaExtractionResult<T>(ModelSchema.map(extractionContext.getType(), elementType, proxyImpl));
     }
 

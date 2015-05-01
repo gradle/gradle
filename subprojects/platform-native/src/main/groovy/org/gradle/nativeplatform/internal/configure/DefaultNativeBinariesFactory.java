@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -30,9 +30,9 @@ import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
     private final Action<NativeBinarySpec> configureAction;
     private final NativeDependencyResolver resolver;
-    private final CollectionBuilder<NativeBinarySpec> binaries;
+    private final ModelMap<NativeBinarySpec> binaries;
 
-    public DefaultNativeBinariesFactory(CollectionBuilder<NativeBinarySpec> binaries, Action<NativeBinarySpec> configureAction, NativeDependencyResolver resolver) {
+    public DefaultNativeBinariesFactory(ModelMap<NativeBinarySpec> binaries, Action<NativeBinarySpec> configureAction, NativeDependencyResolver resolver) {
         this.binaries = binaries;
         this.configureAction = configureAction;
         this.resolver = resolver;

@@ -78,7 +78,7 @@ model {
             }
 
             @Mutate
-            void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+            void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                 componentSpecs.create("main")
             }
         }

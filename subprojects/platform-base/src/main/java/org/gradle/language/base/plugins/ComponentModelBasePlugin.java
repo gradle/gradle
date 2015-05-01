@@ -27,11 +27,10 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
-import org.gradle.language.base.internal.model.CollectionBuilderCreators;
+import org.gradle.language.base.internal.model.ModelMapCreators;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.DirectNodeModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelCreator;
@@ -73,7 +72,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
+        ModelCreator componentsCreator = ModelMapCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
@@ -105,7 +104,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
         @Mutate
-        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, ComponentSpecContainer components) {
+        void closeComponentsForBinaries(ModelMap<Task> tasks, ComponentSpecContainer components) {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.

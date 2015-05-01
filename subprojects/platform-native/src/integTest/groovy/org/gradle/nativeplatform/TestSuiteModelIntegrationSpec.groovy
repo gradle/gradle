@@ -206,7 +206,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("testSuites.main.sources.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("testSuites.main.sources.main") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
                             println "sources data: ${sourceSet.data}"
@@ -238,7 +238,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
+                void closeMainComponentSourceSetsForTasks(ModelMap<Task> tasks, @Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
                 }
             }
 

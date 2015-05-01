@@ -15,6 +15,7 @@
  */
 
 package org.gradle.jvm.internal.plugins
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -30,7 +31,7 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
@@ -45,7 +46,7 @@ class CreateJvmBinariesTest extends Specification {
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin()
     def platforms = Mock(PlatformResolvers)
-    CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
+    ModelMap<JarBinarySpec> binaries = Mock(ModelMap)
     def instantiator = Mock(Instantiator)
     def mainSourceSet = new DefaultFunctionalSourceSet("ss", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
     def toolChainRegistry = Mock(JavaToolChainRegistry)

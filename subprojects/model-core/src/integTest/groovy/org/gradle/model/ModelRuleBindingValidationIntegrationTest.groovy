@@ -37,7 +37,7 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
 
             class Rules extends RuleSource {
                 @Mutate
-                void unbound(CollectionBuilder<Task> tasks, String unbound) {
+                void unbound(ModelMap<Task> tasks, String unbound) {
                 }
             }
 

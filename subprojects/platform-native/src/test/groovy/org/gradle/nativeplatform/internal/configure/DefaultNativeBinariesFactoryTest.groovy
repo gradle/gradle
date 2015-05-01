@@ -21,21 +21,17 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.*
-import org.gradle.nativeplatform.internal.DefaultNativeExecutableBinarySpec
-import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
-import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
-import org.gradle.nativeplatform.internal.DefaultSharedLibraryBinarySpec
-import org.gradle.nativeplatform.internal.DefaultStaticLibraryBinarySpec
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.nativeplatform.internal.*
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {
@@ -52,7 +48,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def instantiator = DirectInstantiator.INSTANCE;
-    def binaries = Mock(CollectionBuilder)
+    def binaries = Mock(ModelMap)
     def factory = new DefaultNativeBinariesFactory(binaries, configAction, resolver)
     def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet));
     def taskFactory = Mock(ITaskFactory)

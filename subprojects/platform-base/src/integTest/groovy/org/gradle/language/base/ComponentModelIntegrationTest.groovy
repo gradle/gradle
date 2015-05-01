@@ -104,7 +104,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @ComponentBinaries
-                void addBinaries(CollectionBuilder<CustomBinary> binaries, CustomComponent component) {
+                void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
                     binaries.create("main", CustomBinary)
                     binaries.create("test", CustomBinary)
                 }
@@ -289,7 +289,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
                             println "sources data: ${sourceSet.data}"
@@ -321,7 +321,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
+                void closeMainComponentSourceSetsForTasks(ModelMap<Task> tasks, @Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
                 }
             }
 
@@ -661,6 +661,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         where:
         projectionType                     | fullQualified
         "CollectionBuilder<ComponentSpec>" | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
+        "ModelMap<ComponentSpec>"          | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
         "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
     }
 
@@ -721,7 +722,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -753,7 +754,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 }
 
                 @Mutate
-                void closeMainComponentBinariesForTasks(CollectionBuilder<Task> tasks, @Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
+                void closeMainComponentBinariesForTasks(ModelMap<Task> tasks, @Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
                 }
             }
 
@@ -789,5 +790,41 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         then:
         output.contains "names: [customMainMainMain]"
+    }
+
+    def "can view components container as a model map and as a collection builder"() {
+        given:
+        buildFile << '''
+            import org.gradle.model.collection.*
+
+            class ComponentsRules extends RuleSource {
+                @Mutate
+                void addViaCollectionBuilder(@Path("components") CollectionBuilder<ComponentSpec> components) {
+                    components.create("viaCollectionBuilder", CustomComponent)
+                }
+
+                @Mutate
+                void addViaModelMap(@Path("components") ModelMap<ComponentSpec> components) {
+                    components.create("viaModelMap", CustomComponent)
+                }
+
+                @Mutate
+                void addPrintComponentNamesTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("printComponentNames") {
+                        doLast {
+                            println "component names: ${components.values()*.name}"
+                        }
+                    }
+                }
+            }
+
+            apply type: ComponentsRules
+        '''
+
+        when:
+        succeeds "printComponentNames"
+
+        then:
+        output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
     }
 }

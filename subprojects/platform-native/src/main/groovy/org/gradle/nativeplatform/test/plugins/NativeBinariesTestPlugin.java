@@ -18,13 +18,13 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.internal.model.CollectionBuilderCreators;
+import org.gradle.language.base.internal.model.ModelMapCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -63,7 +63,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
 
         ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = CollectionBuilderCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), descriptor);
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }
@@ -103,7 +103,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToCheckLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+        void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final BinaryContainer binaries) {
             // TODO - binaries aren't an input to this rule, they're an input to the action
             tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
                 @Override

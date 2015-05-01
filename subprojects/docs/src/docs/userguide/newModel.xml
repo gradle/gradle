@@ -195,7 +195,7 @@
                     Rules are bound within a “scope”, which determines how references bind.
                     Most rules are bound at the project scope (i.e. the root of the model graph for the project).
                     However, rules can be scoped to a node within the graph.
-                    The <apilink class="org.gradle.model.collection.CollectionBuilder" method="named(java.lang.String, java.lang.Class)" /> method is an example,
+                    The <apilink class="org.gradle.model.ModelMap" method="named(java.lang.String, java.lang.Class)" /> method is an example,
                     of a mechanism for applying scoped rules.
                     Rules declared in the build script using the <literal>model {}</literal> block, or via a <literal>RuleSource</literal> applied as a plugin use the root of the model space as the scope.
                     This can be considered the default scope.
@@ -259,7 +259,7 @@
         </sample>
         <para>
             This <apilink class="org.gradle.model.Mutate" /> rule effectively adds a task, by mutating the tasks collection.
-            The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.collection.CollectionBuilder" /> of <apilink class="org.gradle.api.Task" />.
+            The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.ModelMap" /> of <apilink class="org.gradle.api.Task" />.
             The lone input is our person element.
             As the person is being used as an input here, it will have been realised before executing this rule.
             That is, the task container effectively <emphasis>depends on</emphasis> the person element.

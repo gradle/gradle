@@ -16,19 +16,19 @@
 
 package org.gradle.model.collection.internal
 
+import org.gradle.model.ModelMap
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.CollectionBuilderModelView
+import org.gradle.model.internal.core.ModelMapModelView
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class CollectionBuilderModelViewTest extends Specification {
+class ModelMapModelViewTest extends Specification {
 
     def "cannot create items after view is closed"() {
-        def builder = Mock(CollectionBuilder)
-        def view = new CollectionBuilderModelView(ModelPath.path("things"), ModelType.of(CollectionBuilder), builder, new SimpleModelRuleDescriptor("foo"))
+        def builder = Mock(ModelMap)
+        def view = new ModelMapModelView(ModelPath.path("things"), ModelType.of(ModelMap), builder, new SimpleModelRuleDescriptor("foo"))
         def instance = view.instance
 
         when:

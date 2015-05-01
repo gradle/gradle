@@ -29,18 +29,13 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.model.Defaults;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.*;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.distribution.PlayDistribution;
-import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
+import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -62,7 +57,7 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Mutate
-    void createLifecycleTasks(CollectionBuilder<Task> tasks) {
+    void createLifecycleTasks(ModelMap<Task> tasks) {
         tasks.create("dist", new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -92,7 +87,7 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Mutate
-    void createDistributionContentTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
+    void createDistributionContentTasks(ModelMap<Task> tasks, final @Path("buildDir") File buildDir,
                                         final @Path("distributions") PlayDistributionContainer distributions,
                                         final PlayPluginConfigurations configurations) {
         for (PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
@@ -149,7 +144,7 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Mutate
-    void createDistributionZipTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir, PlayDistributionContainer distributions) {
+    void createDistributionZipTasks(ModelMap<Task> tasks, final @Path("buildDir") File buildDir, PlayDistributionContainer distributions) {
         for (final PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");

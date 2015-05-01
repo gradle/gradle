@@ -37,7 +37,6 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
@@ -153,7 +152,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @ComponentBinaries
-        public void createNativeBinaries(CollectionBuilder<NativeBinarySpec> binaries, NativeComponentSpec nativeComponent,
+        public void createNativeBinaries(ModelMap<NativeBinarySpec> binaries, NativeComponentSpec nativeComponent,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
                                          PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
@@ -193,7 +192,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configureGeneratedSourceSets(CollectionBuilder<NativeComponentSpec> componentSpecs) {
+        void configureGeneratedSourceSets(ModelMap<NativeComponentSpec> componentSpecs) {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
@@ -212,7 +211,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderFiles(CollectionBuilder<NativeComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
+        void configurePrefixHeaderFiles(ModelMap<NativeComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
@@ -229,7 +228,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, CollectionBuilder<NativeComponentSpec> nativeComponents) {
+        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<NativeComponentSpec> nativeComponents) {
             for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
                 nativeComponentSpec.getSource().withType(DependentSourceSetInternal.class, new Action<DependentSourceSetInternal>() {
                     @Override
@@ -250,7 +249,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
+        void configurePreCompiledHeaderCompileTasks(ModelMap<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
             binaries.all(new Action<NativeBinarySpecInternal>() {
                 @Override
                 public void execute(final NativeBinarySpecInternal nativeBinarySpec) {
@@ -278,7 +277,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void applyHeaderSourceSetConventions(CollectionBuilder<NativeComponentSpec> componentSpecs) {
+        public void applyHeaderSourceSetConventions(ModelMap<NativeComponentSpec> componentSpecs) {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {

@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.*;
+import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -196,20 +196,20 @@ public class ModelRegistryHelper implements ModelRegistry {
         return creator(ModelPath.path(path));
     }
 
-    public <I> ModelRegistryHelper collection(String path, final Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<I>> instantiator) {
+    public <I> ModelRegistryHelper modelMap(String path, final Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<I>> instantiator) {
         return create(path, new Transformer<ModelCreator, ModelCreatorBuilder>() {
             @Override
             public ModelCreator transform(ModelCreatorBuilder modelCreatorBuilder) {
-                return modelCreatorBuilder.collection(itemType, instantiator);
+                return modelCreatorBuilder.modelMap(itemType, instantiator);
             }
         });
     }
 
-    public <I> ModelRegistryHelper mutateCollection(final String path, final Class<I> itemType, final Action<? super CollectionBuilder<I>> action) {
+    public <I> ModelRegistryHelper mutateModelMap(final String path, final Class<I> itemType, final Action<? super ModelMap<I>> action) {
         return mutate(new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> builder) {
-                return builder.path(path).type(DefaultCollectionBuilder.typeOf(ModelType.of(itemType))).action(action);
+                return builder.path(path).type(DefaultModelMap.modelMapTypeOf(itemType)).action(action);
             }
         });
     }
@@ -535,20 +535,20 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelCreator collection(Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<? super I>> instantiator) {
+        public <I> ModelCreator modelMap(Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<? super I>> instantiator) {
             final ModelType<I> itemModelType = ModelType.of(itemType);
-            final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
+            final ModelType<ModelMap<I>> modelMapType = DefaultModelMap.modelMapTypeOf(itemModelType);
 
-            return ModelCreators.of(ModelReference.of(path, collectionBuilderType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            return ModelCreators.of(ModelReference.of(path, modelMapType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
                     node.setPrivateData(
-                            collectionBuilderType,
-                            new DefaultCollectionBuilder<I>(itemModelType, descriptor, node, DefaultCollectionBuilder.createVia(instantiator))
+                            modelMapType,
+                            new DefaultModelMap<I>(itemModelType, descriptor, node, DefaultModelMap.createVia(instantiator))
                     );
                 }
             })
-                    .withProjection(new UnmanagedModelProjection<CollectionBuilder<I>>(collectionBuilderType, true, true))
+                    .withProjection(new UnmanagedModelProjection<ModelMap<I>>(modelMapType, true, true))
                     .descriptor(descriptor)
                     .ephemeral(ephemeral)
                     .build();

@@ -18,9 +18,11 @@ package org.gradle.model.collection.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.internal.util.BiFunction;
+import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -28,17 +30,19 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public abstract class CollectionBuilderModelProjection<I> implements ModelProjection {
+public abstract class ModelMapModelProjection<I> implements ModelProjection {
+
+    private final static Set<Class<? extends CollectionBuilder>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.of(ModelMap.class, CollectionBuilder.class);
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
 
-    public CollectionBuilderModelProjection(ModelType<I> baseItemModelType) {
+    public ModelMapModelProjection(ModelType<I> baseItemModelType) {
         this.baseItemModelType = baseItemModelType;
         this.baseItemType = baseItemModelType.getConcreteClass();
     }
@@ -47,8 +51,8 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
 
     protected abstract BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> getCreatorFunction();
 
-    private String getBuilderTypeDescriptionForCreatableTypes(Collection<? extends Class<?>> creatableTypes) {
-        StringBuilder sb = new StringBuilder(CollectionBuilder.class.getName());
+    private String getContainerTypeDescription(Class<? extends CollectionBuilder> containerType, Collection<? extends Class<?>> creatableTypes) {
+        StringBuilder sb = new StringBuilder(containerType.getName());
         if (creatableTypes.size() == 1) {
             @SuppressWarnings("ConstantConditions")
             String onlyType = Iterables.getFirst(creatableTypes, null).getName();
@@ -71,7 +75,7 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
 
     protected Class<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
-        if (targetClass.equals(CollectionBuilder.class)) {
+        if (SUPPORTED_CONTAINER_TYPES.contains(targetClass)) {
             Class<?> targetItemClass = targetType.getTypeVariables().get(0).getRawClass();
             if (targetItemClass.isAssignableFrom(baseItemType)) {
                 return baseItemType;
@@ -81,7 +85,7 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
             }
             return null;
         }
-        if (targetClass.isAssignableFrom(CollectionBuilder.class)) {
+        if (targetClass.isAssignableFrom(ModelMap.class)) {
             return baseItemType;
         }
         return null;
@@ -109,16 +113,21 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
 
     protected <T, S extends I> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        CollectionBuilder<I> builder = new DefaultCollectionBuilder<I>(baseItemModelType, sourceDescriptor, node, getCreatorFunction());
+        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, getCreatorFunction());
 
-        CollectionBuilder<S> subBuilder = builder.withType(itemClass);
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(node.getPath(), DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
+        ModelMap<S> subBuilder = builder.withType(itemClass);
+        ModelMapModelView<S> view = new ModelMapModelView<S>(node.getPath(), DefaultModelMap.modelMapTypeOf(itemType), subBuilder, sourceDescriptor);
         return uncheckedCast(view);
     }
 
     @Override
-    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
-        return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(getCreatableTypes(node)));
+    public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
+        final Collection<? extends Class<?>> creatableTypes = getCreatableTypes(node);
+        return Iterables.transform(SUPPORTED_CONTAINER_TYPES, new Function<Class<? extends CollectionBuilder>, String>() {
+            public String apply(Class<? extends CollectionBuilder> containerType) {
+                return getContainerTypeDescription(containerType, creatableTypes);
+            }
+        });
     }
 
     @Override
@@ -130,7 +139,7 @@ public abstract class CollectionBuilderModelProjection<I> implements ModelProjec
             return false;
         }
 
-        CollectionBuilderModelProjection<?> that = (CollectionBuilderModelProjection<?>) o;
+        ModelMapModelProjection<?> that = (ModelMapModelProjection<?>) o;
 
         return baseItemType.equals(that.baseItemType) && baseItemModelType.equals(that.baseItemModelType);
     }

@@ -23,8 +23,8 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import java.util.Collection;
 import java.util.Set;
@@ -32,31 +32,32 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
- * Used as the superclass for views for types that extend {@link CollectionBuilder}.
+ * Used as the superclass for views for types that extend {@link org.gradle.model.ModelMap}.
  */
 // TODO - mix in Groovy support
-public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport implements CollectionBuilder<I> {
+public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements ModelMap<I> {
     public static final ModelViewState ALL_GOOD_MODEL_VIEW_STATE = new ModelViewState() {
         @Override
         public void assertCanMutate() {
         }
     };
-    private final CollectionBuilder<I> delegate;
+
+    private final ModelMap<I> delegate;
     private final ModelViewState viewState;
 
-    public CollectionBuilderGroovyDecorator(CollectionBuilder<I> delegate) {
+    public ModelMapGroovyDecorator(ModelMap<I> delegate) {
         this.delegate = delegate;
         viewState = ALL_GOOD_MODEL_VIEW_STATE;
     }
 
-    public CollectionBuilderGroovyDecorator(CollectionBuilder<I> delegate, ModelViewState viewState) {
+    public ModelMapGroovyDecorator(ModelMap<I> delegate, ModelViewState viewState) {
         this.delegate = delegate;
         this.viewState = viewState;
     }
 
     @Override
-    public <S> CollectionBuilder<S> withType(Class<S> type) {
-        return new CollectionBuilderGroovyDecorator<S>(delegate.withType(type), viewState);
+    public <S> ModelMap<S> withType(Class<S> type) {
+        return new ModelMapGroovyDecorator<S>(delegate.withType(type), viewState);
     }
 
     @Override
@@ -234,7 +235,7 @@ public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport imp
     public Object getProperty(String property) {
         I element = delegate.get(property);
         if (element == null) {
-            throw new MissingPropertyException(property, CollectionBuilder.class);
+            throw new MissingPropertyException(property, ModelMap.class);
         }
         return element;
     }
@@ -253,7 +254,7 @@ public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport imp
             Closure<? super I> closure = uncheckedCast(args[0]);
             named(name, closure);
         } else {
-            throw new MissingMethodException(name, CollectionBuilder.class, args);
+            throw new MissingMethodException(name, ModelMap.class, args);
         }
         return null;
     }

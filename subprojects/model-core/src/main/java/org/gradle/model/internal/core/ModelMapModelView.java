@@ -17,26 +17,26 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.model.ModelMap;
 import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 @NotThreadSafe
-public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>>, ModelViewState {
+public class ModelMapModelView<T> implements ModelView<ModelMap<T>>, ModelViewState {
 
-    private final ModelType<CollectionBuilder<T>> type;
-    private final CollectionBuilder<T> instance;
+    private final ModelType<ModelMap<T>> type;
+    private final ModelMap<T> instance;
     private final ModelRuleDescriptor ruleDescriptor;
     private final ModelPath path;
 
     private boolean closed;
 
-    public CollectionBuilderModelView(ModelPath path, ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+    public ModelMapModelView(ModelPath path, ModelType<ModelMap<T>> type, ModelMap<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
         this.path = path;
         this.type = type;
         this.ruleDescriptor = ruleDescriptor;
-        this.instance = new CollectionBuilderGroovyDecorator<T>(rawInstance, this);
+        this.instance = new ModelMapGroovyDecorator<T>(rawInstance, this);
     }
 
     @Override
@@ -44,11 +44,11 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         return path;
     }
 
-    public ModelType<CollectionBuilder<T>> getType() {
+    public ModelType<ModelMap<T>> getType() {
         return type;
     }
 
-    public CollectionBuilder<T> getInstance() {
+    public ModelMap<T> getInstance() {
         return instance;
     }
 

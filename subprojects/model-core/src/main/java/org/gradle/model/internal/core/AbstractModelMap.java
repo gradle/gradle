@@ -21,8 +21,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -30,12 +30,12 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Set;
 
-public abstract class AbstractCollectionBuilder<T> implements CollectionBuilder<T> {
+public abstract class AbstractModelMap<T> implements ModelMap<T> {
     protected final ModelType<T> elementType;
     protected final ModelRuleDescriptor sourceDescriptor;
     protected final MutableModelNode modelNode;
 
-    public AbstractCollectionBuilder(ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor sourceDescriptor) {
+    public AbstractModelMap(ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor sourceDescriptor) {
         this.elementType = elementType;
         this.modelNode = modelNode;
         this.sourceDescriptor = sourceDescriptor;

@@ -22,8 +22,8 @@ import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.PolymorphicCollectionBuilderProjection;
+import org.gradle.model.ModelMap;
+import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.internal.rules.DefaultRuleAwarePolymorphicNamedEntityInstantiator;
@@ -31,9 +31,9 @@ import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicNamedEntityIn
 
 import java.util.List;
 
-public class CollectionBuilderCreators {
+public class ModelMapCreators {
 
-    public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name,
+    public static <T, C extends ModelMap<T>> ModelCreator specialized(String name,
                                                                                final Class<T> typeClass,
                                                                                final Class<C> containerClass,
                                                                                final Class<? extends C> viewClass,
@@ -44,9 +44,9 @@ public class CollectionBuilderCreators {
         }.where(new ModelType.Parameter<T>() {
         }, ModelType.of(typeClass)).build();
 
-        ModelReference<CollectionBuilder<T>> containerReference = ModelReference.of(name, DefaultCollectionBuilder.typeOf(typeClass));
+        ModelReference<ModelMap<T>> containerReference = ModelReference.of(name, DefaultModelMap.modelMapTypeOf(typeClass));
 
-        PolymorphicCollectionBuilderProjection<T> collectionBuilderProjection = new PolymorphicCollectionBuilderProjection<T>(ModelType.of(typeClass), BiActions.doNothing());
+        PolymorphicModelMapProjection<T> modelMapProjection = new PolymorphicModelMapProjection<T>(ModelType.of(typeClass), BiActions.doNothing());
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
@@ -62,10 +62,10 @@ public class CollectionBuilderCreators {
             }
         })
                 .descriptor(descriptor)
-                .withProjection(collectionBuilderProjection)
-                .withProjection(new SpecializedCollectionBuilderProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), collectionBuilderProjection, new Transformer<C, CollectionBuilder<T>>() {
+                .withProjection(modelMapProjection)
+                .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), modelMapProjection, new Transformer<C, ModelMap<T>>() {
                     @Override
-                    public C transform(CollectionBuilder<T> delegate) {
+                    public C transform(ModelMap<T> delegate) {
                         return DirectInstantiator.instantiate(viewClass, delegate);
                     }
                 }))

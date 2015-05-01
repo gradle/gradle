@@ -70,7 +70,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform"
@@ -133,7 +133,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform.operatingSystem.name"
@@ -203,7 +203,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform"

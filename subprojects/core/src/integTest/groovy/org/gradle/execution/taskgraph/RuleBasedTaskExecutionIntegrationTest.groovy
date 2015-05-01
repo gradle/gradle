@@ -128,7 +128,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("requested") {
                         dependsOn "dependency"
                         finalizedBy "finalizer"
@@ -166,7 +166,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
             class ProjectARules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("executed") {
                         dependsOn ":b:dependency"
                     }
@@ -175,7 +175,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
             class ProjectBRules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("dependency")
                 }
             }

@@ -23,7 +23,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
-public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends CollectionBuilderModelProjection<M> {
+public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends ModelMapModelProjection<M> {
 
     private final ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference;
     private final ModelReference<? extends Collection<? super M>> storeReference;
@@ -36,7 +36,7 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
 
     @Override
     protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends M>> getCreatorFunction() {
-        return DefaultCollectionBuilder.createAndStoreVia(instantiatorModelReference, storeReference);
+        return DefaultModelMap.createAndStoreVia(instantiatorModelReference, storeReference);
     }
 
     @Override

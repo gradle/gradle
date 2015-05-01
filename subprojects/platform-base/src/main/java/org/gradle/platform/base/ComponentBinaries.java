@@ -47,7 +47,7 @@ import java.lang.annotation.Target;
  *     }
  *
  *     {@literal @}ComponentBinaries
- *     void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleComponent component) {
+ *     void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleComponent component) {
  *         binaries.create("${component.name}Binary", SampleBinary)
  *     }
  * }

@@ -23,8 +23,8 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.DefaultCollectionBuilder
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
@@ -46,8 +46,8 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
     abstract String getPluginName();
 
-    CollectionBuilder<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(ComponentSpec))
+    ModelMap<ComponentSpec> realizeComponents() {
+        project.modelRegistry.realize(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ComponentSpec))
     }
 
     def "creates source set with conventional locations for components"() {

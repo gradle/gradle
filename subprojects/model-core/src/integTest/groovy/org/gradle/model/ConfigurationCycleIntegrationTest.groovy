@@ -47,7 +47,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void connectTasksToFirst(CollectionBuilder<Task> tasks, @Path("first") String first) {
+                void connectTasksToFirst(ModelMap<Task> tasks, @Path("first") String first) {
                 }
             }
 

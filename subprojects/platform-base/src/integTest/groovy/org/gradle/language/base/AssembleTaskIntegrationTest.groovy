@@ -112,7 +112,7 @@ class AssembleTaskIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void createSampleBinary(CollectionBuilder<SampleBinary> binarySpecs) {
+                    void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
                         ${generateBinaries(binaries)}
                     }
                 }

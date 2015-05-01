@@ -40,7 +40,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 }
 
                 @Mutate
-                void addDependencyOnPerson(CollectionBuilder<Task> tasks, Person person) {
+                void addDependencyOnPerson(ModelMap<Task> tasks, Person person) {
                 }
             }
 
@@ -77,7 +77,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 }
 
                 @Mutate
-                void addDependencyOnPerson(CollectionBuilder<Task> tasks, Person person) {
+                void addDependencyOnPerson(ModelMap<Task> tasks, Person person) {
                 }
             }
         '''
@@ -117,7 +117,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 }
 
                 @Mutate
-                void addDependencyOnPlatform(CollectionBuilder<Task> tasks, Platform platform) {
+                void addDependencyOnPlatform(ModelMap<Task> tasks, Platform platform) {
                 }
             }
 

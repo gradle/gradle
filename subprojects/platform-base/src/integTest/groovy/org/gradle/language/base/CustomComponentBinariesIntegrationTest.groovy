@@ -17,6 +17,8 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.ModelMap
+import org.gradle.model.collection.CollectionBuilder
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -57,7 +59,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             }
 
             @Mutate
-            void createSampleComponentComponents(CollectionBuilder<SampleLibrary> componentSpecs, ServiceRegistry serviceRegistry) {
+            void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs, ServiceRegistry serviceRegistry) {
                 componentSpecs.create("sampleLib", new Action<SampleLibrary>() {
                     public void execute(SampleLibrary library) {
                         library.sources {
@@ -83,9 +85,10 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 """
     }
 
-    def "can register binaries using @ComponentBinaries"() {
+    @Unroll
+    def "can register binaries using @ComponentBinaries when viewing binaries container as #binariesContainerType.simpleName"() {
         when:
-        buildFile << withSimpleComponentBinaries()
+        buildFile << withSimpleComponentBinaries(binariesContainerType)
         buildFile << """
 
 
@@ -101,6 +104,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 """
         then:
         succeeds "checkModel"
+
+        where:
+        binariesContainerType << [CollectionBuilder, ModelMap]
     }
 
     def "links binaries to component"() {
@@ -187,7 +193,7 @@ Binaries
                }
 
                @ComponentBinaries
-               void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, $ruleInputs) {
+               void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, $ruleInputs) {
                    myModel.values.each{ value ->
                         binaries.create("\${library.name}\${value}Binary")
 
@@ -226,14 +232,14 @@ Binaries
         ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
     }
 
-    String withSimpleComponentBinaries() {
+    String withSimpleComponentBinaries(Class<? extends CollectionBuilder> binariesContainerType = ModelMap) {
         """
          class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
                 @ComponentBinaries
-                void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+                void createBinariesForSampleLibrary(${binariesContainerType.simpleName}<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary")
                     binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
                 }

@@ -60,7 +60,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "binaries are built when build task execution is requested"() {
         buildFile << """
-            import org.gradle.model.collection.CollectionBuilder
+            import org.gradle.model.ModelMap
 
             interface SampleBinary extends BinarySpec {
             }
@@ -75,7 +75,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void createSampleBinary(CollectionBuilder<SampleBinary> binarySpecs) {
+                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
                     binarySpecs.create("sampleBinary")
                 }
             }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -36,6 +36,8 @@ import org.gradle.platform.base.InvalidModelException;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.gradle.model.internal.core.DefaultModelMap.createAndStoreVia;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
@@ -64,7 +66,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
     private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
+        visitSubject(taskDataCollector, ruleDefinition, Task.class);
         visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
     }
 
@@ -76,20 +78,20 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, T> {
+    private class BinaryTaskRule<R, T extends BinarySpec> extends ModelMapBasedRule<R, Task, T, T> {
 
         public BinaryTaskRule(Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(ModelReference.of(binaryType), binaryType, ruleDefinition);
         }
 
         public void execute(MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
-            DefaultCollectionBuilder<TaskInternal> collectionBuilder = new DefaultCollectionBuilder<TaskInternal>(
+            ModelMap<TaskInternal> modelMap = new DefaultModelMap<TaskInternal>(
                     ModelType.of(TaskInternal.class),
                     getDescriptor(),
                     modelNode,
-                    DefaultCollectionBuilder.createAndStoreVia(
-                            ModelReference.of(ITaskFactory.class),
-                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task.class))
+                    createAndStoreVia(
+                        ModelReference.of(ITaskFactory.class),
+                        ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task.class))
                     )
 
             ) {
@@ -100,7 +102,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                 }
             };
 
-            CollectionBuilder<Task> cast = Cast.uncheckedCast(collectionBuilder);
+            ModelMap<Task> cast = Cast.uncheckedCast(modelMap);
 
             List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size() + 1);
             inputsWithBinary.addAll(inputs);

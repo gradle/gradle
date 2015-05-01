@@ -21,8 +21,8 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.DefaultCollectionBuilder
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.*
 import org.gradle.platform.base.ComponentSpec
@@ -33,8 +33,8 @@ import spock.lang.Specification
 class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
-    CollectionBuilder<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(ComponentSpec))
+    ModelMap<ComponentSpec> realizeComponents() {
+        project.modelRegistry.realize(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ComponentSpec))
     }
 
     def "creates asm source set with conventional locations for components"() {

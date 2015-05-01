@@ -22,7 +22,6 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.*
-import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -32,7 +31,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class DefaultCollectionBuilderTest extends Specification {
+class DefaultModelMapTest extends Specification {
 
     def type = new ModelType<NamedThing>() {}
 
@@ -46,7 +45,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
-    def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
+    def modelMapType = new ModelType<ModelMap<NamedThing>>() {}
     def registry = new ModelRegistryHelper()
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, DirectInstantiator.INSTANCE, { it.getName() })
 
@@ -58,9 +57,9 @@ class DefaultCollectionBuilderTest extends Specification {
         container.registerFactory(SpecialNamedThing) { SpecialNamedThing.newInstance(name: it) }
     }
 
-    void mutate(@DelegatesTo(CollectionBuilder) Closure<? super CollectionBuilder<NamedThing>> action) {
+    void mutate(@DelegatesTo(ModelMap) Closure<? super ModelMap<NamedThing>> action) {
         def mutator = Stub(ModelAction)
-        mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
+        mutator.subject >> ModelReference.of(containerPath, new ModelType<ModelMap<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
         mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
@@ -173,7 +172,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).size() == 2
+        registry.realize(containerPath, modelMapType).size() == 2
     }
 
     def "can query filtered collection size"() {
@@ -192,7 +191,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).size() == 1
+        registry.realize(containerPath, modelMapType).withType(SpecialNamedThing).size() == 1
     }
 
     def "can query collection membership"() {
@@ -208,7 +207,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).containsKey("a")
+        registry.realize(containerPath, modelMapType).containsKey("a")
     }
 
     def "can query filtered collection membership"() {
@@ -234,7 +233,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).containsKey("b")
+        registry.realize(containerPath, modelMapType).withType(SpecialNamedThing).containsKey("b")
     }
 
     def "can query collection keys"() {
@@ -249,7 +248,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
+        registry.realize(containerPath, modelMapType).keySet() as List == ["a", "b"]
     }
 
     def "can access values"() {
@@ -260,7 +259,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).values()*.other as Set == ["first", "second"] as Set
+        registry.realize(containerPath, modelMapType).values()*.other as Set == ["first", "second"] as Set
     }
 
     def "can query filtered collection keys"() {
@@ -279,7 +278,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, collectionBuilderType).withType(Special).keySet() as List == ["b"]
+        registry.realize(containerPath, modelMapType).withType(Special).keySet() as List == ["b"]
     }
 
     def "can register mutate rule for item with name"() {
@@ -538,15 +537,15 @@ class DefaultCollectionBuilderTest extends Specification {
     }
 
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(MutableValue))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(ModelType.of(MutableValue))
+        def mmType = DefaultModelMap.modelMapTypeOf(MutableValue)
+        def iType = DefaultModelMap.instantiatorTypeOf(ModelType.of(MutableValue))
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new MutableValue() }).build())
-                .collection("values", MutableValue, iRef)
+                .modelMap("values", MutableValue, iRef)
                 .mutate {
-            it.descriptor("mutating elements").path "values" type cbType action { c ->
+            it.descriptor("mutating elements").path "values" type mmType action { c ->
                 c.create("element")
                 c.named("element", Object)
             }
@@ -570,16 +569,16 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "inputs of a rule from an inner source are not realised if the rule is not required"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
         def events = []
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
                 .create("input", "input") { events << "input created" }
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .mutate {
-            it.path "beans" type cbType action { c ->
+            it.path "beans" type mmType action { c ->
                 events << "collection mutated"
                 c.create("element") { events << "$it.name created" }
                 c.named("element", ElementRules)
@@ -601,8 +600,8 @@ class DefaultCollectionBuilderTest extends Specification {
     }
 
     def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
@@ -613,9 +612,9 @@ class DefaultCollectionBuilderTest extends Specification {
                 subject.value = input.value
             }
         }
-        .collection("beans", Bean, iRef)
+        .modelMap("beans", Bean, iRef)
                 .mutate {
-            it.path "beans" type cbType action { c ->
+            it.path "beans" type mmType action { c ->
                 c.create("element")
             }
         }
@@ -641,15 +640,15 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .mutate {
-            it.path "beans" type cbType action { c ->
+            it.path "beans" type mmType action { c ->
                 c.create("element")
                 c.named("element", ByTypeSubjectBoundToScopeChildRule)
             }
@@ -669,15 +668,15 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "adding an unbound scoped rule for an element that is never created results in an error upon validation if the scope parent has been self closed"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) }).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .mutate {
-            it.path "beans" type cbType action { c ->
+            it.path "beans" type mmType action { c ->
                 c.named("element", ElementRules)
             }
         }
@@ -706,8 +705,8 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "can add rule source to all items of type"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
         NamedEntityInstantiator instantiator = { name, type ->
             (type ?: Bean).newInstance(name: name)
@@ -715,10 +714,10 @@ class DefaultCollectionBuilderTest extends Specification {
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .createInstance("s", "other")
                 .mutate {
-            it.path("beans").type(cbType).action { c ->
+            it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
                 c.create("b2", Bean)
                 c.create("sb1", SpecialBean)
@@ -759,8 +758,8 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "when targeting by type, paths are interpreted relative to item"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
         NamedEntityInstantiator instantiator = { name, type ->
             (type ?: Bean).newInstance(name: name)
@@ -768,10 +767,10 @@ class DefaultCollectionBuilderTest extends Specification {
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .createInstance("s", "other")
                 .mutate {
-            it.path("beans").type(cbType).action { c ->
+            it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
                 c.create("sb1", SpecialBean)
                 c.withType(SpecialBean, SetProp)
@@ -798,8 +797,8 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "when targeting by type, can have rule use more general type than target"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
         NamedEntityInstantiator instantiator = { name, type ->
             (type ?: Bean).newInstance(name: name)
@@ -807,10 +806,10 @@ class DefaultCollectionBuilderTest extends Specification {
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .createInstance("s", "other")
                 .mutate {
-            it.path("beans").type(cbType).action { c ->
+            it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
                 c.withType(SpecialBean, SetValue)
             }
@@ -825,8 +824,8 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "when targeting by type, can have rule use more specific type than target"() {
         given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
         def iRef = ModelReference.of("instantiator", iType)
         NamedEntityInstantiator instantiator = { name, type ->
             (type ?: Bean).newInstance(name: name)
@@ -834,10 +833,10 @@ class DefaultCollectionBuilderTest extends Specification {
 
         registry
                 .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .collection("beans", Bean, iRef)
+                .modelMap("beans", Bean, iRef)
                 .createInstance("s", "other")
                 .mutate {
-            it.path("beans").type(cbType).action { c ->
+            it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
                 c.withType(Bean, SetOther)
             }

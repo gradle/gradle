@@ -21,12 +21,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
@@ -37,7 +38,6 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.tasks.JavaScriptMinify;
-import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 
@@ -56,7 +56,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     @Mutate
-    void createJavascriptSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+    void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
@@ -69,7 +69,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+    void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
         ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool = toolResolver.resolveCompiler(JavaScriptCompileSpec.class, binary.getTargetPlatform());
         for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
@@ -83,7 +83,8 @@ public class PlayJavaScriptPlugin extends RuleSource {
         }
     }
 
-    void createJavaScriptMinifyTask(CollectionBuilder<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, final ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool,  @Path("buildDir") final File buildDir) {
+    void createJavaScriptMinifyTask(ModelMap
+                                        <Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, final ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool,  @Path("buildDir") final File buildDir) {
         final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
         final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

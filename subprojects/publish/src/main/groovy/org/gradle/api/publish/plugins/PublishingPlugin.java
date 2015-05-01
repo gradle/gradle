@@ -35,9 +35,9 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 
@@ -93,7 +93,7 @@ public class PublishingPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void tasksDependOnProjectPublicationRegistry(CollectionBuilder<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
+        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
             //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
         }
     }
