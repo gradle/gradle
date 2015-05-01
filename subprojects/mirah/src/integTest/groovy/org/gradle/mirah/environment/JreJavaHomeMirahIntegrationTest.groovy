@@ -39,7 +39,7 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
-        file("src/main/mirah/org/test/JavaClazz.java") << """
+        file("src/main/java/org/test/JavaClazz.java") << """
                     package org.test;
                     public class JavaClazz {
                         public static void main(String... args){
@@ -52,12 +52,18 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
                     println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                     apply plugin:'mirah'
 
-                    repositories {
-                        mavenCentral()
+                    buildscript {
+                        repositories {
+                            mavenCentral()
+                        }
+                        
+                        dependencies {
+                            classpath 'org.mirah:mirah:0.1.4'
+                        }
                     }
 
-                    dependencies {
-//                      compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
+                    repositories {
+                        mavenCentral()
                     }
 
                     compileMirah {
@@ -81,12 +87,18 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
                     apply plugin:'mirah'
 
-                    repositories {
-                        mavenCentral()
+                    buildscript {
+                        repositories {
+                            mavenCentral()
+                        }
+                        
+                        dependencies {
+                            classpath 'org.mirah:mirah:0.1.4'
+                        }
                     }
 
-                    dependencies {
-//                      compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
+                    repositories {
+                        mavenCentral()
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
@@ -99,12 +111,12 @@ class JreJavaHomeMirahIntegrationTest extends AbstractIntegrationSpec {
 
     private writeMirahTestSource(String srcDir) {
         file(srcDir, 'org/test/MirahClazz.mirah') << """
-        package org.test{
-            object MirahClazz {
-                def main(args: Array[String]) {
-                    println("Hello, world!")
-                }
-            }
+        package org.test {
+            class MirahClazz
+                def self.main(args:String[])
+                    puts "Hello, world!"
+                end
+            end
         }
         """
     }
