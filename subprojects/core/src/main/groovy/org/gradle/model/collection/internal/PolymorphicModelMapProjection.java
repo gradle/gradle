@@ -17,7 +17,6 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
@@ -25,17 +24,13 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
-
-    private final BiAction<? super MutableModelNode, ? super T> initializer;
-
-    public PolymorphicModelMapProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
+    public PolymorphicModelMapProjection(ModelType<T> baseItemType) {
         super(baseItemType);
-        this.initializer = initializer;
     }
 
     @Override
     protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> getCreatorFunction() {
-        return DefaultModelMap.createUsingParentNode(baseItemModelType, initializer);
+        return DefaultModelMap.createUsingParentNode(baseItemModelType);
     }
 
     @Override
@@ -46,31 +41,5 @@ public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T>
 
         PolymorphicNamedEntityInstantiator<T> instantiator = node.getPrivateData(instantiatorType);
         return instantiator.getCreatableTypes();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        //noinspection EqualsBetweenInconvertibleTypes
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        PolymorphicModelMapProjection<?> that = (PolymorphicModelMapProjection<?>) o;
-
-        return initializer.equals(that.initializer);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + initializer.hashCode();
-        return result;
     }
 }

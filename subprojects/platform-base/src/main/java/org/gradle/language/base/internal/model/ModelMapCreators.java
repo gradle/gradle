@@ -20,7 +20,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
@@ -46,7 +45,7 @@ public class ModelMapCreators {
 
         ModelReference<ModelMap<T>> containerReference = ModelReference.of(name, DefaultModelMap.modelMapTypeOf(typeClass));
 
-        PolymorphicModelMapProjection<T> modelMapProjection = new PolymorphicModelMapProjection<T>(ModelType.of(typeClass), BiActions.doNothing());
+        PolymorphicModelMapProjection<T> modelMapProjection = new PolymorphicModelMapProjection<T>(ModelType.of(typeClass));
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
