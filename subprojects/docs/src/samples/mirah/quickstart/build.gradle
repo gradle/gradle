@@ -4,14 +4,20 @@ apply plugin: 'mirah'
 // END SNIPPET use-plugin
 
 // START SNIPPET mirah-dependency
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:0.1.4'
+    }
+}
+// END SNIPPET mirah-dependency
+
 repositories {
     mavenCentral()
 }
-
-dependencies {
-    compile 'org.mirah-lang:mirah-library:2.11.1'
-}
-// END SNIPPET mirah-dependency
 
 dependencies {
     compile 'commons-collections:commons-collections:3.2'

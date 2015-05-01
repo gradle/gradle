@@ -1,14 +1,15 @@
 package org.gradle.sample.impl
 
-import _root_.junit.framework.TestCase
-import _root_.org.gradle.sample.api.Person
+import java.util.List
+import junit.framework.TestCase
+import org.gradle.sample.api.Person
 
-class PersonImplTest extends TestCase {
+class PersonImplTest < TestCase
 
-  // FIXME: use a Mirah test framework to run a test
-  def testCanCreatePersonImpl(): Unit = {
-    def person: Person = new PersonImpl(List("bob", "smith"))
+  # FIXME: use a Mirah test framework to run a test
+  def testCanCreatePersonImpl():void
+    person = PersonImpl.new(["bob", "smith"])
     person
-  }
+  end
 
-}
+end
