@@ -64,7 +64,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
                 clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
             } catch (ClassNotFoundException e) {
-                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.", e);
+                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
             }
         }
         LOG.debug("Using no-op file watcher service.");
