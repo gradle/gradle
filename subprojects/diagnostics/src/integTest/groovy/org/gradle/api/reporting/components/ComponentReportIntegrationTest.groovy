@@ -26,6 +26,10 @@ class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationT
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    def setup() {
+        formatter = new NativeComponentReportOutputFormatter(toolChain)
+    }
+    
     @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
         when:
