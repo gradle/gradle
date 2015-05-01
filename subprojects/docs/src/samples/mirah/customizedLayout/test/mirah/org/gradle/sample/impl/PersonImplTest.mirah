@@ -8,8 +8,7 @@ class PersonImplTest < TestCase
 
   # FIXME: use a Mirah test framework to run a test
   def testCanCreatePersonImpl():void
-    person = PersonImpl.new(["bob", "smith"])
-    person
+    PersonImpl.new(["bob", "smith"])
   end
 
 end
