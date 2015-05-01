@@ -20,9 +20,51 @@ import org.gradle.api.Nullable;
 
 import java.io.File;
 
-public interface FileWatcherEvent {
-    EventType getEventType(); // some kind of enum, e.g. new? changed? deleted? unknown? (i.e. overflow in WatchService terms)
+public class FileWatcherEvent {
 
-    @Nullable
-    File getFile(); // null when type == unknown
+    public enum Type {
+        CREATE,
+        MODIFY,
+        DELETE,
+        OVERFLOW
+    }
+
+    private final Type type;
+    private final File file;
+
+    private FileWatcherEvent(Type type, File file) {
+        this.type = type;
+        this.file = file;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    @Nullable // null if type == unknown
+    public File getFile() {
+        return file;
+    }
+
+    @Override
+    public String toString() {
+        return "FileWatcherEvent{type=" + type + ", file=" + file + '}';
+    }
+
+    public static FileWatcherEvent create(File file) {
+        return new FileWatcherEvent(Type.CREATE, file);
+    }
+
+    public static FileWatcherEvent modify(File file) {
+        return new FileWatcherEvent(Type.MODIFY, file);
+    }
+
+    public static FileWatcherEvent delete(File file) {
+        return new FileWatcherEvent(Type.DELETE, file);
+    }
+
+    public static FileWatcherEvent overflow() {
+        return new FileWatcherEvent(Type.OVERFLOW, null);
+    }
+
 }

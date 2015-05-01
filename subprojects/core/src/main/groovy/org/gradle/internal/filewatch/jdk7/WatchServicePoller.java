@@ -19,8 +19,6 @@ package org.gradle.internal.filewatch.jdk7;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.filewatch.DefaultFileWatcherEvent;
-import org.gradle.internal.filewatch.EventType;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.util.CollectionUtils;
 
@@ -51,13 +49,12 @@ class WatchServicePoller {
             @Override
             public FileWatcherEvent transform(WatchEvent<?> event) {
                 WatchEvent.Kind kind = event.kind();
-                EventType eventType = toEventType(kind);
                 File file = null;
                 if (kind.type() == Path.class) {
                     WatchEvent<Path> ev = Cast.uncheckedCast(event);
                     file = watchedPath.resolve(ev.context()).toFile();
                 }
-                return new DefaultFileWatcherEvent(eventType, file);
+                return toEvent(kind, file);
             }
         };
         List<FileWatcherEvent> events = CollectionUtils.collect(watchKey.pollEvents(), watchEventTransformer);
@@ -65,15 +62,15 @@ class WatchServicePoller {
         return events;
     }
 
-    private EventType toEventType(WatchEvent.Kind kind) {
+    private FileWatcherEvent toEvent(WatchEvent.Kind kind, File file) {
         if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-            return EventType.CREATE;
+            return FileWatcherEvent.create(file);
         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-            return EventType.DELETE;
+            return FileWatcherEvent.delete(file);
         } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-            return EventType.MODIFY;
+            return FileWatcherEvent.modify(file);
         } else if (kind == StandardWatchEventKinds.OVERFLOW) {
-            return EventType.OVERFLOW;
+            return FileWatcherEvent.overflow();
         } else {
             throw new IllegalStateException("Unknown watch kind " + kind);
         }

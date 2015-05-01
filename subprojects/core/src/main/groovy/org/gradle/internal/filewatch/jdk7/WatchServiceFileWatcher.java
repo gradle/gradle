@@ -102,7 +102,7 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
     }
 
     private void handleNewDirectory(FileWatcherEvent event) {
-        if (event.getEventType() == EventType.CREATE && event.getFile().isDirectory()) {
+        if (event.getType() == FileWatcherEvent.Type.CREATE && event.getFile().isDirectory()) {
             try {
                 registrar.registerChild(event.getFile().toPath());
             } catch (IOException e) {
