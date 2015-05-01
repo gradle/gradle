@@ -167,25 +167,30 @@ task succeed {
 """
         when:
         startGradle("succeed")
+
         and:
-        afterBuild {
-            changeSource()
+        waitForWatching {
             triggerNothing()
         }
+        changeSource()
+
         and:
-        afterBuild {
-            createSource()
+        waitForWatching {
             triggerNothing()
         }
+        createSource()
+
         and:
-        afterBuild {
-            deleteSource()
+        waitForWatching {
             triggerNothing()
         }
+        deleteSource()
+
         and:
         afterBuild {
             triggerStop()
         }
+
         then:
         waitForStop()
         gradle.standardOutput.count("BUILD SUCCESSFUL") == 4

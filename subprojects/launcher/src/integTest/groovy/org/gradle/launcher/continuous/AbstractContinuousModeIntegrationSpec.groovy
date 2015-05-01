@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
+import spock.util.concurrent.PollingConditions
 
 class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
@@ -88,6 +89,12 @@ gradle.buildFinished {
         server.waitForDisconnect()
     }
 
+    def waitForWatching(Closure c) {
+        afterBuild(c)
+        new PollingConditions().within(3) {
+            assert gradle.standardOutput.endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
+        }
+    }
     def triggerRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }

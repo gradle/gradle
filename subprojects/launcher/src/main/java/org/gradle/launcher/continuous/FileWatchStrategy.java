@@ -16,15 +16,15 @@
 
 package org.gradle.launcher.continuous;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
-import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.filewatch.FileWatcherListener;
+import org.gradle.internal.filewatch.FilteringFileWatcherListener;
+import org.gradle.internal.filewatch.StopThenFireFileWatcherListener;
 
 import java.io.File;
 
@@ -35,12 +35,32 @@ import java.io.File;
  */
 class FileWatchStrategy implements TriggerStrategy {
 
-    FileWatchStrategy(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
-        DirectoryFileTree directoryFileTree = new DirectoryFileTree(new File("."));
+    FileWatchStrategy(final TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
+        File workingDir = new File(".");
+        DirectoryFileTree directoryFileTree = new DirectoryFileTree(workingDir);
         directoryFileTree.getPatterns().exclude("build/**/*", ".gradle/**/*");
-        FileCollectionInternal fileCollection = new FileTreeAdapter(directoryFileTree);
+        final FileCollectionInternal fileCollection = new FileTreeAdapter(directoryFileTree);
 
-        fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), Actions.doNothing(), new FileChangeCallback(listener, fileCollection));
+        fileWatcherFactory.watch(
+            fileCollection.getFileSystemRoots(),
+            Actions.doNothing(), // this should be replaced with something that tears down the build
+            new FilteringFileWatcherListener(
+                new Spec<FileWatcherEvent>() {
+                    @Override
+                    public boolean isSatisfiedBy(FileWatcherEvent element) {
+                        return element.getType().equals(FileWatcherEvent.Type.OVERFLOW)
+                            || element.getType().equals(FileWatcherEvent.Type.DELETE) // because fileCollection.contains() may not consider files that would be contained if they did exist
+                            || fileCollection.contains(element.getFile());
+                    }
+                },
+                new StopThenFireFileWatcherListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
+                    }
+                })
+            )
+        );
     }
 
     @Override
@@ -48,21 +68,4 @@ class FileWatchStrategy implements TriggerStrategy {
         // TODO: Enforce quiet period here?
     }
 
-    static class FileChangeCallback implements FileWatcherListener {
-        private final TriggerListener listener;
-        private final FileCollection fileCollection;
-
-        private FileChangeCallback(TriggerListener listener, FileCollection fileCollection) {
-            this.listener = listener;
-            this.fileCollection = fileCollection;
-        }
-
-        @Override
-        public void onChange(FileWatcher fileWatcher, FileWatcherEvent event) {
-            // TODO: stop watcher and restart for each new build
-            if (event.getFile() == null || fileCollection.contains(event.getFile())) {
-                listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
-            }
-        }
-    }
 }

@@ -44,14 +44,7 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
-            // TODO: Put this somewhere else?
-            TriggerGenerator generator = triggerGeneratorFactory.newInstance();
-            generator.start();
-            try {
-                return executeMultipleBuilds(action, requestContext, actionParameters);
-            } finally {
-                generator.stop();
-            }
+            return executeMultipleBuilds(action, requestContext, actionParameters);
         }
         return executeSingleBuild(action, requestContext, actionParameters);
     }
@@ -66,18 +59,25 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
             }
 
             if (buildNotStopped(requestContext)) {
-                logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
-                TriggerDetails reason = triggerListener.waitForTrigger();
-                logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
-                if (reason.getType() == TriggerDetails.Type.REBUILD) {
-                    // reset the time the build started so the total time makes sense
-                    requestContext.getBuildTimeClock().reset();
-                } else {
-                    // stop building
-                    break;
+                TriggerGenerator generator = triggerGeneratorFactory.newInstance();
+                generator.start();
+                try {
+                    logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+                    TriggerDetails reason = triggerListener.waitForTrigger();
+                    logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
+                    if (reason.getType() == TriggerDetails.Type.REBUILD) {
+                        // reset the time the build started so the total time makes sense
+                        requestContext.getBuildTimeClock().reset();
+                    } else {
+                        // stop building
+                        break;
+                    }
+                } finally {
+                    generator.stop();
                 }
             }
         }
+
         logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
         return lastResult;
     }
