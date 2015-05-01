@@ -25,42 +25,49 @@ class MirahTestIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     @Rule public final ForkMirahCompileInDaemonModeFixture forkMirahCompileInDaemonModeFixture = new ForkMirahCompileInDaemonModeFixture(executer, temporaryFolder)
 
+    // FIXME: We do test, but we do not test using multiline descriptions.
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
 apply plugin: 'mirah'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:0.1.4'
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-//  compile "org.mirah:mirah-library:0.1.5-SNAPSHOT"
-    testCompile "org.mirahtest:mirahtest_2.11:2.1.5"
     testCompile "junit:junit:4.12"
 }
         """
 
         when:
-        file("src/test/mirah/MultiLineNameTest.mirah") << """
+        file("src/test/mirah/MultiLineNameTest.mirah") << '''
 package org.gradle
 
-import org.mirahtest.FunSuite
-import org.junit.runner.RunWith
-import org.mirahtest.junit.JUnitRunner
+import org.junit.Test
 
-@RunWith(classOf[JUnitRunner])
-class MultiLineSuite extends FunSuite {
-    test("This test method name\\nspans many\\nlines") {
-        assert(1 === 1)
-    }
-}
-        """
+class MultiLineSuite
+    $Test
+    def testNotSoManyLines:void
+        org::junit::Assert.assertEquals(1, 1)
+    end
+end
+        '''
 
         then:
         succeeds("test")
 
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
-	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
+        result.testClass("org.gradle.MultiLineSuite").assertTestPassed("testNotSoManyLines")
     }
 }
