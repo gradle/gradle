@@ -16,31 +16,35 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.filewatch.FileWatcherListener;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherListener;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.WatchService;
 import java.util.concurrent.ExecutorService;
 
 public class Jdk7FileWatcherFactory implements FileWatcherFactory {
-    private final ExecutorService executor;
+
+    private final ListeningExecutorService executor;
 
     public Jdk7FileWatcherFactory(ExecutorService executor) {
-        this.executor = executor;
+        this.executor = MoreExecutors.listeningDecorator(executor);
     }
 
     @Override
     public FileWatcher watch(Iterable<? extends File> roots, FileWatcherListener listener) {
-        WatchServiceFileWatcher fileWatcher = null;
         try {
-            fileWatcher = new WatchServiceFileWatcher(roots, listener);
+            WatchService watchService = FileSystems.getDefault().newWatchService();
+            WatchServiceFileWatcherBacking backing = new WatchServiceFileWatcherBacking(roots, listener, watchService);
+            return backing.start(executor);
         } catch (IOException e) {
-            UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        executor.submit(fileWatcher);
-        return fileWatcher;
     }
 }

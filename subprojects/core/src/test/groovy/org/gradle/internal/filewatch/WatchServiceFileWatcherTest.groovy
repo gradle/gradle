@@ -171,6 +171,19 @@ class WatchServiceFileWatcherTest extends Specification {
         await { assert !watcher.running }
     }
 
+    def "watcher will stop if listener throws"() {
+        when:
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+            throw new RuntimeException("!!")
+        }
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        await { assert !watcher.running }
+    }
+
     private void waitOn(CountDownLatch latch) {
         //println "waiting..."
         latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)

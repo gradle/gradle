@@ -1,0 +1,155 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.filewatch.jdk7;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherEvent;
+import org.gradle.internal.filewatch.FileWatcherListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
+import java.nio.file.WatchService;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class WatchServiceFileWatcherBacking {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WatchServiceFileWatcherBacking.class);
+    private final AtomicBoolean started = new AtomicBoolean();
+    private final AtomicBoolean running = new AtomicBoolean();
+
+    private final FileWatcherListener listener;
+    private final WatchService watchService;
+    private final WatchServicePoller poller;
+    private final WatchServiceRegistrar registrar;
+
+    private final FileWatcher fileWatcher = new FileWatcher() {
+        @Override
+        public boolean isRunning() {
+            return running.get();
+        }
+
+        @Override
+        public void stop() {
+            WatchServiceFileWatcherBacking.this.stop();
+        }
+    };
+
+    WatchServiceFileWatcherBacking(Iterable<? extends File> roots, FileWatcherListener listener, WatchService watchService) throws IOException {
+        this.listener = listener;
+        this.watchService = watchService;
+        this.poller = new WatchServicePoller(watchService);
+        this.registrar = new WatchServiceRegistrar(watchService);
+        for (File root : roots) {
+            registrar.registerRoot(root.toPath());
+        }
+    }
+
+    public FileWatcher start(ListeningExecutorService executorService) {
+        if (started.compareAndSet(false, true)) {
+            final ListenableFuture<?> runLoopFuture = executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    running.set(true);
+                    try {
+                        try {
+                            pumpEvents();
+                        } catch (InterruptedException e) {
+                            // ignore exception in shutdown
+                        }
+                    } finally {
+                        stop();
+                    }
+                }
+            });
+
+            // This is necessary so that the watcher indicates its not running if the runnable gets cancelled
+            Futures.addCallback(runLoopFuture, new FutureCallback<Object>() {
+                @Override
+                public void onSuccess(Object result) {
+                    running.set(false);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    running.set(false);
+                }
+            });
+            return fileWatcher;
+        } else {
+            throw new IllegalStateException("file watcher is started");
+        }
+    }
+
+    private void pumpEvents() throws InterruptedException {
+        while (isRunning()) {
+            try {
+                List<FileWatcherEvent> events = poller.takeEvents();
+                if (events != null) {
+                    deliverEvents(events);
+                }
+            } catch (ClosedWatchServiceException e) {
+                stop();
+            }
+        }
+    }
+
+    private void deliverEvents(List<FileWatcherEvent> events) {
+        for (FileWatcherEvent event : events) {
+            while (isRunning()) {
+                deliverEvent(event);
+            }
+        }
+    }
+
+    private void deliverEvent(FileWatcherEvent event) {
+        handleNewDirectory(event);
+        listener.onChange(fileWatcher, event);
+    }
+
+    private void handleNewDirectory(FileWatcherEvent event) {
+        if (event.getType() == FileWatcherEvent.Type.CREATE && event.getFile().isDirectory()) {
+            try {
+                registrar.registerChild(event.getFile().toPath());
+            } catch (IOException e) {
+                LOGGER.warn("Problem adding watch to " + event.getFile(), e);
+            }
+        }
+    }
+
+    public boolean isRunning() {
+        return running.get() && !Thread.currentThread().isInterrupted();
+    }
+
+    public void stop() {
+        if (running.compareAndSet(true, false)) {
+            try {
+                watchService.close();
+            } catch (IOException e) {
+                // ignore exception in shutdown
+            }
+        }
+    }
+
+}
