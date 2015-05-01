@@ -1,4 +1,4 @@
-trait IPerson {
-    def getName(): String
-    def getAddress(): String
-}
+interface IPerson
+  def getName:String; end
+  def getAddress:String; end
+end
