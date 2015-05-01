@@ -101,35 +101,7 @@ compileMirah.mirahCompileOptions.encoding = "ISO8859_7"
         fullDebug.debugIncludesSourceFile
         fullDebug.debugIncludesLineNumbers
         fullDebug.debugIncludesLocalVariables
-
-        when:
-        buildFile <<
-"""
-compileMirah.mirahCompileOptions.debugLevel = "line"
-"""
-        run("compileMirah")
-
-        then:
-        def linesOnly = classFile("build/classes/main/compile/test/Person.class")
-        linesOnly.debugIncludesSourceFile
-        linesOnly.debugIncludesLineNumbers
-        !linesOnly.debugIncludesLocalVariables
-
-        // older versions of mirahc Ant task don't handle 'none' correctly
-        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) { return }
-
-        when:
-        buildFile <<
-"""
-compileMirah.mirahCompileOptions.debugLevel = "none"
-"""
-        run("compileMirah")
-
-        then:
-        def noDebug = classFile("build/classes/main/compile/test/Person.class")
-        !noDebug.debugIncludesLineNumbers
-        !noDebug.debugIncludesSourceFile
-        !noDebug.debugIncludesLocalVariables
+        // Currently, we always have full debug information.
     }
 
     def failsWithGoodErrorMessageWhenMirahToolsNotConfigured() {
