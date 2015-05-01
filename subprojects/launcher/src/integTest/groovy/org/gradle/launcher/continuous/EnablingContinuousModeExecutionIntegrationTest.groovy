@@ -18,13 +18,26 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ContinuousBuildTrigger
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-public class EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
+abstract public class EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
     @Delegate @Rule ContinuousBuildTrigger buildTrigger = new ContinuousBuildTrigger(executer, this)
+
+    abstract IncrementalTestJvmComponent getApp()
+    abstract String getCompileTask()
+    abstract void validSource()
+    abstract void invalidSource()
+    abstract void changeSource()
+    abstract void createSource()
+    abstract void deleteSource()
+
+    List<TestFile> sourceFiles
+    List<TestFile> resourceFiles
 
     GradleHandle getGradle() {
         return buildTrigger.gradle
@@ -74,28 +87,34 @@ public class EnablingContinuousModeExecutionIntegrationTest extends AbstractInte
     def "keeps running even when build fails"() {
         given:
         executer.withStackTraceChecksDisabled()
-        buildFile << """
-task fail << {
-    throw new GradleException("always fails")
-}
-"""
+        invalidSource()
+
         when:
-        startGradle("fail")
+        startGradle()
+
         and:
         afterBuild {
             triggerRebuild()
         }
+
+        then:
+        buildFailed()
+
         and:
         afterBuild {
             triggerRebuild()
         }
+
+        then:
+        buildFailed()
+
         and:
         afterBuild {
             triggerStop()
         }
+
         then:
         waitForStop()
-        gradle.standardOutput.count("BUILD FAILED") == 3
     }
 
     def "keeps running even when build fails due to script error"() {
@@ -106,92 +125,101 @@ throw new GradleException("config error")
 """
         when:
         startGradle()
+
         and:
         afterBuild {
             triggerRebuild()
         }
+
+        then:
+        buildFailed()
+
         and:
         afterBuild {
             triggerRebuild()
         }
+
+        then:
+        buildFailed()
+
         and:
         afterBuild {
             triggerStop()
         }
+
         then:
         waitForStop()
         gradle.errorOutput.count("> config error") == 3
-        gradle.standardOutput.count("BUILD FAILED") == 3
     }
 
     def "keeps running when build succeeds, fails and succeeds"() {
         given:
         executer.withStackTraceChecksDisabled()
         validSource()
-        buildFile << """
-task maybeFail << {
-    def srcFile = file("${buildTrigger.srcFile.toURI()}")
-    if (srcFile.text != "WORKS") {
-        throw new GradleException("always fails")
-    }
-}
-"""
-        when:
-        startGradle("maybeFail")
-        and:
-        afterBuild {
-            invalidSource()
-            triggerRebuild()
-        }
-        and:
-        afterBuild {
-            validSource()
-            triggerRebuild()
-        }
-        and:
-        afterBuild {
-            triggerStop()
-        }
-        then:
-        waitForStop()
-        gradle.standardOutput.count("BUILD SUCCESSFUL") == 2
-        gradle.standardOutput.count("BUILD FAILED") == 1
-    }
 
-    def "rebuilds when a file changes, is created, or deleted"() {
-        given:
-        def outputFile = file("build/output.out")
-        validSource()
-        buildFile << """
-task succeed {
-    def output = file("${outputFile.toURI()}")
-    inputs.dir file("${buildTrigger.srcFile.parentFile.toURI()}")
-    outputs.files output
-    doLast {
-        output.parentFile.mkdirs()
-        output << "did work"
-    }
-}
-"""
         when:
-        startGradle("succeed")
+        startGradle("build")
 
         and:
         waitForWatching {
             triggerNothing()
         }
+
+        then:
+        buildSucceedsAndCompileTaskExecuted()
+        invalidSource()
+
+        and:
+        waitForWatching {
+            triggerNothing()
+        }
+
+        then:
+        buildFailed()
+        validSource()
+
+        and:
+        afterBuild {
+            triggerStop()
+        }
+
+        then:
+        buildSucceedsAndCompileTaskExecuted()
+        waitForStop()
+    }
+
+    def "rebuilds when a file changes, is created, or deleted"() {
+        given:
+        validSource()
+
+        when:
+        startGradle("build")
+
+        and:
+        waitForWatching {
+            triggerNothing()
+        }
+
+        then:
+        buildSucceedsAndCompileTaskExecuted()
         changeSource()
 
         and:
         waitForWatching {
             triggerNothing()
         }
+
+        then:
+        buildSucceedsAndCompileTaskExecuted()
         createSource()
 
         and:
         waitForWatching {
             triggerNothing()
         }
+
+        then:
+        buildSucceedsAndCompileTaskExecuted()
         deleteSource()
 
         and:
@@ -200,8 +228,22 @@ task succeed {
         }
 
         then:
+        buildSucceedsAndCompileTaskExecuted()
         waitForStop()
-        gradle.standardOutput.count("BUILD SUCCESSFUL") == 4
-        outputFile.text.count("did work") == 4
+    }
+
+    def buildSucceedsAndCompileTaskExecuted() {
+        soFar {
+            assertTaskNotSkipped(":${compileTask}")
+            assert output.contains("BUILD SUCCESSFUL")
+        }
+        true
+    }
+
+    def buildFailed() {
+        soFar {
+            assert output.contains("BUILD FAILED")
+        }
+        true
     }
 }

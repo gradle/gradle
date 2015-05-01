@@ -31,7 +31,6 @@ class ContinuousBuildTrigger extends ExternalResource {
     private final TestDirectoryProvider testDirectoryProvider
     private final CyclicBarrierHttpServer server
     private TestFile trigger
-    private TestFile srcFile
     private GradleHandle gradle
 
     ContinuousBuildTrigger(GradleExecuter executer, TestDirectoryProvider testDirectoryProvider) {
@@ -43,14 +42,11 @@ class ContinuousBuildTrigger extends ExternalResource {
     public void before() {
         server.before()
         this.trigger = testDirectoryProvider.testDirectory.file(".gradle/trigger.out")
-        this.srcFile = testDirectoryProvider.testDirectory.file("src/file")
 
         trigger.parentFile.mkdirs()
-        srcFile.parentFile.mkdirs()
         executer.withArgument("--watch")
 
         testDirectoryProvider.testDirectory.file("build.gradle") << """
-
 import org.gradle.launcher.continuous.*
 import org.gradle.internal.event.*
 
@@ -79,23 +75,7 @@ gradle.buildFinished {
         server.after()
     }
 
-    def validSource() {
-        srcFile.text = "WORKS"
-    }
-    def invalidSource() {
-        srcFile.text = "BROKEN"
-    }
-    def changeSource() {
-        srcFile << "NEWLINE"
-    }
-
-    def createSource() {
-        def newFile = testDirectoryProvider.testDirectory.file("src/new")
-        newFile.text = "new"
-    }
-    def deleteSource() { srcFile.delete() }
-
-    void startGradle(String task="tasks") {
+    void startGradle(String task="build") {
         gradle = executer.withTasks(task).start()
     }
 
@@ -120,6 +100,7 @@ gradle.buildFinished {
         c.call()
         server.release()
         server.waitForDisconnect()
+        true
     }
 
     def waitForWatching(Closure c) {
@@ -127,6 +108,7 @@ gradle.buildFinished {
         new PollingConditions().within(3) {
             assert gradle.standardOutput.endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
         }
+        true
     }
 
     def triggerRebuild() {
