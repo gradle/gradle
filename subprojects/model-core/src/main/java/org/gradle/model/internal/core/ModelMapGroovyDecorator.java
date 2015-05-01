@@ -45,6 +45,8 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
     private final ModelMap<I> delegate;
     private final ModelViewState viewState;
 
+    // Used by generated subclasses
+    @SuppressWarnings("UnusedDeclaration")
     public ModelMapGroovyDecorator(ModelMap<I> delegate) {
         this.delegate = delegate;
         viewState = ALL_GOOD_MODEL_VIEW_STATE;
