@@ -16,13 +16,13 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 
-
-class NativeComponentReportOutputFormatter extends ComponentReportOutputFormatter {
+class NativeComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain
 
     NativeComponentReportOutputFormatter() {

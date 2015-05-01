@@ -18,11 +18,12 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.api.Transformer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
-    ComponentReportOutputFormatter formatter = new ComponentReportOutputFormatter()
+    Transformer<String, String> formatter = new ComponentReportOutputFormatter()
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
