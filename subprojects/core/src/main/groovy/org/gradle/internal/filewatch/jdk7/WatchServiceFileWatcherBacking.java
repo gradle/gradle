@@ -123,9 +123,10 @@ public class WatchServiceFileWatcherBacking {
 
     private void deliverEvents(List<FileWatcherEvent> events) {
         for (FileWatcherEvent event : events) {
-            while (isRunning()) {
-                deliverEvent(event);
+            if (!isRunning()) {
+                break;
             }
+            deliverEvent(event);
         }
     }
 
