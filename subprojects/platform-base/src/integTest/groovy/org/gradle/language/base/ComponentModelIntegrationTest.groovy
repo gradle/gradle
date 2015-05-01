@@ -177,6 +177,55 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "component container is visible to rules as various types"() {
+        buildFile << """
+class Rules extends RuleSource {
+    @Defaults
+    void verifyAsContainer(ComponentSpecContainer c) {
+//        assert c.toString() == "ComponentSpecContainer 'components'"
+//        assert c.toString() == c.withType(CustomComponent).toString()
+    }
+
+    @Defaults
+    void verifyAsModelMap(ModelMap<ComponentSpec> c) {
+        assert c.toString() == "ModelMap<ComponentSpec> 'components'"
+        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert !(c instanceof ComponentSpecContainer)
+    }
+
+    @Defaults
+    void verifyAsSpecializedModelMap(ModelMap<CustomComponent> c) {
+        assert c.toString() == "ModelMap<CustomComponent> 'components'"
+        assert !(c instanceof ComponentSpecContainer)
+    }
+
+    @Defaults
+    void verifyAsCollectionBuilder(CollectionBuilder<ComponentSpec> c) {
+//        assert c.toString() == "CollectionBuilder<ComponentSpec> 'components'"
+        assert !(c instanceof ComponentSpecContainer)
+    }
+
+    @Defaults
+    void verifyAsSpecializedCollectionBuilder(CollectionBuilder<CustomComponent> c) {
+//        assert c.toString() == "CollectionBuilder<CustomComponent> 'components'"
+        assert !(c instanceof ComponentSpecContainer)
+    }
+}
+
+apply plugin: Rules
+
+model {
+    components {
+//        assert it.toString() == "ComponentSpecContainer 'components'"
+//        assert it instanceof ComponentSpecContainer
+    }
+}
+"""
+
+        expect:
+        succeeds 'tasks'
+    }
+
     def "component sources and binaries containers are visible in model report"() {
         when:
         succeeds "model"
@@ -595,9 +644,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         and:
         failureHasCause("Cannot create a AnotherCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
-
     }
-
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
         given:
