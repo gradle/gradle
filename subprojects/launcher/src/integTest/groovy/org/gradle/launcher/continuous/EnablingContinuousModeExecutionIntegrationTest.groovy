@@ -15,12 +15,20 @@
  */
 
 package org.gradle.launcher.continuous
-
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ContinuousBuildTrigger
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-public class EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
+public class EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
+    @Delegate @Rule ContinuousBuildTrigger buildTrigger = new ContinuousBuildTrigger(executer, this)
+
+    GradleHandle getGradle() {
+        return buildTrigger.gradle
+    }
 
     def "can enable continuous mode"() {
         when:
@@ -122,7 +130,7 @@ throw new GradleException("config error")
         validSource()
         buildFile << """
 task maybeFail << {
-    def srcFile = file("${srcFile.toURI()}")
+    def srcFile = file("${buildTrigger.srcFile.toURI()}")
     if (srcFile.text != "WORKS") {
         throw new GradleException("always fails")
     }
@@ -157,7 +165,7 @@ task maybeFail << {
         buildFile << """
 task succeed {
     def output = file("${outputFile.toURI()}")
-    inputs.dir file("${srcFile.parentFile.toURI()}")
+    inputs.dir file("${buildTrigger.srcFile.parentFile.toURI()}")
     outputs.files output
     doLast {
         output.parentFile.mkdirs()

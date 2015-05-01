@@ -16,14 +16,15 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK6)
-class Jdk6EnablingContinuousModeExecutionIntegrationTest extends AbstractContinuousModeIntegrationSpec {
+class Jdk6EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "can NOT enable continuous mode"() {
         when:
-        def gradle = executer.withTasks("tasks").start()
+        def gradle = executer.withArgument("--watch").withTasks("tasks").start()
         then:
         gradle.waitForFailure()
         gradle.errorOutput.contains("Continuous mode (--watch) is not supported on versions of Java older than 1.7.")

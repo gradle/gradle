@@ -14,25 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.continuous
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+package org.gradle.integtests.fixtures
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.launcher.continuous.DefaultTriggerDetails
+import org.gradle.launcher.continuous.TriggerDetails
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.junit.Rule
+import org.junit.rules.ExternalResource
 import spock.util.concurrent.PollingConditions
 
-class AbstractContinuousModeIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-    def trigger = file(".gradle/trigger.out")
-    GradleHandle gradle
-    def srcFile = file("src/file")
+class ContinuousBuildTrigger extends ExternalResource {
+    private final GradleExecuter executer
+    private final TestDirectoryProvider testDirectoryProvider
+    private final CyclicBarrierHttpServer server
+    private TestFile trigger
+    private TestFile srcFile
+    private GradleHandle gradle
 
-    def setup() {
+    ContinuousBuildTrigger(GradleExecuter executer, TestDirectoryProvider testDirectoryProvider) {
+        this.executer = executer
+        this.server = new CyclicBarrierHttpServer()
+        this.testDirectoryProvider = testDirectoryProvider
+    }
+
+    public void before() {
+        server.before()
+        this.trigger = testDirectoryProvider.testDirectory.file(".gradle/trigger.out")
+        this.srcFile = testDirectoryProvider.testDirectory.file("src/file")
+
         trigger.parentFile.mkdirs()
         srcFile.parentFile.mkdirs()
         executer.withArgument("--watch")
 
-        buildFile << """
+        testDirectoryProvider.testDirectory.file("build.gradle") << """
 
 import org.gradle.launcher.continuous.*
 import org.gradle.internal.event.*
@@ -58,6 +74,10 @@ gradle.buildFinished {
 """
     }
 
+    public void after() {
+        server.after()
+    }
+
     def validSource() {
         srcFile.text = "WORKS"
     }
@@ -65,13 +85,11 @@ gradle.buildFinished {
         srcFile.text = "BROKEN"
     }
     def changeSource() {
-        System.out.println ("change file ");
         srcFile << "NEWLINE"
     }
 
     def createSource() {
-        System.out.println ("new file ");
-        def newFile = file("src/new")
+        def newFile = testDirectoryProvider.testDirectory.file("src/new")
         newFile.text = "new"
     }
     def deleteSource() { srcFile.delete() }
@@ -97,6 +115,7 @@ gradle.buildFinished {
             assert gradle.standardOutput.endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
         }
     }
+
     def triggerRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }
