@@ -146,8 +146,13 @@ repositories {
     maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }
 
-dependencies {
-//  compile "org.mirah:mirah-library:$version"
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.mirah:mirah:$version"
+    }
 }
 """
     }
