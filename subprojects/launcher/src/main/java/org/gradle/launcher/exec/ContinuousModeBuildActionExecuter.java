@@ -19,24 +19,27 @@ package org.gradle.launcher.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.launcher.continuous.BlockingTriggerListener;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.continuous.BlockingTriggerable;
+import org.gradle.launcher.continuous.TaskInputsWatcher;
 import org.gradle.launcher.continuous.TriggerDetails;
-import org.gradle.launcher.continuous.TriggerGenerator;
-import org.gradle.launcher.continuous.TriggerGeneratorFactory;
+import org.gradle.launcher.continuous.TriggerListener;
 import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final TriggerGeneratorFactory triggerGeneratorFactory;
     private final Logger logger;
-    private final BlockingTriggerListener triggerListener;
+    private final BlockingTriggerable triggerable;
+    private final ServiceRegistry services;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TriggerGeneratorFactory triggerGeneratorFactory, BlockingTriggerListener triggerListener) {
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, BlockingTriggerable triggerable, ServiceRegistry services) {
         this.delegate = delegate;
-        this.triggerGeneratorFactory = triggerGeneratorFactory;
-        this.triggerListener = triggerListener;
+        this.triggerable = triggerable;
+        this.services = services;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
     }
 
@@ -44,9 +47,19 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
+            registerFileWatcherHooks();
             return executeMultipleBuilds(action, requestContext, actionParameters);
         }
         return executeSingleBuild(action, requestContext, actionParameters);
+    }
+
+    private void registerFileWatcherHooks() {
+        ListenerManager listenerManager = services.get(ListenerManager.class);
+        if (listenerManager != null) {
+            FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
+            TaskInputsWatcher taskInputsWatcher = new TaskInputsWatcher(listenerManager.getBroadcaster(TriggerListener.class), fileWatcherFactory);
+            listenerManager.addListener(taskInputsWatcher);
+        }
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
@@ -59,21 +72,15 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
             }
 
             if (buildNotStopped(requestContext)) {
-                TriggerGenerator generator = triggerGeneratorFactory.newInstance();
-                generator.start();
-                try {
-                    logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
-                    TriggerDetails reason = triggerListener.waitForTrigger();
-                    logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
-                    if (reason.getType() == TriggerDetails.Type.REBUILD) {
-                        // reset the time the build started so the total time makes sense
-                        requestContext.getBuildTimeClock().reset();
-                    } else {
-                        // stop building
-                        break;
-                    }
-                } finally {
-                    generator.stop();
+                logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+                TriggerDetails reason = triggerable.waitForTrigger();
+                logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
+                if (reason.getType() == TriggerDetails.Type.REBUILD) {
+                    // reset the time the build started so the total time makes sense
+                    requestContext.getBuildTimeClock().reset();
+                } else {
+                    // stop building
+                    break;
                 }
             }
         }

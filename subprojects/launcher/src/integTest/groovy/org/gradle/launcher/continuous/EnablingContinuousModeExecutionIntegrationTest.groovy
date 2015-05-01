@@ -157,7 +157,7 @@ task maybeFail << {
         buildFile << """
 task succeed {
     def output = file("${outputFile.toURI()}")
-    inputs.files files("${srcFile.parentFile.toURI()}")
+    inputs.dir file("${srcFile.parentFile.toURI()}")
     outputs.files output
     doLast {
         output.parentFile.mkdirs()
@@ -170,21 +170,21 @@ task succeed {
 
         and:
         waitForWatching {
+            changeSource()
             triggerNothing()
         }
-        changeSource()
 
         and:
         waitForWatching {
+            createSource()
             triggerNothing()
         }
-        createSource()
 
         and:
         waitForWatching {
+            deleteSource()
             triggerNothing()
         }
-        deleteSource()
 
         and:
         afterBuild {

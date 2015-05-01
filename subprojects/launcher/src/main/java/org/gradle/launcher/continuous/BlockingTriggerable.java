@@ -18,11 +18,11 @@ package org.gradle.launcher.continuous;
 
 import org.gradle.internal.UncheckedException;
 
-public class BlockingTriggerListener implements TriggerListener {
+public class BlockingTriggerable implements TriggerListener {
     private final Object lock;
     private TriggerDetails currentTrigger;
 
-    public BlockingTriggerListener() {
+    public BlockingTriggerable() {
         this.lock = new Object();
         this.currentTrigger = null;
     }

@@ -65,10 +65,12 @@ gradle.buildFinished {
         srcFile.text = "BROKEN"
     }
     def changeSource() {
+        System.out.println ("change file ");
         srcFile << "NEWLINE"
     }
 
     def createSource() {
+        System.out.println ("new file ");
         def newFile = file("src/new")
         newFile.text = "new"
     }

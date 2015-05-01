@@ -18,31 +18,28 @@ package org.gradle.launcher.exec
 
 import org.gradle.initialization.*
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.launcher.continuous.BlockingTriggerListener
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.launcher.continuous.BlockingTriggerable
 import org.gradle.launcher.continuous.DefaultTriggerDetails
 import org.gradle.launcher.continuous.TriggerDetails
-import org.gradle.launcher.continuous.TriggerGenerator
-import org.gradle.launcher.continuous.TriggerGeneratorFactory
 import org.gradle.util.Clock
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
     def underlyingExecuter = new UnderlyingExecuter()
-    def triggerGenerator = Mock(TriggerGenerator)
-    def triggerGeneratorFactory = Stub(TriggerGeneratorFactory)
     def triggerDetails = new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test reason")
-    def triggerListener = Mock(BlockingTriggerListener)
+    def triggerable = Mock(BlockingTriggerable)
     def action = Mock(BuildAction)
     def cancellationToken = Stub(BuildCancellationToken)
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
+    def services = Mock(ServiceRegistry)
     def actionParameters = Stub(BuildActionParameters)
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerGeneratorFactory, triggerListener)
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerable, services)
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
-        triggerGeneratorFactory.newInstance() >> triggerGenerator
     }
 
     def "uses underlying executer when continuous mode is not enabled"() {
@@ -83,7 +80,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then:
-        1 * triggerListener.waitForTrigger() >> triggerDetails
+        1 * triggerable.waitForTrigger() >> triggerDetails
         1 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
@@ -98,7 +95,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then: "hides exceptions"
-        1 * triggerListener.waitForTrigger() >> triggerDetails
+        1 * triggerable.waitForTrigger() >> triggerDetails
         1 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
@@ -115,7 +112,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         when:
         executeBuild()
         then:
-        3 * triggerListener.waitForTrigger() >> triggerDetails
+        3 * triggerable.waitForTrigger() >> triggerDetails
         3 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
