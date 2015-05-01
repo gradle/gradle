@@ -16,7 +16,9 @@
 
 package org.gradle.internal.filewatch
 
+import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -39,6 +41,11 @@ class WatchServiceFileWatcherTest extends Specification {
     FileWatcher fileWatcher
     private PollingConditions poll = new PollingConditions()
 
+    Throwable thrown
+    Action<? super Throwable> onError = {
+        thrown = it
+    }
+
     void setup() {
         NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
@@ -49,6 +56,8 @@ class WatchServiceFileWatcherTest extends Specification {
         fileWatcher?.stop()
         fileWatcherFactory.stop()
         //println "file watcher stopped"
+
+        assert thrown == null
     }
 
     def "watch service should notify of new files"() {
@@ -56,7 +65,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def listener = Mock(FileWatcherListener)
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
+        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -73,7 +82,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def listenerCalledLatch = new CountDownLatch(1)
         def listenerCalledLatch2 = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
+        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -103,7 +112,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def subdir = testDir.createDir("subdir")
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
+        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
         then:
@@ -117,7 +126,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def block = this.<List<Boolean>> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
             def vals = [watcher.running]
             watcher.stop()
             block.set(vals << watcher.running)
@@ -138,7 +147,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def result = this.<Boolean> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
             eventLatch.countDown()
             waitOn(stopLatch)
             result.set(watcher.running)
@@ -159,7 +168,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def watcherThread = this.<Thread> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
             watcherThread.set(Thread.currentThread())
         }
 
@@ -171,17 +180,21 @@ class WatchServiceFileWatcherTest extends Specification {
         await { assert !watcher.running }
     }
 
-    def "watcher will stop if listener throws"() {
+    def "watcher will stop if listener throws and error is forwarded"() {
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
-            throw new RuntimeException("!!")
-        }
+        def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()
+        fileWatcher = fileWatcherFactory.watch([testDir.testDirectory],
+            { onErrorStatus.set(Pair.of(fileWatcher.running, it)) },
+            { watcher, event -> throw new RuntimeException("!!") }
+        )
 
         and:
         testDir.file("new") << "new"
 
         then:
-        await { assert !watcher.running }
+        await { assert !fileWatcher.running }
+        !onErrorStatus.get().left
+        onErrorStatus.get().right.message == "!!"
     }
 
     private void waitOn(CountDownLatch latch) {

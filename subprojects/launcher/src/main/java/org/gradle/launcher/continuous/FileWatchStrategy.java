@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.internal.Actions;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -39,7 +40,7 @@ class FileWatchStrategy implements TriggerStrategy {
         directoryFileTree.getPatterns().exclude("build/**/*", ".gradle/**/*");
         FileCollectionInternal fileCollection = new FileTreeAdapter(directoryFileTree);
 
-        fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), new FileChangeCallback(listener, fileCollection));
+        fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), Actions.doNothing(), new FileChangeCallback(listener, fileCollection));
     }
 
     @Override

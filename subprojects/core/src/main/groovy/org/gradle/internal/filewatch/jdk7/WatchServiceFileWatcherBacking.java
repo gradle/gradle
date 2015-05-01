@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import org.gradle.api.Action;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
@@ -39,6 +40,7 @@ public class WatchServiceFileWatcherBacking {
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
 
+    private final Action<? super Throwable> onError;
     private final FileWatcherListener listener;
     private final WatchService watchService;
     private final WatchServicePoller poller;
@@ -56,7 +58,8 @@ public class WatchServiceFileWatcherBacking {
         }
     };
 
-    WatchServiceFileWatcherBacking(Iterable<? extends File> roots, FileWatcherListener listener, WatchService watchService) throws IOException {
+    WatchServiceFileWatcherBacking(Iterable<? extends File> roots, Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+        this.onError = onError;
         this.listener = listener;
         this.watchService = watchService;
         this.poller = new WatchServicePoller(watchService);
@@ -76,7 +79,10 @@ public class WatchServiceFileWatcherBacking {
                         try {
                             pumpEvents();
                         } catch (InterruptedException e) {
-                            // ignore exception in shutdown
+                            // just stop
+                        } catch (Throwable t) {
+                            stop();
+                            onError.execute(t);
                         }
                     } finally {
                         stop();
@@ -138,16 +144,18 @@ public class WatchServiceFileWatcherBacking {
         }
     }
 
-    public boolean isRunning() {
+    private boolean isRunning() {
         return running.get() && !Thread.currentThread().isInterrupted();
     }
 
-    public void stop() {
+    private void stop() {
         if (running.compareAndSet(true, false)) {
             try {
                 watchService.close();
             } catch (IOException e) {
                 // ignore exception in shutdown
+            } catch (ClosedWatchServiceException e) {
+                // ignore
             }
         }
     }
