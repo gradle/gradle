@@ -52,26 +52,33 @@ class IncrementalMirahCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileMirah'.")
     }
 
-    @Issue("GRADLE-2548")
-    @Ignore
+    @Ignore // not yet implemented
     def recompilesMirahWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'mirah'
 
-            repositories {
-                mavenCentral()
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                
+                dependencies {
+                    classpath 'org.mirah:mirah:0.1.4'
+                }
             }
 
-            dependencies {
-//              compile 'org.mirah:mirah-library:0.1.5-SNAPSHOT'
+            repositories {
+                mavenCentral()
             }
         """
 
         file("src/main/java/Person.java") << "public interface Person { String getName(); }"
 
-        file("src/main/mirah/DefaultPerson.mirah") << """class DefaultPerson(name: String) extends Person {
-    def getName(): String = name
-}"""
+        file("src/main/mirah/DefaultPerson.mirah") << """class DefaultPerson implements Person
+    def getName():String
+      "foo"
+    end
+end"""
         when:
         run('classes') //makes everything up-to-date
 
