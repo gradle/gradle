@@ -42,6 +42,11 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
                 public void stop() {
 
                 }
+
+                @Override
+                public boolean isRunning() {
+                    return false;
+                }
             };
         }
     }

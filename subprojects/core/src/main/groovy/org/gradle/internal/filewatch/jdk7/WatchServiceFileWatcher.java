@@ -17,7 +17,9 @@
 package org.gradle.internal.filewatch.jdk7;
 
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.filewatch.*;
+import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherEvent;
+import org.gradle.internal.filewatch.FileWatcherListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,16 +28,12 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.WatchService;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchServiceFileWatcher.class);
-    private static final int STOP_TIMEOUT_SECONDS = 10;
     private final FileWatcherListener listener;
     private final AtomicBoolean runningFlag = new AtomicBoolean(false);
-    private final CountDownLatch stopLatch = new CountDownLatch(1);
     private final WatchService watchService;
     private final WatchServicePoller poller;
     private final WatchServiceRegistrar registrar;
@@ -51,7 +49,7 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
     }
 
     public void run() {
-        runningFlag.compareAndSet(false, true);
+        runningFlag.set(true);
         try {
             try {
                 pumpEvents();
@@ -59,18 +57,7 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
                 // ignore exception in shutdown
             }
         } finally {
-            stopRunning();
-        }
-    }
-
-    private void stopRunning() {
-        runningFlag.compareAndSet(true, false);
-        try {
-            watchService.close();
-        } catch (IOException e) {
-            // ignore exception in shutdown
-        } finally {
-            stopLatch.countDown();
+            stop();
         }
     }
 
@@ -85,20 +72,15 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
 
     private void deliverEvents(List<FileWatcherEvent> events) {
         for (FileWatcherEvent event : events) {
-            deliverEvent(event);
+            while (isRunning()) {
+                deliverEvent(event);
+            }
         }
     }
 
     private void deliverEvent(FileWatcherEvent event) {
         handleNewDirectory(event);
-        FileWatcherEventResult result = listener.onChange(event);
-        if (result instanceof TerminateFileWatcherEventResult) {
-            stopRunning();
-            Runnable terminateAction = ((TerminateFileWatcherEventResult) result).getOnTerminateAction();
-            if (terminateAction != null) {
-                terminateAction.run();
-            }
-        }
+        listener.onChange(this, event);
     }
 
     private void handleNewDirectory(FileWatcherEvent event) {
@@ -111,7 +93,8 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
         }
     }
 
-    private boolean isRunning() {
+    @Override
+    public boolean isRunning() {
         return runningFlag.get() && !Thread.currentThread().isInterrupted();
     }
 
@@ -121,11 +104,6 @@ public class WatchServiceFileWatcher implements FileWatcher, Runnable, Stoppable
             try {
                 watchService.close();
             } catch (IOException e) {
-                // ignore exception in shutdown
-            }
-            try {
-                stopLatch.await(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
                 // ignore exception in shutdown
             }
         }

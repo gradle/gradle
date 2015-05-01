@@ -21,8 +21,11 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
+import org.spockframework.lang.ConditionBlock
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.util.concurrent.BlockingVariable
+import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -34,6 +37,7 @@ class WatchServiceFileWatcherTest extends Specification {
     FileWatcherFactory fileWatcherFactory
     long waitForEventsMillis = 3500L
     FileWatcher fileWatcher
+    private PollingConditions poll = new PollingConditions()
 
     void setup() {
         NativeServicesTestFixture.initialize()
@@ -55,9 +59,9 @@ class WatchServiceFileWatcherTest extends Specification {
         fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
-        waitForChanges(listenerCalledLatch)
+        waitOn(listenerCalledLatch)
         then:
-        (1.._) * listener.onChange(_) >> { FileWatcherEvent event ->
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
             handleEvent(event, listenerCalledLatch)
         }
         0 * _._
@@ -72,17 +76,17 @@ class WatchServiceFileWatcherTest extends Specification {
         fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
-        waitForChanges(listenerCalledLatch)
+        waitOn(listenerCalledLatch)
         then:
-        (1.._) * listener.onChange(_) >> { FileWatcherEvent event ->
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
             handleEvent(event, listenerCalledLatch)
         }
         0 * _._
         when:
         subdir.file('someotherfile').text = "Hello world"
-        waitForChanges(listenerCalledLatch2)
+        waitOn(listenerCalledLatch2)
         then:
-        (1.._) * listener.onChange(_) >> { FileWatcherEvent event ->
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
             handleEvent(event, listenerCalledLatch2)
         }
         0 * _._
@@ -91,7 +95,6 @@ class WatchServiceFileWatcherTest extends Specification {
     def handleEvent(FileWatcherEvent event, CountDownLatch listenerCalledLatch) {
         //println "event: $event"
         listenerCalledLatch.countDown()
-        FileWatcherEventResults.continueResult
     }
 
     def "watch service should register to watch subdirs at startup"() {
@@ -102,15 +105,83 @@ class WatchServiceFileWatcherTest extends Specification {
         when:
         fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], listener)
         subdir.createFile("somefile").text = "Hello world"
-        waitForChanges(listenerCalledLatch)
+        waitOn(listenerCalledLatch)
         then:
-        (1.._) * listener.onChange(_) >> { FileWatcherEvent event ->
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
             handleEvent(event, listenerCalledLatch)
         }
     }
 
-    private void waitForChanges(CountDownLatch listenerCalledLatch) {
+    def "listener can terminate watcher"() {
+        given:
+        def block = this.<List<Boolean>> blockingVar()
+
+        when:
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+            def vals = [watcher.running]
+            watcher.stop()
+            block.set(vals << watcher.running)
+        }
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        block.get() == [true, false]
+        !watcher.running
+    }
+
+    def "observer can terminate watcher"() {
+        given:
+        def eventLatch = new CountDownLatch(1)
+        def stopLatch = new CountDownLatch(1)
+        def result = this.<Boolean> blockingVar()
+
+        when:
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+            eventLatch.countDown()
+            waitOn(stopLatch)
+            result.set(watcher.running)
+        }
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        waitOn(eventLatch)
+        watcher.stop()
+        stopLatch.countDown()
+        !result.get()
+    }
+
+    def "can interrupt watcher"() {
+        given:
+        def watcherThread = this.<Thread> blockingVar()
+
+        when:
+        def watcher = fileWatcherFactory.watch([testDir.testDirectory]) { watcher, event ->
+            watcherThread.set(Thread.currentThread())
+        }
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        watcherThread.get().interrupt()
+        await { assert !watcher.running }
+    }
+
+    private void waitOn(CountDownLatch latch) {
         //println "waiting..."
-        listenerCalledLatch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
+        latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
+    }
+
+    @ConditionBlock
+    private void await(Closure<?> closure) {
+        poll.within(waitForEventsMillis / 1000, closure)
+    }
+
+    private <T> BlockingVariable<T> blockingVar() {
+        new BlockingVariable<T>(waitForEventsMillis / 1000)
     }
 }

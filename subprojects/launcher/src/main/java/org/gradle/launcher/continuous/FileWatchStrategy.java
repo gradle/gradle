@@ -20,7 +20,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.internal.filewatch.*;
+import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherEvent;
+import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherListener;
 
 import java.io.File;
 
@@ -30,16 +33,13 @@ import java.io.File;
  * TODO: Look for the project directory?
  */
 class FileWatchStrategy implements TriggerStrategy {
-    private final TriggerListener listener;
-    private FileWatcher fileWatcher;
 
     FileWatchStrategy(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
-        this.listener = listener;
         DirectoryFileTree directoryFileTree = new DirectoryFileTree(new File("."));
         directoryFileTree.getPatterns().exclude("build/**/*", ".gradle/**/*");
         FileCollectionInternal fileCollection = new FileTreeAdapter(directoryFileTree);
 
-        this.fileWatcher = fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), new FileChangeCallback(listener, fileCollection));
+        fileWatcherFactory.watch(fileCollection.getFileSystemRoots(), new FileChangeCallback(listener, fileCollection));
     }
 
     @Override
@@ -57,14 +57,10 @@ class FileWatchStrategy implements TriggerStrategy {
         }
 
         @Override
-        public FileWatcherEventResult onChange(FileWatcherEvent event) {
-            if(event.getFile() == null || fileCollection.contains(event.getFile())) {
+        public void onChange(FileWatcher fileWatcher, FileWatcherEvent event) {
+            // TODO: stop watcher and restart for each new build
+            if (event.getFile() == null || fileCollection.contains(event.getFile())) {
                 listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
-                return FileWatcherEventResults.getContinueResult();
-                // TODO: stop watcher and restart for each new build
-                //return FileWatcherEventResults.getTerminateResult();
-            } else {
-                return FileWatcherEventResults.getContinueResult();
             }
         }
     }

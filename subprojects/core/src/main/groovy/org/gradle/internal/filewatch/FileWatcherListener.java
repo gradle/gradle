@@ -17,5 +17,5 @@
 package org.gradle.internal.filewatch;
 
 public interface FileWatcherListener {
-    FileWatcherEventResult onChange(FileWatcherEvent event);
+    void onChange(FileWatcher watcher, FileWatcherEvent event);
 }
