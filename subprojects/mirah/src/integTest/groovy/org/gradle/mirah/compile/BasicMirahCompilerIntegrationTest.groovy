@@ -16,6 +16,7 @@
 
 package org.gradle.mirah.compile
 
+import spock.lang.Ignore
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
@@ -54,6 +55,7 @@ DeprecationLogger.whileDisabled {
         file("build/classes/main").assertHasDescendants()
     }
 
+    @Ignore // org.mirah:mirah:0.1.4 currently throws a "java.lang.UnsupportedOperationException: Compilation failed" instead of returning an error code.
     def compileBadCodeWithoutFailing() {
         given:
         badCode()
