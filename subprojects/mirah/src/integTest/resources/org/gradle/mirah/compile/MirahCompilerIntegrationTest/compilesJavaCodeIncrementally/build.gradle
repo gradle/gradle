@@ -1,11 +1,17 @@
 apply plugin: "mirah"
 
-repositories {
-    mavenCentral()
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:0.1.4'
+    }
 }
 
-dependencies {
-//  compile "org.mirah:mirah-library:$mirahVersion"
+repositories {
+    mavenCentral()
 }
 
 tasks.withType(MirahCompile) {
