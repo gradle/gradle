@@ -137,7 +137,7 @@ Please see section [50.6. Repositories](userguide/dependency_management.html#sec
 
 It is now possible to depend on particular Maven snapshot, rather than just the “latest” published version.
 
-    depenencies {
+    dependencies {
       compile "org.company:my-lib:1.0.0-20150102.010203-20"
     }
     
