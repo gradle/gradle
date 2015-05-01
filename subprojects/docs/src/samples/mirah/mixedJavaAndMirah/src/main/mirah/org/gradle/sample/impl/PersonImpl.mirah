@@ -5,7 +5,15 @@ import org.gradle.sample.Person
 /**
  * Immutable implementation of {@link Person}.
  */
-class PersonImpl(val name: String) extends Person
-{
-    def getName() = name
-}
+class PersonImpl implements Person
+  attr_reader name:String
+  
+  def initialize(name:String)
+  	@name = name
+  end
+  
+  def getName
+  	@name
+  end
+end
+

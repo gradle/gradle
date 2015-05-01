@@ -1,7 +1,7 @@
 package org.gradle.sample.impl;
 
-public class JavaPerson extends PersonImpl {
-    public JavaPerson(String name) {
-        super(name);
-    }
-}
+class MirahPerson < PersonImpl
+	def initialize(name:String)
+		super
+	end
+end

@@ -49,7 +49,7 @@ class SamplesMixedJavaAndMirahIntegrationTest extends AbstractIntegrationTest {
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/Person.class',
-                'org/gradle/sample/impl/JavaPerson.class',
+                'org/gradle/sample/impl/MirahPerson.class',
                 'org/gradle/sample/impl/PersonImpl.class',
                 'org/gradle/sample/impl/PersonList.class'
         )

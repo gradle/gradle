@@ -1,20 +1,18 @@
 package org.gradle.sample
 
-import _root_.junit.framework.TestCase
-import _root_.org.gradle.sample.impl.PersonImpl
-import _root_.org.gradle.sample.impl.JavaPerson
+import junit.framework.TestCase
+import org.gradle.sample.impl.PersonImpl
+import org.gradle.sample.impl.MirahPerson
 
-class PersonTest extends TestCase {
+class PersonTest < TestCase
 
-  // FIXME: use a Mirah test framework to run a test
-  def testCanCreateMirahPersonImpl(): Unit = {
-    def person: Person = new PersonImpl("bob smith")
-    person
-  }
+  # FIXME: use a Mirah test framework to run a test
+  def testCanCreateMirahPersonImpl():void
+    PersonImpl.new("bob smith")
+  end
 
-  def testCanCreateJavaPersonImpl(): Unit = {
-    def person: Person = new JavaPerson("bob smith")
-    person
-  }
+  def testCanCreateMirahPerson():void
+    MirahPerson.new("bob smith")
+  end
 
-}
+end
