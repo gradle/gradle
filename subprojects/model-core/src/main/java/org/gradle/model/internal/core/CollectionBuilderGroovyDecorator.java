@@ -31,18 +31,32 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-// TODO - mix in Groovy support and share with managed set
+/**
+ * Used as the superclass for views for types that extend {@link CollectionBuilder}.
+ */
+// TODO - mix in Groovy support
 public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport implements CollectionBuilder<I> {
-
+    public static final ModelViewState ALL_GOOD_MODEL_VIEW_STATE = new ModelViewState() {
+        @Override
+        public void assertCanMutate() {
+        }
+    };
     private final CollectionBuilder<I> delegate;
+    private final ModelViewState viewState;
 
     public CollectionBuilderGroovyDecorator(CollectionBuilder<I> delegate) {
         this.delegate = delegate;
+        viewState = ALL_GOOD_MODEL_VIEW_STATE;
+    }
+
+    public CollectionBuilderGroovyDecorator(CollectionBuilder<I> delegate, ModelViewState viewState) {
+        this.delegate = delegate;
+        this.viewState = viewState;
     }
 
     @Override
     public <S> CollectionBuilder<S> withType(Class<S> type) {
-        return delegate.withType(type);
+        return new CollectionBuilderGroovyDecorator<S>(delegate.withType(type), viewState);
     }
 
     @Override
@@ -84,66 +98,79 @@ public class CollectionBuilderGroovyDecorator<I> extends GroovyObjectSupport imp
 
     @Override
     public void create(String name) {
+        viewState.assertCanMutate();
         delegate.create(name);
     }
 
     @Override
     public void create(String name, Action<? super I> configAction) {
+        viewState.assertCanMutate();
         delegate.create(name, configAction);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type) {
+        viewState.assertCanMutate();
         delegate.create(name, type);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         delegate.create(name, type, configAction);
     }
 
     @Override
     public void named(String name, Action<? super I> configAction) {
+        viewState.assertCanMutate();
         delegate.named(name, configAction);
     }
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
+        viewState.assertCanMutate();
         delegate.named(name, ruleSource);
     }
 
     @Override
     public void beforeEach(Action<? super I> configAction) {
+        viewState.assertCanMutate();
         delegate.beforeEach(configAction);
     }
 
     @Override
     public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         delegate.beforeEach(type, configAction);
     }
 
     @Override
     public void all(Action<? super I> configAction) {
+        viewState.assertCanMutate();
         delegate.all(configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         delegate.withType(type, configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+        viewState.assertCanMutate();
         delegate.withType(type, rules);
     }
 
     @Override
     public void afterEach(Action<? super I> configAction) {
+        viewState.assertCanMutate();
         delegate.afterEach(configAction);
     }
 
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         delegate.afterEach(type, configAction);
     }
 
