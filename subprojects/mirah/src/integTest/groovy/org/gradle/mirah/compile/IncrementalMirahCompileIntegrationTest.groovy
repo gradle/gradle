@@ -29,7 +29,7 @@ class IncrementalMirahCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def recompilesSourceWhenPropertiesChange() {
         expect:
-        run('compileMirah').assertTasksSkipped(':compileJava')
+        run('compileMirah')
 
         when:
         file('build.gradle').text += '''

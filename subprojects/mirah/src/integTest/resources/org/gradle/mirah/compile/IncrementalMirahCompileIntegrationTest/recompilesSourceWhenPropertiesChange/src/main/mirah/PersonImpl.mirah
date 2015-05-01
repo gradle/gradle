@@ -1,3 +1,9 @@
-class PersonImpl(val name: String) extends Person {
-    def getName(): String = name
-}
+class PersonImpl implements Person
+  def initialize(name:String)
+    @name = name
+  end
+  
+  def getName:String
+    name
+  end
+end
