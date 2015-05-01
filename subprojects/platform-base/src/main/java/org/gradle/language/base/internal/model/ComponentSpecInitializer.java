@@ -38,13 +38,18 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ComponentSpecInitializer {
 
-    private final static BiAction<MutableModelNode, ComponentSpec> ACTION = createAction();
+    private final static BiAction<MutableModelNode, ComponentSpec> COMPONENT_ACTION = createAction();
+    private final static BiAction<MutableModelNode, BinarySpec> BINARY_ACTION = createBinaryAction();
 
     public static BiAction<MutableModelNode, ComponentSpec> action() {
-        return ACTION;
+        return COMPONENT_ACTION;
     }
 
     public static BiAction<MutableModelNode, BinarySpec> binaryAction() {
+        return BINARY_ACTION;
+    }
+
+    private static BiAction<MutableModelNode, BinarySpec> createBinaryAction() {
         return new BiAction<MutableModelNode, BinarySpec>() {
             @Override
             public void execute(MutableModelNode node, BinarySpec spec) {
