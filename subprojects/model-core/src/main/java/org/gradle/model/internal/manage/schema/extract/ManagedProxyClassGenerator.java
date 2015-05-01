@@ -21,21 +21,19 @@ import com.google.common.collect.Iterables;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.*;
+import org.gradle.internal.reflect.ClassDetails;
+import org.gradle.internal.reflect.ClassInspector;
+import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.objectweb.asm.*;
 
-//CHECKSTYLE:OFF This import is needed to override wildcard import of of org.gradle.internal.reflect.NoSuchMethodException
-import java.lang.NoSuchMethodException;
-//CHECKSTYLE:ON
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-public class ManagedProxyClassGenerator {
+public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
         Note: there is deliberately no internal synchronizing or caching at this level.
 
@@ -44,13 +42,8 @@ public class ManagedProxyClassGenerator {
         This allows us to avoid yet another weak class based cache, and importantly having to acquire a lock to instantiate an implementation.
      */
 
-    private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
-
     private static final String STATE_FIELD_NAME = "$state";
     private static final String CAN_CALL_SETTERS_FIELD_NAME = "$canCallSetters";
-    private static final String CONSTRUCTOR_NAME = "<init>";
-    private static final String CONCRETE_SIGNATURE = null;
-    private static final String[] NO_EXCEPTIONS = new String[0];
     private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
@@ -100,11 +93,6 @@ public class ManagedProxyClassGenerator {
         return defineClass(visitor, managedTypeClass.getClassLoader(), generatedTypeName);
     }
 
-    private <T> Class<? extends T> defineClass(ClassWriter visitor, ClassLoader classLoader, String generatedTypeName) {
-        byte[] bytecode = visitor.toByteArray();
-        return Cast.uncheckedCast(DEFINE_CLASS_METHOD.invoke(classLoader, generatedTypeName, bytecode, 0, bytecode.length));
-    }
-
     private void generateProxyClass(ClassWriter visitor, Class<?> managedTypeClass, List<String> interfaceInternalNames, Type generatedType, Type superclassType) {
         declareClass(visitor, interfaceInternalNames, generatedType, superclassType);
         declareStateField(visitor);
@@ -135,7 +123,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType) {
-        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, CONSTRUCTOR_NAME, CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         constructorVisitor.visitCode();
 
         invokeSuperConstructor(constructorVisitor, superclassType);
@@ -146,7 +134,7 @@ public class ManagedProxyClassGenerator {
 
     private void invokeSuperConstructor(MethodVisitor constructorVisitor, Type superclassType) {
         putThisOnStack(constructorVisitor);
-        constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE), false);
+        constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
     private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
@@ -239,20 +227,6 @@ public class ManagedProxyClassGenerator {
         putThisOnStack(methodVisitor);
         methodVisitor.visitLdcInsn(canCallSetters);
         methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
-    }
-
-    private void putThisOnStack(MethodVisitor constructorVisitor) {
-        constructorVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-    }
-
-    private void finishVisitingMethod(MethodVisitor methodVisitor) {
-        finishVisitingMethod(methodVisitor, Opcodes.RETURN);
-    }
-
-    private void finishVisitingMethod(MethodVisitor methodVisitor, int returnOpcode) {
-        methodVisitor.visitInsn(returnOpcode);
-        methodVisitor.visitMaxs(0, 0);
-        methodVisitor.visitEnd();
     }
 
     private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
