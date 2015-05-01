@@ -1,0 +1,19 @@
+apply plugin: 'eclipse'
+// START SNIPPET use-plugin
+apply plugin: 'scala'
+// END SNIPPET use-plugin
+
+// START SNIPPET scala-dependency
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.1'
+}
+// END SNIPPET scala-dependency
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2'
+    testCompile 'junit:junit:4.12'
+}

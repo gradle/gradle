@@ -1,0 +1,25 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.1'
+    testCompile 'junit:junit:4.12'
+}
+
+// START SNIPPET custom-source-locations
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/scala']
+        }
+    }
+    test {
+        scala {
+            srcDirs = ['test/scala']
+        }
+    }
+}
+// END SNIPPET custom-source-locations
