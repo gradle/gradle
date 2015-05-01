@@ -8,10 +8,10 @@ import org.apache.commons.collections.list.GrowthList;
  * Immutable implementation of {@link Person}.
  */
 class PersonImpl implements Person
-  attr_accessor names:List
+  attr_reader names:List
   
   def initialize(names:List)
-    self.names = names
+    @names        = names
     @importedList = GrowthList.new();
   end
 end
