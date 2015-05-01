@@ -170,21 +170,21 @@ task succeed {
 
         and:
         waitForWatching {
-            changeSource()
             triggerNothing()
         }
+        changeSource()
 
         and:
         waitForWatching {
-            createSource()
             triggerNothing()
         }
+        createSource()
 
         and:
         waitForWatching {
-            deleteSource()
             triggerNothing()
         }
+        deleteSource()
 
         and:
         afterBuild {

@@ -16,9 +16,12 @@
 
 package org.gradle.launcher.continuous;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 
 public class BlockingTriggerable implements TriggerListener {
+    private final static Logger logger = Logging.getLogger(BlockingTriggerable.class);
     private final Object lock;
     private TriggerDetails currentTrigger;
 
@@ -32,12 +35,13 @@ public class BlockingTriggerable implements TriggerListener {
      */
     public TriggerDetails waitForTrigger() {
         try {
-            // TODO: Add some logging
             synchronized (lock) {
                 while (currentTrigger == null) {
+                    logger.debug("Waiting for a trigger");
                     // wait unconditionally
                     lock.wait();
                 }
+                logger.debug("woke up for trigger " + currentTrigger);
                 TriggerDetails lastReason = currentTrigger;
                 currentTrigger = null;
                 return lastReason;
@@ -51,6 +55,7 @@ public class BlockingTriggerable implements TriggerListener {
     @Override
     public void triggered(TriggerDetails triggerInfo) {
         synchronized (lock) {
+            logger.debug("triggered with " + triggerInfo);
             currentTrigger = triggerInfo;
             lock.notify();
         }
