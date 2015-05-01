@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.launcher.continuous.DefaultTriggerDetails
 import org.gradle.launcher.continuous.TriggerDetails
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -96,6 +97,18 @@ gradle.buildFinished {
 
     void startGradle(String task="tasks") {
         gradle = executer.withTasks(task).start()
+    }
+
+    String capturedStandardOutput = ""
+    String capturedErrorOutput = ""
+
+    void soFar(Closure c) {
+        OutputScrapingExecutionResult result = new OutputScrapingExecutionResult(gradle.standardOutput - capturedStandardOutput, gradle.errorOutput - capturedErrorOutput)
+        capturedStandardOutput = gradle.standardOutput
+        capturedErrorOutput = gradle.errorOutput
+        c.delegate = result
+        c.resolveStrategy = Closure.DELEGATE_FIRST
+        c.call(result)
     }
 
     void waitForStop() {
