@@ -23,11 +23,13 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
+import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
 class ProjectLibraryBinaryLocatorTest extends Specification {
@@ -139,10 +141,11 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     }
 
     private findLibraryContainer(ProjectInternal project) {
-        def nativeLibraries = Mock(DefaultModelMap)
+        def components = Mock(ComponentSpecContainer)
         project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(NativeLibrarySpec)) >> nativeLibraries
-        return nativeLibraries
+        modelRegistry.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer)) >> components
+        components.withType(NativeLibrarySpec.class) >> components
+        return components
     }
 
     interface MockNativeLibraryBinary extends NativeBinarySpec, NativeLibraryBinary {}

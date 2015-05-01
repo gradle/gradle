@@ -19,10 +19,10 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
@@ -48,7 +48,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.ACTION
         registration.actionRole == ModelActionRole.Finalize
-        registration.action.subject == ModelReference.of("components", DefaultModelMap.modelMapTypeOf(ComponentSpec))
+        registration.action.subject == ModelReference.of("components", ModelType.of(ComponentSpecContainer))
 
         where:
         ruleName         | descr

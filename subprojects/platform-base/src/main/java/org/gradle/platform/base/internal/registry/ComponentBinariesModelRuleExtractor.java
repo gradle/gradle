@@ -31,10 +31,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentBinaries;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.List;
@@ -55,7 +52,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
-            ModelReference<ModelMap<ComponentSpec>> subject = ModelReference.of(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ModelType.of(ComponentSpec.class)));
+            ModelReference<ComponentSpecContainer> subject = ModelReference.of(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
             ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition);
 
             return new ExtractedModelAction(ModelActionRole.Finalize, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
@@ -70,18 +67,18 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
     }
 
-    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ModelMap<ComponentSpec>> {
+    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<R, S, ComponentSpec, ComponentSpecContainer> {
 
         private final Class<C> componentType;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<ModelMap<ComponentSpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
+        public ComponentBinariesRule(ModelReference<ComponentSpecContainer> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(subject, componentType, ruleDefinition);
             this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
-        public void execute(final MutableModelNode modelNode, final ModelMap<ComponentSpec> componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
+        public void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
             TriAction<MutableModelNode, C, List<ModelView<?>>> action = new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode componentModelNode, C component, List<ModelView<?>> componentRuleInputs) {
