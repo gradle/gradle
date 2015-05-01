@@ -14,13 +14,13 @@ dependencies {
 }
 
 // START SNIPPET use-zinc
-tasks.withType(ScalaCompile) {
+tasks.withType(MirahCompile) {
     scalaCompileOptions.useAnt = false
 }
 // END SNIPPET use-zinc
 
 // START SNIPPET adjust-memory
-tasks.withType(ScalaCompile) {
+tasks.withType(MirahCompile) {
     configure(scalaCompileOptions.forkOptions) {
         memoryMaximumSize = '1g'
         jvmArgs = ['-XX:MaxPermSize=512m']

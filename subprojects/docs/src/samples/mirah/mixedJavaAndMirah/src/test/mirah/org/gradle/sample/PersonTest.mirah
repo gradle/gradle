@@ -6,8 +6,8 @@ import _root_.org.gradle.sample.impl.JavaPerson
 
 class PersonTest extends TestCase {
 
-  // FIXME: use a Scala test framework to run a test
-  def testCanCreateScalaPersonImpl(): Unit = {
+  // FIXME: use a Mirah test framework to run a test
+  def testCanCreateMirahPersonImpl(): Unit = {
     def person: Person = new PersonImpl("bob smith")
     person
   }

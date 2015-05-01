@@ -14,7 +14,7 @@ dependencies {
 }
 
 // START SNIPPET use-fsc
-compileScala {
+compileMirah {
     scalaCompileOptions.useCompileDaemon = true
 
     // optionally specify host and port of the daemon:
@@ -22,7 +22,7 @@ compileScala {
 }
 // END SNIPPET use-fsc
 
-compileScala {
+compileMirah {
     // don't use daemon because it would cause problems for automated testing
     scalaCompileOptions.useCompileDaemon = false
 }
