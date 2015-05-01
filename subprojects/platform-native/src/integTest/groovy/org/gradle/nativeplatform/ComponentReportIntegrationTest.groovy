@@ -16,11 +16,16 @@
 package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
+
+    def setup() {
+        formatter = new NativeComponentReportOutputFormatter(toolChain)
+    }
 
     @RequiresInstalledToolChain
     def "shows details of native C++ library"() {
