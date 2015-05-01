@@ -28,6 +28,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -38,6 +40,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 
 public class TaskInputsWatcher extends BuildAdapter {
+    private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
     private final Collection<Task> tasks;
@@ -70,6 +73,10 @@ public class TaskInputsWatcher extends BuildAdapter {
             })
         );
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Task inputs: {}", taskInputs.getFiles());
+        }
+
         fileWatcherFactory.watch(
             taskInputs.getFileSystemRoots(),
             new Action<Throwable>() {
@@ -82,6 +89,9 @@ public class TaskInputsWatcher extends BuildAdapter {
                 new Spec<FileWatcherEvent>() {
                     @Override
                     public boolean isSatisfiedBy(FileWatcherEvent element) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Received file system event: {}", element);
+                        }
                         return element.getType().equals(FileWatcherEvent.Type.OVERFLOW)
                             || element.getType().equals(FileWatcherEvent.Type.DELETE) // because fileCollection.contains() may not consider files that would be contained if they did exist
                             || taskInputs.contains(element.getFile());
