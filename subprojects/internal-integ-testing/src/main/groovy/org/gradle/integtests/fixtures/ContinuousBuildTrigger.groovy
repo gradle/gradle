@@ -111,6 +111,12 @@ gradle.buildFinished {
         true
     }
 
+    def waitForWatching() {
+        waitForWatching {
+            triggerNothing()
+        }
+    }
+
     def triggerRebuild() {
         writeTrigger(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test"))
     }
