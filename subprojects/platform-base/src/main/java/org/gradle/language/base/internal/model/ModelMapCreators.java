@@ -16,11 +16,9 @@
 
 package org.gradle.language.base.internal.model;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
@@ -61,12 +59,7 @@ public class ModelMapCreators {
             }
         })
                 .descriptor(descriptor)
-                .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), modelMapProjection, new Transformer<C, ModelMap<T>>() {
-                    @Override
-                    public C transform(ModelMap<T> delegate) {
-                        return DirectInstantiator.instantiate(viewClass, delegate);
-                    }
-                }))
+                .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), modelMapProjection, viewClass))
                 .withProjection(modelMapProjection)
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();

@@ -18,8 +18,8 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -35,14 +35,14 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
 
-    private final Transformer<? extends P, ? super ModelMap<E>> factory;
     private final ModelAdapter delegateAdapter;
+    private final Class<? extends P> viewImpl;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, final Transformer<? extends P, ? super ModelMap<E>> factory) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, Class<? extends P> viewImpl) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.delegateAdapter = delegateAdapter;
-        this.factory = factory;
+        this.viewImpl = viewImpl;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
             throw new IllegalStateException("delegateAdapter " + delegateAdapter + " returned null for type " + type);
         }
 
-        P instance = factory.transform(rawView.getInstance());
+        P instance = DirectInstantiator.instantiate(viewImpl, rawView.getInstance());
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, new Action<P>() {
             @Override
             public void execute(P es) {
@@ -110,15 +110,21 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
         }
 
         SpecializedModelMapProjection<?, ?> that = (SpecializedModelMapProjection<?, ?>) o;
-
-        return !(publicType != null ? !publicType.equals(that.publicType) : that.publicType != null);
+        if (!publicType.equals(that.publicType)) {
+            return false;
+        }
+        if (!delegateAdapter.equals(that.delegateAdapter)) {
+            return false;
+        }
+        return viewImpl.equals(that.viewImpl);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (publicType != null ? publicType.hashCode() : 0);
-        result = 31 * result + (factory != null ? factory.hashCode() : 0);
+        result = 31 * result + publicType.hashCode();
+        result = 31 * result + delegateAdapter.hashCode();
+        result = 31 * result + viewImpl.hashCode();
         return result;
     }
 
