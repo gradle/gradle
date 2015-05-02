@@ -182,8 +182,8 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 class Rules extends RuleSource {
     @Defaults
     void verifyAsContainer(ComponentSpecContainer c) {
-//        assert c.toString() == "ComponentSpecContainer 'components'"
-//        assert c.toString() == c.withType(CustomComponent).toString()
+        assert c.toString() == "ComponentSpecContainer 'components'"
+        assert c.toString() == c.withType(CustomComponent).toString()
     }
 
     @Defaults
@@ -216,7 +216,7 @@ apply plugin: Rules
 
 model {
     components {
-//        assert it.toString() == "ComponentSpecContainer 'components'"
+        assert it.toString() == "ComponentSpecContainer 'components'"
         assert it instanceof ComponentSpecContainer
     }
 }

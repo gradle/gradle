@@ -88,7 +88,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
             throw new IllegalStateException("delegateAdapter " + delegateAdapter + " returned null for type " + type);
         }
 
-        P instance = DirectInstantiator.instantiate(viewImpl, rawView.getInstance());
+        P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView.getInstance());
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, new Action<P>() {
             @Override
             public void execute(P es) {

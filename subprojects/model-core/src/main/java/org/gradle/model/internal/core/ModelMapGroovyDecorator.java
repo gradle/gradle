@@ -42,24 +42,29 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
         }
     };
 
+    private final String displayName;
     private final ModelMap<I> delegate;
     private final ModelViewState viewState;
 
-    // Used by generated subclasses
+    // Used by generated subclasses, see {@link SpecializedModelMapProjection}.
     @SuppressWarnings("UnusedDeclaration")
-    public ModelMapGroovyDecorator(ModelMap<I> delegate) {
-        this.delegate = delegate;
-        viewState = ALL_GOOD_MODEL_VIEW_STATE;
+    public ModelMapGroovyDecorator(String displayName, ModelMap<I> delegate) {
+        this(displayName, delegate, ALL_GOOD_MODEL_VIEW_STATE);
     }
 
     public ModelMapGroovyDecorator(ModelMap<I> delegate, ModelViewState viewState) {
+        this(null, delegate, viewState);
+    }
+
+    public ModelMapGroovyDecorator(String displayName, ModelMap<I> delegate, ModelViewState viewState) {
+        this.displayName = displayName;
         this.delegate = delegate;
         this.viewState = viewState;
     }
 
     @Override
     public <S> ModelMap<S> withType(Class<S> type) {
-        return new ModelMapGroovyDecorator<S>(delegate.withType(type), viewState);
+        return new ModelMapGroovyDecorator<S>(displayName, delegate.withType(type), viewState);
     }
 
     @Override
@@ -179,7 +184,7 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
 
     @Override
     public String toString() {
-        return delegate.toString();
+        return displayName != null ? displayName : delegate.toString();
     }
 
     @Override
