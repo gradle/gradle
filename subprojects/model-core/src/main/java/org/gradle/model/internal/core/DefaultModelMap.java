@@ -43,7 +43,7 @@ public class DefaultModelMap<T> extends AbstractModelMap<T> {
 
     @Override
     public String toString() {
-        return ModelMap.class.getSimpleName() + '<' + elementType.getConcreteClass().getSimpleName() + "> '" + modelNode.getPath() + "'";
+        return ModelMap.class.getSimpleName() + '<' + elementType.getSimpleName() + "> '" + modelNode.getPath() + "'";
     }
 
     @Override
