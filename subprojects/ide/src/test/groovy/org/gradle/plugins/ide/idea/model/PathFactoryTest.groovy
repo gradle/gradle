@@ -228,4 +228,11 @@ class PathFactoryTest extends Specification {
         }
     }
 
+    def "check attribute 'group' for Path"() {
+        expect:
+        factory.path('other:abc').group == null
+        factory.path('a', 'b').group == null
+        factory.path('a', 'b', null).group == null
+        factory.path('a', 'b', 'g').group == 'g'
+    }
 }

@@ -72,7 +72,7 @@ class Project extends XmlPersistableConfigurationObject {
     @Override
     protected void load(Node xml) {
         findModules().module.each { module ->
-            this.modulePaths.add(pathFactory.path(module.@fileurl, module.@filepath))
+            this.modulePaths.add(pathFactory.path(module.@fileurl, module.@filepath, module.@group))
         }
 
         findWildcardResourcePatterns().entry.each { entry ->
@@ -96,7 +96,14 @@ class Project extends XmlPersistableConfigurationObject {
         findModules().replaceNode {
             modules {
                 modulePaths.each { Path modulePath ->
-                    module(fileurl: modulePath.url, filepath: modulePath.relPath)
+                    final module = module(fileurl: modulePath.url, filepath: modulePath.relPath) as Node
+
+                    final group = modulePath.group
+                    if (group?.trim()) {
+                        module.@group = group
+                    }
+
+                    module
                 }
             }
         }

@@ -75,7 +75,7 @@ class PathFactory {
     /**
      * Creates a path for the given URL.
      */
-    Path path(String url, String relPath) {
+    Path path(String url, String relPath, String group = null) {
         String expandedUrl = url
         for (variable in variables) {
             expandedUrl = expandedUrl.replace(variable.name, variable.prefix)
@@ -88,7 +88,7 @@ class PathFactory {
                 expandedUrl = toUrl('jar', new File(parts[0]).canonicalFile) + '!' + parts[1]
             }
         }
-        return new Path(url, expandedUrl, relPath)
+        return new Path(url, expandedUrl, relPath, group)
     }
 
     private def toUrl(String scheme, File file) {
