@@ -15,6 +15,8 @@
  */
 
 package org.gradle.launcher.continuous
+
+import junit.framework.AssertionFailedError
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ContinuousBuildTrigger
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -159,30 +161,24 @@ throw new GradleException("config error")
 
         when:
         startGradle("build")
-
         and:
-        waitForWatching {
-            triggerNothing()
-        }
-
+        waitForWatching()
         then:
         buildSucceedsAndCompileTaskExecuted()
+
+        when:
         invalidSource()
-
         and:
-        waitForWatching {
-            triggerNothing()
-        }
-
+        waitForWatching()
         then:
         buildFailed()
-        validSource()
 
+        when:
+        validSource()
         and:
         afterBuild {
             triggerStop()
         }
-
         then:
         buildSucceedsAndCompileTaskExecuted()
         waitForStop()
@@ -194,42 +190,134 @@ throw new GradleException("config error")
 
         when:
         startGradle("build")
-
         and:
-        waitForWatching {
-            triggerNothing()
-        }
-
+        waitForWatching()
         then:
         buildSucceedsAndCompileTaskExecuted()
+
+        when:
         changeSource()
-
         and:
-        waitForWatching {
-            triggerNothing()
-        }
-
+        waitForWatching()
         then:
         buildSucceedsAndCompileTaskExecuted()
+
+        when:
         createSource()
-
         and:
-        waitForWatching {
-            triggerNothing()
-        }
-
+        waitForWatching()
         then:
         buildSucceedsAndCompileTaskExecuted()
-        deleteSource()
 
+        when:
+        deleteSource()
         and:
         afterBuild {
             triggerStop()
         }
-
         then:
         buildSucceedsAndCompileTaskExecuted()
         waitForStop()
+    }
+
+    def "rebuilds when a task dependency fails and changes are made to downstream task inputs" () {
+        given:
+        validSource()
+        TestFile inputFile = file("test/inputFile1").createFile()
+        file("test/inputFile2") << "A"
+        inputFile << "X"
+        buildFile << """
+            task downstream {
+                dependsOn "build"
+                inputs.${inputType} ${inputPath}
+            }
+        """
+
+        when:
+        startGradle("downstream")
+        and:
+        waitForWatching()
+        then:
+        buildSucceeds()
+
+        when:
+        invalidSource()
+        and:
+        waitForWatching()
+        then:
+        buildFailed()
+
+        when:
+        inputFile << "Y"
+        and:
+        waitForWatching()
+        then:
+        buildFailed()
+
+        when:
+        validSource()
+        and:
+        afterBuild {
+            triggerStop()
+        }
+        then:
+        buildSucceeds()
+        waitForStop()
+
+        where:
+        inputType | inputPath
+        "dir"     | '"test"'
+        // These don't work!
+        //"files"   | '"test/inputFile1", "test/inputFile2"'
+        //"file"    | '"test/inputFile1"'
+    }
+
+    def "does not rebuild when unselected task inputs are created, deleted or modified" () {
+        given:
+        validSource()
+        TestFile inputFile = file("test/inputFile").createFile()
+        inputFile << "X"
+        buildFile << """
+            task otherTask {
+                dependsOn "build"
+                inputs.dir "${inputFile.parent}"
+            }
+        """
+
+        when:
+        startGradle("build")
+        and:
+        waitForWatching()
+        then:
+        buildSucceeds()
+
+        when:
+        inputFile << "Y"
+        waitForWatching()
+        then:
+        def e = thrown(AssertionFailedError)
+        assert e.message.startsWith("Timeout waiting for client to connect")
+
+        when:
+        file("test/inputFile2") << "X"
+        waitForWatching()
+        then:
+        e = thrown(AssertionFailedError)
+        assert e.message.startsWith("Timeout waiting for client to connect")
+
+        when:
+        inputFile.delete()
+        waitForWatching()
+        then:
+        e = thrown(AssertionFailedError)
+        assert e.message.startsWith("Timeout waiting for client to connect")
+    }
+
+    def buildSucceeds() {
+        soFar {
+            assert output.contains("BUILD SUCCESSFUL")
+        }
+        true
     }
 
     def buildSucceedsAndCompileTaskExecuted() {

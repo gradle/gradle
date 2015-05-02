@@ -653,6 +653,7 @@ Constraints / implementation details:
 - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
 - Changing a source file that is an input to two or more tasks should trigger a build.
 - Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src', include: "**/*.java")` should not trigger a build when foo.bar changes)
+- Given tasks A <- B <- C, if B fails and the inputs to C change, a build should be triggered.
 
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
