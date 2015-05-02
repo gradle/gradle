@@ -37,7 +37,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public abstract class ModelMapModelProjection<I> implements ModelProjection {
 
-    private final static Set<Class<? extends CollectionBuilder>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.of(ModelMap.class, CollectionBuilder.class);
+    private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
@@ -51,7 +51,7 @@ public abstract class ModelMapModelProjection<I> implements ModelProjection {
 
     protected abstract BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> getCreatorFunction();
 
-    private String getContainerTypeDescription(Class<? extends CollectionBuilder> containerType, Collection<? extends Class<?>> creatableTypes) {
+    private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
         StringBuilder sb = new StringBuilder(containerType.getName());
         if (creatableTypes.size() == 1) {
             @SuppressWarnings("ConstantConditions")
@@ -123,8 +123,8 @@ public abstract class ModelMapModelProjection<I> implements ModelProjection {
     @Override
     public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
         final Collection<? extends Class<?>> creatableTypes = getCreatableTypes(node);
-        return Iterables.transform(SUPPORTED_CONTAINER_TYPES, new Function<Class<? extends CollectionBuilder>, String>() {
-            public String apply(Class<? extends CollectionBuilder> containerType) {
+        return Iterables.transform(SUPPORTED_CONTAINER_TYPES, new Function<Class<?>, String>() {
+            public String apply(Class<?> containerType) {
                 return getContainerTypeDescription(containerType, creatableTypes);
             }
         });
