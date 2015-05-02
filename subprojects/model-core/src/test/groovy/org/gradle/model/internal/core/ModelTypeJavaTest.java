@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.model.internal.type.ModelType;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -27,6 +28,24 @@ import static org.junit.Assert.assertEquals;
  * Tests that need full static typing.
  */
 public class ModelTypeJavaTest {
+    class Nested<T> {
+        class Child<S extends Number & Runnable> { }
+    }
+
+    @Test
+    public void testNestedParameterizedType() {
+// Suppress - checkstyle gets confused with type params on the outer type
+//CHECKSTYLE:OFF
+        ModelType<?> type = new ModelType<Nested<? super Long>.Child<? extends Runnable>>() {};
+        assertEquals(type.getSimpleName(), "ModelTypeJavaTest.Nested<? super Long>.Child<? extends Runnable>");
+        assertEquals(type.toString(), "org.gradle.model.internal.core.ModelTypeJavaTest.Nested<? super java.lang.Long>.Child<? extends java.lang.Runnable>");
+
+        ModelType<?> listType = new ModelType<List<? extends Nested<Number>.Child<? extends Runnable>>>() {};
+
+        assertEquals(listType.getSimpleName(), "List<? extends ModelTypeJavaTest.Nested<Number>.Child<? extends Runnable>>");
+        assertEquals(listType.toString(), "java.util.List<? extends org.gradle.model.internal.core.ModelTypeJavaTest.Nested<java.lang.Number>.Child<? extends java.lang.Runnable>>");
+//CHECKSTYLE:ON
+    }
 
     @Test
     public void testBuildType() throws Exception {

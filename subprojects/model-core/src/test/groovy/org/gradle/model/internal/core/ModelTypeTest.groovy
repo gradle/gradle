@@ -20,6 +20,18 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
+    class Nested {}
+
+    def "represents classes"() {
+        expect:
+        def type = ModelType.of(String)
+        type.toString() == String.name
+        type.simpleName == String.simpleName
+
+        def nested = ModelType.of(Nested)
+        nested.toString() == Nested.name
+        nested.simpleName == "ModelTypeTest.Nested"
+    }
 
     def "represents type variables"() {
         when:
@@ -30,6 +42,10 @@ class ModelTypeTest extends Specification {
         type.typeVariables[1] == new ModelType<Map<Integer, Float>>() {}
         type.typeVariables[1].typeVariables[0] == ModelType.of(Integer)
         type.typeVariables[1].typeVariables[1] == ModelType.of(Float)
+
+        and:
+        type.toString() == "java.util.Map<java.lang.String, java.util.Map<java.lang.Integer, java.lang.Float>>"
+        type.simpleName == "Map<String, Map<Integer, Float>>"
     }
 
     def "generic type compatibility"() {
@@ -66,14 +82,18 @@ class ModelTypeTest extends Specification {
 
     def m3(List<?> anything) {}
 
+    def m4(List<? extends Object> objects) {}
+
     def "wildcards"() {
         def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
         def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
         def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
+        def objects = ModelType.paramType(getClass().getDeclaredMethod("m4", List.class), 0).typeVariables[0]
 
         expect:
         extendsString.wildcard
         superString.wildcard
+        objects.wildcard
         anything.wildcard
 
         extendsString.upperBound == ModelType.of(String)
@@ -82,8 +102,21 @@ class ModelTypeTest extends Specification {
         superString.upperBound == null
         superString.lowerBound == ModelType.of(String)
 
+        objects.upperBound == null
+        objects.lowerBound == null
+
         anything.upperBound == null
         anything.lowerBound == null
+
+        extendsString.toString() == "? extends java.lang.String"
+        superString.toString() == "? super java.lang.String"
+        objects.toString() == "?"
+        anything.toString() == "?"
+
+        extendsString.simpleName == "? extends String"
+        superString.simpleName == "? super String"
+        objects.simpleName == "?"
+        anything.simpleName == "?"
     }
 
     def "isSubclass"() {

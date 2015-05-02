@@ -64,8 +64,13 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
 
     @Override
     public String toString() {
-        Type[] lowerBounds = getLowerBounds();
-        Type[] bounds = lowerBounds;
+        return getRepresentation(true);
+    }
+
+    @Override
+    public String getRepresentation(boolean full) {
+
+        TypeWrapper[] bounds = lowerBounds;
         StringBuilder sb = new StringBuilder();
 
         if (lowerBounds.length > 0) {
@@ -73,7 +78,7 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
         } else {
             Type[] upperBounds = getUpperBounds();
             if (upperBounds.length > 0 && !upperBounds[0].equals(Object.class)) {
-                bounds = upperBounds;
+                bounds = this.upperBounds;
                 sb.append("? extends ");
             } else {
                 return "?";
@@ -83,23 +88,15 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
         assert bounds.length > 0;
 
         boolean first = true;
-        for (Type bound : bounds) {
+        for (TypeWrapper bound : bounds) {
             if (!first) {
                 sb.append(" & ");
             }
 
             first = false;
-            if (bound instanceof Class) {
-                sb.append(((Class) bound).getName());
-            } else {
-                sb.append(bound.toString());
-            }
+            sb.append(bound.getRepresentation(full));
         }
-        return sb.toString();
-    }
 
-    @Override
-    public String getRepresentation() {
-        return toString();
+        return sb.toString();
     }
 }
