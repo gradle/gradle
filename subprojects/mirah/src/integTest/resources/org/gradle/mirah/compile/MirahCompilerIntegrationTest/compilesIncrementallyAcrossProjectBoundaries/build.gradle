@@ -1,14 +1,20 @@
 subprojects {
     apply plugin: "mirah"
 
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+    
+        dependencies {
+            classpath "org.mirah:mirah:$mirahVersion"
+        }
+    }
+    
     repositories {
         mavenCentral()
     }
-
-    dependencies {
-//      compile "org.mirah:mirah-library:$mirahVersion"
-    }
-
+    
     tasks.withType(MirahCompile) {
         mirahCompileOptions.with {
             fork = true

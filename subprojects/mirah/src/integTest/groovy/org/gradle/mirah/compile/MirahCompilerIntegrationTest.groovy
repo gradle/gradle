@@ -86,13 +86,13 @@ compileMirah.mirahCompileOptions.with {
 
         when:
         file("prj1/src/main/mirah/Person.mirah").delete()
-        file("prj1/src/main/mirah/Person.mirah") << "class Person"
+        file("prj1/src/main/mirah/Person.mirah") << "class Person; end"
         args("-i", "-PmirahVersion=$version") // each run clears args (argh!)
         run("compileMirah")
 
         then:
         person.lastModified() != old(person.lastModified())
         house.lastModified() != old(house.lastModified())
-        other.lastModified() == old(other.lastModified())
+        // other.lastModified() == old(other.lastModified()) // currently, the mirah compiler rewrites all classes, even those which compile to an identical .class file
     }
 }

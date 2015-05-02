@@ -1,2 +1,3 @@
 class Other
+end
 
