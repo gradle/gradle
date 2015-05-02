@@ -52,14 +52,16 @@ class WatchServiceRegistrar {
     }
 
     private void registerTree(Path path) throws IOException {
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                throws IOException {
-                registerWatch(dir, DEFAULT_WATCH_MODIFIERS);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+        if (path.toFile().exists()) {
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                    throws IOException {
+                    registerWatch(dir, DEFAULT_WATCH_MODIFIERS);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
     }
 
     private boolean isFileTreeWatchingSupported() {
