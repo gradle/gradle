@@ -17,14 +17,20 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
+import java.util.List;
 
-public class SpecializedModelMapProjection<P extends ModelMap<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
+/**
+ * Should be used along with {@code PolymorphicModelMapProjection}.
+ */
+public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements ModelProjection {
 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
@@ -33,7 +39,6 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> extends Typ
     private final ModelAdapter delegateAdapter;
 
     public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, final Transformer<? extends P, ? super ModelMap<E>> factory) {
-        super(publicType, true, true);
         this.publicType = publicType;
         this.elementType = elementType;
         this.delegateAdapter = delegateAdapter;
@@ -41,7 +46,36 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> extends Typ
     }
 
     @Override
-    protected ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
+        return getWritableTypeDescriptions(node);
+    }
+
+    @Override
+    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
+        return Collections.singleton(publicType.toString());
+    }
+
+    @Nullable
+    @Override
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        if (canBeViewedAsReadOnly(type)) {
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
+    @Override
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        if (canBeViewedAsWritable(type)) {
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
+        } else {
+            return null;
+        }
+    }
+
+    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         final ModelView<? extends ModelMap<E>> rawView;
         ModelType<ModelMap<E>> type = DefaultModelMap.modelMapTypeOf(elementType);
         if (writable) {
@@ -90,11 +124,11 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> extends Typ
 
     @Override
     public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
-        return targetType.equals(publicType) && super.canBeViewedAsWritable(targetType);
+        return targetType.equals(publicType) || targetType.equals(ModelType.of(Object.class));
     }
 
     @Override
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
-        return targetType.equals(publicType) && super.canBeViewedAsReadOnly(targetType);
+        return canBeViewedAsWritable(targetType);
     }
 }

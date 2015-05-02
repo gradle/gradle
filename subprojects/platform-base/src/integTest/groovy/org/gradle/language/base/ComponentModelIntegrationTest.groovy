@@ -217,7 +217,7 @@ apply plugin: Rules
 model {
     components {
 //        assert it.toString() == "ComponentSpecContainer 'components'"
-//        assert it instanceof ComponentSpecContainer
+        assert it instanceof ComponentSpecContainer
     }
 }
 """

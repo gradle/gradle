@@ -61,13 +61,13 @@ public class ModelMapCreators {
             }
         })
                 .descriptor(descriptor)
-                .withProjection(modelMapProjection)
                 .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), modelMapProjection, new Transformer<C, ModelMap<T>>() {
                     @Override
                     public C transform(ModelMap<T> delegate) {
                         return DirectInstantiator.instantiate(viewClass, delegate);
                     }
                 }))
+                .withProjection(modelMapProjection)
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }
