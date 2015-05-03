@@ -36,27 +36,15 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 // TODO - mix in Groovy support
 public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements ModelMap<I> {
-    public static final ModelViewState ALL_GOOD_MODEL_VIEW_STATE = new ModelViewState() {
-        @Override
-        public void assertCanMutate() {
-        }
-    };
-
     private final String displayName;
     private final ModelMap<I> delegate;
     private final ModelViewState viewState;
-
-    // Used by generated subclasses, see {@link SpecializedModelMapProjection}.
-    @SuppressWarnings("UnusedDeclaration")
-    public ModelMapGroovyDecorator(String displayName, ModelMap<I> delegate) {
-        this(displayName, delegate, ALL_GOOD_MODEL_VIEW_STATE);
-    }
 
     public ModelMapGroovyDecorator(ModelMap<I> delegate, ModelViewState viewState) {
         this(null, delegate, viewState);
     }
 
-    public ModelMapGroovyDecorator(String displayName, ModelMap<I> delegate, ModelViewState viewState) {
+    public ModelMapGroovyDecorator(@Nullable String displayName, ModelMap<I> delegate, ModelViewState viewState) {
         this.displayName = displayName;
         this.delegate = delegate;
         this.viewState = viewState;

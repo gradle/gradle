@@ -17,26 +17,19 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
-import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DefaultModelMap;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends ModelMapModelProjection<M> {
-
     private final ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference;
-    private final ModelReference<? extends Collection<? super M>> storeReference;
 
     public DomainObjectContainerModelProjection(ModelType<M> baseItemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
-        super(baseItemType);
-        this.storeReference = storeReference;
+        super(baseItemType, DefaultModelMap.createAndStoreVia(instantiatorModelReference, storeReference));
         this.instantiatorModelReference = instantiatorModelReference;
-    }
-
-    @Override
-    protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends M>> getCreatorFunction() {
-        return DefaultModelMap.createAndStoreVia(instantiatorModelReference, storeReference);
     }
 
     @Override

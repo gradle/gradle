@@ -18,25 +18,20 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.model.ModelMap;
-import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 @NotThreadSafe
-public class ModelMapModelView<T> implements ModelView<ModelMap<T>>, ModelViewState {
-
-    private final ModelType<ModelMap<T>> type;
-    private final ModelMap<T> instance;
-    private final ModelRuleDescriptor ruleDescriptor;
+public class ModelMapModelView<T extends ModelMap<?>> implements ModelView<T> {
+    private final ModelType<T> type;
+    private final T instance;
     private final ModelPath path;
+    private final DefaultModelViewState state;
 
-    private boolean closed;
-
-    public ModelMapModelView(ModelPath path, ModelType<ModelMap<T>> type, ModelMap<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+    public ModelMapModelView(ModelPath path, ModelType<T> type, T instance, DefaultModelViewState state) {
         this.path = path;
         this.type = type;
-        this.ruleDescriptor = ruleDescriptor;
-        this.instance = new ModelMapGroovyDecorator<T>(rawInstance, this);
+        this.state = state;
+        this.instance = instance;
     }
 
     @Override
@@ -44,22 +39,15 @@ public class ModelMapModelView<T> implements ModelView<ModelMap<T>>, ModelViewSt
         return path;
     }
 
-    public ModelType<ModelMap<T>> getType() {
+    public ModelType<T> getType() {
         return type;
     }
 
-    public ModelMap<T> getInstance() {
+    public T getInstance() {
         return instance;
     }
 
     public void close() {
-        closed = true;
-    }
-
-    @Override
-    public void assertCanMutate() {
-        if (closed) {
-            throw new ModelViewClosedException(type, ruleDescriptor);
-        }
+        state.close();
     }
 }

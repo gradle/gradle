@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -35,13 +34,11 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
 
-    private final ModelAdapter delegateAdapter;
     private final Class<? extends P> viewImpl;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, ModelAdapter delegateAdapter, Class<? extends P> viewImpl) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl) {
         this.publicType = publicType;
         this.elementType = elementType;
-        this.delegateAdapter = delegateAdapter;
         this.viewImpl = viewImpl;
     }
 
@@ -59,7 +56,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsReadOnly(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor));
         } else {
             return null;
         }
@@ -69,32 +66,17 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
         if (canBeViewedAsWritable(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor));
         } else {
             return null;
         }
     }
 
-    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        final ModelView<? extends ModelMap<E>> rawView;
-        ModelType<ModelMap<E>> type = DefaultModelMap.modelMapTypeOf(elementType);
-        if (writable) {
-            rawView = delegateAdapter.asWritable(type, modelNode, ruleDescriptor, Collections.<ModelView<?>>emptyList());
-        } else {
-            rawView = delegateAdapter.asReadOnly(type, modelNode, ruleDescriptor);
-        }
-
-        if (rawView == null) {
-            throw new IllegalStateException("delegateAdapter " + delegateAdapter + " returned null for type " + type);
-        }
-
-        P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView.getInstance());
-        return InstanceModelView.of(modelNode.getPath(), publicType, instance, new Action<P>() {
-            @Override
-            public void execute(P es) {
-                rawView.close();
-            }
-        });
+    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+        ModelMap<E> rawView = new DefaultModelMap<E>(elementType, ruleDescriptor, modelNode, DefaultModelMap.createUsingParentNode(elementType));
+        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor);
+        P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
+        return new ModelMapModelView<P>(modelNode.getPath(), publicType, instance, state);
     }
 
     @Override
@@ -113,9 +95,6 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
         if (!publicType.equals(that.publicType)) {
             return false;
         }
-        if (!delegateAdapter.equals(that.delegateAdapter)) {
-            return false;
-        }
         return viewImpl.equals(that.viewImpl);
     }
 
@@ -123,7 +102,6 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + publicType.hashCode();
-        result = 31 * result + delegateAdapter.hashCode();
         result = 31 * result + viewImpl.hashCode();
         return result;
     }

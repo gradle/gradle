@@ -17,20 +17,15 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DefaultModelMap;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
     public PolymorphicModelMapProjection(ModelType<T> baseItemType) {
-        super(baseItemType);
-    }
-
-    @Override
-    protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> getCreatorFunction() {
-        return DefaultModelMap.createUsingParentNode(baseItemModelType);
+        super(baseItemType, DefaultModelMap.createUsingParentNode(baseItemType));
     }
 
     @Override

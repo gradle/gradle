@@ -35,15 +35,11 @@ public class ModelMapCreators {
                                                                                final Class<C> containerClass,
                                                                                final Class<? extends C> viewClass,
                                                                                String descriptor) {
-
-
         ModelType<RuleAwareNamedDomainObjectFactoryRegistry<T>> factoryRegistryType = new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<T>>() {
         }.where(new ModelType.Parameter<T>() {
         }, ModelType.of(typeClass)).build();
 
         ModelReference<ModelMap<T>> containerReference = ModelReference.of(name, DefaultModelMap.modelMapTypeOf(typeClass));
-
-        PolymorphicModelMapProjection<T> modelMapProjection = new PolymorphicModelMapProjection<T>(ModelType.of(typeClass));
 
         return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
@@ -59,8 +55,8 @@ public class ModelMapCreators {
             }
         })
                 .descriptor(descriptor)
-                .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), modelMapProjection, viewClass))
-                .withProjection(modelMapProjection)
+                .withProjection(new SpecializedModelMapProjection<C, T>(ModelType.of(containerClass), ModelType.of(typeClass), viewClass))
+                .withProjection(new PolymorphicModelMapProjection<T>(ModelType.of(typeClass)))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<T>>(factoryRegistryType))
                 .build();
     }

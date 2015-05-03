@@ -41,15 +41,15 @@ public abstract class ModelMapModelProjection<I> implements ModelProjection {
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
+    private final BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> creatorFunction;
 
-    public ModelMapModelProjection(ModelType<I> baseItemModelType) {
+    public ModelMapModelProjection(ModelType<I> baseItemModelType, BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> creatorFunction) {
         this.baseItemModelType = baseItemModelType;
         this.baseItemType = baseItemModelType.getConcreteClass();
+        this.creatorFunction = creatorFunction;
     }
 
     protected abstract Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node);
-
-    protected abstract BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> getCreatorFunction();
 
     private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
         StringBuilder sb = new StringBuilder(containerType.getName());
@@ -106,18 +106,19 @@ public abstract class ModelMapModelProjection<I> implements ModelProjection {
     public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         Class<? extends I> itemType = itemType(targetType);
         if (itemType != null) {
-            return toView(ruleDescriptor, node, itemType);
+            return uncheckedCast(toView(ruleDescriptor, node, itemType));
         }
         return null;
     }
 
-    protected <T, S extends I> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
+    private <S extends I> ModelView<ModelMap<S>> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, getCreatorFunction());
+        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorFunction);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
-        ModelMapModelView<S> view = new ModelMapModelView<S>(node.getPath(), DefaultModelMap.modelMapTypeOf(itemType), subBuilder, sourceDescriptor);
-        return uncheckedCast(view);
+        ModelType<ModelMap<S>> viewType = DefaultModelMap.modelMapTypeOf(itemType);
+        DefaultModelViewState state = new DefaultModelViewState(viewType, sourceDescriptor);
+        return new ModelMapModelView<ModelMap<S>>(node.getPath(), viewType, new ModelMapGroovyDecorator<S>(subBuilder, state), state);
     }
 
     @Override
