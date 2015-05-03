@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.util.BiFunction;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -35,11 +36,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final ModelType<E> elementType;
 
     private final Class<? extends P> viewImpl;
+    private final BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends E>> creatorFunction;
 
     public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
+        creatorFunction = DefaultModelMap.createUsingParentNode(elementType);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        ModelMap<E> rawView = new DefaultModelMap<E>(elementType, ruleDescriptor, modelNode, DefaultModelMap.createUsingParentNode(elementType));
+        ModelMap<E> rawView = new DefaultModelMap<E>(elementType, ruleDescriptor, modelNode, creatorFunction);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor);
         P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
         return new ModelMapModelView<P>(modelNode.getPath(), publicType, instance, state);
