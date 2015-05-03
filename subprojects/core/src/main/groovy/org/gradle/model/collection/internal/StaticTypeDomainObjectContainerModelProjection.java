@@ -25,11 +25,11 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Collections;
 
-public class StaticTypeDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends DomainObjectContainerModelProjection<C, M> {
+public class StaticTypeDomainObjectContainerModelProjection<M> extends DomainObjectContainerModelProjection<M> {
 
-    private final ModelType<C> collectionType;
+    private final ModelType<? extends PolymorphicDomainObjectContainerInternal<M>> collectionType;
 
-    public StaticTypeDomainObjectContainerModelProjection(ModelType<C> collectionType, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
+    public StaticTypeDomainObjectContainerModelProjection(ModelType<? extends PolymorphicDomainObjectContainerInternal<M>> collectionType, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
         super(itemType, instantiatorModelReference, storeReference);
         this.collectionType = collectionType;
     }
@@ -51,7 +51,7 @@ public class StaticTypeDomainObjectContainerModelProjection<C extends Polymorphi
             return false;
         }
 
-        StaticTypeDomainObjectContainerModelProjection<?, ?> that = (StaticTypeDomainObjectContainerModelProjection<?, ?>) o;
+        StaticTypeDomainObjectContainerModelProjection<?> that = (StaticTypeDomainObjectContainerModelProjection<?>) o;
 
         return collectionType.equals(that.collectionType);
     }

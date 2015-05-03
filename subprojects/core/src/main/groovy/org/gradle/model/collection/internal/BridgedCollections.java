@@ -173,7 +173,7 @@ public abstract class BridgedCollections {
         }, itemType).build();
 
         modelRegistry.createOrReplace(containerInfo.creatorBuilder
-                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
+                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<I>(container, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<I>>(factoryRegistryType, true, true))
                 .build());
@@ -195,7 +195,7 @@ public abstract class BridgedCollections {
         ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
 
         modelRegistry.createOrReplace(containerInfo.creatorBuilder
-                .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
+                .withProjection(new StaticTypeDomainObjectContainerModelProjection<I>(containerType, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                 .build());
     }

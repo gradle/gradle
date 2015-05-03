@@ -29,11 +29,11 @@ import java.util.Collection;
  *
  * @see StaticTypeDomainObjectContainerModelProjection
  */
-public class DynamicTypesDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends DomainObjectContainerModelProjection<C, M> {
+public class DynamicTypesDomainObjectContainerModelProjection<M> extends DomainObjectContainerModelProjection<M> {
 
-    private final C container;
+    private final PolymorphicDomainObjectContainerInternal<M> container;
 
-    public DynamicTypesDomainObjectContainerModelProjection(C container, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
+    public DynamicTypesDomainObjectContainerModelProjection(PolymorphicDomainObjectContainerInternal<M> container, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
         super(itemType, instantiatorModelReference, storeReference);
         this.container = container;
     }

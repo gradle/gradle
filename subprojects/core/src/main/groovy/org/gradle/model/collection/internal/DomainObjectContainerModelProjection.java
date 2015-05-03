@@ -16,7 +16,6 @@
 
 package org.gradle.model.collection.internal;
 
-import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.internal.core.DefaultModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -24,11 +23,11 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
-public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends ModelMapModelProjection<M> {
+public abstract class DomainObjectContainerModelProjection<M> extends ModelMapModelProjection<M> {
     private final ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference;
 
     public DomainObjectContainerModelProjection(ModelType<M> baseItemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
-        super(baseItemType, DefaultModelMap.createAndStoreVia(instantiatorModelReference, storeReference));
+        super(baseItemType, DefaultModelMap.<M>createAndStoreVia(instantiatorModelReference, storeReference));
         this.instantiatorModelReference = instantiatorModelReference;
     }
 
