@@ -103,7 +103,7 @@ group of a task through `org.gradle.tooling.model.Task#getGroup`.
 
 ### Increased visibility of components in model report
 
-- TBD
+- TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 
 ## Promoted features
 
@@ -138,6 +138,10 @@ This has been fixed and assemble task name for the main distribution has changed
 
 Use org.gradle.model.ModelMap instead.
 
+## Potential breaking changes
+
+### Configurations that are task inputs are resolved before building the task execution graph
+
 ### Changes in ComponentModelBasePlugin
 
 #### Removal of `componentSpec` project extension
@@ -155,12 +159,11 @@ Currently component container can be only accessed using model rules.
 
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
 - `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
+- All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle it was eager.
 
 ### Source sets and binaries cannot be removed from components
 
 ### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
-
-### Configurations that are task inputs are resolved before building the task execution graph
 
 ## External contributions
 
