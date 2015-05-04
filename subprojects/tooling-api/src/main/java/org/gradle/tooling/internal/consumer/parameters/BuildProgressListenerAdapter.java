@@ -213,7 +213,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private TaskFinishEvent taskFinishedEvent(InternalTaskFinishedProgressEvent event) {
-        TaskOperationDescriptor descriptor = removeTestDescriptor(event.getDescriptor());
+        TaskOperationDescriptor descriptor = removeTaskDescriptor(event.getDescriptor());
         return new DefaultTaskFinishedEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
     }
 
@@ -402,7 +402,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return assertDescriptorType(TestOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private TaskOperationDescriptor removeTestDescriptor(InternalTaskDescriptor testDescriptor) {
+    private TaskOperationDescriptor removeTaskDescriptor(InternalTaskDescriptor testDescriptor) {
         OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(testDescriptor.getId());
         if (cachedTestDescriptor == null) {
             throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
