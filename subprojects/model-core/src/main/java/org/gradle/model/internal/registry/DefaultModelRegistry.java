@@ -204,8 +204,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                         binder.bindInput(finalI, modelNode);
                     }
                 }));
-                tryForceBind(binder);
             }
+            tryForceBind(binder);
         }
     }
 
