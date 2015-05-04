@@ -89,6 +89,18 @@
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
     </section>
+    <section id='sec:verification'>
+        <title>Verification of downloaded Gradle distributions</title>
+        <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison. 
+            This raises the security against targetted attacks by preventing a man-in-the-middle attacker from injecting a different gradle distrubution for you.
+        </para>
+        <para>
+            To enable this feature, download your gradle distribution manually and calculate the SHA-256 hash sum of it, e.g.,
+            via <command>sha256sum gradle-2.3-bin.zip</command>.
+            Add the returned hash sum to <literal>gradle-wrapper.properties</literal> using the <literal>distributionSha256Sum</literal> property, e.g.,
+            <literal>distributionSha256Sum=010dd9f31849abc3d5644e282943b1c1c355f8e2635c5789833979ce590a3774</literal>
+        </para>
+    </section>
     <section id='sec:unix_file_permissions'>
         <title>Unix file permissions</title>
         <para>The Wrapper task adds appropriate file permissions to allow the execution of the <literal>gradlew</literal> *NIX command.
