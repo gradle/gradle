@@ -47,19 +47,30 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
-            registerFileWatcherHooks();
-            return executeMultipleBuilds(action, requestContext, actionParameters);
+
+            ListenerManager listenerManager = services.get(ListenerManager.class);
+            TaskInputsWatcher taskInputsWatcher = null;
+
+            if (listenerManager != null) { // TODO: why would this be null?
+                taskInputsWatcher = registerFileWatcherHooks(listenerManager);
+            }
+
+            try {
+                return executeMultipleBuilds(action, requestContext, actionParameters);
+            } finally {
+                if (listenerManager != null && taskInputsWatcher != null) {
+                    listenerManager.removeListener(taskInputsWatcher);
+                }
+            }
         }
         return executeSingleBuild(action, requestContext, actionParameters);
     }
 
-    private void registerFileWatcherHooks() {
-        ListenerManager listenerManager = services.get(ListenerManager.class);
-        if (listenerManager != null) {
-            FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
-            TaskInputsWatcher taskInputsWatcher = new TaskInputsWatcher(listenerManager.getBroadcaster(TriggerListener.class), fileWatcherFactory);
-            listenerManager.addListener(taskInputsWatcher);
-        }
+    private TaskInputsWatcher registerFileWatcherHooks(ListenerManager listenerManager) {
+        FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
+        TaskInputsWatcher taskInputsWatcher = new TaskInputsWatcher(listenerManager.getBroadcaster(TriggerListener.class), fileWatcherFactory);
+        listenerManager.addListener(taskInputsWatcher);
+        return taskInputsWatcher;
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
