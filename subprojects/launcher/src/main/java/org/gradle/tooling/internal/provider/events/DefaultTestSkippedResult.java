@@ -19,9 +19,7 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
 
 public class DefaultTestSkippedResult extends AbstractTestResult implements InternalTestSkippedResult {
-
     public DefaultTestSkippedResult(long startTime, long endTime) {
         super(startTime, endTime, "skipped");
     }
-
 }

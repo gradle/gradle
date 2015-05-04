@@ -21,5 +21,4 @@ public class DefaultBuildSuccessResult extends AbstractBuildResult implements In
     public DefaultBuildSuccessResult(long startTime, long endTime) {
         super(startTime, endTime, "succeeded");
     }
-
 }
