@@ -88,7 +88,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     private List<LaunchableGradleTask> tasks(Project project) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(buildFromTask(LaunchableGradleTask.class, task));
+            tasks.add(buildFromTask(new LaunchableGradleTask(), task));
         }
         return tasks;
     }

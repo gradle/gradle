@@ -78,10 +78,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(
-                        buildFromTask(LaunchableGradleProjectTask.class, t)
-                                .setProject(owner)
-                );
+                out.add(buildFromTask(new LaunchableGradleProjectTask(), t).setProject(owner));
             }
         }
 
