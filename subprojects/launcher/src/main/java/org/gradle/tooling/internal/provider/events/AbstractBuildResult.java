@@ -41,7 +41,6 @@ public abstract class AbstractBuildResult implements Serializable, InternalBuild
         return endTime;
     }
 
-    @Override
     public abstract String getOutcomeDescription();
 
     @Override

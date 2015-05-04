@@ -41,8 +41,6 @@ public interface InternalBuildResult extends InternalProtocolInterface {
      */
     long getEndTime();
 
-    String getOutcomeDescription();
-
     /**
      * Returns the failures that occurred while running the build, if any.
      *

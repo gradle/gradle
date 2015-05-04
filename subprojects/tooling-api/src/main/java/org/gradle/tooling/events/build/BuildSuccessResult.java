@@ -26,5 +26,4 @@ import org.gradle.tooling.events.SuccessResult;
  */
 @Incubating
 public interface BuildSuccessResult extends BuildOperationResult, SuccessResult {
-    String getSuccessMessage();
 }

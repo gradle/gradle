@@ -704,7 +704,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.result instanceof TaskSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
-            assert event.result.successMessage == 'up-to-date'
         }
     }
 
@@ -718,7 +717,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         def startEvent = buildStartEvent(999, 'start', buildDesc)
 
-        def buildResult = buildSuccess(1, 2, 'success')
+        def buildResult = buildSuccess(1, 2)
 
         def succeededEvent = buildFinishEvent(999, 'build succeeded', buildDesc, buildResult)
 
@@ -746,7 +745,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def buildDesc = buildDescriptor(666, 'some build')
         def buildStart = buildStartEvent(999, 'build started', buildDesc)
         def settingsEvalStart = buildStartEvent(1000, 'settings evaluated', buildDescriptor(667, 'settings evaluated', buildDesc))
-        def settingsEvalEnd = buildFinishEvent(1001, 'settings evaluated', buildDescriptor(667, 'settings evaluated', buildDesc), buildSuccess(999, 1001, 'settings evaluated'))
+        def settingsEvalEnd = buildFinishEvent(1001, 'settings evaluated', buildDescriptor(667, 'settings evaluated', buildDesc), buildSuccess(999, 1001))
 
 
         adapter.onEvent(buildStart) // succeededEvent always assumes a previous startEvent
@@ -775,7 +774,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert result instanceof BuildSuccessResult
             assert result.startTime == 999
             assert result.endTime == 1001
-            assert result.successMessage == 'settings evaluated'
         }
     }
 
@@ -875,7 +873,7 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         def startEvent = buildStartEvent(999, 'start build', buildDesc)
 
-        def buildResult = buildFailure(1, 2, 'failed', Stub(InternalFailure))
+        def buildResult = buildFailure(1, 2, Stub(InternalFailure))
 
         def failedEvent = buildFinishEvent(999, 'build failed', buildDesc, buildResult)
 
@@ -1098,20 +1096,18 @@ class BuildProgressListenerAdapterTest extends Specification {
         event
     }
 
-    private InternalBuildSuccessResult buildSuccess(long startTime, long endTime, String outcome) {
+    private InternalBuildSuccessResult buildSuccess(long startTime, long endTime) {
         InternalBuildSuccessResult result = Mock()
         result.startTime >> startTime
         result.endTime >> endTime
-        result.outcomeDescription >> outcome
 
         result
     }
 
-    private InternalBuildFailureResult buildFailure(long startTime, long endTime, String outcome, InternalFailure failure) {
+    private InternalBuildFailureResult buildFailure(long startTime, long endTime, InternalFailure failure) {
         InternalBuildFailureResult result = Mock()
         result.startTime >> startTime
         result.endTime >> endTime
-        result.outcomeDescription >> outcome
         result.failures >> [failure]
 
         result
