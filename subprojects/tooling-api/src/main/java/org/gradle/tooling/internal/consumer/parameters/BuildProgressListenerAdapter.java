@@ -43,6 +43,24 @@ import java.util.*;
  */
 class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener, InternalFailSafeProgressListenersProvider {
 
+    public final static OperationDescriptor DESCRIPTOR_NOT_FOUND = new OperationDescriptor() {
+        @Override
+        public String getName() {
+            return "unknown";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "descriptor not found";
+        }
+
+        @Nullable
+        @Override
+        public OperationDescriptor getParent() {
+            return null;
+        }
+    };
+
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
     private final ListenerBroadcast<BuildProgressListener> buildProgressListeners = new ListenerBroadcast<BuildProgressListener>(BuildProgressListener.class);
@@ -187,7 +205,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             @Nullable
             @Override
             public OperationDescriptor getParent() {
-                return descriptorCache.get(descriptor.getParentId());
+                return getCachedDescriptor(descriptor.getParentId());
             }
         };
     }
@@ -207,7 +225,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             @Nullable
             @Override
             public OperationDescriptor getParent() {
-                return descriptorCache.get(descriptor.getParentId());
+                return getCachedDescriptor(descriptor.getParentId());
             }
         };
     }
@@ -357,7 +375,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             assertDescriptorType(TestOperationDescriptor.class, cachedTestDescriptor);
             throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
         }
-        final TestOperationDescriptor parent = getParentTestDescriptor(testDescriptor);
+        OperationDescriptor parent = getCachedDescriptor(testDescriptor.getParentId());
         TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
         descriptorCache.put(testDescriptor.getId(), newTestDescriptor);
         return newTestDescriptor;
@@ -418,7 +436,18 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return assertDescriptorType(BuildOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor testDescriptor, final TestOperationDescriptor parent) {
+    private OperationDescriptor getCachedDescriptor(Object id) {
+        if (id==null) {
+            return null;
+        }
+        OperationDescriptor operationDescriptor = descriptorCache.get(id);
+        if (operationDescriptor==null) {
+            operationDescriptor = DESCRIPTOR_NOT_FOUND;
+        }
+        return operationDescriptor;
+    }
+
+    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor testDescriptor, final OperationDescriptor parent) {
         if (testDescriptor instanceof InternalJvmTestDescriptor) {
             final InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) testDescriptor;
             return new JvmTestOperationDescriptor() {
@@ -453,7 +482,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
                 }
 
                 @Override
-                public TestOperationDescriptor getParent() {
+                public OperationDescriptor getParent() {
                     return parent;
                 }
 
@@ -475,7 +504,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
                 }
 
                 @Override
-                public TestOperationDescriptor getParent() {
+                public OperationDescriptor getParent() {
                     return parent;
                 }
 
@@ -526,20 +555,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             origFailure.getMessage(),
             origFailure.getDescription(),
             toFailures(origFailure.getCauses()));
-    }
-
-    private TestOperationDescriptor getParentTestDescriptor(InternalTestDescriptor testDescriptor) {
-        Object parentId = testDescriptor.getParentId();
-        if (parentId == null) {
-            return null;
-        } else {
-            OperationDescriptor parentTestDescriptor = descriptorCache.get(parentId);
-            if (parentTestDescriptor == null) {
-                throw new IllegalStateException(String.format("Parent test descriptor with id %s not available for %s.", parentId, toString(testDescriptor)));
-            } else {
-                return assertDescriptorType(TestOperationDescriptor.class, parentTestDescriptor);
-            }
-        }
     }
 
     private static String toString(InternalTestDescriptor testDescriptor) {

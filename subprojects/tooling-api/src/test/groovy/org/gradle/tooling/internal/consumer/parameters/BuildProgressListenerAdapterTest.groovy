@@ -27,6 +27,7 @@ import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener
 import org.gradle.tooling.internal.protocol.events.*
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildProgressListenerAdapterTest extends Specification {
 
@@ -322,7 +323,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         e.message.contains('not available')
     }
 
-    def "conversion of child events throws exception if no previous parent event exists"() {
+    def "if no previous parent event exists a default not found descriptor is used"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)
@@ -334,14 +335,21 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * childTestDescriptor.getParentId() >> 1
 
         def childEvent = Mock(InternalTestStartedProgressEvent)
+        _ * childEvent.getDisplayName() >> 'child event'
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTestDescriptor
 
         adapter.onEvent(childEvent)
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message.contains('not available')
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "child event"
+            assert event.descriptor.name == 'some child'
+            assert event.descriptor.parent != null
+            assert event.descriptor.parent.name == 'unknown'
+            assert event.descriptor.parent.displayName == 'descriptor not found'
+        }
     }
 
     def "conversion of child events expects parent event exists"() {
@@ -490,6 +498,38 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
             assert event.descriptor.parent == null
         }
+    }
+
+    @Unroll("Converts missing #descriptorClass.simpleName parent descriptor on #eventClass.simpleName into unknown descriptor")
+    def "convert missing parent descriptor to unknown descriptor"() {
+        given:
+        def listener = Mock(listenerClass)
+        def evt = Mock(eventClass)
+        def descriptor = Mock(descriptorClass)
+        def adapter = createAdapter(listener)
+
+        when:
+        _ * descriptor.getId() >> 1
+        _ * descriptor.getDisplayName() >> 'test descriptor'
+        _ * descriptor.getParentId() >> 666
+
+        _ * evt.getEventTime() >> System.currentTimeMillis()
+        _ * evt.getDisplayName() >> 'test event'
+        _ * evt.getDescriptor() >> descriptor
+
+        adapter.onEvent(evt)
+
+        then:
+        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+            assert event.descriptor.parent.name == 'unknown'
+            assert event.descriptor.parent.displayName == 'descriptor not found'
+        }
+
+        where:
+        listenerClass         | eventClass                        | descriptorClass
+        TaskProgressListener  | InternalTaskStartedProgressEvent  | InternalTaskDescriptor
+        TestProgressListener  | InternalTestStartedProgressEvent  | InternalTestDescriptor
+        BuildProgressListener | InternalBuildStartedProgressEvent | InternalBuildDescriptor
     }
 
     def "convert to TaskStartEvent"() {
