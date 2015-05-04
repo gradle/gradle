@@ -504,6 +504,10 @@ model {
 
 ### Story: Developer configures dependencies for Play Application
 
+---
+
+---
+
 # Milestone 2
 
 ## Feature: Gradle continuous mode
@@ -560,20 +564,17 @@ interface TriggerDetails {
 interface TriggerListener {
     void triggered(TriggerDetails)
 }
-interface TriggerGenerator {
-    void start()
-    void stop()
-}
-interface TriggerGeneratorFactory {
-    TriggerGenerator newInstance()
+interface Triggerable {
+    TriggerDetails waitForTrigger()
 }
 
 // In run/execute()
 while (not cancelled) {
     delegateExecuter.execute(...)
-    waitForTrigger()
+    triggerable.waitForTrigger()
 }
 
+// Triggerable
 def waitForTrigger() {
     sync(lock) {
         while(!triggered) {
@@ -597,10 +598,6 @@ def triggered(TriggerDetails) {
 - ~~When "trigger" is tripped, a build runs.~~
 - ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
 - ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
-- Test coverage that watch mode works through the tooling API
-    - Client receives logging output, progress events and test events from each build execution until cancelled.
-    - Client receives ‘cancelled’ exception when cancelled.
-    - Cannot use watch mode when requesting a model or running a build action.
 
 ### Story: Continuous Gradle mode triggered by file change
 
@@ -620,9 +617,7 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 
 #### Open Issues
 
-- Use JDK7+ WatchService ~~The implementation for Java 1.7 `java.nio.file.WatchService` in Java 7 or even Java 8 isn't using a native file notification OS API on MacOSX. ([details](http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else), [JDK-7133447]( https://bugs.openjdk.java.net/browse/JDK-7133447), [openjdk mailing list](http://mail.openjdk.java.net/pipermail/nio-dev/2014-August/002691.html)) This doesn't scale to 1000s of input files. There are several [native file notification OS API wrappers for Java](http://wiki.netbeans.org/NativeFileNotifications) if performance is an issue. However there isn't a well-maintained file notification library with a suitable license. Play framework uses [JNotify](http://jnotify.sourceforge.net) [for native file notifications on MacOSX](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L77-L88). JNotify is a dead project hosted in Sourceforge and not even available in maven central or jcenter. It looks like it's only available in Typesafe's maven repository.~~
-
-- Just Fail for JDK6 (see Story above) ~~Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .~~
+N/A
 
 ### Story: Continuous Gradle mode triggered by task input changes
 
@@ -653,7 +648,6 @@ Constraints / implementation details:
 - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
 - Changing a source file that is an input to two or more tasks should trigger a build.
 - Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src', include: "**/*.java")` should not trigger a build when foo.bar changes)
-- Given tasks A <- B <- C, if B fails and the inputs to C change, a build should be triggered.
 
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
@@ -670,9 +664,22 @@ Constraints / implementation details:
   - b) after the task has been executed (should immediately start a new build when the current build finishes)
   - c) during the task is executing (should immediately start a new build when the current build finishes)
 
+#### Open Issues
+
+- Enforce 'quiet' period, so we do not rebuild immediately on the first change.
+- Does a new directory being added to an @InputDirectory input trigger a rebuild? (e.g. `mkdir src/main/java/newDir`)
+- Does an @InputFile that is a directory being removed/added trigger a rebuild?
+- How are symlinks being dealt with
+- How are we dealing with @InputDirectory where the value is something like `zipTree`
+- Given tasks A <- B <- C, if B fails and the inputs to C change, should a build be triggered?
+
+---
+
 ### Story: Continuous Gradle mode rebuilds if inputs to the model change
 
 Monitor files that are inputs to the model for changes too.
+
+TODO: This should be split into multiple stories.
 
 Model inputs include build.gradle, settings.gradle, gradle.properties, custom configuration files, some web service.
 
@@ -687,22 +694,40 @@ There are a few more inputs that might not be so obvious:
 - Environment variables, system properties, command-line options provided when Gradle was invoked.
 - Values the user was prompted for, eg from in the IDE.
 
+### Story: Continuous Gradle mode used through Tooling API
+
+Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build through the Tooling API.
+
+#### Implementation
+
+- BuildActionExecuter used by ProviderConnection understands continuous mode parameters
+- ProviderOperationParameters adds continuous mode flags?
+- DaemonBuildActionExecuter uses continuous mode parameters from ProviderOperationParameters 
+    - Continuous mode is ignored for requesting a model
+    - Continuous mode is ignored when running a build action
+
+#### Test Coverage
+- Test coverage that watch mode works through the tooling API
+    - Client receives logging output, progress events and test events from each build execution until cancelled.
+    - Client receives ‘cancelled’ exception when cancelled.
+    - Cannot use watch mode when requesting a model or running a build action.
+
 ### Open Issues
 
 TODO: See if these make sense incorporated in another story/Feature.
 
-- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
-- If previous build started any service, stop that service before rebuilding.
-- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 - Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
 - Just use Java 7 watcher for now. We can improve performance on OS X and Windows later.
     - Do this by adding stuff to native-platform. Could potentially spit out a warning on these platforms.
 - Fail when running on Java 6. We can fix this by using native-platform later, rather than polling.
-- Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task.
 - What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
 - Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
   - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
+- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
+- If previous build started any service, stop that service before rebuilding.
+- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
+---
 
 ## Feature: Keep running Play application up-to-date when source changes
 
