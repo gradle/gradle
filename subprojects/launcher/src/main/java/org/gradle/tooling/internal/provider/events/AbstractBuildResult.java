@@ -21,18 +21,17 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 import java.io.Serializable;
 
 public abstract class AbstractBuildResult implements Serializable, InternalBuildResult {
-    private final String description;
     private final long startTime;
     private final long endTime;
 
-    public AbstractBuildResult(long startTime, long endTime, String description) {
-        this.description = description;
+    public AbstractBuildResult(long startTime, long endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public String getOutcomeDescription() {
-        return description;
+    @Override
+    public long getStartTime() {
+        return startTime;
     }
 
     @Override
@@ -41,7 +40,5 @@ public abstract class AbstractBuildResult implements Serializable, InternalBuild
     }
 
     @Override
-    public long getStartTime() {
-        return startTime;
-    }
+    public abstract String getOutcomeDescription();
 }

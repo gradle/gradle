@@ -31,16 +31,19 @@ public abstract class AbstractTestResult implements Serializable, InternalTestRe
         this.endTime = endTime;
     }
 
-    public abstract String getOutcomeDescription();
-
+    @Override
     public long getStartTime() {
         return startTime;
     }
 
+    @Override
     public long getEndTime() {
         return endTime;
     }
 
+    public abstract String getOutcomeDescription();
+
+    @Override
     public List<DefaultFailure> getFailures() {
         return Collections.emptyList();
     }

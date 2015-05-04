@@ -29,16 +29,19 @@ public abstract class AbstractTaskResult implements Serializable, InternalTaskRe
         this.endTime = endTime;
     }
 
-    public abstract String getOutcomeDescription();
-
+    @Override
     public long getStartTime() {
         return startTime;
     }
 
+    @Override
     public long getEndTime() {
         return endTime;
     }
 
+    public abstract String getOutcomeDescription();
+
+    @Override
     public DefaultFailure getFailure() {
         return null;
     }
