@@ -196,7 +196,12 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        return Actions.with(fileOperations.copySpec(), new ClosureBackedAction<CopySpec>(closure));
+        return Actions.with(copySpec(), new ClosureBackedAction<CopySpec>(closure));
+    }
+
+    @Override
+    public CopySpec copySpec() {
+        return fileOperations.copySpec();
     }
 
     @Override
