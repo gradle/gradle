@@ -1373,6 +1373,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     CopySpec copySpec(Action<? super CopySpec> action);
 
     /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
+     *
+     * @return a newly created copy spec
+     */
+    CopySpec copySpec();
+
+    /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
      * project, such as whether it has failed.
      *

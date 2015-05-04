@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -203,6 +201,11 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
+    }
+
+    public static <T> T with(T instance, Action<? super T> action) {
+        action.execute(instance);
+        return instance;
     }
 
 }

@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -80,7 +79,7 @@ public class PlayDistributionPlugin extends RuleSource {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getName(), fileOperations.copySpec(Actions.doNothing()), binary);
+            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getName(), fileOperations.copySpec(), binary);
             distribution.setBaseName(binary.getName());
             distributions.add(distribution);
         }

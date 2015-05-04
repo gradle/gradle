@@ -52,6 +52,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
@@ -186,47 +187,47 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         ModelPath taskFactoryPath = ModelPath.path("taskFactory");
         ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(taskFactoryPath, ITaskFactory.class), services.get(ITaskFactory.class))
-                .descriptor("Project.<init>.taskFactory")
-                .ephemeral(true)
-                .hidden(true)
-                .build();
+                                                       .descriptor("Project.<init>.taskFactory")
+                                                       .ephemeral(true)
+                                                       .hidden(true)
+                                                       .build();
 
         modelRegistry.createOrReplace(taskFactoryCreator);
 
         modelRegistry.createOrReplace(
-                ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
-                        .descriptor("Project.<init>.serviceRegistry()")
-                        .ephemeral(true)
-                        .hidden(true)
-                        .build()
+            ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
+                         .descriptor("Project.<init>.serviceRegistry()")
+                         .ephemeral(true)
+                         .hidden(true)
+                         .build()
         );
 
         modelRegistry.createOrReplace(
-                ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
-                    public File create() {
-                        return getBuildDir();
-                    }
-                })
-                        .descriptor("Project.<init>.buildDir()")
-                        .ephemeral(true)
-                        .hidden(true)
-                        .build()
+            ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
+                public File create() {
+                    return getBuildDir();
+                }
+            })
+                         .descriptor("Project.<init>.buildDir()")
+                         .ephemeral(true)
+                         .hidden(true)
+                         .build()
         );
 
         modelRegistry.createOrReplace(
-                ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
-                        .descriptor("Project.<init>.projectIdentifier()")
-                        .ephemeral(true)
-                        .hidden(true)
-                        .build()
+            ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
+                         .descriptor("Project.<init>.projectIdentifier()")
+                         .ephemeral(true)
+                         .hidden(true)
+                         .build()
         );
 
         modelRegistry.createOrReplace(
-                ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
-                        .descriptor("Project.<init>.extensions()")
-                        .ephemeral(true)
-                        .hidden(true)
-                        .build()
+            ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
+                         .descriptor("Project.<init>.extensions()")
+                         .ephemeral(true)
+                         .hidden(true)
+                         .build()
         );
     }
 
@@ -261,7 +262,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public void setScript(groovy.lang.Script buildScript) {
         extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
-                ExtensibleDynamicObject.Location.BeforeConvention);
+            ExtensibleDynamicObject.Location.BeforeConvention);
     }
 
     public ScriptSource getBuildScriptSource() {
@@ -550,7 +551,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
         if (projectToEvaluate.getState().getExecuting()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
-                    projectToEvaluate));
+                projectToEvaluate));
         }
         return projectToEvaluate.evaluate();
     }
@@ -762,7 +763,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {
-        return getFileOperations().copySpec(action);
+        return Actions.with(copySpec(), action);
+    }
+
+    public CopySpec copySpec() {
+        return getFileOperations().copySpec();
     }
 
     @Inject
