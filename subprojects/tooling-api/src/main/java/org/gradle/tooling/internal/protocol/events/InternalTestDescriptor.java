@@ -41,13 +41,15 @@ public interface InternalTestDescriptor extends InternalProtocolInterface {
 
     /**
      * Returns a human consumable display name for the test.
+     *
+     * @return The display name of the test
      */
     String getDisplayName();
 
     /**
-     * Returns the id of the parent of this test, if any.
+     * Returns the id of the parent of the test, if any.
      *
-     * @return The id of the parent of this test, can be null
+     * @return The id of the parent of the test, can be null
      */
     Object getParentId();
 
