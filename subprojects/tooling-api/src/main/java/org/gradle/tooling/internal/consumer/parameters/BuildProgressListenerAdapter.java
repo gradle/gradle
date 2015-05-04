@@ -20,74 +20,22 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.build.BuildFailureResult;
-import org.gradle.tooling.events.build.BuildFinishEvent;
-import org.gradle.tooling.events.build.BuildOperationDescriptor;
-import org.gradle.tooling.events.build.BuildOperationResult;
-import org.gradle.tooling.events.build.BuildProgressEvent;
-import org.gradle.tooling.events.build.BuildProgressListener;
-import org.gradle.tooling.events.build.BuildSuccessResult;
+import org.gradle.tooling.events.build.*;
 import org.gradle.tooling.events.build.internal.DefaultBuildFinishedEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
-import org.gradle.tooling.events.task.TaskFailureResult;
-import org.gradle.tooling.events.task.TaskFinishEvent;
-import org.gradle.tooling.events.task.TaskOperationDescriptor;
-import org.gradle.tooling.events.task.TaskOperationResult;
-import org.gradle.tooling.events.task.TaskProgressEvent;
-import org.gradle.tooling.events.task.TaskProgressListener;
-import org.gradle.tooling.events.task.TaskSkippedResult;
-import org.gradle.tooling.events.task.TaskStartEvent;
-import org.gradle.tooling.events.task.TaskSuccessResult;
+import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.events.task.internal.DefaultTaskFinishedEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
-import org.gradle.tooling.events.test.JvmTestKind;
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
-import org.gradle.tooling.events.test.TestFinishEvent;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.events.test.TestOperationResult;
-import org.gradle.tooling.events.test.TestProgressEvent;
-import org.gradle.tooling.events.test.TestProgressListener;
-import org.gradle.tooling.events.test.TestStartEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
-import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
+import org.gradle.tooling.events.test.*;
+import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
-import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalBuildFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
-import org.gradle.tooling.internal.protocol.events.InternalBuildStartedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
+import org.gradle.tooling.internal.protocol.events.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -101,7 +49,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
     private final List<Throwable> listenerFailures = new ArrayList<Throwable>();
 
-    private boolean failsafeListeners;
+    private boolean failSafeListeners;
 
     BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {
         this.testProgressListeners.addAll(configuration.getTestListeners());
@@ -110,14 +58,14 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     @Override
-    public void setListenerFailSafeMode(boolean failsafe) {
-        failsafeListeners = failsafe;
+    public void setListenerFailSafeMode(boolean failSafe) {
+        failSafeListeners = failSafe;
     }
 
     @Override
     public List<String> getSubscribedOperations() {
         if (testProgressListeners.isEmpty() && taskProgressListeners.isEmpty() && buildProgressListeners.isEmpty()) {
-            return Collections.<String>emptyList();
+            return Collections.emptyList();
         }
         List<String> operations = new ArrayList<String>();
         if (!testProgressListeners.isEmpty()) {
@@ -134,7 +82,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
     @Override
     public void onEvent(final Object event) {
-        if (failsafeListeners) {
+        if (failSafeListeners) {
             try {
                 doBroadcast(event);
             } catch (Throwable e) {

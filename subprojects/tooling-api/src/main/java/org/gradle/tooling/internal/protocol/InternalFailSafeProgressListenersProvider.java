@@ -24,13 +24,13 @@ import java.util.List;
 public interface InternalFailSafeProgressListenersProvider {
 
     /**
-     * Turns on or off the failsafe mode for listeners. In failsafe mode, listeners
+     * Turns on or off the failSafe mode for listeners. In failSafe mode, listeners
      * are considered "passive", in the sense that an exception thrown in a listener
      * should not affect the progress of the build.
      *
-     * @param failsafe true if failsafe mode should be activated
+     * @param failSafe true if failSafe mode should be activated
      */
-    void setListenerFailSafeMode(boolean failsafe);
+    void setListenerFailSafeMode(boolean failSafe);
 
     /**
      * Returns the list of exceptions that were thrown by listeners during execution of the build.
