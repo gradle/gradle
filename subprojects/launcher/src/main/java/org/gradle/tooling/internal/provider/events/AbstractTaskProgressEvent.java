@@ -18,12 +18,8 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
 
-import java.io.Serializable;
-
-public abstract class AbstractTaskProgressEvent extends AbstractProgressEvent<DefaultTaskDescriptor> implements Serializable, InternalTaskProgressEvent {
-
+public abstract class AbstractTaskProgressEvent extends AbstractProgressEvent<DefaultTaskDescriptor> implements InternalTaskProgressEvent {
     protected AbstractTaskProgressEvent(long eventTime, DefaultTaskDescriptor descriptor) {
         super(eventTime, descriptor);
     }
-
 }

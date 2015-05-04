@@ -17,9 +17,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 
-import java.io.Serializable;
-
-public abstract class AbstractTestProgressEvent extends AbstractProgressEvent<DefaultTestDescriptor> implements Serializable, InternalTestProgressEvent {
+public abstract class AbstractTestProgressEvent extends AbstractProgressEvent<DefaultTestDescriptor> implements InternalTestProgressEvent {
     protected AbstractTestProgressEvent(long eventTime, DefaultTestDescriptor descriptor) {
         super(eventTime, descriptor);
     }

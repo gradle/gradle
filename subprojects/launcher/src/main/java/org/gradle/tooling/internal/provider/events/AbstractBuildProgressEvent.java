@@ -18,9 +18,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
 
-import java.io.Serializable;
-
-public abstract class AbstractBuildProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements Serializable, InternalBuildProgressEvent {
+public abstract class AbstractBuildProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements InternalBuildProgressEvent {
     protected AbstractBuildProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
         super(eventTime, descriptor);
     }
