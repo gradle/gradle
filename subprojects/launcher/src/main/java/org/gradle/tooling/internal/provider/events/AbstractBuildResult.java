@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractBuildResult implements Serializable, InternalBuildResult {
     private final long startTime;
@@ -41,4 +43,9 @@ public abstract class AbstractBuildResult implements Serializable, InternalBuild
 
     @Override
     public abstract String getOutcomeDescription();
+
+    @Override
+    public List<DefaultFailure> getFailures() {
+        return Collections.emptyList();
+    }
 }

@@ -18,12 +18,14 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
 
-public class DefaultBuildFailureResult extends AbstractBuildResult implements InternalBuildFailureResult {
-    private final DefaultFailure failure;
+import java.util.List;
 
-    public DefaultBuildFailureResult(long startTime, long endTime, DefaultFailure failure) {
+public class DefaultBuildFailureResult extends AbstractBuildResult implements InternalBuildFailureResult {
+    private final List<DefaultFailure> failures;
+
+    public DefaultBuildFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
         super(startTime, endTime);
-        this.failure = failure;
+        this.failures = failures;
     }
 
     @Override
@@ -32,7 +34,7 @@ public class DefaultBuildFailureResult extends AbstractBuildResult implements In
     }
 
     @Override
-    public DefaultFailure getFailure() {
-        return failure;
+    public List<DefaultFailure> getFailures() {
+        return failures;
     }
 }

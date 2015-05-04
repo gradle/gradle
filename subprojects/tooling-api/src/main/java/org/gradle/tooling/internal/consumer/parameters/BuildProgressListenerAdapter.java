@@ -303,7 +303,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new BuildFailureResult() {
                 @Override
                 public List<? extends Failure> getFailures() {
-                    return Collections.singletonList(toFailure(((InternalBuildFailureResult) result).getFailure()));
+                    return toFailures(result.getFailures());
                 }
 
                 @Override

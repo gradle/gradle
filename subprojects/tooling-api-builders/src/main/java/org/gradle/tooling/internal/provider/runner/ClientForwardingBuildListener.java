@@ -23,6 +23,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.events.*;
 
+import java.util.Collections;
+
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  *
@@ -124,7 +126,7 @@ class ClientForwardingBuildListener implements BuildListener {
     private AbstractBuildResult adaptResult(BuildResult result) {
         Throwable failure = result.getFailure();
         if (failure != null) {
-            return new DefaultBuildFailureResult(eventTracker.buildStartTime(), eventTracker.eventTime(), DefaultFailure.fromThrowable(failure));
+            return new DefaultBuildFailureResult(eventTracker.buildStartTime(), eventTracker.eventTime(), Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
         return new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime());
     }
