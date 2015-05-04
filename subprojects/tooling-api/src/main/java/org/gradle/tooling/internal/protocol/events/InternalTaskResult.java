@@ -16,9 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
+import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
@@ -41,11 +42,10 @@ public interface InternalTaskResult extends InternalProtocolInterface {
     long getEndTime();
 
     /**
-     * Returns the failure that occurred while running the task, if any.
+     * Returns the failures that occurred while running the task, if any.
      *
-     * @return The failure that occurred
+     * @return The failures that occurred
      */
-    @Nullable
-    InternalFailure getFailure();
+    List<? extends InternalFailure> getFailures();
 
 }

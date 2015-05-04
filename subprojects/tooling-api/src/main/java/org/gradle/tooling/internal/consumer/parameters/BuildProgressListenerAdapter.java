@@ -245,11 +245,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new TaskFailureResult() {
                 @Override
                 public List<? extends Failure> getFailures() {
-                    InternalFailure failure = result.getFailure();
-                    if (failure == null) {
-                        return Collections.emptyList();
-                    }
-                    return Collections.singletonList(toFailure(failure));
+                    return toFailures(result.getFailures());
                 }
 
                 @Override
@@ -500,16 +496,16 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result));
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         } else {
             return null;
         }
     }
 
-    private static List<Failure> toFailures(InternalTestResult testResult) {
+    private static List<Failure> toFailures(List<? extends InternalFailure> causes) {
         List<Failure> failures = new ArrayList<Failure>();
-        for (InternalFailure origFailure : testResult.getFailures()) {
-            failures.add(toFailure(origFailure));
+        for (InternalFailure cause : causes) {
+            failures.add(toFailure(cause));
         }
         return failures;
     }

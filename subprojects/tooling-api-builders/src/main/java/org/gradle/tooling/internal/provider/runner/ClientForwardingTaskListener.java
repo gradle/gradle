@@ -23,6 +23,8 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.events.*;
 
+import java.util.Collections;
+
 /**
  * Task listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  *
@@ -62,7 +64,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
         if (failure == null) {
             return new DefaultTaskSuccessResult(startTime, endTime, "succeeded");
         }
-        return new DefaultTaskFailureResult(startTime, endTime, DefaultFailure.fromThrowable(failure));
+        return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
     }
 
     private static long startTime(TaskState state) {

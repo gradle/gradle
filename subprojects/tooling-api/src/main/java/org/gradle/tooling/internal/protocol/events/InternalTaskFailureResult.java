@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalFailure;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.5
  */
 public interface InternalTaskFailureResult extends InternalTaskResult {
-    InternalFailure getFailure();
 }
