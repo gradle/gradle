@@ -201,6 +201,9 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(module) == ["snapshotPublish-${module.publishArtifactVersion}.jar"]
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
     }
 
     def "reports failure publishing when model validation fails"() {

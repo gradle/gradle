@@ -235,6 +235,9 @@ uploadArchives {
         then:
         def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT')
         module.assertArtifactsPublished("maven-metadata.xml", "test-${module.publishArtifactVersion}.jar", "test-${module.publishArtifactVersion}.pom")
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
     }
 
     def "can publish multiple deployments with attached artifacts"() {

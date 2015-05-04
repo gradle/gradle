@@ -165,6 +165,11 @@ Currently component container can be only accessed using model rules.
 
 ### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
 
+### Maven publishing
+The [maven-publish](https://gradle.org/docs/current/userguide/publishing_maven.html) and [maven](http://gradle.org/docs/current/userguide/maven_plugin.html) plugins
+ no longer use the maven2 based [maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts. Both plugins now use the newer maven3 `org.apache.maven` and
+ Aether libraries. Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -172,8 +177,9 @@ We would like to thank the following community members for making contributions 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - Support GoogleTest for testing C++ binaries
 * [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
 * [Larry North](https://github.com/LarryNorth) - Build improvements.
-* [Tobias Schulte](https://github.com/tschulte) - Documentation improvements
-* [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`
+* [Tobias Schulte](https://github.com/tschulte) - Documentation improvements.
+* [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`.
+* [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the maven publishing mechanisms to use Aether libraries.
 
 ## Known issues
 

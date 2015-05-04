@@ -16,10 +16,6 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.gradle.internal.UncheckedException;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -32,6 +28,10 @@ import org.sonatype.aether.impl.internal.DefaultRepositorySystem;
 import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.metadata.Metadata;
 
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
+
 class SnapshotVersionManager implements MetadataGeneratorFactory, MetadataGenerator {
     private boolean uniqueVersion = true;
 
@@ -39,13 +39,16 @@ class SnapshotVersionManager implements MetadataGeneratorFactory, MetadataGenera
         this.uniqueVersion = uniqueVersion;
     }
 
-    public void install(RepositorySystem repositorySystem, RepositorySystemSession session) {
+    public void install(RepositorySystem repositorySystem) {
+        Field field;
         try {
-            Field field = DefaultRepositorySystem.class.getDeclaredField("deployer");
+            field = DefaultRepositorySystem.class.getDeclaredField("deployer");
             field.setAccessible(true);
             DefaultDeployer deployer = (DefaultDeployer) field.get(repositorySystem);
             deployer.addMetadataGeneratorFactory(this);
-        } catch (ReflectiveOperationException e) {
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

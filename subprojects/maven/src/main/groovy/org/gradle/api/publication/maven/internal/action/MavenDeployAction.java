@@ -69,7 +69,7 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
             request.addArtifact(artifact);
         }
 
-        snapshotVersionManager.install(repositorySystem, session);
+        snapshotVersionManager.install(repositorySystem);
 
         LOGGER.info("Deploying to " + gradleRepo.getUrl());
         repositorySystem.deploy(session, request);
