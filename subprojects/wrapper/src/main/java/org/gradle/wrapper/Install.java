@@ -111,16 +111,19 @@ public class Install {
     private File getAndVerifyDistributionRoot(File localZipFile, String distributionSha256Sum,
                                               File distDir, String distributionDescription)
             throws Exception {
-        // check SHA-256 checksum verification
+        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
         if (distributionSha256Sum != null) {
-            logger.log("Verifying " + localZipFile.getName());
+            logger.log("Verifying " + localZipFile.getName() + " via SHA-256 hash sum comparison.");
 
             if (!distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
-                deleteDir(distDir);
-                throw new SignatureException("SHA-256 sum verification failed for "
+                throw new SignatureException("Verification of "
                         + localZipFile.getName()
-                        + ". The cache has been deleted, try re-building! "
-                        + "If this problem persists, inform the project maintainer!");
+                        + " via SHA-256 hash sum comparison failed! This is a serious problem,"
+                        + " it means that you retrieved a different gradle distribution zip than expected."
+                        + " Please inform the maintainer!"
+                        + "You can try to delete the cached gradle distribtion at " +
+                        + distDir.getAbsolutePath()
+                        + " and try again.");
             }
         }
 
