@@ -509,15 +509,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return origFailure == null ? null : new DefaultFailure(
             origFailure.getMessage(),
             origFailure.getDescription(),
-            toFailure(origFailure.getCauses()));
-    }
-
-    private static List<Failure> toFailure(List<? extends InternalFailure> causes) {
-        List<Failure> result = new ArrayList<Failure>();
-        for (InternalFailure cause : causes) {
-            result.add(toFailure(cause));
-        }
-        return result;
+            toFailures(origFailure.getCauses()));
     }
 
     private TestOperationDescriptor getParentTestDescriptor(InternalTestDescriptor testDescriptor) {

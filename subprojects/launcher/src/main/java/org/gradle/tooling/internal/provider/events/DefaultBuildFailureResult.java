@@ -24,13 +24,8 @@ public class DefaultBuildFailureResult extends AbstractBuildResult implements In
     private final List<DefaultFailure> failures;
 
     public DefaultBuildFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime);
+        super(startTime, endTime, "failed");
         this.failures = failures;
-    }
-
-    @Override
-    public String getOutcomeDescription() {
-        return "failed";
     }
 
     @Override

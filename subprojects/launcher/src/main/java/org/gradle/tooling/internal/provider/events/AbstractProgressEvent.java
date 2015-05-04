@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
+import java.io.Serializable;
 
-public abstract class AbstractTaskResult extends AbstractResult implements InternalTaskResult {
+public class AbstractProgressEvent<T> implements Serializable {
+    protected final long eventTime;
+    protected final T descriptor;
 
-    public AbstractTaskResult(long startTime, long endTime, String description) {
-        super(startTime, endTime, description);
+    public AbstractProgressEvent(long eventTime, T descriptor) {
+        this.descriptor = descriptor;
+        this.eventTime = eventTime;
+    }
+
+    public long getEventTime() {
+        return eventTime;
+    }
+
+    public T getDescriptor() {
+        return descriptor;
     }
 }

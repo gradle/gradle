@@ -19,32 +19,11 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
-public abstract class AbstractBuildResult implements Serializable, InternalBuildResult {
-    private final long startTime;
-    private final long endTime;
+public abstract class AbstractBuildResult extends AbstractResult implements Serializable, InternalBuildResult {
 
-    public AbstractBuildResult(long startTime, long endTime) {
-        this.startTime = startTime;
-        this.endTime = endTime;
+    public AbstractBuildResult(long startTime, long endTime, String description) {
+        super(startTime, endTime, description);
     }
 
-    @Override
-    public long getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public abstract String getOutcomeDescription();
-
-    @Override
-    public List<DefaultFailure> getFailures() {
-        return Collections.emptyList();
-    }
 }

@@ -19,15 +19,9 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 
 public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult {
-    private final String outcomeDescription;
 
     public DefaultTaskSuccessResult(long startTime, long endTime, String outcomeDescription) {
-        super(startTime, endTime);
-        this.outcomeDescription = outcomeDescription;
+        super(startTime, endTime, outcomeDescription);
     }
 
-    @Override
-    public String getOutcomeDescription() {
-        return outcomeDescription;
-    }
 }

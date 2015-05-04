@@ -24,13 +24,8 @@ public class DefaultTaskFailureResult extends AbstractTaskResult implements Inte
     private final List<DefaultFailure> failures;
 
     public DefaultTaskFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime);
+        super(startTime, endTime, "failed");
         this.failures = failures;
-    }
-
-    @Override
-    public String getOutcomeDescription() {
-        return "failed";
     }
 
     @Override

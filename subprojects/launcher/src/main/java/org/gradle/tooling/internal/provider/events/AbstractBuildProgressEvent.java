@@ -20,21 +20,8 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
 
 import java.io.Serializable;
 
-public abstract class AbstractBuildProgressEvent implements Serializable, InternalBuildProgressEvent {
-    private final long eventTime;
-    private final DefaultBuildDescriptor descriptor;
-
+public abstract class AbstractBuildProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements Serializable, InternalBuildProgressEvent {
     protected AbstractBuildProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
-        this.eventTime = eventTime;
-        this.descriptor = descriptor;
+        super(eventTime, descriptor);
     }
-
-    public long getEventTime() {
-        return eventTime;
-    }
-
-    public DefaultBuildDescriptor getDescriptor() {
-        return descriptor;
-    }
-
 }

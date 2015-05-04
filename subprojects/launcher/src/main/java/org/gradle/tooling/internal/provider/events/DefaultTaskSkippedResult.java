@@ -19,20 +19,12 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
 
 public class DefaultTaskSkippedResult extends AbstractTaskResult implements InternalTaskSkippedResult {
-    private final String skipMessage;
-
     public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage) {
-        super(startTime, endTime);
-        this.skipMessage = skipMessage;
-    }
-
-    @Override
-    public String getOutcomeDescription() {
-        return getSkipMessage();
+        super(startTime, endTime, skipMessage);
     }
 
     @Override
     public String getSkipMessage() {
-        return skipMessage;
+        return getOutcomeDescription();
     }
 }

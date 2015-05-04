@@ -160,7 +160,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // projects loaded
@@ -175,7 +174,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // projects evaluated
@@ -190,7 +188,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // build finish
@@ -200,7 +197,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.is(parentDescriptor)
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
     }
 
@@ -256,7 +252,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // projects loaded
@@ -271,7 +266,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // projects evaluated
@@ -286,7 +280,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.parent == parentDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
-            assert result.successMessage == 'succeeded'
         }
 
         // build finish
