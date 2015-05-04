@@ -37,6 +37,7 @@ abstract public class EnablingContinuousModeExecutionIntegrationTest extends Abs
     abstract void changeSource()
     abstract void createSource()
     abstract void deleteSource()
+    abstract TestFile createIgnoredFile()
 
     List<TestFile> sourceFiles
     List<TestFile> resourceFiles
@@ -310,6 +311,26 @@ throw new GradleException("config error")
         waitForWatching()
         then:
         e = thrown(AssertionFailedError)
+        assert e.message.startsWith("Timeout waiting for client to connect")
+    }
+
+    def "does not rebuild when an excluded file is deleted"() {
+        given:
+        validSource()
+        TestFile ignoredFile = createIgnoredFile()
+
+        when:
+        startGradle("build")
+        and:
+        waitForWatching()
+        then:
+        buildSucceeds()
+
+        when:
+        ignoredFile.delete()
+        waitForWatching()
+        then:
+        def e = thrown(AssertionFailedError)
         assert e.message.startsWith("Timeout waiting for client to connect")
     }
 

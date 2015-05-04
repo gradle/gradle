@@ -41,5 +41,9 @@ abstract class SingleProjectContinuousModeIntegrationTest extends EnablingContin
         app.writeAdditionalSources(sourceDir)
     }
 
+    TestFile createIgnoredFile() {
+        app.createIgnoredFileInSources(sourceDir)
+    }
+
     void deleteSource() { sourceFiles[0].delete() }
 }

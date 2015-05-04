@@ -57,4 +57,9 @@ object Extra {
 """
 
     }
+
+    @Override
+    TestFile createIgnoredFileInSources(TestFile sourceDir) {
+        sourceDir.createFile("scala/SomeIgnoredFile.scala~") << '// this file should be ignored'
+    }
 }
