@@ -18,13 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.internal.invocation.BuildAction;
@@ -45,12 +39,7 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
-import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -126,9 +115,13 @@ public class ProviderConnection {
         if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
             ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
         }
+
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
-        rethrowListenerErrors(buildProgressListener);
+        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
+            rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);
+        }
+
         return out;
     }
 
@@ -155,17 +148,15 @@ public class ProviderConnection {
         for (Map.Entry<String, Object> entry : systemProperties.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            result.put(key, value==null?null:value.toString());
+            result.put(key, value == null ? null : value.toString());
         }
         return result;
     }
 
-    private void rethrowListenerErrors(InternalBuildProgressListener buildProgressListener) {
-        if (buildProgressListener != null && buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
-            List<Throwable> failures = ((InternalFailSafeProgressListenersProvider) buildProgressListener).getListenerFailures();
-            if (!failures.isEmpty()) {
-                throw new ListenerNotificationException("Build listeners threw unexpected exceptions", failures);
-            }
+    private void rethrowListenerErrors(InternalFailSafeProgressListenersProvider buildProgressListener) {
+        List<Throwable> failures = buildProgressListener.getListenerFailures();
+        if (!failures.isEmpty()) {
+            throw new ListenerNotificationException("Build listeners threw unexpected exceptions", failures);
         }
     }
 
