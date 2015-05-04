@@ -110,4 +110,8 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
         return getDelegate().getFileSystemRoots();
     }
 
+    @Override
+    public boolean wouldContain(File file) {
+        return getDelegate().wouldContain(file);
+    }
 }

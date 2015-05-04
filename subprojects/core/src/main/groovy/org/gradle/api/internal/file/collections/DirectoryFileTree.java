@@ -103,11 +103,19 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public boolean contains(File file) {
+        return checkContains(file, true);
+    }
+
+    public boolean wouldContain(File file) {
+        return checkContains(file, false);
+    }
+
+    private boolean checkContains(File file, boolean checkExistence) {
         String prefix = dir.getAbsolutePath() + File.separator;
         if (!file.getAbsolutePath().startsWith(prefix)) {
             return false;
         }
-        if (!file.isFile()) {
+        if (checkExistence && !file.isFile()) {
             return false;
         }
         RelativePath path = new RelativePath(true, file.getAbsolutePath().substring(prefix.length()).split(

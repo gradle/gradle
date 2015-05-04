@@ -71,6 +71,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return getFiles().contains(file);
     }
 
+    public boolean wouldContain(File file) {
+        return contains(file);
+    }
+
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
     }

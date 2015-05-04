@@ -158,4 +158,14 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             }
         })));
     }
+
+    @Override
+    public boolean wouldContain(File file) {
+        for (FileCollectionInternal collection : getSourceCollections()) {
+            if (collection.wouldContain(file)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

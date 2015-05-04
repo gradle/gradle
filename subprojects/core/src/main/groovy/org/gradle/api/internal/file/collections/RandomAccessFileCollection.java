@@ -22,4 +22,5 @@ import java.io.File;
  */
 public interface RandomAccessFileCollection {
     boolean contains(File file);
+    boolean wouldContain(File file);
 }

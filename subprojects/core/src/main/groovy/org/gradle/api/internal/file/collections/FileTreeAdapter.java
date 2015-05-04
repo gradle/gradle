@@ -91,6 +91,15 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
+    public boolean wouldContain(File file) {
+        if (tree instanceof RandomAccessFileCollection) {
+            RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
+            return randomAccess.wouldContain(file);
+        }
+        return super.wouldContain(file);
+    }
+
+    @Override
     public FileTree matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;

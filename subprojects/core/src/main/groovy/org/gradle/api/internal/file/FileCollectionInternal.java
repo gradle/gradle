@@ -41,4 +41,13 @@ public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
      */
     Iterable<? extends File> getFileSystemRoots();
 
+    /**
+     * Determines whether this collection would contain the given file.
+     * <p>
+     * The file doesn't have to exist. This is the main difference compared to the {@link FileCollection#contains(File)} method.
+     *
+     * @param file The file to check for.
+     * @return true if this collection would contain the given file, false otherwise.
+     */
+    boolean wouldContain(File file);
 }
