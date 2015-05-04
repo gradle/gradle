@@ -18,12 +18,8 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildResult;
 
-import java.io.Serializable;
-
-public abstract class AbstractBuildResult extends AbstractResult implements Serializable, InternalBuildResult {
-
-    public AbstractBuildResult(long startTime, long endTime, String description) {
+public abstract class AbstractBuildResult extends AbstractResult implements InternalBuildResult {
+    protected AbstractBuildResult(long startTime, long endTime, String description) {
         super(startTime, endTime, description);
     }
-
 }

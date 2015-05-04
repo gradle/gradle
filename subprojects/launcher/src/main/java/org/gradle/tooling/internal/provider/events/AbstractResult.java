@@ -22,17 +22,13 @@ import java.util.List;
 public abstract class AbstractResult implements Serializable {
     private final long startTime;
     private final long endTime;
-    private final String description;
+    private final String outcomeDescription;
 
-    public AbstractResult(long startTime, long endTime, String description) {
-        this.endTime = endTime;
+    public AbstractResult(long startTime, long endTime, String outcomeDescription) {
         this.startTime = startTime;
-        this.description = description;
+        this.endTime = endTime;
+        this.outcomeDescription = outcomeDescription;
     }
-
-    public String getOutcomeDescription() {
-        return description;
-    };
 
     public long getStartTime() {
         return startTime;
@@ -40,6 +36,10 @@ public abstract class AbstractResult implements Serializable {
 
     public long getEndTime() {
         return endTime;
+    }
+
+    public String getOutcomeDescription() {
+        return outcomeDescription;
     }
 
     public List<DefaultFailure> getFailures() {

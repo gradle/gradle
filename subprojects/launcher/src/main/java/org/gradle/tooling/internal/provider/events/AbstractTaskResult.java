@@ -19,8 +19,7 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 
 public abstract class AbstractTaskResult extends AbstractResult implements InternalTaskResult {
-
-    public AbstractTaskResult(long startTime, long endTime, String description) {
+    protected AbstractTaskResult(long startTime, long endTime, String description) {
         super(startTime, endTime, description);
     }
 }

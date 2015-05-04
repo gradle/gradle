@@ -18,10 +18,8 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
-import java.io.Serializable;
-
-public abstract class AbstractTestResult extends AbstractResult implements Serializable, InternalTestResult {
-    public AbstractTestResult(long startTime, long endTime, String description) {
+public abstract class AbstractTestResult extends AbstractResult implements InternalTestResult {
+    protected AbstractTestResult(long startTime, long endTime, String description) {
         super(startTime, endTime, description);
     }
 }
