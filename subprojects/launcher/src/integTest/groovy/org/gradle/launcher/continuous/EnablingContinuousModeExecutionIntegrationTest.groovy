@@ -280,7 +280,7 @@ throw new GradleException("config error")
         buildFile << """
             task otherTask {
                 dependsOn "build"
-                inputs.dir "${inputFile.parent}"
+                inputs.dir "${inputFile.parent.toURI()}"
             }
         """
 
