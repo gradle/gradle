@@ -97,7 +97,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
     public void afterExecute(Task task, TaskState state) {
         long eventTime = endTime(state);
         if (state.getSkipped()) {
-            eventConsumer.dispatch(new DefaultTaskSkippedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
+            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
         } else {
             eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
         }
