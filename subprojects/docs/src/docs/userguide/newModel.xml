@@ -239,7 +239,7 @@
             <sourcefile file='build.gradle' snippet='create-rule'/>
         </sample>
         <para>
-            This rule declares the there is a model element at path <literal>"person"</literal> (defined by the method name), of type <literal>Person</literal>.
+            This rule declares that there is a model element at path <literal>"person"</literal> (defined by the method name), of type <literal>Person</literal>.
             This is the form of the <apilink class="org.gradle.model.Model" /> type rule for <apilink class="org.gradle.model.Managed" /> types.
             Here, the person object is the rule subject.
             The method could potentially have a body, that mutated the person instance.
@@ -260,7 +260,7 @@
         <para>
             This <apilink class="org.gradle.model.Mutate" /> rule effectively adds a task, by mutating the tasks collection.
             The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.ModelMap" /> of <apilink class="org.gradle.api.Task" />.
-            The lone input is our person element.
+            The only input is our person element.
             As the person is being used as an input here, it will have been realised before executing this rule.
             That is, the task container effectively <emphasis>depends on</emphasis> the person element.
             If there are other configuration rules for the person element, potentially specified in a build script or other plugin, the will also be guaranteed to have been executed.
