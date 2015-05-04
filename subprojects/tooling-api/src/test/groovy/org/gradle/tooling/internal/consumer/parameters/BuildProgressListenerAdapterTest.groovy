@@ -1112,7 +1112,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         result.startTime >> startTime
         result.endTime >> endTime
         result.outcomeDescription >> outcome
-        result.failure >> failure
+        result.failures >> [failure]
 
         result
     }
