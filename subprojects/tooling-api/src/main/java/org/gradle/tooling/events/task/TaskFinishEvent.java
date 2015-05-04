@@ -30,7 +30,12 @@ public interface TaskFinishEvent extends TaskProgressEvent, FinishEvent {
     /**
      * Returns the result of the finished task operation. Currently, the result will be one of the following sub-types:
      *
-     * <ul> <li>{@link TaskSuccessResult}</li> <li>{@link TaskSkippedSuccessResult}</li> <li>{@link TaskFailureResult}</li> </ul>
+     * <ul>
+     *     <li>{@link TaskSuccessResult}</li>
+     *     <li>{@link TaskFailureResult}</li>
+     *     <li>{@link TaskSkippedSuccessResult}</li>
+     *     <li>{@link TaskSkippedFailureResult}</li>
+     * </ul>
      *
      * @return the result of the finished task operation
      */
