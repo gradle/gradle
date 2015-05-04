@@ -27,12 +27,12 @@ public class DefaultTaskFinishedProgressEvent extends AbstractTaskProgressEvent 
     }
 
     @Override
-    public String getDisplayName() {
-        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
+    public AbstractTaskResult getResult() {
+        return result;
     }
 
     @Override
-    public AbstractTaskResult getResult() {
-        return result;
+    public String getDisplayName() {
+        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
     }
 }

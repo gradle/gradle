@@ -32,12 +32,12 @@ public class DefaultBuildFinishedProgressEvent extends AbstractBuildProgressEven
     }
 
     @Override
-    public String getDisplayName() {
-        return String.format("%s finished", getDescriptor().getName());
+    public AbstractBuildResult getResult() {
+        return result;
     }
 
     @Override
-    public AbstractBuildResult getResult() {
-        return result;
+    public String getDisplayName() {
+        return String.format("%s finished", getDescriptor().getName());
     }
 }
