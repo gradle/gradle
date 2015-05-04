@@ -84,6 +84,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
 
+    private boolean debugMode = defaultDebugMode();
+
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
@@ -116,6 +118,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
+        debugMode = defaultDebugMode();
         return this;
     }
 
@@ -225,6 +228,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (!daemonStartingMessageDisabled) {
             executer.withDaemonStartingMessageEnabled();
+        }
+        if (debugMode) {
+            executer.withDebugModeEnabled();
+        } else {
+            executer.withDebugModeDisabled();
         }
 
         return executer;
@@ -710,5 +718,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public boolean isDaemonStartingMessageDisabled() {
         return daemonStartingMessageDisabled;
+    }
+
+    private boolean defaultDebugMode() {
+        return "true".equals(System.getProperty("org.gradle.integtest.debugmode", "false"));
+    }
+
+    public GradleExecuter withDebugModeEnabled() {
+        debugMode = true;
+        return this;
+    }
+
+    public GradleExecuter withDebugModeDisabled() {
+        debugMode = false;
+        return this;
+    }
+
+    public boolean isDebugModeEnabled() {
+        return debugMode;
     }
 }

@@ -293,4 +293,14 @@ public interface GradleExecuter {
     GradleExecuter copyTo(GradleExecuter executer);
 
     GradleExecuter withDaemonStartingMessageEnabled();
+
+    /**
+     * adds JVM debugger args to forked JVM in case of a forking executor
+     *
+     * enabled by default with "-Dorg.gradle.integtest.debugmode=true" system property
+     *
+     */
+    GradleExecuter withDebugModeEnabled();
+    GradleExecuter withDebugModeDisabled();
+    boolean isDebugModeEnabled();
 }
