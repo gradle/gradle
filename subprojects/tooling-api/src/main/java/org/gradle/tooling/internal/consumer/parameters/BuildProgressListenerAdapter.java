@@ -201,7 +201,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
             @Override
             public String getDisplayName() {
-                return descriptor.getName();
+                return descriptor.getDisplayName();
             }
 
             @Nullable

@@ -21,13 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.provider.events.AbstractBuildResult;
-import org.gradle.tooling.internal.provider.events.DefaultBuildDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultBuildFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultBuildFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultBuildStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultBuildSuccessResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
+import org.gradle.tooling.internal.provider.events.*;
 
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
@@ -62,11 +56,11 @@ class ClientForwardingBuildListener implements BuildListener {
     public void settingsEvaluated(Settings settings) {
         DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", EventIdGenerator.generateId(settings.getGradle()))
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", "Gradle " + settings.getGradle().getGradleVersion(), EventIdGenerator.generateId(settings.getGradle()))
         );
         DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", EventIdGenerator.generateId(settings.getGradle())),
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", "Gradle " + settings.getGradle().getGradleVersion(), EventIdGenerator.generateId(settings.getGradle())),
             new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
         );
         eventConsumer.dispatch(startEvent);
@@ -82,11 +76,11 @@ class ClientForwardingBuildListener implements BuildListener {
     public void projectsLoaded(Gradle gradle) {
         DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", EventIdGenerator.generateId(gradle))
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle))
         );
         DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", EventIdGenerator.generateId(gradle)),
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle)),
             new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
         );
         eventConsumer.dispatch(startEvent);
@@ -102,11 +96,11 @@ class ClientForwardingBuildListener implements BuildListener {
     public void projectsEvaluated(Gradle gradle) {
         DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", EventIdGenerator.generateId(gradle))
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle))
         );
         DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
             eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", EventIdGenerator.generateId(gradle)),
+            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle)),
             new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
         );
         eventConsumer.dispatch(startEvent);
@@ -139,7 +133,7 @@ class ClientForwardingBuildListener implements BuildListener {
         if (gradle == null) {
             return null;
         }
-        return new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle), "Gradle " + gradle.getGradleVersion(), adapt(gradle.getParent()));
+        return new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle), "Gradle " + gradle.getGradleVersion(), "Gradle " + gradle.getGradleVersion(), adapt(gradle.getParent()));
     }
 
     /**

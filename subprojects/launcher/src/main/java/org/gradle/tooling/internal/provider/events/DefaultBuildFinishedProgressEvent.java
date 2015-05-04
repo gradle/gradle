@@ -18,11 +18,6 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildFinishedProgressEvent;
 
-/**
- * Base class for build progress events. The kind of advance event can be determined by checking the concrete type of result (see {@link #getResult()}.
- *
- * @since 2.5
- */
 public class DefaultBuildFinishedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildFinishedProgressEvent {
     private final AbstractBuildResult result;
 
@@ -38,6 +33,6 @@ public class DefaultBuildFinishedProgressEvent extends AbstractBuildProgressEven
 
     @Override
     public String getDisplayName() {
-        return String.format("%s finished", getDescriptor().getName());
+        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
     }
 }

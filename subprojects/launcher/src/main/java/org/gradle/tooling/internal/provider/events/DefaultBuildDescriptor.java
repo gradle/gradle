@@ -21,14 +21,15 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
 import java.io.Serializable;
 
 public class DefaultBuildDescriptor implements Serializable, InternalBuildDescriptor {
-
     private final Object id;
     private final String name;
+    private final String displayName;
     private final Object parentId;
 
-    public DefaultBuildDescriptor(Object id, String name, Object parentId) {
+    public DefaultBuildDescriptor(Object id, String name, String displayName, Object parentId) {
         this.id = id;
         this.name = name;
+        this.displayName = displayName;
         this.parentId = parentId;
     }
 
@@ -43,8 +44,12 @@ public class DefaultBuildDescriptor implements Serializable, InternalBuildDescri
     }
 
     @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
     public Object getParentId() {
         return parentId;
     }
-
 }

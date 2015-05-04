@@ -40,9 +40,16 @@ public interface InternalBuildDescriptor extends InternalProtocolInterface {
     String getName();
 
     /**
-     * Returns the id of the parent of this build, if any.
+     * Returns a human consumable display name for the build.
      *
-     * @return The id of the parent of this build, can be null
+     * @return The display name of the build
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the id of the parent of the build, if any.
+     *
+     * @return The id of the parent of the build, can be null
      */
     Object getParentId();
 
