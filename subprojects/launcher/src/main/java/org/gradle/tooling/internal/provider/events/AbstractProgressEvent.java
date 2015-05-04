@@ -17,13 +17,13 @@ package org.gradle.tooling.internal.provider.events;
 
 import java.io.Serializable;
 
-public class AbstractProgressEvent<T> implements Serializable {
-    protected final long eventTime;
-    protected final T descriptor;
+public abstract class AbstractProgressEvent<T> implements Serializable {
+    private final long eventTime;
+    private final T descriptor;
 
-    public AbstractProgressEvent(long eventTime, T descriptor) {
-        this.descriptor = descriptor;
+    protected AbstractProgressEvent(long eventTime, T descriptor) {
         this.eventTime = eventTime;
+        this.descriptor = descriptor;
     }
 
     public long getEventTime() {
