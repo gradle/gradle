@@ -205,19 +205,4 @@ public abstract class Actions {
         }
     }
 
-    private static final Action<Closeable> UNCHECKED_CLOSE = new Action<Closeable>() {
-        @Override
-        public void execute(Closeable closeable) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    };
-
-    public static Action<Closeable> uncheckedClose() {
-        return UNCHECKED_CLOSE;
-    }
-
 }
