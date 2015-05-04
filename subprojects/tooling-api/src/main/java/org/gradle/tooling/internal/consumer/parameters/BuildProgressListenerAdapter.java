@@ -418,14 +418,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return assertDescriptorType(BuildOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private BuildOperationDescriptor getBuildDescriptor(InternalBuildDescriptor buildDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.get(buildDescriptor.getId());
-        if (cachedTestDescriptor == null) {
-            throw new IllegalStateException(String.format("Operation %s is not available.", toString(buildDescriptor)));
-        }
-        return assertDescriptorType(BuildOperationDescriptor.class, cachedTestDescriptor);
-    }
-
     private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor testDescriptor, final TestOperationDescriptor parent) {
         if (testDescriptor instanceof InternalJvmTestDescriptor) {
             final InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) testDescriptor;
