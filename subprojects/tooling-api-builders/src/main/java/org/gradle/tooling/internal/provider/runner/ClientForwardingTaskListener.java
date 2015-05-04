@@ -21,15 +21,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
+import org.gradle.tooling.internal.provider.events.*;
 
 /**
  * Task listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
@@ -48,9 +40,9 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
     private static DefaultTaskDescriptor adapt(Task taskDescriptor) {
         return new DefaultTaskDescriptor(
             EventIdGenerator.generateId(taskDescriptor),
-            taskDescriptor.getPath(),
             taskDescriptor.getName(),
             taskDescriptor.getDescription(),
+            taskDescriptor.getPath(),
             taskDescriptor.getProject().getPath()
         );
     }
