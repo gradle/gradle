@@ -17,6 +17,41 @@ We do not currently enforce that all ancestors of an input are realised, which m
 - Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
 - Cycle is reported when a rule tries to depend on a child of the subject as an input
 
+## Cycle involving multiple rules of same lifecycle phase does not cause rules to be executed twice
+
+Given the following:
+
+```
+class Rules extends RuleSource {
+    @Model List<String> m1() { [] }
+    @Model List<String> m2() { [] }
+    @Model List<String> m3() { [] }
+
+    @Mutate void m2ToM1(@Path("m1") m1, @Path("m2") m2) {
+        if (!m1.empty) {
+            throw new IllegalStateException("m2ToM1 has executed twice")
+        }
+        m1 << "executed"
+    }
+
+    // in cycle…
+    @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
+    @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
+    
+    @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
+}
+```
+
+The build will fail because the `m2ToM1` is indeed executed twice. 
+What should happen is that a cycle should be reported between `m3ToM1` and `m1ToM3`.
+
+The implementation should be done in such a way 
+
+### Test Coverage
+
+- As above, build fails by reporting cycle between `m3ToM1` and `m1ToM3`.
+- As above but including earlier lifecycle rules (e.g. `@Defaults`) as well, verifying they do not execute twice
+
 ## Methods of rule source classes must be private, or be declared as rules
 
 This story improves the usability of rule source classes by making it less easy to forget to annotate a rule method.
