@@ -268,9 +268,8 @@ throw new GradleException("config error")
         where:
         inputType | inputPath
         "dir"     | '"test"'
-        // These don't work!
-        //"files"   | '"test/inputFile1", "test/inputFile2"'
-        //"file"    | '"test/inputFile1"'
+        "files"   | '"test/inputFile1", "test/inputFile2"'
+        "file"    | '"test/inputFile1"'
     }
 
     def "does not rebuild when unselected task inputs are created, deleted or modified" () {

@@ -75,6 +75,7 @@ public class TaskInputsWatcher extends BuildAdapter {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Task inputs: {}", taskInputs.getFiles());
+            LOGGER.debug("taskInputs.getFileSystemRoots(): {}", taskInputs.getFileSystemRoots());
         }
 
         fileWatcherFactory.watch(
