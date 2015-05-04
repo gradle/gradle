@@ -191,7 +191,7 @@ public class AbstractFileCollectionTest {
     @Test
     public void includesRoots() {
         TestFile testDir = this.testDir.getTestDirectory();
-        TestFileCollection collection = new TestFileCollection(testDir.file("a/a/a"), testDir.file("a/a/b"), testDir.file("a/a/b/a"));
+        TestFileCollection collection = new TestFileCollection(testDir.createDir("a/a/a"), testDir.createDir("a/a/b"), testDir.file("a/a/b/a"));
         assertEquals(toSet(testDir.file("a/a/a"), testDir.file("a/a/b")), Sets.newHashSet(collection.getFileSystemRoots()));
     }
 

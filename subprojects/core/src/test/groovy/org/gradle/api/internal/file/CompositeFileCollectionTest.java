@@ -185,8 +185,13 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void getRootsDelegatesToEachSet() {
-        final File file1 = new File("a");
-        final File file2 = new File("a/a");
+        final File file1 = new File("a") {
+            @Override
+            public boolean isDirectory() {
+                return true;
+            }
+        };
+        final File file2 = new File(file1, "a");
 
         context.checking(new Expectations() {{
             one(source1).getFileSystemRoots();

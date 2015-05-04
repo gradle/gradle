@@ -25,6 +25,8 @@ import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.findRoots
 
 class FileUtilsTest extends Specification {
+    boolean leafsAreDirectories = false
+
     def "toSafeFileName encodes unsupported characters"() {
         expect:
         toSafeFileName(input) == output
@@ -53,14 +55,26 @@ class FileUtilsTest extends Specification {
     }
 
     List<File> toRoots(String... paths) {
-        findRoots(paths.collect { new File("/", it) })
+        findRoots(paths.collect { new File("/", it) {
+            @Override
+            boolean isDirectory() {
+                return leafsAreDirectories
+            }
+        } })
     }
 
     List<File> files(String... files) {
-        files.collect { new File("/", it).absoluteFile }
+        files.collect { new File("/", it) {
+            @Override
+            boolean isDirectory() {
+                return leafsAreDirectories
+            }
+        } }
     }
 
-    def "can find roots"() {
+    def "can find roots when leafs are directories"() {
+        given:
+        leafsAreDirectories = true
         expect:
         toRoots() == []
         toRoots("a/a", "a/a") == files("a/a")
@@ -70,6 +84,20 @@ class FileUtilsTest extends Specification {
         toRoots("a/a/a/a/a/a/a/a/a", "a/b") == files("a/a/a/a/a/a/a/a/a", "a/b")
         toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
         toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
+    }
+
+    def "can find roots when leafs are files"() {
+        given:
+        leafsAreDirectories = false
+        expect:
+        toRoots() == []
+        toRoots("a/a", "a/a") == files("a")
+        toRoots("a", "b", "c") == files("")
+        toRoots("a/a", "a/a/a", "a/b/a") == files("a")
+        toRoots("a/a", "a/a/a", "b/a/a") == files("a", "b/a")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == files("a")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a") == files("a", "b/a/a/a/a/a/a/a/a/a/a")
+        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a") == files("a", "b/a/a/a")
     }
 
 }
