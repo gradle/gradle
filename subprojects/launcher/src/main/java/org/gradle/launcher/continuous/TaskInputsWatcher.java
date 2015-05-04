@@ -93,8 +93,7 @@ public class TaskInputsWatcher extends BuildAdapter {
                             LOGGER.debug("Received file system event: {}", element);
                         }
                         return element.getType().equals(FileWatcherEvent.Type.OVERFLOW)
-                            || element.getType().equals(FileWatcherEvent.Type.DELETE) // because fileCollection.contains() may not consider files that would be contained if they did exist
-                            || taskInputs.contains(element.getFile());
+                            || taskInputs.wouldContain(element.getFile());
                     }
                 },
                 new StopThenFireFileWatcherListener(new Runnable() {
