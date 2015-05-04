@@ -7,6 +7,16 @@ Specific sub streams have been broken out into other concurrent specs.
 
 # Stories
 
+## Node ancestry is self closed before node is used as an input
+
+We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
+
+## Test Coverage
+
+- Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
+- Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
+- Cycle is reported when a rule tries to depend on a child of the subject as an input
+
 ## Methods of rule source classes must be private, or be declared as rules
 
 This story improves the usability of rule source classes by making it less easy to forget to annotate a rule method.
@@ -76,16 +86,6 @@ The feature will depend on the classloader caching feature.
 1. Tasks are rebuilt each time when reusing model registry
 1. Error when model reuse enabled but not classloader caching
 1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
-
-## Node ancestry is self closed before node is used as an input
-
-We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
-
-## Test Coverage
-
-- Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
-- Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
-- Cycle is reported when a rule tries to depend on a child of the subject as an input
 
 # Open Questions
 
