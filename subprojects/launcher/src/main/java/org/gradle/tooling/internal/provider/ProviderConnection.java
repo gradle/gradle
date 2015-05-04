@@ -41,6 +41,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -60,7 +61,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -91,6 +95,8 @@ public class ProviderConnection {
         if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
+        List<String> requestedJvmArgsList = createRequestedJvmArgsList(providerParameters);
+        Map<String, String> requestedSystemProperties = createRequestedSystemProperties(providerParameters);
         Parameters params = initParams(providerParameters);
         Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         if (type == InternalBuildEnvironment.class) {
@@ -103,10 +109,10 @@ public class ProviderConnection {
                 GradleVersion.current().getVersion(),
                 params.daemonParams.getEffectiveJavaHome(),
                 params.daemonParams.getEffectiveJvmArgs(),
-                params.daemonParams.getJvmArgs(),
+                requestedJvmArgsList,
                 params.daemonParams.getAllJvmArgs(),
                 params.daemonParams.getEffectiveSystemProperties(),
-                params.daemonParams.getSystemProperties()
+                requestedSystemProperties
             );
         }
 
@@ -124,6 +130,34 @@ public class ProviderConnection {
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
         rethrowListenerErrors(buildProgressListener);
         return out;
+    }
+
+    private List<String> createRequestedJvmArgsList(ProviderOperationParameters providerParameters) {
+        // do not remove the defensive copy or it will mutate the actual parameters!
+        List<String> jvmArguments = new ArrayList<String>(providerParameters.getJvmArguments(Collections.<String>emptyList()));
+        Iterator<String> it = jvmArguments.iterator();
+        while (it.hasNext()) {
+            String arg = it.next();
+            if (arg.startsWith("-D")) {
+                it.remove();
+            }
+        }
+        return jvmArguments;
+    }
+
+    private Map<String, String> createRequestedSystemProperties(ProviderOperationParameters providerParameters) {
+        JvmOptions options = new JvmOptions(null);
+        // do not remove the defensive copy or it will mutate the actual parameters!
+        List<String> jvmArguments = new ArrayList<String>(providerParameters.getJvmArguments(Collections.<String>emptyList()));
+        options.setJvmArgs(jvmArguments);
+        Map<String, Object> systemProperties = options.getSystemProperties();
+        Map<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<String, Object> entry : systemProperties.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            result.put(key, value==null?null:value.toString());
+        }
+        return result;
     }
 
     private void rethrowListenerErrors(InternalBuildProgressListener buildProgressListener) {
