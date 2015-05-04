@@ -16,9 +16,8 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.codehaus.plexus.PlexusContainerException;
-
 import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * A deploy action that uses the baked in Maven wagon implementations, or a custom user-provided wagon implemented.
@@ -30,8 +29,8 @@ public class MavenWagonDeployAction extends MavenDeployAction {
 
     public void addWagonJar(File jar) {
         try {
-            getContainer().addJarResource(jar);
-        } catch (PlexusContainerException e) {
+            getContainer().getContainerRealm().addURL(jar.toURI().toURL());
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
