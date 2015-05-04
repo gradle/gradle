@@ -27,7 +27,7 @@ import org.gradle.tooling.events.SkippedResult;
 @Incubating
 public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
     /**
-     * Returns the skipped message asociated with the skipped task.
+     * Returns the skipped message associated with the skipped task.
      *
      * @return the skipped message
      */
