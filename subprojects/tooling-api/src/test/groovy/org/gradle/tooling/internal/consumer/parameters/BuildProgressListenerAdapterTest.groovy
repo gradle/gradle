@@ -582,7 +582,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
-    def "convert to TaskSkippedEvent"() {
+    def "convert to TaskSkippedSuccessEvent"() {
         given:
         TaskProgressListener listener = Mock()
         def adapter = createAdapter(listener)
@@ -597,7 +597,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
-        def testResult = Mock(InternalTaskSkippedResult)
+        def testResult = Mock(InternalTaskSkippedSuccessResult)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
         _ * testResult.getSkipMessage() >> 'skipped'
@@ -617,10 +617,55 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.displayName == "task skipped"
             assert event.descriptor.name == 'some task'
             assert event.descriptor.parent == null
-            assert event.result instanceof TaskSkippedResult
+            assert event.result instanceof TaskSkippedSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.skipMessage == 'skipped'
+        }
+    }
+
+    def "convert to TaskSkippedFailureEvent"() {
+        given:
+        TaskProgressListener listener = Mock()
+        def adapter = createAdapter(listener)
+
+        when:
+        def taskDescriptor = Mock(InternalTaskDescriptor)
+        _ * taskDescriptor.getId() >> ':dummy'
+        _ * taskDescriptor.getName() >> 'some task'
+        _ * taskDescriptor.getParentId() >> null
+
+        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        _ * startEvent.getEventTime() >> 999
+        _ * startEvent.getDescriptor() >> taskDescriptor
+
+        def taskResult = Mock(InternalTaskSkippedFailureResult)
+        _ * taskResult.getStartTime() >> 1
+        _ * taskResult.getEndTime() >> 2
+        _ * taskResult.getSkipMessage() >> 'skipped'
+        _ * taskResult.getFailures() >> [Mock(InternalFailure)]
+
+        def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
+        _ * skippedEvent.getEventTime() >> 999
+        _ * skippedEvent.getDisplayName() >> 'task skipped'
+        _ * skippedEvent.getDescriptor() >> taskDescriptor
+        _ * skippedEvent.getResult() >> taskResult
+
+        adapter.onEvent(startEvent) // skippedEvent always assumes a previous startEvent
+        adapter.onEvent(skippedEvent)
+
+        then:
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+            assert event.eventTime == 999
+            assert event.displayName == "task skipped"
+            assert event.descriptor.name == 'some task'
+            assert event.descriptor.parent == null
+            def result = event.result
+            assert result instanceof TaskSkippedFailureResult
+            assert result.startTime == 1
+            assert result.endTime == 2
+            assert result.skipMessage == 'skipped'
+            assert result.failures.size() == 1
         }
     }
 

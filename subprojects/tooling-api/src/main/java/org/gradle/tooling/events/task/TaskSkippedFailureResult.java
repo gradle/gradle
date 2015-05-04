@@ -17,15 +17,16 @@
 package org.gradle.tooling.events.task;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.FailureResult;
 import org.gradle.tooling.events.SkippedResult;
 
 /**
- * Describes how a task operation was skipped.
+ * Describes how a task operation was skipped because it failed.
  *
  * @since 2.5
  */
 @Incubating
-public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
+public interface TaskSkippedFailureResult extends TaskOperationResult, SkippedResult, FailureResult {
     /**
      * Returns the skipped message associated with the skipped task.
      *

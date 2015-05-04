@@ -27,7 +27,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
-import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskSkippedSuccessResult
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -464,7 +464,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                         break
                     case 'skipped':
                         assert event instanceof TaskFinishEvent
-                        assert event.result instanceof TaskSkippedResult
+                        assert event.result instanceof TaskSkippedSuccessResult
                         if (ordered) {
                             assert event.result.startTime >= oldEndTime
                         }
