@@ -19,47 +19,13 @@ package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.build.BuildFailureResult
-import org.gradle.tooling.events.build.BuildFinishEvent
-import org.gradle.tooling.events.build.BuildProgressListener
-import org.gradle.tooling.events.build.BuildStartEvent
-import org.gradle.tooling.events.build.BuildSuccessResult
-import org.gradle.tooling.events.task.TaskFailureResult
-import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.tooling.events.task.TaskProgressListener
-import org.gradle.tooling.events.task.TaskSkippedResult
-import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.events.task.TaskSuccessResult
-import org.gradle.tooling.events.test.JvmTestKind
-import org.gradle.tooling.events.test.TestFailureResult
-import org.gradle.tooling.events.test.TestProgressListener
-import org.gradle.tooling.events.test.TestSkippedResult
-import org.gradle.tooling.events.test.TestStartEvent
-import org.gradle.tooling.events.test.TestSuccessResult
+import org.gradle.tooling.events.build.*
+import org.gradle.tooling.events.task.*
+import org.gradle.tooling.events.test.*
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.InternalTaskProgressListener
-import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult
-import org.gradle.tooling.internal.protocol.events.InternalBuildFinishedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalBuildResult
-import org.gradle.tooling.internal.protocol.events.InternalBuildStartedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult
-import org.gradle.tooling.internal.protocol.events.InternalTaskFinishedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult
-import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult
-import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult
-import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent
-import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult
+import org.gradle.tooling.internal.protocol.events.*
 import spock.lang.Specification
 
 class BuildProgressListenerAdapterTest extends Specification {
@@ -481,7 +447,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        def buildDesc = buildDescriptor(666, 'some build')
+        def buildDesc = buildDescriptor(666, 'my build', 'some build')
 
         def startEvent = buildStartEvent(999, 'build started', buildDesc)
 
@@ -491,7 +457,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "build started"
-            assert event.descriptor.name == 'some build'
+            assert event.descriptor.name == 'my build'
             assert event.descriptor.displayName == 'some build'
             assert event.descriptor.parent == null
         }
@@ -875,7 +841,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(InternalTaskFailureResult)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getFailure() >> Stub(InternalFailure)
+        _ * testResult.getFailures() >> [Stub(InternalFailure)]
 
         def failedEvent = Mock(InternalTaskFinishedProgressEvent)
         _ * failedEvent.getEventTime() >> 999
@@ -1098,6 +1064,16 @@ class BuildProgressListenerAdapterTest extends Specification {
         InternalBuildDescriptor descriptor = Mock()
         descriptor.getId() >> id
         descriptor.getName() >> name
+        descriptor.getParentId() >> { parent ? parent.id : null }
+
+        descriptor
+    }
+
+    private InternalBuildDescriptor buildDescriptor(id, String name, String displayName, InternalBuildDescriptor parent = null) {
+        InternalBuildDescriptor descriptor = Mock()
+        descriptor.getId() >> id
+        descriptor.getName() >> name
+        descriptor.getDisplayName() >> displayName
         descriptor.getParentId() >> { parent ? parent.id : null }
 
         descriptor
