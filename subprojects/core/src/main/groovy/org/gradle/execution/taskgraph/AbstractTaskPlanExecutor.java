@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
@@ -28,15 +28,15 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
     private final Object lock = new Object();
 
-    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
+    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener) {
         return new TaskExecutorWorker(taskExecutionPlan, taskListener);
     }
 
     private class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
-        private final TaskExecutionListener taskListener;
+        private final InternalTaskExecutionListener taskListener;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskListener = taskListener;
         }
@@ -75,14 +75,12 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             TaskInternal task = taskInfo.getTask();
             TaskStateInternal state = task.getState();
             synchronized (lock) {
-                state.setStartTime(System.currentTimeMillis());
-                taskListener.beforeExecute(task);
+                taskListener.beforeExecute(task, state);
             }
             try {
                 task.executeWithoutThrowingTaskFailure();
             } finally {
                 synchronized (lock) {
-                    state.setEndTime(System.currentTimeMillis());
                     taskListener.afterExecute(task, state);
                 }
             }

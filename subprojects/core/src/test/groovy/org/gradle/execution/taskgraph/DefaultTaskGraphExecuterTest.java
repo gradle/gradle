@@ -21,6 +21,7 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -72,6 +73,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+            one(listenerManager).createAnonymousBroadcaster(InternalTaskExecutionListener.class);
+            will(returnValue(new ListenerBroadcast<InternalTaskExecutionListener>(InternalTaskExecutionListener.class)));
             allowing(cancellationToken).isCancellationRequested();
         }});
         taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken);
@@ -321,7 +324,7 @@ public class DefaultTaskGraphExecuterTest {
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));
         }
-        
+
         assertThat(executedTasks, equalTo(toList(a)));
     }
 
@@ -342,7 +345,7 @@ public class DefaultTaskGraphExecuterTest {
 
         assertThat(executedTasks, equalTo(toList(a)));
     }
-    
+
     @Test
     public void testStopsExecutionOnFailureWhenFailureHandlerIndicatesThatExecutionShouldStop() {
         final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
@@ -421,7 +424,7 @@ public class DefaultTaskGraphExecuterTest {
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
 
         taskExecuter.execute();
-        
+
         assertThat(executedTasks, equalTo(toList(b)));
     }
 
@@ -439,9 +442,9 @@ public class DefaultTaskGraphExecuterTest {
         taskExecuter.useFilter(spec);
         taskExecuter.addTasks(toList(c));
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
-        
+
         taskExecuter.execute();
-                
+
         assertThat(executedTasks, equalTo(toList(b, c)));
     }
 
@@ -483,7 +486,7 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(toSet(dependsOn)));
         }});
     }
-    
+
     private Task brokenTask(String name, final RuntimeException failure, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
@@ -500,7 +503,7 @@ public class DefaultTaskGraphExecuterTest {
         }});
         return task;
     }
-    
+
     private Task task(final String name, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
@@ -515,7 +518,7 @@ public class DefaultTaskGraphExecuterTest {
         }});
         return task;
     }
-    
+
     private TaskInternal createTask(final String name) {
         TaskInternal task = context.mock(TaskInternal.class);
         TaskStateInternal state = context.mock(TaskStateInternal.class);

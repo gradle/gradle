@@ -17,7 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildEventConsumer;
@@ -30,7 +31,7 @@ import java.util.Collections;
  *
  * @since 2.5
  */
-class ClientForwardingTaskListener implements TaskExecutionListener {
+class ClientForwardingTaskListener implements InternalTaskExecutionListener {
 
     private final BuildEventConsumer eventConsumer;
 
@@ -79,7 +80,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
      * @param task The task about to be executed. Never null.
      */
     @Override
-    public void beforeExecute(Task task) {
+    public void beforeExecute(TaskInternal task, TaskStateInternal state) {
         eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startTime(task.getState()), adapt(task)));
     }
 
@@ -90,7 +91,7 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
      * @param state The task state. If the task failed with an exception, the exception is available in this
      */
     @Override
-    public void afterExecute(Task task, TaskState state) {
+    public void afterExecute(TaskInternal task, TaskStateInternal state) {
         long eventTime = endTime(state);
         eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
     }

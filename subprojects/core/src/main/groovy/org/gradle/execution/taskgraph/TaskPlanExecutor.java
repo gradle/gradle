@@ -16,8 +16,8 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 
 public interface TaskPlanExecutor {
-    void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener);
+    void process(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener);
 }

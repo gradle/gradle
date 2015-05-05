@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -38,7 +38,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         this.executorCount = numberOfParallelExecutors;
     }
 
-    public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
+    public void process(final TaskExecutionPlan taskExecutionPlan, final InternalTaskExecutionListener taskListener) {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             startAdditionalWorkers(taskExecutionPlan, taskListener, executor);
@@ -49,7 +49,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         }
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener, Executor executor) {
+    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener, Executor executor) {
         LOGGER.info("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {

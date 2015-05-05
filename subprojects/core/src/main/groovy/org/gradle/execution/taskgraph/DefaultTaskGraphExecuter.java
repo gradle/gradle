@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
@@ -45,6 +48,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TaskPlanExecutor taskPlanExecutor;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
+    private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
@@ -52,6 +56,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         this.taskPlanExecutor = taskPlanExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
+        internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
         taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
     }
 
@@ -85,7 +90,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, taskListeners.getSource());
+            taskPlanExecutor.process(taskExecutionPlan, new InternalTaskExecutionListenerAdapter());
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();
@@ -151,6 +156,26 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 taskGraphState = TaskGraphState.POPULATED;
                 return;
             case POPULATED:
+        }
+    }
+
+    /**
+     * This adapter will set the start and end times on the task state, and will make sure
+     * that public listeners are executed before internal listeners.
+     */
+    private class InternalTaskExecutionListenerAdapter implements InternalTaskExecutionListener {
+        @Override
+        public void beforeExecute(TaskInternal task, TaskStateInternal state) {
+            state.setStartTime(System.currentTimeMillis());
+            taskListeners.getSource().beforeExecute(task);
+            internalTaskListeners.getSource().beforeExecute(task, state);
+        }
+
+        @Override
+        public void afterExecute(TaskInternal task, TaskStateInternal state) {
+            taskListeners.getSource().afterExecute(task, state);
+            state.setEndTime(System.currentTimeMillis());
+            internalTaskListeners.getSource().afterExecute(task, state);
         }
     }
 }
