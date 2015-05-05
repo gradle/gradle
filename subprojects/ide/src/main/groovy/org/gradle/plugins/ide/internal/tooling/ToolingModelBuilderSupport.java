@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 
 abstract class ToolingModelBuilderSupport {
     public static <T extends LaunchableGradleTask> T buildFromTask(T target, Task task) {

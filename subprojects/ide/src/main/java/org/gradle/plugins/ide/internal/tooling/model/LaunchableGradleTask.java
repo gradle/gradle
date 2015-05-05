@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.impl;
+package org.gradle.plugins.ide.internal.tooling.model;
 
 import org.gradle.TaskExecutionRequest;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;

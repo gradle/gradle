@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.impl;
+package org.gradle.plugins.ide.internal.tooling.model;
 
 import java.io.Serializable;
 import java.util.List;
