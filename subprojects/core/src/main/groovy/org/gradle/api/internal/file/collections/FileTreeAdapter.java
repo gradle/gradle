@@ -90,6 +90,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof MapFileTree) {
             return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
         }
+        if (tree instanceof FileSystemMirroringFileTree) {
+            return ((FileSystemMirroringFileTree)tree).getMirror().contains(file);
+        }
         return super.contains(file);
     }
 
@@ -101,6 +104,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         }
         if (tree instanceof MapFileTree) {
             return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
+        }
+        if (tree instanceof FileSystemMirroringFileTree) {
+            return ((FileSystemMirroringFileTree)tree).getMirror().wouldContain(file);
         }
         return super.wouldContain(file);
     }
