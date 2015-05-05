@@ -152,7 +152,7 @@ throw new GradleException("config error")
 
         then:
         waitForStop()
-        gradle.errorOutput.count("> config error") == 3
+        gradle.errorOutput.count("> config error") == 1
     }
 
     def "keeps running when build succeeds, fails and succeeds"() {
