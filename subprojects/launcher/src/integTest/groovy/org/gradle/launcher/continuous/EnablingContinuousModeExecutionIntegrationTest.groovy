@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Ignore
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -314,8 +313,6 @@ throw new GradleException("config error")
         assert e.message.startsWith("Timeout waiting for client to connect")
     }
 
-    /*
-    @Ignore("fails currently because MapFileTree.contains will trigger creating a new MANIFEST.MF file")
     def "does not rebuild when an excluded file is deleted"() {
         given:
         validSource()
@@ -335,7 +332,6 @@ throw new GradleException("config error")
         def e = thrown(AssertionFailedError)
         assert e.message.startsWith("Timeout waiting for client to connect")
     }
-    */
 
     def buildSucceeds() {
         soFar {
