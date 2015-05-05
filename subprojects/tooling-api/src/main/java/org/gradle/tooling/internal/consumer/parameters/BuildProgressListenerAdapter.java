@@ -21,8 +21,10 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.build.*;
+import org.gradle.tooling.events.build.internal.DefaultBuildFailureResult;
 import org.gradle.tooling.events.build.internal.DefaultBuildFinishEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
+import org.gradle.tooling.events.build.internal.DefaultBuildSuccessResult;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.events.task.internal.*;
 import org.gradle.tooling.events.test.*;
@@ -238,53 +240,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultBuildFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
     }
 
-    private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
-        if (result instanceof InternalTaskSuccessResult) {
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
-        } else if (result instanceof InternalTaskSkippedResult) {
-            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
-        } else if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    private static BuildOperationResult toBuildResult(final InternalBuildResult result) {
-        if (result instanceof InternalBuildSuccessResult) {
-            return new BuildSuccessResult() {
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalBuildFailureResult) {
-            return new BuildFailureResult() {
-                @Override
-                public List<? extends Failure> getFailures() {
-                    return toFailures(result.getFailures());
-                }
-
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        throw new UnsupportedOperationException("Unexpected event type: " + result.getClass().getSimpleName());
-    }
-
     private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {
         long eventTime = event.getEventTime();
         String displayName = event.getDisplayName();
@@ -465,6 +420,28 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestFailureResult) {
             return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
+        if (result instanceof InternalTaskSuccessResult) {
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
+        } else if (result instanceof InternalTaskSkippedResult) {
+            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
+        } else if (result instanceof InternalTaskFailureResult) {
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static BuildOperationResult toBuildResult(final InternalBuildResult result) {
+        if (result instanceof InternalBuildSuccessResult) {
+            return new DefaultBuildSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalBuildFailureResult) {
+            return new DefaultBuildFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         } else {
             return null;
         }
