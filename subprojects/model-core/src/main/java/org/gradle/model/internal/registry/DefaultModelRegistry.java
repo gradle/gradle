@@ -123,10 +123,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (!parent.isMutable()) {
             throw new IllegalStateException(
                     String.format(
-                            "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
-                            path,
-                            toString(creator.getDescriptor()),
-                            parent.getPath()
+                        "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
+                        path,
+                        toString(creator.getDescriptor()),
+                        parent.getPath()
                     )
             );
         }
@@ -485,10 +485,13 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         flushPendingMutatorBinders();
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
-            forceBind(binder);
-            fireMutation(binder);
-            flushPendingMutatorBinders();
-            node.notifyFired(binder);
+            if(!binder.isProcessed()) {
+                forceBind(binder);
+                fireMutation(binder);
+                flushPendingMutatorBinders();
+                node.notifyFired(binder);
+                binder.setProcessed(true);
+            }
         }
 
         node.setState(to);
@@ -642,7 +645,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     @Override
     public void prepareForReuse() {
         reset = true;
-
         List<ModelNodeInternal> ephemerals = Lists.newLinkedList();
         collectEphemeralChildren(modelGraph.getRoot(), ephemerals);
         if (ephemerals.isEmpty()) {
