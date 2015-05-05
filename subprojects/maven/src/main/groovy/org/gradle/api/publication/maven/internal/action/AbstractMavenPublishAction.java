@@ -16,13 +16,6 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
@@ -40,6 +33,13 @@ import org.sonatype.aether.artifact.ArtifactType;
 import org.sonatype.aether.impl.internal.SimpleLocalRepositoryManager;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private final PlexusContainer container;
@@ -118,7 +118,11 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            IOUtils.closeQuietly(reader);
+            try {
+                reader.close();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 
