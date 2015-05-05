@@ -20,26 +20,24 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.invocation.Gradle;
 
-
-public class EventIdGenerator {
-    public static Object generateId(Gradle gradle) {
-        return System.identityHashCode(gradle);
-    }
-
-    public static Object generateId(Task task) {
-        return String.format("%s:%s", generateId(task.getProject().getGradle()), task.getPath());
-    }
-
+public final class EventIdGenerator {
     public static Object generateId(TestDescriptorInternal testDescriptor) {
         return testDescriptor.getId();
     }
 
+    public static Object generateId(Task task) {
+        return generateId(task.getProject().getGradle()) + ":" + task.getPath();
+    }
 
-    public static Object generateId(Settings settings) {
-        return String.format("%s:%s", generateId(settings.getGradle()), System.identityHashCode(settings));
+    public static Object generateId(Gradle gradle) {
+        return System.identityHashCode(gradle);
     }
 
     public static Object generateId(Gradle gradle, String operationName) {
-        return String.format("%s:%s", generateId(gradle), operationName);
+        return generateId(gradle) + ":" + operationName;
+    }
+
+    public static Object generateId(Settings settings) {
+        return generateId(settings.getGradle()) + ":" + System.identityHashCode(settings);
     }
 }
