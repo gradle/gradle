@@ -139,7 +139,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public void notifyFired(RuleBinder binder) {
         assert binder.isBound();
-        for (ModelBinding<?> inputBinding : binder.getInputBindings()) {
+        for (ModelBinding inputBinding : binder.getInputBindings()) {
             ModelNodeInternal node = inputBinding.getNode();
             dependencies.add(node);
             node.dependents.add(this);

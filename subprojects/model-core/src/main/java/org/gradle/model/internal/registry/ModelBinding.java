@@ -16,10 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 
 /**
@@ -29,21 +26,21 @@ import org.gradle.model.internal.core.ModelReference;
  * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
 @ThreadSafe
-class ModelBinding<T> {
+class ModelBinding {
 
     private final ModelNodeInternal node;
-    private final ModelReference<T> reference;
+    private final ModelReference<?> reference;
 
-    private ModelBinding(ModelReference<T> reference, ModelNodeInternal node) {
+    private ModelBinding(ModelReference<?> reference, ModelNodeInternal node) {
         this.node = node;
         this.reference = reference;
     }
 
-    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelNodeInternal modelNode) {
-        return new ModelBinding<T>(reference, modelNode);
+    public static ModelBinding of(ModelReference<?> reference, ModelNodeInternal modelNode) {
+        return new ModelBinding(reference, modelNode);
     }
 
-    public ModelReference<T> getReference() {
+    public ModelReference<?> getReference() {
         return reference;
     }
 
@@ -56,16 +53,4 @@ class ModelBinding<T> {
         return "ModelBinding{reference=" + reference + ", node=" + node + '}';
     }
 
-    public static class GetPath implements Function<ModelBinding<?>, ModelPath> {
-
-        public static final Function<ModelBinding<?>, ModelPath> INSTANCE = new GetPath();
-
-        private GetPath() {
-        }
-
-        @Nullable
-        public ModelPath apply(ModelBinding<?> input) {
-            return input.getNode().getPath();
-        }
-    }
 }

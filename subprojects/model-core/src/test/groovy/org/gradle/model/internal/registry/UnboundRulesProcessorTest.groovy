@@ -240,7 +240,7 @@ class UnboundRulesProcessorTest extends Specification {
         RuleBinder build() {
             def binder = new RuleBinder(inputReferences, descriptor, scope, []) {
                 @Override
-                ModelBinding<?> getSubjectBinding() {
+                ModelBinding getSubjectBinding() {
                     subjectReferenceBindingPath ? bind(getSubjectReference(), new TestNode(subjectReferenceBindingPath)) : null
                 }
 

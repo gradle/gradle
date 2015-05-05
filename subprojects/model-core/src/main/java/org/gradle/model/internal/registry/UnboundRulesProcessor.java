@@ -47,7 +47,7 @@ public class UnboundRulesProcessor {
             ModelPath scope = binder.getScope();
 
             if (binder.getSubjectReference() != null) {
-                ModelBinding<?> binding = binder.getSubjectBinding();
+                ModelBinding binding = binder.getSubjectBinding();
                 ModelReference<?> reference = binder.getSubjectReference();
                 UnboundRuleInput.Builder inputBuilder = toInputBuilder(binding, reference, scope);
                 if (scope != ModelPath.ROOT) {
@@ -57,7 +57,7 @@ public class UnboundRulesProcessor {
             }
 
             for (int i = 0; i < binder.getInputReferences().size(); ++i) {
-                ModelBinding<?> binding = binder.getInputBindings().get(i);
+                ModelBinding binding = binder.getInputBindings().get(i);
                 ModelReference<?> reference = binder.getInputReferences().get(i);
                 builder.immutableInput(toInputBuilder(binding, reference, binder.getScope()));
             }
@@ -67,7 +67,7 @@ public class UnboundRulesProcessor {
         return unboundRules;
     }
 
-    private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference, ModelPath scope) {
+    private UnboundRuleInput.Builder toInputBuilder(ModelBinding binding, ModelReference<?> reference, ModelPath scope) {
         UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType());
         ModelPath path;
         if (binding != null) {

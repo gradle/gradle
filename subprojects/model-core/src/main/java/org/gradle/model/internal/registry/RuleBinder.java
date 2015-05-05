@@ -35,14 +35,14 @@ public abstract class RuleBinder {
     private final Collection<RuleBinder> binders;
 
     private int inputsBound;
-    private List<ModelBinding<?>> inputBindings;
+    private List<ModelBinding> inputBindings;
 
     public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope, Collection<RuleBinder> binders) {
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
         this.scope = scope;
         this.binders = binders;
-        this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
+        this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding>emptyList() : Arrays.asList(new ModelBinding[inputReferences.size()]); // fix size
         if (!isBound()) {
             binders.add(this);
         }
@@ -52,7 +52,7 @@ public abstract class RuleBinder {
         return inputReferences;
     }
 
-    public ModelBinding<?> getSubjectBinding() {
+    public ModelBinding getSubjectBinding() {
         return null;
     }
 
@@ -60,7 +60,7 @@ public abstract class RuleBinder {
         return null;
     }
 
-    public List<ModelBinding<?>> getInputBindings() {
+    public List<ModelBinding> getInputBindings() {
         return inputBindings;
     }
 
@@ -90,7 +90,7 @@ public abstract class RuleBinder {
         return inputsBound == inputReferences.size();
     }
 
-    static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelNodeInternal modelNode) {
+    static ModelBinding bind(ModelReference<?> reference, ModelNodeInternal modelNode) {
         return ModelBinding.of(reference, modelNode);
     }
 }

@@ -25,7 +25,7 @@ import java.util.Collection;
 
 public class MutatorRuleBinder<T> extends RuleBinder {
 
-    private ModelBinding<T> subjectBinding;
+    private ModelBinding subjectBinding;
     private final ModelReference<T> subjectReference;
     private final ModelActionRole role;
     private final ModelAction<T> action;
@@ -51,7 +51,7 @@ public class MutatorRuleBinder<T> extends RuleBinder {
         return subjectReference;
     }
 
-    public ModelBinding<T> getSubjectBinding() {
+    public ModelBinding getSubjectBinding() {
         return subjectBinding;
     }
 
