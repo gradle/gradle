@@ -16,14 +16,11 @@
 
 package org.gradle.launcher.continuous;
 
-import com.google.common.collect.Lists;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -35,44 +32,36 @@ import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.filewatch.FilteringFileWatcherListener;
 import org.gradle.internal.filewatch.StopThenFireFileWatcherListener;
-import org.gradle.util.CollectionUtils;
-
-import java.util.Collection;
 
 public class TaskInputsWatcher extends BuildAdapter {
     private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
-    private final Collection<Task> tasks;
+    private final FileCollectionInternal taskInputs;
 
     public TaskInputsWatcher(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
         this.fileWatcherFactory = fileWatcherFactory;
-        this.tasks = Lists.newLinkedList();
+        this.taskInputs = new UnionFileCollection();
     }
 
     @Override
     public void buildStarted(Gradle gradle) {
-        // Task graph is consumed, so it's empty by the time buildFinished is called
-        // Save the list of tasks that will be executed.
-        gradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+        gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
             @Override
-            public void graphPopulated(TaskExecutionGraph graph) {
-                tasks.addAll(graph.getAllTasks());
+            public void beforeExecute(Task task) {
+                FileCollection inputFiles = task.getInputs().getFiles();
+                if(inputFiles instanceof FileCollectionInternal) {
+                    // resolve FileCollection and flatten it if possible
+                    inputFiles = ((FileCollectionInternal)inputFiles).resolveToFileTreesAndFiles();
+                }
+                taskInputs.add(inputFiles);
             }
         });
     }
 
     @Override
     public void buildFinished(BuildResult result) {
-        final FileCollectionInternal taskInputs = new UnionFileCollection(
-            CollectionUtils.collect(tasks, new Transformer<FileCollection, Task>() {
-                public FileCollection transform(Task input) {
-                    return input.getInputs().getFiles();
-                }
-            })
-        );
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Task inputs: {}", taskInputs.getFiles());
             LOGGER.debug("taskInputs.getFileSystemRoots(): {}", taskInputs.getFileSystemRoots());
