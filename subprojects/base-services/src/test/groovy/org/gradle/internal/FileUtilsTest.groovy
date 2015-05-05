@@ -25,7 +25,6 @@ import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.findRoots
 
 class FileUtilsTest extends Specification {
-    boolean leafsAreDirectories = false
 
     def "toSafeFileName encodes unsupported characters"() {
         expect:
@@ -40,7 +39,7 @@ class FileUtilsTest extends Specification {
         'with / \\ #' | 'with#20#2f#20#5c#20#23'
     }
 
-    def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"(){
+    def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
         when:
         File inputFile = new File(RandomStringUtils.randomAlphanumeric(10))
         then:
@@ -54,50 +53,51 @@ class FileUtilsTest extends Specification {
         e.message.contains("exceeds windows path limitation of 260 character.")
     }
 
-    List<File> toRoots(String... paths) {
-        findRoots(paths.collect { new File("/", it) {
-            @Override
-            boolean isDirectory() {
-                return leafsAreDirectories
-            }
-        } })
+    List<File> toRoots(Iterable<? extends File> files) {
+        findRoots(files)
     }
 
-    List<File> files(String... files) {
-        files.collect { new File("/", it) {
-            @Override
-            boolean isDirectory() {
-                return leafsAreDirectories
+    List<File> files(boolean dirs, String... paths) {
+        paths.collect {
+            new File(new File("/", it).absolutePath) {
+                @Override
+                boolean isDirectory() {
+                    return dirs
+                }
             }
-        } }
+        }
+    }
+
+    List<File> files(String... paths) {
+        files(false, paths)
+    }
+
+    List<File> dirs(String... paths) {
+        files(true, paths)
     }
 
     def "can find roots when leafs are directories"() {
-        given:
-        leafsAreDirectories = true
         expect:
-        toRoots() == []
-        toRoots("a/a", "a/a") == files("a/a")
-        toRoots("a", "b", "c") == files("a", "b", "c")
-        toRoots("a/a", "a/a/a", "a/b/a") == files("a/a", "a/b/a")
-        toRoots("a/a", "a/a/a", "b/a/a") == files("a/a", "b/a/a")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == files("a/a/a/a/a/a/a/a/a", "a/b")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a") == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
+        toRoots([]) == []
+        toRoots(dirs("a/a", "a/a")) == files("a/a")
+        toRoots(dirs("a", "b", "c")) == files("a", "b", "c")
+        toRoots(dirs("a/a", "a/a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(dirs("a/a", "a/a/a", "b/a/a")) == files("a/a", "b/a/a")
+        toRoots(dirs("a/a/a/a/a/a/a/a/a", "a/b")) == files("a/a/a/a/a/a/a/a/a", "a/b")
+        toRoots(dirs("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
+        toRoots(dirs("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
     }
 
     def "can find roots when leafs are files"() {
-        given:
-        leafsAreDirectories = false
         expect:
-        toRoots() == []
-        toRoots("a/a", "a/a") == files("a")
-        toRoots("a", "b", "c") == files("")
-        toRoots("a/a", "a/a/a", "a/b/a") == files("a")
-        toRoots("a/a", "a/a/a", "b/a/a") == files("a", "b/a")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b") == files("a")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a") == files("a", "b/a/a/a/a/a/a/a/a/a/a")
-        toRoots("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a") == files("a", "b/a/a/a")
+        toRoots([]) == []
+        toRoots(files("a/a", "a/a")) == files("a")
+        toRoots(files("a", "b", "c")) == files("")
+        toRoots(files("a/a", "a/a/a", "a/b/a")) == files("a")
+        toRoots(files("a/a", "a/a/a", "b/a/a")) == files("a", "b/a")
+        toRoots(files("a/a/a/a/a/a/a/a/a", "a/b")) == files("a")
+        toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")) == files("a", "b/a/a/a/a/a/a/a/a/a/a")
+        toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a")) == files("a", "b/a/a/a")
     }
 
 }
