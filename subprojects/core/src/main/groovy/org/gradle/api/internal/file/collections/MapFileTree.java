@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -80,6 +82,15 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
+    public Set<File> getFilesWithoutCreating() {
+        return CollectionUtils.collect(elements.keySet(), new Transformer<File, RelativePath>() {
+            @Override
+            public File transform(RelativePath relativePath) {
+                return createFileInstance(relativePath);
+            }
+        });
+    }
+
     /**
      * Adds an element to this tree. The given closure is passed an OutputStream which it can use to write the content
      * of the element to.
@@ -118,6 +129,10 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
+    private File createFileInstance(RelativePath path) {
+        return path.getFile(getTmpDir());
+    }
+
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final RelativePath path;
         private final Action<OutputStream> generator;
@@ -144,7 +159,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public File getFile() {
             if (file == null) {
-                file = path.getFile(getTmpDir());
+                file = createFileInstance(path);
                 copyTo(file);
             }
             return file;

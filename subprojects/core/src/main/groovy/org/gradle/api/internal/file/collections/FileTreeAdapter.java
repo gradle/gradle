@@ -87,6 +87,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
             return randomAccess.contains(file);
         }
+        if (tree instanceof MapFileTree) {
+            return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
+        }
         return super.contains(file);
     }
 
@@ -95,6 +98,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof RandomAccessFileCollection) {
             RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
             return randomAccess.wouldContain(file);
+        }
+        if (tree instanceof MapFileTree) {
+            return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
         }
         return super.wouldContain(file);
     }
