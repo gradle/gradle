@@ -79,13 +79,11 @@ gradle.buildFinished {
         gradle = executer.withTasks(task).start()
     }
 
-    String capturedStandardOutput = ""
-    String capturedErrorOutput = ""
 
     void soFar(Closure c) {
-        OutputScrapingExecutionResult result = new OutputScrapingExecutionResult(gradle.standardOutput - capturedStandardOutput, gradle.errorOutput - capturedErrorOutput)
-        capturedStandardOutput = gradle.standardOutput
-        capturedErrorOutput = gradle.errorOutput
+        OutputScrapingExecutionResult result = new OutputScrapingExecutionResult(gradle.standardOutput, gradle.errorOutput)
+        gradle.clearStandardOutput()
+        gradle.clearErrorOutput()
         c.delegate = result
         c.resolveStrategy = Closure.DELEGATE_FIRST
         c.call(result)
