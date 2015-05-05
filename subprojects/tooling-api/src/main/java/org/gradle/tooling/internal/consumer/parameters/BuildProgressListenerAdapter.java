@@ -185,51 +185,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
     }
 
-    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
-        return new TaskOperationDescriptor() {
-            @Override
-            public String getTaskPath() {
-                return descriptor.getTaskPath();
-            }
-
-            @Override
-            public String getName() {
-                return descriptor.getName();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return descriptor.getDisplayName();
-            }
-
-            @Nullable
-            @Override
-            public OperationDescriptor getParent() {
-                return getCachedDescriptor(descriptor.getParentId());
-            }
-        };
-    }
-
-    private BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
-        return new BuildOperationDescriptor() {
-            @Override
-            public String getName() {
-                return descriptor.getName();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return descriptor.getDisplayName();
-            }
-
-            @Nullable
-            @Override
-            public OperationDescriptor getParent() {
-                return getCachedDescriptor(descriptor.getParentId());
-            }
-        };
-    }
-
     private TaskFinishEvent taskFinishedEvent(InternalTaskFinishedProgressEvent event) {
         TaskOperationDescriptor descriptor = removeTaskDescriptor(event.getDescriptor());
         return new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
@@ -413,6 +368,30 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
+    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
+        return new DefaultTaskOperationDescriptor(descriptor);
+    }
+
+    private BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
+        return new BuildOperationDescriptor() {
+            @Override
+            public String getName() {
+                return descriptor.getName();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return descriptor.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public OperationDescriptor getParent() {
+                return getCachedDescriptor(descriptor.getParentId());
+            }
+        };
+    }
+
     private TestOperationResult toTestResult(final InternalTestResult result) {
         if (result instanceof InternalTestSuccessResult) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
@@ -482,4 +461,32 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return String.format("BuildOperationDescriptor[id(%s), name(%s), parent(%s)]", buildDescriptor.getId(), buildDescriptor.getName(), buildDescriptor.getParentId());
     }
 
+    private class DefaultTaskOperationDescriptor implements TaskOperationDescriptor {
+        private final InternalTaskDescriptor descriptor;
+
+        public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor) {
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public String getTaskPath() {
+            return descriptor.getTaskPath();
+        }
+
+        @Override
+        public String getName() {
+            return descriptor.getName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return descriptor.getDisplayName();
+        }
+
+        @Nullable
+        @Override
+        public OperationDescriptor getParent() {
+            return getCachedDescriptor(descriptor.getParentId());
+        }
+    }
 }
