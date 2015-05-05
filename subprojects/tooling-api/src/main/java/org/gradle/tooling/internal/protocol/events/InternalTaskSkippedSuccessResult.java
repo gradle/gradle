@@ -22,5 +22,4 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.5
  */
 public interface InternalTaskSkippedSuccessResult extends InternalTaskSkippedResult, InternalTaskSuccessResult {
-    String getSkipMessage();
 }
