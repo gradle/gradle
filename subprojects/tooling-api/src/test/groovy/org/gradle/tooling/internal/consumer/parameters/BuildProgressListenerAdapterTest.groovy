@@ -24,7 +24,6 @@ import org.gradle.tooling.events.task.*
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
-import org.gradle.tooling.internal.protocol.InternalTaskProgressListener
 import org.gradle.tooling.internal.protocol.events.*
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -78,7 +77,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter = createAdapter(listener)
 
         then:
-        adapter.subscribedOperations == [InternalTaskProgressListener.TASK_EXECUTION]
+        adapter.subscribedOperations == [InternalBuildProgressListener.TASK_EXECUTION]
     }
 
     def "adapter is only subscribing to build progress events if at least one build progress listener is attached"() {
@@ -93,7 +92,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter = createAdapter(listener)
 
         then:
-        adapter.subscribedOperations == [InternalTaskProgressListener.BUILD_EXECUTION]
+        adapter.subscribedOperations == [InternalBuildProgressListener.BUILD_EXECUTION]
     }
 
     def "adapter can subscribe to multiple progress events"() {
@@ -113,13 +112,13 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), null)
 
         then: "task execution becomes a subscribed operation"
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalTaskProgressListener.TASK_EXECUTION] as Set
+        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION] as Set
 
         when: "we register a new build listener"
         adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), Mock(BuildProgressListener))
 
         then: "build execution becomes a subscribed operation"
-        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalTaskProgressListener.TASK_EXECUTION, InternalTaskProgressListener.BUILD_EXECUTION] as Set
+        adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION, InternalBuildProgressListener.BUILD_EXECUTION] as Set
 
     }
 

@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.InternalTaskProgressListener;
 import org.gradle.tooling.internal.protocol.events.*;
 
 import java.util.*;
@@ -40,7 +39,7 @@ import java.util.*;
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener, InternalFailSafeProgressListenersProvider {
+class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalFailSafeProgressListenersProvider {
 
     static final OperationDescriptor DESCRIPTOR_NOT_FOUND = new OperationDescriptor() {
         @Override
@@ -89,10 +88,10 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             operations.add(InternalBuildProgressListener.TEST_EXECUTION);
         }
         if (!taskProgressListeners.isEmpty()) {
-            operations.add(InternalTaskProgressListener.TASK_EXECUTION);
+            operations.add(InternalBuildProgressListener.TASK_EXECUTION);
         }
         if (!buildProgressListeners.isEmpty()) {
-            operations.add(InternalTaskProgressListener.BUILD_EXECUTION);
+            operations.add(InternalBuildProgressListener.BUILD_EXECUTION);
         }
         return operations;
     }
