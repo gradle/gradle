@@ -27,6 +27,7 @@ import org.junit.rules.ExternalResource
 import spock.util.concurrent.PollingConditions
 
 class ContinuousBuildTrigger extends ExternalResource {
+    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 3
     private final GradleExecuter executer
     private final TestDirectoryProvider testDirectoryProvider
     private final CyclicBarrierHttpServer server
@@ -103,8 +104,8 @@ gradle.buildFinished {
 
     def waitForWatching(Closure c) {
         afterBuild(c)
-        new PollingConditions().within(3) {
-            assert gradle.standardOutput.endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
+        new PollingConditions(initialDelay: 0.5).within(WAIT_FOR_WATCHING_TIMEOUT_SECONDS) {
+            assert gradle.standardOutput.contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
         }
         true
     }
