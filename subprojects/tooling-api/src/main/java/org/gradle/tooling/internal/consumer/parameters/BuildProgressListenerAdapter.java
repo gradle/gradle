@@ -21,10 +21,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.build.*;
-import org.gradle.tooling.events.build.internal.DefaultBuildFailureResult;
-import org.gradle.tooling.events.build.internal.DefaultBuildFinishEvent;
-import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
-import org.gradle.tooling.events.build.internal.DefaultBuildSuccessResult;
+import org.gradle.tooling.events.build.internal.*;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.events.task.internal.*;
 import org.gradle.tooling.events.test.*;
@@ -288,80 +285,20 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return operationDescriptor;
     }
 
-    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor testDescriptor, final OperationDescriptor parent) {
-        if (testDescriptor instanceof InternalJvmTestDescriptor) {
-            final InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) testDescriptor;
-            return new JvmTestOperationDescriptor() {
-                @Override
-                public String getName() {
-                    return jvmTestDescriptor.getName();
-                }
-
-                @Override
-                public String getDisplayName() {
-                    return jvmTestDescriptor.getDisplayName();
-                }
-
-                @Override
-                public JvmTestKind getJvmTestKind() {
-                    return toJvmTestKind(jvmTestDescriptor);
-                }
-
-                @Override
-                public String getSuiteName() {
-                    return jvmTestDescriptor.getSuiteName();
-                }
-
-                @Override
-                public String getClassName() {
-                    return jvmTestDescriptor.getClassName();
-                }
-
-                @Override
-                public String getMethodName() {
-                    return jvmTestDescriptor.getMethodName();
-                }
-
-                @Override
-                public OperationDescriptor getParent() {
-                    return parent;
-                }
-
-                @Override
-                public String toString() {
-                    return getDisplayName();
-                }
-            };
+    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor descriptor, final OperationDescriptor parent) {
+        if (descriptor instanceof InternalJvmTestDescriptor) {
+            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
+            return new DefaultJvmTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
         } else {
-            return new TestOperationDescriptor() {
-                @Override
-                public String getName() {
-                    return testDescriptor.getName();
-                }
-
-                @Override
-                public String getDisplayName() {
-                    return testDescriptor.getDisplayName();
-                }
-
-                @Override
-                public OperationDescriptor getParent() {
-                    return parent;
-                }
-
-                @Override
-                public String toString() {
-                    return getDisplayName();
-                }
-            };
+            return new DefaultTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
         }
     }
 
-    private static JvmTestKind toJvmTestKind(InternalJvmTestDescriptor jvmTestDescriptor) {
-        String jvmTestKind = jvmTestDescriptor.getTestKind();
-        if (InternalJvmTestDescriptor.KIND_SUITE.equals(jvmTestKind)) {
+    private static JvmTestKind toJvmTestKind(String testKind) {
+        if (InternalJvmTestDescriptor.KIND_SUITE.equals(testKind)) {
             return JvmTestKind.SUITE;
-        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(jvmTestKind)) {
+        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(testKind)) {
             return JvmTestKind.ATOMIC;
         } else {
             return JvmTestKind.UNKNOWN;
@@ -369,27 +306,13 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
-        return new DefaultTaskOperationDescriptor(descriptor);
+        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
+        return new DefaultTaskOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), descriptor.getTaskPath(), parent);
     }
 
     private BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
-        return new BuildOperationDescriptor() {
-            @Override
-            public String getName() {
-                return descriptor.getName();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return descriptor.getDisplayName();
-            }
-
-            @Nullable
-            @Override
-            public OperationDescriptor getParent() {
-                return getCachedDescriptor(descriptor.getParentId());
-            }
-        };
+        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
+        return new DefaultBuildOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
     }
 
     private TestOperationResult toTestResult(final InternalTestResult result) {
@@ -461,32 +384,4 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return String.format("BuildOperationDescriptor[id(%s), name(%s), parent(%s)]", buildDescriptor.getId(), buildDescriptor.getName(), buildDescriptor.getParentId());
     }
 
-    private class DefaultTaskOperationDescriptor implements TaskOperationDescriptor {
-        private final InternalTaskDescriptor descriptor;
-
-        public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor) {
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return descriptor.getTaskPath();
-        }
-
-        @Override
-        public String getName() {
-            return descriptor.getName();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return descriptor.getDisplayName();
-        }
-
-        @Nullable
-        @Override
-        public OperationDescriptor getParent() {
-            return getCachedDescriptor(descriptor.getParentId());
-        }
-    }
 }
