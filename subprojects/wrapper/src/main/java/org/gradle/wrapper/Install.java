@@ -121,7 +121,7 @@ public class Install {
                         + " via SHA-256 hash sum comparison failed! This is a serious problem,"
                         + " it means that you retrieved a different gradle distribution zip than expected."
                         + " Please inform the maintainer!"
-                        + "You can try to delete the cached gradle distribtion at " +
+                        + "You can try to delete the cached gradle distribtion at "
                         + distDir.getAbsolutePath()
                         + " and try again.");
             }
