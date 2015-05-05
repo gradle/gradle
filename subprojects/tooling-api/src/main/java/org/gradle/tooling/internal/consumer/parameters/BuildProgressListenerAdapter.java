@@ -100,12 +100,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     @Override
-    public void onEvent(final Object event) {
+    public void onEvent(Object event) {
         if (failSafeListeners) {
             try {
                 doBroadcast(event);
-            } catch (Throwable e) {
-                listenerFailures.add(e);
+            } catch (Throwable t) {
+                listenerFailures.add(t);
             }
         } else {
             doBroadcast(event);
@@ -143,17 +143,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private synchronized TaskProgressEvent toTaskProgressEvent(InternalTaskProgressEvent event) {
-        if (event instanceof InternalTaskStartedProgressEvent) {
-            return taskStartedEvent((InternalTaskStartedProgressEvent) event);
-        }
-        if (event instanceof InternalTaskFinishedProgressEvent) {
-            return taskFinishedEvent((InternalTaskFinishedProgressEvent) event);
-        }
-        return null;
-    }
-
-    private synchronized TestProgressEvent toTestProgressEvent(final InternalTestProgressEvent event) {
+    private TestProgressEvent toTestProgressEvent(InternalTestProgressEvent event) {
         if (event instanceof InternalTestStartedProgressEvent) {
             return testStartedEvent((InternalTestStartedProgressEvent) event);
         } else if (event instanceof InternalTestFinishedProgressEvent) {
@@ -163,23 +153,44 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private synchronized BuildProgressEvent toBuildProgressEvent(final InternalBuildProgressEvent event) {
+    private TaskProgressEvent toTaskProgressEvent(InternalTaskProgressEvent event) {
+        if (event instanceof InternalTaskStartedProgressEvent) {
+            return taskStartedEvent((InternalTaskStartedProgressEvent) event);
+        } else if (event instanceof InternalTaskFinishedProgressEvent) {
+            return taskFinishedEvent((InternalTaskFinishedProgressEvent) event);
+        } else {
+            return null;
+        }
+    }
+
+    private BuildProgressEvent toBuildProgressEvent(InternalBuildProgressEvent event) {
         if (event instanceof InternalBuildStartedProgressEvent) {
             return buildStartedEvent((InternalBuildStartedProgressEvent) event);
         } else if (event instanceof InternalBuildFinishedProgressEvent) {
             return buildFinishedEvent((InternalBuildFinishedProgressEvent) event);
+        } else {
+            return null;
         }
-        return null;
     }
 
-    private BuildProgressEvent buildStartedEvent(final InternalBuildStartedProgressEvent event) {
-        BuildOperationDescriptor descriptor = addBuildDescriptor(event.getDescriptor());
-        return new DefaultBuildStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {
+        TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
+        return new DefaultTestStartEvent(event.getEventTime(), event.getDisplayName(), testDescriptor);
     }
 
     private TaskStartEvent taskStartedEvent(InternalTaskStartedProgressEvent event) {
         TaskOperationDescriptor descriptor = addTaskDescriptor(event.getDescriptor());
         return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    }
+
+    private BuildProgressEvent buildStartedEvent(InternalBuildStartedProgressEvent event) {
+        BuildOperationDescriptor descriptor = addBuildDescriptor(event.getDescriptor());
+        return new DefaultBuildStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+    }
+
+    private TestFinishEvent testFinishedEvent(InternalTestFinishedProgressEvent event) {
+        TestOperationDescriptor descriptor = removeTestDescriptor(event.getDescriptor());
+        return new DefaultTestFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTestResult(event.getResult()));
     }
 
     private TaskFinishEvent taskFinishedEvent(InternalTaskFinishedProgressEvent event) {
@@ -192,96 +203,67 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultBuildFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
     }
 
-    private TestStartEvent testStartedEvent(InternalTestStartedProgressEvent event) {
-        long eventTime = event.getEventTime();
-        String displayName = event.getDisplayName();
-        TestOperationDescriptor testDescriptor = addTestDescriptor(event.getDescriptor());
-        return new DefaultTestStartEvent(eventTime, displayName, testDescriptor);
-    }
-
-    private TestFinishEvent testFinishedEvent(final InternalTestFinishedProgressEvent event) {
-        long eventTime = event.getEventTime();
-        String displayName = event.getDisplayName();
-        TestOperationDescriptor testDescriptor = removeTestDescriptor(event.getDescriptor());
-        TestOperationResult result = toTestResult(event.getResult());
-        return new DefaultTestFinishEvent(eventTime, displayName, testDescriptor, result);
-    }
-
-    private TestOperationDescriptor addTestDescriptor(InternalTestDescriptor testDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.get(testDescriptor.getId());
+    private synchronized TestOperationDescriptor addTestDescriptor(InternalTestDescriptor descriptor) {
+        OperationDescriptor cachedTestDescriptor = this.descriptorCache.get(descriptor.getId());
         if (cachedTestDescriptor != null) {
-            assertDescriptorType(TestOperationDescriptor.class, cachedTestDescriptor);
-            throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s already available.", toString(descriptor)));
         }
-        TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor);
-        descriptorCache.put(testDescriptor.getId(), newTestDescriptor);
+        TestOperationDescriptor newTestDescriptor = toTestDescriptor(descriptor);
+        descriptorCache.put(descriptor.getId(), newTestDescriptor);
         return newTestDescriptor;
     }
 
-    private TaskOperationDescriptor addTaskDescriptor(InternalTaskDescriptor internalTaskDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.get(internalTaskDescriptor.getId());
+    private synchronized TaskOperationDescriptor addTaskDescriptor(InternalTaskDescriptor descriptor) {
+        OperationDescriptor cachedTestDescriptor = this.descriptorCache.get(descriptor.getId());
         if (cachedTestDescriptor != null) {
-            assertDescriptorType(TaskOperationDescriptor.class, cachedTestDescriptor);
-            throw new IllegalStateException(String.format("Operation %s already available.", toString(internalTaskDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s already available.", toString(descriptor)));
         }
-        TaskOperationDescriptor newTaskDescriptor = toTaskDescriptor(internalTaskDescriptor);
-        descriptorCache.put(internalTaskDescriptor.getId(), newTaskDescriptor);
+        TaskOperationDescriptor newTaskDescriptor = toTaskDescriptor(descriptor);
+        descriptorCache.put(descriptor.getId(), newTaskDescriptor);
         return newTaskDescriptor;
     }
 
-    private BuildOperationDescriptor addBuildDescriptor(InternalBuildDescriptor internalBuildDescriptor) {
-        OperationDescriptor cached = this.descriptorCache.get(internalBuildDescriptor.getId());
+    private synchronized BuildOperationDescriptor addBuildDescriptor(InternalBuildDescriptor descriptor) {
+        OperationDescriptor cached = this.descriptorCache.get(descriptor.getId());
         if (cached != null) {
-            assertDescriptorType(BuildOperationDescriptor.class, cached);
-            throw new IllegalStateException(String.format("Operation %s already available.", toString(internalBuildDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s already available.", toString(descriptor)));
         }
-        BuildOperationDescriptor newTaskDescriptor = toBuildDescriptor(internalBuildDescriptor);
-        descriptorCache.put(internalBuildDescriptor.getId(), newTaskDescriptor);
-        return newTaskDescriptor;
+        BuildOperationDescriptor newBuildDescriptor = toBuildDescriptor(descriptor);
+        descriptorCache.put(descriptor.getId(), newBuildDescriptor);
+        return newBuildDescriptor;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor cachedDescriptor) {
-        Class<? extends OperationDescriptor> cachedDescriptorClass = cachedDescriptor.getClass();
-        if (!type.isAssignableFrom(cachedDescriptorClass)) {
-            throw new IllegalStateException(String.format("Unexpected descriptor type. Required %s but found %s", type.getName(), cachedDescriptorClass.getName()));
-        }
-        return (T) cachedDescriptor;
-    }
-
-    private TestOperationDescriptor removeTestDescriptor(InternalTestDescriptor testDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(testDescriptor.getId());
+    private synchronized TestOperationDescriptor removeTestDescriptor(InternalTestDescriptor descriptor) {
+        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(descriptor.getId());
         if (cachedTestDescriptor == null) {
-            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(descriptor)));
         }
         return assertDescriptorType(TestOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private TaskOperationDescriptor removeTaskDescriptor(InternalTaskDescriptor testDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(testDescriptor.getId());
+    private synchronized TaskOperationDescriptor removeTaskDescriptor(InternalTaskDescriptor descriptor) {
+        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(descriptor.getId());
         if (cachedTestDescriptor == null) {
-            throw new IllegalStateException(String.format("Operation %s is not available.", toString(testDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(descriptor)));
         }
         return assertDescriptorType(TaskOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private BuildOperationDescriptor removeBuildDescriptor(InternalBuildDescriptor buildDescriptor) {
-        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(buildDescriptor.getId());
+    private synchronized BuildOperationDescriptor removeBuildDescriptor(InternalBuildDescriptor descriptor) {
+        OperationDescriptor cachedTestDescriptor = this.descriptorCache.remove(descriptor.getId());
         if (cachedTestDescriptor == null) {
-            throw new IllegalStateException(String.format("Operation %s is not available.", toString(buildDescriptor)));
+            throw new IllegalStateException(String.format("Operation %s is not available.", toString(descriptor)));
         }
         return assertDescriptorType(BuildOperationDescriptor.class, cachedTestDescriptor);
     }
 
-    private OperationDescriptor getCachedDescriptor(Object id) {
-        if (id == null) {
-            return null;
+    @SuppressWarnings("unchecked")
+    private <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor descriptor) {
+        Class<? extends OperationDescriptor> descriptorClass = descriptor.getClass();
+        if (!type.isAssignableFrom(descriptorClass)) {
+            throw new IllegalStateException(String.format("Unexpected descriptor type. Required %s but found %s", type.getName(), descriptorClass.getName()));
         }
-        OperationDescriptor operationDescriptor = descriptorCache.get(id);
-        if (operationDescriptor == null) {
-            operationDescriptor = DESCRIPTOR_NOT_FOUND;
-        }
-        return operationDescriptor;
+        return (T) descriptor;
     }
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
@@ -305,17 +287,28 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private TaskOperationDescriptor toTaskDescriptor(final InternalTaskDescriptor descriptor) {
+    private TaskOperationDescriptor toTaskDescriptor(InternalTaskDescriptor descriptor) {
         OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
         return new DefaultTaskOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), descriptor.getTaskPath(), parent);
     }
 
-    private BuildOperationDescriptor toBuildDescriptor(final InternalBuildDescriptor descriptor) {
+    private BuildOperationDescriptor toBuildDescriptor(InternalBuildDescriptor descriptor) {
         OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
         return new DefaultBuildOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
     }
 
-    private TestOperationResult toTestResult(final InternalTestResult result) {
+    private synchronized OperationDescriptor getCachedDescriptor(Object id) {
+        if (id == null) {
+            return null;
+        }
+        OperationDescriptor operationDescriptor = descriptorCache.get(id);
+        if (operationDescriptor == null) {
+            operationDescriptor = DESCRIPTOR_NOT_FOUND;
+        }
+        return operationDescriptor;
+    }
+
+    private TestOperationResult toTestResult(InternalTestResult result) {
         if (result instanceof InternalTestSuccessResult) {
             return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestSkippedResult) {
@@ -327,7 +320,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
+    private static TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
             return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
         } else if (result instanceof InternalTaskSkippedResult) {
@@ -339,7 +332,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private static BuildOperationResult toBuildResult(final InternalBuildResult result) {
+    private static BuildOperationResult toBuildResult(InternalBuildResult result) {
         if (result instanceof InternalBuildSuccessResult) {
             return new DefaultBuildSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalBuildFailureResult) {
