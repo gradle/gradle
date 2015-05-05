@@ -171,7 +171,6 @@ public interface LongRunningOperation {
     @Incubating
     LongRunningOperation addTestProgressListener(TestProgressListener listener);
 
-
     /**
      * Adds a task progress listener which will receive task progress events as the operation runs.
      *
@@ -191,7 +190,6 @@ public interface LongRunningOperation {
      */
     @Incubating
     LongRunningOperation addBuildProgressListener(BuildProgressListener listener);
-
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.
