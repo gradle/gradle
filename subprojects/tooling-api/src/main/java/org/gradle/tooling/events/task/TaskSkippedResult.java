@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.task;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.SkippedResult;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Describes how a task operation was skipped.
  *
  * @since 2.5
  */
-public interface InternalTaskSkippedSuccessResult extends InternalTaskSkippedResult, InternalTaskSuccessResult {
+@Incubating
+public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
+
+    /**
+     * Returns a message describing the reason for skipping the task.
+     *
+     * @return the message describing the skip reason
+     */
+    String getSkipMessage();
+
 }

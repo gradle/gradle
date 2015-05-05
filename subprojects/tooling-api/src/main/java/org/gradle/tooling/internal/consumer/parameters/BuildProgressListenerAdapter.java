@@ -24,10 +24,7 @@ import org.gradle.tooling.events.build.*;
 import org.gradle.tooling.events.build.internal.DefaultBuildFinishEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
 import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.events.task.internal.DefaultTaskFailureResult;
-import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
-import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
+import org.gradle.tooling.events.task.internal.*;
 import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
@@ -243,52 +240,15 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private static TaskOperationResult toTaskResult(final InternalTaskResult result) {
-        if (result instanceof InternalTaskSkippedSuccessResult) {
-            return new TaskSkippedSuccessResult() {
-                public String getSkipMessage() {
-                    return ((InternalTaskSkippedResult) result).getSkipMessage();
-                }
-
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalTaskSkippedFailureResult) {
-            return new TaskSkippedFailureResult() {
-                @Override
-                public List<? extends Failure> getFailures() {
-                    return toFailures(result.getFailures());
-                }
-
-                public String getSkipMessage() {
-                    return ((InternalTaskSkippedResult) result).getSkipMessage();
-                }
-
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
-        }
-        if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        }
         if (result instanceof InternalTaskSuccessResult) {
             return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
+        } else if (result instanceof InternalTaskSkippedResult) {
+            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
+        } else if (result instanceof InternalTaskFailureResult) {
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
         }
-        return null;
     }
 
     private static BuildOperationResult toBuildResult(final InternalBuildResult result) {

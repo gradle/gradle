@@ -14,20 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.events;
+package org.gradle.tooling.events.task.internal;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedSuccessResult;
+import org.gradle.tooling.events.task.TaskSkippedResult;
 
-public class DefaultTaskSkippedSuccessResult extends DefaultTaskSuccessResult implements InternalTaskSkippedSuccessResult {
+/**
+ * Implementation of the {@code TaskSkippedResult} interface.
+ */
+public final class DefaultTaskSkippedResult implements TaskSkippedResult {
+
+    private final long startTime;
+    private final long endTime;
     private final String skipMessage;
 
-    public DefaultTaskSkippedSuccessResult(long startTime, long endTime, String skipMessage) {
-        super(startTime, endTime, "skipped", false);
+    public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage) {
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.skipMessage = skipMessage;
     }
 
     @Override
-    public String getSkipMessage() {
-        return skipMessage;
+    public long getStartTime() {
+        return startTime;
     }
+
+    @Override
+    public long getEndTime() {
+        return endTime;
+    }
+
+    @Override
+    public String getSkipMessage() {
+        return this.skipMessage;
+    }
+
 }

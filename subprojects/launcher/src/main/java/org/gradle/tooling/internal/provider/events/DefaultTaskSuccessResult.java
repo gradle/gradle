@@ -22,11 +22,7 @@ public class DefaultTaskSuccessResult extends AbstractTaskResult implements Inte
     private final boolean upToDate;
 
     public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate) {
-        this(startTime, endTime, "succeeded", upToDate);
-    }
-
-    public DefaultTaskSuccessResult(long startTime, long endTime, String outcomeDescription, boolean upToDate) {
-        super(startTime, endTime, outcomeDescription);
+        super(startTime, endTime, "succeeded");
         this.upToDate = upToDate;
     }
 

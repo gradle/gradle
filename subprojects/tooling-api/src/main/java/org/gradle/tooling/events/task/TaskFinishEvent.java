@@ -32,9 +32,8 @@ public interface TaskFinishEvent extends TaskProgressEvent, FinishEvent {
      *
      * <ul>
      *     <li>{@link TaskSuccessResult}</li>
+     *     <li>{@link TaskSkippedResult}</li>
      *     <li>{@link TaskFailureResult}</li>
-     *     <li>{@link TaskSkippedSuccessResult}</li>
-     *     <li>{@link TaskSkippedFailureResult}</li>
      * </ul>
      *
      * @return the result of the finished task operation
