@@ -8,6 +8,8 @@ As such, using the [Gradle Daemon](userguide/gradle_daemon.html) now provides an
 
 If you are using Gradle to build native code (e.g. C/C++), the news gets even better with the introduction of [parallel compilation](#parallel-native-compilation).
 
+Memory consumption has also been reduced when compiling Java source code with Java 7 and 8, which can significantly improve compile times for large Java projects.
+
 Other highlights include [support for Amazon S3 dependency repositories](#support-for-amazon-web-services-s3-backed-repositories) 
 and [support for using annotation processors with Groovy code](#support-for-“annotation-processing”-of-groovy-code) and more. 
 
