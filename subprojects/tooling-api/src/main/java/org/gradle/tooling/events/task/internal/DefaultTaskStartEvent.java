@@ -20,7 +20,10 @@ import org.gradle.tooling.events.internal.BaseStartEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskStartEvent;
 
-public class DefaultTaskStartEvent extends BaseStartEvent implements TaskStartEvent {
+/**
+ * Implementation of the {@code TaskStartEvent} interface.
+ */
+public final class DefaultTaskStartEvent extends BaseStartEvent implements TaskStartEvent {
 
     public DefaultTaskStartEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
