@@ -70,7 +70,7 @@ class WatchServicePoller {
         } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
             return FileWatcherEvent.modify(file);
         } else if (kind == StandardWatchEventKinds.OVERFLOW) {
-            return FileWatcherEvent.overflow();
+            return FileWatcherEvent.undefined();
         } else {
             throw new IllegalStateException("Unknown watch kind " + kind);
         }

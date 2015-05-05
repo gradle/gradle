@@ -26,7 +26,7 @@ public class FileWatcherEvent {
         CREATE,
         MODIFY,
         DELETE,
-        OVERFLOW
+        UNDEFINED // something happened, but we don't know what
     }
 
     private final Type type;
@@ -41,7 +41,7 @@ public class FileWatcherEvent {
         return type;
     }
 
-    @Nullable // null if type == unknown
+    @Nullable // null if type == UNDEFINED
     public File getFile() {
         return file;
     }
@@ -63,8 +63,8 @@ public class FileWatcherEvent {
         return new FileWatcherEvent(Type.DELETE, file);
     }
 
-    public static FileWatcherEvent overflow() {
-        return new FileWatcherEvent(Type.OVERFLOW, null);
+    public static FileWatcherEvent undefined() {
+        return new FileWatcherEvent(Type.UNDEFINED, null);
     }
 
 }

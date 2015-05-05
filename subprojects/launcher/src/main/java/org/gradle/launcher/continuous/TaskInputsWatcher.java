@@ -92,7 +92,7 @@ public class TaskInputsWatcher extends BuildAdapter {
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Received file system event: {}", element);
                         }
-                        return element.getType().equals(FileWatcherEvent.Type.OVERFLOW)
+                        return element.getType().equals(FileWatcherEvent.Type.UNDEFINED)
                             || taskInputs.wouldContain(element.getFile());
                     }
                 },
