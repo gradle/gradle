@@ -50,4 +50,12 @@ public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
      * @return true if this collection would contain the given file, false otherwise.
      */
     boolean wouldContain(File file);
+
+
+    /**
+     * Resolves the file collection to file trees or individual files
+     *
+     * @return file collection instance that has been resolved to file trees or individual files
+     */
+    FileCollectionInternal resolveToFileTreesAndFiles();
 }

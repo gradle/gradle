@@ -114,4 +114,9 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
     public boolean wouldContain(File file) {
         return getDelegate().wouldContain(file);
     }
+
+    @Override
+    public FileCollectionInternal resolveToFileTreesAndFiles() {
+        return getDelegate().resolveToFileTreesAndFiles();
+    }
 }

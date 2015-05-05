@@ -19,15 +19,12 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
@@ -132,10 +129,28 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         List<DirectoryFileTree> fileTrees = new ArrayList<DirectoryFileTree>();
         for (File file : getFiles()) {
             if (file.isFile()) {
-                fileTrees.add(new DirectoryFileTree(file.getParentFile(), new PatternSet().include(file.getName())));
+                fileTrees.add(new FileBackedDirectoryFileTree(file));
             }
         }
         return fileTrees;
+    }
+
+    @Override
+    public FileCollectionInternal resolveToFileTreesAndFiles() {
+        UnionFileCollection unionFileCollection = new UnionFileCollection();
+        Collection<DirectoryFileTree> fileTrees = getAsFileTrees();
+        List<File> singleFiles = new ArrayList<File>();
+        for(DirectoryFileTree tree : fileTrees) {
+            if(tree instanceof FileBackedDirectoryFileTree) {
+                singleFiles.add(((FileBackedDirectoryFileTree) tree).getFile());
+            } else {
+                unionFileCollection.add(new FileTreeAdapter(tree));
+            }
+        }
+        if(!singleFiles.isEmpty()) {
+            unionFileCollection.add(new SimpleFileCollection(singleFiles));
+        }
+        return unionFileCollection;
     }
 
     public Object addToAntBuilder(Object node, String childNodeName) {
