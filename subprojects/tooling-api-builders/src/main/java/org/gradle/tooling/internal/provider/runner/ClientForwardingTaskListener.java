@@ -38,7 +38,6 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
         this.eventConsumer = eventConsumer;
     }
 
-
     private static DefaultTaskDescriptor adapt(Task taskDescriptor) {
         return new DefaultTaskDescriptor(
             EventIdGenerator.generateId(taskDescriptor),
@@ -48,7 +47,6 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
             taskDescriptor.getProject().getPath()
         );
     }
-
 
     private static AbstractTaskResult adaptTaskResult(Task task) {
         TaskState state = task.getState();
@@ -68,13 +66,11 @@ class ClientForwardingTaskListener implements TaskExecutionListener {
     }
 
     private static long startTime(TaskState state) {
-        TaskStateInternal internalState = state instanceof TaskStateInternal ? (TaskStateInternal) state : null;
-        return internalState != null ? internalState.getStartTime() : System.currentTimeMillis();
+        return ((TaskStateInternal) state).getStartTime();
     }
 
     private static long endTime(TaskState state) {
-        TaskStateInternal internalState = state instanceof TaskStateInternal ? (TaskStateInternal) state : null;
-        return internalState != null ? internalState.getEndTime() : System.currentTimeMillis();
+        return ((TaskStateInternal) state).getEndTime();
     }
 
     /**
