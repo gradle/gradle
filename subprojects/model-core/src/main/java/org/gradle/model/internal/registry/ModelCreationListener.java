@@ -22,6 +22,8 @@ public abstract class ModelCreationListener extends ModelPredicate {
     /**
      * Invoked for each node that matches the criteria specified by {@link #getPath()}, {@link #getParent()}, {@link #getScope()} <em>and</em> {@link #getType()},
      * or every node if no criteria specified. Stops notifying listener with further nodes when this method returns true.
+     *
+     * @return true if this listener should no longer receive any notifications of additional nodes.
      */
     public abstract boolean onCreate(ModelNodeInternal node);
 }

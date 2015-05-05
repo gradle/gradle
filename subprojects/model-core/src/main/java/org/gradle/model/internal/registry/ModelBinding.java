@@ -17,7 +17,9 @@
 package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 /**
  * A binding of a reference to an actual model element.
@@ -26,31 +28,41 @@ import org.gradle.model.internal.core.ModelReference;
  * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
 @ThreadSafe
-class ModelBinding {
+abstract class ModelBinding extends ModelCreationListener {
 
-    private final ModelNodeInternal node;
-    private final ModelReference<?> reference;
+    final ModelReference<?> reference;
+    final ModelRuleDescriptor referrer;
+    final boolean writable;
+    protected ModelNodeInternal boundTo;
 
-    private ModelBinding(ModelReference<?> reference, ModelNodeInternal node) {
-        this.node = node;
+    protected ModelBinding(ModelRuleDescriptor referrer, ModelReference<?> reference, boolean writable) {
         this.reference = reference;
-    }
-
-    public static ModelBinding of(ModelReference<?> reference, ModelNodeInternal modelNode) {
-        return new ModelBinding(reference, modelNode);
+        this.referrer = referrer;
+        this.writable = writable;
     }
 
     public ModelReference<?> getReference() {
         return reference;
     }
 
+    public  boolean isBound() {
+        return boundTo != null;
+    }
+
     public ModelNodeInternal getNode() {
-        return node;
+        if (boundTo == null) {
+            throw new IllegalStateException("Target node has not been bound.");
+        }
+        return boundTo;
+    }
+
+    boolean isTypeCompatible(ModelPromise promise) {
+        return promise.canBeViewedAsWritable(reference.getType()) || promise.canBeViewedAsReadOnly(reference.getType());
     }
 
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", node=" + node + '}';
+        return "ModelBinding{reference=" + reference + ", node=" + boundTo + '}';
     }
 
 }

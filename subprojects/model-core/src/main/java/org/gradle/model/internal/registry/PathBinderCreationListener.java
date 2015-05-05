@@ -26,7 +26,7 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
-class PathBinderCreationListener extends BinderCreationListener {
+class PathBinderCreationListener extends ModelBinding {
     private final Action<? super ModelNodeInternal> bindAction;
     private final ModelPath path;
 
@@ -45,10 +45,11 @@ class PathBinderCreationListener extends BinderCreationListener {
     public boolean onCreate(ModelNodeInternal node) {
         ModelPromise promise = node.getPromise();
         if (isTypeCompatible(promise)) {
+            boundTo = node;
             bindAction.execute(node);
             return true; // bound by type and path, stop listening
         } else {
-            throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
                     IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
             ));
         }

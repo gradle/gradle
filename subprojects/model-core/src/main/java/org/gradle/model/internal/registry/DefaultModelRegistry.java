@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.Cast;
@@ -166,48 +165,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         while (iterator.hasNext()) {
             MutatorRuleBinder<?> binder = iterator.next();
             iterator.remove();
-            bindMutatorSubject(binder);
+            registerListener(binder.getSubjectBinding());
         }
-    }
-
-    private <T> void bindMutatorSubject(final MutatorRuleBinder<T> binder) {
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), binder.getScope(), true, new Action<ModelNodeInternal>() {
-            public void execute(ModelNodeInternal subject) {
-                if (!subject.canApply(binder.getRole())) {
-                    throw new IllegalStateException(String.format(
-                            "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
-                            binder.getRole(),
-                            binder.getAction().getDescriptor(),
-                            subject.getPath(),
-                            subject.getState()
-                    ));
-                }
-                binder.bindSubject(subject);
-                subject.addMutatorBinder(binder.getRole(), binder);
-            }
-        });
-        registerListener(listener);
-    }
-
-    private void bindInputs(final RuleBinder binder) {
-        List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
-        for (int i = 0; i < inputReferences.size(); i++) {
-            final int finalI = i;
-            ModelReference<?> input = inputReferences.get(i);
-            ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : binder.getScope();
-            registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelNodeInternal>() {
-                public void execute(ModelNodeInternal modelNode) {
-                    binder.bindInput(finalI, modelNode);
-                }
-            }));
-        }
-    }
-
-    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
-        if (reference.getPath() != null) {
-            return new PathBinderCreationListener(descriptor, reference, scope, writable, bindAction);
-        }
-        return new OneOfTypeBinderCreationListener(descriptor, reference, scope, writable, bindAction);
     }
 
     public <T> T realize(ModelPath path, ModelType<T> type) {
@@ -427,12 +386,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
-    private void forceBindReference(ModelReference<?> reference, ModelBinding binding, ModelPath scope) {
-        if (binding == null) {
-            if (reference.getPath() == null) {
+    private void forceBindReference(ModelBinding binding, ModelPath scope) {
+        if (!binding.isBound()) {
+            ModelPath path = binding.getReference().getPath();
+            if (path == null) {
                 selfCloseAncestryAndSelf(scope);
             } else {
-                selfCloseAncestryAndSelf(reference.getPath().getParent());
+                selfCloseAncestryAndSelf(path.getParent());
             }
         }
     }
@@ -441,16 +401,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (binder.isBound()) {
             return;
         }
-        bindInputs(binder);
+
+        for (ModelBinding binding : binder.getInputBindings()) {
+            registerListener(binding);
+        }
 
         ModelPath scope = binder.getScope();
 
-        if (binder.getSubjectReference() != null && binder.getSubjectBinding() == null) {
-            forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope);
+        if (binder.getSubjectBinding() != null) {
+            forceBindReference(binder.getSubjectBinding(), scope);
         }
 
         for (int i = 0; i < binder.getInputReferences().size(); i++) {
-            forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope);
+            forceBindReference(binder.getInputBindings().get(i), scope);
         }
     }
 

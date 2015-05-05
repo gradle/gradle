@@ -238,19 +238,29 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         RuleBinder build() {
+            def subjectBinding = new ModelBinding(null, subjectReference, true) {
+                @Override
+                boolean onCreate(ModelNodeInternal node) {
+                    return false
+                }
+            }
+            if (subjectReferenceBindingPath) {
+                subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath)
+            }
+
             def binder = new RuleBinder(inputReferences, descriptor, scope, []) {
                 @Override
                 ModelBinding getSubjectBinding() {
-                    subjectReferenceBindingPath ? bind(getSubjectReference(), new TestNode(subjectReferenceBindingPath)) : null
+                    return subjectBinding
                 }
 
                 @Override
                 ModelReference<?> getSubjectReference() {
-                    RuleBinderTestBuilder.this.subjectReference
+                    subjectBinding.reference
                 }
             }
             boundInputReferencePaths.each { index, path ->
-                binder.bindInput(index, new TestNode(path))
+                binder.inputBindings[index].boundTo = new TestNode(path)
             }
             return binder
         }

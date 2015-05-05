@@ -17,11 +17,12 @@
 package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -36,16 +37,43 @@ public abstract class RuleBinder {
 
     private int inputsBound;
     private List<ModelBinding> inputBindings;
+    private Action<ModelNodeInternal> inputBindAction;
 
     public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope, Collection<RuleBinder> binders) {
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
         this.scope = scope;
         this.binders = binders;
-        this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding>emptyList() : Arrays.asList(new ModelBinding[inputReferences.size()]); // fix size
+        inputBindAction = new Action<ModelNodeInternal>() {
+            @Override
+            public void execute(ModelNodeInternal nodeInternal) {
+                ++inputsBound;
+                maybeFire();
+            }
+        };
+        this.inputBindings = inputBindings(inputReferences);
         if (!isBound()) {
             binders.add(this);
         }
+    }
+
+    private List<ModelBinding> inputBindings(List<? extends ModelReference<?>> inputReferences) {
+        if (inputReferences.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        for (ModelReference<?> inputReference : inputReferences) {
+            ModelPath effectiveScope = inputReference.getPath() == null ? ModelPath.ROOT : scope;
+            bindings.add(binding(inputReference, effectiveScope, false, inputBindAction));
+        }
+        return bindings;
+    }
+
+    protected ModelBinding binding(ModelReference<?> reference, ModelPath scope, boolean writable, Action<ModelNodeInternal> bindAction) {
+        if (reference.getPath() != null) {
+            return new PathBinderCreationListener(descriptor, reference, scope, writable, bindAction);
+        }
+        return new OneOfTypeBinderCreationListener(descriptor, reference, scope, writable, bindAction);
     }
 
     public List<? extends ModelReference<?>> getInputReferences() {
@@ -72,14 +100,6 @@ public abstract class RuleBinder {
         return scope;
     }
 
-    public void bindInput(int i, ModelNodeInternal modelNode) {
-        assert this.inputBindings.get(i) == null;
-        assert inputsBound < inputBindings.size();
-        this.inputBindings.set(i, bind(inputReferences.get(i), modelNode));
-        ++inputsBound;
-        maybeFire();
-    }
-
     protected void maybeFire() {
         if (isBound()) {
             binders.remove(this);
@@ -88,9 +108,5 @@ public abstract class RuleBinder {
 
     public boolean isBound() {
         return inputsBound == inputReferences.size();
-    }
-
-    static ModelBinding bind(ModelReference<?> reference, ModelNodeInternal modelNode) {
-        return ModelBinding.of(reference, modelNode);
     }
 }

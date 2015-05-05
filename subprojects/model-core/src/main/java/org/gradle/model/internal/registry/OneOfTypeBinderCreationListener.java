@@ -26,10 +26,8 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
 import org.gradle.model.internal.type.ModelType;
 
-class OneOfTypeBinderCreationListener extends BinderCreationListener {
+class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<? super ModelNodeInternal> bindAction;
-    private ModelPath boundTo;
-    private ModelRuleDescriptor boundToCreator;
     private final ModelPath scope;
 
     public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
@@ -53,13 +51,12 @@ class OneOfTypeBinderCreationListener extends BinderCreationListener {
         ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         ModelPath path = node.getPath();
         if (boundTo != null) {
-            throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                    new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                    new AmbiguousBindingReporter(reference, boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
             ));
         } else {
+            boundTo = node;
             bindAction.execute(node);
-            boundTo = path;
-            boundToCreator = creatorDescriptor;
             return false; // don't unregister listener, need to keep listening for other potential bindings
         }
     }

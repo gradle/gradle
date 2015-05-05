@@ -583,7 +583,6 @@ class DefaultModelMapTest extends Specification {
                 c.create("element") { events << "$it.name created" }
                 c.named("element", ElementRules)
             }
-
         }
 
         when:

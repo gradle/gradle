@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
@@ -32,9 +33,16 @@ public class MutatorRuleBinder<T> extends RuleBinder {
 
     private boolean processed;
 
-    public MutatorRuleBinder(ModelReference<T> subjectReference, ModelActionRole role, ModelAction<T> action, ModelPath scope, Collection<RuleBinder> binders) {
+    public MutatorRuleBinder(ModelReference<T> subjectReference, final ModelActionRole role, ModelAction<T> action, ModelPath scope, Collection<RuleBinder> binders) {
         super(action.getInputs(), action.getDescriptor(), scope, binders);
         this.subjectReference = subjectReference;
+        subjectBinding = binding(subjectReference, scope, true, new Action<ModelNodeInternal>() {
+            @Override
+            public void execute(ModelNodeInternal subject) {
+                subject.addMutatorBinder(role, MutatorRuleBinder.this);
+                maybeFire();
+            }
+        });
         this.role = role;
         this.action = action;
     }
@@ -55,17 +63,10 @@ public class MutatorRuleBinder<T> extends RuleBinder {
         return subjectBinding;
     }
 
-    public void bindSubject(ModelNodeInternal modelNode) {
-        assert this.subjectBinding == null;
-        this.subjectBinding = RuleBinder.bind(subjectReference, modelNode);
-        maybeFire();
-    }
-
     @Override
     public boolean isBound() {
-        return subjectBinding != null && super.isBound();
+        return subjectBinding != null && subjectBinding.isBound() && super.isBound();
     }
-
 
     public boolean isProcessed() {
         return processed;
