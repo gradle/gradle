@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.events.*;
 
@@ -50,9 +49,10 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
     }
 
     private static AbstractTaskResult adaptTaskResult(Task task) {
-        TaskState state = task.getState();
-        long startTime = startTime(state);
-        long endTime = endTime(state);
+        TaskStateInternal state = (TaskStateInternal) task.getState();
+        long startTime = state.getStartTime();
+        long endTime = state.getEndTime();
+
         if (state.getUpToDate()) {
             return new DefaultTaskSuccessResult(startTime, endTime, true);
         }
@@ -66,14 +66,6 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
     }
 
-    private static long startTime(TaskState state) {
-        return ((TaskStateInternal) state).getStartTime();
-    }
-
-    private static long endTime(TaskState state) {
-        return ((TaskStateInternal) state).getEndTime();
-    }
-
     /**
      * This method is called immediately before a task is executed.
      *
@@ -81,7 +73,7 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
      */
     @Override
     public void beforeExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startTime(task.getState()), adapt(task)));
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(state.getStartTime(), adapt(task)));
     }
 
     /**
@@ -92,6 +84,6 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
      */
     @Override
     public void afterExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(endTime(state), adapt(task), adaptTaskResult(task)));
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(state.getEndTime(), adapt(task), adaptTaskResult(task)));
     }
 }
