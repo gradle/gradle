@@ -34,7 +34,6 @@ public abstract class RuleBinder {
     private final ModelPath scope;
     private final Collection<RuleBinder> binders;
 
-    private boolean bindingInputs;
     private int inputsBound;
     private List<ModelBinding<?>> inputBindings;
 
@@ -47,15 +46,6 @@ public abstract class RuleBinder {
         if (!isBound()) {
             binders.add(this);
         }
-    }
-
-    // is binding then inputs for this binder in progress?
-    public boolean isBindingInputs() {
-        return bindingInputs;
-    }
-
-    public void setBindingInputs(boolean bindingInputs) {
-        this.bindingInputs = bindingInputs;
     }
 
     public List<? extends ModelReference<?>> getInputReferences() {

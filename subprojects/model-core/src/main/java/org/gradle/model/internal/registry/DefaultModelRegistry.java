@@ -53,9 +53,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final ModelRuleExtractor ruleExtractor;
 
-    private final Set<RuleBinder> binders = Sets.newIdentityHashSet();
+    private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
-    private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
     private final LinkedHashMap<ModelRule, ModelBinding<?>> rulesWithInputsBeingClosed = Maps.newLinkedHashMap();
 
     boolean reset;
@@ -84,8 +83,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    public CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
-        return new CreatorRuleBinder(creator, ModelPath.ROOT, binders);
+    private CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
+        return new CreatorRuleBinder(creator, ModelPath.ROOT, unboundRules);
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
@@ -157,7 +156,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, binders);
+        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, unboundRules);
 
         pendingMutatorBinders.add(binder);
     }
@@ -183,7 +182,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                             subject.getState()
                     ));
                 }
-                unboundSubjectMutatorBinders.remove(binder);
                 binder.bindSubject(subject);
                 subject.addMutatorBinder(binder.getRole(), binder);
             }
@@ -192,20 +190,16 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bindInputs(final RuleBinder binder) {
-        if (!binder.isBindingInputs()) {
-            binder.setBindingInputs(true);
-            List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
-            for (int i = 0; i < inputReferences.size(); i++) {
-                final int finalI = i;
-                ModelReference<?> input = inputReferences.get(i);
-                ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : binder.getScope();
-                registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelNodeInternal>() {
-                    public void execute(ModelNodeInternal modelNode) {
-                        binder.bindInput(finalI, modelNode);
-                    }
-                }));
-            }
-            tryForceBind(binder);
+        List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
+        for (int i = 0; i < inputReferences.size(); i++) {
+            final int finalI = i;
+            ModelReference<?> input = inputReferences.get(i);
+            ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : binder.getScope();
+            registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelNodeInternal>() {
+                public void execute(ModelNodeInternal modelNode) {
+                    binder.bindInput(finalI, modelNode);
+                }
+            }));
         }
     }
 
@@ -316,28 +310,28 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public void bindAllReferences() throws UnboundModelRulesException {
         flushPendingMutatorBinders();
-        if (binders.isEmpty()) {
+        if (unboundRules.isEmpty()) {
             return;
         }
 
         boolean newInputsBound = true;
-        while (!binders.isEmpty() && newInputsBound) {
+        while (!unboundRules.isEmpty() && newInputsBound) {
             newInputsBound = false;
-            RuleBinder[] unboundBinders = binders.toArray(new RuleBinder[binders.size()]);
+            RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[unboundRules.size()]);
             for (RuleBinder binder : unboundBinders) {
                 tryForceBind(binder);
                 newInputsBound = newInputsBound || binder.isBound();
             }
         }
 
-        if (!binders.isEmpty()) {
+        if (!unboundRules.isEmpty()) {
             SortedSet<RuleBinder> sortedBinders = new TreeSet<RuleBinder>(new Comparator<RuleBinder>() {
                 @Override
                 public int compare(RuleBinder o1, RuleBinder o2) {
                     return o1.getDescriptor().toString().compareTo(o2.getDescriptor().toString());
                 }
             });
-            sortedBinders.addAll(binders);
+            sortedBinders.addAll(unboundRules);
             throw unbound(sortedBinders);
         }
     }
@@ -433,40 +427,31 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
-    private boolean forceBindReference(ModelReference<?> reference, ModelBinding<?> binding, ModelPath scope) {
+    private void forceBindReference(ModelReference<?> reference, ModelBinding<?> binding, ModelPath scope) {
         if (binding == null) {
             if (reference.getPath() == null) {
                 selfCloseAncestryAndSelf(scope);
             } else {
                 selfCloseAncestryAndSelf(reference.getPath().getParent());
             }
-            return true;
         }
-        return false;
     }
 
-    private boolean tryForceBind(RuleBinder binder) {
+    private void tryForceBind(RuleBinder binder) {
         if (binder.isBound()) {
-            return false;
+            return;
         }
         bindInputs(binder);
 
-        boolean boundSomething = false;
         ModelPath scope = binder.getScope();
 
         if (binder.getSubjectReference() != null && binder.getSubjectBinding() == null) {
-            if (forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope)) {
-                boundSomething = binder.getSubjectBinding() != null;
-            }
+            forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope);
         }
 
         for (int i = 0; i < binder.getInputReferences().size(); i++) {
-            if (forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope)) {
-                boundSomething = boundSomething || binder.getInputBindings().get(i) != null;
-            }
+            forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope);
         }
-
-        return boundSomething;
     }
 
     private void forceBind(RuleBinder binder) {
