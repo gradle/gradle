@@ -262,7 +262,7 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         private static CreatorRuleBinder toBinder(String creationPath) {
-            def creator = ModelCreators.of(ModelReference.of(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
+            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
             def binder = new CreatorRuleBinder(creator, ModelPath.ROOT, [])
             binder
         }

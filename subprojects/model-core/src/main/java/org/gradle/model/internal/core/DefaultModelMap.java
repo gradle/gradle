@@ -183,7 +183,7 @@ public class DefaultModelMap<T> extends AbstractModelMap<T> {
                 final ModelPath path = reference.getPath();
                 final ModelType<? extends T> modelType = reference.getType();
                 return ModelCreators
-                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        .of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
                             public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                                 doExecute(modelNode, modelType);
@@ -206,7 +206,7 @@ public class DefaultModelMap<T> extends AbstractModelMap<T> {
                 final ModelPath path = reference.getPath();
                 final ModelType<? extends T> modelType = reference.getType();
                 return ModelCreators
-                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        .of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
                             public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                                 doExecute(modelNode, modelType, modelViews);
@@ -237,7 +237,7 @@ public class DefaultModelMap<T> extends AbstractModelMap<T> {
                 final ModelPath path = reference.getPath();
                 final ModelType<? extends T> modelType = reference.getType();
                 return ModelCreators
-                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        .of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
                             public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                                 doExecute(modelNode, modelType, modelViews);

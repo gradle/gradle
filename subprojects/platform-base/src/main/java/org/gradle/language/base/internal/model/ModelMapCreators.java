@@ -39,9 +39,7 @@ public class ModelMapCreators {
         }.where(new ModelType.Parameter<T>() {
         }, ModelType.of(typeClass)).build();
 
-        ModelReference<ModelMap<T>> containerReference = ModelReference.of(name, DefaultModelMap.modelMapTypeOf(typeClass));
-
-        return ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        return ModelCreators.of(ModelPath.path(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
                 final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(

@@ -83,7 +83,7 @@ public abstract class BridgedCollections {
         );
 
         ModelCreators.Builder creatorBuilder = ModelCreators.of(
-                containerReference,
+                containerReference.getPath(),
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
 
@@ -122,7 +122,7 @@ public abstract class BridgedCollections {
                                 if (!containerNode.hasLink(name)) {
                                     ModelType<I> itemType = ModelType.typeOf(item);
                                     ModelReference<I> itemReference = ModelReference.of(containerReference.getPath().child(name), itemType);
-                                    ModelCreator itemCreator = ModelCreators.of(itemReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                    ModelCreator itemCreator = ModelCreators.of(itemReference.getPath(), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                                         @Override
                                         public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                                             C container = ModelViews.assertType(modelViews.get(0), storeReference.getType()).getInstance();

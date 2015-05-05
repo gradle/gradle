@@ -112,8 +112,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         ModelPath binaryPath = modelNode.getPath();
                         ModelPath taskNodePath = binaryPath.child("__tasks");
                         ModelType<Collection<Task>> taskCollectionType = ModelTypes.collectionOf(Task.class);
-                        ModelReference<Collection<Task>> tasksNodeReference = ModelReference.of(taskNodePath, taskCollectionType);
-                        modelNode.addLink(ModelCreators.of(tasksNodeReference, BiActions.doNothing())
+                        modelNode.addLink(ModelCreators.of(taskNodePath, BiActions.doNothing())
                                         .withProjection(new UnmanagedModelProjection<Collection<Task>>(taskCollectionType))
                                         .descriptor(descriptor + ".createTasksNode")
                                         .hidden(true)

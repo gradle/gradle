@@ -65,14 +65,14 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
         if (schema instanceof ModelCollectionSchema) {
             ModelCollectionSchema<T> collectionSchema = (ModelCollectionSchema<T>) schema;
             ModelSchema<?> elementSchema = schemaStore.getSchema(collectionSchema.getElementType());
-            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
+            return ModelCreators.of(modelReference.getPath(), new ManagedSetInitializer<T>(initializer))
                     .withProjection(ManagedSetModelProjection.of(elementSchema, this))
                     .descriptor(descriptor)
                     .build();
         }
         if (schema instanceof ModelStructSchema) {
             ModelStructSchema<T> structSchema = (ModelStructSchema<T>) schema;
-            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this, initializer))
+            return ModelCreators.of(modelReference.getPath(), new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this, initializer))
                     .withProjection(new ManagedModelProjection<T>(structSchema, schemaStore, proxyFactory))
                     .descriptor(descriptor)
                     .build();

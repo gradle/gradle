@@ -246,7 +246,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private static <T extends TaskInternal> void addPlaceholderModelLink(final String placeholderName, final Class<T> taskType, final Action<? super T> configure, final ModelType<T> taskModelType, ModelPath path, final ModelReference<NamedEntityInstantiator<Task>> instantiatorReference, final MutableModelNode modelNode) {
         modelNode.addLink(
                 ModelCreators
-                        .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        .of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
                             public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                                 NamedEntityInstantiator<Task> instantiator = ModelViews.getInstance(inputs.get(0), instantiatorReference);

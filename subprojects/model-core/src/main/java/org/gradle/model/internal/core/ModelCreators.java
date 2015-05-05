@@ -51,22 +51,22 @@ abstract public class ModelCreators {
             }
         }, initializer);
 
-        return of(modelReference, initializers)
+        return of(modelReference.getPath(), initializers)
             .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
     }
 
-    public static Builder of(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-        return new Builder(modelReference, initializer);
+    public static Builder of(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+        return new Builder(path, initializer);
     }
 
-    public static Builder of(ModelReference<?> modelReference, Action<? super MutableModelNode> initializer) {
-        return new Builder(modelReference, BiActions.usingFirstArgument(initializer));
+    public static Builder of(ModelPath path, Action<? super MutableModelNode> initializer) {
+        return new Builder(path, BiActions.usingFirstArgument(initializer));
     }
 
     @NotThreadSafe
     public static class Builder {
         private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
-        private final ModelReference<?> modelReference;
+        private final ModelPath path;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private boolean ephemeral;
         private boolean hidden;
@@ -74,8 +74,8 @@ abstract public class ModelCreators {
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
 
-        private Builder(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-            this.modelReference = modelReference;
+        private Builder(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+            this.path = path;
             this.initializer = initializer;
         }
 
@@ -117,7 +117,7 @@ abstract public class ModelCreators {
 
         public ModelCreator build() {
             ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, ephemeral, hidden, inputs, projection, initializer);
+            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, initializer);
         }
     }
 
