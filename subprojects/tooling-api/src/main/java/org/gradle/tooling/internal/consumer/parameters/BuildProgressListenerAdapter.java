@@ -77,6 +77,10 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         failSafeListeners = failSafe;
     }
 
+    public List<Throwable> getListenerFailures() {
+        return ImmutableList.copyOf(listenerFailures);
+    }
+
     @Override
     public List<String> getSubscribedOperations() {
         if (testProgressListeners.isEmpty() && taskProgressListeners.isEmpty() && buildProgressListeners.isEmpty()) {
@@ -116,10 +120,6 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         } else if (event instanceof InternalBuildProgressEvent) {
             broadcastBuildProgressEvent((InternalBuildProgressEvent) event);
         }
-    }
-
-    public List<Throwable> getListenerFailures() {
-        return ImmutableList.copyOf(listenerFailures);
     }
 
     private void broadcastTestProgressEvent(InternalTestProgressEvent event) {
@@ -213,8 +213,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             assertDescriptorType(TestOperationDescriptor.class, cachedTestDescriptor);
             throw new IllegalStateException(String.format("Operation %s already available.", toString(testDescriptor)));
         }
-        OperationDescriptor parent = getCachedDescriptor(testDescriptor.getParentId());
-        TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
+        TestOperationDescriptor newTestDescriptor = toTestDescriptor(testDescriptor);
         descriptorCache.put(testDescriptor.getId(), newTestDescriptor);
         return newTestDescriptor;
     }
@@ -285,7 +284,8 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return operationDescriptor;
     }
 
-    private static TestOperationDescriptor toTestDescriptor(final InternalTestDescriptor descriptor, final OperationDescriptor parent) {
+    private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
+        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
             return new DefaultJvmTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent,
