@@ -68,7 +68,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
-                    + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
+                + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
         NativeServicesTestFixture.initialize();
@@ -132,9 +132,8 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
         gradleOpts.add("-ea");
 
-        if(isDebugModeEnabled()) {
-            gradleOpts.add("-Xdebug");
-            gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+        if (isDebug()) {
+            gradleOpts.addAll(DEBUG_ARGS);
         }
 
         return gradleOpts;

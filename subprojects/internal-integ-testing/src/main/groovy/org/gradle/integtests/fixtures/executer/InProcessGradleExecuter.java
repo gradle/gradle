@@ -30,11 +30,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.FixedBuildCancellationToken;
-import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.event.ListenerManager;
@@ -69,15 +65,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -152,9 +140,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 builder.setMain(Main.class.getName());
                 builder.args(getAllArgs());
                 builder.setStandardInput(getStdin());
-                if(isDebugModeEnabled()) {
-                    builder.args("--debug");
-                    builder.jvmArgs("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+                if (isDebug()) {
+                    builder.jvmArgs(DEBUG_ARGS);
                 }
                 return builder;
             }

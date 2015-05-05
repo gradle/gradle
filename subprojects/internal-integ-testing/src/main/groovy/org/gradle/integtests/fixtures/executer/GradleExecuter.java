@@ -94,8 +94,7 @@ public interface GradleExecuter {
     GradleExecuter withUserHomeDir(File userHomeDir);
 
     /**
-     * Sets the <em>Gradle</em> user home dir. Setting to null requests that the executer use the real default Gradle user home dir rather than the
-     * default used for testing.
+     * Sets the <em>Gradle</em> user home dir. Setting to null requests that the executer use the real default Gradle user home dir rather than the default used for testing.
      */
     GradleExecuter withGradleUserHomeDir(File userHomeDir);
 
@@ -149,10 +148,9 @@ public interface GradleExecuter {
      * Adds options that should be used to start the JVM, if a JVM is to be started. Ignored if not.
      *
      * @param gradleOpts the jvm opts
-     *
      * @return this executer
      */
-    GradleExecuter withGradleOpts(String ... gradleOpts);
+    GradleExecuter withGradleOpts(String... gradleOpts);
 
     /**
      * Sets the default character encoding to use.
@@ -184,16 +182,12 @@ public interface GradleExecuter {
     /**
      * Set the number of seconds an idle daemon should live for.
      *
-     * @param secs
-     *
      * @return this executer
      */
     GradleExecuter withDaemonIdleTimeoutSecs(int secs);
 
     /**
      * Set the working space for the daemon and launched daemons
-     *
-     * @param baseDir
      *
      * @return this executer
      */
@@ -295,12 +289,9 @@ public interface GradleExecuter {
     GradleExecuter withDaemonStartingMessageEnabled();
 
     /**
-     * adds JVM debugger args to forked JVM in case of a forking executor
-     *
-     * enabled by default with "-Dorg.gradle.integtest.debugmode=true" system property
-     *
+     * Where possible, starts the Gradle build process in suspended debug mode.
      */
-    GradleExecuter withDebugModeEnabled();
-    GradleExecuter withDebugModeDisabled();
-    boolean isDebugModeEnabled();
+    GradleExecuter withDebug(boolean flag);
+
+    boolean isDebug();
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -41,6 +42,13 @@ import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
+    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+
+    protected static final List<String> DEBUG_ARGS = ImmutableList.of(
+        "-Xdebug",
+        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+    );
 
     private final Logger logger;
 
@@ -84,7 +92,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
 
-    private boolean debugMode = defaultDebugMode();
+    private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -118,7 +126,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
-        debugMode = defaultDebugMode();
+        debug = Boolean.getBoolean(DEBUG_SYSPROP);
         return this;
     }
 
@@ -229,12 +237,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!daemonStartingMessageDisabled) {
             executer.withDaemonStartingMessageEnabled();
         }
-        if (debugMode) {
-            executer.withDebugModeEnabled();
-        } else {
-            executer.withDebugModeDisabled();
-        }
 
+        executer.withDebug(debug);
         return executer;
     }
 
@@ -720,21 +724,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return daemonStartingMessageDisabled;
     }
 
-    private boolean defaultDebugMode() {
-        return "true".equals(System.getProperty("org.gradle.integtest.debugmode", "false"));
-    }
-
-    public GradleExecuter withDebugModeEnabled() {
-        debugMode = true;
+    @Override
+    public GradleExecuter withDebug(boolean flag) {
+        debug = flag;
         return this;
     }
 
-    public GradleExecuter withDebugModeDisabled() {
-        debugMode = false;
-        return this;
-    }
-
-    public boolean isDebugModeEnabled() {
-        return debugMode;
+    @Override
+    public boolean isDebug() {
+        return debug;
     }
 }
