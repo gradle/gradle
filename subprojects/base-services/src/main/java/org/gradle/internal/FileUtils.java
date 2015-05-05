@@ -58,6 +58,15 @@ public class FileUtils {
         return file;
     }
 
+    /**
+     * Returns the outer most (i.e. closest to the file system root) *directories* that encompass the given files inclusively.
+     * <p>
+     * The returned set of File objects do not necessarily represent directories that exist.
+     * If a given input file does not exist, its {@link File#getParentFile()} is considered a suitable root.
+     *
+     * @param files the site of files to find the encompassing roots of
+     * @return the encompassing roots
+     */
     public static Collection<? extends File> findRoots(Iterable<? extends File> files) {
         List<File> roots = Lists.newLinkedList();
 
