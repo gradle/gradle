@@ -38,52 +38,42 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         this.eventConsumer = eventConsumer;
     }
 
-    private static DefaultTaskDescriptor adapt(Task taskDescriptor) {
-        return new DefaultTaskDescriptor(
-            EventIdGenerator.generateId(taskDescriptor),
-            taskDescriptor.getName(),
-            taskDescriptor.getDescription(),
-            taskDescriptor.getPath(),
-            taskDescriptor.getProject().getPath()
-        );
+    @Override
+    public void beforeExecute(TaskInternal task, TaskStateInternal state) {
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(state.getStartTime(), toTaskDescriptor(task)));
     }
 
-    private static AbstractTaskResult adaptTaskResult(Task task) {
+    @Override
+    public void afterExecute(TaskInternal task, TaskStateInternal state) {
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(state.getEndTime(), toTaskDescriptor(task), toTaskResult(task)));
+    }
+
+    private static DefaultTaskDescriptor toTaskDescriptor(Task task) {
+        return new DefaultTaskDescriptor(
+            EventIdGenerator.generateId(task),
+            task.getName(),
+            task.getDescription(),
+            task.getPath(),
+            EventIdGenerator.generateId(task.getProject().getGradle()));
+    }
+
+    private static AbstractTaskResult toTaskResult(Task task) {
         TaskStateInternal state = (TaskStateInternal) task.getState();
         long startTime = state.getStartTime();
         long endTime = state.getEndTime();
 
         if (state.getUpToDate()) {
             return new DefaultTaskSuccessResult(startTime, endTime, true);
-        }
-        if (state.getSkipped()) {
+        } else if (state.getSkipped()) {
             return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage());
+        } else {
+            Throwable failure = state.getFailure();
+            if (failure == null) {
+                return new DefaultTaskSuccessResult(startTime, endTime, false);
+            } else {
+                return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            }
         }
-        Throwable failure = state.getFailure();
-        if (failure == null) {
-            return new DefaultTaskSuccessResult(startTime, endTime, false);
-        }
-        return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
     }
 
-    /**
-     * This method is called immediately before a task is executed.
-     *
-     * @param task The task about to be executed. Never null.
-     */
-    @Override
-    public void beforeExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(state.getStartTime(), adapt(task)));
-    }
-
-    /**
-     * This method is call immediately after a task has been executed. It is always called, regardless of whether the task completed successfully, or failed with an exception.
-     *
-     * @param task The task which was executed. Never null.
-     * @param state The task state. If the task failed with an exception, the exception is available in this
-     */
-    @Override
-    public void afterExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(state.getEndTime(), adapt(task), adaptTaskResult(task)));
-    }
 }
