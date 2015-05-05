@@ -21,10 +21,10 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.build.*;
-import org.gradle.tooling.events.build.internal.DefaultBuildFinishedEvent;
+import org.gradle.tooling.events.build.internal.DefaultBuildFinishEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
 import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.events.task.internal.DefaultTaskFinishedEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
 import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.*;
@@ -232,12 +232,12 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
     private TaskFinishEvent taskFinishedEvent(InternalTaskFinishedProgressEvent event) {
         TaskOperationDescriptor descriptor = removeTaskDescriptor(event.getDescriptor());
-        return new DefaultTaskFinishedEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
+        return new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
     }
 
     private BuildFinishEvent buildFinishedEvent(InternalBuildFinishedProgressEvent event) {
         BuildOperationDescriptor descriptor = removeBuildDescriptor(event.getDescriptor());
-        return new DefaultBuildFinishedEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
+        return new DefaultBuildFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
     }
 
     private static TaskOperationResult toTaskResult(final InternalTaskResult result) {

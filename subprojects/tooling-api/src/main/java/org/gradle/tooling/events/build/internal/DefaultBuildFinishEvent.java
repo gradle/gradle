@@ -21,9 +21,9 @@ import org.gradle.tooling.events.build.BuildOperationDescriptor;
 import org.gradle.tooling.events.build.BuildOperationResult;
 import org.gradle.tooling.events.internal.BaseFinishEvent;
 
-public class DefaultBuildFinishedEvent extends BaseFinishEvent implements BuildFinishEvent {
+public class DefaultBuildFinishEvent extends BaseFinishEvent implements BuildFinishEvent {
 
-    public DefaultBuildFinishedEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor, BuildOperationResult result) {
+    public DefaultBuildFinishEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor, BuildOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 

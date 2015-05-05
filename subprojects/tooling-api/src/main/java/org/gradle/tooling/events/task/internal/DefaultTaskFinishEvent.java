@@ -21,9 +21,9 @@ import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
 
-public class DefaultTaskFinishedEvent extends BaseFinishEvent implements TaskFinishEvent {
+public class DefaultTaskFinishEvent extends BaseFinishEvent implements TaskFinishEvent {
 
-    public DefaultTaskFinishedEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
+    public DefaultTaskFinishEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
 
