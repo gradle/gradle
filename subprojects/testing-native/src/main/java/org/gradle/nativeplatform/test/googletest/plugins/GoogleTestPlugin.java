@@ -57,7 +57,6 @@ import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with GoogleTest.
@@ -66,8 +65,8 @@ import java.util.Collections;
 public class GoogleTestPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeBinariesTestPlugin.class));
-        project.apply(Collections.singletonMap("plugin", CppLangPlugin.class));
+        project.getPluginManager().apply(NativeBinariesTestPlugin.class);
+        project.getPluginManager().apply(CppLangPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
