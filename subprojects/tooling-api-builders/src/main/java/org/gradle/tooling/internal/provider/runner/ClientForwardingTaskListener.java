@@ -92,7 +92,6 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
      */
     @Override
     public void afterExecute(TaskInternal task, TaskStateInternal state) {
-        long eventTime = endTime(state);
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(eventTime, adapt(task), adaptTaskResult(task)));
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(endTime(state), adapt(task), adaptTaskResult(task)));
     }
 }

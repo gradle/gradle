@@ -42,7 +42,7 @@ import java.util.*;
  */
 class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalTaskProgressListener, InternalFailSafeProgressListenersProvider {
 
-    public final static OperationDescriptor DESCRIPTOR_NOT_FOUND = new OperationDescriptor() {
+    static final OperationDescriptor DESCRIPTOR_NOT_FOUND = new OperationDescriptor() {
         @Override
         public String getName() {
             return "unknown";
