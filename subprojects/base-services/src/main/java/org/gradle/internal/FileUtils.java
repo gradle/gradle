@@ -20,14 +20,15 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
 
     /**
-     * Converts a string into a string that is safe to use as a file name. The result will only include ascii
-     * characters and numbers, and the "-","_", #, $ and "." characters.
+     * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
      */
     public static String toSafeFileName(String name) {
         int size = name.length();
@@ -49,8 +50,8 @@ public class FileUtils {
         return rc.toString();
     }
 
-    public static File assertInWindowsPathLengthLimitation(File file){
-        if(file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT){
+    public static File assertInWindowsPathLengthLimitation(File file) {
+        if (file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT) {
             throw new GradleException(String.format("Cannot create file. '%s' exceeds windows path limitation of %d character.", file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
 
         }
@@ -60,15 +61,10 @@ public class FileUtils {
     public static Collection<? extends File> findRoots(Iterable<? extends File> files) {
         List<File> roots = Lists.newLinkedList();
 
-        Set<File> directories = new LinkedHashSet<File>();
-        for(File file : files) {
-            File absoluteFile = file.getAbsoluteFile();
-            directories.add(file.isDirectory() ? absoluteFile : absoluteFile.getParentFile());
-        }
-
         files:
-        for (File dir : directories) {
-            String path = dir.getPath() + File.separator;
+        for (File file : files) {
+            File target = (file.isDirectory() ? file : file.getParentFile()).getAbsoluteFile();
+            String path = target.getPath() + File.separator;
             Iterator<File> rootsIterator = roots.iterator();
 
             while (rootsIterator.hasNext()) {
@@ -83,7 +79,7 @@ public class FileUtils {
                 }
             }
 
-            roots.add(dir);
+            roots.add(target);
         }
 
         return roots;
