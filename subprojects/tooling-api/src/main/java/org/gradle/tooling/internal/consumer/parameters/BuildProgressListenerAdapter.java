@@ -24,8 +24,10 @@ import org.gradle.tooling.events.build.*;
 import org.gradle.tooling.events.build.internal.DefaultBuildFinishEvent;
 import org.gradle.tooling.events.build.internal.DefaultBuildStartEvent;
 import org.gradle.tooling.events.task.*;
+import org.gradle.tooling.events.task.internal.DefaultTaskFailureResult;
 import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
+import org.gradle.tooling.events.task.internal.DefaultTaskSuccessResult;
 import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
@@ -281,40 +283,10 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
             };
         }
         if (result instanceof InternalTaskFailureResult) {
-            return new TaskFailureResult() {
-                @Override
-                public List<? extends Failure> getFailures() {
-                    return toFailures(result.getFailures());
-                }
-
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         }
         if (result instanceof InternalTaskSuccessResult) {
-            return new TaskSuccessResult() {
-                @Override
-                public boolean isUpToDate() {
-                    return ((InternalTaskSuccessResult) result).isUpToDate();
-                }
-
-                @Override
-                public long getStartTime() {
-                    return result.getStartTime();
-                }
-
-                @Override
-                public long getEndTime() {
-                    return result.getEndTime();
-                }
-            };
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSuccessResult) result).isUpToDate());
         }
         return null;
     }
@@ -437,11 +409,11 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private OperationDescriptor getCachedDescriptor(Object id) {
-        if (id==null) {
+        if (id == null) {
             return null;
         }
         OperationDescriptor operationDescriptor = descriptorCache.get(id);
-        if (operationDescriptor==null) {
+        if (operationDescriptor == null) {
             operationDescriptor = DESCRIPTOR_NOT_FOUND;
         }
         return operationDescriptor;
@@ -540,7 +512,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private static List<Failure> toFailures(List<? extends InternalFailure> causes) {
-        if (causes==null) {
+        if (causes == null) {
             return null;
         }
         List<Failure> failures = new ArrayList<Failure>();
