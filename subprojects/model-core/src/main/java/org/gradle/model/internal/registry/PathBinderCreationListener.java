@@ -38,12 +38,11 @@ class PathBinderCreationListener extends BinderCreationListener {
 
     @Nullable
     @Override
-    public ModelPath matchPath() {
+    public ModelPath getPath() {
         return path;
     }
 
     public boolean onCreate(ModelNodeInternal node) {
-        ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         ModelPromise promise = node.getPromise();
         if (isTypeCompatible(promise)) {
             bindAction.execute(node);

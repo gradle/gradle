@@ -32,7 +32,7 @@ import org.gradle.model.internal.type.ModelType;
  * @param <T> the type of the reference.
  */
 @ThreadSafe
-public class ModelReference<T> {
+public class ModelReference<T> extends ModelPredicate {
 
     private final ModelPath path;
     private final ModelType<T> type;

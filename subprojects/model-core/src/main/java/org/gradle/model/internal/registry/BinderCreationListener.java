@@ -37,6 +37,6 @@ abstract class BinderCreationListener extends ModelCreationListener {
 
     @Override
     public String toString() {
-        return "ModelCreationListener{parent=" + matchParent() + ", path=" + matchPath() + ", scope=" + matchScope() + ", type=" + matchType() + "class=" + getClass().getSimpleName() + '}';
+        return "ModelCreationListener{parent=" + getParent() + ", path=" + getPath() + ", scope=" + getScope() + ", type=" + getType() + "class=" + getClass().getSimpleName() + '}';
     }
 }

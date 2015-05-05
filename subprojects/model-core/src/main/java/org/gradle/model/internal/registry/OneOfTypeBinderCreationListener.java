@@ -38,20 +38,14 @@ class OneOfTypeBinderCreationListener extends BinderCreationListener {
         this.scope = scope;
     }
 
-    @Nullable
     @Override
-    public ModelPath matchParent() {
-        return null;
-    }
-
-    @Override
-    public ModelPath matchScope() {
+    public ModelPath getScope() {
         return scope;
     }
 
     @Nullable
     @Override
-    public ModelType<?> matchType() {
+    public ModelType<?> getType() {
         return reference.getType();
     }
 

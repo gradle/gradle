@@ -932,13 +932,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(new ModelCreationListener() {
                 @Nullable
                 @Override
-                public ModelPath matchParent() {
+                public ModelPath getParent() {
                     return getPath();
                 }
 
                 @Nullable
                 @Override
-                public ModelType<?> matchType() {
+                public ModelType<?> getType() {
                     return modelType;
                 }
 
@@ -982,13 +982,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(new ModelCreationListener() {
                 @Nullable
                 @Override
-                public ModelPath matchParent() {
-                    return getPath();
+                public ModelPath getParent() {
+                    return ModelElementNode.this.getPath();
                 }
 
                 @Nullable
                 @Override
-                public ModelType<?> matchType() {
+                public ModelType<?> getType() {
                     return action.getSubject().getType();
                 }
 
@@ -1009,13 +1009,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(new ModelCreationListener() {
                 @Nullable
                 @Override
-                public ModelType<?> matchType() {
+                public ModelType<?> getType() {
                     return action.getSubject().getType();
                 }
 
                 @Override
                 public boolean onCreate(ModelNodeInternal node) {
-                    if (getPath().isDescendant(node.getPath())) {
+                    if (ModelElementNode.this.getPath().isDescendant(node.getPath())) {
                         bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
                     }
                     return false;
