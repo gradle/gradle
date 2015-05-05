@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.fixtures
+
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -73,10 +74,12 @@ gradle.buildFinished {
     }
 
     public void after() {
+        gradle?.abort()
         server.after()
     }
 
-    void startGradle(String task="build") {
+    void startGradle(String task = "build") {
+        gradle?.abort()
         gradle = executer.withTasks(task).start()
     }
 
