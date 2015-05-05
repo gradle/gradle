@@ -54,7 +54,7 @@ public class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() throws Exception {
-                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
+                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), MapFileTree.FileCreationMode.KEEP_EXISTING);
                 manifestSource.add("MANIFEST.MF", new Action<OutputStream>() {
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();
