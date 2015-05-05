@@ -167,7 +167,7 @@ Currently component container can be only accessed using model rules.
 
 ### Maven publishing
 The [maven-publish](https://gradle.org/docs/current/userguide/publishing_maven.html) and [maven](http://gradle.org/docs/current/userguide/maven_plugin.html) plugins
- no longer use the maven2 based [maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts. Both plugins now use the newer maven3 `org.apache.maven` and
+ no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts. Both plugins now use the newer Maven 3 `org.apache.maven` and
  Aether libraries. Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
 
 ## External contributions
@@ -179,7 +179,7 @@ We would like to thank the following community members for making contributions 
 * [Larry North](https://github.com/LarryNorth) - Build improvements.
 * [Tobias Schulte](https://github.com/tschulte) - Documentation improvements.
 * [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`.
-* [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the maven publishing mechanisms to use Aether libraries.
+* [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the Maven publishing mechanisms to use Aether libraries.
 
 ## Known issues
 
