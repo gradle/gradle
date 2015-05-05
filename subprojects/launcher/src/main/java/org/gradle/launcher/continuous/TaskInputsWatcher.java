@@ -34,46 +34,53 @@ public class TaskInputsWatcher extends BuildAdapter {
     private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
-
     private FileSystemSubset.Builder fileSystemSubsetBuilder;
 
     public TaskInputsWatcher(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
         this.fileWatcherFactory = fileWatcherFactory;
+        this.fileSystemSubsetBuilder = FileSystemSubset.builder();
     }
 
     @Override
     public void buildStarted(Gradle gradle) {
-        fileSystemSubsetBuilder = FileSystemSubset.builder();
-        gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
-            @Override
-            public void beforeExecute(Task task) {
-                FileCollectionInternal inputFiles = Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles());
-                inputFiles.registerWatchPoints(fileSystemSubsetBuilder);
-            }
-        });
+        // TODO: What is this breaking?
+        // Only consider tasks for the outermost build
+        if (gradle.getParent()==null) {
+            fileSystemSubsetBuilder = FileSystemSubset.builder();
+            gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
+                @Override
+                public void beforeExecute(Task task) {
+                    FileCollectionInternal inputFiles = Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles());
+                    inputFiles.registerWatchPoints(fileSystemSubsetBuilder);
+                }
+            });
+        }
     }
 
     @Override
     public void buildFinished(BuildResult result) {
-        final FileSystemSubset fileSystemSubset = fileSystemSubsetBuilder.build();
+        // Only start watching when the outermost build finishes
+        if (result.getGradle().getParent()==null) {
+            final FileSystemSubset fileSystemSubset = fileSystemSubsetBuilder.build();
 
-        // TODO: log a representation of the file system subset at debug
+            // TODO: log a representation of the file system subset at debug
 
-        fileWatcherFactory.watch(
-            fileSystemSubset,
-            new Action<Throwable>() {
-                @Override
-                public void execute(Throwable throwable) {
-                    listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "error " + throwable.getMessage()));
-                }
-            },
-            new StopThenFireFileWatcherListener(new Runnable() {
-                @Override
-                public void run() {
-                    listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
-                }
-            })
-        );
+            fileWatcherFactory.watch(
+                fileSystemSubset,
+                new Action<Throwable>() {
+                    @Override
+                    public void execute(Throwable throwable) {
+                        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "error " + throwable.getMessage()));
+                    }
+                },
+                new StopThenFireFileWatcherListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
+                    }
+                })
+            );
+        }
     }
 }

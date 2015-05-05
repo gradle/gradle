@@ -640,14 +640,30 @@ Constraints / implementation details:
 
 #### Test Coverage
 
-- Changing a source file triggers a build.
-- Adding/removing a file in a source directory triggers a build.
-- Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
-- Changing a source file to a task that was not selected should not trigger a build.
-- Adding/removing a file to a task that was not selected should not trigger a build.
-- Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
-- Changing a source file that is an input to two or more tasks should trigger a build.
-- Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src', include: "**/*.java")` should not trigger a build when foo.bar changes)
+- ~~Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src').matching({ it.name != "foo.bar" })` should not trigger a build when foo.bar changes)~~
+- For an old-style project:
+    - ~~Changing a source file for an input task triggers a build.~~
+    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
+    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
+    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
+- For a component based project:
+    - ~~Changing a source file for an input task triggers a build.~~
+    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
+    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
+    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
+- For a project with buildSrc:
+    - ~~Changing a source file for an input task triggers a build.~~
+    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
+    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
+    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
+    - ~~Adding/removing/Changing a source file in buildSrc triggers a build.~~
+- For a multi-project build:
+    - ~~Changing a source file for an input task triggers a build.~~
+    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
+    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
+    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
+    - Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
+    - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
 
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 

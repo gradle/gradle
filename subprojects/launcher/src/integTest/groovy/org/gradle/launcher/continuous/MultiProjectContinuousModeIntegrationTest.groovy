@@ -16,12 +16,36 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.language.fixtures.BadJavaComponent
+import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
 
+/**
+ * Runs tests from base class on the root project
+ */
+class MultiProjectContinuousModeIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+    IncrementalTestJvmComponent app = new TestJavaComponent()
+    String compileTask = "compileJava"
+    List subprojects = [ "sub1", "sub2" ]
+    TestFile sourceDir = file("src/main")
 
-abstract class SingleProjectContinuousModeIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
-    abstract TestFile getSourceDir()
+    List sourceDirs() {
+        [ sourceDir ] + subprojects.collect { projectDir ->
+            file("${projectDir}/src/main")
+        }
+    }
+    def setup() {
+        buildFile << """
+        allprojects {
+            apply plugin: 'java'
+        }
+        """
+
+        settingsFile << """
+        include ${subprojects.collect({"\"$it\""}).join(", ")}
+        """
+    }
 
     void validSource() {
         sourceFiles = app.writeSources(sourceDir)
