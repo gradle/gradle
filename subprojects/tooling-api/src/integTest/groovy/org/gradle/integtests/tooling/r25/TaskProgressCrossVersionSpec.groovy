@@ -24,12 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.task.TaskFailureResult
-import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.tooling.events.task.TaskProgressEvent
-import org.gradle.tooling.events.task.TaskSkippedSuccessResult
-import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.tooling.events.task.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -460,7 +455,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                             assert event.result.startTime >= oldEndTime
                         }
                         assert event.result.endTime >= event.result.startTime
-                        assert event.result.successMessage == 'up-to-date'
+                        assert event.result.isUpToDate()
                         break
                     case 'skipped':
                         assert event instanceof TaskFinishEvent

@@ -301,8 +301,8 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         if (result instanceof InternalTaskSuccessResult) {
             return new TaskSuccessResult() {
                 @Override
-                public String getSuccessMessage() {
-                    return ((InternalTaskSuccessResult) result).getOutcomeDescription();
+                public boolean isUpToDate() {
+                    return ((InternalTaskSuccessResult) result).isUpToDate();
                 }
 
                 @Override

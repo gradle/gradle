@@ -22,5 +22,10 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.5
  */
 public interface InternalTaskSuccessResult extends InternalTaskResult {
-    String getOutcomeDescription();
+    /**
+     * Returns whether this task was uptodate.
+     *
+     * @return {@code true} if this task was uptodate
+     */
+    boolean isUpToDate();
 }

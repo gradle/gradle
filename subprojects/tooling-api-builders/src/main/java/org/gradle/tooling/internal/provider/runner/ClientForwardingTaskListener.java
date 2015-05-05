@@ -54,14 +54,14 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         long startTime = startTime(state);
         long endTime = endTime(state);
         if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, "up-to-date");
+            return new DefaultTaskSuccessResult(startTime, endTime, true);
         }
         if (state.getSkipped()) {
             return new DefaultTaskSkippedSuccessResult(startTime, endTime, state.getSkipMessage());
         }
         Throwable failure = state.getFailure();
         if (failure == null) {
-            return new DefaultTaskSuccessResult(startTime, endTime, "succeeded");
+            return new DefaultTaskSuccessResult(startTime, endTime, false);
         }
         return new DefaultTaskFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
     }

@@ -19,7 +19,19 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 
 public class DefaultTaskSuccessResult extends AbstractTaskResult implements InternalTaskSuccessResult {
-    public DefaultTaskSuccessResult(long startTime, long endTime, String outcomeDescription) {
+    private final boolean upToDate;
+
+    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate) {
+        this(startTime, endTime, "succeeded", upToDate);
+    }
+
+    public DefaultTaskSuccessResult(long startTime, long endTime, String outcomeDescription, boolean upToDate) {
         super(startTime, endTime, outcomeDescription);
+        this.upToDate = upToDate;
+    }
+
+    @Override
+    public boolean isUpToDate() {
+        return upToDate;
     }
 }

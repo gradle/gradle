@@ -26,5 +26,10 @@ import org.gradle.tooling.events.SuccessResult;
  */
 @Incubating
 public interface TaskSuccessResult extends TaskOperationResult, SuccessResult {
-    String getSuccessMessage();
+    /**
+     * Returns whether this task was uptodate.
+     *
+     * @return {@code true} if this task was uptodate
+     */
+    boolean isUpToDate();
 }
