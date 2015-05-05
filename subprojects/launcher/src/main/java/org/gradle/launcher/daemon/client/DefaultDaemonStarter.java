@@ -81,11 +81,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
-        //Useful for debugging purposes - simply uncomment and connect to debug
-        if (System.getProperty("org.gradle.daemon.debug", "false").equalsIgnoreCase("true")) {
-            daemonArgs.add("-Xdebug");
-            daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
-        }
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
         daemonArgs.add(GradleDaemon.class.getName());
