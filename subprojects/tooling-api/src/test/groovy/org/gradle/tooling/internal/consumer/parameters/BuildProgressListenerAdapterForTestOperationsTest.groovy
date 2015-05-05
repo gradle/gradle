@@ -209,7 +209,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         }
     }
 
-    def "convert to TestSuiteStartedEvent"() {
+    def "convert to TestSuiteStartEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)
@@ -366,7 +366,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         }
     }
 
-    def "convert to TestStartedEvent"() {
+    def "convert to TestStartEvent"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)

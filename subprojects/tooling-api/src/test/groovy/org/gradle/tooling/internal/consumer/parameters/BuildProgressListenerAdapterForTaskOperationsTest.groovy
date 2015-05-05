@@ -202,7 +202,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         }
     }
 
-    def "convert to TaskStartedEvent"() {
+    def "convert to TaskStartEvent"() {
         given:
         TaskProgressListener listener = Mock(TaskProgressListener)
         def adapter = createAdapter(listener)

@@ -179,7 +179,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         }
     }
 
-    def "convert to BuildStartedEvent"() {
+    def "convert to BuildStartEvent"() {
         given:
         BuildProgressListener listener = Mock(BuildProgressListener)
         def adapter = createAdapter(listener)
