@@ -249,11 +249,18 @@ throw new GradleException("config error")
         buildFailed()
 
         when:
+        validSource()
+        and:
+        waitForWatching()
+        then:
+        buildSucceeds()
+
+        when:
         inputFile << "Y"
         and:
         waitForWatching()
         then:
-        buildFailed()
+        buildSucceeds()
 
         when:
         validSource()
@@ -264,6 +271,8 @@ throw new GradleException("config error")
         then:
         buildSucceeds()
         waitForStop()
+
+
 
         where:
         inputType | inputPath
