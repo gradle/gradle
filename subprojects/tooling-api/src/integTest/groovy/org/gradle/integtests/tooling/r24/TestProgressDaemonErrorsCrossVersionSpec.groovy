@@ -23,26 +23,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.TestProgressEvent
+import spock.lang.Ignore
 
+@Ignore
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
-
-    def goodCode() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
-    }
 
     void setup() {
         toolingApi.requireIsolatedDaemons()
@@ -71,5 +55,23 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         result.size() == 1
     }
 
+
+    def goodCode() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+    }
 
 }
