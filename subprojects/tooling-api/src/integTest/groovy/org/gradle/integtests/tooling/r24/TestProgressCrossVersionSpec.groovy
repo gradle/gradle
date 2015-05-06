@@ -32,9 +32,11 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
+@Ignore
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=1.0-milestone-8 <2.4")
