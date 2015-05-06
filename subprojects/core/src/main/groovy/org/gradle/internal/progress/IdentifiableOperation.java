@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.progress;
 
-package org.gradle.api.execution.internal;
+public interface IdentifiableOperation {
 
-public interface InternalTaskExecutionListener {
+    Object getId();
 
-    void beforeExecute(TaskOperationInternal taskOperation);
-
-    void afterExecute(TaskOperationInternal taskOperation);
+    Object getParentId();
 
 }

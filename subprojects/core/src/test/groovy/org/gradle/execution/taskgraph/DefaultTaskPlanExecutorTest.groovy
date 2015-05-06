@@ -29,7 +29,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def "executes tasks until no further tasks remain"() {
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
-        task.getState() >> state
+        task.state >> state
         def taskInfo = new TaskInfo(task)
 
         when:
@@ -37,9 +37,9 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
         then:
         1 * taskPlan.taskToExecute >> taskInfo
-        1 * executionListener.beforeExecute(task, _)
+        1 * executionListener.beforeExecute(_)
         1 * task.executeWithoutThrowingTaskFailure()
-        1 * executionListener.afterExecute(task, _)
+        1 * executionListener.afterExecute(_)
         1 * taskPlan.taskComplete(taskInfo)
         1 * taskPlan.taskToExecute >> null
         1 * taskPlan.awaitCompletion()

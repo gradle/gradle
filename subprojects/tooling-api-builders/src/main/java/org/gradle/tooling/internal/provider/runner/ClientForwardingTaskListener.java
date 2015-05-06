@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -40,22 +40,23 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
     }
 
     @Override
-    public void beforeExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(state.getStartTime(), toTaskDescriptor(task)));
+    public void beforeExecute(TaskOperationInternal taskOperation) {
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(taskOperation.getState().getStartTime(), toTaskDescriptor(taskOperation)));
     }
 
     @Override
-    public void afterExecute(TaskInternal task, TaskStateInternal state) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(state.getEndTime(), toTaskDescriptor(task), toTaskResult(task)));
+    public void afterExecute(TaskOperationInternal taskOperation) {
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(taskOperation.getState().getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask())));
     }
 
-    private static DefaultTaskDescriptor toTaskDescriptor(Task task) {
+    private static DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
+        TaskInternal task = taskOperation.getTask();
         return new DefaultTaskDescriptor(
-            OperationIdGenerator.generateId(task),
+            taskOperation.getId(),
             task.getName(),
             task.getDescription(),
             task.getPath(),
-            OperationIdGenerator.generateId(task.getProject().getGradle()));
+            taskOperation.getParentId());
     }
 
     private static AbstractTaskResult toTaskResult(Task task) {

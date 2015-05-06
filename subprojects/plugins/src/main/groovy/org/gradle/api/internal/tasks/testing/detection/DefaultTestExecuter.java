@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
@@ -73,7 +74,7 @@ public class DefaultTestExecuter implements TestExecuter {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
-        final String testTaskOperationId = System.identityHashCode(testTask.getProject().getGradle()) + ":" + testTask.getPath();
+        final String testTaskOperationId = OperationIdGenerator.generateId(testTask);
 
         new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), String.format("Gradle Test Run %s", testTask.getPath())).run();
     }

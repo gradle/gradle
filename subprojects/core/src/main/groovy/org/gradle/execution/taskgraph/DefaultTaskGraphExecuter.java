@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
@@ -167,17 +168,19 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class InternalTaskExecutionListenerAdapter implements InternalTaskExecutionListener {
         @Override
-        public void beforeExecute(TaskInternal task, TaskStateInternal state) {
-            state.setStartTime(System.currentTimeMillis());
-            internalTaskListeners.getSource().beforeExecute(task, state);
-            taskListeners.getSource().beforeExecute(task);
+        public void beforeExecute(TaskOperationInternal taskOperation) {
+            taskOperation.getState().setStartTime(System.currentTimeMillis());
+            internalTaskListeners.getSource().beforeExecute(taskOperation);
+            taskListeners.getSource().beforeExecute(taskOperation.getTask());
         }
 
         @Override
-        public void afterExecute(TaskInternal task, TaskStateInternal state) {
+        public void afterExecute(TaskOperationInternal taskOperation) {
+            TaskInternal task = taskOperation.getTask();
+            TaskStateInternal state = taskOperation.getState();
             taskListeners.getSource().afterExecute(task, state);
             state.setEndTime(System.currentTimeMillis());
-            internalTaskListeners.getSource().afterExecute(task, state);
+            internalTaskListeners.getSource().afterExecute(taskOperation);
         }
     }
 }

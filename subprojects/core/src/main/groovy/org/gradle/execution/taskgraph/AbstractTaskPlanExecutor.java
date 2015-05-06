@@ -16,11 +16,14 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.Project;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.progress.OperationIdGenerator;
 
 import static org.gradle.util.Clock.prettyTime;
 
@@ -74,14 +77,17 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         private void executeTask(TaskInfo taskInfo) {
             TaskInternal task = taskInfo.getTask();
             TaskStateInternal state = task.getState();
+            Project project = task.getProject();
+            String parentId = project!=null?OperationIdGenerator.generateId(project.getGradle()):null;
+            TaskOperationInternal taskOperation = new TaskOperationInternal(OperationIdGenerator.generateId(task), task, state, parentId);
             synchronized (lock) {
-                taskListener.beforeExecute(task, state);
+                taskListener.beforeExecute(taskOperation);
             }
             try {
                 task.executeWithoutThrowingTaskFailure();
             } finally {
                 synchronized (lock) {
-                    taskListener.afterExecute(task, state);
+                    taskListener.afterExecute(taskOperation);
                 }
             }
         }

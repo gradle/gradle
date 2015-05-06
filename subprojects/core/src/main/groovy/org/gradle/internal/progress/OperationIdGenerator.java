@@ -15,13 +15,19 @@
  */
 package org.gradle.internal.progress;
 
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 
 public final class OperationIdGenerator {
 
     public static String generateId(Task task) {
-        return task == null ? "" : generateId(task.getProject().getGradle()) + ":" + task.getPath();
+        if (task==null) {
+            return null;
+        }
+        Project project = task.getProject();
+        Gradle gradle = project!=null?project.getGradle():null;
+        return generateId(gradle, task.getPath());
     }
 
     public static String generateId(Gradle gradle) {
