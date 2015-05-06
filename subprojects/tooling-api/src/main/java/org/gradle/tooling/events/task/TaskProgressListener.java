@@ -28,9 +28,14 @@ public interface TaskProgressListener {
     /**
      * Called when the task execution progresses.
      *
-     * The following events are currently issued: <ul> <li>{@link TaskStartEvent}</li> <li>{@link TaskFinishEvent}</li> </ul>
+     * The following events are currently issued:
+     * <ul>
+     *     <li>{@link TaskStartEvent}</li>
+     *     <li>{@link TaskFinishEvent}</li>
+     * </ul>
      *
-     * You can find out more about the task operation for which progress is reported by querying the task descriptor using {@link TaskProgressEvent#getDescriptor()}.
+     * You can find out more about the task operation for which progress is reported
+     * by querying the task descriptor using {@link TaskProgressEvent#getDescriptor()}.
      *
      * @param event An event describing the test operation progress.
      * @see TaskProgressEvent#getDescriptor()
