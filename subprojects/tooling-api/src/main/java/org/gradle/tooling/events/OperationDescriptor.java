@@ -48,6 +48,11 @@ public interface OperationDescriptor {
         public OperationDescriptor getParent() {
             return null;
         }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
     };
 
     /**
