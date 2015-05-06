@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider.events;
+package org.gradle.internal.progress;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
+public interface InternalBuildListener {
+    public static final String BUILD_TYPE = "build";
+    public static final String SETTINGS_EVAL_TYPE = "settings evaluation";
+    public static final String PROJECTS_LOADING_TYPE = "projects loading";
+    public static final String PROJECTS_EVALUATION_TYPE = "projects evaluation";
 
-public class DefaultBuildSuccessResult extends AbstractBuildResult implements InternalBuildSuccessResult {
-    public DefaultBuildSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "success");
-    }
+    void started(Object source, long startTime, String eventType);
+
+    void finished(Object source, long startTime, long endTime, String eventType);
 }

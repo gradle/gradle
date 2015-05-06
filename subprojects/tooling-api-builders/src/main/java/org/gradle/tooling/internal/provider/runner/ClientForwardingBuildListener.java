@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -30,129 +29,65 @@ import java.util.Collections;
  *
  * @since 2.5
  */
-class ClientForwardingBuildListener implements BuildListener {
+class ClientForwardingBuildListener implements InternalBuildListener {
 
     private final BuildEventConsumer eventConsumer;
-    private final EventTracker eventTracker = new EventTracker();
 
     ClientForwardingBuildListener(BuildEventConsumer eventConsumer) {
         this.eventConsumer = eventConsumer;
     }
 
-    /**
-     * <p>Called when the build is started.</p>
-     *
-     * @param gradle The build which is being started. Never null.
-     */
-    @Override
-    public void buildStarted(Gradle gradle) {
-        eventConsumer.dispatch(new DefaultBuildStartedProgressEvent(eventTracker.eventTime(), adapt(gradle)));
-    }
-
-    /**
-     * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is ready to use to load the build projects.</p>
-     *
-     * @param settings The settings. Never null.
-     */
-    @Override
-    public void settingsEvaluated(Settings settings) {
-        DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", "Gradle " + settings.getGradle().getGradleVersion(), EventIdGenerator.generateId(settings.getGradle()))
-        );
-        DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(settings), "settings evaluation", "Gradle " + settings.getGradle().getGradleVersion(), EventIdGenerator.generateId(settings.getGradle())),
-            new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
-        );
-        eventConsumer.dispatch(startEvent);
-        eventConsumer.dispatch(endEvent);
-    }
-
-    /**
-     * <p>Called when the projects for the build have been created from the settings. None of the projects have been evaluated.</p>
-     *
-     * @param gradle The build which has been loaded. Never null.
-     */
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-        DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle))
-        );
-        DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsLoaded"), "projects loading", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle)),
-            new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
-        );
-        eventConsumer.dispatch(startEvent);
-        eventConsumer.dispatch(endEvent);
-    }
-
-    /**
-     * <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are ready to use to populate the task graph.</p>
-     *
-     * @param gradle The build which has been evaluated. Never null.
-     */
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle))
-        );
-        DefaultBuildFinishedProgressEvent endEvent = new DefaultBuildFinishedProgressEvent(
-            eventTracker.eventTime(),
-            new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle, "projectsEvaluated"), "projects evaluation", "Gradle " + gradle.getGradleVersion(), EventIdGenerator.generateId(gradle)),
-            new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime())
-        );
-        eventConsumer.dispatch(startEvent);
-        eventConsumer.dispatch(endEvent);
-    }
-
-    /**
-     * <p>Called when the build is completed. All selected tasks have been executed.</p>
-     *
-     * @param result The result of the build. Never null.
-     */
-    @Override
-    public void buildFinished(BuildResult result) {
-        Gradle gradle = result.getGradle();
-        eventConsumer.dispatch(new DefaultBuildFinishedProgressEvent(
-            eventTracker.eventTime(),
-            adapt(gradle),
-            adaptResult(result)));
-    }
-
-    private AbstractBuildResult adaptResult(BuildResult result) {
+    private AbstractBuildResult adaptResult(BuildResult result, long startTime, long endTime) {
         Throwable failure = result.getFailure();
         if (failure != null) {
-            return new DefaultBuildFailureResult(eventTracker.buildStartTime(), eventTracker.eventTime(), Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            return new DefaultBuildFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
-        return new DefaultBuildSuccessResult(eventTracker.buildStartTime(), eventTracker.eventTime());
+        return new DefaultBuildSuccessResult(startTime, endTime);
     }
 
-    private static DefaultBuildDescriptor adapt(Gradle gradle) {
-        if (gradle == null) {
-            return null;
-        }
-        return new DefaultBuildDescriptor(EventIdGenerator.generateId(gradle), "Gradle " + gradle.getGradleVersion(), "Gradle " + gradle.getGradleVersion(), adapt(gradle.getParent()));
+    @Override
+    public void started(Object source, long startTime, String eventType) {
+        DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " started");
+        DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
+            startTime,
+            descriptor
+        );
+        eventConsumer.dispatch(startEvent);
     }
 
-    /**
-     * Used to track the event times. Separated from the listener itself for consistency and ease of replacement.
-     */
-    private static class EventTracker {
-        private long buildStartTime = Long.MIN_VALUE;
-
-        public long buildStartTime() {
-            if (buildStartTime == Long.MIN_VALUE) {
-                buildStartTime = System.currentTimeMillis();
-            }
-            return buildStartTime;
-        }
-
-        public long eventTime() {
-            return System.currentTimeMillis();
-        }
+    @Override
+    public void finished(Object source, long startTime, long endTime, String eventType) {
+        DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " finished");
+        DefaultBuildFinishedProgressEvent finishEvent = new DefaultBuildFinishedProgressEvent(
+            endTime,
+            descriptor,
+            adaptResult(source, startTime, endTime)
+        );
+        eventConsumer.dispatch(finishEvent);
     }
+
+    private DefaultBuildDescriptor createDescriptor(Object source, String eventType, String displayName) {
+        DefaultBuildDescriptor descriptor = null;
+        if (source instanceof BuildResult) {
+            return createDescriptor(((BuildResult) source).getGradle(), eventType, displayName);
+        }
+        if (source instanceof Gradle) {
+            descriptor = createGradleDescriptor((Gradle) source, eventType, displayName);
+        }
+        return descriptor;
+    }
+
+    private DefaultBuildDescriptor createGradleDescriptor(Gradle source, String eventType, String displayName) {
+        Object id = InternalBuildListener.BUILD_TYPE.equals(eventType)?EventIdGenerator.generateId(source):EventIdGenerator.generateId(source, eventType);
+        Object parentId = InternalBuildListener.BUILD_TYPE.equals(eventType)?EventIdGenerator.generateId(source.getParent()):EventIdGenerator.generateId(source);
+        return new DefaultBuildDescriptor(id, eventType, displayName, parentId);
+    }
+
+    private AbstractBuildResult adaptResult(Object result, long startTime, long endTime) {
+        if (result instanceof BuildResult) {
+            return adaptResult((BuildResult)result, startTime, endTime);
+        }
+        return new DefaultBuildSuccessResult(startTime, endTime);
+    }
+
 }

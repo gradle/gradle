@@ -23,7 +23,9 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
@@ -46,6 +48,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildCompletionListener buildCompletionListener;
     private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
+    private final InternalBuildListener internalBuildListener;
 
     /**
      * Creates a new instance.
@@ -55,7 +58,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
                                  BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener,
-                                 Closeable buildServices) {
+                                 Closeable buildServices, InternalBuildListener internalBuildListener) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -69,6 +72,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
+        this.internalBuildListener = internalBuildListener;
     }
 
     public GradleInternal getGradle() {
@@ -97,20 +101,24 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return doBuild(Stage.Configure);
     }
 
-    private BuildResult doBuild(Stage upTo) {
+    private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        Throwable failure = null;
-        try {
-            buildListener.buildStarted(gradle);
-            doBuildStages(upTo);
-        } catch (Throwable t) {
-            failure = exceptionAnalyser.transform(t);
-        }
-        BuildResult buildResult = new BuildResult(gradle, failure);
-        buildListener.buildFinished(buildResult);
-
-        return buildResult;
+        return internalBuildEvent(gradle, InternalBuildListener.BUILD_TYPE, new Factory<BuildResult>() {
+            @Override
+            public BuildResult create() {
+                Throwable failure = null;
+                try {
+                    buildListener.buildStarted(gradle);
+                    doBuildStages(upTo);
+                } catch (Throwable t) {
+                    failure = exceptionAnalyser.transform(t);
+                }
+                BuildResult buildResult = new BuildResult(gradle, failure);
+                buildListener.buildFinished(buildResult);
+                return buildResult;
+            }
+        });
     }
 
     private void doBuildStages(Stage upTo) {
@@ -118,18 +126,39 @@ public class DefaultGradleLauncher extends GradleLauncher {
         initScriptHandler.executeScripts(gradle);
 
         // Evaluate settings script
-        SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
-        buildListener.settingsEvaluated(settings);
+        final SettingsInternal settings = internalBuildEvent(gradle, InternalBuildListener.SETTINGS_EVAL_TYPE, new Factory<SettingsInternal>() {
+            @Override
+            public SettingsInternal create() {
+                SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
+                buildListener.settingsEvaluated(settings);
+                return settings;
+            }
+        });
 
         // Load build
-        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-        buildListener.projectsLoaded(gradle);
+        internalBuildEvent(gradle, InternalBuildListener.PROJECTS_LOADING_TYPE, new Factory<Void>() {
+            @Override
+            public Void create() {
+                buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
+                buildListener.projectsLoaded(gradle);
+                return null;
+            }
+        });
+
 
         // Configure build
         buildConfigurer.configure(gradle);
 
         if (!gradle.getStartParameter().isConfigureOnDemand()) {
-            buildListener.projectsEvaluated(gradle);
+            internalBuildEvent(gradle, InternalBuildListener.PROJECTS_EVALUATION_TYPE, new Factory<Void>() {
+                @Override
+                public Void create() {
+                    buildListener.projectsEvaluated(gradle);
+                    return null;
+                }
+            });
+
+
         }
 
         modelConfigurationListener.onConfigure(gradle);
@@ -150,6 +179,14 @@ public class DefaultGradleLauncher extends GradleLauncher {
         tasksCompletionListener.onTasksFinished(gradle);
 
         assert upTo == Stage.Build;
+    }
+
+    private <T> T internalBuildEvent(Object source, String eventType, Factory<T> factory) {
+        long sd = System.currentTimeMillis();
+        internalBuildListener.started(source, sd, eventType);
+        T call = factory.create();
+        internalBuildListener.finished(source, sd, System.currentTimeMillis(), eventType);
+        return call;
     }
 
     /**

@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -46,6 +47,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
@@ -80,6 +82,7 @@ public class DefaultGradleLauncherTest {
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
     private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
+    private InternalBuildListener internalBuildListener = context.mock(InternalBuildListener.class);
     private Closeable buildServices = context.mock(Closeable.class);
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
@@ -113,7 +116,8 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-                modelListenerMock, tasksCompletionListener, buildExecuter, buildCompletionListener, buildServices);
+                modelListenerMock, tasksCompletionListener, buildExecuter, buildCompletionListener, buildServices,
+                internalBuildListener);
 
         context.checking(new Expectations() {
             {
@@ -172,6 +176,11 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_LOADING_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
             one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
             one(exceptionAnalyserMock).transform(exception);
@@ -221,6 +230,9 @@ public class DefaultGradleLauncherTest {
             will(throwException(failure));
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
@@ -241,6 +253,14 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_LOADING_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_LOADING_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_EVALUATION_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_EVALUATION_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
@@ -291,6 +311,14 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(buildBroadcaster).buildFinished(with(result(nullValue(Throwable.class))));
             one(modelListenerMock).onConfigure(gradleMock);
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.SETTINGS_EVAL_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_LOADING_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_LOADING_TYPE));
+            one(internalBuildListener).started(with(any(Object.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_EVALUATION_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.PROJECTS_EVALUATION_TYPE));
+            one(internalBuildListener).finished(with(any(Object.class)), with(any(long.class)), with(any(long.class)), with(InternalBuildListener.BUILD_TYPE));
         }});
     }
 

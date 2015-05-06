@@ -32,6 +32,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -54,7 +55,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices = globalServices;
         tracker = new NestedBuildTracker();
 
-        // Register default loggers 
+        // Register default loggers
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
         buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
@@ -144,7 +145,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class),
                 listenerManager.getBroadcaster(BuildCompletionListener.class),
-                serviceRegistry
+                serviceRegistry,
+                listenerManager.getBroadcaster(InternalBuildListener.class)
         );
     }
 }

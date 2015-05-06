@@ -143,8 +143,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
             // build start
-            assert event.displayName.startsWith('Gradle')
-            assert event.displayName.endsWith(' started')
+            assert event.displayName == 'build started'
             parentDescriptor = event.descriptor
         }
 
@@ -192,8 +191,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         // build finish
         1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
-            assert event.displayName.startsWith('Gradle')
-            assert event.displayName.endsWith(' succeeded')
+            assert event.displayName == 'build finished with success'
             assert event.descriptor.is(parentDescriptor)
             def result = event.result
             assert result instanceof BuildSuccessResult
@@ -235,8 +233,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
             // build start
-            assert event.displayName.startsWith('Gradle')
-            assert event.displayName.endsWith(' started')
+            assert event.displayName == 'build started'
             parentDescriptor = event.descriptor
         }
 
@@ -284,8 +281,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         // build finish
         1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
-            assert event.displayName.startsWith('Gradle')
-            assert event.displayName.endsWith(' finished')
+            assert event.displayName == 'build finished with failure'
             assert event.descriptor.is(parentDescriptor)
             def result = event.result
             assert result instanceof BuildFailureResult
