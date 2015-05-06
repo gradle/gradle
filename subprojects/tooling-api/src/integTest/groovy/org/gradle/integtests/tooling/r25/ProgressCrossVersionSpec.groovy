@@ -81,6 +81,31 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it instanceof BuildProgressEvent }.isEmpty()
     }
 
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "all progress events are in a hierarchy with a single root node"() {
+        given:
+        goodCode()
+
+        when: 'listening to progress events'
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('build').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }, EnumSet.allOf(ProgressEventType.class)).run()
+        }
+
+        then: 'all events are in a hierarchy with a single root node'
+        !result.isEmpty()
+        def rootNodes = result.findAll { it.descriptor.parent == null }
+        rootNodes.size() == 2
+        rootNodes.each { assert it instanceof BuildProgressEvent }
+    }
+
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
