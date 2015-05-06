@@ -30,11 +30,18 @@ public interface ProgressListener {
     /**
      * Called when the execution of an operation progresses.
      *
-     * The following events are currently issued: <ul> <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li> <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li> <li>{@link
-     * org.gradle.tooling.events.task.TaskStartEvent}</li> <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li> <li>{@link org.gradle.tooling.events.build.BuildStartEvent}</li> <li>{@link
-     * org.gradle.tooling.events.build.BuildFinishEvent}</li> </ul>
+     * The following events are currently issued:
+     * <ul>
+     *     <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildFinishEvent}</li>
+     * </ul>
      *
-     * You can find out more about the test operation for which progress is reported by querying the test descriptor using {@link org.gradle.tooling.events.test.TestProgressEvent#getDescriptor()}.
+     * You can find out more about the operation for which progress is reported
+     * by querying the descriptor using {@link org.gradle.tooling.events.ProgressEvent#getDescriptor()}.
      *
      * @param event An event describing the operation progress.
      * @see org.gradle.tooling.events.test.TestProgressEvent
