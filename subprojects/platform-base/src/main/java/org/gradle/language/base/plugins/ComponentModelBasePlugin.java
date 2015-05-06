@@ -31,10 +31,7 @@ import org.gradle.language.base.internal.model.ModelMapCreators;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.DirectNodeModelAction;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -72,7 +69,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelCreator componentsCreator = ModelMapCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
+        ModelCreator componentsCreator = ModelMapCreators.specialized(ModelPath.path("components"), ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,

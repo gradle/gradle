@@ -30,7 +30,7 @@ import java.util.List;
 
 public class ModelMapCreators {
 
-    public static <T, C extends ModelMap<T>> ModelCreator specialized(String name,
+    public static <T, C extends ModelMap<T>> ModelCreator specialized(ModelPath path,
                                                                                final Class<T> typeClass,
                                                                                final Class<C> containerClass,
                                                                                final Class<? extends C> viewClass,
@@ -39,7 +39,7 @@ public class ModelMapCreators {
         }.where(new ModelType.Parameter<T>() {
         }, ModelType.of(typeClass)).build();
 
-        return ModelCreators.of(ModelPath.path(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        return ModelCreators.of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
                 final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(

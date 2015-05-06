@@ -71,19 +71,20 @@ public abstract class BridgedCollections {
             String descriptor,
             final Transformer<String, String> itemDescriptorGenerator
     ) {
-        assert containerReference.getPath() != null : "container reference path cannot be null";
+        final ModelPath containerPath = containerReference.getPath();
+        assert containerPath != null : "container reference path cannot be null";
 
         final String storeNodeName = "__store";
 
-        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference = instantiatorReference(containerReference.getPath(), itemType);
+        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference = instantiatorReference(containerPath, itemType);
 
         final ModelReference<C> storeReference = ModelReference.of(
-                containerReference.getPath().child(storeNodeName),
-                containerReference.getType()
+            containerPath.child(storeNodeName),
+            containerReference.getType()
         );
 
         ModelCreators.Builder creatorBuilder = ModelCreators.of(
-                containerReference.getPath(),
+                containerPath,
                 new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
 
@@ -115,14 +116,13 @@ public abstract class BridgedCollections {
 
                                 // For now, ignore elements added after the container has been closed
                                 if (!containerNode.isMutable()) {
-                                    LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", containerReference.getPath(), name);
+                                    LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", containerPath, name);
                                     return;
                                 }
 
                                 if (!containerNode.hasLink(name)) {
                                     ModelType<I> itemType = ModelType.typeOf(item);
-                                    ModelReference<I> itemReference = ModelReference.of(containerReference.getPath().child(name), itemType);
-                                    ModelCreator itemCreator = ModelCreators.of(itemReference.getPath(), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                    ModelCreator itemCreator = ModelCreators.of(containerPath.child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                                         @Override
                                         public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
                                             C container = ModelViews.assertType(modelViews.get(0), storeReference.getType()).getInstance();
