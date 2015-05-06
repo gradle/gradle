@@ -35,7 +35,7 @@ public class TaskInputsWatcher extends BuildAdapter {
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
 
-    private FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
+    private FileSystemSubset.Builder fileSystemSubsetBuilder;
 
     public TaskInputsWatcher(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
@@ -44,6 +44,7 @@ public class TaskInputsWatcher extends BuildAdapter {
 
     @Override
     public void buildStarted(Gradle gradle) {
+        fileSystemSubsetBuilder = FileSystemSubset.builder();
         gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
             @Override
             public void beforeExecute(Task task) {
@@ -55,8 +56,6 @@ public class TaskInputsWatcher extends BuildAdapter {
 
     @Override
     public void buildFinished(BuildResult result) {
-
-        // TODO: this isn't quite right, we are accumulating for every build
         final FileSystemSubset fileSystemSubset = fileSystemSubsetBuilder.build();
 
         // TODO: log a representation of the file system subset at debug
