@@ -53,4 +53,28 @@ public final class ImmutableDirectoryTree implements DirectoryTree {
     public ImmutablePatternSet getPatterns() {
         return patternSet;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ImmutableDirectoryTree that = (ImmutableDirectoryTree) o;
+
+        if (dir != null ? !dir.equals(that.dir) : that.dir != null) {
+            return false;
+        }
+        return !(patternSet != null ? !patternSet.equals(that.patternSet) : that.patternSet != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = dir != null ? dir.hashCode() : 0;
+        result = 31 * result + (patternSet != null ? patternSet.hashCode() : 0);
+        return result;
+    }
 }

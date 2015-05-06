@@ -17,7 +17,9 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
@@ -36,14 +38,14 @@ import java.io.File;
  */
 public class FileSystemSubset {
 
-    private final ImmutableList<File> files;
-    private final ImmutableList<ImmutableDirectoryTree> trees;
+    private final ImmutableCollection<File> files;
+    private final ImmutableCollection<ImmutableDirectoryTree> trees;
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public FileSystemSubset(ImmutableList<File> files, ImmutableList<ImmutableDirectoryTree> trees) {
+    public FileSystemSubset(ImmutableCollection<File> files, ImmutableCollection<ImmutableDirectoryTree> trees) {
         this.files = files;
         this.trees = trees;
     }
@@ -83,8 +85,8 @@ public class FileSystemSubset {
     }
 
     public static class Builder {
-        private final ImmutableList.Builder<File> files = ImmutableList.builder();
-        private final ImmutableList.Builder<ImmutableDirectoryTree> trees = ImmutableList.builder();
+        private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
+        private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
 
         private Builder() {
         }
