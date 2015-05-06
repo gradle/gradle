@@ -64,7 +64,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
-        Object id = EventIdGenerator.generateId(suite);
+        Object id = suite.getId();
         String name = suite.getName();
         String displayName = suite.toString();
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
@@ -76,7 +76,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
-        Object id = EventIdGenerator.generateId(test);
+        Object id = test.getId();
         String name = test.getName();
         String displayName = test.toString();
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
@@ -89,7 +89,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
 
     private Object getParentId(TestDescriptorInternal descriptor) {
         TestDescriptorInternal parent = descriptor.getParent();
-        Object parentId = parent != null ? EventIdGenerator.generateId(parent) : null;
+        Object parentId = parent != null ? parent.getId() : null;
         if (parentId == null) {
             // only set the TaskOperation as the parent if the Tooling API Consumer is version 2.5 or higher, since
             // the TAPI Consumer in 2.4 throws an exception when it receives a parent id that is not a test operation id

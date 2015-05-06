@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.progress;
 
-package org.gradle.tooling.internal.provider.events;
+import org.gradle.api.Task;
+import org.gradle.api.invocation.Gradle;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
+public final class OperationIdGenerator {
 
-import java.util.List;
-
-public class DefaultBuildFailureResult extends AbstractBuildResult implements InternalBuildFailureResult {
-    private final List<DefaultFailure> failures;
-
-    public DefaultBuildFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failure");
-        this.failures = failures;
+    public static String generateId(Task task) {
+        return task == null ? "" : generateId(task.getProject().getGradle()) + ":" + task.getPath();
     }
 
-    @Override
-    public List<DefaultFailure> getFailures() {
-        return failures;
+    public static String generateId(Gradle gradle) {
+        return gradle == null ? "" : String.valueOf(System.identityHashCode(gradle));
     }
+
+    public static String generateId(Gradle gradle, String operationName) {
+        return String.format("%s : %s", generateId(gradle), operationName);
+    }
+
 }

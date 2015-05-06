@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.InternalBuildOperation;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -46,7 +46,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void started(Object source, long startTime, String eventType) {
+    public void started(InternalBuildOperation source, long startTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " started");
         DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
             startTime,
@@ -56,31 +56,18 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void finished(Object source, long startTime, long endTime, String eventType) {
+    public void finished(InternalBuildOperation source, long startTime, long endTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " finished");
         DefaultBuildFinishedProgressEvent finishEvent = new DefaultBuildFinishedProgressEvent(
             endTime,
             descriptor,
-            adaptResult(source, startTime, endTime)
+            adaptResult(source.getPayload(), startTime, endTime)
         );
         eventConsumer.dispatch(finishEvent);
     }
 
-    private DefaultBuildDescriptor createDescriptor(Object source, String eventType, String displayName) {
-        DefaultBuildDescriptor descriptor = null;
-        if (source instanceof BuildResult) {
-            return createDescriptor(((BuildResult) source).getGradle(), eventType, displayName);
-        }
-        if (source instanceof Gradle) {
-            descriptor = createGradleDescriptor((Gradle) source, eventType, displayName);
-        }
-        return descriptor;
-    }
-
-    private DefaultBuildDescriptor createGradleDescriptor(Gradle source, String eventType, String displayName) {
-        Object id = InternalBuildListener.BUILD_TYPE.equals(eventType) ? EventIdGenerator.generateId(source) : EventIdGenerator.generateId(source, eventType);
-        Object parentId = InternalBuildListener.BUILD_TYPE.equals(eventType) ? EventIdGenerator.generateId(source.getParent()) : EventIdGenerator.generateId(source);
-        return new DefaultBuildDescriptor(id, eventType, displayName, parentId);
+    private DefaultBuildDescriptor createDescriptor(InternalBuildOperation source, String eventType, String displayName) {
+        return new DefaultBuildDescriptor(source.getId(), eventType, displayName, source.getParentId());
     }
 
     private AbstractBuildResult adaptResult(Object result, long startTime, long endTime) {

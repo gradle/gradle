@@ -21,6 +21,7 @@ import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -50,11 +51,11 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
 
     private static DefaultTaskDescriptor toTaskDescriptor(Task task) {
         return new DefaultTaskDescriptor(
-            EventIdGenerator.generateId(task),
+            OperationIdGenerator.generateId(task),
             task.getName(),
             task.getDescription(),
             task.getPath(),
-            EventIdGenerator.generateId(task.getProject().getGradle()));
+            OperationIdGenerator.generateId(task.getProject().getGradle()));
     }
 
     private static AbstractTaskResult toTaskResult(Task task) {

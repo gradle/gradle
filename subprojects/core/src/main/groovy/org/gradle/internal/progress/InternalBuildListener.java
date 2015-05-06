@@ -20,8 +20,12 @@ public interface InternalBuildListener {
     String SETTINGS_EVAL_TYPE = "settings evaluation";
     String PROJECTS_LOADING_TYPE = "projects loading";
     String PROJECTS_EVALUATION_TYPE = "projects evaluation";
+    String EVAL_INIT_SCRIPTS = "init scripts evaluation";
+    String CONFIGURE_BUILD_TYPE = "build configuration";
+    String EXECUTE_BUILD_TYPE = "build execution";
+    String POPULATE_TASKS_TYPE = "task graph population";
 
-    void started(Object source, long startTime, String eventType);
+    void started(InternalBuildOperation source, long startTime, String eventType);
 
-    void finished(Object source, long startTime, long endTime, String eventType);
+    void finished(InternalBuildOperation source, long startTime, long endTime, String eventType);
 }
