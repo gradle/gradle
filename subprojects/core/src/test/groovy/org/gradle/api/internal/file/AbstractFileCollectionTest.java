@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -186,13 +185,6 @@ public class AbstractFileCollectionTest {
         TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing);
         assertSetContainsForFileSet(collection, toSet("f1", "f2"));
         assertSetContainsForMatchingTask(collection, toSet("f1", "f2"));
-    }
-
-    @Test
-    public void includesRoots() {
-        TestFile testDir = this.testDir.getTestDirectory();
-        TestFileCollection collection = new TestFileCollection(testDir.createDir("a/a/a"), testDir.createDir("a/a/b"), testDir.file("a/a/b/a"));
-        assertEquals(toSet(testDir.file("a/a/a"), testDir.file("a/a/b")), Sets.newHashSet(collection.getFileSystemRoots()));
     }
 
     @Test

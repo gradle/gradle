@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
@@ -106,17 +107,7 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
     }
 
     @Override
-    public Iterable<? extends File> getFileSystemRoots() {
-        return getDelegate().getFileSystemRoots();
-    }
-
-    @Override
-    public boolean wouldContain(File file) {
-        return getDelegate().wouldContain(file);
-    }
-
-    @Override
-    public FileCollectionInternal resolveToFileTreesAndFiles() {
-        return getDelegate().resolveToFileTreesAndFiles();
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        getDelegate().registerWatchPoints(builder);
     }
 }

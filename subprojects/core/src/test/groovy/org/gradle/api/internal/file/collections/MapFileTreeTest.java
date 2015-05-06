@@ -98,10 +98,6 @@ public class MapFileTreeTest {
         assertTrue(fileTreeAdapter.contains(file));
         assertFalse(fileTreeAdapter.contains(rootDir.file("file2.txt")));
 
-        assertTrue(fileTreeAdapter.wouldContain(file));
-        assertTrue(fileTreeAdapter.wouldContain(file));
-        assertFalse(fileTreeAdapter.wouldContain(rootDir.file("file2.txt")));
-
         assertEquals(0, callCounter.get());
     }
 

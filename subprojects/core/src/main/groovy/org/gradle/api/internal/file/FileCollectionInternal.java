@@ -20,42 +20,8 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 
-import java.io.File;
-
 public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
 
-    /**
-     * Returns the outermost points on the filesystem that encompass (inclusively) all of the file collection's potential contents.
-     * <p>
-     * The results are guaranteed to be unique.
-     * A zero length iterable may be returned if it is not possible for this file collection to ever contain any files.
-     * The return value is representative of the file collections state at the time.
-     * Mutable file collections may return different values over time.
-     * Immutable file collections will always return the same logical value.
-     * <p>
-     * The term “root” here does not respond to the root of the file system (e.g. "/").
-     * <p>
-     * This method does not distinguish between files or directories, or non existent files.
-     *
-     * @return the unique outermost file system roots that encompass this file collection's contents
-     */
-    Iterable<? extends File> getFileSystemRoots();
+    void registerWatchPoints(FileSystemSubset.Builder builder);
 
-    /**
-     * Determines whether this collection would contain the given file.
-     * <p>
-     * The file doesn't have to exist. This is the main difference compared to the {@link FileCollection#contains(File)} method.
-     *
-     * @param file The file to check for.
-     * @return true if this collection would contain the given file, false otherwise.
-     */
-    boolean wouldContain(File file);
-
-
-    /**
-     * Resolves the file collection to file trees or individual files
-     *
-     * @return file collection instance that has been resolved to file trees or individual files
-     */
-    FileCollectionInternal resolveToFileTreesAndFiles();
 }

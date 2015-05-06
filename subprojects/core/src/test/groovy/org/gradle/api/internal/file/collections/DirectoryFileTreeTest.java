@@ -254,29 +254,6 @@ public class DirectoryFileTreeTest {
     }
 
     @Test
-    public void canTestForFileMembershipWhenFileDoesntExist() {
-        TestFile rootDir = tmpDir.createDir("root");
-        TestFile rootTextFile = rootDir.file("a.txt");
-        TestFile nestedTextFile = rootDir.file("a/b/c.txt");
-        TestFile notTextFile = rootDir.file("a/b/c.html");
-        TestFile excludedFile = rootDir.file("subdir1/a/b/c.html");
-        TestFile notUnderRoot = tmpDir.createDir("root2").file("a.txt");
-        TestFile doesNotExist = rootDir.file("b.txt");
-
-        PatternSet patterns = new PatternSet();
-        patterns.include("**/*.txt");
-        patterns.exclude("subdir1/**");
-        DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
-
-        assertTrue(fileTree.wouldContain(rootTextFile));
-        assertTrue(fileTree.wouldContain(nestedTextFile));
-        assertFalse(fileTree.wouldContain(notTextFile));
-        assertFalse(fileTree.wouldContain(excludedFile));
-        assertFalse(fileTree.wouldContain(notUnderRoot));
-        assertTrue(fileTree.wouldContain(doesNotExist));
-    }
-
-    @Test
     public void hasUsefulDisplayName() {
         DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getTestDirectory());
         PatternSet includesOnly = new PatternSet();

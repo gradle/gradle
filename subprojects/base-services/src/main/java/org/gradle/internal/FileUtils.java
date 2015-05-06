@@ -59,21 +59,22 @@ public class FileUtils {
     }
 
     /**
-     * Returns the outer most (i.e. closest to the file system root) *directories* that encompass the given files inclusively.
+     * Returns the outer most files that encompass the given files inclusively.
      * <p>
-     * The returned set of File objects do not necessarily represent directories that exist.
-     * If a given input file does not exist, its {@link File#getParentFile()} is considered a suitable root.
+     * This method does not access the file system.
+     * It is agnostic to whether a given file object represents a regular file, directory or does not exist.
+     * That is, the term “file” is used in the java.io.File sense, not the regular file sense.
      *
      * @param files the site of files to find the encompassing roots of
      * @return the encompassing roots
      */
-    public static Collection<? extends File> findRoots(Iterable<? extends File> files) {
+    public static Collection<? extends File> calculateRoots(Iterable<? extends File> files) {
         List<File> roots = Lists.newLinkedList();
 
         files:
         for (File file : files) {
-            File target = (file.isDirectory() ? file : file.getParentFile()).getAbsoluteFile();
-            String path = target.getPath() + File.separator;
+            File absoluteFile = file.getAbsoluteFile();
+            String path = absoluteFile + File.separator;
             Iterator<File> rootsIterator = roots.iterator();
 
             while (rootsIterator.hasNext()) {
@@ -88,7 +89,7 @@ public class FileUtils {
                 }
             }
 
-            roots.add(target);
+            roots.add(absoluteFile);
         }
 
         return roots;

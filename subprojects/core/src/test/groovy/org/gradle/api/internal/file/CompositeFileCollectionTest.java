@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.file;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -184,26 +185,6 @@ public class CompositeFileCollectionTest {
     }
 
     @Test
-    public void getRootsDelegatesToEachSet() {
-        final File file1 = new File("a") {
-            @Override
-            public boolean isDirectory() {
-                return true;
-            }
-        };
-        final File file2 = new File(file1, "a");
-
-        context.checking(new Expectations() {{
-            one(source1).getFileSystemRoots();
-            will(returnValue(toSet(file1)));
-            one(source2).getFileSystemRoots();
-            will(returnValue(toSet(file2)));
-        }});
-
-        assertEquals(toSet(file1.getAbsoluteFile()), Sets.newHashSet(collection.getFileSystemRoots()));
-    }
-
-    @Test
     public void fileTreeIsLive() {
         final File dir1 = new File("dir1");
         final File dir2 = new File("dir1");
@@ -264,7 +245,7 @@ public class CompositeFileCollectionTest {
         final Task task3 = context.mock(Task.class, "task3");
         final FileCollection source3 = context.mock(FileCollection.class, "source3");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             TaskDependency dependency1 = context.mock(TaskDependency.class, "dep1");
             TaskDependency dependency2 = context.mock(TaskDependency.class, "dep2");
             TaskDependency dependency3 = context.mock(TaskDependency.class, "dep3");
@@ -307,7 +288,7 @@ public class CompositeFileCollectionTest {
         final Task task1 = context.mock(Task.class, "task1");
         final Task task2 = context.mock(Task.class, "task2");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             TaskDependency dependency1 = context.mock(TaskDependency.class, "dep1");
             TaskDependency dependency2 = context.mock(TaskDependency.class, "dep2");
 

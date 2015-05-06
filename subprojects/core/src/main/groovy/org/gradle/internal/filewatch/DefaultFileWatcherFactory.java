@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
@@ -25,7 +26,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.io.File;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
@@ -37,7 +37,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     private static class NoOpFileWatcherFactory implements FileWatcherFactory {
         @Override
-        public FileWatcher watch(Iterable<? extends File> roots, Action<? super Throwable> onError, FileWatcherListener listener) {
+        public FileWatcher watch(FileSystemSubset fileSystemSubset, Action<? super Throwable> onError, FileWatcherListener listener) {
             return new FileWatcher() {
                 @Override
                 public void stop() {
@@ -84,7 +84,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     }
 
     @Override
-    public FileWatcher watch(Iterable<? extends File> roots, Action<? super Throwable> onError, FileWatcherListener listener) {
-        return fileWatcherFactory.watch(roots, onError, listener);
+    public FileWatcher watch(FileSystemSubset systemSubset, Action<? super Throwable> onError, FileWatcherListener listener) {
+        return fileWatcherFactory.watch(systemSubset, onError, listener);
     }
 }

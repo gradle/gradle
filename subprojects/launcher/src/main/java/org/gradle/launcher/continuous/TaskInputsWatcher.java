@@ -21,28 +21,25 @@ import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.filewatch.FileWatcherEvent;
+import org.gradle.internal.Cast;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.filewatch.FilteringFileWatcherListener;
 import org.gradle.internal.filewatch.StopThenFireFileWatcherListener;
 
 public class TaskInputsWatcher extends BuildAdapter {
     private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
-    private final FileCollectionInternal taskInputs;
+
+    private FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
 
     public TaskInputsWatcher(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
         this.fileWatcherFactory = fileWatcherFactory;
-        this.taskInputs = new UnionFileCollection();
     }
 
     @Override
@@ -50,49 +47,34 @@ public class TaskInputsWatcher extends BuildAdapter {
         gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
             @Override
             public void beforeExecute(Task task) {
-                FileCollection inputFiles = task.getInputs().getFiles();
-                if(inputFiles instanceof FileCollectionInternal) {
-                    // resolve FileCollection and flatten it if possible
-                    inputFiles = ((FileCollectionInternal)inputFiles).resolveToFileTreesAndFiles();
-                }
-                taskInputs.add(inputFiles);
+                FileCollectionInternal inputFiles = Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles());
+                inputFiles.registerWatchPoints(fileSystemSubsetBuilder);
             }
         });
     }
 
     @Override
     public void buildFinished(BuildResult result) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Task inputs: {}", taskInputs.getFiles());
-            LOGGER.debug("taskInputs.getFileSystemRoots(): {}", taskInputs.getFileSystemRoots());
-        }
+
+        // TODO: this isn't quite right, we are accumulating for every build
+        final FileSystemSubset fileSystemSubset = fileSystemSubsetBuilder.build();
+
+        // TODO: log a representation of the file system subset at debug
 
         fileWatcherFactory.watch(
-            taskInputs.getFileSystemRoots(),
+            fileSystemSubset,
             new Action<Throwable>() {
                 @Override
                 public void execute(Throwable throwable) {
                     listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.STOP, "error " + throwable.getMessage()));
                 }
             },
-            new FilteringFileWatcherListener(
-                new Spec<FileWatcherEvent>() {
-                    @Override
-                    public boolean isSatisfiedBy(FileWatcherEvent element) {
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Received file system event: {}", element);
-                        }
-                        return element.getType().equals(FileWatcherEvent.Type.UNDEFINED)
-                            || taskInputs.wouldContain(element.getFile());
-                    }
-                },
-                new StopThenFireFileWatcherListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
-                    }
-                })
-            )
+            new StopThenFireFileWatcherListener(new Runnable() {
+                @Override
+                public void run() {
+                    listener.triggered(new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "file change"));
+                }
+            })
         );
     }
 }

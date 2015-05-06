@@ -24,6 +24,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -139,7 +140,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             return entry.getSize();
         }
 
-        public InputStream open()  {
+        public InputStream open() {
             try {
                 return zip.getInputStream(entry);
             } catch (IOException e) {
@@ -153,15 +154,20 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public int getMode() {
             int unixMode = entry.getUnixMode() & 0777;
-            if(unixMode == 0){
+            if (unixMode == 0) {
                 //no mode infos available - fall back to defaults
-                if(isDirectory()){
+                if (isDirectory()) {
                     unixMode = FileSystem.DEFAULT_DIR_MODE;
-                }else{
+                } else {
                     unixMode = FileSystem.DEFAULT_FILE_MODE;
                 }
             }
             return unixMode;
         }
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        builder.add(zipFile);
     }
 }

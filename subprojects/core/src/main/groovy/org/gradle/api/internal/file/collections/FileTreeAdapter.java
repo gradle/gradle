@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -52,6 +51,11 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        tree.registerWatchPoints(builder);
+    }
+
+    @Override
     protected Collection<DirectoryFileTree> getAsFileTrees() {
         if (tree instanceof FileSystemMirroringFileTree) {
             FileSystemMirroringFileTree mirroringTree = (FileSystemMirroringFileTree) tree;
@@ -65,11 +69,6 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             return fileTree.getLocalContents();
         }
         throw new UnsupportedOperationException(String.format("Cannot convert %s to local file system directories.", tree));
-    }
-
-    @Override
-    public Iterable<? extends File> getFileSystemRoots() {
-        return Sets.newHashSet(Iterables.transform(getAsFileTrees(), DirectoryFileTree.GET_DIR));
     }
 
     @Override
@@ -88,27 +87,12 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             return randomAccess.contains(file);
         }
         if (tree instanceof MapFileTree) {
-            return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
+            return ((MapFileTree) tree).getFilesWithoutCreating().contains(file);
         }
         if (tree instanceof FileSystemMirroringFileTree) {
-            return ((FileSystemMirroringFileTree)tree).getMirror().contains(file);
+            return ((FileSystemMirroringFileTree) tree).getMirror().contains(file);
         }
         return super.contains(file);
-    }
-
-    @Override
-    public boolean wouldContain(File file) {
-        if (tree instanceof RandomAccessFileCollection) {
-            RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
-            return randomAccess.wouldContain(file);
-        }
-        if (tree instanceof MapFileTree) {
-            return ((MapFileTree)tree).getFilesWithoutCreating().contains(file);
-        }
-        if (tree instanceof FileSystemMirroringFileTree) {
-            return ((FileSystemMirroringFileTree)tree).getMirror().wouldContain(file);
-        }
-        return super.wouldContain(file);
     }
 
     @Override

@@ -19,8 +19,8 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.base.Function;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
@@ -49,9 +48,9 @@ import java.util.regex.Pattern;
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
 
-    public static final Function<DirectoryFileTree, File> GET_DIR = new Function<DirectoryFileTree, File>() {
+    public static final Function<DirectoryTree, File> GET_DIR = new Function<DirectoryTree, File>() {
         @Override
-        public File apply(DirectoryFileTree input) {
+        public File apply(DirectoryTree input) {
             return input.getDir();
         }
     };
@@ -103,24 +102,12 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public boolean contains(File file) {
-        return checkContains(file, true);
+        return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
     }
 
-    public boolean wouldContain(File file) {
-        return checkContains(file, false);
-    }
-
-    private boolean checkContains(File file, boolean checkExistence) {
-        String prefix = dir.getAbsolutePath() + File.separator;
-        if (!file.getAbsolutePath().startsWith(prefix)) {
-            return false;
-        }
-        if (checkExistence && !file.isFile()) {
-            return false;
-        }
-        RelativePath path = new RelativePath(true, file.getAbsolutePath().substring(prefix.length()).split(
-                Pattern.quote(File.separator)));
-        return patternSet.getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem));
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        builder.add(this);
     }
 
     /**

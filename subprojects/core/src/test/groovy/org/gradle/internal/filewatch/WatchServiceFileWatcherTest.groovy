@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,9 +47,12 @@ class WatchServiceFileWatcherTest extends Specification {
         thrown = it
     }
 
+    FileSystemSubset fileSystemSubset
+
     void setup() {
         NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
+        fileSystemSubset = FileSystemSubset.builder().add(testDir.testDirectory).build()
     }
 
     void cleanup() {
@@ -65,7 +69,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def listener = Mock(FileWatcherListener)
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
+        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -82,7 +86,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def listenerCalledLatch = new CountDownLatch(1)
         def listenerCalledLatch2 = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
+        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
@@ -112,7 +116,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def subdir = testDir.createDir("subdir")
         def listenerCalledLatch = new CountDownLatch(1)
         when:
-        fileWatcher = fileWatcherFactory.watch([testDir.getTestDirectory()], onError, listener)
+        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError, listener)
         subdir.createFile("somefile").text = "Hello world"
         waitOn(listenerCalledLatch)
         then:
@@ -126,7 +130,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def block = this.<List<Boolean>> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
+        def watcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
             def vals = [watcher.running]
             watcher.stop()
             block.set(vals << watcher.running)
@@ -147,7 +151,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def result = this.<Boolean> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
+        def watcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
             eventLatch.countDown()
             waitOn(stopLatch)
             result.set(watcher.running)
@@ -168,7 +172,7 @@ class WatchServiceFileWatcherTest extends Specification {
         def watcherThread = this.<Thread> blockingVar()
 
         when:
-        def watcher = fileWatcherFactory.watch([testDir.testDirectory], onError) { watcher, event ->
+        def watcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
             watcherThread.set(Thread.currentThread())
         }
 
@@ -183,7 +187,7 @@ class WatchServiceFileWatcherTest extends Specification {
     def "watcher will stop if listener throws and error is forwarded"() {
         when:
         def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()
-        fileWatcher = fileWatcherFactory.watch([testDir.testDirectory],
+        fileWatcher = fileWatcherFactory.watch(fileSystemSubset,
             { onErrorStatus.set(Pair.of(fileWatcher.running, it)) },
             { watcher, event -> throw new RuntimeException("!!") }
         )

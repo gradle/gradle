@@ -21,13 +21,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.WatchService;
@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class WatchServiceFileWatcherBacking {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchServiceFileWatcherBacking.class);
+
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
 
@@ -44,7 +45,6 @@ public class WatchServiceFileWatcherBacking {
     private final FileWatcherListener listener;
     private final WatchService watchService;
     private final WatchServicePoller poller;
-    private final WatchServiceRegistrar registrar;
 
     private final FileWatcher fileWatcher = new FileWatcher() {
         @Override
@@ -58,15 +58,11 @@ public class WatchServiceFileWatcherBacking {
         }
     };
 
-    WatchServiceFileWatcherBacking(Iterable<? extends File> roots, Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+    WatchServiceFileWatcherBacking(FileSystemSubset fileSystemSubset, Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
         this.onError = onError;
-        this.listener = listener;
+        this.listener = new WatchServiceRegistrar(watchService, fileSystemSubset, listener);
         this.watchService = watchService;
         this.poller = new WatchServicePoller(watchService);
-        this.registrar = new WatchServiceRegistrar(watchService);
-        for (File root : roots) {
-            registrar.registerRoot(root.toPath());
-        }
     }
 
     public FileWatcher start(ListeningExecutorService executorService) {
@@ -123,25 +119,13 @@ public class WatchServiceFileWatcherBacking {
 
     private void deliverEvents(List<FileWatcherEvent> events) {
         for (FileWatcherEvent event : events) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Received file system event: {}", event);
+            }
             if (!isRunning()) {
                 break;
             }
-            deliverEvent(event);
-        }
-    }
-
-    private void deliverEvent(FileWatcherEvent event) {
-        handleNewDirectory(event);
-        listener.onChange(fileWatcher, event);
-    }
-
-    private void handleNewDirectory(FileWatcherEvent event) {
-        if (event.getType() == FileWatcherEvent.Type.CREATE && event.getFile().isDirectory()) {
-            try {
-                registrar.registerChild(event.getFile().toPath());
-            } catch (IOException e) {
-                LOGGER.warn("Problem adding watch to " + event.getFile(), e);
-            }
+            listener.onChange(fileWatcher, event);
         }
     }
 

@@ -19,13 +19,15 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -66,10 +68,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     public boolean contains(File file) {
         return getFiles().contains(file);
-    }
-
-    public boolean wouldContain(File file) {
-        return contains(file);
     }
 
     public FileCollection plus(FileCollection collection) {
@@ -135,24 +133,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return fileTrees;
     }
 
-    @Override
-    public FileCollectionInternal resolveToFileTreesAndFiles() {
-        UnionFileCollection unionFileCollection = new UnionFileCollection();
-        Collection<DirectoryFileTree> fileTrees = getAsFileTrees();
-        List<File> singleFiles = new ArrayList<File>();
-        for(DirectoryFileTree tree : fileTrees) {
-            if(tree instanceof FileBackedDirectoryFileTree) {
-                singleFiles.add(((FileBackedDirectoryFileTree) tree).getFile());
-            } else {
-                unionFileCollection.add(new FileTreeAdapter(tree));
-            }
-        }
-        if(!singleFiles.isEmpty()) {
-            unionFileCollection.add(new SimpleFileCollection(singleFiles));
-        }
-        return unionFileCollection;
-    }
-
     public Object addToAntBuilder(Object node, String childNodeName) {
         addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
         return this;
@@ -212,11 +192,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
-    @Override
-    public Iterable<? extends File> getFileSystemRoots() {
-        return FileUtils.findRoots(this);
-    }
-
     public FileCollection filter(Closure filterClosure) {
         return filter(Specs.convertClosureToSpec(filterClosure));
     }
@@ -244,4 +219,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
 
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (File file : getFiles()) {
+            builder.add(file);
+        }
+    }
 }
