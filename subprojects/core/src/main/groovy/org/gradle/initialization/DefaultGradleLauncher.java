@@ -171,7 +171,13 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildExecuter.select(gradle);
 
         if (gradle.getStartParameter().isConfigureOnDemand()) {
-            buildListener.projectsEvaluated(gradle);
+            internalBuildEvent(gradle, InternalBuildListener.PROJECTS_EVALUATION_TYPE, new Factory<Void>() {
+                @Override
+                public Void create() {
+                    buildListener.projectsEvaluated(gradle);
+                    return null;
+                }
+            });
         }
 
         // Execute build
