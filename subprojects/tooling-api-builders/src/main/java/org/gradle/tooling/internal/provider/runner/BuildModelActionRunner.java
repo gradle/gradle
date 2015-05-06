@@ -47,7 +47,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         // this allows to send progress events back to the DaemonClient (via short-cut)
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
         if (buildModelAction.isSendTestProgressEvents()) {
-            gradle.addListener(new ClientForwardingTestListener(eventConsumer));
+            gradle.addListener(new ClientForwardingTestListener(eventConsumer, buildModelAction.getConsumerVersion()));
         }
         if (buildModelAction.isSendTaskProgressEvents()) {
             gradle.addListener(new ClientForwardingTaskListener(eventConsumer));

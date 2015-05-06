@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.events.*;
+import org.gradle.util.GradleVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +37,11 @@ import java.util.List;
 class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
+    private final boolean toolingApiConsumerBaseVersionHigherThan24;
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, String toolingApiConsumerVersion) {
         this.eventConsumer = eventConsumer;
+        this.toolingApiConsumerBaseVersionHigherThan24 = GradleVersion.version(toolingApiConsumerVersion).getBaseVersion().compareTo(GradleVersion.version("2.4")) > 0;
     }
 
     @Override
@@ -56,11 +59,11 @@ class ClientForwardingTestListener implements TestListenerInternal {
         // Don't forward
     }
 
-    private static DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
+    private DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
         return testDescriptor.isComposite() ? toTestDescriptorForSuite(testDescriptor) : toTestDescriptorForTest(testDescriptor);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
+    private DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
         Object id = EventIdGenerator.generateId(suite);
         String name = suite.getName();
         String displayName = suite.toString();
@@ -72,7 +75,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
+    private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
         Object id = EventIdGenerator.generateId(test);
         String name = test.getName();
         String displayName = test.toString();
@@ -84,15 +87,19 @@ class ClientForwardingTestListener implements TestListenerInternal {
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static Object getParentId(TestDescriptorInternal descriptor) {
+    private Object getParentId(TestDescriptorInternal descriptor) {
         TestDescriptorInternal parent = descriptor.getParent();
         Object parentId = parent != null ? EventIdGenerator.generateId(parent) : null;
         if (parentId == null) {
-            if (descriptor instanceof DecoratingTestDescriptor) {
-                descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
-            }
-            if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
-                parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
+            // only set the TaskOperation as the parent if the Tooling API Consumer is version 2.5 or higher, since
+            // the TAPI Consumer in 2.4 throws an exception when it receives a parent id that is not a test operation id
+            if (toolingApiConsumerBaseVersionHigherThan24) {
+                if (descriptor instanceof DecoratingTestDescriptor) {
+                    descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
+                }
+                if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
+                    parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
+                }
             }
         }
         return parentId;

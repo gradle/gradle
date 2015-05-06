@@ -58,6 +58,7 @@ public class ProviderConnection {
     private final LoggingServiceRegistry loggingServices;
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecuter<BuildActionParameters> embeddedExecutor;
+    private String consumerVersion;
 
     public ProviderConnection(LoggingServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory, BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer) {
         this.loggingServices = loggingServices;
@@ -72,6 +73,9 @@ public class ProviderConnection {
         LoggingManagerInternal loggingManager = loggingServices.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(providerLogLevel);
         loggingManager.start();
+
+        consumerVersion = parameters.getConsumerVersion();
+        LOGGER.debug("Consumer version: {}", consumerVersion);
     }
 
     public Object run(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
@@ -111,7 +115,7 @@ public class ProviderConnection {
             ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
         }
 
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress, listenToBuildProgress, consumerVersion);
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
         if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
             rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);
