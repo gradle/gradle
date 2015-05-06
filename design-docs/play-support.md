@@ -665,6 +665,15 @@ Constraints / implementation details:
     - Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
     - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
 
+#### Open Issues
+
+- Enforce 'quiet' period, so we do not rebuild immediately on the first change.
+- Does a new directory being added to an @InputDirectory input trigger a rebuild? (e.g. `mkdir src/main/java/newDir`)
+- Does an @InputFile that is a directory being removed/added trigger a rebuild?
+- How are symlinks being dealt with
+- How are we dealing with @InputDirectory where the value is something like `zipTree`
+- Given tasks A <- B <- C, if B fails and the inputs to C change, should a build be triggered?
+
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
 - All files in the project build directory will be ignored in watching. This simplifies the implementation of the story since task input/output analysis isn't strictly required when we ignore file changes in the build directory.
@@ -689,27 +698,6 @@ Constraints / implementation details:
 - How are we dealing with @InputDirectory where the value is something like `zipTree`
 - Given tasks A <- B <- C, if B fails and the inputs to C change, should a build be triggered?
 
----
-
-### Story: Continuous Gradle mode rebuilds if inputs to the model change
-
-Monitor files that are inputs to the model for changes too.
-
-TODO: This should be split into multiple stories.
-
-Model inputs include build.gradle, settings.gradle, gradle.properties, custom configuration files, some web service.
-
-There are a few more inputs that might not be so obvious:
-
-- The gradle-wrapper.properties file.
-- The gradle.properties and init.gradle scripts in ~/.gradle, and their inputs.
-- The plugins and their inputs and dependencies.
-- The contents of the various repositories that the build logic uses, eg to resolve plugins, libraries and so on.
-- The presence/absence of source directories (these affect the new model)
-- The toolchains that the build uses
-- Environment variables, system properties, command-line options provided when Gradle was invoked.
-- Values the user was prompted for, eg from in the IDE.
-
 ### Story: Continuous Gradle mode used through Tooling API
 
 Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build through the Tooling API.
@@ -730,6 +718,25 @@ Gradle will be able to start, run a set of tasks and then wait for a retrigger b
 
 ### Open Issues
 
+#### Story: Continuous Gradle mode rebuilds if inputs to the model change
+
+Monitor files that are inputs to the model for changes too.
+
+TODO: This should be split into multiple stories.
+
+Model inputs include build.gradle, settings.gradle, gradle.properties, custom configuration files, some web service.
+
+There are a few more inputs that might not be so obvious:
+
+- The gradle-wrapper.properties file.
+- The gradle.properties and init.gradle scripts in ~/.gradle, and their inputs.
+- The plugins and their inputs and dependencies.
+- The contents of the various repositories that the build logic uses, eg to resolve plugins, libraries and so on.
+- The presence/absence of source directories (these affect the new model)
+- The toolchains that the build uses
+- Environment variables, system properties, command-line options provided when Gradle was invoked.
+- Values the user was prompted for, eg from in the IDE.
+
 TODO: See if these make sense incorporated in another story/Feature.
 
 - Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
@@ -742,6 +749,7 @@ TODO: See if these make sense incorporated in another story/Feature.
 - When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
 - If previous build started any service, stop that service before rebuilding.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
+- Ctrl+C kills the daemon process too, maybe we should use something else to exit continuous mode
 
 ---
 
