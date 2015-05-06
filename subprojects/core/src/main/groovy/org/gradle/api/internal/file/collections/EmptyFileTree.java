@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.WatchPointsBuilder;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class EmptyFileTree implements MinimalFileTree, Buildable, LocalFileTree 
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    public void registerWatchPoints(WatchPointsBuilder builder) {
 
     }
 }

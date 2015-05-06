@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.tasks.util.PatternSet;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import java.io.File;
 
-public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
+public interface WatchPointsBuilder {
+    WatchPointsBuilder add(File file);
 
-    void registerWatchPoints(WatchPointsBuilder builder);
+    WatchPointsBuilder add(DirectoryTree directoryTree);
 
+    WatchPointsBuilder add(File dir, PatternSet patternSet);
 }

@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.WatchPointsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -106,7 +106,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    public void registerWatchPoints(WatchPointsBuilder builder) {
         builder.add(this);
     }
 

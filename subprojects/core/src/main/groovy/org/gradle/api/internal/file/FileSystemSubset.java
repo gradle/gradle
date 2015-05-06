@@ -84,24 +84,27 @@ public class FileSystemSubset {
         return false;
     }
 
-    public static class Builder {
+    public static class Builder implements WatchPointsBuilder {
         private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
 
         private Builder() {
         }
 
-        public Builder add(File file) {
+        @Override
+        public WatchPointsBuilder add(File file) {
             files.add(file.getAbsoluteFile());
             return this;
         }
 
-        public Builder add(DirectoryTree directoryTree) {
+        @Override
+        public WatchPointsBuilder add(DirectoryTree directoryTree) {
             trees.add(ImmutableDirectoryTree.of(directoryTree));
             return this;
         }
 
-        public Builder add(File dir, PatternSet patternSet) {
+        @Override
+        public WatchPointsBuilder add(File dir, PatternSet patternSet) {
             trees.add(ImmutableDirectoryTree.of(dir, patternSet));
             return this;
         }

@@ -220,7 +220,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    public void registerWatchPoints(WatchPointsBuilder builder) {
         for (File file : getFiles()) {
             builder.add(file);
         }

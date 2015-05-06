@@ -19,7 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
-import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.WatchPointsBuilder;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -51,7 +51,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    public void registerWatchPoints(WatchPointsBuilder builder) {
         tree.registerWatchPoints(builder);
     }
 

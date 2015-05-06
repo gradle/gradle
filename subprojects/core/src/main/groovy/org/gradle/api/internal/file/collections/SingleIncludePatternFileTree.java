@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.WatchPointsBuilder;
 import org.gradle.api.internal.file.pattern.PatternStep;
 import org.gradle.api.internal.file.pattern.PatternStepFactory;
 import org.gradle.api.specs.Spec;
@@ -133,7 +133,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+    public void registerWatchPoints(WatchPointsBuilder builder) {
         builder.add(baseDir, new PatternSet().include(includePattern).exclude(excludeSpec));
     }
 }
