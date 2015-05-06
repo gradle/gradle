@@ -30,6 +30,10 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.toString();
     }
 
+    public TestDescriptorInternal getDescriptor() {
+        return descriptor;
+    }
+
     public TestDescriptorInternal getParent() {
         return parent;
     }

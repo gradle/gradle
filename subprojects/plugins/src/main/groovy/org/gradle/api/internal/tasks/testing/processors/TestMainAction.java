@@ -25,20 +25,22 @@ public class TestMainAction implements Runnable {
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
+    private final String testTaskOperationId;
     private final String rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, String rootTestSuiteId, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, String testTaskOperationId, String rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         this.timeProvider = timeProvider;
+        this.testTaskOperationId = testTaskOperationId;
         this.rootTestSuiteId = rootTestSuiteId;
         this.displayName = displayName;
     }
 
     public void run() {
-        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
+        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName, testTaskOperationId);
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);
@@ -52,9 +54,16 @@ public class TestMainAction implements Runnable {
         }
     }
 
-    private static class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        public RootTestSuiteDescriptor(Object id, String name) {
+    public static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        private final String testTaskOperationId;
+
+        private RootTestSuiteDescriptor(Object id, String name, String testTaskOperationId) {
             super(id, name);
+            this.testTaskOperationId = testTaskOperationId;
+        }
+
+        public String getTestTaskOperationId() {
+            return testTaskOperationId;
         }
 
         @Override

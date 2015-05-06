@@ -49,7 +49,7 @@ public class DefaultTestExecuter implements TestExecuter {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
-                        testTask.getClasspath(), testFramework.getWorkerConfigurationAction());
+                    testTask.getClasspath(), testFramework.getWorkerConfigurationAction());
             }
         };
         Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -59,7 +59,7 @@ public class DefaultTestExecuter implements TestExecuter {
         };
 
         TestClassProcessor processor = new MaxNParallelTestClassProcessor(testTask.getMaxParallelForks(),
-                reforkingProcessorFactory, actorFactor);
+            reforkingProcessorFactory, actorFactor);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 
@@ -72,6 +72,9 @@ public class DefaultTestExecuter implements TestExecuter {
         } else {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
-        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTask.getPath(), String.format("Gradle Test Run %s", testTask.getPath())).run();
+
+        final String testTaskOperationId = System.identityHashCode(testTask.getProject().getGradle()) + ":" + testTask.getPath();
+
+        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), String.format("Gradle Test Run %s", testTask.getPath())).run();
     }
 }

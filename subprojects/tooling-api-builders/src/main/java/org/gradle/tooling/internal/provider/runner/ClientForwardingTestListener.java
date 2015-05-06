@@ -15,22 +15,17 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.provider.events.AbstractTestResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
-import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
+import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +68,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
-        Object parentId = suite.getParent() != null ? EventIdGenerator.generateId(suite.getParent()) : null;
+        Object parentId = getParentId(suite);
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
@@ -85,8 +80,22 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
-        Object parentId = test.getParent() != null ? EventIdGenerator.generateId(test.getParent()) : null;
+        Object parentId = getParentId(test);
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private static Object getParentId(TestDescriptorInternal descriptor) {
+        TestDescriptorInternal parent = descriptor.getParent();
+        Object parentId = parent != null ? EventIdGenerator.generateId(parent) : null;
+        if (parentId == null) {
+            if (descriptor instanceof DecoratingTestDescriptor) {
+                descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
+            }
+            if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
+                parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
+            }
+        }
+        return parentId;
     }
 
     private static AbstractTestResult adapt(TestResult result) {
