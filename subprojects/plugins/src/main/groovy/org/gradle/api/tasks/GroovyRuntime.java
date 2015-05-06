@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.internal.Cast;
@@ -89,6 +90,15 @@ public class GroovyRuntime {
                     dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
                 }
                 return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()])));
+            }
+
+            // TODO: workaround to prevent exceptions when src/main/groovy doesn't contain any files
+            @Override
+            public void registerWatchPoints(FileSystemSubset.Builder builder) {
+                GroovyJarFile groovyJar = findGroovyJarFile(classpath);
+                if (groovyJar != null) {
+                    super.registerWatchPoints(builder);
+                }
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
