@@ -22,17 +22,15 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
 
-import org.gradle.util.GradleVersion
-
 import java.util.regex.Pattern
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
                 continue
             }
-            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+            for (String name : ["fileHashes", "outputFileStates", "fileSnapshots"]) {
                 def stateDir = new File(cacheDir, name)
                 if (stateDir.directory) {
                     println "Removing old cache directory : ${stateDir}"
@@ -46,7 +44,7 @@ def removeDodgyCacheFiles(File dir) {
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
                 continue
             }
@@ -198,7 +196,7 @@ integTestTasks.all { Test task ->
 task integTest(type: Test) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
     systemProperties['org.gradle.integtest.executer'] = defaultExecuter
-    if(project.hasProperty('org.gradle.integtest.debug')) {
+    if (project.hasProperty('org.gradle.integtest.debug')) {
         systemProperties['org.gradle.integtest.debug'] = 'true'
         testLogging.showStandardStreams = true
     }
@@ -244,4 +242,10 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
             plusConfigurations.add(configurations.integTestRuntime)
         }
     }
+}
+
+task java9Test(type: Test) {
+    executable = "${System.getenv("JAVA_9")}/bin/java"
+    include '**/*CommandLineJavaCompilerIntegrationTest*'
+    jvmArgs = []
 }

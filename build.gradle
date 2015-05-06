@@ -65,6 +65,9 @@ buildTypes {
 
     // Used to build production distros and smoke test them
     promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
+
+    //Initial smoke test for java 9
+    java9Build "java9Test", useIncomingDistributions: true
 }
 
 ext {

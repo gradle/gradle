@@ -21,6 +21,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,15 +46,22 @@ public class JdkTools {
     }
 
     JdkTools(JavaInfo javaInfo) {
-        File toolsJar = javaInfo.getToolsJar();
-        if (toolsJar == null) {
-            throw new IllegalStateException("Could not find tools.jar");
+        if (Jvm.current().getJavaVersion().isJava9Compatible()) {
+            isolatedToolsLoader = ClassLoader.getSystemClassLoader().getParent();
+        } else {
+            File toolsJar = javaInfo.getToolsJar();
+            if (toolsJar == null) {
+                throw new IllegalStateException("Could not find any JDK jars or modules");
+            }
+            isolatedToolsLoader = new DefaultClassLoaderFactory()
+                .createIsolatedClassLoader(new DefaultClassPath(toolsJar));
         }
-
-        isolatedToolsLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(toolsJar));
     }
 
     public JavaCompiler getSystemJavaCompiler() {
+        if (Jvm.current().getJavaVersion().isJava9Compatible()) {
+            return ToolProvider.getSystemJavaCompiler();
+        }
         Class<?> compilerImplClass;
         try {
             compilerImplClass = isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
@@ -63,5 +71,4 @@ public class JdkTools {
 
         return DirectInstantiator.instantiate(compilerImplClass.asSubclass(JavaCompiler.class));
     }
-
 }
