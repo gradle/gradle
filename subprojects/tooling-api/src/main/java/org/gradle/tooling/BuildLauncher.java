@@ -127,6 +127,13 @@ public interface BuildLauncher extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.5
+     */
+    @Incubating
+    BuildLauncher addProgressListener(org.gradle.tooling.events.ProgressListener listener);
+
+    /**
+     * {@inheritDoc}
      * @since 2.4
      */
     @Incubating

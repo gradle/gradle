@@ -162,6 +162,16 @@ public interface LongRunningOperation {
     LongRunningOperation addProgressListener(ProgressListener listener);
 
     /**
+     * Adds a progress listener which will receive progress events as the operation runs.
+     *
+     * @param listener The listener
+     * @return this
+     * @since 2.5
+     */
+    @Incubating
+    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener);
+
+    /**
      * Adds a test progress listener which will receive test progress events as the operation runs.
      *
      * @param listener The listener
