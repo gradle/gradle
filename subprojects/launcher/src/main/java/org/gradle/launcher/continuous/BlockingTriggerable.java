@@ -43,7 +43,7 @@ public class BlockingTriggerable implements TriggerListener {
                 Clock waitStart = new Clock();
                 while (currentTrigger == null) {
                     lock.wait(WAIT_INTERVAL_MS);
-                    assert (waitStart.getTimeInMs() < WAIT_TIMEOUT_MS) : "run-away test for " + waitStart.getTime();
+                    assert waitStart.getTimeInMs() < WAIT_TIMEOUT_MS : "run-away test for " + waitStart.getTime();
                 }
                 LOGGER.debug("woke up for trigger " + currentTrigger);
                 TriggerDetails lastReason = currentTrigger;
