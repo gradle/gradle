@@ -30,10 +30,10 @@ class PathBinderCreationListener extends ModelBinding {
     private final Action<? super ModelNodeInternal> bindAction;
     private final ModelPath path;
 
-    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
+    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelNodeInternal> bindAction) {
         super(descriptor, reference, writable);
         this.bindAction = bindAction;
-        this.path = scope.descendant(reference.getPath());
+        this.path = reference.getPath();
     }
 
     @Nullable

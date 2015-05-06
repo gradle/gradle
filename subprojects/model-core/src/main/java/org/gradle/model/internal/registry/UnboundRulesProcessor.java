@@ -44,20 +44,15 @@ public class UnboundRulesProcessor {
         for (RuleBinder binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());
 
-            ModelPath scope = binder.getScope();
-
-            if (binder.getSubjectReference() != null) {
+            if (binder.getSubjectBinding() != null) {
                 ModelBinding binding = binder.getSubjectBinding();
-                UnboundRuleInput.Builder inputBuilder = toInputBuilder(binding, scope);
-                if (scope != ModelPath.ROOT) {
-                    inputBuilder.scope(scope.toString());
-                }
+                UnboundRuleInput.Builder inputBuilder = toInputBuilder(binding);
                 builder.mutableInput(inputBuilder);
             }
 
-            for (int i = 0; i < binder.getInputReferences().size(); ++i) {
+            for (int i = 0; i < binder.getInputBindings().size(); ++i) {
                 ModelBinding binding = binder.getInputBindings().get(i);
-                builder.immutableInput(toInputBuilder(binding, binder.getScope()));
+                builder.immutableInput(toInputBuilder(binding));
             }
 
             unboundRules.add(builder.build());
@@ -65,7 +60,7 @@ public class UnboundRulesProcessor {
         return unboundRules;
     }
 
-    private UnboundRuleInput.Builder toInputBuilder(ModelBinding binding, ModelPath scope) {
+    private UnboundRuleInput.Builder toInputBuilder(ModelBinding binding) {
         ModelReference<?> reference = binding.getReference();
         UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType());
         ModelPath path;
@@ -75,8 +70,11 @@ public class UnboundRulesProcessor {
         } else {
             path = reference.getPath();
             if (path != null) {
-                path = scope.descendant(path);
                 builder.suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
+            }
+            ModelPath scope = reference.getScope();
+            if (scope != null && !scope.equals(ModelPath.ROOT)) {
+                builder.scope(scope.toString());
             }
         }
         if (path != null) {

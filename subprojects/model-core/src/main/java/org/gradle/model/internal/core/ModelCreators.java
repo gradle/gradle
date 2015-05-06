@@ -72,7 +72,7 @@ abstract public class ModelCreators {
         private boolean hidden;
 
         private ModelRuleDescriptor modelRuleDescriptor;
-        private List<? extends ModelReference<?>> inputs = Collections.emptyList();
+        private List<ModelReference<?>> inputs = Collections.emptyList();
 
         private Builder(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
             this.path = path;
@@ -89,7 +89,7 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder inputs(List<? extends ModelReference<?>> inputs) {
+        public Builder inputs(List<ModelReference<?>> inputs) {
             this.inputs = inputs;
             return this;
         }

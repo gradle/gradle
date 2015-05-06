@@ -19,10 +19,10 @@ package org.gradle.model.internal.registry;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 
 import java.util.Collection;
+import java.util.List;
 
 public class MutatorRuleBinder<T> extends RuleBinder {
 
@@ -33,10 +33,10 @@ public class MutatorRuleBinder<T> extends RuleBinder {
 
     private boolean processed;
 
-    public MutatorRuleBinder(ModelReference<T> subjectReference, final ModelActionRole role, ModelAction<T> action, ModelPath scope, Collection<RuleBinder> binders) {
-        super(action.getInputs(), action.getDescriptor(), scope, binders);
+    public MutatorRuleBinder(ModelReference<T> subjectReference, List<ModelReference<?>> inputs, final ModelActionRole role, ModelAction<T> action, Collection<RuleBinder> binders) {
+        super(inputs, action.getDescriptor(), binders);
         this.subjectReference = subjectReference;
-        subjectBinding = binding(subjectReference, scope, true, new Action<ModelNodeInternal>() {
+        subjectBinding = binding(subjectReference, true, new Action<ModelNodeInternal>() {
             @Override
             public void execute(ModelNodeInternal subject) {
                 subject.addMutatorBinder(role, MutatorRuleBinder.this);

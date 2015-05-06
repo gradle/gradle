@@ -28,17 +28,16 @@ import org.gradle.model.internal.type.ModelType;
 
 class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<? super ModelNodeInternal> bindAction;
-    private final ModelPath scope;
 
-    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
+    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelNodeInternal> bindAction) {
         super(descriptor, reference, writable);
         this.bindAction = bindAction;
-        this.scope = scope;
     }
 
+    @Nullable
     @Override
     public ModelPath getScope() {
-        return scope;
+        return reference.getScope();
     }
 
     @Nullable

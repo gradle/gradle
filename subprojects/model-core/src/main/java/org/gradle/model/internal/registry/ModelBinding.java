@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -25,9 +24,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  * A binding of a reference to an actual model element.
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
- * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
-@ThreadSafe
 abstract class ModelBinding extends ModelCreationListener {
 
     final ModelReference<?> reference;

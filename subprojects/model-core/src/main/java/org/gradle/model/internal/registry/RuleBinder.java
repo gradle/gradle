@@ -18,7 +18,6 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -32,17 +31,15 @@ public abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputReferences;
-    private final ModelPath scope;
     private final Collection<RuleBinder> binders;
 
     private int inputsBound;
     private List<ModelBinding> inputBindings;
     private Action<ModelNodeInternal> inputBindAction;
 
-    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope, Collection<RuleBinder> binders) {
+    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
-        this.scope = scope;
         this.binders = binders;
         inputBindAction = new Action<ModelNodeInternal>() {
             @Override
@@ -63,28 +60,19 @@ public abstract class RuleBinder {
         }
         List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
         for (ModelReference<?> inputReference : inputReferences) {
-            ModelPath effectiveScope = inputReference.getPath() == null ? ModelPath.ROOT : scope;
-            bindings.add(binding(inputReference, effectiveScope, false, inputBindAction));
+            bindings.add(binding(inputReference, false, inputBindAction));
         }
         return bindings;
     }
 
-    protected ModelBinding binding(ModelReference<?> reference, ModelPath scope, boolean writable, Action<ModelNodeInternal> bindAction) {
+    protected ModelBinding binding(ModelReference<?> reference, boolean writable, Action<ModelNodeInternal> bindAction) {
         if (reference.getPath() != null) {
-            return new PathBinderCreationListener(descriptor, reference, scope, writable, bindAction);
+            return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
         }
-        return new OneOfTypeBinderCreationListener(descriptor, reference, scope, writable, bindAction);
-    }
-
-    public List<? extends ModelReference<?>> getInputReferences() {
-        return inputReferences;
+        return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
     }
 
     public ModelBinding getSubjectBinding() {
-        return null;
-    }
-
-    public ModelReference<?> getSubjectReference() {
         return null;
     }
 
@@ -94,10 +82,6 @@ public abstract class RuleBinder {
 
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
-    }
-
-    public ModelPath getScope() {
-        return scope;
     }
 
     protected void maybeFire() {

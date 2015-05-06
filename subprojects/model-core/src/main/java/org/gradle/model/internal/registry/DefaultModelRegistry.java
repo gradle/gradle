@@ -61,7 +61,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT, BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator), null));
+        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator, ModelPath.ROOT), null));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -78,12 +78,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         ModelNodeInternal root = modelGraph.getRoot();
-        registerNode(root, new ModelElementNode(toCreatorBinder(creator), root));
+        registerNode(root, new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), root));
         return this;
     }
 
-    private CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
-        return new CreatorRuleBinder(creator, ModelPath.ROOT, unboundRules);
+    private CreatorRuleBinder toCreatorBinder(ModelCreator creator, ModelPath scope) {
+        List<ModelReference<?>> inputs = inputsToScope(creator.getInputs(), scope);
+        return new CreatorRuleBinder(creator, inputs, unboundRules);
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
@@ -154,9 +155,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (reset) {
             return;
         }
-
-        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, unboundRules);
-
+        ModelReference<T> mappedSubject = subjectToScope(subject, scope);
+        List<ModelReference<?>> mappedInputs = inputsToScope(mutator.getInputs(), scope);
+        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, role, mutator, unboundRules);
         pendingMutatorBinders.add(binder);
     }
 
@@ -253,7 +254,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         // Will internally verify that this is valid
-        node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
+        node.replaceCreatorRuleBinder(toCreatorBinder(newCreator, ModelPath.ROOT));
         return this;
     }
 
@@ -386,11 +387,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
-    private void forceBindReference(ModelBinding binding, ModelPath scope) {
+    private void forceBindReference(ModelBinding binding) {
         if (!binding.isBound()) {
             ModelPath path = binding.getReference().getPath();
             if (path == null) {
-                selfCloseAncestryAndSelf(scope);
+                selfCloseAncestryAndSelf(binding.getReference().getScope());
             } else {
                 selfCloseAncestryAndSelf(path.getParent());
             }
@@ -406,14 +407,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(binding);
         }
 
-        ModelPath scope = binder.getScope();
-
         if (binder.getSubjectBinding() != null) {
-            forceBindReference(binder.getSubjectBinding(), scope);
+            forceBindReference(binder.getSubjectBinding());
         }
 
-        for (int i = 0; i < binder.getInputReferences().size(); i++) {
-            forceBindReference(binder.getInputBindings().get(i), scope);
+        for (int i = 0; i < binder.getInputBindings().size(); i++) {
+            forceBindReference(binder.getInputBindings().get(i));
         }
     }
 
@@ -901,7 +900,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
             Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
             for (ExtractedModelRule extractedRule : extractedRules) {
-                // TODO - remove this when we remove the 'rule dependencies' mechanism
                 if (!extractedRule.getRuleDependencies().isEmpty()) {
                     throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + extractedRule + ")");
                 }
@@ -913,7 +911,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                         throw new InvalidModelRuleDeclarationException("Rule " + extractedRule.getCreator().getDescriptor() + " cannot be applied at the scope of model element " + scope + " as creation rules cannot be used when applying rule sources to particular elements");
                     }
                 } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    // TODO this is a roundabout path, something like the registrar interface should be implementable by the registry and nodes
                     bind(extractedRule.getActionRole(), extractedRule.getAction(), scope);
                 } else {
                     throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
@@ -976,7 +973,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator)));
+            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT)));
         }
 
         @Override
@@ -984,7 +981,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelElementNode(toCreatorBinder(creator), this));
+            registerNode(this, new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), this));
         }
 
         @Override
@@ -1008,6 +1005,28 @@ public class DefaultModelRegistry implements ModelRegistry {
         public void ensureUsable() {
             transition(this, Initialized, true);
         }
+    }
+
+    private <T> ModelReference<T> subjectToScope(ModelReference<T> subjectReference, ModelPath scope) {
+        if (subjectReference.getPath() == null) {
+            return subjectReference.withScope(scope);
+        }
+        return subjectReference.withPath(scope.descendant(subjectReference.getPath()));
+    }
+
+    private List<ModelReference<?>> inputsToScope(List<ModelReference<?>> inputs, ModelPath scope) {
+        if (inputs.isEmpty()) {
+            return inputs;
+        }
+        ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
+        for (ModelReference<?> input : inputs) {
+            if (input.getPath() != null) {
+                result.add(input.withPath(scope.descendant(input.getPath())));
+            } else {
+                result.add(input.withScope(ModelPath.ROOT));
+            }
+        }
+        return result;
     }
 
 }

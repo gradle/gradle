@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
@@ -36,11 +37,14 @@ public class ModelReference<T> extends ModelPredicate {
 
     private final ModelPath path;
     private final ModelType<T> type;
+    @Nullable
+    private final ModelPath scope;
     private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, String description) {
         this.path = path;
         this.type = type;
+        this.scope = scope;
         this.description = description;
     }
 
@@ -49,7 +53,7 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return new ModelReference<T>(path, type, description);
+        return new ModelReference<T>(path, type, null, description);
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -57,7 +61,7 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return new ModelReference<T>(path, type, null);
+        return new ModelReference<T>(path, type, null, null);
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -97,8 +101,15 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     @Nullable
+    @Override
     public ModelPath getPath() {
         return path;
+    }
+
+    @Nullable
+    @Override
+    public ModelPath getScope() {
+        return scope;
     }
 
     @Nullable
@@ -106,12 +117,21 @@ public class ModelReference<T> extends ModelPredicate {
         return description;
     }
 
+    @Override
     public ModelType<T> getType() {
         return type;
     }
 
     public boolean isUntyped() {
         return type.equals(ModelType.UNTYPED);
+    }
+
+    public ModelReference<T> withScope(ModelPath scope) {
+        return new ModelReference<T>(path, type, scope, description);
+    }
+
+    public ModelReference<T> withPath(ModelPath path) {
+        return new ModelReference<T>(path, type, scope, description);
     }
 
     @Override
@@ -124,25 +144,19 @@ public class ModelReference<T> extends ModelPredicate {
         }
 
         ModelReference<?> that = (ModelReference<?>) o;
-
-        if (path == null) {
-            if (that.path == null) {
-                return type.equals(that.type);
-            }
-            return false;
-        }
-        return path.equals(that.path) && type.equals(that.type);
+        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = path.hashCode();
+        int result = path == null ? 0 : path.hashCode();
+        result = 31 * result + (scope == null ? 0 : scope.hashCode());
         result = 31 * result + type.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return "ModelReference{path=" + path + ", type=" + type + '}';
+        return "ModelReference{path=" + path + ", scope=" + scope + ", type=" + type + '}';
     }
 }

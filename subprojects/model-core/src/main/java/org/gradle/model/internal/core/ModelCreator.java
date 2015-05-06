@@ -33,5 +33,5 @@ public interface ModelCreator extends ModelRule {
 
     boolean isEphemeral();
 
-    List<? extends ModelReference<?>> getInputs();
+    List<ModelReference<?>> getInputs();
 }
