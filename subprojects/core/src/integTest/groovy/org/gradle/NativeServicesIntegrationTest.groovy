@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon
+package org.gradle
 
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DaemonNativeServicesIntegrationTest extends DaemonIntegrationSpec {
-    def "native services use daemon base dir" () {
+class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
+
+    def "native services libs are unpacked to gradle user home dir"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
         def nativeDir = new File(executer.gradleUserHomeDir, "native")
-
-        expect:
-        !nativeDir.exists()
 
         when:
         executer.withArguments("-q").run()
@@ -33,4 +30,5 @@ class DaemonNativeServicesIntegrationTest extends DaemonIntegrationSpec {
         then:
         nativeDir.directory
     }
+
 }
