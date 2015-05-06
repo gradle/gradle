@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.junit.Assume
 
@@ -113,10 +112,7 @@ project.logger.debug("debug logging");
 
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder)
-        if (!GradleContextualExecuter.longLivingProcess) {
-            //suppress daemon usage suggestions
-            executer.withArgument("--no-daemon")
-        }
+        executer.withArgument("--no-daemon") //suppress daemon usage suggestions
         executer.withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
         executer.run()
     }
