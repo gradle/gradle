@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A listener which is notified when operations that are executed as part of running a build make progress.
  *
- * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener)
+ * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.EnumSet)
  * @since 2.5
  */
 @Incubating

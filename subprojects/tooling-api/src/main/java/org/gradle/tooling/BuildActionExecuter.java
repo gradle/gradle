@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEventType;
 import org.gradle.tooling.events.build.BuildProgressListener;
 import org.gradle.tooling.events.task.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
@@ -24,6 +25,7 @@ import org.gradle.tooling.events.test.TestProgressListener;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 /**
  * Used to execute a {@link BuildAction} in the build process.
@@ -88,7 +90,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * @since 2.5
      */
     @Incubating
-    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
+    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
 
     /**
      * {@inheritDoc}

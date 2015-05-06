@@ -21,19 +21,21 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.build.BuildProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.test.TestProgressEvent
 
+@ToolingApiVersion(">=2.5")
+@TargetGradleVersion(">=2.5")
 class ProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
+
     def "register for all progress events at once"() {
         given:
         goodCode()
 
-        when: "registering the catch-all progress listener"
+        when: "registering for all progress event types"
         List<ProgressEvent> result = new ArrayList<ProgressEvent>()
         withConnection {
             ProjectConnection connection ->
@@ -42,7 +44,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << event
                     }
-                }).run()
+                }, EnumSet.allOf(ProgressEventType)).run()
         }
 
         then: "all progress events must be forwarded to the attached listener"
@@ -54,6 +56,29 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findIndexOf { it instanceof TaskProgressEvent } < result.findIndexOf { it instanceof TestProgressEvent }
         result.findLastIndexOf { it instanceof TaskProgressEvent } > result.findLastIndexOf { it instanceof TestProgressEvent }
         result.findLastIndexOf { it instanceof BuildProgressEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
+    }
+
+    def "register for subset of progress events at once"() {
+        given:
+        goodCode()
+
+        when: "registering for subset of progress event types"
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }, EnumSet.of(ProgressEventType.TEST)).run()
+        }
+
+        then: "only the matching progress events must be forwarded to the attached listener"
+        result.size() > 0
+        result.findAll { it instanceof TestProgressEvent }.size() > 0
+        result.findAll { it instanceof TaskProgressEvent }.isEmpty()
+        result.findAll { it instanceof BuildProgressEvent }.isEmpty()
     }
 
     def goodCode() {

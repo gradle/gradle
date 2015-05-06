@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.events.ProgressEventType;
 import org.gradle.tooling.events.build.BuildProgressEvent;
 import org.gradle.tooling.events.build.BuildProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
@@ -30,6 +31,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
@@ -89,11 +91,17 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     @Override
-    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
+    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes) {
         AllOperationsProgressListener delegatingListener = new AllOperationsProgressListener(listener);
-        addTestProgressListener(delegatingListener);
-        addTaskProgressListener(delegatingListener);
-        addBuildProgressListener(delegatingListener);
+        if (eventTypes.contains(ProgressEventType.TEST)) {
+            addTestProgressListener(delegatingListener);
+        }
+        if (eventTypes.contains(ProgressEventType.TASK)) {
+            addTaskProgressListener(delegatingListener);
+        }
+        if (eventTypes.contains(ProgressEventType.BUILD)) {
+            addBuildProgressListener(delegatingListener);
+        }
         return getThis();
     }
 
