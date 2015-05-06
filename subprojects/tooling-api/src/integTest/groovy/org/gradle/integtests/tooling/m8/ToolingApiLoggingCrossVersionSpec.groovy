@@ -111,10 +111,10 @@ project.logger.debug("debug logging");
     }
 
     private ExecutionResult runUsingCommandLine() {
-        def executer = targetDist.executer(temporaryFolder)
-        executer.withArgument("--no-daemon") //suppress daemon usage suggestions
-        executer.withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
-        executer.run()
+        targetDist.executer(temporaryFolder)
+            .withArgument("--no-daemon") //suppress daemon usage suggestions
+            .withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
+            .run()
     }
 
     String normaliseOutput(String output) {
