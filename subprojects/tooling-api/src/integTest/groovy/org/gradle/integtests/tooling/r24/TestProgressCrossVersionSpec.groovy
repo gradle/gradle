@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskProgressEvent
@@ -32,11 +33,9 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
-@Ignore
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=1.0-milestone-8 <2.4")
@@ -211,7 +210,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
             rootStartedEvent.descriptor.className == null &&
             rootStartedEvent.descriptor.methodName == null &&
-            rootStartedEvent.descriptor.parent == null
+            rootStartedEvent.descriptor.parent == getDescriptorForUnknownParentOperation()
         def testProcessStartedEvent = result[1]
         testProcessStartedEvent instanceof StartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
@@ -336,7 +335,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
             rootStartedEvent.descriptor.className == null &&
             rootStartedEvent.descriptor.methodName == null &&
-            rootStartedEvent.descriptor.parent == null
+            rootStartedEvent.descriptor.parent == getDescriptorForUnknownParentOperation()
         def testProcessStartedEvent = result[1]
         testProcessStartedEvent instanceof StartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
@@ -466,7 +465,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.suiteName == 'Gradle Test Run :test' &&
             rootStartedEvent.descriptor.className == null &&
             rootStartedEvent.descriptor.methodName == null &&
-            rootStartedEvent.descriptor.parent == null
+            rootStartedEvent.descriptor.parent == getDescriptorForUnknownParentOperation()
         def testProcessStartedEvent = result[1]
         testProcessStartedEvent instanceof StartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
@@ -610,7 +609,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.collect { it.descriptor }.toSet().size() == 13
 
         then: "number of nodes under the root suite is equal to the number of test worker processes"
-        result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
+        def parentOfTestRootNodes = getDescriptorForUnknownParentOperation()
+        result.findAll { it.descriptor.parent == parentOfTestRootNodes }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -690,7 +690,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.collect { it.descriptor }.toSet().size() == 2 * 11
 
         then: "number of nodes under the root suite is equal to the number of test worker processes"
-        result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 2 root suites with no further parent (start & finish events)
+        def parentOfTestRootNodes = getDescriptorForUnknownParentOperation()
+        result.findAll { it.descriptor.parent == parentOfTestRootNodes }.toSet().size() == 4  // 2 root suites with no further parent (start & finish events)
 
         then: "names for root suites and worker suites are consistent"
         result.findAll { it.descriptor.name =~ 'Gradle Test Run :sub[1|2]:test' }.toSet().size() == 4  // 2 root suites for 2 tasks (start & finish events)
@@ -780,4 +781,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    private static OperationDescriptor getDescriptorForUnknownParentOperation() {
+        // only as of Gradle 2.5 do we set the parent to OperationDescriptor.UNKNOWN
+        if ((GradleVersion.version(getTargetDist().version.version).baseVersion.compareTo(GradleVersion.version('2.4')) > 0) &&
+            (GradleVersion.version(GradleVersion.current().version).baseVersion.compareTo(GradleVersion.version('2.4')) > 0)) {
+            OperationDescriptor.UNKNOWN
+        } else {
+            null
+        }
+    }
 }

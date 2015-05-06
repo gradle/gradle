@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
@@ -39,24 +38,6 @@ import java.util.*;
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
 class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalFailSafeProgressListenersProvider {
-
-    static final OperationDescriptor DESCRIPTOR_NOT_FOUND = new OperationDescriptor() {
-        @Override
-        public String getName() {
-            return "unknown";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "descriptor not found";
-        }
-
-        @Nullable
-        @Override
-        public OperationDescriptor getParent() {
-            return null;
-        }
-    };
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
@@ -267,7 +248,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
-        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
             return new DefaultJvmTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent,
@@ -288,22 +269,22 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private TaskOperationDescriptor toTaskDescriptor(InternalTaskDescriptor descriptor) {
-        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         return new DefaultTaskOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), descriptor.getTaskPath(), parent);
     }
 
     private BuildOperationDescriptor toBuildDescriptor(InternalBuildDescriptor descriptor) {
-        OperationDescriptor parent = getCachedDescriptor(descriptor.getParentId());
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         return new DefaultBuildOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
     }
 
-    private synchronized OperationDescriptor getCachedDescriptor(Object id) {
+    private synchronized OperationDescriptor getParentDescriptor(Object id) {
         if (id == null) {
             return null;
         }
         OperationDescriptor operationDescriptor = descriptorCache.get(id);
         if (operationDescriptor == null) {
-            operationDescriptor = DESCRIPTOR_NOT_FOUND;
+            operationDescriptor = OperationDescriptor.UNKNOWN;
         }
         return operationDescriptor;
     }
