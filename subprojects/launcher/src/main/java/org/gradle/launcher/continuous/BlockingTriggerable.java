@@ -19,8 +19,11 @@ package org.gradle.launcher.continuous;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.Clock;
 
 public class BlockingTriggerable implements TriggerListener {
+    private final static long WAIT_TIMEOUT_MS = 30000;
+    private final static long WAIT_INTERVAL_MS = WAIT_TIMEOUT_MS / 100;
     private final static Logger LOGGER = Logging.getLogger(BlockingTriggerable.class);
     private final Object lock;
     private TriggerDetails currentTrigger;
@@ -36,10 +39,11 @@ public class BlockingTriggerable implements TriggerListener {
     public TriggerDetails waitForTrigger() {
         try {
             synchronized (lock) {
+                LOGGER.debug("Waiting for a trigger");
+                Clock waitStart = new Clock();
                 while (currentTrigger == null) {
-                    LOGGER.debug("Waiting for a trigger");
-                    // wait unconditionally
-                    lock.wait();
+                    lock.wait(WAIT_INTERVAL_MS);
+                    assert (waitStart.getTimeInMs() < WAIT_TIMEOUT_MS) : "run-away test for " + waitStart.getTime();
                 }
                 LOGGER.debug("woke up for trigger " + currentTrigger);
                 TriggerDetails lastReason = currentTrigger;
