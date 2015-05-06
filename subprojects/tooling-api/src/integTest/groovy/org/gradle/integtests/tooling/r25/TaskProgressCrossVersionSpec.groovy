@@ -24,6 +24,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.build.BuildOperationDescriptor
+import org.gradle.tooling.events.build.BuildProgressEvent
+import org.gradle.tooling.events.build.BuildProgressListener
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -163,13 +166,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                compileJava         : ['started', 'up-to-date'],
-                processResources    : ['started', 'up-to-date'],
-                classes             : ['started', 'up-to-date'],
-                compileTestJava     : ['started', 'succeeded'],
-                processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'succeeded'],
-                test                : ['started', 'succeeded']
+            compileJava         : ['started', 'up-to-date'],
+            processResources    : ['started', 'up-to-date'],
+            classes             : ['started', 'up-to-date'],
+            compileTestJava     : ['started', 'succeeded'],
+            processTestResources: ['started', 'up-to-date'],
+            testClasses         : ['started', 'succeeded'],
+            test                : ['started', 'succeeded']
         ]
     }
 
@@ -212,13 +215,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                compileJava         : ['started', 'up-to-date'],
-                processResources    : ['started', 'up-to-date'],
-                classes             : ['started', 'up-to-date'],
-                compileTestJava     : ['started', 'succeeded'],
-                processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'succeeded'],
-                test                : ['started', 'failed']
+            compileJava         : ['started', 'up-to-date'],
+            processResources    : ['started', 'up-to-date'],
+            classes             : ['started', 'up-to-date'],
+            compileTestJava     : ['started', 'succeeded'],
+            processTestResources: ['started', 'up-to-date'],
+            testClasses         : ['started', 'succeeded'],
+            test                : ['started', 'failed']
         ]
     }
 
@@ -260,13 +263,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                compileJava         : ['started', 'up-to-date'],
-                processResources    : ['started', 'up-to-date'],
-                classes             : ['started', 'up-to-date'],
-                compileTestJava     : ['started', 'succeeded'],
-                processTestResources: ['started', 'up-to-date'],
-                testClasses         : ['started', 'succeeded'],
-                test                : ['started', 'skipped']
+            compileJava         : ['started', 'up-to-date'],
+            processResources    : ['started', 'up-to-date'],
+            classes             : ['started', 'up-to-date'],
+            compileTestJava     : ['started', 'succeeded'],
+            processTestResources: ['started', 'up-to-date'],
+            testClasses         : ['started', 'succeeded'],
+            test                : ['started', 'skipped']
         ]
     }
 
@@ -291,9 +294,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2')
-                        .forTasks('parallelSleep')
-                        .addTaskProgressListener { TaskProgressEvent event ->
+                    .withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2')
+                    .forTasks('parallelSleep')
+                    .addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
                     result << event
                 }.run()
@@ -305,9 +308,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                para1        : ['started', 'succeeded'],
-                para2        : ['started', 'succeeded'],
-                parallelSleep: ['started', 'succeeded']
+            para1        : ['started', 'succeeded'],
+            para2        : ['started', 'succeeded'],
+            parallelSleep: ['started', 'succeeded']
         ]
     }
 
@@ -335,20 +338,20 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                ':buildSrc:clean'               : ['started', 'up-to-date'],
-                ':buildSrc:compileJava'         : ['started', 'up-to-date'],
-                ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
-                ':buildSrc:processResources'    : ['started', 'up-to-date'],
-                ':buildSrc:classes'             : ['started', 'up-to-date'],
-                ':buildSrc:jar'                 : ['started', 'succeeded'],
-                ':buildSrc:assemble'            : ['started', 'succeeded'],
-                ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
-                ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
-                ':buildSrc:processTestResources': ['started', 'up-to-date'],
-                ':buildSrc:testClasses'         : ['started', 'up-to-date'],
-                ':buildSrc:test'                : ['started', 'up-to-date'],
-                ':buildSrc:build'               : ['started', 'up-to-date'],
-                ':dummy'                        : ['started', 'up-to-date']
+            ':buildSrc:clean'               : ['started', 'up-to-date'],
+            ':buildSrc:compileJava'         : ['started', 'up-to-date'],
+            ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
+            ':buildSrc:processResources'    : ['started', 'up-to-date'],
+            ':buildSrc:classes'             : ['started', 'up-to-date'],
+            ':buildSrc:jar'                 : ['started', 'succeeded'],
+            ':buildSrc:assemble'            : ['started', 'succeeded'],
+            ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
+            ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
+            ':buildSrc:processTestResources': ['started', 'up-to-date'],
+            ':buildSrc:testClasses'         : ['started', 'up-to-date'],
+            ':buildSrc:test'                : ['started', 'up-to-date'],
+            ':buildSrc:build'               : ['started', 'up-to-date'],
+            ':dummy'                        : ['started', 'up-to-date']
         ]
     }
 
@@ -379,22 +382,54 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-                ':innerBuild'                   : ['started', 'succeeded'],
-                ':buildSrc:clean'               : ['started', 'up-to-date'],
-                ':buildSrc:compileJava'         : ['started', 'up-to-date'],
-                ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
-                ':buildSrc:processResources'    : ['started', 'up-to-date'],
-                ':buildSrc:classes'             : ['started', 'up-to-date'],
-                ':buildSrc:jar'                 : ['started', 'succeeded'],
-                ':buildSrc:assemble'            : ['started', 'succeeded'],
-                ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
-                ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
-                ':buildSrc:processTestResources': ['started', 'up-to-date'],
-                ':buildSrc:testClasses'         : ['started', 'up-to-date'],
-                ':buildSrc:test'                : ['started', 'up-to-date'],
-                ':buildSrc:build'               : ['started', 'up-to-date'],
-                ':innerTask'                    : ['started', 'up-to-date']
+            ':innerBuild'                   : ['started', 'succeeded'],
+            ':buildSrc:clean'               : ['started', 'up-to-date'],
+            ':buildSrc:compileJava'         : ['started', 'up-to-date'],
+            ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
+            ':buildSrc:processResources'    : ['started', 'up-to-date'],
+            ':buildSrc:classes'             : ['started', 'up-to-date'],
+            ':buildSrc:jar'                 : ['started', 'succeeded'],
+            ':buildSrc:assemble'            : ['started', 'succeeded'],
+            ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
+            ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
+            ':buildSrc:processTestResources': ['started', 'up-to-date'],
+            ':buildSrc:testClasses'         : ['started', 'up-to-date'],
+            ':buildSrc:test'                : ['started', 'up-to-date'],
+            ':buildSrc:build'               : ['started', 'up-to-date'],
+            ':innerTask'                    : ['started', 'up-to-date']
         ]
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "task events have root build event as parent"() {
+        given:
+        goodCode()
+
+        when: 'listening to task progress events'
+        List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('assemble').addBuildProgressListener(new BuildProgressListener() {
+                    @Override
+                    void statusChanged(BuildProgressEvent event) {
+                        // listener only added to receive the build progress events
+                    }
+                }).addTaskProgressListener(new TaskProgressListener() {
+                    @Override
+                    void statusChanged(TaskProgressEvent event) {
+                        assert event != null
+                        result.add(event)
+                    }
+                }).run()
+        }
+
+        then: 'the parent of the task progress events is the root build progress event'
+        !result.isEmpty()
+        result.each { def event ->
+            assert event.descriptor.parent instanceof BuildOperationDescriptor
+            assert event.descriptor.parent.parent == null
+        }
     }
 
     def goodCode() {

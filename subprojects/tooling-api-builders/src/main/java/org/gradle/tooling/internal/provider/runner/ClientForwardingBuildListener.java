@@ -78,14 +78,14 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     private DefaultBuildDescriptor createGradleDescriptor(Gradle source, String eventType, String displayName) {
-        Object id = InternalBuildListener.BUILD_TYPE.equals(eventType)?EventIdGenerator.generateId(source):EventIdGenerator.generateId(source, eventType);
-        Object parentId = InternalBuildListener.BUILD_TYPE.equals(eventType)?EventIdGenerator.generateId(source.getParent()):EventIdGenerator.generateId(source);
+        Object id = InternalBuildListener.BUILD_TYPE.equals(eventType) ? EventIdGenerator.generateId(source) : EventIdGenerator.generateId(source, eventType);
+        Object parentId = InternalBuildListener.BUILD_TYPE.equals(eventType) ? EventIdGenerator.generateId(source.getParent()) : EventIdGenerator.generateId(source);
         return new DefaultBuildDescriptor(id, eventType, displayName, parentId);
     }
 
     private AbstractBuildResult adaptResult(Object result, long startTime, long endTime) {
         if (result instanceof BuildResult) {
-            return adaptResult((BuildResult)result, startTime, endTime);
+            return adaptResult((BuildResult) result, startTime, endTime);
         }
         return new DefaultBuildSuccessResult(startTime, endTime);
     }

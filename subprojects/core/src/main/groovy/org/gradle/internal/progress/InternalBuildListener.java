@@ -16,10 +16,10 @@
 package org.gradle.internal.progress;
 
 public interface InternalBuildListener {
-    public static final String BUILD_TYPE = "build";
-    public static final String SETTINGS_EVAL_TYPE = "settings evaluation";
-    public static final String PROJECTS_LOADING_TYPE = "projects loading";
-    public static final String PROJECTS_EVALUATION_TYPE = "projects evaluation";
+    String BUILD_TYPE = "build";
+    String SETTINGS_EVAL_TYPE = "settings evaluation";
+    String PROJECTS_LOADING_TYPE = "projects loading";
+    String PROJECTS_EVALUATION_TYPE = "projects evaluation";
 
     void started(Object source, long startTime, String eventType);
 

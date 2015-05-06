@@ -21,15 +21,15 @@ import org.gradle.api.invocation.Gradle;
 
 public final class EventIdGenerator {
     public static Object generateId(TestDescriptorInternal testDescriptor) {
-        return testDescriptor.getId();
+        return testDescriptor == null ? null : testDescriptor.getId();
     }
 
     public static Object generateId(Task task) {
-        return generateId(task.getProject().getGradle()) + ":" + task.getPath();
+        return task == null ? null : generateId(task.getProject().getGradle()) + ":" + task.getPath();
     }
 
     public static Object generateId(Gradle gradle) {
-        return System.identityHashCode(gradle);
+        return gradle == null ? null : System.identityHashCode(gradle);
     }
 
     public static Object generateId(Gradle gradle, String operationName) {
