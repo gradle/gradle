@@ -20,7 +20,6 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.internal.Cast;
