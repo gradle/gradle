@@ -402,33 +402,50 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "task events have root build event as parent"() {
+    def "task operations have root build operation as parent iff build listener is attached"() {
         given:
         goodCode()
 
-        when: 'listening to task progress events'
+        when: 'listening to task progress events and build operation listener is attached'
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addBuildProgressListener(new BuildProgressListener() {
                     @Override
                     void statusChanged(BuildProgressEvent event) {
-                        // listener only added to receive the build progress events
+                        // listener only added to receive the build operation progress events
                     }
                 }).addTaskProgressListener(new TaskProgressListener() {
                     @Override
                     void statusChanged(TaskProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                        result << event
                     }
                 }).run()
         }
 
-        then: 'the parent of the task progress events is the root build progress event'
+        then: 'the parent of the task events is the root build operation'
         !result.isEmpty()
         result.each { def event ->
             assert event.descriptor.parent instanceof BuildOperationDescriptor
             assert event.descriptor.parent.parent == null
+        }
+
+        when: 'listening to task progress events when no build operation listener is attached'
+        result = new ArrayList<TaskProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addTaskProgressListener(new TaskProgressListener() {
+                    @Override
+                    void statusChanged(TaskProgressEvent event) {
+                        result << event
+                    }
+                }).run()
+        }
+
+        then: 'the parent of the task events is null'
+        !result.isEmpty()
+        result.each { def event ->
+            assert event.descriptor.parent == null
         }
     }
 

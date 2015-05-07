@@ -22,6 +22,7 @@ import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -34,9 +35,11 @@ import java.util.Collections;
 class ClientForwardingTaskListener implements InternalTaskExecutionListener {
 
     private final BuildEventConsumer eventConsumer;
+    private final ConsumerListenerConfiguration listenerConfiguration;
 
-    ClientForwardingTaskListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTaskListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
         this.eventConsumer = eventConsumer;
+        this.listenerConfiguration = listenerConfiguration;
     }
 
     @Override
@@ -49,14 +52,19 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(taskOperation.getTask().getState().getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask())));
     }
 
-    private static DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
+    private DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
         TaskInternal task = taskOperation.getTask();
         return new DefaultTaskDescriptor(
             taskOperation.getId(),
             task.getName(),
             task.getDescription(),
             task.getPath(),
-            taskOperation.getParentId());
+            getParentId(taskOperation));
+    }
+
+    private Object getParentId(TaskOperationInternal taskOperation) {
+        // only set the BuildOperation as the parent if the Tooling API Consumer is listening to build progress events
+        return listenerConfiguration.isSendBuildProgressEvents() ? taskOperation.getParentId() : null;
     }
 
     private static AbstractTaskResult toTaskResult(Task task) {
