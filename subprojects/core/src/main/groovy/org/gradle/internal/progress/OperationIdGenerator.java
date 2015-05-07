@@ -15,27 +15,21 @@
  */
 package org.gradle.internal.progress;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 
 public final class OperationIdGenerator {
 
-    public static String generateId(Task task) {
-        if (task==null) {
-            return null;
-        }
-        Project project = task.getProject();
-        Gradle gradle = project!=null?project.getGradle():null;
-        return generateId(gradle, task.getPath());
+    public static Object generateId(Task task) {
+        return generateId(task.getProject().getGradle(), task.getPath());
     }
 
-    public static String generateId(Gradle gradle) {
-        return gradle == null ? "" : String.valueOf(System.identityHashCode(gradle));
+    public static Object generateId(Gradle gradle) {
+        return gradle == null ? null : String.valueOf(System.identityHashCode(gradle));
     }
 
-    public static String generateId(Gradle gradle, String operationName) {
-        return String.format("%s : %s", generateId(gradle), operationName);
+    public static Object generateId(Gradle gradle, String operationName) {
+        return generateId(gradle) + "-" + operationName;
     }
 
 }

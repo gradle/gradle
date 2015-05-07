@@ -25,11 +25,11 @@ public class TestMainAction implements Runnable {
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
-    private final String testTaskOperationId;
-    private final String rootTestSuiteId;
+    private final Object testTaskOperationId;
+    private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, String testTaskOperationId, String rootTestSuiteId, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, Object testTaskOperationId, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
@@ -55,14 +55,14 @@ public class TestMainAction implements Runnable {
     }
 
     public static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        private final String testTaskOperationId;
+        private final Object testTaskOperationId;
 
-        private RootTestSuiteDescriptor(Object id, String name, String testTaskOperationId) {
+        private RootTestSuiteDescriptor(Object id, String name, Object testTaskOperationId) {
             super(id, name);
             this.testTaskOperationId = testTaskOperationId;
         }
 
-        public String getTestTaskOperationId() {
+        public Object getTestTaskOperationId() {
             return testTaskOperationId;
         }
 

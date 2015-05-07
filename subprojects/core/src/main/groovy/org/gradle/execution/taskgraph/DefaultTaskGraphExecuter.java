@@ -169,15 +169,17 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private class InternalTaskExecutionListenerAdapter implements InternalTaskExecutionListener {
         @Override
         public void beforeExecute(TaskOperationInternal taskOperation) {
-            taskOperation.getState().setStartTime(System.currentTimeMillis());
+            TaskInternal task = taskOperation.getTask();
+            TaskStateInternal state = task.getState();
+            state.setStartTime(System.currentTimeMillis());
             internalTaskListeners.getSource().beforeExecute(taskOperation);
-            taskListeners.getSource().beforeExecute(taskOperation.getTask());
+            taskListeners.getSource().beforeExecute(task);
         }
 
         @Override
         public void afterExecute(TaskOperationInternal taskOperation) {
             TaskInternal task = taskOperation.getTask();
-            TaskStateInternal state = taskOperation.getState();
+            TaskStateInternal state = task.getState();
             taskListeners.getSource().afterExecute(task, state);
             state.setEndTime(System.currentTimeMillis());
             internalTaskListeners.getSource().afterExecute(taskOperation);

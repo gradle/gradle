@@ -41,12 +41,12 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
 
     @Override
     public void beforeExecute(TaskOperationInternal taskOperation) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(taskOperation.getState().getStartTime(), toTaskDescriptor(taskOperation)));
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(taskOperation.getTask().getState().getStartTime(), toTaskDescriptor(taskOperation)));
     }
 
     @Override
     public void afterExecute(TaskOperationInternal taskOperation) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(taskOperation.getState().getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask())));
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(taskOperation.getTask().getState().getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask())));
     }
 
     private static DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {

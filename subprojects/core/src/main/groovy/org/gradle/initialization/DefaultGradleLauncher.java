@@ -214,8 +214,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    private <T> T internalBuildOperation(String id, String eventType, Factory<T> factory) {
-        String eventId = id != null ? id : eventType;
+    private <T> T internalBuildOperation(Object id, String eventType, Factory<T> factory) {
+        Object eventId = id != null ? id : eventType;
         InternalBuildOperation startEvent = new InternalBuildOperation(eventId, gradle, parentEvent);
         long sd = System.currentTimeMillis();
         internalBuildListener.started(startEvent, sd, eventType);

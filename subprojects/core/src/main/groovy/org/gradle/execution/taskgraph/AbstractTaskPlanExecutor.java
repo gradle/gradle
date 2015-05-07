@@ -16,11 +16,9 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Project;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.progress.OperationIdGenerator;
@@ -76,10 +74,9 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         // is wired to the various add/remove listener methods on TaskExecutionGraph
         private void executeTask(TaskInfo taskInfo) {
             TaskInternal task = taskInfo.getTask();
-            TaskStateInternal state = task.getState();
-            Project project = task.getProject();
-            String parentId = project!=null?OperationIdGenerator.generateId(project.getGradle()):null;
-            TaskOperationInternal taskOperation = new TaskOperationInternal(OperationIdGenerator.generateId(task), task, state, parentId);
+            Object id = OperationIdGenerator.generateId(task);
+            Object parentId = OperationIdGenerator.generateId(task.getProject().getGradle());
+            TaskOperationInternal taskOperation = new TaskOperationInternal(id, task, parentId);
             synchronized (lock) {
                 taskListener.beforeExecute(taskOperation);
             }
