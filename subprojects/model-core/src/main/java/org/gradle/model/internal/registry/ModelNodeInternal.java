@@ -248,12 +248,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
                 child.reset();
             }
-
-            if (mutators != null) {
-                for (MutatorRuleBinder<?> mutatorRuleBinder : mutators.values()) {
-                    mutatorRuleBinder.setFired(false);
-                }
-            }
         }
     }
 }

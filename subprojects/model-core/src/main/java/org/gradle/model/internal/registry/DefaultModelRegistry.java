@@ -329,14 +329,11 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     /**
-     *  Moves to the given target state.
+     * Attempts to achieve the given goal.
      */
-    private void transitionTo(NodeIsAtState target) {
-        LOGGER.debug("Attempting to transition model element '{}' to {}", target.path, target.state.name());
-        GoalGraph goalGraph = new GoalGraph();
+    // TODO - reuse graph, discard state once not required
+    private void transitionTo(GoalGraph goalGraph, GoalGraphNode targetGoal) {
         LinkedList<GoalGraphNode> queue = new LinkedList<GoalGraphNode>();
-
-        GoalGraphNode targetGoal = goalGraph.nodeAtState(target);
         queue.add(targetGoal);
         while (!queue.isEmpty()) {
             GoalGraphNode goal = queue.getFirst();
@@ -407,7 +404,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        transitionTo(new NodeIsAtState(node.getPath(), desired));
+        GoalGraph goalGraph = new GoalGraph();
+        transitionTo(goalGraph, goalGraph.nodeAtState(new NodeIsAtState(node.getPath(), desired)));
     }
 
     private void forceBindReference(ModelBinding binding) {
@@ -436,26 +434,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         for (int i = 0; i < binder.getInputBindings().size(); i++) {
             forceBindReference(binder.getInputBindings().get(i));
-        }
-    }
-
-    private void forceBind(RuleBinder binder) {
-        tryForceBind(binder);
-        if (!binder.isBound()) {
-            throw unbound(Collections.singleton(binder));
-        }
-    }
-
-    private void fireMutations(ModelNodeInternal node, ModelActionRole type) {
-        flushPendingMutatorBinders();
-        for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
-            if (!binder.isFired()) {
-                forceBind(binder);
-                fireMutation(binder);
-                flushPendingMutatorBinders();
-                node.notifyFired(binder);
-                binder.setFired(true);
-            }
         }
     }
 
@@ -1038,14 +1016,14 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class GoalGraph {
-        private final Map<NodeGoal, GoalGraphNode> graph = new HashMap<NodeGoal, GoalGraphNode>();
+        private final Map<NodeIsAtState, GoalGraphNode> nodeStates = new HashMap<NodeIsAtState, GoalGraphNode>();
 
         public GoalGraphNode nodeAtState(NodeIsAtState goal) {
-            GoalGraphNode node = graph.get(goal);
+            GoalGraphNode node = nodeStates.get(goal);
             if (node == null) {
                 switch (goal.state) {
                     case Known:
-                        node = new MakeKnown(goal);
+                        node = new MakeKnown(goal.path);
                         break;
                     case Created:
                         node = new Create(goal);
@@ -1056,16 +1034,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     default:
                         node = new ApplyActions(goal);
                 }
-                graph.put(goal, node);
-            }
-            return node;
-        }
-
-        public GoalGraphNode bindInputs(InputsForStateBound goal) {
-            GoalGraphNode node = graph.get(goal);
-            if (node == null) {
-                node = new BindInputs(goal);
-                graph.put(goal, node);
+                nodeStates.put(goal, node);
             }
             return node;
         }
@@ -1078,22 +1047,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             VisitingDependencies,
             Achieved,
         }
-        public final NodeGoal target;
+        public final ModelPath target;
         public final List<GoalGraphNode> dependencies = new ArrayList<GoalGraphNode>();
         public State state = State.NotSeen;
         public ModelNodeInternal node;
 
-        public GoalGraphNode(NodeGoal target) {
+        public GoalGraphNode(ModelPath target) {
             this.target = target;
         }
 
         @Override
         public String toString() {
-            return target.toString();
+            return getClass().getSimpleName() + ", target: " + target.toString();
         }
 
         ModelPath getPath() {
-            return target.path;
+            return target;
         }
 
         /**
@@ -1124,8 +1093,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private static class MakeKnown extends GoalGraphNode {
-        public MakeKnown(NodeIsAtState target) {
-            super(target);
+        public MakeKnown(ModelPath path) {
+            super(path);
         }
 
         @Override
@@ -1147,7 +1116,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private final ModelNode.State targetState;
 
         public TransitionToState(NodeIsAtState target) {
-            super(target);
+            super(target.path);
             targetState = target.state;
         }
 
@@ -1180,18 +1149,19 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         void calculatePredecessors(GoalGraph goalGraph) {
-            dependencies.add(goalGraph.bindInputs(new InputsForStateBound(getPath(), getTargetState())));
+            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), Known)));
         }
 
-        // TODO - add dependencies
+        @Override
+        void calculateDependencies(GoalGraph graph) {
+            dependencies.add(new BindInputs(getPath(), node.getCreatorBinder()));
+        }
 
         @Override
         void doApply(ModelNodeInternal node) {
             CreatorRuleBinder creatorBinder = node.getCreatorBinder();
-            forceBind(creatorBinder);
             doCreate(node, creatorBinder);
             node.notifyFired(creatorBinder);
-            node.setState(Created);
         }
     }
 
@@ -1202,31 +1172,24 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         void calculatePredecessors(GoalGraph goalGraph) {
-            dependencies.add(goalGraph.bindInputs(new InputsForStateBound(getPath(), getTargetState())));
+            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
         }
 
-        // TODO - add dependencies
+        @Override
+        void calculateDependencies(GoalGraph graph) {
+            flushPendingMutatorBinders();
+            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
+                dependencies.add(new BindInputs(getPath(), binder));
+            }
+        }
 
         @Override
         void doApply(ModelNodeInternal node) {
-            switch (getTargetState()) {
-                case DefaultsApplied:
-                    fireMutations(node, ModelActionRole.Defaults);
-                    break;
-                case Initialized:
-                    fireMutations(node, ModelActionRole.Initialize);
-                    break;
-                case Mutated:
-                    fireMutations(node, ModelActionRole.Mutate);
-                    break;
-                case Finalized:
-                    fireMutations(node, ModelActionRole.Finalize);
-                    break;
-                case SelfClosed:
-                    fireMutations(node, ModelActionRole.Validate);
-                    break;
+            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
+                fireMutation(binder);
+                node.notifyFired(binder);
+                flushPendingMutatorBinders();
             }
-            node.setState(getTargetState());
         }
     }
 
@@ -1249,46 +1212,39 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         void doApply(ModelNodeInternal node) {
-            node.setState(GraphClosed);
+            // Nothing to do
         }
     }
 
-    private static class BindInputs extends GoalGraphNode {
-        private final ModelNode.State targetState;
+    // TODO - merge with RuleBinder
+    private class BindInputs extends GoalGraphNode {
+        private final RuleBinder binder;
 
-        public BindInputs(InputsForStateBound target) {
-            super(target);
-            targetState = target.state;
+        public BindInputs(ModelPath path, RuleBinder binder) {
+            super(path);
+            this.binder = binder;
         }
 
         @Override
         void calculatePredecessors(GoalGraph goalGraph) {
-            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), targetState.previous())));
         }
 
         @Override
         void apply() {
-            LOGGER.debug("Binding inputs for model element '{}' at state {}", getPath(), targetState.name());
+            LOGGER.debug("Binding inputs model element '{}' rule {}", getPath(), binder.getDescriptor());
+            tryForceBind(binder);
+            if (!binder.isBound()) {
+                throw unbound(Collections.singleton(binder));
+            }
         }
     }
 
-    private static abstract class NodeGoal {
+    private static class NodeIsAtState implements Comparable<NodeIsAtState> {
         public final ModelPath path;
-
-        public NodeGoal(ModelPath path) {
-            this.path = path;
-        }
-
-        public ModelPath getPath() {
-            return path;
-        }
-    }
-
-    private static class NodeIsAtState extends NodeGoal implements Comparable<NodeIsAtState> {
         public final ModelNode.State state;
 
         public NodeIsAtState(ModelPath path, ModelNode.State state) {
-            super(path);
+            this.path = path;
             this.state = state;
         }
 
@@ -1315,37 +1271,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return false;
             }
             NodeIsAtState other = (NodeIsAtState) obj;
-            return path.equals(other.path) && state.equals(other.state);
-        }
-
-        @Override
-        public int hashCode() {
-            return path.hashCode() ^ state.hashCode();
-        }
-    }
-
-    private static class InputsForStateBound extends NodeGoal {
-        public final ModelNode.State state;
-
-        public InputsForStateBound(ModelPath path, ModelNode.State state) {
-            super(path);
-            this.state = state;
-        }
-
-        @Override
-        public String toString() {
-            return "bind inputs for node " + path + " at state " + state;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            InputsForStateBound other = (InputsForStateBound) obj;
             return path.equals(other.path) && state.equals(other.state);
         }
 

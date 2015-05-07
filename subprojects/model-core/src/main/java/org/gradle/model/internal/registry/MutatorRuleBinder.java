@@ -31,8 +31,6 @@ public class MutatorRuleBinder<T> extends RuleBinder {
     private final ModelActionRole role;
     private final ModelAction<T> action;
 
-    private boolean fired;
-
     public MutatorRuleBinder(ModelReference<T> subjectReference, List<ModelReference<?>> inputs, final ModelActionRole role, ModelAction<T> action, Collection<RuleBinder> binders) {
         super(inputs, action.getDescriptor(), binders);
         this.subjectReference = subjectReference;
@@ -66,13 +64,5 @@ public class MutatorRuleBinder<T> extends RuleBinder {
     @Override
     public boolean isBound() {
         return subjectBinding != null && subjectBinding.isBound() && super.isBound();
-    }
-
-    public boolean isFired() {
-        return fired;
-    }
-
-    public void setFired(boolean fired) {
-        this.fired = fired;
     }
 }
