@@ -102,31 +102,31 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (node != null) {
             if (node.getState() == Known) {
                 throw new DuplicateModelException(
-                        String.format(
-                                "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
-                                path,
-                                toString(creator.getDescriptor()),
-                                toString(node.getDescriptor())
-                        )
+                    String.format(
+                        "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
+                        path,
+                        toString(creator.getDescriptor()),
+                        toString(node.getDescriptor())
+                    )
                 );
             }
             throw new DuplicateModelException(
-                    String.format(
-                            "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
-                            path,
-                            toString(creator.getDescriptor()),
-                            toString(node.getDescriptor())
-                    )
+                String.format(
+                    "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
+                    path,
+                    toString(creator.getDescriptor()),
+                    toString(node.getDescriptor())
+                )
             );
         }
         if (!parent.isMutable()) {
             throw new IllegalStateException(
-                    String.format(
-                        "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
-                        path,
-                        toString(creator.getDescriptor()),
-                        parent.getPath()
-                    )
+                String.format(
+                    "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
+                    path,
+                    toString(creator.getDescriptor()),
+                    parent.getPath()
+                )
             );
         }
 
@@ -432,7 +432,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         flushPendingMutatorBinders();
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
-            if(!binder.isProcessed()) {
+            if (!binder.isProcessed()) {
                 forceBind(binder);
                 fireMutation(binder);
                 flushPendingMutatorBinders();

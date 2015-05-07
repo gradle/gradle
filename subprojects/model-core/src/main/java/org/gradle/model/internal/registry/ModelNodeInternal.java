@@ -88,11 +88,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
         if (!canApply(role)) {
             throw new IllegalStateException(String.format(
-                    "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
-                    role,
-                    mutator.getAction().getDescriptor(),
-                    getPath(),
-                    getState()
+                "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
+                role,
+                mutator.getAction().getDescriptor(),
+                getPath(),
+                getState()
             ));
         }
         if (mutators == null) {
@@ -243,7 +243,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
                 child.reset();
             }
-            if(mutators != null) {
+            if (mutators != null) {
                 for (List<MutatorRuleBinder<?>> mutatorRuleBinders : mutators.values()) {
                     for (MutatorRuleBinder<?> mutatorRuleBinder : mutatorRuleBinders) {
                         mutatorRuleBinder.setProcessed(false);
