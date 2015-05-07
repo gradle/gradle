@@ -17,17 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.DefaultComponentUsage;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,8 +37,9 @@ class EagerResolveConfigurationArtifactsSet extends AbstractArtifactSet {
     private final ResolvedConfigurationIdentifier configurationId;
     private final Set<ComponentArtifactMetaData> artifacts;
 
-    public EagerResolveConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector, ArtifactResolver artifactResolver) {
-        super(component.getId(), component.getSource(), artifactResolver);
+    public EagerResolveConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
+                                                 ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
+        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts);
         this.configurationId = configurationId;
         this.artifacts = doResolve(component, selector);
     }

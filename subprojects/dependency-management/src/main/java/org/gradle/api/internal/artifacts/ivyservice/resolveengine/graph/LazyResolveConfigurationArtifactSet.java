@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
@@ -29,6 +30,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -44,8 +46,8 @@ class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private Set<ComponentArtifactMetaData> artifacts;
 
     public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
-                                               ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver) {
-        super(component.getId(), component.getSource(), artifactResolver);
+                                               ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
+        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts);
         this.componentIdentifier = component.getComponentId();
         this.componentResolver = componentResolver;
         this.configurationId = configurationId;
