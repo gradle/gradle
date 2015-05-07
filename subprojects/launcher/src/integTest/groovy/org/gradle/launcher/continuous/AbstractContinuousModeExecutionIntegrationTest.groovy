@@ -230,6 +230,9 @@ throw new GradleException("config error")
             task downstream {
                 dependsOn "build"
                 inputs.${inputType} ${inputPath}
+                doLast {
+                    println "Hello world"
+                }
             }
         """
 
