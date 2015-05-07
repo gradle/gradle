@@ -40,9 +40,8 @@ class SnapshotVersionManager implements MetadataGeneratorFactory, MetadataGenera
     }
 
     public void install(RepositorySystem repositorySystem) {
-        Field field;
         try {
-            field = DefaultRepositorySystem.class.getDeclaredField("deployer");
+            Field field = DefaultRepositorySystem.class.getDeclaredField("deployer");
             field.setAccessible(true);
             DefaultDeployer deployer = (DefaultDeployer) field.get(repositorySystem);
             deployer.addMetadataGeneratorFactory(this);
