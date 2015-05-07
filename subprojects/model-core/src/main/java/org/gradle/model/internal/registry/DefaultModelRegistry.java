@@ -330,50 +330,50 @@ public class DefaultModelRegistry implements ModelRegistry {
      * Attempts to achieve the given goal.
      */
     // TODO - reuse graph, discard state once not required
-    private void transitionTo(GoalGraph goalGraph, GoalGraphNode targetGoal) {
-        LinkedList<GoalGraphNode> queue = new LinkedList<GoalGraphNode>();
+    private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
+        LinkedList<ModelGoal> queue = new LinkedList<ModelGoal>();
         queue.add(targetGoal);
         while (!queue.isEmpty()) {
-            GoalGraphNode goal = queue.getFirst();
+            ModelGoal goal = queue.getFirst();
 
-            if (goal.state == GoalGraphNode.State.Achieved) {
+            if (goal.state == ModelGoal.State.Achieved) {
                 // Already reached this goal
                 queue.removeFirst();
                 continue;
             }
 
-            if (goal.state == GoalGraphNode.State.VisitingDependencies) {
+            if (goal.state == ModelGoal.State.VisitingDependencies) {
                 // All dependencies visited
                 goal.apply();
-                goal.state = GoalGraphNode.State.Achieved;
+                goal.state = ModelGoal.State.Achieved;
                 queue.removeFirst();
                 continue;
             }
 
-            if (goal.state == GoalGraphNode.State.NotSeen) {
+            if (goal.state == ModelGoal.State.NotSeen) {
                 if (goal.isAchieved()) {
                     // Goal has previously been achieved or is no longer required
-                    goal.state = GoalGraphNode.State.Achieved;
+                    goal.state = ModelGoal.State.Achieved;
                     queue.removeFirst();
                     continue;
                 }
 
                 // Attach the predecessors, which are the goals that must be achieved before the dependencies of the target goal can be calculated
                 goal.calculatePredecessors(goalGraph);
-                goal.state = GoalGraphNode.State.VisitingPredecessor;
-            } else if (goal.state == GoalGraphNode.State.VisitingPredecessor) {
+                goal.state = ModelGoal.State.VisitingPredecessor;
+            } else if (goal.state == ModelGoal.State.VisitingPredecessor) {
                 // Attach the dependencies, which are the goals that must be achieved before the goal can be applied
                 goal.attachNode();
                 goal.calculateDependencies(goalGraph);
-                goal.state = GoalGraphNode.State.VisitingDependencies;
+                goal.state = ModelGoal.State.VisitingDependencies;
             }
             for (int i = goal.dependencies.size() - 1; i >= 0; i--) {
                 // TODO - only queue new dependencies
-                GoalGraphNode dependency = goal.dependencies.get(i);
-                if (dependency.state == GoalGraphNode.State.Achieved) {
+                ModelGoal dependency = goal.dependencies.get(i);
+                if (dependency.state == ModelGoal.State.Achieved) {
                     continue;
                 }
-                if (dependency.state == GoalGraphNode.State.NotSeen) {
+                if (dependency.state == ModelGoal.State.NotSeen) {
                     queue.addFirst(dependency);
                     continue;
                 }
@@ -382,12 +382,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ConfigurationCycleException ruleCycle(GoalGraphNode brokenGoal, LinkedList<GoalGraphNode> queue) {
+    private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, LinkedList<ModelGoal> queue) {
         List<String> path = new ArrayList<String>();
         int pos = queue.indexOf(brokenGoal);
-        ListIterator<GoalGraphNode> iterator = queue.listIterator(pos + 1);
+        ListIterator<ModelGoal> iterator = queue.listIterator(pos + 1);
         while (iterator.hasPrevious()) {
-            GoalGraphNode goal = iterator.previous();
+            ModelGoal goal = iterator.previous();
             goal.attachToCycle(path);
         }
         brokenGoal.attachToCycle(path);
@@ -528,8 +528,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
         int i = 0;
         for (ModelBinding binding : bindings) {
-            ModelPath path = binding.getNode().getPath();
-            ModelNodeInternal element = require(path);
+            ModelNodeInternal element = binding.getNode();
             ModelView<?> view = assertView(element, binding.getReference().getType(), modelRule.getDescriptor(), "toViews");
             array[i++] = view;
         }
@@ -988,10 +987,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class GoalGraph {
-        private final Map<NodeIsAtState, GoalGraphNode> nodeStates = new HashMap<NodeIsAtState, GoalGraphNode>();
+        private final Map<NodeIsAtState, ModelGoal> nodeStates = new HashMap<NodeIsAtState, ModelGoal>();
 
-        public GoalGraphNode nodeAtState(NodeIsAtState goal) {
-            GoalGraphNode node = nodeStates.get(goal);
+        public ModelGoal nodeAtState(NodeIsAtState goal) {
+            ModelGoal node = nodeStates.get(goal);
             if (node == null) {
                 switch (goal.state) {
                     case Known:
@@ -1012,14 +1011,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private abstract static class GoalGraphNode {
+    private abstract static class ModelGoal {
         enum State {
             NotSeen,
             VisitingPredecessor,
             VisitingDependencies,
             Achieved,
         }
-        public final List<GoalGraphNode> dependencies = new ArrayList<GoalGraphNode>();
+        public final List<ModelGoal> dependencies = new ArrayList<ModelGoal>();
         public State state = State.NotSeen;
 
         /**
@@ -1058,7 +1057,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private abstract class ModelNodeGoal extends GoalGraphNode {
+    private abstract class ModelNodeGoal extends ModelGoal {
         public final ModelPath target;
         public ModelNodeInternal node;
 
@@ -1112,6 +1111,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void calculatePredecessors(GoalGraph goalGraph) {
+            // Not already known, attempt to self-close the parent
             ModelPath parent = getPath().getParent();
             if (parent != null) {
                 // TODO - should be >= self closed
@@ -1120,10 +1120,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private abstract class TransitionToState extends ModelNodeGoal {
+    private abstract class TransitionNodeToState extends ModelNodeGoal {
         private final ModelNode.State targetState;
 
-        public TransitionToState(NodeIsAtState target) {
+        public TransitionNodeToState(NodeIsAtState target) {
             super(target.path);
             targetState = target.state;
         }
@@ -1160,75 +1160,69 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class Create extends TransitionToState {
+    private class Create extends TransitionNodeToState {
         public Create(NodeIsAtState target) {
             super(target);
         }
 
         @Override
         public void calculatePredecessors(GoalGraph goalGraph) {
+            // Must be known first
             dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), Known)));
         }
 
         @Override
         public void calculateDependencies(GoalGraph graph) {
-            dependencies.add(new RunAction(getPath(), node.getCreatorBinder()));
+            // Must run the creator
+            dependencies.add(new RunCreatorAction(getPath(), node.getCreatorBinder()));
         }
 
         @Override
         void doApply(ModelNodeInternal node) {
-            CreatorRuleBinder creatorBinder = node.getCreatorBinder();
-            doCreate(node, creatorBinder);
-            node.notifyFired(creatorBinder);
-        }
-
-        @Override
-        void attachToCycle(List<String> displayValue) {
-            displayValue.add(getPath().toString());
-            displayValue.add(node.getCreatorBinder().getDescriptor().toString());
+            // Nothing to do, creator action is run as a dependency
         }
     }
 
-    private class ApplyActions extends TransitionToState {
+    private class ApplyActions extends TransitionNodeToState {
         public ApplyActions(NodeIsAtState target) {
             super(target);
         }
 
         @Override
         public void calculatePredecessors(GoalGraph goalGraph) {
+            // Node must be at the previous state
             dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
         }
 
         @Override
         public void calculateDependencies(GoalGraph graph) {
+            // Must run each action
             flushPendingMutatorBinders();
             for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
-                dependencies.add(new RunAction(getPath(), binder));
+                dependencies.add(new RunModelAction(getPath(), binder));
             }
         }
 
         @Override
         void doApply(ModelNodeInternal node) {
-            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
-                fireMutation(binder);
-                node.notifyFired(binder);
-                flushPendingMutatorBinders();
-            }
+            // Nothing to do, actions are run as dependencies
         }
     }
 
-    private class CloseGraph extends TransitionToState {
+    private class CloseGraph extends TransitionNodeToState {
         public CloseGraph(NodeIsAtState target) {
             super(target);
         }
 
         @Override
         public void calculatePredecessors(GoalGraph goalGraph) {
+            // Mut be self-closed first
             dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), SelfClosed)));
         }
 
         @Override
         public void calculateDependencies(GoalGraph goalGraph) {
+            // Must graph-close each child first
             for (ModelNodeInternal child : node.getLinks()) {
                 dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(child.getPath(), GraphClosed)));
             }
@@ -1240,7 +1234,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class BindInputs extends GoalGraphNode {
+    private class BindInputs extends ModelGoal {
         private final RuleBinder binder;
 
         public BindInputs(RuleBinder binder) {
@@ -1260,7 +1254,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     // TODO - merge with RuleBinder
-    private class RunAction extends ModelNodeGoal {
+    private abstract class RunAction extends ModelNodeGoal {
         private final RuleBinder binder;
 
         public RunAction(ModelPath path, RuleBinder binder) {
@@ -1275,11 +1269,13 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void calculatePredecessors(GoalGraph goalGraph) {
+            // Must prepare to bind inputs first
             dependencies.add(new BindInputs(binder));
         }
 
         @Override
         public void calculateDependencies(GoalGraph graph) {
+            // Must close each input first
             if (!binder.isBound()) {
                 throw unbound(Collections.singleton(binder));
             }
@@ -1289,13 +1285,39 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply() {
-            LOGGER.debug("Running model element '{}' rule {}", getPath(), binder.getDescriptor());
+        void attachToCycle(List<String> displayValue) {
+            displayValue.add(binder.getDescriptor().toString());
+        }
+    }
+
+    private class RunCreatorAction extends RunAction {
+        public RunCreatorAction(ModelPath path, CreatorRuleBinder binder) {
+            super(path, binder);
         }
 
         @Override
-        void attachToCycle(List<String> displayValue) {
-            displayValue.add(binder.getDescriptor().toString());
+        void apply() {
+            CreatorRuleBinder creatorBinder = node.getCreatorBinder();
+            LOGGER.debug("Running model element '{}' creator rule action {}", getPath(), creatorBinder.getDescriptor());
+            doCreate(node, creatorBinder);
+            node.notifyFired(creatorBinder);
+        }
+    }
+
+    private class RunModelAction extends RunAction {
+        private final MutatorRuleBinder<?> binder;
+
+        public RunModelAction(ModelPath path, MutatorRuleBinder<?> binder) {
+            super(path, binder);
+            this.binder = binder;
+        }
+
+        @Override
+        void apply() {
+            LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
+            fireMutation(binder);
+            node.notifyFired(binder);
+            flushPendingMutatorBinders();
         }
     }
 
