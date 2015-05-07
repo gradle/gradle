@@ -248,12 +248,13 @@ model {
     tasks {
         create("java9Test", Test) {
             String jdkVarName = 'JAVA_9'
-            doFirst {
-                if(!System.getenv(jdkVarName)){
-                    throw new GradleException("A '$jdkVarName' environment variable, " +
-                        "pointing to a java 9 JDK image, is required to run these tests!")
-                }
+
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run these tests!")
             }
+
             executable = "${System.getenv(jdkVarName)}/bin/java"
             include '**/*CommandLineJavaCompilerIntegrationTest*'
             jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
