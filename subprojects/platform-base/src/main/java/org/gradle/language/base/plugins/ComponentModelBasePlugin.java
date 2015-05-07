@@ -27,8 +27,8 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
-import org.gradle.language.base.internal.model.ModelMapCreators;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.language.base.internal.model.ModelMapCreators;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
@@ -170,15 +170,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
+        static class RegisterBinaryFactories extends RuleSource {
+            @Defaults
+            void apply(ComponentSpec componentSpec, BinarySpecFactoryRegistry binaryFactoryRegistry) {
+                ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
+                binaryFactoryRegistry.copyInto(componentSpecInternal.getBinaries());
+            }
+        }
+
         @Defaults
         void registerBinaryFactories(ComponentSpecContainer componentSpecs, final BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            componentSpecs.beforeEach(new Action<ComponentSpec>() {
-                @Override
-                public void execute(ComponentSpec componentSpec) {
-                    ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
-                    binaryFactoryRegistry.copyInto(componentSpecInternal.getBinaries());
-                }
-            });
+            componentSpecs.withType(ComponentSpec.class, RegisterBinaryFactories.class);
         }
 
         @Defaults
