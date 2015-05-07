@@ -29,33 +29,6 @@ import org.gradle.api.Nullable;
 public interface OperationDescriptor {
 
     /**
-     * Descriptor that is set when a reference to an operation cannot be resolved. This only happens when an operation points to a parent operation and the parent operation is unknown because the
-     * events for that operation have not been registered to listen for.
-     */
-    OperationDescriptor UNKNOWN = new OperationDescriptor() {
-        @Override
-        public String getName() {
-            return "unknown";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "descriptor not found";
-        }
-
-        @Nullable
-        @Override
-        public OperationDescriptor getParent() {
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return getDisplayName();
-        }
-    };
-
-    /**
      * Returns the name of the operation. This name does not necessarily uniquely identify the operation.
      *
      * @return The name of the operation.

@@ -242,7 +242,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     private <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor descriptor) {
         Class<? extends OperationDescriptor> descriptorClass = descriptor.getClass();
         if (!type.isAssignableFrom(descriptorClass)) {
-            throw new IllegalStateException(String.format("Unexpected descriptor type. Required %s but found %s", type.getName(), descriptorClass.getName()));
+            throw new IllegalStateException(String.format("Unexpected operation type. Required %s but found %s", type.getName(), descriptorClass.getName()));
         }
         return (T) descriptor;
     }
@@ -278,15 +278,17 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultBuildOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
     }
 
-    private synchronized OperationDescriptor getParentDescriptor(Object id) {
-        if (id == null) {
+    private synchronized OperationDescriptor getParentDescriptor(Object parentId) {
+        if (parentId == null) {
             return null;
+        } else {
+            OperationDescriptor operationDescriptor = descriptorCache.get(parentId);
+            if (operationDescriptor == null) {
+                throw new IllegalStateException(String.format("Parent operation with id %s not available.", parentId));
+            } else {
+                return operationDescriptor;
+            }
         }
-        OperationDescriptor operationDescriptor = descriptorCache.get(id);
-        if (operationDescriptor == null) {
-            operationDescriptor = OperationDescriptor.UNKNOWN;
-        }
-        return operationDescriptor;
     }
 
     private TestOperationResult toTestResult(InternalTestResult result) {

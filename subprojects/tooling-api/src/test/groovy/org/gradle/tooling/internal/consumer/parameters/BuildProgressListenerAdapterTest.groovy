@@ -16,15 +16,16 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.build.BuildProgressListener
 import org.gradle.tooling.events.task.TaskProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.test.TestProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
-import org.gradle.tooling.internal.protocol.events.*
+import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BuildProgressListenerAdapterTest extends Specification {
 
@@ -93,38 +94,6 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.descriptor.parent.name == 'my build'
             assert event.descriptor.parent.parent == null
         }
-    }
-
-    @Unroll("Converts missing #descriptorClass.simpleName parent descriptor on #eventClass.simpleName into unknown descriptor")
-    def "convert missing parent descriptor to unknown descriptor"() {
-        given:
-        def listener = Mock(listenerClass)
-        def event = Mock(eventClass)
-        def descriptor = Mock(descriptorClass)
-        def adapter = createAdapter(listener)
-
-        when:
-        _ * descriptor.getId() >> 1
-        _ * descriptor.getDisplayName() >> 'test descriptor'
-        _ * descriptor.getParentId() >> 666
-
-        _ * event.getEventTime() >> System.currentTimeMillis()
-        _ * event.getDisplayName() >> 'test event'
-        _ * event.getDescriptor() >> descriptor
-
-        adapter.onEvent(event)
-
-        then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent e ->
-            assert e.descriptor.parent.name == 'unknown'
-            assert e.descriptor.parent.displayName == 'descriptor not found'
-        }
-
-        where:
-        listenerClass         | eventClass                        | descriptorClass
-        TaskProgressListener  | InternalTaskStartedProgressEvent  | InternalTaskDescriptor
-        TestProgressListener  | InternalTestStartedProgressEvent  | InternalTestDescriptor
-        BuildProgressListener | InternalBuildOperationStartedProgressEvent | InternalBuildDescriptor
     }
 
     BuildProgressListenerAdapter createAdapter() {

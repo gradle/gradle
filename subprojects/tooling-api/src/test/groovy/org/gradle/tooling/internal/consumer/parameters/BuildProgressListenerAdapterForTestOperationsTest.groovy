@@ -112,7 +112,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         e.message.contains('not available')
     }
 
-    def "looking up parent event returns default 'not found' descriptor if no previous parent event exists"() {
+    def "looking up parent operation throws exception if no previous event for parent operation exists"() {
         given:
         final TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)
@@ -131,14 +131,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(childEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == 'child event'
-            assert event.descriptor.name == 'some child'
-            assert event.descriptor.parent != null
-            assert event.descriptor.parent.name == 'unknown'
-            assert event.descriptor.parent.displayName == 'descriptor not found'
-        }
+        thrown(IllegalStateException)
     }
 
     def "conversion of child events expects parent event exists"() {
