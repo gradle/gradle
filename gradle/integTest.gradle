@@ -245,7 +245,16 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
 }
 
 task java9Test(type: Test) {
-    executable = "${System.getenv("JAVA_9")}/bin/java"
+    String jdkVarName = 'JAVA_9'
+    doFirst {
+        if(!System.getenv(jdkVarName)){
+            throw new GradleException("A '$jdkVarName' environment variable, " +
+                "pointing to a java 9 JDK image, is required to run these tests!")
+        }
+    }
+    executable = "${System.getenv(jdkVarName)}/bin/java"
     include '**/*CommandLineJavaCompilerIntegrationTest*'
     jvmArgs = []
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
 }
