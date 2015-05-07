@@ -244,18 +244,13 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
     }
 }
 
+String jdkVarName = 'JAVA_9'
+
 model {
     tasks {
         create("java9Test", Test) {
             doFirst {
                 jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
-            }
-            String jdkVarName = 'JAVA_9'
-
-            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
-            if (!System.getenv(jdkVarName)) {
-                throw new GradleException("A '$jdkVarName' environment variable, " +
-                    "pointing to a java 9 JDK image, is required to run these tests!")
             }
             executable = "${System.getenv(jdkVarName)}/bin/java"
             include '**/*CommandLineJavaCompilerIntegrationTest*'
@@ -263,4 +258,17 @@ model {
             reports.html.destination = file("${project.reporting.baseDir}/$name")
         }
     }
+}
+
+if(!gradle.hasProperty("java9Check")){
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name == "java9Test" }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
+        }
+    }
+    gradle.ext.java9Check = true
 }
