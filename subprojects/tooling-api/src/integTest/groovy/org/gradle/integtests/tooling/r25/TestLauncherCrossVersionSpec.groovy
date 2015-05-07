@@ -247,7 +247,15 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                     }
         """
 
-        def jvmTest = Mock(DefaultJvmTestOperationDescriptor)
+        def jvmTest = new DefaultJvmTestOperationDescriptor(
+            null,
+            null,
+            null,
+            JvmTestKind.ATOMIC,
+            null,
+            'example.MyTest',
+            null
+        )
         jvmTest.className >> 'example.MyTest'
 
         when: "we create a new test launcher with a test descriptor to execute"
@@ -291,9 +299,15 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                     }
         """
 
-        def jvmTest = Mock(DefaultJvmTestOperationDescriptor)
-        jvmTest.className >> 'example.MyTest'
-        jvmTest.methodName >> 'foo'
+        def jvmTest = new DefaultJvmTestOperationDescriptor(
+            null,
+            null,
+            null,
+            JvmTestKind.ATOMIC,
+            null,
+            'example.MyTest',
+            'foo'
+        )
 
         when: "we create a new test launcher with a test descriptor to execute"
         def result = []
@@ -496,19 +510,19 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
 
             configurations {
-                firstTestCompile.extendsFrom testCompile
-                secondTestCompile.extendsFrom testCompile
-                firstTestRuntime.extendsFrom testRuntime
-                secondTestRuntime.extendsFrom testRuntime
+                firstCompile.extendsFrom testCompile
+                secondCompile.extendsFrom testCompile
+                firstRuntime.extendsFrom testRuntime
+                secondRuntime.extendsFrom testRuntime
             }
 
             task test1(type:Test) {
                 testClassesDir = sourceSets.first.output.classesDir
-                classpath += sourceSets.first.runtimeClasspath
+                classpath = sourceSets.first.runtimeClasspath
             }
             task test2(type:Test) {
                 testClassesDir = sourceSets.second.output.classesDir
-                classpath += sourceSets.second.runtimeClasspath
+                classpath = sourceSets.second.runtimeClasspath
             }
 
         """
