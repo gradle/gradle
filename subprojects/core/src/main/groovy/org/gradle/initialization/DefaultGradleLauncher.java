@@ -228,16 +228,16 @@ public class DefaultGradleLauncher extends GradleLauncher {
             error = e;
         }
         parentEvent = startEvent.getParent();
-        InternalBuildOperation endEvent = new InternalBuildOperation(eventId, error!=null?error:result, parentEvent);
+        BuildOperationInternal endEvent = new BuildOperationInternal(eventId, error != null ? error : result, parentEvent);
         internalBuildListener.finished(endEvent, sd, System.currentTimeMillis(), eventType);
-        if (error!=null) {
+        if (error != null) {
             UncheckedException.throwAsUncheckedException(error);
         }
         return result;
     }
 
     private <T> T internalBuildOperation(String eventType, Factory<T> factory) {
-        return internalBuildOperation(null, eventType,  factory);
+        return internalBuildOperation(null, eventType, factory);
     }
 
     /**
