@@ -20,12 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
 import org.gradle.model.ConfigurationCycleException
+import org.gradle.model.InvalidModelRuleException
+import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -63,7 +64,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realizeNode(ModelPath.ROOT) != null
     }
 
-    def "cannot get element for which creator inputs are not bound"() {
+    def "cannot get element for which creator by-path input does not exist"() {
         given:
         registry.create("foo") { it.descriptor("foo creator").unmanaged(String, "other", null, Stub(Transformer)) }
 
@@ -76,6 +77,38 @@ class DefaultModelRegistryTest extends Specification {
   foo creator
     Immutable:
       - other (java.lang.Object)"""
+    }
+
+    def "cannot get element for which creator by-type input does not exist"() {
+        given:
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Long, Stub(Transformer)) }
+
+        when:
+        registry.realize(ModelPath.path("foo"), ModelType.untyped())
+
+        then:
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+  foo creator
+    Immutable:
+      - <unspecified> (java.lang.Long)"""
+    }
+
+    def "cannot get element for which creator by-type input is ambiguous"() {
+        given:
+        registry.createInstance("other-1", 11)
+        registry.createInstance("other-2", 12)
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
+
+        when:
+        registry.realize(ModelPath.path("foo"), ModelType.untyped())
+
+        then:
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(e.cause.message) == """Type-only model reference of type java.lang.Number is ambiguous as multiple model elements are available for this type:
+  - other-1 (created by: other-1 creator)
+  - other-2 (created by: other-2 creator)"""
     }
 
     def "cannot register creator when element already known"() {
@@ -102,6 +135,23 @@ class DefaultModelRegistryTest extends Specification {
         then:
         DuplicateModelException e = thrown()
         e.message == /Cannot create 'foo' using creation rule 'create foo as Integer' as the rule 'create foo as String' has already been used to create this model element./
+    }
+
+    def "cannot register creator when sibling with same type used as by-type input"() {
+        given:
+        registry.createInstance("other-1", 12)
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
+        registry.realize(ModelPath.path("foo"), ModelType.untyped())
+
+        when:
+        registry.createInstance("other-2", 11)
+
+        then:
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        normaliseLineSeparators(e.cause.message) == """Type-only model reference of type java.lang.Number is ambiguous as multiple model elements are available for this type:
+  - other-1 (created by: other-1 creator)
+  - other-2 (created by: other-2 creator)"""
     }
 
     def "rule cannot add link when element already known"() {
@@ -412,7 +462,6 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message == "Cannot set value for model element 'thing' as this element is not mutable."
     }
 
-    @Unroll
     def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
         def action = Stub(Action)
 
@@ -442,7 +491,6 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Validate   | ModelActionRole.Finalize
     }
 
-    @Unroll
     def "cannot add action for #targetRole mutation when in #fromState state"() {
         def action = Stub(Action)
 
@@ -483,7 +531,6 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.SelfClosed      | ModelActionRole.Finalize
     }
 
-    @Unroll
     def "can add action for #targetRole mutation when in #fromRole mutation"() {
         given:
         registry.createInstance("thing", new MutableValue(value: "initial")).configure(fromRole) {
@@ -521,7 +568,6 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Validate   | ModelActionRole.Validate
     }
 
-    @Unroll
     def "can add action for #targetRole mutation when in #fromState state"() {
         def action = Stub(Action)
 
@@ -556,7 +602,6 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.Finalized       | ModelActionRole.Validate
     }
 
-    @Unroll
     def "can get node at state"() {
         given:
         registry.createInstance("thing", new Bean(value: "created"))
@@ -603,7 +648,6 @@ class DefaultModelRegistryTest extends Specification {
         events == ["created"]
     }
 
-    @Unroll
     def "asking for unknown element at any state returns null"() {
         expect:
         registry.atState(ModelPath.path("thing"), state) == null
@@ -643,7 +687,6 @@ class DefaultModelRegistryTest extends Specification {
         events == ["collection mutated", "c1 created"]
     }
 
-    @Unroll
     def "cannot request model node at earlier state when at #state"() {
         given:
         registry.createInstance("thing", new Bean())
@@ -669,7 +712,6 @@ class DefaultModelRegistryTest extends Specification {
         state << ModelNode.State.values().toList()
     }
 
-    @Unroll
     def "is benign to request element at current state"() {
         given:
         registry.createInstance("thing", new Bean())
@@ -687,7 +729,6 @@ class DefaultModelRegistryTest extends Specification {
         state << ModelNode.State.values().toList()
     }
 
-    @Unroll
     def "is benign to request element at prior state"() {
         given:
         registry.createInstance("thing", new Bean())
@@ -705,7 +746,6 @@ class DefaultModelRegistryTest extends Specification {
         state << ModelNode.State.values().toList()
     }
 
-    @Unroll
     def "requesting at current state does not reinvoke actions"() {
         given:
         def events = []
