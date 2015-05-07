@@ -166,10 +166,6 @@ integTestTasks.all { Test task ->
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
 
-    if(task.name != 'java'){
-
-    }
-
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
