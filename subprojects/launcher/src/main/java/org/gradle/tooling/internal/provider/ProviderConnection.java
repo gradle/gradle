@@ -109,13 +109,14 @@ public class ProviderConnection {
         boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
         boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
         boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-        BuildEventConsumer buildEventConsumer = listenToTestProgress || listenToTaskProgress || listenToBuildProgress
-            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+        ConsumerListenerConfiguration listenerConfiguration = new ConsumerListenerConfiguration(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+        BuildEventConsumer buildEventConsumer = listenerConfiguration.isSendAnyProgressEvents() ?
+            new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
         if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
             ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
         }
 
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress, listenToTaskProgress, listenToBuildProgress, consumerVersion);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, consumerVersion);
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
         if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
             rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);

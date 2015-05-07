@@ -27,6 +27,7 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -46,13 +47,14 @@ public class BuildModelActionRunner implements BuildActionRunner {
         // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
         // this allows to send progress events back to the DaemonClient (via short-cut)
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
-        if (buildModelAction.isSendTestProgressEvents()) {
+        ConsumerListenerConfiguration listenerConfiguration = buildModelAction.getConsumerListenerConfiguration();
+        if (listenerConfiguration.isSendTestProgressEvents()) {
             gradle.addListener(new ClientForwardingTestListener(eventConsumer, buildModelAction.getConsumerVersion()));
         }
-        if (buildModelAction.isSendTaskProgressEvents()) {
+        if (listenerConfiguration.isSendTaskProgressEvents()) {
             gradle.addListener(new ClientForwardingTaskListener(eventConsumer));
         }
-        if (buildModelAction.isSendBuildProgressEvents()) {
+        if (listenerConfiguration.isSendBuildProgressEvents()) {
             gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
         }
 

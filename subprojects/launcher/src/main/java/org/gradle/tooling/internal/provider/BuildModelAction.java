@@ -24,18 +24,14 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-    private final boolean sendTestProgressEvents;
-    private final boolean sendTaskProgressEvents;
-    private final boolean sendBuildProgressEvents;
+    private final ConsumerListenerConfiguration consumerListenerConfiguration;
     private final String consumerVersion;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, boolean sendTestProgressEvents, boolean sendTaskProgressEvents, boolean sendBuildProgressEvents, String consumerVersion) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration, String consumerVersion) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
-        this.sendTestProgressEvents = sendTestProgressEvents;
-        this.sendTaskProgressEvents = sendTaskProgressEvents;
-        this.sendBuildProgressEvents = sendBuildProgressEvents;
+        this.consumerListenerConfiguration = consumerListenerConfiguration;
         this.consumerVersion = consumerVersion;
     }
 
@@ -52,16 +48,8 @@ public class BuildModelAction implements BuildAction, Serializable {
         return runTasks;
     }
 
-    public boolean isSendTestProgressEvents() {
-        return sendTestProgressEvents;
-    }
-
-    public boolean isSendTaskProgressEvents() {
-        return sendTaskProgressEvents;
-    }
-
-    public boolean isSendBuildProgressEvents() {
-        return sendBuildProgressEvents;
+    public ConsumerListenerConfiguration getConsumerListenerConfiguration() {
+        return consumerListenerConfiguration;
     }
 
     public String getConsumerVersion() {
