@@ -378,6 +378,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'build execution'
             assert event.descriptor.parent == buildDescriptor
         }
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
+            assert event.displayName == 'build execution finished with failure'
+            assert event.descriptor.name == 'build execution'
+            assert event.descriptor.parent == buildDescriptor
+            def result = event.result
+            assert result instanceof BuildFailureResult
+            assert result.failures.size() == 1
+        }
 
         // build finish
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->

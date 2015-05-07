@@ -71,10 +71,17 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {
+        if (result instanceof Throwable) {
+            return adaptResult((Throwable) result, startTime, endTime);
+        }
         if (result instanceof BuildResult) {
             return adaptResult((BuildResult) result, startTime, endTime);
         }
         return new DefaultBuildOperationSuccessResult(startTime, endTime);
+    }
+
+    private DefaultBuildOperationFailureResult adaptResult(Throwable error, long startTime, long endTime) {
+        return new DefaultBuildOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(error)));
     }
 
 }

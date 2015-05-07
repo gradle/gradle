@@ -182,6 +182,7 @@ public class DefaultGradleLauncherTest {
             startEvent(this, InternalBuildListener.SETTINGS_EVAL_TYPE);
             finishEvent(this, InternalBuildListener.SETTINGS_EVAL_TYPE);
             startEvent(this, InternalBuildListener.PROJECTS_LOADING_TYPE);
+            finishEvent(this, InternalBuildListener.PROJECTS_LOADING_TYPE);
             finishEvent(this, InternalBuildListener.BUILD_TYPE);
             one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
@@ -236,6 +237,7 @@ public class DefaultGradleLauncherTest {
             startEvent(this, InternalBuildListener.EVAL_INIT_SCRIPTS);
             finishEvent(this, InternalBuildListener.EVAL_INIT_SCRIPTS);
             startEvent(this, InternalBuildListener.SETTINGS_EVAL_TYPE);
+            finishEvent(this, InternalBuildListener.SETTINGS_EVAL_TYPE);
             finishEvent(this, InternalBuildListener.BUILD_TYPE);
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
@@ -271,6 +273,7 @@ public class DefaultGradleLauncherTest {
             startEvent(this, InternalBuildListener.POPULATE_TASKS_TYPE);
             finishEvent(this, InternalBuildListener.POPULATE_TASKS_TYPE);
             startEvent(this, InternalBuildListener.EXECUTE_BUILD_TYPE);
+            finishEvent(this, InternalBuildListener.EXECUTE_BUILD_TYPE);
             finishEvent(this, InternalBuildListener.BUILD_TYPE);
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);

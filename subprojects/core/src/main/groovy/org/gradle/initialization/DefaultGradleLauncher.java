@@ -24,6 +24,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.InternalBuildOperation;
@@ -219,10 +220,19 @@ public class DefaultGradleLauncher extends GradleLauncher {
         long sd = System.currentTimeMillis();
         internalBuildListener.started(startEvent, sd, eventType);
         parentEvent = startEvent;
-        T result = factory.create();
+        T result = null;
+        Throwable error = null;
+        try {
+            result = factory.create();
+        } catch (Throwable e) {
+            error = e;
+        }
         parentEvent = startEvent.getParent();
-        InternalBuildOperation endEvent = new InternalBuildOperation(eventId, result, parentEvent);
+        InternalBuildOperation endEvent = new InternalBuildOperation(eventId, error!=null?error:result, parentEvent);
         internalBuildListener.finished(endEvent, sd, System.currentTimeMillis(), eventType);
+        if (error!=null) {
+            UncheckedException.throwAsUncheckedException(error);
+        }
         return result;
     }
 
