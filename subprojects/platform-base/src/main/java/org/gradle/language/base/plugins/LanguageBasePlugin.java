@@ -23,7 +23,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
-import org.gradle.internal.Factory;
+import org.gradle.internal.Factories;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
@@ -113,10 +113,10 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         ModelPath taskNodePath = binaryPath.child("__tasks");
                         ModelType<Collection<Task>> taskCollectionType = ModelTypes.collectionOf(Task.class);
                         modelNode.addLink(ModelCreators.of(taskNodePath, BiActions.doNothing())
-                                        .withProjection(new UnmanagedModelProjection<Collection<Task>>(taskCollectionType))
-                                        .descriptor(descriptor + ".createTasksNode")
-                                        .hidden(true)
-                                        .build()
+                                .withProjection(new UnmanagedModelProjection<Collection<Task>>(taskCollectionType))
+                                .descriptor(descriptor + ".createTasksNode")
+                                .hidden(true)
+                                .build()
                         );
                         MutableModelNode link = modelNode.getLink(taskNodePath.getName());
                         assert link != null;
@@ -126,17 +126,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        Factory<BinarySpecFactoryRegistry> registryFactory = new Factory<BinarySpecFactoryRegistry>() {
-            @Override
-            public BinarySpecFactoryRegistry create() {
-                return new BinarySpecFactoryRegistry();
-            }
-        };
-        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), registryFactory)
-                .descriptor(ruleDescriptor)
-                .ephemeral(true)
-                .hidden(true)
-                .build());
+        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
+            .descriptor(ruleDescriptor)
+            .ephemeral(true)
+            .hidden(true)
+            .build());
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeModelAction.of(
