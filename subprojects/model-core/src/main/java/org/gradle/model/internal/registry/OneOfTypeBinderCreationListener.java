@@ -36,6 +36,12 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
 
     @Nullable
     @Override
+    public ModelPath getParent() {
+        return reference.getParent();
+    }
+
+    @Nullable
+    @Override
     public ModelPath getScope() {
         return reference.getScope();
     }

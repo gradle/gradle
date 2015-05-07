@@ -385,10 +385,14 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <I> ModelAction<T> action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
-            return build(refs(ModelReference.of(modelPath, inputType, referenceDescription)), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
+            return action(ModelReference.of(modelPath, inputType, referenceDescription), action);
+        }
+
+        public <I> ModelAction<T> action(final ModelReference<I> inputReference, final BiAction<? super T, ? super I> action) {
+            return build(refs(inputReference), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
-                    action.execute(t, ModelViews.assertType(inputs.get(0), inputType).getInstance());
+                    action.execute(t, ModelViews.assertType(inputs.get(0), inputReference.getType()).getInstance());
                 }
             });
         }

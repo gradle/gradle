@@ -41,7 +41,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
-import static org.gradle.model.internal.core.ModelActionRole.*;
 import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
@@ -329,6 +328,136 @@ public class DefaultModelRegistry implements ModelRegistry {
         transition(node, GraphClosed, false);
     }
 
+    /**
+     *  Moves to the given target state.
+     */
+    private void transitionTo(NodeState target) {
+        LOGGER.debug("Attempting to transition model element '{}' to {}", target.path, target.state.name());
+//        System.out.println(String.format("Attempting to transition model element '%s' to %s.", target.path, target.state.name()));
+
+        Map<NodeState, NodeStateTransition> nodes = new HashMap<NodeState, NodeStateTransition>();
+        LinkedList<NodeStateTransition> queue = new LinkedList<NodeStateTransition>();
+
+        NodeStateTransition targetTransition = new NodeStateTransition(target);
+        nodes.put(target, targetTransition);
+        queue.add(targetTransition);
+        while (!queue.isEmpty()) {
+            NodeStateTransition transition = queue.getFirst();
+
+            if (transition.state == NodeStateTransition.State.Achieved) {
+                // Already reached this state
+                queue.removeFirst();
+                continue;
+            }
+
+            if (transition.state == NodeStateTransition.State.VisitingInputs) {
+                // All dependencies visited
+
+                ModelNodeInternal node = transition.node;
+                LOGGER.debug("Transition model element '{}' from {} to {}", node.getPath(), node.getState(), transition.getTargetState());
+//                System.out.println(String.format("Transition model element '%s' from %s to %s", node.getPath(), node.getState(), transition.getTargetState()));
+                apply(transition);
+                transition.state = NodeStateTransition.State.Achieved;
+                queue.removeFirst();
+                continue;
+            }
+
+            if (transition.state == NodeStateTransition.State.NotSeen) {
+                ModelNodeInternal node = modelGraph.find(transition.getPath());
+                if (node != null) {
+                    int diff = node.getState().compareTo(transition.getTargetState());
+                    if (diff > 0) {
+                        throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), transition.target.state, node.getState()));
+                    }
+                    if (diff == 0) {
+                        transition.state = NodeStateTransition.State.Achieved;
+                        queue.removeFirst();
+                        continue;
+                    }
+                }
+
+                attachPredecessor(transition);
+                transition.state = NodeStateTransition.State.VisitingPredecessor;
+            } else if (transition.state == NodeStateTransition.State.VisitingPredecessor) {
+                // TODO - node should exist at this point, or fail
+                ModelNodeInternal node = modelGraph.find(transition.getPath());
+                if (node == null) {
+                    throw new IllegalStateException(String.format("Model element '%s' does not exist.", transition.getPath()));
+                }
+                transition.node = node;
+                attachInputs(transition);
+                transition.state = NodeStateTransition.State.VisitingInputs;
+            }
+            for (NodeState dependency : transition.dependencies) {
+                // TODO - only queue new dependencies
+                // TODO - check for cycles
+                NodeStateTransition dependencyTransition = nodes.get(dependency);
+                if (dependencyTransition == null) {
+                    dependencyTransition = new NodeStateTransition(dependency);
+                    nodes.put(dependency, dependencyTransition);
+                }
+                queue.addFirst(dependencyTransition);
+            }
+        }
+    }
+
+    private void attachPredecessor(NodeStateTransition transition) {
+        if (transition.getTargetState() == Known) {
+            ModelPath parent = transition.getPath().getParent();
+            if (parent != null) {
+                transition.dependencies.add(new NodeState(parent, SelfClosed));
+            }
+        } else {
+            transition.dependencies.add(new NodeState(transition.getPath(), ModelNode.State.values()[transition.getTargetState().ordinal() - 1]));
+        }
+    }
+
+    private void attachInputs(NodeStateTransition transition) {
+        // TODO - add creator and action inputs here
+        if (transition.getTargetState() == GraphClosed) {
+            for (ModelNodeInternal child : transition.node.getLinks()) {
+                transition.dependencies.add(new NodeState(child.getPath(), GraphClosed));
+            }
+        }
+    }
+
+    private void apply(NodeStateTransition transition) {
+        ModelNodeInternal node = transition.node;
+        switch (transition.getTargetState()) {
+            case Known:
+            case GraphClosed:
+                // Don't need to run any actions for these transitions
+                break;
+            case Created:
+                CreatorRuleBinder creatorBinder = node.getCreatorBinder();
+                if (creatorBinder != null) {
+                    forceBind(creatorBinder);
+                }
+                doCreate(node, creatorBinder);
+                node.notifyFired(creatorBinder);
+                node.setState(Created);
+                break;
+            case DefaultsApplied:
+                fireMutations(node, ModelActionRole.Defaults);
+                break;
+            case Initialized:
+                fireMutations(node, ModelActionRole.Initialize);
+                break;
+            case Mutated:
+                fireMutations(node, ModelActionRole.Mutate);
+                break;
+            case Finalized:
+                fireMutations(node, ModelActionRole.Finalize);
+                break;
+            case SelfClosed:
+                fireMutations(node, ModelActionRole.Validate);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown node state.");
+        }
+        node.setState(transition.getTargetState());
+    }
+
     private void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
@@ -347,44 +476,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        if (state == Known && desired.ordinal() >= Created.ordinal()) {
-            CreatorRuleBinder creatorBinder = node.getCreatorBinder();
-            if (creatorBinder != null) {
-                forceBind(creatorBinder);
-            }
-            doCreate(node, creatorBinder);
-            node.notifyFired(creatorBinder);
-            node.setState(Created);
-
-            if (desired == Created) {
-                return;
-            }
-        }
-
-        if (!fireMutations(node, path, state, Defaults, DefaultsApplied, desired)) {
-            return;
-        }
-        if (!fireMutations(node, path, state, Initialize, Initialized, desired)) {
-            return;
-        }
-        if (!fireMutations(node, path, state, Mutate, Mutated, desired)) {
-            return;
-        }
-        if (!fireMutations(node, path, state, Finalize, Finalized, desired)) {
-            return;
-        }
-        if (!fireMutations(node, path, state, Validate, SelfClosed, desired)) {
-            return;
-        }
-
-        if (desired.ordinal() >= GraphClosed.ordinal()) {
-            for (ModelNodeInternal child : node.getLinks()) {
-                close(child);
-            }
-            node.setState(GraphClosed);
-        }
-
-        LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
+        transitionTo(new NodeState(node.getPath(), desired));
     }
 
     private void forceBindReference(ModelBinding binding) {
@@ -423,13 +515,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    // NOTE: this should only be called from transition() as implicit logic is shared
-    private boolean fireMutations(ModelNodeInternal node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
-        ModelNode.State nodeState = node.getState();
-        if (nodeState.ordinal() >= to.ordinal()) {
-            return nodeState.ordinal() < desired.ordinal();
-        }
-
+    private void fireMutations(ModelNodeInternal node, ModelActionRole type) {
         flushPendingMutatorBinders();
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
             if (!binder.isFired()) {
@@ -439,15 +525,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                 node.notifyFired(binder);
                 binder.setFired(true);
             }
-        }
-
-        node.setState(to);
-
-        if (to == desired) {
-            LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, originalState.name(), desired.name());
-            return false;
-        } else {
-            return true;
         }
     }
 
@@ -615,6 +692,28 @@ public class DefaultModelRegistry implements ModelRegistry {
                 collectEphemeralChildren(child, ephemerals);
             }
         }
+    }
+
+    private <T> ModelReference<T> subjectToScope(ModelReference<T> subjectReference, ModelPath scope) {
+        if (subjectReference.getPath() == null) {
+            return subjectReference.withScope(scope);
+        }
+        return subjectReference.withPath(scope.descendant(subjectReference.getPath()));
+    }
+
+    private List<ModelReference<?>> inputsToScope(List<ModelReference<?>> inputs, ModelPath scope) {
+        if (inputs.isEmpty()) {
+            return inputs;
+        }
+        ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
+        for (ModelReference<?> input : inputs) {
+            if (input.getPath() != null) {
+                result.add(input.withPath(scope.descendant(input.getPath())));
+            } else {
+                result.add(input.withScope(ModelPath.ROOT));
+            }
+        }
+        return result;
     }
 
     private class ModelReferenceNode extends ModelNodeInternal {
@@ -1007,26 +1106,74 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelReference<T> subjectToScope(ModelReference<T> subjectReference, ModelPath scope) {
-        if (subjectReference.getPath() == null) {
-            return subjectReference.withScope(scope);
+    private static class NodeStateTransition {
+        enum State {
+            NotSeen,
+            VisitingPredecessor,
+            VisitingInputs,
+            Achieved,
         }
-        return subjectReference.withPath(scope.descendant(subjectReference.getPath()));
+        public final NodeState target;
+        public final Set<NodeState> dependencies = new TreeSet<NodeState>();
+        public State state = State.NotSeen;
+        public ModelNodeInternal node;
+
+        public NodeStateTransition(NodeState target) {
+            this.target = target;
+        }
+
+        @Override
+        public String toString() {
+            return target.toString();
+        }
+
+        ModelPath getPath() {
+            return target.path;
+        }
+
+        ModelNode.State getTargetState() {
+            return target.state;
+        }
     }
 
-    private List<ModelReference<?>> inputsToScope(List<ModelReference<?>> inputs, ModelPath scope) {
-        if (inputs.isEmpty()) {
-            return inputs;
+    private static class NodeState implements Comparable<NodeState> {
+        public final ModelPath path;
+        public final ModelNode.State state;
+
+        public NodeState(ModelPath path, ModelNode.State state) {
+            this.path = path;
+            this.state = state;
         }
-        ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
-        for (ModelReference<?> input : inputs) {
-            if (input.getPath() != null) {
-                result.add(input.withPath(scope.descendant(input.getPath())));
-            } else {
-                result.add(input.withScope(ModelPath.ROOT));
+
+        @Override
+        public String toString() {
+            return "path: " + path + ", state: " + state;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
             }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            NodeState other = (NodeState) obj;
+            return path.equals(other.path) && state.equals(other.state);
         }
-        return result;
-    }
 
+        @Override
+        public int hashCode() {
+            return path.hashCode() ^ state.hashCode();
+        }
+
+        @Override
+        public int compareTo(NodeState other) {
+            int diff = path.compareTo(other.path);
+            if (diff != 0) {
+                return diff;
+            }
+            return state.compareTo(other.state);
+        }
+    }
 }
