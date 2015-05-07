@@ -31,7 +31,7 @@ public class MutatorRuleBinder<T> extends RuleBinder {
     private final ModelActionRole role;
     private final ModelAction<T> action;
 
-    private boolean processed;
+    private boolean fired;
 
     public MutatorRuleBinder(ModelReference<T> subjectReference, List<ModelReference<?>> inputs, final ModelActionRole role, ModelAction<T> action, Collection<RuleBinder> binders) {
         super(inputs, action.getDescriptor(), binders);
@@ -68,11 +68,11 @@ public class MutatorRuleBinder<T> extends RuleBinder {
         return subjectBinding != null && subjectBinding.isBound() && super.isBound();
     }
 
-    public boolean isProcessed() {
-        return processed;
+    public boolean isFired() {
+        return fired;
     }
 
-    public void setProcessed(boolean processed) {
-        this.processed = processed;
+    public void setFired(boolean fired) {
+        this.fired = fired;
     }
 }

@@ -432,12 +432,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         flushPendingMutatorBinders();
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
-            if (!binder.isProcessed()) {
+            if (!binder.isFired()) {
                 forceBind(binder);
                 fireMutation(binder);
                 flushPendingMutatorBinders();
                 node.notifyFired(binder);
-                binder.setProcessed(true);
+                binder.setFired(true);
             }
         }
 
