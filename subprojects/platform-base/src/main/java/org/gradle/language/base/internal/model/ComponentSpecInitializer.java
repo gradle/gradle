@@ -20,12 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Transformer;
-import org.gradle.internal.*;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
+import org.gradle.internal.Factory;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -53,9 +52,15 @@ public class ComponentSpecInitializer {
         return new BiAction<MutableModelNode, BinarySpec>() {
             @Override
             public void execute(MutableModelNode node, BinarySpec spec) {
-                ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
-                ModelReference<BinaryTasksCollection> itemReference = ModelReference.of(node.getPath().child("tasks"), itemType);
-                ModelCreator itemCreator = ModelCreators.unmanagedInstance(itemReference, Factories.constant(spec.getTasks()))
+                final ModelType<BinaryTasksCollection> itemType = ModelType.of(BinaryTasksCollection.class);
+                ModelCreator itemCreator = ModelCreators.of(node.getPath().child("tasks"), new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode) {
+                        BinaryTasksCollection tasks = modelNode.getParent().getPrivateData(ModelType.of(BinarySpec.class)).getTasks();
+                        modelNode.setPrivateData(itemType, tasks);
+                    }
+                })
+                    .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(itemType))
                     .descriptor(new StandardDescriptorFactory(node.getDescriptor()).transform("tasks"))
                     .build();
                 node.addLink(itemCreator);
