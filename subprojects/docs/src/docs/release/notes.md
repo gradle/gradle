@@ -166,9 +166,11 @@ Currently component container can be only accessed using model rules.
 ### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
 
 ### Maven publishing
+
 The [maven-publish](userguide/publishing_maven.html) and [maven](userguide/maven_plugin.html) plugins
- no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts. Both plugins now use the newer Maven 3 `org.apache.maven` and
- Aether libraries. Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
+no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts.
+Both plugins now use the newer Maven 3 `org.apache.maven` and Aether libraries.
+hitesWhilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
 
 ## External contributions
 
