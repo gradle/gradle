@@ -254,7 +254,7 @@ task java9Test(type: Test) {
     }
     executable = "${System.getenv(jdkVarName)}/bin/java"
     include '**/*CommandLineJavaCompilerIntegrationTest*'
-    jvmArgs = []
+    jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
     reports.html.destination = file("${project.reporting.baseDir}/$name")
 }
