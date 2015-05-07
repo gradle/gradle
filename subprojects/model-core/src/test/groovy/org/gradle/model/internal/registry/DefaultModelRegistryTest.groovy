@@ -827,9 +827,11 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo mutator parameter 1 (path: bar)
-  \\--- bar mutator (path: foo)
-    \\--- foo mutator""")
+foo
+\\- foo mutator
+   \\- bar
+      \\- bar mutator
+         \\- foo""")
     }
 
     def "multiple element configuration cycles are detected"() {
@@ -846,11 +848,15 @@ foo mutator parameter 1 (path: bar)
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo creator bar (path: bar)
-  \\--- bar creator fizz (path: fizz)
-    \\--- fizz mutator buzz (path: buzz)
-      \\--- buzz mutator foo (path: foo)
-        \\--- foo creator""")
+foo
+\\- foo creator
+   \\- bar
+      \\- bar creator
+         \\- fizz
+            \\- fizz mutator
+               \\- buzz
+                  \\- buzz mutator
+                     \\- foo""")
     }
 
     def "one element configuration cycles are detected"() {
@@ -864,8 +870,9 @@ foo creator bar (path: bar)
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo mutator java.lang.String (path: foo)
-  \\--- foo mutator""")
+foo
+\\- foo mutator
+   \\- foo""")
     }
 
     def "only the elements actually forming the cycle are reported when configuration cycles are detected"() {
@@ -883,9 +890,49 @@ foo mutator java.lang.String (path: foo)
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-bar creator fizz (path: fizz)
-  \\--- fizz mutator bar (path: bar)
-    \\--- bar creator""")
+bar
+\\- bar creator
+   \\- fizz
+      \\- fizz mutator
+         \\- bar""")
+    }
+
+    def "implicit cycle when node depends on parent is detected"() {
+        given:
+        registry.createInstance("foo", "foo")
+                .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink(registry.creator("foo.bar").unmanaged(Number, 12))} }
+                .mutate { it.path("foo.bar").descriptor("bar mutator").action(String) {} }
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+foo
+\\- foo.bar
+   \\- bar mutator
+      \\- foo""")
+    }
+
+    def "implicit cycle when node depends on ancestor is detected"() {
+        given:
+        registry.createInstance("foo", "foo")
+                .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink(registry.creator("foo.bar").unmanaged(Number, 12))} }
+                .mutate { it.path("foo.bar").descriptor("bar mutator").node { it.addLink(registry.creator("foo.bar.baz").unmanaged(Number, 107))} }
+                .mutate { it.path("foo.bar.baz").descriptor("baz mutator").action(ModelType.of(String)) {} }
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+foo
+\\- foo.bar
+   \\- foo.bar.baz
+      \\- baz mutator
+         \\- foo""")
     }
 
     class Bean {

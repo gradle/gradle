@@ -65,10 +65,13 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
-Rules#first(java.lang.String) parameter 1 (path: second)
-  \\--- model.second @ build file '${buildFile}' line 29, column 17 @ line 30 (path: third)
-    \\--- Rules#third(java.lang.String) parameter 1 (path: first)
-      \\--- Rules#first(java.lang.String)""")
+first
+\\- Rules#first(java.lang.String)
+   \\- second
+      \\- model.second @ build file '${buildFile}' line 29, column 17
+         \\- third
+            \\- Rules#third(java.lang.String)
+               \\- first""")
     }
 
     def "cycles involving multiple rules of same phase are detected"() {
@@ -107,10 +110,11 @@ Rules#first(java.lang.String) parameter 1 (path: second)
 
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
-Rules#m3ToM1(java.lang.Object, java.lang.Object) parameter 2 (path: m3)
-  \\--- Rules#m1ToM3(java.lang.Object, java.lang.Object) parameter 2 (path: m1)
-    \\--- Rules#m3ToM1(java.lang.Object, java.lang.Object)""")
-
+m1
+\\- Rules#m3ToM1(java.lang.Object, java.lang.Object)
+   \\- m3
+      \\- Rules#m1ToM3(java.lang.Object, java.lang.Object)
+         \\- m1""")
     }
 
     def "cycles involving multiple rules of different phase are detected"() {
@@ -157,9 +161,11 @@ Rules#m3ToM1(java.lang.Object, java.lang.Object) parameter 2 (path: m3)
 
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
-Rules#m3ToM1(java.lang.Object, java.lang.Object) parameter 2 (path: m3)
-  \\--- Rules#m1ToM3(java.lang.Object, java.lang.Object) parameter 2 (path: m1)
-    \\--- Rules#m3ToM1(java.lang.Object, java.lang.Object)""")
+m1
+\\- Rules#m3ToM1(java.lang.Object, java.lang.Object)
+   \\- m3
+      \\- Rules#m1ToM3(java.lang.Object, java.lang.Object)
+         \\- m1""")
 
     }
 }
