@@ -31,26 +31,28 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.WatchPointsRegistry;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, WatchPointsRegistry watchPointsRegistry, StartParameter startParameter) {
         return new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                                new SkipEmptySourceFilesTaskExecuter(
-                                        new ValidatingTaskExecuter(
-                                                new SkipUpToDateTaskExecuter(repository,
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        listenerManager.getBroadcaster(TaskActionListener.class)
-                                                                ))))))));
+            new SkipOnlyIfTaskExecuter(
+                new SkipTaskWithNoActionsExecuter(
+                    new SkipEmptySourceFilesTaskExecuter(
+                        new WatchPointsRegistrarTaskExecuter(watchPointsRegistry, startParameter.isContinuousModeEnabled(),
+                            new ValidatingTaskExecuter(
+                                new SkipUpToDateTaskExecuter(repository,
+                                    new PostExecutionAnalysisTaskExecuter(
+                                        new ExecuteActionsTaskExecuter(
+                                            listenerManager.getBroadcaster(TaskActionListener.class)
+                                        )))))))));
     }
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {

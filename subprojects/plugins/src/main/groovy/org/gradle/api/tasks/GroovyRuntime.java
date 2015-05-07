@@ -92,15 +92,6 @@ public class GroovyRuntime {
                 return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()])));
             }
 
-            // TODO: workaround to prevent exceptions when src/main/groovy doesn't contain any files
-            @Override
-            public void registerWatchPoints(FileSystemSubset.Builder builder) {
-                GroovyJarFile groovyJar = findGroovyJarFile(classpath);
-                if (groovyJar != null) {
-                    super.registerWatchPoints(builder);
-                }
-            }
-
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
             public TaskDependency getBuildDependencies() {

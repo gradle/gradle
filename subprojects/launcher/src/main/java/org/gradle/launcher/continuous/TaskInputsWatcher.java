@@ -19,50 +19,34 @@ package org.gradle.launcher.continuous;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionAdapter;
-import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.filewatch.StopThenFireFileWatcherListener;
+import org.gradle.internal.filewatch.WatchPointsRegistry;
 
 public class TaskInputsWatcher extends BuildAdapter {
     private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
     private final TriggerListener listener;
     private final FileWatcherFactory fileWatcherFactory;
-    private FileSystemSubset.Builder fileSystemSubsetBuilder;
 
     public TaskInputsWatcher(TriggerListener listener, FileWatcherFactory fileWatcherFactory) {
         this.listener = listener;
         this.fileWatcherFactory = fileWatcherFactory;
-        this.fileSystemSubsetBuilder = FileSystemSubset.builder();
-    }
-
-    @Override
-    public void buildStarted(Gradle gradle) {
-        // TODO: What is this breaking?
-        // Only consider tasks for the outermost build
-        if (gradle.getParent()==null) {
-            fileSystemSubsetBuilder = FileSystemSubset.builder();
-            gradle.getTaskGraph().addTaskExecutionListener(new TaskExecutionAdapter() {
-                @Override
-                public void beforeExecute(Task task) {
-                    FileCollectionInternal inputFiles = Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles());
-                    inputFiles.registerWatchPoints(fileSystemSubsetBuilder);
-                }
-            });
-        }
     }
 
     @Override
     public void buildFinished(BuildResult result) {
         // Only start watching when the outermost build finishes
         if (result.getGradle().getParent()==null) {
-            final FileSystemSubset fileSystemSubset = fileSystemSubsetBuilder.build();
+            GradleInternal gradleInternal = Cast.uncheckedCast(result.getGradle());
+
+            final WatchPointsRegistry watchPointsRegistry = gradleInternal.getServices().get(WatchPointsRegistry.class);
+
+            final FileSystemSubset fileSystemSubset = watchPointsRegistry.buildFileSystemSubset();
 
             // TODO: log a representation of the file system subset at debug
 
