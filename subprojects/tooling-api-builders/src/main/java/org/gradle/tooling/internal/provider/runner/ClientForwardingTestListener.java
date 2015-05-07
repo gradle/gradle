@@ -25,8 +25,8 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
 import org.gradle.tooling.internal.provider.events.*;
-import org.gradle.util.GradleVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +37,11 @@ import java.util.List;
 class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
-    private final boolean toolingApiConsumerBaseVersionHigherThan24;
+    private final ConsumerListenerConfiguration listenerConfiguration;
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer, String toolingApiConsumerVersion) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
         this.eventConsumer = eventConsumer;
-        this.toolingApiConsumerBaseVersionHigherThan24 = GradleVersion.version(toolingApiConsumerVersion).getBaseVersion().compareTo(GradleVersion.version("2.4")) > 0;
+        this.listenerConfiguration = listenerConfiguration;
     }
 
     @Override
@@ -91,9 +91,8 @@ class ClientForwardingTestListener implements TestListenerInternal {
         TestDescriptorInternal parent = descriptor.getParent();
         Object parentId = parent != null ? parent.getId() : null;
         if (parentId == null) {
-            // only set the TaskOperation as the parent if the Tooling API Consumer is version 2.5 or higher, since
-            // the TAPI Consumer in 2.4 throws an exception when it receives a parent id that is not a test operation id
-            if (toolingApiConsumerBaseVersionHigherThan24) {
+            // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+            if (listenerConfiguration.isSendTaskProgressEvents()) {
                 if (descriptor instanceof DecoratingTestDescriptor) {
                     descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
                 }

@@ -49,7 +49,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
         ConsumerListenerConfiguration listenerConfiguration = buildModelAction.getConsumerListenerConfiguration();
         if (listenerConfiguration.isSendTestProgressEvents()) {
-            gradle.addListener(new ClientForwardingTestListener(eventConsumer, buildModelAction.getConsumerVersion()));
+            gradle.addListener(new ClientForwardingTestListener(eventConsumer, listenerConfiguration));
         }
         if (listenerConfiguration.isSendTaskProgressEvents()) {
             gradle.addListener(new ClientForwardingTaskListener(eventConsumer));

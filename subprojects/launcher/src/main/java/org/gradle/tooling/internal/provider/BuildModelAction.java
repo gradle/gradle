@@ -25,14 +25,12 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final String modelName;
     private final boolean runTasks;
     private final ConsumerListenerConfiguration consumerListenerConfiguration;
-    private final String consumerVersion;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration, String consumerVersion) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
         this.consumerListenerConfiguration = consumerListenerConfiguration;
-        this.consumerVersion = consumerVersion;
     }
 
     @Override
@@ -50,9 +48,5 @@ public class BuildModelAction implements BuildAction, Serializable {
 
     public ConsumerListenerConfiguration getConsumerListenerConfiguration() {
         return consumerListenerConfiguration;
-    }
-
-    public String getConsumerVersion() {
-        return consumerVersion;
     }
 }

@@ -83,7 +83,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "all progress events are in a hierarchy with a single root node"() {
+    def "when listening to all progress events they are all in a hierarchy with a single root node"() {
         given:
         goodCode()
 
