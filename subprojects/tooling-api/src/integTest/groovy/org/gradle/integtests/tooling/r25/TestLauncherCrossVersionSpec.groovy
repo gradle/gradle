@@ -260,6 +260,130 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
+    def "can execute tests from a single package"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        file("src/test/java/failing/MyTest2.java") << """
+            package failing;
+            public class MyTest2 {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test package to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addJvmTestPackages('examples')
+                    .addTestProgressListener {
+                    result.add(it)
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
+        assert result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute tests from a single package using package excludes"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        file("src/test/java/failing/MyTest2.java") << """
+            package failing;
+            public class MyTest2 {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test package to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .excludeJvmTestPackages('failing')
+                    .addTestProgressListener {
+                    result.add(it)
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
+        assert result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute tests from a multiple packages"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        file("src/test/java/failing/MyTest2.java") << """
+            package failing;
+            public class MyTest2 {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test package to execute"
+        def result = [:].withDefault {0}
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addJvmTestPackages('examples','failing')
+                    .addTestProgressListener {
+                    if (it instanceof TestFinishEvent) {
+                        result[it.result instanceof TestSuccessResult?'success':'failure']++
+                    }
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
+        GradleConnectionException ex = thrown()
+        assert result.success > 0
+        assert result.failure > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
     def "can exclude a single test method using a pattern"() {
         given:
         forkingTestBuildFile()

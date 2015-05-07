@@ -65,6 +65,15 @@ public interface TestsLauncher extends ConfigurableLauncher {
     TestsLauncher addJvmTestMethods(String testClass, String... methods);
 
     /**
+     * Adds tests from a package to be included.
+     *
+     * @param packages the packages where test classes are to be found
+     *
+     * @return this instance
+     */
+    TestsLauncher addJvmTestPackages(String... packages);
+
+    /**
      * Adds a selection of tests to be excluded based on the provided patterns.
      *
      * @param patterns patterns of tests to be excluded
@@ -92,6 +101,15 @@ public interface TestsLauncher extends ConfigurableLauncher {
      * @return this instance
      */
     TestsLauncher excludeJvmTestMethods(String testClass, String... methods);
+
+   /**
+     * Excludes specific packages from the tests to be executed.
+     *
+     * @param packages the packages of test classes which are to be excluded from execution
+    *
+     * @return this instance
+     */
+    TestsLauncher excludeJvmTestPackages(String... packages);
 
     /**
      * Indicates that tests have to be executed even if the underlying test task is up-to-date. Defaults to false.

@@ -88,6 +88,15 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     }
 
     @Override
+    public TestsLauncher addJvmTestPackages(String... packages) {
+        for (String aPackage : packages) {
+            testIncludePatterns.add(aPackage+".*");
+        }
+        updatePatternList();
+        return this;
+    }
+
+    @Override
     public TestsLauncher excludeTestsByPattern(String... patterns) {
         Collections.addAll(testExcludePatterns, patterns);
         updatePatternList();
@@ -97,7 +106,7 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     @Override
     public TestsLauncher excludeJvmTestClasses(String... testClasses) {
         for (String testClass : testClasses) {
-            testExcludePatterns.add(testClass + ".*");
+            testExcludePatterns.add(testClass + "*");
         }
         updatePatternList();
         return this;
@@ -107,6 +116,15 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     public TestsLauncher excludeJvmTestMethods(String testClass, String... methods) {
         for (String method : methods) {
             testExcludePatterns.add(testClass + "." + method);
+        }
+        updatePatternList();
+        return this;
+    }
+
+    @Override
+    public TestsLauncher excludeJvmTestPackages(String... packages) {
+        for (String aPackage : packages) {
+            testExcludePatterns.add(aPackage+".*");
         }
         updatePatternList();
         return this;
