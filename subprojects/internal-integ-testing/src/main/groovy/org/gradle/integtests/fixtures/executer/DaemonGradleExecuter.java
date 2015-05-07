@@ -55,6 +55,12 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     @Override
     protected List<String> getGradleOpts() {
         List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
+
+        gradleOpts.removeAll(DEBUG_ARGS);
+        if (isDebug()) {
+            gradleOpts.add("-Dorg.gradle.daemon.debug=true");
+        }
+
         if (isDaemonStartingMessageDisabled()) {
             gradleOpts.add("-D" + DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY + "=true");
         }

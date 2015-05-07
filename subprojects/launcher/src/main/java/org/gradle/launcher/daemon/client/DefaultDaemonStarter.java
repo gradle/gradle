@@ -83,6 +83,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.addAll(daemonOpts);
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
+
+        if (Boolean.getBoolean("org.gradle.daemon.debug")) {
+            daemonArgs.add("-Xdebug");
+            daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+        }
+
         daemonArgs.add(GradleDaemon.class.getName());
         // Version isn't used, except by a human looking at the output of jps.
         daemonArgs.add(GradleVersion.current().getVersion());
