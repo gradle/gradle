@@ -94,6 +94,8 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         target.setDaemonParameters(daemonParameters);
 
         continuousModeCommandLineConverter.convert(args, target.getContinuousModeParameters());
+        
+        target.getStartParameter().setContinuousModeEnabled(target.getContinuousModeParameters().isEnabled());
 
         return target;
     }

@@ -75,6 +75,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean parallelProjectExecution;
     private boolean configureOnDemand;
     private int maxWorkerCount;
+    private boolean continuousModeEnabled;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -690,5 +691,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Incubating
     public void setConfigureOnDemand(boolean configureOnDemand) {
         this.configureOnDemand = configureOnDemand;
+    }
+
+    public boolean isContinuousModeEnabled() {
+        return continuousModeEnabled;
+    }
+
+    public void setContinuousModeEnabled(boolean continuousModeEnabled) {
+        this.continuousModeEnabled = continuousModeEnabled;
     }
 }
