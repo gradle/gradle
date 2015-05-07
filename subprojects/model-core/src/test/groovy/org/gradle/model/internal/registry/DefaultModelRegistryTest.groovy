@@ -533,10 +533,10 @@ class DefaultModelRegistryTest extends Specification {
 
     def "can add action for #targetRole mutation when in #fromRole mutation"() {
         given:
-        registry.createInstance("thing", new MutableValue(value: "initial")).configure(fromRole) {
+        registry.createInstance("thing", new Bean(value: "initial")).configure(fromRole) {
             it.path("thing").node { MutableModelNode node ->
                 registry.configure(targetRole) {
-                    it.path("thing").type(MutableValue).action {
+                    it.path("thing").type(Bean).action {
                         it.value = "mutated"
                     }
                 }
@@ -544,7 +544,7 @@ class DefaultModelRegistryTest extends Specification {
         }
 
         when:
-        def thing = registry.realize(ModelPath.path("thing"), ModelType.of(MutableValue))
+        def thing = registry.realize(ModelPath.path("thing"), ModelType.of(Bean))
 
         then:
         thing.value == "mutated"
@@ -566,6 +566,32 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Finalize   | ModelActionRole.Finalize
         ModelActionRole.Finalize   | ModelActionRole.Validate
         ModelActionRole.Validate   | ModelActionRole.Validate
+    }
+
+    def "closes inputs for mutation discovered after running mutation with role #targetRole"() {
+        given:
+        registry.createInstance("thing", new Bean(value: "initial"))
+            .configure(targetRole) {
+                it.path("thing").node { MutableModelNode node ->
+                    registry.configure(targetRole) {
+                        it.path("thing").type(Bean).action("other", ModelType.of(Bean)) { subject, dep ->
+                            subject.value = dep.value
+                    }
+                }
+            }
+        }
+        // Include a dependency
+        registry.createInstance("other", new Bean())
+            .mutate { it.path("other").type(Bean).action { it.value = "input value"} }
+
+        when:
+        def thing = registry.realize(ModelPath.path("thing"), ModelType.of(Bean))
+
+        then:
+        thing.value == "input value"
+
+        where:
+        targetRole << ModelActionRole.values()
     }
 
     def "can add action for #targetRole mutation when in #fromState state"() {
@@ -934,8 +960,5 @@ foo
         String value
     }
 
-    class MutableValue {
-        String value
-    }
 
 }
