@@ -730,11 +730,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "top-level test event has test task as parent"() {
+    def "top-level test operation has test task as parent iff task listener is attached"() {
         given:
         goodCode()
 
-        when: 'listening to test progress events'
+        when: 'listening to test progress events and task listener is attached'
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
@@ -746,8 +746,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }).addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                        result << event
                     }
                 }).run()
         }
@@ -757,6 +756,24 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         [result.first(), result.last()].each { def event ->
             assert event.descriptor.parent instanceof TaskOperationDescriptor
             assert event.descriptor.parent.name == 'test'
+        }
+
+        when: 'listening to test progress events and no task listener is attached'
+        result = new ArrayList<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result << event
+                    }
+                }).run()
+        }
+
+        then: 'the parent of the root test progress event is null'
+        !result.isEmpty()
+        [result.first(), result.last()].each { def event ->
+            assert event.descriptor.parent == null
         }
     }
 
