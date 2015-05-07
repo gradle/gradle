@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.events;
+package org.gradle.tooling.events.build;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.StartEvent;
 
-import java.util.List;
-
-public class DefaultBuildFailureResult extends AbstractBuildResult implements InternalBuildFailureResult {
-    private final List<DefaultFailure> failures;
-
-    public DefaultBuildFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failure");
-        this.failures = failures;
-    }
-
-    @Override
-    public List<DefaultFailure> getFailures() {
-        return failures;
-    }
+/**
+ * An event that informs about a build operation having started its execution.
+ *
+ * @since 2.5
+ */
+@Incubating
+public interface BuildOperationStartEvent extends BuildProgressEvent, StartEvent {
 }

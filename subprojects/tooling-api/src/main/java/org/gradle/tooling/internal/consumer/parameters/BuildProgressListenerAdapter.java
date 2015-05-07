@@ -145,10 +145,10 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
     }
 
     private BuildProgressEvent toBuildProgressEvent(InternalBuildProgressEvent event) {
-        if (event instanceof InternalBuildStartedProgressEvent) {
-            return buildStartedEvent((InternalBuildStartedProgressEvent) event);
-        } else if (event instanceof InternalBuildFinishedProgressEvent) {
-            return buildFinishedEvent((InternalBuildFinishedProgressEvent) event);
+        if (event instanceof InternalBuildOperationStartedProgressEvent) {
+            return buildStartedEvent((InternalBuildOperationStartedProgressEvent) event);
+        } else if (event instanceof InternalBuildOperationFinishedProgressEvent) {
+            return buildFinishedEvent((InternalBuildOperationFinishedProgressEvent) event);
         } else {
             return null;
         }
@@ -164,9 +164,9 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
     }
 
-    private BuildProgressEvent buildStartedEvent(InternalBuildStartedProgressEvent event) {
+    private BuildProgressEvent buildStartedEvent(InternalBuildOperationStartedProgressEvent event) {
         BuildOperationDescriptor descriptor = addBuildDescriptor(event.getDescriptor());
-        return new DefaultBuildStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
+        return new DefaultBuildOperationStartEvent(event.getEventTime(), event.getDisplayName(), descriptor);
     }
 
     private TestFinishEvent testFinishedEvent(InternalTestFinishedProgressEvent event) {
@@ -179,9 +179,9 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         return new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult(event.getResult()));
     }
 
-    private BuildFinishEvent buildFinishedEvent(InternalBuildFinishedProgressEvent event) {
+    private BuildOperationFinishEvent buildFinishedEvent(InternalBuildOperationFinishedProgressEvent event) {
         BuildOperationDescriptor descriptor = removeBuildDescriptor(event.getDescriptor());
-        return new DefaultBuildFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
+        return new DefaultBuildOperationFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toBuildResult(event.getResult()));
     }
 
     private synchronized TestOperationDescriptor addTestDescriptor(InternalTestDescriptor descriptor) {
@@ -313,7 +313,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
         }
     }
 
-    private static BuildOperationResult toBuildResult(InternalBuildResult result) {
+    private static BuildOperationResult toBuildResult(InternalBuildOperationResult result) {
         if (result instanceof InternalBuildSuccessResult) {
             return new DefaultBuildSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalBuildFailureResult) {

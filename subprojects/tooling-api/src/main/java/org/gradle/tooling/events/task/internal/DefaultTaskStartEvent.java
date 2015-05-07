@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.events.task.internal;
 
-import org.gradle.tooling.events.internal.BaseStartEvent;
+import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskStartEvent;
 
 /**
  * Implementation of the {@code TaskStartEvent} interface.
  */
-public final class DefaultTaskStartEvent extends BaseStartEvent implements TaskStartEvent {
+public final class DefaultTaskStartEvent extends DefaultStartEvent implements TaskStartEvent {
 
     public DefaultTaskStartEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);

@@ -142,19 +142,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             // build start
             assert event.displayName == 'build started'
             buildDescriptor = event.descriptor
         }
 
         // init scripts evaluation
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'init scripts evaluation started'
             assert event.descriptor.name == 'init scripts evaluation'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'init scripts evaluation finished with success'
             assert event.descriptor.name == 'init scripts evaluation'
             assert event.descriptor.parent == buildDescriptor
@@ -163,12 +163,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // settings evaluated
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'settings evaluation started'
             assert event.descriptor.name == 'settings evaluation'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'settings evaluation'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
@@ -176,11 +176,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // projects loaded
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.descriptor.name == 'projects loading'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'projects loading'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
@@ -188,7 +188,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // build configuration
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'build configuration started'
             assert event.descriptor.name == 'build configuration'
             assert event.descriptor.parent == buildDescriptor
@@ -196,18 +196,18 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // projects evaluated
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.descriptor.name == 'projects evaluation'
             assert event.descriptor.parent == configDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'projects evaluation'
             assert event.descriptor.parent == configDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'build configuration finished with success'
             assert event.descriptor.name == 'build configuration'
             assert event.descriptor.parent == buildDescriptor
@@ -216,12 +216,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // task graph
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'task graph population started'
             assert event.descriptor.name == 'task graph population'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'task graph population finished with success'
             assert event.descriptor.name == 'task graph population'
             assert event.descriptor.parent == buildDescriptor
@@ -230,12 +230,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // build execution
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'build execution started'
             assert event.descriptor.name == 'build execution'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'build execution finished with success'
             assert event.descriptor.name == 'build execution'
             assert event.descriptor.parent == buildDescriptor
@@ -243,7 +243,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert result instanceof BuildSuccessResult
         }
         // build finish
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'build finished with success'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
@@ -285,19 +285,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException ex = thrown()
         then:
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             // build start
             assert event.displayName == 'build started'
             buildDescriptor = event.descriptor
         }
 
         // init scripts evaluation
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'init scripts evaluation started'
             assert event.descriptor.name == 'init scripts evaluation'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'init scripts evaluation finished with success'
             assert event.descriptor.name == 'init scripts evaluation'
             assert event.descriptor.parent == buildDescriptor
@@ -306,12 +306,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // settings evaluated
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'settings evaluation started'
             assert event.descriptor.name == 'settings evaluation'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'settings evaluation'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
@@ -319,11 +319,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // projects loaded
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.descriptor.name == 'projects loading'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'projects loading'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
@@ -331,7 +331,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // build configuration
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'build configuration started'
             assert event.descriptor.name == 'build configuration'
             assert event.descriptor.parent == buildDescriptor
@@ -339,18 +339,18 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // projects evaluated
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.descriptor.name == 'projects evaluation'
             assert event.descriptor.parent == configDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.descriptor.name == 'projects evaluation'
             assert event.descriptor.parent == configDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'build configuration finished with success'
             assert event.descriptor.name == 'build configuration'
             assert event.descriptor.parent == buildDescriptor
@@ -359,12 +359,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // task graph
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'task graph population started'
             assert event.descriptor.name == 'task graph population'
             assert event.descriptor.parent == buildDescriptor
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'task graph population finished with success'
             assert event.descriptor.name == 'task graph population'
             assert event.descriptor.parent == buildDescriptor
@@ -373,14 +373,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         // build execution
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'build execution started'
             assert event.descriptor.name == 'build execution'
             assert event.descriptor.parent == buildDescriptor
         }
 
         // build finish
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.displayName == 'build finished with failure'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
@@ -410,9 +410,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        2 * listener.statusChanged(_ as BuildStartEvent)
-        6 * listener.statusChanged(_ as BuildStartEvent) // settings loaded, projects loaded, projects evaluated
-        2 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        2 * listener.statusChanged(_ as BuildOperationStartEvent)
+        6 * listener.statusChanged(_ as BuildOperationStartEvent) // settings loaded, projects loaded, projects evaluated
+        2 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             def result = event.result
             assert result instanceof BuildSuccessResult
         }

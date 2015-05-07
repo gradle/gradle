@@ -17,18 +17,24 @@
 package org.gradle.tooling.events.build.internal;
 
 import org.gradle.tooling.events.build.BuildOperationDescriptor;
-import org.gradle.tooling.events.build.BuildStartEvent;
-import org.gradle.tooling.events.internal.BaseStartEvent;
+import org.gradle.tooling.events.build.BuildOperationFinishEvent;
+import org.gradle.tooling.events.build.BuildOperationResult;
+import org.gradle.tooling.events.internal.DefaultFinishEvent;
 
-public class DefaultBuildStartEvent extends BaseStartEvent implements BuildStartEvent {
+public class DefaultBuildOperationFinishEvent extends DefaultFinishEvent implements BuildOperationFinishEvent {
 
-    public DefaultBuildStartEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor) {
-        super(eventTime, displayName, descriptor);
+    public DefaultBuildOperationFinishEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor, BuildOperationResult result) {
+        super(eventTime, displayName, descriptor, result);
     }
 
     @Override
     public BuildOperationDescriptor getDescriptor() {
         return (BuildOperationDescriptor) super.getDescriptor();
+    }
+
+    @Override
+    public BuildOperationResult getResult() {
+        return (BuildOperationResult) super.getResult();
     }
 
 }

@@ -16,16 +16,25 @@
 
 package org.gradle.tooling.events.internal;
 
+import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.OperationResult;
 
 /**
- * Base implementation of the {@code StartEvent} interface.
+ * Base implementation of the {@code FinishEvent} interface.
  */
-public abstract class BaseStartEvent extends BaseProgressEvent implements StartEvent {
+public abstract class DefaultFinishEvent extends BaseProgressEvent implements FinishEvent {
 
-    protected BaseStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
+    private final OperationResult result;
+
+    public DefaultFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
         super(eventTime, displayName, descriptor);
+        this.result = result;
+    }
+
+    @Override
+    public OperationResult getResult() {
+        return result;
     }
 
 }

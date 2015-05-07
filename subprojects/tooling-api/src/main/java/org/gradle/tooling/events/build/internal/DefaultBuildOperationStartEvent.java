@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.events;
+package org.gradle.tooling.events.build.internal;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildStartedProgressEvent;
+import org.gradle.tooling.events.build.BuildOperationDescriptor;
+import org.gradle.tooling.events.build.BuildOperationStartEvent;
+import org.gradle.tooling.events.internal.DefaultStartEvent;
 
-public class DefaultBuildStartedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildStartedProgressEvent {
-    public DefaultBuildStartedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
-        super(eventTime, descriptor);
+public class DefaultBuildOperationStartEvent extends DefaultStartEvent implements BuildOperationStartEvent {
+
+    public DefaultBuildOperationStartEvent(long eventTime, String displayName, BuildOperationDescriptor descriptor) {
+        super(eventTime, displayName, descriptor);
     }
 
     @Override
-    public String getDisplayName() {
-        return String.format("%s started", getDescriptor().getName());
+    public BuildOperationDescriptor getDescriptor() {
+        return (BuildOperationDescriptor) super.getDescriptor();
     }
+
 }

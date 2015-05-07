@@ -71,7 +71,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> buildDescriptor.getId()
 
-        def buildStartEvent = Mock(InternalBuildStartedProgressEvent)
+        def buildStartEvent = Mock(InternalBuildOperationStartedProgressEvent)
         _ * buildStartEvent.getEventTime() >> 999
         _ * buildStartEvent.getDisplayName() >> 'build started'
         _ * buildStartEvent.getDescriptor() >> buildDescriptor
@@ -124,7 +124,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         listenerClass         | eventClass                        | descriptorClass
         TaskProgressListener  | InternalTaskStartedProgressEvent  | InternalTaskDescriptor
         TestProgressListener  | InternalTestStartedProgressEvent  | InternalTestDescriptor
-        BuildProgressListener | InternalBuildStartedProgressEvent | InternalBuildDescriptor
+        BuildProgressListener | InternalBuildOperationStartedProgressEvent | InternalBuildDescriptor
     }
 
     BuildProgressListenerAdapter createAdapter() {

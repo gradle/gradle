@@ -109,7 +109,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         _ * childBuildDescriptor.getName() >> 'some child'
         _ * childBuildDescriptor.getParentId() >> 1
 
-        def childEvent = Mock(InternalBuildStartedProgressEvent)
+        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
         _ * childEvent.getDisplayName() >> 'child event'
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childBuildDescriptor
@@ -191,7 +191,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build started'
             assert event.descriptor.name == 'some build'
@@ -215,7 +215,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build succeeded'
             assert event.descriptor.name == 'some build'
@@ -242,19 +242,19 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(settingsEvalEnd)
 
         then:
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build started'
             assert event.descriptor.name == 'some build'
             assert event.descriptor.parent == null
         }
-        1 * listener.statusChanged(_ as BuildStartEvent) >> { BuildStartEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.eventTime == 1000
             assert event.displayName == 'settings evaluated'
             assert event.descriptor.name == 'settings evaluated'
             assert event.descriptor.parent.name == 'some build'
         }
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.eventTime == 1001
             assert event.displayName == 'settings evaluated'
             assert event.descriptor.name == 'settings evaluated'
@@ -281,7 +281,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildFinishEvent) >> { BuildFinishEvent event ->
+        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "build failed"
             assert event.descriptor.name == 'some build'
@@ -312,8 +312,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         descriptor
     }
 
-    private InternalBuildStartedProgressEvent buildStartEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor) {
-        InternalBuildStartedProgressEvent event = Mock(InternalBuildStartedProgressEvent)
+    private InternalBuildOperationStartedProgressEvent buildStartEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor) {
+        InternalBuildOperationStartedProgressEvent event = Mock(InternalBuildOperationStartedProgressEvent)
         event.getEventTime() >> eventTime
         event.getDisplayName() >> displayName
         event.getDescriptor() >> descriptor
@@ -321,8 +321,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         event
     }
 
-    private InternalBuildFinishedProgressEvent buildFinishEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor, InternalBuildResult result = null) {
-        InternalBuildFinishedProgressEvent event = Mock(InternalBuildFinishedProgressEvent)
+    private InternalBuildOperationFinishedProgressEvent buildFinishEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor, InternalBuildOperationResult result = null) {
+        InternalBuildOperationFinishedProgressEvent event = Mock(InternalBuildOperationFinishedProgressEvent)
         event.getEventTime() >> eventTime
         event.getDisplayName() >> displayName
         event.getDescriptor() >> descriptor

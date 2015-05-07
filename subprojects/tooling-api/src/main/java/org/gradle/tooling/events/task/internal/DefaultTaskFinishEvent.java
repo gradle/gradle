@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.task.internal;
 
-import org.gradle.tooling.events.internal.BaseFinishEvent;
+import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -24,7 +24,7 @@ import org.gradle.tooling.events.task.TaskOperationResult;
 /**
  * Implementation of the {@code TaskFinishEvent} interface.
  */
-public final class DefaultTaskFinishEvent extends BaseFinishEvent implements TaskFinishEvent {
+public final class DefaultTaskFinishEvent extends DefaultFinishEvent implements TaskFinishEvent {
 
     public DefaultTaskFinishEvent(long eventTime, String displayName, TaskOperationDescriptor descriptor, TaskOperationResult result) {
         super(eventTime, displayName, descriptor, result);

@@ -31,8 +31,8 @@ public interface BuildProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>{@link BuildStartEvent}</li>
-     *     <li>{@link BuildFinishEvent}</li>
+     *     <li>{@link BuildOperationStartEvent}</li>
+     *     <li>{@link BuildOperationFinishEvent}</li>
      * </ul>
      *
      * You can find out more about the build operation for which progress is reported by querying the build descriptor using {@link BuildProgressEvent#getDescriptor()}.

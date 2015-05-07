@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.StartEvent;
 
 /**
- * An event that informs about a build having started its execution.
- *
- * @since 2.5
+ * Base implementation of the {@code StartEvent} interface.
  */
-@Incubating
-public interface BuildStartEvent extends BuildProgressEvent, StartEvent {
+public class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
+
+    protected DefaultStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
+        super(eventTime, displayName, descriptor);
+    }
+
 }

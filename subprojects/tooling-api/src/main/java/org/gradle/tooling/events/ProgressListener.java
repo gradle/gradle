@@ -36,8 +36,8 @@ public interface ProgressListener {
      *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.build.BuildStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.build.BuildFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildOperationStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildOperationFinishEvent}</li>
      * </ul>
      *
      * You can find out more about the operation for which progress is reported

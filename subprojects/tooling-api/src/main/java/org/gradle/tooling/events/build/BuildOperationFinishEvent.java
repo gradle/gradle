@@ -20,12 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FinishEvent;
 
 /**
- * An event that informs about a build having finished its execution. You can query the result of the build using {@link #getResult()}.
+ * An event that informs about a build operation having finished its execution. You can query the result of the build using {@link #getResult()}.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildFinishEvent extends BuildProgressEvent, FinishEvent {
+public interface BuildOperationFinishEvent extends BuildProgressEvent, FinishEvent {
 
     /**
      * Returns the result of the finished task operation. Currently, the result will be one of the following sub-types:

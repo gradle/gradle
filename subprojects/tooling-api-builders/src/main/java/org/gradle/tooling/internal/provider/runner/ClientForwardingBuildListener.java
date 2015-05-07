@@ -37,18 +37,18 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         this.eventConsumer = eventConsumer;
     }
 
-    private AbstractBuildResult adaptResult(BuildResult result, long startTime, long endTime) {
+    private AbstractBuildOperationResult adaptResult(BuildResult result, long startTime, long endTime) {
         Throwable failure = result.getFailure();
         if (failure != null) {
-            return new DefaultBuildFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            return new DefaultBuildOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
-        return new DefaultBuildSuccessResult(startTime, endTime);
+        return new DefaultBuildOperationSuccessResult(startTime, endTime);
     }
 
     @Override
     public void started(InternalBuildOperation source, long startTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " started");
-        DefaultBuildStartedProgressEvent startEvent = new DefaultBuildStartedProgressEvent(
+        DefaultBuildOperationStartedProgressEvent startEvent = new DefaultBuildOperationStartedProgressEvent(
             startTime,
             descriptor
         );
@@ -58,7 +58,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     @Override
     public void finished(InternalBuildOperation source, long startTime, long endTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " finished");
-        DefaultBuildFinishedProgressEvent finishEvent = new DefaultBuildFinishedProgressEvent(
+        DefaultBuildOperationFinishedProgressEvent finishEvent = new DefaultBuildOperationFinishedProgressEvent(
             endTime,
             descriptor,
             adaptResult(source.getPayload(), startTime, endTime)
@@ -70,11 +70,11 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         return new DefaultBuildDescriptor(source.getId(), eventType, displayName, source.getParentId());
     }
 
-    private AbstractBuildResult adaptResult(Object result, long startTime, long endTime) {
+    private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {
         if (result instanceof BuildResult) {
             return adaptResult((BuildResult) result, startTime, endTime);
         }
-        return new DefaultBuildSuccessResult(startTime, endTime);
+        return new DefaultBuildOperationSuccessResult(startTime, endTime);
     }
 
 }
