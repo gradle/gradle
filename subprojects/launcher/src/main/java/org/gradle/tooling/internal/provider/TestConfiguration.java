@@ -16,7 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 
 public class TestConfiguration implements Serializable {
@@ -26,20 +30,41 @@ public class TestConfiguration implements Serializable {
     private final String[] excludePatterns;
     private final boolean alwaysRunTests;
 
-    public TestConfiguration(List<String> testIncludePatterns, List<String> testExcludePatterns, boolean alwaysRunTests) {
+    public TestConfiguration(List<String> testIncludePatterns, List<String> testExcludePatterns, List<? extends InternalTestDescriptor> descriptors, boolean alwaysRunTests) {
         this.alwaysRunTests = alwaysRunTests;
-        this.includePatterns = testIncludePatterns==null? EMPTY_ARRAY : testIncludePatterns.toArray(new String[testIncludePatterns.size()]);
-        this.excludePatterns = testExcludePatterns==null? EMPTY_ARRAY : testExcludePatterns.toArray(new String[testExcludePatterns.size()]);
+        List<String> includes = computeIncludePattern(testIncludePatterns, descriptors);
+        this.includePatterns = includes.toArray(new String[includes.size()]);
+        this.excludePatterns = testExcludePatterns == null ? EMPTY_ARRAY : testExcludePatterns.toArray(new String[testExcludePatterns.size()]);
     }
 
     public String[] getIncludePatterns() {
         return includePatterns;
     }
+
     public String[] getExcludePatterns() {
         return excludePatterns;
     }
 
     public boolean isAlwaysRunTests() {
         return alwaysRunTests;
+    }
+
+    private static List<String> computeIncludePattern(List<String> includes, List<? extends InternalTestDescriptor> descriptors) {
+        List<String> result = new LinkedList<String>();
+        if (includes != null) {
+            result.addAll(includes);
+        }
+        if (descriptors != null) {
+            for (InternalTestDescriptor descriptor : descriptors) {
+                if (descriptor instanceof InternalJvmTestDescriptor) {
+                    InternalJvmTestDescriptor jvmTest = (InternalJvmTestDescriptor) descriptor;
+                    String className = jvmTest.getClassName();
+                    String methodName = jvmTest.getMethodName();
+                    String pattern = methodName == null ? className : className + "." + methodName;
+                    result.add(pattern);
+                }
+            }
+        }
+        return result;
     }
 }

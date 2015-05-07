@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
@@ -58,6 +59,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<InternalLaunchable> launchables;
         private List<String> testIncludePatterns;
         private List<String> testExcludePatterns;
+        private List<? extends InternalTestDescriptor> testDescriptors;
         private boolean alwaysRunTests;
 
         private Builder() {
@@ -168,6 +170,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             this.alwaysRunTests = alwaysRunTests;
         }
 
+        public void setTestDescriptors(List<? extends InternalTestDescriptor> descriptors) {
+            this.testDescriptors = descriptors;
+        }
+
         public ConsumerOperationParameters build() {
             // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
@@ -175,7 +181,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
                 new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, testIncludePatterns, testExcludePatterns, alwaysRunTests,
+            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, testIncludePatterns, testExcludePatterns, testDescriptors, alwaysRunTests,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
@@ -204,6 +210,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
 =======
     private final List<String> testExcludePatterns;
+    private final List<? extends InternalTestDescriptor> testDescriptors;
     private final boolean alwaysRunTests;
 
     private ConsumerOperationParameters(ConnectionParameters parameters,
@@ -218,6 +225,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                                         List<InternalLaunchable> launchables,
                                         List<String> testIncludePatterns,
                                         List<String> testExcludePatterns,
+                                        List<? extends InternalTestDescriptor> testDescriptors,
                                         boolean alwaysRunTests,
                                         ProgressListenerAdapter progressListener,
                                         BuildProgressListenerAdapter buildProgressListener,
@@ -235,6 +243,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.launchables = launchables;
         this.testIncludePatterns = testIncludePatterns;
         this.testExcludePatterns = testExcludePatterns;
+        this.testDescriptors = testDescriptors;
         this.alwaysRunTests = alwaysRunTests;
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
@@ -344,6 +353,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<String> getTestExcludePatterns() {
         return testExcludePatterns;
+    }
+
+    public List<? extends InternalTestDescriptor> getTestDescriptors() {
+        return testDescriptors;
     }
 
     public boolean isAlwaysRunTests() {

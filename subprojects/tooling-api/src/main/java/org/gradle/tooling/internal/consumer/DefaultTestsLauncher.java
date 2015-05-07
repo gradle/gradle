@@ -17,18 +17,21 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.TestsLauncher;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @Incubating
 class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> implements TestsLauncher {
 
     private final Set<String> testIncludePatterns = new LinkedHashSet<String>();
     private final Set<String> testExcludePatterns = new LinkedHashSet<String>();
+    private final List<TestOperationDescriptor> testDescriptors = new LinkedList<TestOperationDescriptor>();
 
     public DefaultTestsLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters, connection);
@@ -38,10 +41,24 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     private void updatePatternList() {
         operationParamsBuilder.setTestIncludePatterns(new ArrayList<String>(testIncludePatterns));
         operationParamsBuilder.setTestExcludePatterns(new ArrayList<String>(testExcludePatterns));
+        operationParamsBuilder.setTestDescriptors(adaptTestDescriptors(testDescriptors));
     }
 
     @Override
     protected DefaultTestsLauncher getThis() {
+        return this;
+    }
+
+    /**
+     * Adds a selection of tests to be executed using their descriptor
+     *
+     * @param testDescriptors the test descriptors
+     * @return this instance
+     */
+    @Override
+    public TestsLauncher addTests(TestOperationDescriptor... testDescriptors) {
+        Collections.addAll(this.testDescriptors, testDescriptors);
+        updatePatternList();
         return this;
     }
 
@@ -99,5 +116,87 @@ class DefaultTestsLauncher extends AbstractBuildLauncher<DefaultTestsLauncher> i
     public TestsLauncher setAlwaysRunTests(boolean alwaysRun) {
         operationParamsBuilder.setAlwaysRunTests(alwaysRun);
         return this;
+    }
+
+    private static List<? extends InternalTestDescriptor> adaptTestDescriptors(List<TestOperationDescriptor> descriptors) {
+        ArrayList<InternalTestDescriptor> converted = new ArrayList<InternalTestDescriptor>();
+        for (TestOperationDescriptor descriptor : descriptors) {
+            if (descriptor instanceof DefaultJvmTestOperationDescriptor) {
+                convertJvmDescriptor((DefaultJvmTestOperationDescriptor) descriptor, converted);
+            } else if (descriptor instanceof DefaultTestOperationDescriptor) {
+                convertDescriptor((DefaultTestOperationDescriptor) descriptor, converted);
+            }
+        }
+        return converted;
+    }
+
+    private static void convertJvmDescriptor(final DefaultJvmTestOperationDescriptor descriptor, ArrayList<InternalTestDescriptor> converted) {
+        InternalJvmTestDescriptor internal = new InternalJvmTestDescriptor() {
+            @Override
+            public String getTestKind() {
+                return descriptor.getJvmTestKind().getLabel();
+            }
+
+            @Override
+            public String getSuiteName() {
+                return descriptor.getSuiteName();
+            }
+
+            @Override
+            public String getClassName() {
+                return descriptor.getClassName();
+            }
+
+            @Override
+            public String getMethodName() {
+                return descriptor.getMethodName();
+            }
+
+            @Override
+            public Object getId() {
+                return null;
+            }
+
+            @Override
+            public String getName() {
+                return descriptor.getName();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return descriptor.getDisplayName();
+            }
+
+            @Override
+            public Object getParentId() {
+                return null;
+            }
+        };
+        converted.add(internal);
+    }
+
+    private static void convertDescriptor(final DefaultTestOperationDescriptor descriptor, ArrayList<InternalTestDescriptor> converted) {
+        InternalTestDescriptor internal = new InternalTestDescriptor() {
+            @Override
+            public Object getId() {
+                return null;
+            }
+
+            @Override
+            public String getName() {
+                return descriptor.getName();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return descriptor.getDisplayName();
+            }
+
+            @Override
+            public Object getParentId() {
+                return null;
+            }
+        };
+        converted.add(internal);
     }
 }

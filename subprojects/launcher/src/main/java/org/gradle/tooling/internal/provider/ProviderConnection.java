@@ -44,6 +44,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -122,9 +123,10 @@ public class ProviderConnection {
         }
         List<String> testIncludePatterns = providerParameters.getTestIncludePatterns(null);
         List<String> testExcludePatterns = providerParameters.getTestExcludePatterns(null);
+        List<? extends InternalTestDescriptor> testDescriptors = providerParameters.getTestDescriptors(null);
         TestConfiguration testConfiguration = null;
-        if (testIncludePatterns!=null || testExcludePatterns!=null) {
-            testConfiguration = new TestConfiguration(testIncludePatterns, testExcludePatterns, providerParameters.isAlwaysRunTests(false));
+        if (testIncludePatterns!=null || testExcludePatterns!=null || testDescriptors!=null) {
+            testConfiguration = new TestConfiguration(testIncludePatterns, testExcludePatterns, testDescriptors, providerParameters.isAlwaysRunTests(false));
         }
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, testConfiguration);
         Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);

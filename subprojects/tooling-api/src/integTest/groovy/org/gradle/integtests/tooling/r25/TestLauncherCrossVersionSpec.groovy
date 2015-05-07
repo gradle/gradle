@@ -21,10 +21,10 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.test.TestFinishEvent
-import org.gradle.tooling.events.test.TestProgressListener
-import org.gradle.tooling.events.test.TestSuccessResult
+import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
@@ -99,13 +99,15 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 connection.newTestsLauncher()
                     .addJvmTestClasses('example.MyTest1')
                     .addTestProgressListener {
-                    result.add(it)
+                    if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
+                        result << it
+                    }
                 }
                 .run()
         }
 
         then: "the test is executed and doesn't fail"
-        assert result.size() > 0
+        assert result.size()  == 1
     }
 
     @ToolingApiVersion(">=2.5")
@@ -221,6 +223,162 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         then: "the test method is executed"
         assert result.size() > 0
     }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute a test class using a test descriptor"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+        file("src/test/java/example/MyTest2.java") << """
+                    package example;
+                    public class MyTest2 {
+                        @org.junit.Test public void foo() throws Exception {
+                             org.junit.Assert.assertEquals(1, 1);
+                        }
+                    }
+        """
+
+        def jvmTest = Mock(DefaultJvmTestOperationDescriptor)
+        jvmTest.className >> 'example.MyTest'
+
+        when: "we create a new test launcher with a test descriptor to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addTests(jvmTest)
+                    .addTestProgressListener {
+                    if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
+                        result << it
+                    }
+                }
+                .run()
+        }
+
+        then: "only the specified test class is executed"
+        assert result.size() == 1
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can execute a test method using a test descriptor"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+        file("src/test/java/example/MyTest2.java") << """
+                    package example;
+                    public class MyTest2 {
+                        @org.junit.Test public void foo() throws Exception {
+                             org.junit.Assert.assertEquals(1, 1);
+                        }
+                    }
+        """
+
+        def jvmTest = Mock(DefaultJvmTestOperationDescriptor)
+        jvmTest.className >> 'example.MyTest'
+        jvmTest.methodName >> 'foo'
+
+        when: "we create a new test launcher with a test descriptor to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addTests(jvmTest)
+                    .addTestProgressListener {
+                    if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
+                        result << it
+                    }
+                }
+                .run()
+        }
+
+        then: "only the specified test class is executed"
+        assert result.size() == 1
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can reexecute a failing test method using a test descriptor from a previous execution"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        TestOperationDescriptor failingTestDescriptor
+        TestOperationDescriptor failingTestDescriptor2
+
+        when: "we create a new test launcher with a test descriptor to execute"
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addJvmTestClasses('example.MyTest')
+                    .addTestProgressListener {
+                    if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
+                        if (!failingTestDescriptor) {
+                            // store the first failing test descriptor
+                            failingTestDescriptor = it.descriptor
+                        }
+                    }
+                }
+                .run()
+        }
+
+        then: "test fails"
+        GradleConnectionException ex = thrown()
+        failingTestDescriptor != null
+        failingTestDescriptor.name == 'foo'
+
+        when: "we execute a new run with the specific failing descriptor"
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .addTests(failingTestDescriptor)
+                    .setAlwaysRunTests(true)
+                    .addTestProgressListener {
+                    if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
+                        if (!failingTestDescriptor2) {
+                            // store the first failing test descriptor
+                            failingTestDescriptor2 = it.descriptor
+                        }
+                    }
+                }
+                .run()
+        }
+
+        then: "test is executed and still fails"
+        GradleConnectionException ex2 = thrown()
+        failingTestDescriptor2 != null
+        failingTestDescriptor2.name == 'foo'
+
+        and: "the new test descriptor is distinct from the first one"
+        !failingTestDescriptor.is(failingTestDescriptor2)
+    }
+
+
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")

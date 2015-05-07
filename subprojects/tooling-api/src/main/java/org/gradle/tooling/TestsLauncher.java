@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
  * A test launcher allows execution of tests from the tooling api, by defining include/exclude filters.
@@ -24,6 +25,16 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface TestsLauncher extends ConfigurableLauncher {
+
+    /**
+     * Adds a selection of tests to be executed using their descriptor
+     *
+     * @param testDescriptors the test descriptors
+     *
+     * @return this instance
+     */
+    TestsLauncher addTests(TestOperationDescriptor... testDescriptors);
+
     /**
      * Adds a selection of tests to be executed thanks to the provided patterns.
      *
