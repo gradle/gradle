@@ -96,6 +96,7 @@ class WatchServiceFileWatcherTest extends Specification {
         }
         0 * _._
         when:
+        sleep(500L)
         subdir.file('someotherfile').text = "Hello world"
         waitOn(listenerCalledLatch2)
         then:
