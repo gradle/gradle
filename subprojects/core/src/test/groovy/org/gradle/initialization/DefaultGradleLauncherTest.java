@@ -29,8 +29,8 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.internal.progress.InternalBuildListener;
-import org.gradle.internal.progress.InternalBuildOperation;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -350,11 +350,11 @@ public class DefaultGradleLauncherTest {
     }
 
     private void startEvent(Expectations exp, String eventType) {
-        exp.one(internalBuildListener).started(exp.with(Expectations.any(InternalBuildOperation.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
+        exp.one(internalBuildListener).started(exp.with(Expectations.any(BuildOperationInternal.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
     }
 
     private void finishEvent(Expectations exp, String eventType) {
-        exp.one(internalBuildListener).finished(exp.with(Expectations.any(InternalBuildOperation.class)), exp.with(Expectations.any(long.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
+        exp.one(internalBuildListener).finished(exp.with(Expectations.any(BuildOperationInternal.class)), exp.with(Expectations.any(long.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
     }
 
     private void expectDagBuilt() {

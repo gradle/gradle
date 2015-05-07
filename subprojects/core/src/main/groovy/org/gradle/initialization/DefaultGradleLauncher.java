@@ -26,8 +26,8 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.internal.progress.InternalBuildListener;
-import org.gradle.internal.progress.InternalBuildOperation;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -53,7 +53,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final Closeable buildServices;
     private final InternalBuildListener internalBuildListener;
 
-    private InternalBuildOperation parentEvent;
+    private BuildOperationInternal parentEvent;
 
     /**
      * Creates a new instance.
@@ -216,7 +216,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T internalBuildOperation(Object id, String eventType, Factory<T> factory) {
         Object eventId = id != null ? id : eventType;
-        InternalBuildOperation startEvent = new InternalBuildOperation(eventId, gradle, parentEvent);
+        BuildOperationInternal startEvent = new BuildOperationInternal(eventId, gradle, parentEvent);
         long sd = System.currentTimeMillis();
         internalBuildListener.started(startEvent, sd, eventType);
         parentEvent = startEvent;

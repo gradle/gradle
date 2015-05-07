@@ -17,17 +17,18 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
 
-public class InternalBuildOperation implements IdentifiableOperation {
+public final class BuildOperationInternal implements IdentifiableOperation {
     final Object id;
     final Object payload;
-    final InternalBuildOperation parent;
+    final BuildOperationInternal parent;
 
-    public InternalBuildOperation(Object id, Object payload, InternalBuildOperation parent) {
+    public BuildOperationInternal(Object id, Object payload, BuildOperationInternal parent) {
         this.id = id;
         this.payload = payload;
         this.parent = parent;
     }
 
+    @Override
     public Object getId() {
         return parent == null ? id : parent.getId() + ":" + id;
     }
@@ -37,7 +38,7 @@ public class InternalBuildOperation implements IdentifiableOperation {
     }
 
     @Nullable
-    public InternalBuildOperation getParent() {
+    public BuildOperationInternal getParent() {
         return parent;
     }
 

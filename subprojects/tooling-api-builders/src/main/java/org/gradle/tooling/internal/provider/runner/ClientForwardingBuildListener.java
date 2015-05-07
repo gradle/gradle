@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.InternalBuildListener;
-import org.gradle.internal.progress.InternalBuildOperation;
+import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -46,7 +46,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void started(InternalBuildOperation source, long startTime, String eventType) {
+    public void started(BuildOperationInternal source, long startTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " started");
         DefaultBuildOperationStartedProgressEvent startEvent = new DefaultBuildOperationStartedProgressEvent(
             startTime,
@@ -56,7 +56,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void finished(InternalBuildOperation source, long startTime, long endTime, String eventType) {
+    public void finished(BuildOperationInternal source, long startTime, long endTime, String eventType) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " finished");
         DefaultBuildOperationFinishedProgressEvent finishEvent = new DefaultBuildOperationFinishedProgressEvent(
             endTime,
@@ -66,7 +66,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         eventConsumer.dispatch(finishEvent);
     }
 
-    private DefaultBuildDescriptor createDescriptor(InternalBuildOperation source, String eventType, String displayName) {
+    private DefaultBuildDescriptor createDescriptor(BuildOperationInternal source, String eventType, String displayName) {
         return new DefaultBuildDescriptor(source.getId(), eventType, displayName, source.getParentId());
     }
 

@@ -25,7 +25,7 @@ public interface InternalBuildListener {
     String EXECUTE_BUILD_TYPE = "build execution";
     String POPULATE_TASKS_TYPE = "task graph population";
 
-    void started(InternalBuildOperation source, long startTime, String eventType);
+    void started(BuildOperationInternal source, long startTime, String eventType);
 
-    void finished(InternalBuildOperation source, long startTime, long endTime, String eventType);
+    void finished(BuildOperationInternal source, long startTime, long endTime, String eventType);
 }
