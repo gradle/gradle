@@ -226,6 +226,74 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
+    def "can exclude a single test method"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test method to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .excludeJvmTestMethods('example.MyTest', 'bar')
+                    .addTestProgressListener {
+                    result.add(it)
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
+        assert result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "can exclude a single test method using a pattern"() {
+        given:
+        forkingTestBuildFile()
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when: "we create a new test launcher with a test method to execute"
+        def result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newTestsLauncher()
+                    .excludeTestsByPattern('example.MyTest.*')
+                    .addTestProgressListener {
+                    result.add(it)
+                }
+                .run()
+        }
+
+        then: "the test method is executed"
+        assert result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
     def "can execute a test class using a test descriptor"() {
         given:
         forkingTestBuildFile()
