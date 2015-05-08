@@ -242,11 +242,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-            compileJava: ['started', 'succeeded'],
-            processResources    : ['started', 'up-to-date'],
-            classes    : ['started', 'succeeded'],
-            jar        : ['started', 'succeeded'],
-            assemble   : ['started', 'skipped']
+            compileJava     : ['started', 'succeeded'],
+            processResources: ['started', 'up-to-date'],
+            classes         : ['started', 'succeeded'],
+            jar             : ['started', 'succeeded'],
+            assemble        : ['started', 'skipped']
         ]
     }
 
