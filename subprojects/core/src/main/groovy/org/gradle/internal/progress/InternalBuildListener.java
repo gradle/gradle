@@ -17,14 +17,6 @@ package org.gradle.internal.progress;
 
 public interface InternalBuildListener {
 
-    String RUNNING_BUILD_OPERATION = "Running build";
-    String EVALUATING_INIT_SCRIPTS_OPERATION = "Evaluating init scripts";
-    String EVALUATING_SETTINGS_OPERATION = "Evaluating settings";
-    String LOADING_BUILD_OPERATION = "Loading build";
-    String CONFIGURING_BUILD_OPERATION = "Configuring build";
-    String POPULATING_TASK_GRAPH_OPERATION = "Populating task graph";
-    String EXECUTING_TASKS = "Executing tasks";
-
     void started(BuildOperationInternal buildOperation);
 
     void finished(BuildOperationInternal buildOperation);
