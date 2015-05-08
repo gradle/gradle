@@ -107,7 +107,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        return runBuildOperation(OperationIdGenerator.generateId(gradle), OperationIdGenerator.generateId(gradle.getParent()), InternalBuildListener.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
+        return runRootBuildOperation(InternalBuildListener.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
                 buildListener.buildStarted(gradle);
@@ -201,6 +201,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         assert upTo == Stage.Build;
+    }
+
+    private <T> T runRootBuildOperation(String operationName, Factory<T> factory) {
+        Object id = OperationIdGenerator.generateId(gradle);
+        Object parentId = OperationIdGenerator.generateId(gradle.getParent());
+        return runBuildOperation(id, parentId, operationName, factory);
     }
 
     private <T> T runBuildOperation(String operationName, Factory<T> factory) {

@@ -21,6 +21,7 @@ import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationIdGenerator;
 
 import static org.gradle.util.Clock.prettyTime;
@@ -75,7 +76,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         private void executeTask(TaskInfo taskInfo) {
             TaskInternal task = taskInfo.getTask();
             Object id = OperationIdGenerator.generateId(task);
-            Object parentId = OperationIdGenerator.generateId(task.getProject().getGradle());
+            Object parentId = OperationIdGenerator.generateId(InternalBuildListener.EXECUTING_TASKS, task.getProject().getGradle());
             TaskOperationInternal taskOperation = new TaskOperationInternal(id, task, parentId);
             synchronized (lock) {
                 taskListener.beforeExecute(taskOperation);
