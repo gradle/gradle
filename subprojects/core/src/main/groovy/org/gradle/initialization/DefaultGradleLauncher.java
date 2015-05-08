@@ -207,7 +207,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T internalBuildOperation(Object id, String eventType, Factory<T> factory) {
         Object eventId = id != null ? id : eventType;
-        BuildOperationInternal startEvent = new BuildOperationInternal(eventId, gradle, parentEvent);
+        BuildOperationInternal startEvent = new BuildOperationInternal(eventId, gradle, parentEvent, parentEvent == null ? null : parentEvent.getId());
         long sd = System.currentTimeMillis();
         internalBuildListener.started(startEvent, sd, eventType);
         parentEvent = startEvent;
@@ -219,7 +219,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
             error = e;
         }
         parentEvent = startEvent.getParent();
-        BuildOperationInternal endEvent = new BuildOperationInternal(eventId, error != null ? error : result, parentEvent);
+        BuildOperationInternal endEvent = new BuildOperationInternal(eventId, error != null ? error : result, parentEvent, parentEvent == null ? null : parentEvent.getId());
         internalBuildListener.finished(endEvent, sd, System.currentTimeMillis(), eventType);
         if (error != null) {
             UncheckedException.throwAsUncheckedException(error);
