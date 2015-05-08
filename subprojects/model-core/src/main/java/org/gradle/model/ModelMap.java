@@ -24,6 +24,7 @@ import org.gradle.model.collection.CollectionBuilder;
  *
  * @param <T> the contract type for all items
  */
+@SuppressWarnings("deprecation")
 @Incubating
 public interface ModelMap<T> extends CollectionBuilder<T> {
 
