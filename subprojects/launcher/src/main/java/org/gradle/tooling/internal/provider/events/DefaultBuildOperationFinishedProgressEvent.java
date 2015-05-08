@@ -33,6 +33,6 @@ public class DefaultBuildOperationFinishedProgressEvent extends AbstractBuildPro
 
     @Override
     public String getDisplayName() {
-        return String.format("%s with %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
+        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
     }
 }

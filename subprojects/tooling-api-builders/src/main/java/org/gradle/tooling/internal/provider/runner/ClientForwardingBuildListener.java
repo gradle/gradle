@@ -39,27 +39,20 @@ class ClientForwardingBuildListener implements InternalBuildListener {
 
     @Override
     public void started(BuildOperationInternal source, long startTime) {
-        DefaultBuildDescriptor descriptor = createDescriptor(source, source.getName() + " started");
-        DefaultBuildOperationStartedProgressEvent startEvent = new DefaultBuildOperationStartedProgressEvent(
-            startTime,
-            descriptor
-        );
-        eventConsumer.dispatch(startEvent);
+        eventConsumer.dispatch(new DefaultBuildOperationStartedProgressEvent(startTime, toBuildOperationDescriptor(source)));
     }
 
     @Override
     public void finished(BuildOperationInternal source, long startTime, long endTime) {
-        DefaultBuildDescriptor descriptor = createDescriptor(source, source.getName() + " finished");
-        DefaultBuildOperationFinishedProgressEvent finishEvent = new DefaultBuildOperationFinishedProgressEvent(
-            endTime,
-            descriptor,
-            adaptResult(source.getPayload(), startTime, endTime)
-        );
-        eventConsumer.dispatch(finishEvent);
+        eventConsumer.dispatch(new DefaultBuildOperationFinishedProgressEvent(endTime, toBuildOperationDescriptor(source), adaptResult(source.getPayload(), startTime, endTime)));
     }
 
-    private DefaultBuildDescriptor createDescriptor(BuildOperationInternal source, String displayName) {
-        return new DefaultBuildDescriptor(source.getId(), source.getName(), displayName, source.getParentId());
+    private DefaultBuildDescriptor toBuildOperationDescriptor(BuildOperationInternal source) {
+        Object id = source.getId();
+        String name = source.getName();
+        String displayName = source.getName();
+        Object parentId = source.getParentId();
+        return new DefaultBuildDescriptor(id, name, displayName, parentId);
     }
 
     private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {

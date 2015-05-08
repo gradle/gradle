@@ -24,7 +24,7 @@ public class DefaultBuildOperationFailureResult extends AbstractBuildOperationRe
     private final List<DefaultFailure> failures;
 
     public DefaultBuildOperationFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failure");
+        super(startTime, endTime, "failed");
         this.failures = failures;
     }
 
