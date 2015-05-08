@@ -212,7 +212,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("bar"), ModelType.untyped()) == "[12]"
     }
 
-    def "inputs for creator are bound when inputs later defined by some rule"() {
+    def "parent of input is implicitly closed when input is not known"() {
         def creatorAction = Mock(Transformer)
         def mutatorAction = Mock(Action)
 
@@ -224,7 +224,6 @@ class DefaultModelRegistryTest extends Specification {
         creatorAction.transform(12) >> "[12]"
 
         expect:
-        registry.realize(ModelPath.path("foo"), ModelType.untyped()) // TODO - should not need this - the input can be inferred from the input path
         registry.realize(ModelPath.path("bar"), ModelType.untyped()) == "[12]"
     }
 
@@ -798,6 +797,81 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.Finalized       | ModelActionRole.Finalize
         ModelNode.State.SelfClosed      | ModelActionRole.Validate
         ModelNode.State.GraphClosed     | ModelActionRole.Validate
+    }
+
+    def "reports unbound subjects"() {
+        given:
+        registry.mutate { it.path("a.b").descriptor("by-path").action() {} }
+        registry.mutate { it.type(Long).descriptor("by-type").action() {} }
+        registry.mutate { it.path("missing").type(String).descriptor("by-path-and-type").action() {} }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+  by-path
+    Mutable:
+      - a.b (java.lang.Object)
+  by-path-and-type
+    Mutable:
+      - missing (java.lang.String)
+  by-type
+    Mutable:
+      - <unspecified> (java.lang.Long)'''
+    }
+
+    def "reports unbound inputs"() {
+        given:
+        registry.create("foo") { it.descriptor("creator").unmanaged(Long, "a.b") {} }
+        registry.mutate { it.path("foo").descriptor("by-path").action(ModelPath.path("other.thing"), ModelType.of(String)) {} }
+        registry.mutate { it.type(Runnable).descriptor("by-type").action(String) {} }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+  by-path
+    Mutable:
+      + foo (java.lang.Object)
+    Immutable:
+      - other.thing (java.lang.String) java.lang.String
+  by-type
+    Mutable:
+      - <unspecified> (java.lang.Runnable)
+    Immutable:
+      - <unspecified> (java.lang.String) java.lang.String
+  creator
+    Immutable:
+      - a.b (java.lang.Object) a.b'''
+    }
+
+    def "closes elements as required to bind all subjects and inputs"() {
+        given:
+        registry.mutate { it.path("a.1.2").action(ModelPath.path("b.1.2"), ModelType.of(String)) {} }
+        registry.create("a") { it.unmanaged("a") }
+        registry.mutate { it.path("a").node {
+            it.addLink(registry.creator("a.1").unmanaged("a.1"))
+            it.applyToLink(ModelActionRole.Finalize, registry.action().path("a.1").node {
+                it.addLink(registry.creator("a.1.2").unmanaged("a.1.2"))
+            })
+        } }
+        registry.create("b") { it.unmanaged("b") }
+        registry.mutate { it.path("b").node {
+            it.addLink(registry.creator("b.1").unmanaged("b.1"))
+            it.applyToLink(ModelActionRole.Finalize, registry.action().path("b.1").node {
+                it.addLink(registry.creator("b.1.2").unmanaged("b.1.2"))
+            })
+        } }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        noExceptionThrown()
     }
 
     def "only rules that actually have unbound inputs are reported as unbound"() {
