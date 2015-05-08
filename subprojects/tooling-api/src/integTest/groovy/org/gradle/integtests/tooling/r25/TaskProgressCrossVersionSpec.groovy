@@ -131,7 +131,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "receive task progress events for successful test run"() {
+    def "receive task progress events for successful tasks"() {
         given:
         goodCode()
 
@@ -161,7 +161,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "receive task progress events for failed test run"() {
+    def "receive task progress events for failed tasks"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -210,7 +210,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "receive task progress events for disabled test run"() {
+    def "receive task progress events for disabled tasks"() {
         buildFile << """
             apply plugin: 'java'
             compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -252,7 +252,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
-    def "task progress event can be received if tasks are executed in parallel"() {
+    def "receive task progress events when tasks are executed in parallel"() {
         given:
         buildFile << """
             @ParallelizableTask
