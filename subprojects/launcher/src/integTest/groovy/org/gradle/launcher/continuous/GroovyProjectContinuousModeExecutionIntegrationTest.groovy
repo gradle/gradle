@@ -22,7 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class GroovyProjectContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
     @Delegate @Rule ContinuousBuildTrigger buildTrigger = new ContinuousBuildTrigger(executer, this)

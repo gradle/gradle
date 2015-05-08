@@ -20,10 +20,12 @@ import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 /**
  * Runs tests from base class on the root project
  */
+@Ignore
 class MultiProjectContinuousModeIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
     IncrementalTestJvmComponent app = new TestJavaComponent()
     String compileTask = "compileJava"

@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
+
+@Ignore
 class BuildSrcContinuousModeIntegrationTest extends NonComponentProjectContinuousModeIntegrationTest {
     def buildSrcSrc = file("src/main/java/example/Main.java")
     def buildSrcBuildFile = file("buildSrc/build.gradle")

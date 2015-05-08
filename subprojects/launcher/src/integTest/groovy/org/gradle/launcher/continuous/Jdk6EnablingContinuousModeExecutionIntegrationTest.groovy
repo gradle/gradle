@@ -19,7 +19,9 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
+@Ignore
 @Requires(TestPrecondition.JDK6)
 class Jdk6EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "can NOT enable continuous mode"() {

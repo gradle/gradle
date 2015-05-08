@@ -19,7 +19,9 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
+@Ignore
 class NonComponentProjectContinuousModeIntegrationTest extends SingleProjectContinuousModeIntegrationTest {
     IncrementalTestJvmComponent app = new TestJavaComponent()
     String compileTask = "compileJava"
