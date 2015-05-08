@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules;
+package org.gradle.api.internal.rules;
 
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
+import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
-public interface RuleAwarePolymorphicNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, RuleAwareNamedDomainObjectFactoryRegistry<T> {
+public interface RuleAwarePolymorphicNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, PolymorphicNamedEntityInstantiator<T>, RuleAwareNamedDomainObjectFactoryRegistry<T> {
 }

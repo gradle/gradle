@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules
+package org.gradle.api.internal.rules
 
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
-import org.gradle.model.internal.core.NamedEntityInstantiator
+import org.gradle.api.internal.PolymorphicNamedEntityInstantiator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 
 class DefaultRuleAwarePolymorphicNamedEntityInstantiatorTest extends Specification {
 
-    def delegate = Mock(NamedEntityInstantiator)
+    def delegate = Mock(PolymorphicNamedEntityInstantiator)
     def registry = Mock(RuleAwareNamedDomainObjectFactoryRegistry)
     def instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator(delegate, registry)
 

@@ -52,7 +52,7 @@ abstract public class ModelCreators {
         }, initializer);
 
         return of(modelReference.getPath(), initializers)
-            .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
+            .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
     }
 
     public static Builder of(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
@@ -61,6 +61,16 @@ abstract public class ModelCreators {
 
     public static Builder of(ModelPath path, Action<? super MutableModelNode> initializer) {
         return new Builder(path, BiActions.usingFirstArgument(initializer));
+    }
+
+    public static <T> Builder of(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
+        return of(modelReference.getPath(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode modelNode) {
+                T value = factory.create();
+                modelNode.setPrivateData(modelReference.getType(), value);
+            }
+        });
     }
 
     @NotThreadSafe

@@ -17,15 +17,22 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.model.internal.core.DefaultModelMap;
+import org.gradle.model.internal.core.ChildNodeCreatorStrategy;
+import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
-    public PolymorphicModelMapProjection(ModelType<T> baseItemType) {
-        super(baseItemType, DefaultModelMap.createUsingParentNode(baseItemType));
+
+    // Node type param is just for type safety, as getCreatableTypes() requires the backing node to be of this type
+    public static <T> ModelProjection of(ModelType<T> itemType, @SuppressWarnings("UnusedParameters") ModelType<? extends PolymorphicNamedEntityInstantiator<T>> nodeType, ChildNodeCreatorStrategy creatorStrategy) {
+        return new PolymorphicModelMapProjection<T>(itemType, creatorStrategy);
+    }
+
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy creatorStrategy) {
+        super(baseItemType, creatorStrategy);
     }
 
     @Override

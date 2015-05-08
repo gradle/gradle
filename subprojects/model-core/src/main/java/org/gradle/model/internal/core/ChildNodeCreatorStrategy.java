@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.rules;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
-public interface RuleAwareNamedDomainObjectFactoryRegistry<T> extends NamedDomainObjectFactoryRegistry<T> {
+public interface ChildNodeCreatorStrategy<T> {
 
-    <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor);
+    // Node must project item as S
+    <S extends T> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<S> type, String name);
+
 }

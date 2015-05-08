@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules;
+package org.gradle.api.internal.rules;
 
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 

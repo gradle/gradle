@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
@@ -30,26 +29,38 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public abstract class ModelMapModelProjection<I> implements ModelProjection {
+public class ModelMapModelProjection<I> implements ModelProjection {
 
+    @SuppressWarnings("deprecation")
     private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
+
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+        return new ModelMapModelProjection<T>(itemType, creatorStrategy);
+    }
+
+    public static <T> ModelProjection of(Class<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+        return of(ModelType.of(itemType), creatorStrategy);
+    }
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
-    private final BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> creatorFunction;
+    private final ChildNodeCreatorStrategy<I> creatorStrategy;
 
-    public ModelMapModelProjection(ModelType<I> baseItemModelType, BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends I>> creatorFunction) {
+    public ModelMapModelProjection(ModelType<I> baseItemModelType, ChildNodeCreatorStrategy<I> creatorStrategy) {
         this.baseItemModelType = baseItemModelType;
         this.baseItemType = baseItemModelType.getConcreteClass();
-        this.creatorFunction = creatorFunction;
+        this.creatorStrategy = creatorStrategy;
     }
 
-    protected abstract Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node);
+    protected Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node) {
+        return Collections.singleton(baseItemType);
+    }
 
     private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
         StringBuilder sb = new StringBuilder(containerType.getName());
@@ -113,7 +124,7 @@ public abstract class ModelMapModelProjection<I> implements ModelProjection {
 
     private <S extends I> ModelView<ModelMap<S>> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorFunction);
+        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorStrategy);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
         ModelType<ModelMap<S>> viewType = DefaultModelMap.modelMapTypeOf(itemType);

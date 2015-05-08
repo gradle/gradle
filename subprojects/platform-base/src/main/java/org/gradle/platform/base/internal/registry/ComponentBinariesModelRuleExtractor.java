@@ -22,7 +22,6 @@ import org.gradle.api.Named;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.TriAction;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.ModelMap;
@@ -85,7 +84,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                     ComponentSpecInternal componentSpecInternal = uncheckedCast(componentModelNode.getPrivateData());
                     MutableModelNode binariesNode = componentModelNode.getLink("binaries");
                     PolymorphicDomainObjectContainerBackedModelMap<BinarySpec> binarySpecs = new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
-                            componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
+                        componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
                     );
                     invoke(componentRuleInputs, binarySpecs.withType(binaryType), componentSpecInternal);
                 }
@@ -125,10 +124,10 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                 return uncheckedCast(subType);
             }
 
-            return new DefaultModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends S>>() {
+            return new DefaultModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, new ChildNodeCreatorStrategy<S>() {
                 @Override
-                public ModelCreators.Builder apply(MutableModelNode parent, ModelReference<? extends S> reference) {
-                    throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", reference.getType(), elementType.toString()));
+                public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
+                    throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
                 }
             });
         }
@@ -140,6 +139,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
         @Override
         public boolean containsValue(Object item) {
+            //noinspection SuspiciousMethodCalls
             return container.contains(item);
         }
 

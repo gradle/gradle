@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules
+package org.gradle.api.internal.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 

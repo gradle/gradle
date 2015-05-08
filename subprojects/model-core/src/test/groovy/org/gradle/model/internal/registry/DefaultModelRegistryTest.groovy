@@ -660,12 +660,9 @@ class DefaultModelRegistryTest extends Specification {
         given:
         def events = []
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .modelMap("things", Bean, iRef)
+                .modelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
                 .mutate {
             it.path "things" type mmType action { c ->
                 events << "collection mutated"
@@ -780,8 +777,6 @@ class DefaultModelRegistryTest extends Specification {
     def "only rules that actually have unbound inputs are reported as unbound"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
                 .createInstance("foo", new Bean())
@@ -792,14 +787,13 @@ class DefaultModelRegistryTest extends Specification {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
             }
         }
-        .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .modelMap("beans", Bean, iRef)
+                .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
                 .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
             }
         }
-        .modelMap("emptyBeans", Bean, iRef)
+        .modelMap("emptyBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
 
         when:
         registry.bindAllReferences()

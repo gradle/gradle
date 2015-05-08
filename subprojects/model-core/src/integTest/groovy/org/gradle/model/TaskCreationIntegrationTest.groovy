@@ -524,7 +524,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.ModelMap<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.ModelMap<org.gradle.api.Task>) > foo.<init>")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<org.gradle.api.Task>' given to rule 'MyPlugin#addTasks(org.gradle.model.ModelMap<org.gradle.api.Task>)'")
     }
 

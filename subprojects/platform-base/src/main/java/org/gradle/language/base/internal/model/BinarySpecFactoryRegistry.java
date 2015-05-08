@@ -22,7 +22,7 @@ import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.internal.rules.DefaultRuleAwareNamedDomainObjectFactoryRegistry;
+import org.gradle.api.internal.rules.DefaultRuleAwareNamedDomainObjectFactoryRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +38,11 @@ public class BinarySpecFactoryRegistry implements RuleAwareNamedDomainObjectFact
     @Override
     public <U extends BinarySpec> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor) {
         delegate.registerFactory(type, factory, descriptor);
+    }
+
+    @Override
+    public <U extends BinarySpec> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
+        delegate.registerFactory(type, factory);
     }
 
     public void copyInto(NamedDomainObjectFactoryRegistry<BinarySpec> destination) {

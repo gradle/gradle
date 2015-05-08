@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules
+package org.gradle.api.internal.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.Named

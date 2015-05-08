@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules;
+package org.gradle.api.internal.rules;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Map;
 
 public class DefaultRuleAwareNamedDomainObjectFactoryRegistry<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T> {
 
-    private final Map<Class<? extends T>, ModelRuleDescriptor> creators = Maps.newHashMap();
+    private final Map<Class<? extends T>, Optional<ModelRuleDescriptor>> creators = Maps.newHashMap();
     private final NamedDomainObjectFactoryRegistry<T> delegate;
 
     public DefaultRuleAwareNamedDomainObjectFactoryRegistry(NamedDomainObjectFactoryRegistry<T> delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
+        registerFactory(type, factory, null);
     }
 
     @Override
@@ -41,16 +45,20 @@ public class DefaultRuleAwareNamedDomainObjectFactoryRegistry<T> implements Rule
     }
 
     private void checkCanRegister(Class<? extends T> type, ModelRuleDescriptor descriptor) {
-        ModelRuleDescriptor creator = creators.get(type);
+        Optional<ModelRuleDescriptor> creator = creators.get(type);
         if (creator != null) {
             StringBuilder builder = new StringBuilder("Cannot register a factory for type ")
-                    .append(type.getSimpleName())
-                    .append(" because a factory for this type was already registered by ");
-            creator.describeTo(builder);
+                .append(type.getSimpleName())
+                .append(" because a factory for this type was already registered");
+
+            if (creator.isPresent()) {
+                builder.append(" by ");
+                creator.get().describeTo(builder);
+            }
             builder.append(".");
             throw new GradleException(builder.toString());
         }
-        creators.put(type, descriptor);
+        creators.put(type, Optional.fromNullable(descriptor));
     }
 
 }

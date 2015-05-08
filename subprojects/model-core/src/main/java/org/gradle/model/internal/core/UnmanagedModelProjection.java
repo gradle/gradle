@@ -23,6 +23,14 @@ import org.gradle.model.internal.type.ModelType;
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
+    public static <M> ModelProjection of(ModelType<M> type) {
+        return new UnmanagedModelProjection<M>(type);
+    }
+
+    public static <M> ModelProjection of(Class<M> type) {
+        return of(ModelType.of(type));
+    }
+
     public UnmanagedModelProjection(ModelType<M> type) {
         super(type, true, true);
     }

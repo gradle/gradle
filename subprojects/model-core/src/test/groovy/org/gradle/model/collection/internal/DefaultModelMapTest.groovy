@@ -17,12 +17,16 @@
 package org.gradle.model.collection.internal
 
 import org.gradle.api.Named
-import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.Namer
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -35,26 +39,47 @@ class DefaultModelMapTest extends Specification {
 
     def type = new ModelType<NamedThing>() {}
 
-    class NamedThing implements Named {
+    static class NamedThing implements Named {
         String name
         String other
+
+        NamedThing(String name) {
+            this.name = name
+        }
     }
 
-    class SpecialNamedThing extends NamedThing implements Special {
+    static class SpecialNamedThing extends NamedThing implements Special {
+        SpecialNamedThing(String name) {
+            super(name)
+        }
+    }
+
+    static class Container<T> extends DefaultPolymorphicDomainObjectContainer<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T>, NamedEntityInstantiator<T> {
+        Container(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+            super(type, instantiator, namer)
+        }
+
+        @Override
+        <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor) {
+            registerFactory(type, factory)
+        }
     }
 
     def containerPath = ModelPath.path("container")
-    def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def modelMapType = new ModelType<ModelMap<NamedThing>>() {}
     def registry = new ModelRegistryHelper()
-    def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, DirectInstantiator.INSTANCE, { it.getName() })
+    def itemType = ModelType.of(NamedThing)
 
     def setup() {
-        BridgedCollections.dynamicTypes(registry, containerPath, "container", containerType, containerType, ModelType.of(NamedThing), container, Named.Namer.forType(NamedThing), BridgedCollections.itemDescriptor("container"))
-        container.registerFactory(NamedThing) {
-            NamedThing.newInstance(name: it)
-        }
-        container.registerFactory(SpecialNamedThing) { SpecialNamedThing.newInstance(name: it) }
+        registry.create(
+            ModelCreators.bridgedInstance(
+                ModelReference.of("container", new ModelType<NamedEntityInstantiator<NamedThing>>() {}),
+                { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
+            )
+                .descriptor("container")
+                .withProjection(PolymorphicModelMapProjection.of(itemType, DefaultModelMap.createUsingParentNode(itemType)))
+                .build()
+        )
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<? super ModelMap<NamedThing>> action) {
@@ -70,14 +95,21 @@ class DefaultModelMapTest extends Specification {
         registry.realizeNode(containerPath)
     }
 
+    void selfClose() {
+        registry.atState(containerPath, ModelNode.State.SelfClosed)
+    }
+
     def "can define an item with name"() {
         when:
         mutate { create("foo") }
         realize()
 
         then:
-        container.getByName("foo") != null
-        registry.realize(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
+        realizeChild("foo").name == "foo"
+    }
+
+    private NamedThing realizeChild(String name) {
+        registry.realize(containerPath.child(name), ModelType.of(NamedThing))
     }
 
     def "does not eagerly create item"() {
@@ -86,15 +118,16 @@ class DefaultModelMapTest extends Specification {
             create("foo")
             create("bar")
         }
+        selfClose()
 
         then:
-        container.isEmpty()
+        registry.state("container.foo") == ModelNode.State.Known
 
         when:
         realize()
 
         then:
-        container.getByName("bar")
+        registry.state("container.foo") == ModelNode.State.GraphClosed
     }
 
     def "can define item with custom type"() {
@@ -103,7 +136,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo") instanceof SpecialNamedThing
+        realizeChild("foo") instanceof SpecialNamedThing
     }
 
     def "can define item using filtered collection"() {
@@ -115,8 +148,8 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo") instanceof SpecialNamedThing
-        container.getByName("bar").class == NamedThing
+        realizeChild("foo") instanceof SpecialNamedThing
+        realizeChild("bar") instanceof NamedThing
     }
 
     def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
@@ -142,7 +175,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "changed"
+        realizeChild("foo").other == "changed"
     }
 
     def "can register config rule and type for item"() {
@@ -155,7 +188,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "changed"
+        realizeChild("foo").other == "changed"
     }
 
     def "can query collection size"() {
@@ -172,7 +205,11 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).size() == 2
+        realizeAsModelMap().size() == 2
+    }
+
+    private ModelMap<NamedThing> realizeAsModelMap() {
+        registry.realize(containerPath, modelMapType)
     }
 
     def "can query filtered collection size"() {
@@ -191,7 +228,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).withType(SpecialNamedThing).size() == 1
+        realizeAsModelMap().withType(SpecialNamedThing).size() == 1
     }
 
     def "can query collection membership"() {
@@ -207,7 +244,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).containsKey("a")
+        realizeAsModelMap().containsKey("a")
     }
 
     def "can query filtered collection membership"() {
@@ -233,7 +270,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).withType(SpecialNamedThing).containsKey("b")
+        realizeAsModelMap().withType(SpecialNamedThing).containsKey("b")
     }
 
     def "can query collection keys"() {
@@ -248,7 +285,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).keySet() as List == ["a", "b"]
+        realizeAsModelMap().keySet() as List == ["a", "b"]
     }
 
     def "can access values"() {
@@ -259,7 +296,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).values()*.other as Set == ["first", "second"] as Set
+        realizeAsModelMap().values()*.other as Set == ["first", "second"] as Set
     }
 
     def "can query filtered collection keys"() {
@@ -278,7 +315,7 @@ class DefaultModelMapTest extends Specification {
         }
 
         then:
-        registry.realize(containerPath, modelMapType).withType(Special).keySet() as List == ["b"]
+        realizeAsModelMap().withType(Special).keySet() as List == ["b"]
     }
 
     def "can register mutate rule for item with name"() {
@@ -295,7 +332,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "changed"
+        realizeChild("foo").other == "changed"
     }
 
     def "can register mutate rule for item with name using filtered container"() {
@@ -317,7 +354,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "types: Object Special SpecialNamedThing"
+        realizeChild("foo").other == "types: Object Special SpecialNamedThing"
     }
 
     def "fails when named item does not have view with appropriate type"() {
@@ -356,7 +393,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        registry.get(containerPath.child("foo")).other == "foo"
+        realizeChild("foo").other == "foo"
     }
 
     def "can register mutate rule for all items using filtered container"() {
@@ -387,8 +424,8 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "types: Named NamedThing"
-        container.getByName("bar").other == "types: Named NamedThing Special SpecialNamedThing"
+        realizeChild("foo").other == "types: Named NamedThing"
+        realizeChild("bar").other == "types: Named NamedThing Special SpecialNamedThing"
     }
 
     def "can register mutate rule for all items"() {
@@ -405,7 +442,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "changed"
+        realizeChild("foo").other == "changed"
     }
 
     def "can register mutate rule for all items with specific type"() {
@@ -433,8 +470,8 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "foo: Named"
-        container.getByName("bar").other == "bar: Named Special SpecialNamedThing"
+        realizeChild("foo").other == "foo: Named"
+        realizeChild("bar").other == "bar: Named Special SpecialNamedThing"
     }
 
     def "can register defaults rule for all items"() {
@@ -453,7 +490,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "beforeEach{} create() all{}"
+        realizeChild("foo").other == "beforeEach{} create() all{}"
     }
 
     def "can register defaults rule for all items with type"() {
@@ -481,8 +518,8 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "Named create(foo)"
-        container.getByName("bar").other == "Named Special SpecialNamedThing create(bar)"
+        realizeChild("foo").other == "Named create(foo)"
+        realizeChild("bar").other == "Named Special SpecialNamedThing create(bar)"
     }
 
     def "can register finalize rule for all items"() {
@@ -501,7 +538,7 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "create() all{} afterEach{}"
+        realizeChild("foo").other == "create() all{} afterEach{}"
     }
 
     def "provides groovy DSL"() {
@@ -519,8 +556,8 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "changed"
-        container.getByName("bar") instanceof SpecialNamedThing
+        realizeChild("foo").other == "changed"
+        realizeChild("bar") instanceof SpecialNamedThing
     }
 
     class MutableValue {
@@ -538,13 +575,10 @@ class DefaultModelMapTest extends Specification {
 
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
         def mmType = DefaultModelMap.modelMapTypeOf(MutableValue)
-        def iType = DefaultModelMap.instantiatorTypeOf(ModelType.of(MutableValue))
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new MutableValue() }).build())
-                .modelMap("values", MutableValue, iRef)
-                .mutate {
+            .modelMap("values", MutableValue) { it.registerFactory(MutableValue) { new MutableValue() } }
+            .mutate {
             it.descriptor("mutating elements").path "values" type mmType action { c ->
                 c.create("element")
                 c.named("element", Object)
@@ -570,14 +604,11 @@ class DefaultModelMapTest extends Specification {
     def "inputs of a rule from an inner source are not realised if the rule is not required"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
         def events = []
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .create("input", "input") { events << "input created" }
-                .modelMap("beans", Bean, iRef)
-                .mutate {
+            .create("input", "input") { events << "input created" }
+            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .mutate {
             it.path "beans" type mmType action { c ->
                 events << "collection mutated"
                 c.create("element") { events << "$it.name created" }
@@ -600,19 +631,16 @@ class DefaultModelMapTest extends Specification {
 
     def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .createInstance("foo", new Bean())
-                .mutate {
+            .createInstance("foo", new Bean())
+            .mutate {
             it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
                 subject.value = input.value
             }
         }
-        .modelMap("beans", Bean, iRef)
-                .mutate {
+        .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
             }
@@ -640,13 +668,10 @@ class DefaultModelMapTest extends Specification {
     def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
-                .modelMap("beans", Bean, iRef)
-                .mutate {
+            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
                 c.named("element", ByTypeSubjectBoundToScopeChildRule)
@@ -668,13 +693,10 @@ class DefaultModelMapTest extends Specification {
     def "adding an unbound scoped rule for an element that is never created results in an error upon validation if the scope parent has been self closed"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) }).build())
-                .modelMap("beans", Bean, iRef)
-                .mutate {
+            .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .mutate {
             it.path "beans" type mmType action { c ->
                 c.named("element", ElementRules)
             }
@@ -705,17 +727,13 @@ class DefaultModelMapTest extends Specification {
     def "can add rule source to all items of type"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
-        NamedEntityInstantiator instantiator = { name, type ->
-            (type ?: Bean).newInstance(name: name)
-        }
-
         registry
-                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .modelMap("beans", Bean, iRef)
-                .createInstance("s", "other")
-                .mutate {
+            .modelMap("beans", Bean) {
+            it.registerFactory(Bean) { new Bean(name: it) }
+            it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
+        }
+        .createInstance("s", "other")
+            .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
                 c.create("b2", Bean)
@@ -758,17 +776,14 @@ class DefaultModelMapTest extends Specification {
     def "when targeting by type, paths are interpreted relative to item"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
-        NamedEntityInstantiator instantiator = { name, type ->
-            (type ?: Bean).newInstance(name: name)
-        }
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .modelMap("beans", Bean, iRef)
-                .createInstance("s", "other")
-                .mutate {
+            .modelMap("beans", Bean) {
+            it.registerFactory(Bean) { new Bean(name: it) }
+            it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
+        }
+        .createInstance("s", "other")
+            .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("b1", Bean)
                 c.create("sb1", SpecialBean)
@@ -797,17 +812,15 @@ class DefaultModelMapTest extends Specification {
     def "when targeting by type, can have rule use more general type than target"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
-        NamedEntityInstantiator instantiator = { name, type ->
-            (type ?: Bean).newInstance(name: name)
-        }
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .modelMap("beans", Bean, iRef)
-                .createInstance("s", "other")
-                .mutate {
+            .modelMap("beans", Bean) {
+            it.registerFactory(Bean) { new Bean(name: it) }
+            it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
+        }
+
+        .createInstance("s", "other")
+            .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
                 c.withType(SpecialBean, SetValue)
@@ -824,17 +837,15 @@ class DefaultModelMapTest extends Specification {
     def "when targeting by type, can have rule use more specific type than target"() {
         given:
         def mmType = DefaultModelMap.modelMapTypeOf(Bean)
-        def iType = DefaultModelMap.instantiatorTypeOf(Bean)
-        def iRef = ModelReference.of("instantiator", iType)
-        NamedEntityInstantiator instantiator = { name, type ->
-            (type ?: Bean).newInstance(name: name)
-        }
 
         registry
-                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
-                .modelMap("beans", Bean, iRef)
-                .createInstance("s", "other")
-                .mutate {
+            .modelMap("beans", Bean) {
+            it.registerFactory(Bean) { new Bean(name: it) }
+            it.registerFactory(SpecialBean) { new SpecialBean(name: it) }
+        }
+
+        .createInstance("s", "other")
+            .mutate {
             it.path("beans").type(mmType).action { c ->
                 c.create("sb1", SpecialBean)
                 c.withType(Bean, SetOther)

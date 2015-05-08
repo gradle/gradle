@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.rules;
+package org.gradle.api.internal.rules;
 
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+
+import java.util.Set;
 
 public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements RuleAwarePolymorphicNamedEntityInstantiator<T> {
 
-    private final NamedEntityInstantiator<T> instantiator;
+    private final PolymorphicNamedEntityInstantiator<T> instantiator;
     private final RuleAwareNamedDomainObjectFactoryRegistry<T> registry;
 
     public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator) {
         this(instantiator, new DefaultRuleAwareNamedDomainObjectFactoryRegistry<T>(instantiator));
     }
 
-    public DefaultRuleAwarePolymorphicNamedEntityInstantiator(NamedEntityInstantiator<T> instantiator, RuleAwareNamedDomainObjectFactoryRegistry<T> registry) {
+    public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator, RuleAwareNamedDomainObjectFactoryRegistry<T> registry) {
         this.instantiator = instantiator;
         this.registry = registry;
     }
@@ -44,5 +44,15 @@ public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements Ru
     @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory, ModelRuleDescriptor descriptor) {
         registry.registerFactory(type, factory, descriptor);
+    }
+
+    @Override
+    public Set<? extends Class<? extends T>> getCreatableTypes() {
+        return instantiator.getCreatableTypes();
+    }
+
+    @Override
+    public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
+        registry.registerFactory(type, factory);
     }
 }

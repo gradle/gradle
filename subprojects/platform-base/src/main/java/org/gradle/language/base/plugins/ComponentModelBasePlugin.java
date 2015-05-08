@@ -28,7 +28,7 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.language.base.internal.model.ModelMapCreators;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;

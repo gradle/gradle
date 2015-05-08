@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.internal.model.ModelMapCreators;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;

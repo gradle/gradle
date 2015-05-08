@@ -23,6 +23,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
@@ -31,6 +32,7 @@ import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -76,16 +78,21 @@ public class LanguageBasePlugin implements Plugin<Project> {
         final String descriptor = LanguageBasePlugin.class.getName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
-        BridgedCollections.dynamicTypes(
-                modelRegistry,
-                binariesPath,
-                descriptor,
-                ModelType.of(DefaultBinaryContainer.class),
-                ModelType.of(DefaultBinaryContainer.class),
-                ModelType.of(BinarySpec.class),
-                binaries,
+
+        ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
+        modelRegistry.createOrReplace(
+            BridgedCollections.creator(
+                ModelReference.of(binariesPath, DefaultBinaryContainer.class),
+                Transformers.constant(binaries),
                 Named.Namer.INSTANCE,
+                descriptor,
                 BridgedCollections.itemDescriptor(descriptor)
+            )
+                .descriptor(descriptor)
+                .ephemeral(true)
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, DefaultModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
+                .build()
         );
 
         modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
