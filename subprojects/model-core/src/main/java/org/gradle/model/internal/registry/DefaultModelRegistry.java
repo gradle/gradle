@@ -341,7 +341,14 @@ public class DefaultModelRegistry implements ModelRegistry {
                 queue.removeFirst();
                 continue;
             }
-
+            if (goal.state == ModelGoal.State.NotSeen) {
+                if (goal.isAchieved()) {
+                    // Goal has previously been achieved or is no longer required
+                    goal.state = ModelGoal.State.Achieved;
+                    queue.removeFirst();
+                    continue;
+                }
+            }
             if (goal.state == ModelGoal.State.VisitingDependencies) {
                 // All dependencies visited
                 goal.apply();
@@ -350,26 +357,15 @@ public class DefaultModelRegistry implements ModelRegistry {
                 continue;
             }
 
-            if (goal.state == ModelGoal.State.NotSeen) {
-                if (goal.isAchieved()) {
-                    // Goal has previously been achieved or is no longer required
-                    goal.state = ModelGoal.State.Achieved;
-                    queue.removeFirst();
-                    continue;
-                }
+            // Add dependencies for this goal
+            List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
+            goal.attachNode();
+            boolean done = goal.calculateDependencies(goalGraph, newDependencies);
+            goal.state = done ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
 
-                // Attach the predecessors, which are the goals that must be achieved before the dependencies of the target goal can be calculated
-                goal.calculatePredecessors(goalGraph);
-                goal.state = ModelGoal.State.VisitingPredecessor;
-            } else if (goal.state == ModelGoal.State.VisitingPredecessor) {
-                // Attach the dependencies, which are the goals that must be achieved before the goal can be applied
-                goal.attachNode();
-                goal.calculateDependencies(goalGraph);
-                goal.state = ModelGoal.State.VisitingDependencies;
-            }
-            for (int i = goal.dependencies.size() - 1; i >= 0; i--) {
-                // TODO - only queue new dependencies
-                ModelGoal dependency = goal.dependencies.get(i);
+            // Add dependencies to the start of the queue
+            for (int i = newDependencies.size() - 1; i >= 0; i--) {
+                ModelGoal dependency = newDependencies.get(i);
                 if (dependency.state == ModelGoal.State.Achieved) {
                     continue;
                 }
@@ -1014,11 +1010,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     private abstract static class ModelGoal {
         enum State {
             NotSeen,
-            VisitingPredecessor,
+            DiscoveringDependencies,
             VisitingDependencies,
             Achieved,
         }
-        public final List<ModelGoal> dependencies = new ArrayList<ModelGoal>();
         public State state = State.NotSeen;
 
         /**
@@ -1030,21 +1025,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         /**
-         * Predecessors are those goals that must be achieved before the dependencies of this goal can be calculated.
-         */
-        public void calculatePredecessors(GoalGraph graph) {
-        }
-
-        /**
          * Invoked prior to calculating dependencies.
          */
         public void attachNode() {
         }
 
         /**
-         * Dependencies are those goals that must be achieved before the action of this goal can be applied.
+         * Calculates any dependencies for this goal. May be invoked multiple times, should only add newly dependencies discovered dependencies on each invocation.
+         * @return true if this goal will have no additional dependencies discovered later, false if not.
          */
-        public void calculateDependencies(GoalGraph graph) {
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            return true;
         }
 
         /**
@@ -1110,18 +1101,20 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void calculatePredecessors(GoalGraph goalGraph) {
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Not already known, attempt to self-close the parent
             ModelPath parent = getPath().getParent();
             if (parent != null) {
                 // TODO - should be >= self closed
-                dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(parent, SelfClosed)));
+                dependencies.add(graph.nodeAtState(new NodeIsAtState(parent, SelfClosed)));
             }
+            return true;
         }
     }
 
     private abstract class TransitionNodeToState extends ModelNodeGoal {
         private final ModelNode.State targetState;
+        private boolean seenPredecessor;
 
         public TransitionNodeToState(NodeIsAtState target) {
             super(target.path);
@@ -1143,7 +1136,22 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        final void apply() {
+        public final boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (!seenPredecessor) {
+                // Node must be at the predecessor state before calculating dependencies
+                dependencies.add(graph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
+                seenPredecessor = true;
+                return false;
+            }
+            return doCalculateDependencies(graph, dependencies);
+        }
+
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            return true;
+        }
+
+        @Override
+        public final void apply() {
             if (!node.getState().equals(getTargetState().previous())) {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
@@ -1166,15 +1174,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void calculatePredecessors(GoalGraph goalGraph) {
-            // Must be known first
-            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), Known)));
-        }
-
-        @Override
-        public void calculateDependencies(GoalGraph graph) {
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must run the creator
             dependencies.add(new RunCreatorAction(getPath(), node.getCreatorBinder()));
+            return true;
         }
 
         @Override
@@ -1189,18 +1192,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void calculatePredecessors(GoalGraph goalGraph) {
-            // Node must be at the previous state
-            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
-        }
-
-        @Override
-        public void calculateDependencies(GoalGraph graph) {
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must run each action
             flushPendingMutatorBinders();
             for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
                 dependencies.add(new RunModelAction(getPath(), binder));
             }
+            return true;
         }
 
         @Override
@@ -1215,17 +1213,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void calculatePredecessors(GoalGraph goalGraph) {
-            // Mut be self-closed first
-            dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(getPath(), SelfClosed)));
-        }
-
-        @Override
-        public void calculateDependencies(GoalGraph goalGraph) {
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must graph-close each child first
             for (ModelNodeInternal child : node.getLinks()) {
-                dependencies.add(goalGraph.nodeAtState(new NodeIsAtState(child.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeIsAtState(child.getPath(), GraphClosed)));
             }
+            return true;
         }
 
         @Override
@@ -1256,6 +1249,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     // TODO - merge with RuleBinder
     private abstract class RunAction extends ModelNodeGoal {
         private final RuleBinder binder;
+        private boolean bindInputs;
 
         public RunAction(ModelPath path, RuleBinder binder) {
             super(path);
@@ -1268,13 +1262,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void calculatePredecessors(GoalGraph goalGraph) {
-            // Must prepare to bind inputs first
-            dependencies.add(new BindInputs(binder));
-        }
-
-        @Override
-        public void calculateDependencies(GoalGraph graph) {
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (!bindInputs) {
+                // Must prepare to bind inputs first
+                dependencies.add(new BindInputs(binder));
+                bindInputs = true;
+                return false;
+            }
             // Must close each input first
             if (!binder.isBound()) {
                 throw unbound(Collections.singleton(binder));
@@ -1282,6 +1276,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             for (ModelBinding binding : binder.getInputBindings()) {
                 dependencies.add(graph.nodeAtState(new NodeIsAtState(binding.boundTo.getPath(), GraphClosed)));
             }
+            return true;
         }
 
         @Override
