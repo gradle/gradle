@@ -16,9 +16,6 @@
 
 package org.gradle.play.tasks
 
-import spock.lang.Ignore
-
-@Ignore
 class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     def customCoffeeScriptImplFileName
 
@@ -41,6 +38,10 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
 
             repositories{
                 jcenter()
+                maven {
+                    name = "gradle-js"
+                    url = "https://repo.gradle.org/gradle/javascript-public"
+                }
             }
         """
     }
