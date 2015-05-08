@@ -22,10 +22,9 @@ import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
-public interface TaskContainerInternal extends TaskContainer, TaskResolver, NamedEntityInstantiator<Task>, PolymorphicDomainObjectContainerInternal<Task> {
+public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry
     ModelPath MODEL_PATH = ModelPath.path("tasks");
