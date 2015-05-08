@@ -147,7 +147,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     public abstract void resolve(FileCollectionResolveContext context);
 
     @Override
-    public void registerWatchPoints(WatchPointsBuilder builder) {
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
         for (FileCollectionInternal files : getSourceCollections()) {
             files.registerWatchPoints(builder);
         }

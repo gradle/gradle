@@ -22,6 +22,6 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 
 public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
 
-    void registerWatchPoints(WatchPointsBuilder builder);
+    void registerWatchPoints(FileSystemSubset.Builder builder);
 
 }

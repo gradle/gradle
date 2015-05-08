@@ -16,18 +16,10 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.cli.AbstractCommandLineConverter;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.cli.*;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
-import org.gradle.launcher.cli.converter.ContinuousModeCommandLineConverter;
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.converter.*;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.HashMap;
@@ -68,13 +60,13 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     public ParametersConverter() {
         this(new LayoutCommandLineConverter(),
-                new SystemPropertiesCommandLineConverter(),
-                new LayoutToPropertiesConverter(),
-                new PropertiesToStartParameterConverter(),
-                new DefaultCommandLineConverter(),
-                new DaemonCommandLineConverter(),
-                new PropertiesToDaemonParametersConverter(),
-                new ContinuousModeCommandLineConverter());
+            new SystemPropertiesCommandLineConverter(),
+            new LayoutToPropertiesConverter(),
+            new PropertiesToStartParameterConverter(),
+            new DefaultCommandLineConverter(),
+            new DaemonCommandLineConverter(),
+            new PropertiesToDaemonParametersConverter(),
+            new ContinuousModeCommandLineConverter());
     }
 
     @Override
@@ -94,7 +86,6 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         target.setDaemonParameters(daemonParameters);
 
         continuousModeCommandLineConverter.convert(args, target.getContinuousModeParameters());
-        
         target.getStartParameter().setContinuousModeEnabled(target.getContinuousModeParameters().isEnabled());
 
         return target;

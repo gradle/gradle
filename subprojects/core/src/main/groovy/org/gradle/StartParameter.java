@@ -693,10 +693,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.configureOnDemand = configureOnDemand;
     }
 
+    @Incubating
     public boolean isContinuousModeEnabled() {
         return continuousModeEnabled;
     }
 
+    @Incubating
     public void setContinuousModeEnabled(boolean continuousModeEnabled) {
         this.continuousModeEnabled = continuousModeEnabled;
     }

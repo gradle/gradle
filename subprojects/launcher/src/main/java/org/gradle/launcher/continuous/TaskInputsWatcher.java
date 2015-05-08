@@ -21,12 +21,12 @@ import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.filewatch.StopThenFireFileWatcherListener;
-import org.gradle.internal.filewatch.WatchPointsRegistry;
 
 public class TaskInputsWatcher extends BuildAdapter {
     private final static Logger LOGGER = Logging.getLogger(TaskInputsWatcher.class);
@@ -41,12 +41,11 @@ public class TaskInputsWatcher extends BuildAdapter {
     @Override
     public void buildFinished(BuildResult result) {
         // Only start watching when the outermost build finishes
-        if (result.getGradle().getParent()==null) {
+        if (result.getGradle().getParent() == null) {
             GradleInternal gradleInternal = Cast.uncheckedCast(result.getGradle());
 
-            final WatchPointsRegistry watchPointsRegistry = gradleInternal.getServices().get(WatchPointsRegistry.class);
-
-            final FileSystemSubset fileSystemSubset = watchPointsRegistry.buildFileSystemSubset();
+            final TaskFileSystemInputsAccumulator accumulator = gradleInternal.getServices().get(TaskFileSystemInputsAccumulator.class);
+            final FileSystemSubset fileSystemSubset = accumulator.get();
 
             // TODO: log a representation of the file system subset at debug
 

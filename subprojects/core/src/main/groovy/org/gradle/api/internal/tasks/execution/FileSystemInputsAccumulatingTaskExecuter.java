@@ -17,32 +17,23 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.WatchPointsBuilder;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.internal.Cast;
-import org.gradle.internal.filewatch.WatchPointsRegistry;
 
-public class WatchPointsRegistrarTaskExecuter implements TaskExecuter {
-    private final WatchPointsRegistry watchPointsRegistry;
-    private final boolean continuousModeEnabled;
+public class FileSystemInputsAccumulatingTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
+    private final TaskFileSystemInputsAccumulator accumulator;
 
-    public WatchPointsRegistrarTaskExecuter(WatchPointsRegistry watchPointsRegistry, boolean continuousModeEnabled, TaskExecuter executer) {
-        this.watchPointsRegistry = watchPointsRegistry;
-        this.continuousModeEnabled = continuousModeEnabled;
+    public FileSystemInputsAccumulatingTaskExecuter(TaskFileSystemInputsAccumulator accumulator, TaskExecuter executer) {
+        this.accumulator = accumulator;
         this.executer = executer;
     }
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if(continuousModeEnabled) {
-            FileCollectionInternal inputFiles = Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles());
-            WatchPointsBuilder watchPointsBuilder = watchPointsRegistry.createForTask(task);
-            inputFiles.registerWatchPoints(watchPointsBuilder);
-        }
+        accumulator.add(task);
         executer.execute(task, state, context);
     }
 }

@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.WatchPointsBuilder;
 
-public class DefaultWatchPointsRegistry implements WatchPointsRegistry {
-    private final FileSystemSubset.Builder builder = FileSystemSubset.builder();
-
-    public DefaultWatchPointsRegistry() {
+public class NoopTaskFileSystemInputsAccumulator implements TaskFileSystemInputsAccumulator {
+    @Override
+    public void add(TaskInternal taskInternal) {
 
     }
 
     @Override
-    public WatchPointsBuilder createForTask(Task task) {
-        return builder;
-    }
-
-    public FileSystemSubset buildFileSystemSubset() {
-        return builder.build();
+    public FileSystemSubset get() {
+        return FileSystemSubset.builder().build();
     }
 }

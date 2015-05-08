@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.WatchPointsBuilder;
 
-public interface WatchPointsRegistry {
-    WatchPointsBuilder createForTask(Task task);
-    FileSystemSubset buildFileSystemSubset();
+public interface TaskFileSystemInputsAccumulator {
+    void add(TaskInternal taskInternal);
+
+    FileSystemSubset get();
 }

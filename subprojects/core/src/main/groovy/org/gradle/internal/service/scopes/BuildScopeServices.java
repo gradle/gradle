@@ -61,8 +61,6 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.DefaultWatchPointsRegistry;
-import org.gradle.internal.filewatch.WatchPointsRegistry;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -333,7 +331,4 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOperationLoggerFactory();
     }
 
-    protected WatchPointsRegistry createWatchPointsRegistry() {
-        return new DefaultWatchPointsRegistry();
-    }
 }
