@@ -16,6 +16,9 @@
 
 package org.gradle.play.tasks
 
+import spock.lang.Ignore
+
+@Ignore
 class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     def customCoffeeScriptImplFileName
 
