@@ -18,16 +18,38 @@ package org.gradle.internal.progress;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 
+/**
+ * Generates operation ids used by the progress event infrastructure.
+ */
 public final class OperationIdGenerator {
 
+    /**
+     * Generates an operation id for the given task.
+     *
+     * @param task the task operation
+     * @return the operation id
+     */
     public static Object generateId(Task task) {
         return generateId(task.getProject().getGradle()) + "-" + task.getPath();
     }
 
-     public static Object generateId(String operationName, Gradle gradle) {
+    /**
+     * Generates an operation id for the given build operation.
+     *
+     * @param operationName the name of the operation
+     * @param gradle te Gradle instance to which the build operation belongs
+     * @return the operation id
+     */
+    public static Object generateId(String operationName, Gradle gradle) {
         return generateId(gradle) + "-" + operationName;
     }
 
+    /**
+     * Generates a operation id for the given Gradle instance.
+     *
+     * @param gradle the Gradle instance
+     * @return the operation id
+     */
     public static Object generateId(Gradle gradle) {
         return gradle == null ? null : String.valueOf(System.identityHashCode(gradle));
     }
