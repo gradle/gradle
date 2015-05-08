@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 @NotThreadSafe
-public abstract class RuleBinder {
+abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputReferences;

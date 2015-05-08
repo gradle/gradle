@@ -18,7 +18,7 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.ModelPredicate;
 
-public abstract class ModelCreationListener extends ModelPredicate {
+abstract class ModelCreationListener extends ModelPredicate {
     /**
      * Invoked for each node that matches the criteria specified by {@link #getPath()}, {@link #getParent()}, {@link #getScope()} <em>and</em> {@link #getType()},
      * or every node if no criteria specified. Stops notifying listener with further nodes when this method returns true.

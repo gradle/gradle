@@ -25,7 +25,7 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.*;
 
-public class ModelGraph {
+class ModelGraph {
     private final ModelNodeInternal root;
     private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();

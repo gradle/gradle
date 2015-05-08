@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 @ThreadSafe
-public class UnboundRulesProcessor {
+class UnboundRulesProcessor {
 
     private final Iterable<? extends RuleBinder> binders;
     private final Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider;

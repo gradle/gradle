@@ -24,7 +24,7 @@ import org.gradle.model.internal.core.ModelReference;
 import java.util.Collection;
 import java.util.List;
 
-public class MutatorRuleBinder<T> extends RuleBinder {
+class MutatorRuleBinder<T> extends RuleBinder {
 
     private ModelBinding subjectBinding;
     private final ModelReference<T> subjectReference;
