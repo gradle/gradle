@@ -38,4 +38,6 @@ public interface ConfigurationMetaData {
     Set<ExcludeRule> getExcludeRules();
 
     boolean isTransitive();
+
+    boolean isPublic();
 }

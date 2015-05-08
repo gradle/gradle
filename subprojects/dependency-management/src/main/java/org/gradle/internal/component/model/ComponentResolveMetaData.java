@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -52,15 +51,13 @@ public interface ComponentResolveMetaData {
      */
     ComponentResolveMetaData withSource(ModuleSource source);
 
-    /**
-     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    ModuleDescriptor getDescriptor();
-
     List<DependencyMetaData> getDependencies();
+
+    /**
+     * Returns the names of all of the configurations for this component.
+     */
+    // TODO:DAZ Maybe getConfigurations() would be better?
+    Set<String> getConfigurationNames();
 
     /**
      * Locates the configuration with the given name, if any.

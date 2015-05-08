@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
@@ -141,6 +142,11 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         }
     }
 
+    @Override
+    public Set<String> getConfigurationNames() {
+        return Sets.newHashSet(moduleDescriptor.getConfigurationsNames());
+    }
+
     public DefaultConfigurationMetaData getConfiguration(final String name) {
         DefaultConfigurationMetaData configuration = configurations.get(name);
         if (configuration == null) {
@@ -199,6 +205,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
         public boolean isTransitive() {
             return descriptor.isTransitive();
+        }
+
+        public boolean isPublic() {
+            return descriptor.getVisibility() == Configuration.Visibility.PUBLIC;
         }
 
         public List<DependencyMetaData> getDependencies() {
