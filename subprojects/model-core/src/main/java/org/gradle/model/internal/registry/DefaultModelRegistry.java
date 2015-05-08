@@ -419,7 +419,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         GoalGraph goalGraph = new GoalGraph();
-        transitionTo(goalGraph, goalGraph.nodeAtState(new NodeIsAtState(node.getPath(), desired)));
+        transitionTo(goalGraph, goalGraph.nodeAtState(new NodeAtState(node.getPath(), desired)));
     }
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
@@ -944,9 +944,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class GoalGraph {
-        private final Map<NodeIsAtState, ModelGoal> nodeStates = new HashMap<NodeIsAtState, ModelGoal>();
+        private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<NodeAtState, ModelGoal>();
 
-        public ModelGoal nodeAtState(NodeIsAtState goal) {
+        public ModelGoal nodeAtState(NodeAtState goal) {
             ModelGoal node = nodeStates.get(goal);
             if (node == null) {
                 switch (goal.state) {
@@ -1068,7 +1068,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelPath parent = getPath().getParent();
             if (parent != null) {
                 // TODO - should be >= self closed
-                dependencies.add(graph.nodeAtState(new NodeIsAtState(parent, SelfClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(parent, SelfClosed)));
             }
             return true;
         }
@@ -1078,7 +1078,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private final ModelNode.State targetState;
         private boolean seenPredecessor;
 
-        public TransitionNodeToState(NodeIsAtState target) {
+        public TransitionNodeToState(NodeAtState target) {
             super(target.path);
             targetState = target.state;
         }
@@ -1101,7 +1101,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public final boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             if (!seenPredecessor) {
                 // Node must be at the predecessor state before calculating dependencies
-                dependencies.add(graph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
+                dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), getTargetState().previous())));
                 seenPredecessor = true;
                 return false;
             }
@@ -1134,7 +1134,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class Create extends TransitionNodeToState {
-        public Create(NodeIsAtState target) {
+        public Create(NodeAtState target) {
             super(target);
         }
 
@@ -1154,7 +1154,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private class ApplyActions extends TransitionNodeToState {
         private final Set<MutatorRuleBinder<?>> seenRules = new HashSet<MutatorRuleBinder<?>>();
 
-        public ApplyActions(NodeIsAtState target) {
+        public ApplyActions(NodeAtState target) {
             super(target);
         }
 
@@ -1177,7 +1177,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class CloseGraph extends TransitionNodeToState {
-        public CloseGraph(NodeIsAtState target) {
+        public CloseGraph(NodeAtState target) {
             super(target);
         }
 
@@ -1185,7 +1185,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must graph-close each child first
             for (ModelNodeInternal child : node.getLinks()) {
-                dependencies.add(graph.nodeAtState(new NodeIsAtState(child.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
             }
             return true;
         }
@@ -1225,7 +1225,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return false;
             }
             if (modelGraph.find(path) != null) {
-                dependencies.add(graph.nodeAtState(new NodeIsAtState(path, SelfClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(path, SelfClosed)));
             }
             return true;
         }
@@ -1301,7 +1301,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw unbound(Collections.singleton(binder));
             }
             for (ModelBinding binding : binder.getInputBindings()) {
-                dependencies.add(graph.nodeAtState(new NodeIsAtState(binding.boundTo.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(binding.boundTo.getPath(), GraphClosed)));
             }
             return true;
         }
@@ -1343,44 +1343,4 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class NodeIsAtState implements Comparable<NodeIsAtState> {
-        public final ModelPath path;
-        public final ModelNode.State state;
-
-        public NodeIsAtState(ModelPath path, ModelNode.State state) {
-            this.path = path;
-            this.state = state;
-        }
-
-        @Override
-        public String toString() {
-            return "node " + path + " at state " + state;
-        }
-
-        @Override
-        public int compareTo(NodeIsAtState other) {
-            int diff = path.compareTo(other.path);
-            if (diff != 0) {
-                return diff;
-            }
-            return state.compareTo(other.state);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            NodeIsAtState other = (NodeIsAtState) obj;
-            return path.equals(other.path) && state.equals(other.state);
-        }
-
-        @Override
-        public int hashCode() {
-            return path.hashCode() ^ state.hashCode();
-        }
-    }
 }
