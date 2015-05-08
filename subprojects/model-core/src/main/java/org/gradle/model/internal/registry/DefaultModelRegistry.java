@@ -361,7 +361,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
             goal.attachNode();
             boolean done = goal.calculateDependencies(goalGraph, newDependencies);
-            goal.state = done ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
+            goal.state = done || newDependencies.isEmpty() ? ModelGoal.State.VisitingDependencies : ModelGoal.State.DiscoveringDependencies;
 
             // Add dependencies to the start of the queue
             for (int i = newDependencies.size() - 1; i >= 0; i--) {
@@ -1187,6 +1187,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class ApplyActions extends TransitionNodeToState {
+        private final Set<MutatorRuleBinder<?>> seenRules = new HashSet<MutatorRuleBinder<?>>();
+
         public ApplyActions(NodeIsAtState target) {
             super(target);
         }
@@ -1196,9 +1198,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             // Must run each action
             flushPendingMutatorBinders();
             for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
-                dependencies.add(new RunModelAction(getPath(), binder));
+                if (seenRules.add(binder)) {
+                    dependencies.add(new RunModelAction(getPath(), binder));
+                }
             }
-            return true;
+            return false;
         }
 
         @Override
