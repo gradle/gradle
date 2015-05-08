@@ -32,7 +32,7 @@ public final class BuildOperationInternal implements IdentifiableOperation {
 
     @Override
     public Object getId() {
-        return parent == null ? id : parent.getId() + ":" + id;
+        return id;
     }
 
     public Object getPayload() {
