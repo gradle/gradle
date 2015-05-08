@@ -19,12 +19,14 @@ import org.gradle.api.Nullable;
 
 public final class BuildOperationInternal implements IdentifiableOperation {
     private final Object id;
+    private final String name;
     private final Object payload;
     private final BuildOperationInternal parent;
     private final Object parentId;
 
-    public BuildOperationInternal(Object id, Object payload, BuildOperationInternal parent, Object parentId) {
+    public BuildOperationInternal(Object id, String name, Object payload, BuildOperationInternal parent, Object parentId) {
         this.id = id;
+        this.name = name;
         this.payload = payload;
         this.parent = parent;
         this.parentId = parentId;
@@ -33,6 +35,10 @@ public final class BuildOperationInternal implements IdentifiableOperation {
     @Override
     public Object getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Object getPayload() {

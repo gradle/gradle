@@ -205,11 +205,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    private <T> T internalBuildOperation(Object id, String eventType, Factory<T> factory) {
-        Object eventId = id != null ? id : eventType;
-        BuildOperationInternal startEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, gradle, parentEvent, parentEvent == null ? null : parentEvent.getId());
+    private <T> T internalBuildOperation(Object id, String operationName, Factory<T> factory) {
+        Object eventId = id != null ? id : operationName;
+        BuildOperationInternal startEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, operationName, gradle, parentEvent, parentEvent == null ? null : parentEvent.getId());
         long sd = System.currentTimeMillis();
-        internalBuildListener.started(startEvent, sd, eventType);
+        internalBuildListener.started(startEvent, sd);
         parentEvent = startEvent;
         T result = null;
         Throwable error = null;
@@ -219,8 +219,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
             error = e;
         }
         parentEvent = startEvent.getParent();
-        BuildOperationInternal endEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, error != null ? error : result, parentEvent, parentEvent == null ? null : parentEvent.getId());
-        internalBuildListener.finished(endEvent, sd, System.currentTimeMillis(), eventType);
+        BuildOperationInternal endEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, operationName, error != null ? error : result, parentEvent, parentEvent == null ? null : parentEvent.getId());
+        internalBuildListener.finished(endEvent, sd, System.currentTimeMillis());
         if (error != null) {
             UncheckedException.throwAsUncheckedException(error);
         }

@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -46,8 +46,8 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void started(BuildOperationInternal source, long startTime, String eventType) {
-        DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " started");
+    public void started(BuildOperationInternal source, long startTime) {
+        DefaultBuildDescriptor descriptor = createDescriptor(source, source.getName() + " started");
         DefaultBuildOperationStartedProgressEvent startEvent = new DefaultBuildOperationStartedProgressEvent(
             startTime,
             descriptor
@@ -56,8 +56,8 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void finished(BuildOperationInternal source, long startTime, long endTime, String eventType) {
-        DefaultBuildDescriptor descriptor = createDescriptor(source, eventType, eventType + " finished");
+    public void finished(BuildOperationInternal source, long startTime, long endTime) {
+        DefaultBuildDescriptor descriptor = createDescriptor(source, source.getName() + " finished");
         DefaultBuildOperationFinishedProgressEvent finishEvent = new DefaultBuildOperationFinishedProgressEvent(
             endTime,
             descriptor,
@@ -66,8 +66,8 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         eventConsumer.dispatch(finishEvent);
     }
 
-    private DefaultBuildDescriptor createDescriptor(BuildOperationInternal source, String eventType, String displayName) {
-        return new DefaultBuildDescriptor(source.getId(), eventType, displayName, source.getParentId());
+    private DefaultBuildDescriptor createDescriptor(BuildOperationInternal source, String displayName) {
+        return new DefaultBuildDescriptor(source.getId(), source.getName(), displayName, source.getParentId());
     }
 
     private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {

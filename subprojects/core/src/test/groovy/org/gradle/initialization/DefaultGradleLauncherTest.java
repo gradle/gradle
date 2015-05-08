@@ -38,6 +38,7 @@ import org.gradle.util.TestUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
@@ -55,7 +56,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultGradleLauncherTest {
     private BuildLoader buildLoaderMock;
-    private InitScriptHandler initscriptHandlerMock;
+    private InitScriptHandler initScriptHandlerMock;
     private SettingsHandler settingsHandlerMock;
     private BuildConfigurer buildConfigurerMock;
     private DefaultProject expectedRootProject;
@@ -88,7 +89,7 @@ public class DefaultGradleLauncherTest {
 
     @Before
     public void setUp() {
-        initscriptHandlerMock = context.mock(InitScriptHandler.class);
+        initScriptHandlerMock = context.mock(InitScriptHandler.class);
         settingsHandlerMock = context.mock(SettingsHandler.class);
         settingsMock = context.mock(SettingsInternal.class);
         taskExecuterMock = context.mock(TaskGraphExecuter.class);
@@ -114,7 +115,7 @@ public class DefaultGradleLauncherTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
-        gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
+        gradleLauncher = new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsHandlerMock,
             buildLoaderMock, buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
             modelListenerMock, tasksCompletionListener, buildCompletionListener, internalBuildListener, buildExecuter,
             buildServices);
@@ -302,7 +303,7 @@ public class DefaultGradleLauncherTest {
 
     private void expectInitScriptsExecuted() {
         context.checking(new Expectations() {{
-            one(initscriptHandlerMock).executeScripts(gradleMock);
+            one(initScriptHandlerMock).executeScripts(gradleMock);
         }});
     }
 
@@ -344,12 +345,12 @@ public class DefaultGradleLauncherTest {
         });
     }
 
-    private void startEvent(Expectations exp, String eventType) {
-        exp.one(internalBuildListener).started(exp.with(Expectations.any(BuildOperationInternal.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
+    private void startEvent(Expectations exp, String operationName) {
+        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByNameMatcher(operationName)), exp.with(Expectations.any(long.class)));
     }
 
-    private void finishEvent(Expectations exp, String eventType) {
-        exp.one(internalBuildListener).finished(exp.with(Expectations.any(BuildOperationInternal.class)), exp.with(Expectations.any(long.class)), exp.with(Expectations.any(long.class)), exp.with(eventType));
+    private void finishEvent(Expectations exp, String operationName) {
+        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByNameMatcher(operationName)), exp.with(Expectations.any(long.class)), exp.with(Expectations.any(long.class)));
     }
 
     private void expectDagBuilt() {
@@ -391,5 +392,23 @@ public class DefaultGradleLauncherTest {
                 return (result.getGradle() == gradleMock) && exceptionMatcher.matches(result.getFailure());
             }
         };
+    }
+
+    private static final class BuildOperationInternalByNameMatcher extends TypeSafeMatcher<BuildOperationInternal> {
+        private final String operationName;
+
+        private BuildOperationInternalByNameMatcher(String operationName) {
+            this.operationName = operationName;
+        }
+
+        @Override
+        protected boolean matchesSafely(BuildOperationInternal item) {
+            return item.getName().equals(operationName);
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("is BuildOperationInternal with name " + operationName);
+        }
     }
 }
