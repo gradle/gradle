@@ -77,7 +77,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             TaskInternal task = taskInfo.getTask();
             Object id = OperationIdGenerator.generateId(task);
             Object parentId = OperationIdGenerator.generateId(InternalBuildListener.EXECUTING_TASKS, task.getProject().getGradle());
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, task, parentId);
+            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentId, task);
             synchronized (lock) {
                 taskListener.beforeExecute(taskOperation);
             }

@@ -17,30 +17,34 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
 
-public final class BuildOperationInternal implements IdentifiableOperation {
+public final class BuildOperationInternal {
     private final Object id;
+    private final Object parentId;
     private final String name;
     private final Object payload;
-    private final Object parentId;
     private final long startTime;
     private final long endTime;
 
-    public BuildOperationInternal(Object id, String name, Object payload, Object parentId, long startTime) {
-        this(id, name, payload, parentId, startTime, 0);
+    public BuildOperationInternal(Object id, Object parentId, String name, Object payload, long startTime) {
+        this(id, parentId, name, payload, startTime, 0);
     }
 
-    public BuildOperationInternal(Object id, String name, Object payload, Object parentId, long startTime, long endTime) {
+    public BuildOperationInternal(Object id, Object parentId, String name, Object payload, long startTime, long endTime) {
         this.id = id;
+        this.parentId = parentId;
         this.name = name;
         this.payload = payload;
-        this.parentId = parentId;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    @Override
     public Object getId() {
         return id;
+    }
+
+    @Nullable
+    public Object getParentId() {
+        return parentId;
     }
 
     public String getName() {
@@ -49,11 +53,6 @@ public final class BuildOperationInternal implements IdentifiableOperation {
 
     public Object getPayload() {
         return payload;
-    }
-
-    @Nullable
-    public Object getParentId() {
-        return parentId;
     }
 
     public long getStartTime() {

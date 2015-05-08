@@ -217,7 +217,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T runBuildOperation(Object id, Object parentId, String operationName, Factory<T> factory) {
         long startTime = System.currentTimeMillis();
-        BuildOperationInternal startEvent = new BuildOperationInternal(id, operationName, gradle, parentId, startTime);
+        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operationName, gradle, startTime);
         internalBuildListener.started(startEvent);
 
         T result = null;
@@ -228,7 +228,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
             error = e;
         }
 
-        BuildOperationInternal endEvent = new BuildOperationInternal(id, operationName, error != null ? error : result, parentId, startTime, System.currentTimeMillis());
+        BuildOperationInternal endEvent = new BuildOperationInternal(id, parentId, operationName, error != null ? error : result, startTime, System.currentTimeMillis());
         internalBuildListener.finished(endEvent);
 
         if (error != null) {

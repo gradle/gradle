@@ -17,30 +17,27 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.progress.IdentifiableOperation;
 
-public final class TaskOperationInternal implements IdentifiableOperation {
+public final class TaskOperationInternal {
     private final Object id;
-    private final TaskInternal task;
     private final Object parentId;
+    private final TaskInternal task;
 
-    public TaskOperationInternal(Object id, TaskInternal task, Object parentId) {
+    public TaskOperationInternal(Object id, Object parentId, TaskInternal task) {
         this.id = id;
-        this.task = task;
         this.parentId = parentId;
+        this.task = task;
     }
 
-    @Override
     public Object getId() {
         return id;
     }
 
-    public TaskInternal getTask() {
-        return task;
-    }
-
-    @Override
     public Object getParentId() {
         return parentId;
+    }
+
+    public TaskInternal getTask() {
+        return task;
     }
 }
