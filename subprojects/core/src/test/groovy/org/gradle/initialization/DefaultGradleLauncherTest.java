@@ -29,8 +29,8 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.internal.progress.BuildOperation;
 import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -179,14 +179,14 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {{
             one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
-            startEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            startEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-            finishEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-            finishEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
+            startEvent(this, BuildOperationType.RUNNING_BUILD);
+            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            startEvent(this, BuildOperationType.LOADING_BUILD);
+            finishEvent(this, BuildOperationType.LOADING_BUILD);
+            finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
             one(exceptionAnalyserMock).transform(exception);
@@ -237,12 +237,12 @@ public class DefaultGradleLauncherTest {
             will(throwException(failure));
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
-            startEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            finishEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
+            startEvent(this, BuildOperationType.RUNNING_BUILD);
+            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
@@ -264,20 +264,20 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
-            startEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-            startEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            finishEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-            startEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-            finishEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-            startEvent(this, BuildOperation.CONFIGURING_BUILD_OPERATION);
-            finishEvent(this, BuildOperation.CONFIGURING_BUILD_OPERATION);
-            startEvent(this, BuildOperation.POPULATING_TASK_GRAPH_OPERATION);
-            finishEvent(this, BuildOperation.POPULATING_TASK_GRAPH_OPERATION);
-            startEvent(this, BuildOperation.EXECUTING_TASKS);
-            finishEvent(this, BuildOperation.EXECUTING_TASKS);
-            finishEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
+            startEvent(this, BuildOperationType.RUNNING_BUILD);
+            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+            startEvent(this, BuildOperationType.LOADING_BUILD);
+            finishEvent(this, BuildOperationType.LOADING_BUILD);
+            startEvent(this, BuildOperationType.CONFIGURING_BUILD);
+            finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
+            startEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
+            finishEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
+            startEvent(this, BuildOperationType.EXECUTING_TASKS);
+            finishEvent(this, BuildOperationType.EXECUTING_TASKS);
+            finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
@@ -330,32 +330,32 @@ public class DefaultGradleLauncherTest {
                 one(buildBroadcaster).projectsEvaluated(gradleMock);
                 one(buildBroadcaster).buildFinished(with(result(nullValue(Throwable.class))));
                 one(modelListenerMock).onConfigure(gradleMock);
-                startEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
-                startEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-                finishEvent(this, BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION);
-                startEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-                finishEvent(this, BuildOperation.EVALUATING_SETTINGS_OPERATION);
-                startEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-                finishEvent(this, BuildOperation.LOADING_BUILD_OPERATION);
-                startEvent(this, BuildOperation.CONFIGURING_BUILD_OPERATION);
-                finishEvent(this, BuildOperation.CONFIGURING_BUILD_OPERATION);
+                startEvent(this, BuildOperationType.RUNNING_BUILD);
+                startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+                finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
+                startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+                finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
+                startEvent(this, BuildOperationType.LOADING_BUILD);
+                finishEvent(this, BuildOperationType.LOADING_BUILD);
+                startEvent(this, BuildOperationType.CONFIGURING_BUILD);
+                finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
                 if (execute) {
-                    startEvent(this, BuildOperation.POPULATING_TASK_GRAPH_OPERATION);
-                    finishEvent(this, BuildOperation.POPULATING_TASK_GRAPH_OPERATION);
-                    startEvent(this, BuildOperation.EXECUTING_TASKS);
-                    finishEvent(this, BuildOperation.EXECUTING_TASKS);
+                    startEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
+                    finishEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
+                    startEvent(this, BuildOperationType.EXECUTING_TASKS);
+                    finishEvent(this, BuildOperationType.EXECUTING_TASKS);
                 }
-                finishEvent(this, BuildOperation.RUNNING_BUILD_OPERATION);
+                finishEvent(this, BuildOperationType.RUNNING_BUILD);
             }
         });
     }
 
-    private void startEvent(Expectations exp, BuildOperation operation) {
-        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByOperationMatcher(operation)));
+    private void startEvent(Expectations exp, BuildOperationType operationType) {
+        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByOperationTypeMatcher(operationType)));
     }
 
-    private void finishEvent(Expectations exp, BuildOperation operation) {
-        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByOperationMatcher(operation)));
+    private void finishEvent(Expectations exp, BuildOperationType operationType) {
+        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByOperationTypeMatcher(operationType)));
     }
 
     private void expectDagBuilt() {
@@ -399,21 +399,21 @@ public class DefaultGradleLauncherTest {
         };
     }
 
-    private static final class BuildOperationInternalByOperationMatcher extends TypeSafeMatcher<BuildOperationInternal> {
-        private final BuildOperation operation;
+    private static final class BuildOperationInternalByOperationTypeMatcher extends TypeSafeMatcher<BuildOperationInternal> {
+        private final BuildOperationType operationType;
 
-        private BuildOperationInternalByOperationMatcher(BuildOperation operation) {
-            this.operation = operation;
+        private BuildOperationInternalByOperationTypeMatcher(BuildOperationType operationType) {
+            this.operationType = operationType;
         }
 
         @Override
         protected boolean matchesSafely(BuildOperationInternal item) {
-            return item.getOperation().equals(operation);
+            return item.getOperationType().equals(operationType);
         }
 
         @Override
         public void describeTo(Description description) {
-            description.appendText("is BuildOperationInternal for operation " + operation);
+            description.appendText("is BuildOperationInternal for operation type " + operationType);
         }
     }
 }

@@ -26,8 +26,8 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.progress.BuildOperation;
 import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.logging.LoggingManagerInternal;
@@ -108,7 +108,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        return runRootBuildOperation(BuildOperation.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
+        return runRootBuildOperation(BuildOperationType.RUNNING_BUILD, new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
                 buildListener.buildStarted(gradle);
@@ -129,7 +129,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        runBuildOperation(BuildOperation.EVALUATING_INIT_SCRIPTS_OPERATION, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EVALUATING_INIT_SCRIPTS, new Factory<Void>() {
             @Override
             public Void create() {
                 initScriptHandler.executeScripts(gradle);
@@ -138,7 +138,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Evaluate settings script
-        final SettingsInternal settings = runBuildOperation(BuildOperation.EVALUATING_SETTINGS_OPERATION, new Factory<SettingsInternal>() {
+        final SettingsInternal settings = runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Factory<SettingsInternal>() {
             @Override
             public SettingsInternal create() {
                 SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
@@ -148,7 +148,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Load build
-        runBuildOperation(BuildOperation.LOADING_BUILD_OPERATION, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.LOADING_BUILD, new Factory<Void>() {
             @Override
             public Void create() {
                 buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
@@ -158,7 +158,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Configure build
-        runBuildOperation(BuildOperation.CONFIGURING_BUILD_OPERATION, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.CONFIGURING_BUILD, new Factory<Void>() {
             @Override
             public Void create() {
                 buildConfigurer.configure(gradle);
@@ -178,7 +178,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        runBuildOperation(BuildOperation.POPULATING_TASK_GRAPH_OPERATION, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.POPULATING_TASK_GRAPH, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.select(gradle);
@@ -192,7 +192,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Execute build
-        runBuildOperation(BuildOperation.EXECUTING_TASKS, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EXECUTING_TASKS, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.execute();
@@ -204,21 +204,21 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    private <T> T runRootBuildOperation(BuildOperation operation, Factory<T> factory) {
+    private <T> T runRootBuildOperation(BuildOperationType operationType, Factory<T> factory) {
         Object id = OperationIdGenerator.generateId(gradle);
         Object parentId = OperationIdGenerator.generateId(gradle.getParent());
-        return runBuildOperation(id, parentId, operation, factory);
+        return runBuildOperation(id, parentId, operationType, factory);
     }
 
-    private <T> T runBuildOperation(BuildOperation operation, Factory<T> factory) {
-        Object id = OperationIdGenerator.generateId(operation, gradle);
+    private <T> T runBuildOperation(BuildOperationType operationType, Factory<T> factory) {
+        Object id = OperationIdGenerator.generateId(operationType, gradle);
         Object parentId = OperationIdGenerator.generateId(gradle);
-        return runBuildOperation(id, parentId, operation, factory);
+        return runBuildOperation(id, parentId, operationType, factory);
     }
 
-    private <T> T runBuildOperation(Object id, Object parentId, BuildOperation operation, Factory<T> factory) {
+    private <T> T runBuildOperation(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
         long startTime = System.currentTimeMillis();
-        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operation, gradle, startTime);
+        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operationType, gradle, startTime);
         internalBuildListener.started(startEvent);
 
         T result = null;
@@ -229,7 +229,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
             error = e;
         }
 
-        BuildOperationInternal endEvent = new BuildOperationInternal(id, parentId, operation, error != null ? error : result, startTime, System.currentTimeMillis());
+        BuildOperationInternal endEvent = new BuildOperationInternal(id, parentId, operationType, error != null ? error : result, startTime, System.currentTimeMillis());
         internalBuildListener.finished(endEvent);
 
         if (error != null) {

@@ -20,19 +20,19 @@ import org.gradle.api.Nullable;
 public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;
-    private final BuildOperation operation;
+    private final BuildOperationType operationType;
     private final Object payload;
     private final long startTime;
     private final long endTime;
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperation operation, Object payload, long startTime) {
-        this(id, parentId, operation, payload, startTime, 0);
+    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime) {
+        this(id, parentId, operationType, payload, startTime, 0);
     }
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperation operation, Object payload, long startTime, long endTime) {
+    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime, long endTime) {
         this.id = id;
         this.parentId = parentId;
-        this.operation = operation;
+        this.operationType = operationType;
         this.payload = payload;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -47,8 +47,8 @@ public final class BuildOperationInternal {
         return parentId;
     }
 
-    public BuildOperation getOperation() {
-        return operation;
+    public BuildOperationType getOperationType() {
+        return operationType;
     }
 
     public Object getPayload() {

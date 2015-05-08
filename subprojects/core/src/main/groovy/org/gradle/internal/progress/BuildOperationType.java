@@ -19,19 +19,19 @@ package org.gradle.internal.progress;
 /**
  * Enumerates the build operations tracked by the progress event infrastructure.
  */
-public enum BuildOperation {
+public enum BuildOperationType {
 
-    RUNNING_BUILD_OPERATION("Running build"),
-    EVALUATING_INIT_SCRIPTS_OPERATION("Evaluating init scripts"),
-    EVALUATING_SETTINGS_OPERATION("Evaluating settings"),
-    LOADING_BUILD_OPERATION("Loading build"),
-    CONFIGURING_BUILD_OPERATION("Configuring build"),
-    POPULATING_TASK_GRAPH_OPERATION("Populating task graph"),
+    RUNNING_BUILD("Running build"),
+    EVALUATING_INIT_SCRIPTS("Evaluating init scripts"),
+    EVALUATING_SETTINGS("Evaluating settings"),
+    LOADING_BUILD("Loading build"),
+    CONFIGURING_BUILD("Configuring build"),
+    POPULATING_TASK_GRAPH("Populating task graph"),
     EXECUTING_TASKS("Executing tasks");
 
     private String name;
 
-    BuildOperation(String name) {
+    BuildOperationType(String name) {
         this.name = name;
     }
 
