@@ -176,6 +176,7 @@ public class DefaultGradleLauncherTest {
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
+            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             startEvent(this, InternalBuildListener.RUNNING_BUILD_OPERATION);
             startEvent(this, InternalBuildListener.EVALUATING_INIT_SCRIPTS_OPERATION);
@@ -229,6 +230,7 @@ public class DefaultGradleLauncherTest {
         expectLoggingStarted();
         expectInitScriptsExecuted();
         context.checking(new Expectations() {{
+            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             one(settingsHandlerMock).findAndLoadSettings(gradleMock);
             will(throwException(failure));
@@ -257,6 +259,7 @@ public class DefaultGradleLauncherTest {
         expectDagBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
+            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
@@ -320,6 +323,7 @@ public class DefaultGradleLauncherTest {
     private void expectBuildListenerCallbacks(final boolean execute) {
         context.checking(new Expectations() {
             {
+                one(gradleMock).getParent();
                 one(buildBroadcaster).buildStarted(gradleMock);
                 one(buildBroadcaster).projectsLoaded(gradleMock);
                 one(buildBroadcaster).projectsEvaluated(gradleMock);
@@ -346,11 +350,11 @@ public class DefaultGradleLauncherTest {
     }
 
     private void startEvent(Expectations exp, String operationName) {
-        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByNameMatcher(operationName)), exp.with(Expectations.any(long.class)));
+        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByNameMatcher(operationName)));
     }
 
     private void finishEvent(Expectations exp, String operationName) {
-        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByNameMatcher(operationName)), exp.with(Expectations.any(long.class)), exp.with(Expectations.any(long.class)));
+        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByNameMatcher(operationName)));
     }
 
     private void expectDagBuilt() {

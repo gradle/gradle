@@ -38,24 +38,28 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void started(BuildOperationInternal source, long startTime) {
-        eventConsumer.dispatch(new DefaultBuildOperationStartedProgressEvent(startTime, toBuildOperationDescriptor(source)));
+    public void started(BuildOperationInternal buildOperation) {
+        eventConsumer.dispatch(new DefaultBuildOperationStartedProgressEvent(buildOperation.getStartTime(), toBuildOperationDescriptor(buildOperation)));
     }
 
     @Override
-    public void finished(BuildOperationInternal source, long startTime, long endTime) {
-        eventConsumer.dispatch(new DefaultBuildOperationFinishedProgressEvent(endTime, toBuildOperationDescriptor(source), adaptResult(source.getPayload(), startTime, endTime)));
+    public void finished(BuildOperationInternal buildOperation) {
+        eventConsumer.dispatch(new DefaultBuildOperationFinishedProgressEvent(buildOperation.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(buildOperation)));
     }
 
-    private DefaultBuildDescriptor toBuildOperationDescriptor(BuildOperationInternal source) {
-        Object id = source.getId();
-        String name = source.getName();
-        String displayName = source.getName();
-        Object parentId = source.getParentId();
+    private DefaultBuildDescriptor toBuildOperationDescriptor(BuildOperationInternal buildOperation) {
+        Object id = buildOperation.getId();
+        String name = buildOperation.getName();
+        String displayName = buildOperation.getName();
+        Object parentId = buildOperation.getParentId();
         return new DefaultBuildDescriptor(id, name, displayName, parentId);
     }
 
-    private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {
+    private AbstractBuildOperationResult adaptResult(BuildOperationInternal source) {
+        Object result = source.getPayload();
+        long startTime = source.getStartTime();
+        long endTime = source.getEndTime();
+
         if (result instanceof BuildResult) {
             return adaptResult((BuildResult) result, startTime, endTime);
         } else if (result instanceof Throwable) {

@@ -25,8 +25,8 @@ public interface InternalBuildListener {
     String POPULATING_TASK_GRAPH_OPERATION = "Populating task graph";
     String EXECUTING_TASKS = "Executing tasks";
 
-    void started(BuildOperationInternal source, long startTime);
+    void started(BuildOperationInternal buildOperation);
 
-    void finished(BuildOperationInternal source, long startTime, long endTime);
+    void finished(BuildOperationInternal buildOperation);
 
 }

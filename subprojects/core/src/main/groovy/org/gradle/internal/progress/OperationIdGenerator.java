@@ -21,15 +21,15 @@ import org.gradle.api.invocation.Gradle;
 public final class OperationIdGenerator {
 
     public static Object generateId(Task task) {
-        return generateId(task.getProject().getGradle(), task.getPath());
+        return generateId(task.getProject().getGradle()) + "-" + task.getPath();
+    }
+
+     public static Object generateId(String operationName, Gradle gradle) {
+        return generateId(gradle) + "-" + operationName;
     }
 
     public static Object generateId(Gradle gradle) {
         return gradle == null ? null : String.valueOf(System.identityHashCode(gradle));
-    }
-
-    public static Object generateId(Gradle gradle, String operationName) {
-        return generateId(gradle) + "-" + operationName;
     }
 
 }

@@ -53,8 +53,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
 
-    private BuildOperationInternal parentEvent;
-
     /**
      * Creates a new instance.
      */
@@ -109,7 +107,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        return internalBuildOperation(OperationIdGenerator.generateId(gradle), InternalBuildListener.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
+        return runBuildOperation(OperationIdGenerator.generateId(gradle), OperationIdGenerator.generateId(gradle.getParent()), InternalBuildListener.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
                 buildListener.buildStarted(gradle);
@@ -130,7 +128,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        internalBuildOperation(InternalBuildListener.EVALUATING_INIT_SCRIPTS_OPERATION, new Factory<Void>() {
+        runBuildOperation(InternalBuildListener.EVALUATING_INIT_SCRIPTS_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 initScriptHandler.executeScripts(gradle);
@@ -139,7 +137,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Evaluate settings script
-        final SettingsInternal settings = internalBuildOperation(InternalBuildListener.EVALUATING_SETTINGS_OPERATION, new Factory<SettingsInternal>() {
+        final SettingsInternal settings = runBuildOperation(InternalBuildListener.EVALUATING_SETTINGS_OPERATION, new Factory<SettingsInternal>() {
             @Override
             public SettingsInternal create() {
                 SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
@@ -149,7 +147,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Load build
-        internalBuildOperation(InternalBuildListener.LOADING_BUILD_OPERATION, new Factory<Void>() {
+        runBuildOperation(InternalBuildListener.LOADING_BUILD_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
@@ -159,7 +157,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Configure build
-        internalBuildOperation(InternalBuildListener.CONFIGURING_BUILD_OPERATION, new Factory<Void>() {
+        runBuildOperation(InternalBuildListener.CONFIGURING_BUILD_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildConfigurer.configure(gradle);
@@ -179,7 +177,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        internalBuildOperation(InternalBuildListener.POPULATING_TASK_GRAPH_OPERATION, new Factory<Void>() {
+        runBuildOperation(InternalBuildListener.POPULATING_TASK_GRAPH_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.select(gradle);
@@ -193,7 +191,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Execute build
-        internalBuildOperation(InternalBuildListener.EXECUTING_TASKS, new Factory<Void>() {
+        runBuildOperation(InternalBuildListener.EXECUTING_TASKS, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.execute();
@@ -205,12 +203,17 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    private <T> T internalBuildOperation(Object id, String operationName, Factory<T> factory) {
-        Object eventId = id != null ? id : operationName;
-        BuildOperationInternal startEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, operationName, gradle, parentEvent, parentEvent == null ? null : parentEvent.getId());
-        long sd = System.currentTimeMillis();
-        internalBuildListener.started(startEvent, sd);
-        parentEvent = startEvent;
+    private <T> T runBuildOperation(String operationName, Factory<T> factory) {
+        Object id = OperationIdGenerator.generateId(operationName, gradle);
+        Object parentId = OperationIdGenerator.generateId(gradle);
+        return runBuildOperation(id, parentId, operationName, factory);
+    }
+
+    private <T> T runBuildOperation(Object id, Object parentId, String operationName, Factory<T> factory) {
+        long startTime = System.currentTimeMillis();
+        BuildOperationInternal startEvent = new BuildOperationInternal(id, operationName, gradle, parentId, startTime);
+        internalBuildListener.started(startEvent);
+
         T result = null;
         Throwable error = null;
         try {
@@ -218,17 +221,14 @@ public class DefaultGradleLauncher extends GradleLauncher {
         } catch (Throwable e) {
             error = e;
         }
-        parentEvent = startEvent.getParent();
-        BuildOperationInternal endEvent = new BuildOperationInternal(parentEvent == null ? eventId : parentEvent.getId() + ":" + eventId, operationName, error != null ? error : result, parentEvent, parentEvent == null ? null : parentEvent.getId());
-        internalBuildListener.finished(endEvent, sd, System.currentTimeMillis());
+
+        BuildOperationInternal endEvent = new BuildOperationInternal(id, operationName, error != null ? error : result, parentId, startTime, System.currentTimeMillis());
+        internalBuildListener.finished(endEvent);
+
         if (error != null) {
             UncheckedException.throwAsUncheckedException(error);
         }
         return result;
-    }
-
-    private <T> T internalBuildOperation(String eventType, Factory<T> factory) {
-        return internalBuildOperation(null, eventType, factory);
     }
 
     /**

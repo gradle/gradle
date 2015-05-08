@@ -21,15 +21,21 @@ public final class BuildOperationInternal implements IdentifiableOperation {
     private final Object id;
     private final String name;
     private final Object payload;
-    private final BuildOperationInternal parent;
     private final Object parentId;
+    private final long startTime;
+    private final long endTime;
 
-    public BuildOperationInternal(Object id, String name, Object payload, BuildOperationInternal parent, Object parentId) {
+    public BuildOperationInternal(Object id, String name, Object payload, Object parentId, long startTime) {
+        this(id, name, payload, parentId, startTime, 0);
+    }
+
+    public BuildOperationInternal(Object id, String name, Object payload, Object parentId, long startTime, long endTime) {
         this.id = id;
         this.name = name;
         this.payload = payload;
-        this.parent = parent;
         this.parentId = parentId;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     @Override
@@ -46,12 +52,15 @@ public final class BuildOperationInternal implements IdentifiableOperation {
     }
 
     @Nullable
-    public BuildOperationInternal getParent() {
-        return parent;
-    }
-
-    @Nullable
     public Object getParentId() {
         return parentId;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
     }
 }

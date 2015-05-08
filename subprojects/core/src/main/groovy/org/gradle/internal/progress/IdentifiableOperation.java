@@ -15,10 +15,13 @@
  */
 package org.gradle.internal.progress;
 
+import org.gradle.api.Nullable;
+
 public interface IdentifiableOperation {
 
     Object getId();
 
+    @Nullable
     Object getParentId();
 
 }
