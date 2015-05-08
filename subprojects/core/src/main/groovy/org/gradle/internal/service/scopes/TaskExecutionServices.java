@@ -44,8 +44,8 @@ import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
 
-    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator(Gradle gradle) {
-        return gradle.getStartParameter().isContinuousModeEnabled()
+    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator(StartParameter startParameter) {
+        return startParameter.isContinuousModeEnabled()
             ? new DefaultTaskFileSystemInputsAccumulator()
             : new NoopTaskFileSystemInputsAccumulator();
     }
