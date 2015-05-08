@@ -40,7 +40,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { throw new RuntimeException() }.run()
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { throw new RuntimeException() }.run()
         }
 
         then:
@@ -57,7 +57,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations).forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.model(BuildInvocations).forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     result << event
                 }.get()
         }
@@ -76,7 +76,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     result << event
                 }.run()
         }
@@ -94,7 +94,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     throw new IllegalStateException("Throwing an exception on purpose")
                 }.run()
         }
@@ -114,7 +114,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> resultsOfLastListener = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     resultsOfFirstListener.add(event)
                 }.addTaskProgressListener { TaskProgressEvent event ->
                     throw new IllegalStateException("Throwing an exception on purpose")
@@ -133,28 +133,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.5")
     def "receive task progress events for successful test run"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+        goodCode()
 
         when:
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
                     result << event
                 }.run()
@@ -166,13 +151,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-            compileJava         : ['started', 'up-to-date'],
+            compileJava: ['started', 'succeeded'],
             processResources    : ['started', 'up-to-date'],
-            classes             : ['started', 'up-to-date'],
-            compileTestJava     : ['started', 'succeeded'],
-            processTestResources: ['started', 'up-to-date'],
-            testClasses         : ['started', 'succeeded'],
-            test                : ['started', 'succeeded']
+            classes    : ['started', 'succeeded'],
+            jar        : ['started', 'succeeded'],
+            assemble   : ['started', 'succeeded']
         ]
     }
 
@@ -228,21 +211,17 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
     def "receive task progress events for disabled test run"() {
-        given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-            test.enabled = false
+            compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            assemble.enabled = false
         """
 
-        file("src/test/java/MyTest.java") << """
+        file("src/main/java/example/MyClass.java") << """
             package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
-                     org.junit.Assert.assertEquals(1, 2);
+            public class MyClass {
+                public void foo() throws Exception {
+                    Thread.sleep(100);
                 }
             }
         """
@@ -251,7 +230,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
                     assert event != null
                     result << event
                 }.run()
@@ -263,13 +242,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-            compileJava         : ['started', 'up-to-date'],
+            compileJava: ['started', 'succeeded'],
             processResources    : ['started', 'up-to-date'],
-            classes             : ['started', 'up-to-date'],
-            compileTestJava     : ['started', 'succeeded'],
-            processTestResources: ['started', 'up-to-date'],
-            testClasses         : ['started', 'succeeded'],
-            test                : ['started', 'skipped']
+            classes    : ['started', 'succeeded'],
+            jar        : ['started', 'succeeded'],
+            assemble   : ['started', 'skipped']
         ]
     }
 
@@ -278,7 +255,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     def "task progress event can be received if tasks are executed in parallel"() {
         given:
         buildFile << """
-
             @ParallelizableTask
             class ParTask extends DefaultTask {
                 @TaskAction zzz() { Thread.sleep(1000) }
@@ -318,7 +294,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion('>=2.5')
     @NotYetImplemented
     def "should receive task events from buildSrc"() {
-        buildFile << """task dummy()"""
+        buildFile << """
+            apply plugin: 'java'
+            task dummy()
+        """
+
         file("buildSrc/build.gradle") << """
             task taskInBuildSrc()
         """
@@ -359,10 +339,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion('>=2.5')
     @NotYetImplemented
     def "should receive task events from GradleBuild"() {
-        buildFile << """task innerBuild(type:GradleBuild) {
-            buildFile = file('other.gradle')
-            tasks = ['innerTask']
-        }"""
+        buildFile << """
+            task innerBuild(type:GradleBuild) {
+                buildFile = file('other.gradle')
+                tasks = ['innerTask']
+            }
+        """
+
         file("other.gradle") << """
             task innerTask()
         """
@@ -382,21 +365,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-            ':innerBuild'                   : ['started', 'succeeded'],
-            ':buildSrc:clean'               : ['started', 'up-to-date'],
-            ':buildSrc:compileJava'         : ['started', 'up-to-date'],
-            ':buildSrc:compileGroovy'       : ['started', 'up-to-date'],
-            ':buildSrc:processResources'    : ['started', 'up-to-date'],
-            ':buildSrc:classes'             : ['started', 'up-to-date'],
-            ':buildSrc:jar'                 : ['started', 'succeeded'],
-            ':buildSrc:assemble'            : ['started', 'succeeded'],
-            ':buildSrc:compileTestJava'     : ['started', 'up-to-date'],
-            ':buildSrc:compileTestGroovy'   : ['started', 'up-to-date'],
-            ':buildSrc:processTestResources': ['started', 'up-to-date'],
-            ':buildSrc:testClasses'         : ['started', 'up-to-date'],
-            ':buildSrc:test'                : ['started', 'up-to-date'],
-            ':buildSrc:build'               : ['started', 'up-to-date'],
-            ':innerTask'                    : ['started', 'up-to-date']
+            ':innerTask' : ['started', 'up-to-date'],
+            ':innerBuild': ['started', 'succeeded']
         ]
     }
 
@@ -453,16 +423,14 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
-        file("src/test/java/example/MyTest.java") << """
+        file("src/main/java/example/MyClass.java") << """
             package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
+            public class MyClass {
+                public void foo() throws Exception {
+                    Thread.sleep(100);
                 }
             }
         """
