@@ -100,7 +100,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), getObjectFileExtension(), useCommandFile);
+        // Disable command line file for now because some custom assemblers
+        // don't understand the same arguments as GCC.
+        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), getObjectFileExtension(), false);
     }
 
     @Override
@@ -130,7 +132,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return baseInvocation;
     }
 
-    @Override
     public String getPCHFileExtension() {
         return ".h.gch";
     }

@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
  *     }
  *
  *     {@literal @}BinaryTasks
- *     void createBinaryTasks(CollectionBuilder<Task> tasks, SampleBinary binary) {
+ *     void createBinaryTasks(ModelMap<Task> tasks, SampleBinary binary) {
  *         tasks.create("${binary.name}Task1", MyCustomBinaryCreationTask)
  *         tasks.create("${binary.name}Task2") {
  *             dependsOn "${binary.name}Task1"

@@ -24,9 +24,9 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         CommandLineToolInvocation invocation = invocationContext.createInvocation(

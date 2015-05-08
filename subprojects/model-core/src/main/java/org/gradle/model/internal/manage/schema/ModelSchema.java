@@ -25,7 +25,8 @@ public class ModelSchema<T> {
     public static enum Kind {
         VALUE(false, true), // at the moment we are conflating this with unstructured primitives
         COLLECTION,
-        STRUCT, // type is guaranteed to be an interface
+        MAP(false, false), // not quite
+        STRUCT,
         UNMANAGED(false, false); // some type we know nothing about
 
         private final boolean isManaged;
@@ -64,6 +65,10 @@ public class ModelSchema<T> {
         return new ModelCollectionSchema<T>(type, elementType);
     }
 
+    public static <T> ModelMapSchema<T> map(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
+        return new ModelMapSchema<T>(type, elementType, managedImpl);
+    }
+
     public static <T> ModelSchema<T> unmanaged(ModelType<T> type) {
         return new ModelSchema<T>(type, Kind.UNMANAGED);
     }
@@ -81,4 +86,8 @@ public class ModelSchema<T> {
         return kind;
     }
 
+    @Override
+    public String toString() {
+        return kind.toString().toLowerCase() + " " + type;
+    }
 }

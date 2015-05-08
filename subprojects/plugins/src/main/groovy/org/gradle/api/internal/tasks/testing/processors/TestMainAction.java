@@ -19,27 +19,28 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.id.IdGenerator;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
-    private final IdGenerator<?> idGenerator;
+    private final Object testTaskOperationId;
+    private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, Object testTaskOperationId, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         this.timeProvider = timeProvider;
-        this.idGenerator = idGenerator;
+        this.testTaskOperationId = testTaskOperationId;
+        this.rootTestSuiteId = rootTestSuiteId;
         this.displayName = displayName;
     }
 
     public void run() {
-        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(idGenerator.generateId(), displayName);
+        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName, testTaskOperationId);
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);
@@ -53,14 +54,21 @@ public class TestMainAction implements Runnable {
         }
     }
 
-    private static class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        public RootTestSuiteDescriptor(Object id, String name) {
+    public static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        private final Object testTaskOperationId;
+
+        private RootTestSuiteDescriptor(Object id, String name, Object testTaskOperationId) {
             super(id, name);
+            this.testTaskOperationId = testTaskOperationId;
+        }
+
+        public Object getTestTaskOperationId() {
+            return testTaskOperationId;
         }
 
         @Override
         public String toString() {
-            return "tests";
+            return getName();
         }
     }
 }

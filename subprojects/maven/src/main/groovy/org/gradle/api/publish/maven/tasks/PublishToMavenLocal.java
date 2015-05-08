@@ -44,8 +44,8 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
         new PublishOperation(publication, "mavenLocal") {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new MavenLocalPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
+                MavenPublisher localPublisher = new MavenLocalPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator());
+                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(localPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), null);
             }

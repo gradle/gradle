@@ -72,9 +72,10 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    private int parallelThreadCount;
+    private boolean parallelProjectExecution;
     private boolean configureOnDemand;
     private int maxWorkerCount;
+    private boolean continuousModeEnabled;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -156,7 +157,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.rerunTasks = rerunTasks;
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
-        p.parallelThreadCount = parallelThreadCount;
+        p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
         return p;
@@ -566,22 +567,33 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *  0: Do not use parallel execution.
      * >0: Use this many parallel execution threads.
      *
-     * @deprecated In a future Gradle release, this will be replaced with dedicated parallel options.
+     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
+     *
      * @see #getMaxWorkerCount()
+     * @see #isParallelProjectExecutionEnabled()
      */
     @Deprecated
     public int getParallelThreadCount() {
-        return parallelThreadCount;
+        if (isParallelProjectExecutionEnabled()) {
+            return getMaxWorkerCount();
+        }
+        return 0;
     }
 
     /**
      * Specifies the number of parallel threads to use for build execution.
-     * 
+     *
      * @see #getParallelThreadCount()
      */
     @Deprecated
     public void setParallelThreadCount(int parallelThreadCount) {
-        this.parallelThreadCount = parallelThreadCount;
+        setParallelProjectExecutionEnabled(parallelThreadCount!=0);
+
+        if (parallelThreadCount < 1) {
+            setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
+        } else {
+            setMaxWorkerCount(parallelThreadCount);
+        }
     }
 
     /**
@@ -591,16 +603,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Incubating
     public boolean isParallelProjectExecutionEnabled() {
-        return parallelThreadCount != 0;
+        return parallelProjectExecution;
     }
 
+    /**
+     * Enables/disables parallel project execution.
+     *
+     * @see #isParallelProjectExecutionEnabled()
+     */
     @Incubating
-    public void setParallelProjectExecutionEnabled(boolean enabled) {
-        if (enabled) {
-            setParallelThreadCount(-1);
-        } else {
-            setParallelThreadCount(0);
-        }
+    public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
+        this.parallelProjectExecution = parallelProjectExecution;
     }
 
     /**
@@ -622,12 +635,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Specifies the maximum number of concurrent workers used for underlying build operations.
      *
+     * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
      * @see #getMaxWorkerCount()
      */
     @Incubating
     public void setMaxWorkerCount(int maxWorkerCount) {
         if (maxWorkerCount < 1) {
-            this.maxWorkerCount = 1;
+            throw new IllegalArgumentException("Max worker count must be > 0");
         } else {
             this.maxWorkerCount = maxWorkerCount;
         }
@@ -661,7 +675,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
-                + ", parallelThreadCount=" + parallelThreadCount
+                + ", parallelProjectExecution=" + parallelProjectExecution
                 + ", configureOnDemand=" + configureOnDemand
                 + ", maxWorkerCount=" + maxWorkerCount
                 + '}';
@@ -677,5 +691,15 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Incubating
     public void setConfigureOnDemand(boolean configureOnDemand) {
         this.configureOnDemand = configureOnDemand;
+    }
+
+    @Incubating
+    public boolean isContinuousModeEnabled() {
+        return continuousModeEnabled;
+    }
+
+    @Incubating
+    public void setContinuousModeEnabled(boolean continuousModeEnabled) {
+        this.continuousModeEnabled = continuousModeEnabled;
     }
 }

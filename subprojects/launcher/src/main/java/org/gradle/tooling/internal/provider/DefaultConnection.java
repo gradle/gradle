@@ -17,22 +17,23 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.FixedBuildCancellationToken;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.reflect.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.provider.connection.*;
+import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
+import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +58,12 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.2-rc-1 and later.
      */
     public void configure(ConnectionParameters parameters) {
-        initializeServices(getGradleUserHomeFromParameters(parameters));
-        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, parameters);
+        ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
+        File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
+        if (gradleUserHomeDir == null) {
+            gradleUserHomeDir = new BuildLayoutParameters().getGradleUserHomeDir();
+        }
+        initializeServices(gradleUserHomeDir);
         connection.configure(providerConnectionParameters);
     }
 
@@ -72,13 +77,6 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
                 .provider(new ConnectionScopeServices(loggingServices)).build();
         adapter = services.get(ProtocolToModelAdapter.class);
         connection = services.get(ProviderConnection.class);
-    }
-
-    private File getGradleUserHomeFromParameters(ConnectionParameters parameters) {
-        // If we have a ConnectionParameters object that exposes gradleUserHomeDir, then we use
-        // that, otherwise we just use the default temp directory
-        File fallback = new File(SystemProperties.getInstance().getJavaIoTmpDir());
-        return new CompatibleIntrospector(parameters).getSafely(fallback, "getGradleUserHomeDir");
     }
 
     /**

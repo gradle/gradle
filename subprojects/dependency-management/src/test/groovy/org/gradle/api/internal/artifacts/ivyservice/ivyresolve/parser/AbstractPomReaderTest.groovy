@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
-import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
-import org.gradle.internal.resource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile

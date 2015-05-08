@@ -19,7 +19,7 @@ import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.api.Transformer
-import org.gradle.api.reporting.components.ComponentReportOutputFormatter
+import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
@@ -250,7 +250,7 @@ class UserGuideSamplesRunner extends Runner {
             sampleRun.runs << run
         }
 
-        samplesById.nativeComponentReport.runs.each { it.outputFormatter = new ComponentReportOutputFormatter() }
+        samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
 
         if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
             // Ignore for now

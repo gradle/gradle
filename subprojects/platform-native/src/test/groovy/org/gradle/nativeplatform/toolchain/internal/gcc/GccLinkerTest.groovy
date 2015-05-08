@@ -29,11 +29,13 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class GccLinkerTest extends Specification {
+    public static final String LOG_LOCATION = "<log location>"
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def operationLogger =  Mock(BuildOperationLogger)
@@ -45,10 +47,6 @@ class GccLinkerTest extends Specification {
     BuildOperationQueue queue = Mock(BuildOperationQueue)
 
     GccLinker linker = new GccLinker(buildOperationProcessor, commandLineTool, invocationContext, false)
-
-    def setup() {
-        NativeServicesTestFixture.initialize()
-    }
 
     def "links all object files in a single execution"() {
         given:
@@ -80,7 +78,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
+        1 * operationLogger.getLogLocation() >> LOG_LOCATION
+        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
@@ -128,7 +127,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
+        1 * operationLogger.getLogLocation() >> LOG_LOCATION
+        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
@@ -165,7 +165,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
+        1 * operationLogger.getLogLocation() >> LOG_LOCATION
+        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
@@ -203,7 +204,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
+        1 * operationLogger.getLogLocation() >> LOG_LOCATION
+        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)

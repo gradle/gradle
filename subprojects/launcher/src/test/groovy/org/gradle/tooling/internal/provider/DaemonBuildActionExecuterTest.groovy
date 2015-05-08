@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildRequestContext
+import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.ReportedException
@@ -30,7 +31,7 @@ class DaemonBuildActionExecuterTest extends Specification {
     final BuildRequestContext buildRequestContext = Mock()
     final ProviderOperationParameters parameters = Mock()
     final DaemonParameters daemonParameters = Mock()
-    final DaemonBuildActionExecuter executer = new DaemonBuildActionExecuter(client, daemonParameters)
+    final DaemonBuildActionExecuter executer = new DaemonBuildActionExecuter(new DaemonClientBuildActionExecuter(client), daemonParameters)
 
     def unpacksReportedException() {
         def failure = new RuntimeException()

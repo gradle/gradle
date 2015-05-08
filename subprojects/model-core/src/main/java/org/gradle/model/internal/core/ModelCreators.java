@@ -18,9 +18,8 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.BiAction;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.internal.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
@@ -33,36 +32,60 @@ import java.util.List;
 abstract public class ModelCreators {
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
-        return unmanagedInstance(modelReference, Factories.constant(instance));
+        return bridgedInstance(modelReference, instance, Actions.doNothing());
+    }
+
+    public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance, Action<? super MutableModelNode> initializer) {
+        return unmanagedInstance(modelReference, Factories.constant(instance), initializer);
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
-        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer = new BiAction<MutableModelNode, List<ModelView<?>>>() {
-            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                modelNode.setPrivateData(modelReference.getType(), factory.create());
-            }
-        };
-
-        return of(modelReference, initializer)
-                .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
+        return unmanagedInstance(modelReference, factory, Actions.doNothing());
     }
 
-    public static Builder of(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-        return new Builder(modelReference, initializer);
+    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, Action<? super MutableModelNode> initializer) {
+        @SuppressWarnings("unchecked")
+        Action<? super MutableModelNode> initializers = Actions.composite(new Action<MutableModelNode>() {
+            public void execute(MutableModelNode modelNode) {
+                modelNode.setPrivateData(modelReference.getType(), factory.create());
+            }
+        }, initializer);
+
+        return of(modelReference.getPath(), initializers)
+            .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
+    }
+
+    public static Builder of(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+        return new Builder(path, initializer);
+    }
+
+    public static Builder of(ModelPath path, Action<? super MutableModelNode> initializer) {
+        return new Builder(path, BiActions.usingFirstArgument(initializer));
+    }
+
+    public static <T> Builder of(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
+        return of(modelReference.getPath(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode modelNode) {
+                T value = factory.create();
+                modelNode.setPrivateData(modelReference.getType(), value);
+            }
+        });
     }
 
     @NotThreadSafe
     public static class Builder {
         private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
-        private final ModelReference<?> modelReference;
+        private final ModelPath path;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private boolean ephemeral;
+        private boolean hidden;
 
         private ModelRuleDescriptor modelRuleDescriptor;
-        private List<? extends ModelReference<?>> inputs = Collections.emptyList();
+        private List<ModelReference<?>> inputs = Collections.emptyList();
 
-        private Builder(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
-            this.modelReference = modelReference;
+        private Builder(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+            this.path = path;
             this.initializer = initializer;
         }
 
@@ -76,7 +99,7 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder inputs(List<? extends ModelReference<?>> inputs) {
+        public Builder inputs(List<ModelReference<?>> inputs) {
             this.inputs = inputs;
             return this;
         }
@@ -92,6 +115,11 @@ abstract public class ModelCreators {
             return this;
         }
 
+        public Builder hidden(boolean flag) {
+            this.hidden = flag;
+            return this;
+        }
+
         public Builder ephemeral(boolean flag) {
             this.ephemeral = flag;
             return this;
@@ -99,7 +127,7 @@ abstract public class ModelCreators {
 
         public ModelCreator build() {
             ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, ephemeral, inputs, projection, initializer);
+            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, initializer);
         }
     }
 

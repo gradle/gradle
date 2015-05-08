@@ -19,12 +19,19 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.build.BuildProgressEvent;
+import org.gradle.tooling.events.build.BuildProgressListener;
+import org.gradle.tooling.events.task.TaskProgressEvent;
+import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.test.TestProgressEvent;
+import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
@@ -83,13 +90,61 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
+    @Override
+    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes) {
+        AllOperationsProgressListener delegatingListener = new AllOperationsProgressListener(listener);
+        if (eventTypes.contains(ProgressEventType.TEST)) {
+            addTestProgressListener(delegatingListener);
+        }
+        if (eventTypes.contains(ProgressEventType.TASK)) {
+            addTaskProgressListener(delegatingListener);
+        }
+        if (eventTypes.contains(ProgressEventType.BUILD)) {
+            addBuildProgressListener(delegatingListener);
+        }
+        return getThis();
+    }
+
     public T addTestProgressListener(TestProgressListener listener) {
         operationParamsBuilder.addTestProgressListener(listener);
+        return getThis();
+    }
+
+    public T addTaskProgressListener(TaskProgressListener listener) {
+        operationParamsBuilder.addTaskProgressListener(listener);
+        return getThis();
+    }
+
+    public T addBuildProgressListener(BuildProgressListener listener) {
+        operationParamsBuilder.addBuildProgressListener(listener);
         return getThis();
     }
 
     public T withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();
+    }
+
+    private static final class AllOperationsProgressListener implements TestProgressListener, TaskProgressListener, BuildProgressListener {
+        private final org.gradle.tooling.events.ProgressListener listener;
+
+        private AllOperationsProgressListener(org.gradle.tooling.events.ProgressListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void statusChanged(TestProgressEvent event) {
+            listener.statusChanged(event);
+        }
+
+        @Override
+        public void statusChanged(TaskProgressEvent event) {
+            listener.statusChanged(event);
+        }
+
+        @Override
+        public void statusChanged(BuildProgressEvent event) {
+            listener.statusChanged(event);
+        }
     }
 }

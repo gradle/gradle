@@ -27,21 +27,24 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
     private final boolean ephemeral;
+    private final boolean hidden;
     private final ModelProjection projection;
-    private final List<? extends ModelReference<?>> inputs;
+    private final List<ModelReference<?>> inputs;
     private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
 
     public ProjectionBackedModelCreator(
             ModelPath path,
             ModelRuleDescriptor descriptor,
             boolean ephemeral,
-            List<? extends ModelReference<?>> inputs,
+            boolean hidden,
+            List<ModelReference<?>> inputs,
             ModelProjection projection,
             BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
     ) {
         this.path = path;
         this.descriptor = descriptor;
         this.ephemeral = ephemeral;
+        this.hidden = hidden;
         this.projection = projection;
         this.inputs = inputs;
         this.initializer = initializer;
@@ -60,6 +63,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     }
 
     public void create(MutableModelNode node, List<ModelView<?>> inputs) {
+        node.setHidden(hidden);
         initializer.execute(node, inputs);
     }
 
@@ -68,7 +72,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return ephemeral;
     }
 
-    public List<? extends ModelReference<?>> getInputs() {
+    public List<ModelReference<?>> getInputs() {
         return inputs;
     }
 

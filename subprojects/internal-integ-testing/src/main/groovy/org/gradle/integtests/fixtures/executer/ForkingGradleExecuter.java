@@ -23,6 +23,7 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,9 +68,10 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
-                    + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
+                + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
+        NativeServicesTestFixture.initialize();
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {
@@ -130,9 +132,9 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
         gradleOpts.add("-ea");
 
-        //uncomment for debugging
-//        gradleOpts.add("-Xdebug");
-//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+        if (isDebug()) {
+            gradleOpts.addAll(DEBUG_ARGS);
+        }
 
         return gradleOpts;
     }

@@ -37,5 +37,9 @@
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]logging[/\\]LogLevel.java"/>
 
+    <!-- Protocol types may only define constants in interfaces -->
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
+
 
 </suppressions>

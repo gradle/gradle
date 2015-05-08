@@ -28,7 +28,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public String getDisplayName() {
-        return "project " + projectPath;
+        return "project ".concat(projectPath);
     }
 
     public String getProjectPath() {

@@ -24,11 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the associated method validates a model element, after the element has been configured and prior to its use.
- *
- * <p>The subject of the method should be the first parameter ot the method. Any inputs required by the method can be
- * declared as additional parameters.
- * </p>
+ * Denotes that the {@link RuleSource} method rule carrying this annotation validates the rule subject.
+ * <p>
+ * Validate rules execute after {@link Finalize} rules, but before rule subject is used as an input.
+ * The first parameter of the rule is the rule subject, which is <b>immutable</b>.
+ * <p>
+ * Please see {@link RuleSource} for more information on method rules.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

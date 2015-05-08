@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
-    private ProjectInternal dependencyProject;
+    private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;

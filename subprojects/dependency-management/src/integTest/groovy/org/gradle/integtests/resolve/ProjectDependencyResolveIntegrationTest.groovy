@@ -194,7 +194,7 @@ project(':b') {
         succeeds "check"
     }
 
-    public void "resolved project artifacts reflect late changes in project attributes"() {
+    public void "resolved project artifacts reflect project properties changed after task graph is built"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -202,7 +202,9 @@ project(':b') {
         file('a/build.gradle') << '''
             apply plugin: 'base'
             configurations { compile }
+            dependencies { compile project(path: ':b', configuration: 'compile') }
             task aJar(type: Jar) { }
+            gradle.taskGraph.whenReady { project.version = 'late' }
             artifacts { compile aJar }
 '''
         file('b/build.gradle') << '''
@@ -210,14 +212,18 @@ project(':b') {
             version = 'early'
             configurations { compile }
             task bJar(type: Jar) { }
-            gradle.taskGraph.whenReady { project.version = 'late' }
+            gradle.taskGraph.whenReady { project.version = 'transitive-late' }
             artifacts { compile bJar }
 '''
         file('build.gradle') << '''
-            configurations { compile }
-            dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) << {
-                assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+            }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
+                assert configurations.compile.collect { it.name } == ['a-late.jar', 'b-transitive-late.jar']
+                assert configurations.testCompile.collect { it.name } == ['a-late.jar', 'b-transitive-late.jar']
             }
 '''
 
@@ -234,7 +240,8 @@ project(':b') {
             apply plugin: 'base'
             configurations { compile }
             task configureJar << {
-                tasks.aJar.archiveName = "modified-artifact.txt"
+                tasks.aJar.extension = "txt"
+                tasks.aJar.classifier = "modified"
             }
             task aJar(type: Jar) {
                 dependsOn configureJar
@@ -248,8 +255,8 @@ project(':b') {
             }
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
-                assert configurations.compile.collect { it.name } == ['modified-artifact.txt']
-                assert configurations.testCompile.collect { it.name } == ['modified-artifact.txt']
+                assert configurations.compile.collect { it.name } == ['a-modified.txt']
+                assert configurations.testCompile.collect { it.name } == ['a-modified.txt']
             }
 '''
 
@@ -496,5 +503,37 @@ project('c') {
         
         and:
         file("b/build/copied/a-1.0.zip").exists()
+    }
+
+    def "resolving configuration with project dependency marks dependency's configuration as observed"() {
+        settingsFile << "include 'api'; include 'impl'"
+
+        buildFile << """
+            allprojects {
+                configurations {
+                    conf
+                }
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf project(":api")
+                }
+
+                task check << {
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+
+                    configurations.conf.resolve()
+
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_OBSERVED
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
     }
 }

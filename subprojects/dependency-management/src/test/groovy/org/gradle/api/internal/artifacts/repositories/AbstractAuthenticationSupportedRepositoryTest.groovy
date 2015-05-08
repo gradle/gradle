@@ -15,17 +15,23 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories
+
 import org.gradle.api.Action
-import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
+
+    AuthSupportedRepository repo() {
+        new AuthSupportedRepository(DirectInstantiator.INSTANCE)
+    }
 
     def "should configure default password credentials using an action only"() {
         setup:
@@ -92,7 +98,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         PasswordCredentials | Mock(PasswordCredentials)
     }
 
-    def "getCredentials(Class) throws ClassCastException when setting credentials with different type than already set"() {
+    def "getCredentials(Class) throws IllegalArgumentException when setting credentials with different type than already set"() {
         Instantiator instantiator = Mock()
         AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
         1 * instantiator.newInstance(_) >> credentials
@@ -100,11 +106,12 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         when:
         repo.getCredentials(AwsCredentials)
         and:
-        repo.getCredentials(PasswordCredentials.class)
+        repo.getCredentials(PasswordCredentials)
 
         then:
-        def ex = thrown(ClassCastException)
-        ex.message == String.format("Failed to cast object ${credentials.toString()} of type ${credentials.getClass().getName()} to target type ${PasswordCredentials.class.getName()}")
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Given credentials type '$PasswordCredentials.name' does not match actual type '$AwsCredentials.name'"
+
         where:
         credentials << Mock(AwsCredentials)
     }
@@ -115,7 +122,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getCredentials(UnsupportedCredentials)
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == String.format("Unknown credentials type: '%s'.", UnsupportedCredentials.getName())
+        ex.message == "Unknown credentials type: '$UnsupportedCredentials.name' (supported types: $PasswordCredentials.name and $AwsCredentials.name)."
     }
 
     def "credentials(Class, Action) creates credentials on demand if required"() {
@@ -152,6 +159,28 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
         then:
         repo.configuredCredentials instanceof AwsCredentials
+    }
+
+    def "get credentials throws ISE if not using password credentials"() {
+        when:
+        repo().with {
+            credentials(AwsCredentials, {})
+            credentials
+        }
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "credentials(Action) throws ISE if not using password credentials"() {
+        when:
+        repo().with {
+            credentials(AwsCredentials, {})
+            credentials {}
+        }
+
+        then:
+        thrown IllegalStateException
     }
 
     private void enhanceCredentials(Credentials credentials, String... props) {

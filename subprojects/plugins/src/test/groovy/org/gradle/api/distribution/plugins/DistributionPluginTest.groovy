@@ -15,18 +15,16 @@
  */
 
 package org.gradle.api.distribution.plugins
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskDependencyMatchers
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-
-import static org.gradle.util.Matchers.dependsOn
 
 class DistributionPluginTest extends Specification {
     private final Project project = TestUtil.builder().withName("test-project").build()
@@ -137,6 +135,15 @@ class DistributionPluginTest extends Specification {
         def task = project.installCustomDist
         task instanceof Sync
         task.destinationDir == project.file("build/install/test-project-custom")
+    }
+
+    def "adds assembleDist task for main distribution"() {
+        when:
+        project.pluginManager.apply(DistributionPlugin)
+
+        then:
+        def task = project.assembleDist
+        task.dependsOn.findAll {it instanceof Task}.collect{ it.path }.containsAll([":distTar", ":distZip"])
     }
 
     public void "distribution name is configurable"() {

@@ -30,11 +30,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
@@ -46,7 +42,7 @@ import java.util.List;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
- * the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * the components container.
  */
 @Incubating
 @SuppressWarnings("UnusedDeclaration")
@@ -84,7 +80,7 @@ public class JvmComponentPlugin extends RuleSource {
     }
 
     @ComponentBinaries
-    public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
+    public void createBinaries(ModelMap<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
                                PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
@@ -116,7 +112,7 @@ public class JvmComponentPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    public void createTasks(CollectionBuilder<Task> tasks, final JarBinarySpec binary) {
+    public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary) {
         String taskName = "create" + StringUtils.capitalize(binary.getName());
         tasks.create(taskName, Jar.class, new Action<Jar>() {
             @Override

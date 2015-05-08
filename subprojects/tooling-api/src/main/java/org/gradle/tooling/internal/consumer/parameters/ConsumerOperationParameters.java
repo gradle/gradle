@@ -20,7 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.events.build.BuildProgressListener;
+import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -44,6 +46,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     public static class Builder {
         private final List<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
         private final List<TestProgressListener> testProgressListeners = new ArrayList<TestProgressListener>();
+        private final List<TaskProgressListener> taskProgressListeners = new ArrayList<TaskProgressListener>();
+        private final List<BuildProgressListener> buildProgressListeners = new ArrayList<BuildProgressListener>();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -121,7 +125,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                     taskPaths.add(((Task) launchable).getPath());
                 } else {
                     throw new GradleException("Only Task or TaskSelector instances are supported: "
-                            + (launchable != null ? launchable.getClass() : "null"));
+                        + (launchable != null ? launchable.getClass() : "null"));
                 }
             }
             this.launchables = launchablesParams;
@@ -137,6 +141,14 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             testProgressListeners.add(listener);
         }
 
+        public void addTaskProgressListener(TaskProgressListener listener) {
+            taskProgressListeners.add(listener);
+        }
+
+        public void addBuildProgressListener(BuildProgressListener listener) {
+            buildProgressListeners.add(listener);
+        }
+
         public void setCancellationToken(CancellationToken cancellationToken) {
             this.cancellationToken = cancellationToken;
         }
@@ -146,9 +158,14 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.progressListeners);
-            BuildProgressListenerAdapter testProgressListenerAdapter = new BuildProgressListenerAdapter(this.testProgressListeners);
+            BuildProgressListenerConfiguration buildProgressListenerConfiguration = new BuildProgressListenerConfiguration(
+                this.testProgressListeners,
+                this.taskProgressListeners,
+                this.buildProgressListeners
+            );
+            BuildProgressListenerAdapter buildProgressListenerAdapter = new BuildProgressListenerAdapter(buildProgressListenerConfiguration);
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
-                    progressListenerAdapter, testProgressListenerAdapter, cancellationToken);
+                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
@@ -276,7 +293,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return progressListener;
     }
 
-    public BuildProgressListenerVersion1 getBuildProgressListener() {
+    public InternalBuildProgressListener getBuildProgressListener() {
         return buildProgressListener;
     }
 

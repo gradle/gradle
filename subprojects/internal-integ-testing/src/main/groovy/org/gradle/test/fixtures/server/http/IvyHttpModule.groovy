@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
-import org.gradle.test.fixtures.resource.RemoteResource
 
 class IvyHttpModule implements RemoteIvyModule, HttpModule {
     public final IvyHttpRepository repository
@@ -50,6 +49,21 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
 
     IvyDescriptor getParsedIvy() {
         return backingModule.parsedIvy
+    }
+
+    @Override
+    void assertPublished() {
+        backingModule.assertPublished()
+    }
+
+    @Override
+    void assertArtifactsPublished(String... names) {
+        backingModule.assertArtifactsPublished(names)
+    }
+
+    @Override
+    void assertPublishedAsJavaModule() {
+        backingModule.assertPublishedAsJavaModule()
     }
 
     IvyHttpModule publish() {
@@ -152,17 +166,15 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         backingModule.assertIvyAndJarFilePublished()
     }
 
-    private class IvyModuleHttpArtifact extends HttpArtifact implements RemoteResource {
+    private class IvyModuleHttpArtifact extends HttpArtifact {
         final TestFile backingFile
         final String filePath
 
         IvyModuleHttpArtifact(HttpServer server, String modulePath, String filePath, TestFile backingFile) {
             super(server, modulePath)
-            this.filePath = filePath;
-            this.backingFile = backingFile
             this.filePath = filePath
+            this.backingFile = backingFile
         }
-
 
         @Override
         protected String getPath() {
@@ -182,30 +194,6 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         @Override
         protected TestFile getMd5File() {
             return backingModule.getMd5File(backingFile)
-        }
-
-        void expectDownload() {
-            expectGet()
-        }
-
-        void expectDownloadMissing() {
-            expectGetMissing()
-        }
-
-        void expectMetadataRetrieve() {
-            expectHead()
-        }
-
-        void expectMetadataRetrieveMissing() {
-            expectHeadMissing()
-        }
-
-        void expectDownloadBroken() {
-            expectGetBroken()
-        }
-
-        void expectMetadataRetrieveBroken() {
-            expectHeadBroken()
         }
 
         @Override

@@ -16,17 +16,26 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.Project
+import org.gradle.api.execution.internal.InternalTaskExecutionListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.invocation.Gradle
 import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
-    def executionListener = Mock(TaskExecutionListener)
+    def executionListener = Mock(InternalTaskExecutionListener)
     def executor = new DefaultTaskPlanExecutor()
 
     def "executes tasks until no further tasks remain"() {
+        def gradle = Mock(Gradle)
+        def project = Mock(Project)
         def task = Mock(TaskInternal)
+        def state = Mock(TaskStateInternal)
+        project.gradle >> gradle
+        task.project >> project
+        task.state >> state
         def taskInfo = new TaskInfo(task)
 
         when:
@@ -34,9 +43,9 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
         then:
         1 * taskPlan.taskToExecute >> taskInfo
-        1 * executionListener.beforeExecute(task)
+        1 * executionListener.beforeExecute(_)
         1 * task.executeWithoutThrowingTaskFailure()
-        1 * executionListener.afterExecute(task, _)
+        1 * executionListener.afterExecute(_)
         1 * taskPlan.taskComplete(taskInfo)
         1 * taskPlan.taskToExecute >> null
         1 * taskPlan.awaitCompletion()

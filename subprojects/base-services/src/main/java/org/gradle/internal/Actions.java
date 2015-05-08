@@ -203,4 +203,9 @@ public abstract class Actions {
         }
     }
 
+    public static <T> T with(T instance, Action<? super T> action) {
+        action.execute(instance);
+        return instance;
+    }
+
 }

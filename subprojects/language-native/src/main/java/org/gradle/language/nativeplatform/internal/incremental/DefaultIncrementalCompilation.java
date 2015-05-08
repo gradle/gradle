@@ -15,21 +15,16 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
-
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> recompile;
     private final List<File> removed;
-    private Map<File, SourceIncludes> sourceIncludes;
     private CompilationState finalState;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Map<File, SourceIncludes> sourceIncludes) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed) {
         this.finalState = finalState;
-        this.sourceIncludes = sourceIncludes;
         this.recompile = recompile;
         this.removed = removed;
     }
@@ -42,7 +37,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
         return removed;
     }
 
-    public Map<File, SourceIncludes> getSourceFileIncludes() { return sourceIncludes; }
-
-    public CompilationState getFinalState() { return finalState; }
+    public CompilationState getFinalState() {
+        return finalState;
+    }
 }

@@ -34,7 +34,8 @@ class ParallelJavaPluginTest extends AbstractIntegrationSpec {
     TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
-        executer.withArgument("--parallel-threads=4")
+        executer.withArgument("--parallel")
+                .withArgument("--max-workers=4")
                 .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 

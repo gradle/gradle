@@ -15,14 +15,18 @@
  */
 
 package org.gradle.internal.operations
+
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.GradleException
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.Executors
+
 class DefaultBuildOperationQueueTest extends Specification {
 
+    public static final String LOG_LOCATION = "<log location>"
     abstract static class TestBuildOperation implements BuildOperation, Runnable {
         public String getDescription() { return toString() }
         public String toString() { return getClass().simpleName }
@@ -50,13 +54,17 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
     }
 
-    // Tests use calling thread for execution
-    ListeningExecutorService executor = MoreExecutors.listeningDecorator(MoreExecutors.sameThreadExecutor())
-    BuildOperationQueue operationQueue = new DefaultBuildOperationQueue(executor, new SimpleWorker())
+    BuildOperationQueue operationQueue
+
+    void setupQueue(int threads) {
+        ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
+        operationQueue = new DefaultBuildOperationQueue(sameThreadExecutor, new SimpleWorker(), LOG_LOCATION)
+    }
 
     @Unroll
-    def "executes all #runs operations"() {
+    def "executes all #runs operations in #threads threads"() {
         given:
+        setupQueue(threads)
         def success = Mock(TestBuildOperation)
 
         when:
@@ -69,14 +77,21 @@ class DefaultBuildOperationQueueTest extends Specification {
         runs * success.run()
 
         where:
-        runs | _
-        0    | _
-        1    | _
-        5    | _
+        runs | threads
+        0    | 1
+        0    | 4
+        0    | 10
+        1    | 1
+        1    | 4
+        1    | 10
+        5    | 1
+        5    | 4
+        5    | 10
     }
     
     def "cannot use operation queue once it has completed"() {
         given:
+        setupQueue(1)
         operationQueue.waitForCompletion()
 
         when:
@@ -87,12 +102,13 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     @Unroll
-    def "failures propagate to caller regardless of when it failed (#firstOperation, #secondOperation, #thirdOperation)"() {
+    def "failures propagate to caller regardless of when it failed #operations with #threads threads"() {
         given:
-        operationQueue.add(firstOperation)
-        operationQueue.add(secondOperation)
-        operationQueue.add(thirdOperation)
-        def failureCount = [ firstOperation, secondOperation, thirdOperation ].findAll({it instanceof Failure}).size()
+        setupQueue(threads)
+        operations.each { operation ->
+            operationQueue.add(operation)
+        }
+        def failureCount = operations.findAll({it instanceof Failure}).size()
 
         when:
         operationQueue.waitForCompletion()
@@ -104,18 +120,20 @@ class DefaultBuildOperationQueueTest extends Specification {
         e.getCauses().size() == failureCount
 
         where:
-        firstOperation | secondOperation | thirdOperation
-        new Success() | new Success() | new Failure()
-        new Success() | new Failure() | new Success()
-        new Failure() | new Success() | new Success()
-        new Failure() | new Failure() | new Failure()
-        new Failure() | new Failure() | new Success()
-        new Failure() | new Success() | new Failure()
-        new Success() | new Failure() | new Failure()
+        [operations, threads] << [
+                [[new Success(), new Success(), new Failure()],
+                 [new Success(), new Failure(), new Success()],
+                 [new Failure(), new Success(), new Success()],
+                 [new Failure(), new Failure(), new Failure()],
+                 [new Failure(), new Failure(), new Success()],
+                 [new Failure(), new Success(), new Failure()],
+                 [new Success(), new Failure(), new Failure()]],
+                [1, 4, 10]].combinations()
     }
 
-    def "all failures reported in order"() {
+    def "all failures reported in order for a single threaded executor"() {
         given:
+        setupQueue(1)
         operationQueue.add(Stub(TestBuildOperation) {
             run() >> { throw new RuntimeException("first") }
         })

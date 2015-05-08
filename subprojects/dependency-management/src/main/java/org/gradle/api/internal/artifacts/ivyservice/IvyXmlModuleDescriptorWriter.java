@@ -20,9 +20,12 @@ import com.google.common.base.Joiner;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.xml.SimpleXmlWriter;
+import org.gradle.util.CollectionUtils;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -42,7 +45,39 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         dependencyConfigField.setAccessible(true);
     }
 
-    private void writeTo(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
+    @Override
+    public void write(ModuleDescriptor md, File output) {
+        doWrite(md, CollectionUtils.toList(md.getAllArtifacts()), output);
+    }
+
+    @Override
+    public void write(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
+        List<Artifact> ivyArtifacts = CollectionUtils.collect(artifacts, new Transformer<Artifact, IvyModuleArtifactPublishMetaData>() {
+            @Override
+            public Artifact transform(IvyModuleArtifactPublishMetaData ivyModuleArtifactPublishMetaData) {
+                return ivyModuleArtifactPublishMetaData.toIvyArtifact();
+            }
+        });
+        doWrite(md, ivyArtifacts, output);
+    }
+
+    private void doWrite(ModuleDescriptor md, Collection<Artifact> artifacts, File output) {
+        try {
+            output.getParentFile().mkdirs();
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
+            try {
+                SimpleXmlWriter xmlWriter = new SimpleXmlWriter(outputStream, "  ");
+                writeTo(md, artifacts, xmlWriter);
+                xmlWriter.flush();
+            } finally {
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void writeTo(ModuleDescriptor md, Collection<Artifact> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("ivy-module");
         writer.attribute("version", "2.0");
 
@@ -53,26 +88,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         printInfoTag(md, writer);
         printConfigurations(md, writer);
-        printPublications(md, writer);
+        printPublications(artifacts, writer);
         printDependencies(md, writer);
 
         writer.endElement();
-    }
-
-    public void write(ModuleDescriptor md, File output) {
-        try {
-            output.getParentFile().mkdirs();
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
-            try {
-                SimpleXmlWriter xmlWriter = new SimpleXmlWriter(outputStream, "  ");
-                writeTo(md, xmlWriter);
-                xmlWriter.flush();
-            } finally {
-                outputStream.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     private void printDependencies(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
@@ -263,11 +282,9 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printPublications(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
+    private static void printPublications(Collection<Artifact> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("publications");
-        Artifact[] artifacts = md.getAllArtifacts();
-        for (int i = 0; i < artifacts.length; i++) {
-            Artifact artifact = artifacts[i];
+        for (Artifact artifact : artifacts) {
             writer.startElement("artifact");
             writer.attribute("name", artifact.getName());
             writer.attribute("type", artifact.getType());

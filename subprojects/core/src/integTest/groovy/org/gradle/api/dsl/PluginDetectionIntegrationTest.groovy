@@ -15,9 +15,11 @@
  */
 package org.gradle.api.dsl
 
+import org.gradle.api.Plugin
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import spock.lang.Issue
 import spock.lang.Unroll
 
 /**
@@ -177,6 +179,51 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "tasks"
+    }
+
+    @Issue("http://discuss.gradle.org/t/concurrentmodification-exception-on-java-8-for-plugins-withid-with-gradle-2-4/8928")
+    def "can nest detection"() {
+        // Actual plugins in use here are insignificant
+        when:
+        file("buildSrc/src/main/groovy/PluginA.groovy") << """
+            class PluginA implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/a.properties") << "implementation-class=PluginA"
+
+        file("buildSrc/src/main/groovy/PluginB.groovy") << """
+            class PluginB implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/b.properties") << "implementation-class=PluginB"
+
+        file("buildSrc/src/main/groovy/PluginC.groovy") << """
+            class PluginC implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/c.properties") << "implementation-class=PluginC"
+
+        buildScript """
+            class ExamplePlugin implements Plugin<Project> {
+                void apply(final Project project) {
+                    project.plugins.withId('a') {
+                        project.plugins.hasPlugin('b')
+                    }
+                    project.plugins.withId('c') {
+                        project.plugins.hasPlugin('b')
+                    }
+                }
+            }
+
+            apply plugin: ExamplePlugin
+            apply plugin: "a"
+        """
+
+        then:
+        succeeds "help"
     }
 
 }

@@ -240,12 +240,21 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
-/*
 
+    /**
+     * Returns the set of dependency substitution rules that are set for this configuration.
+     *
+     * @since 2.5
+     */
     @Incubating
     DependencySubstitutions getDependencySubstitution();
 
+    /**
+     * Configures the set of dependency substitution rules for this configuration.
+     *
+     * @return this ResolutionStrategy instance
+     * @since 2.5
+     */
     @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
-*/
 }

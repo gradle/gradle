@@ -32,7 +32,7 @@ import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.InitializableServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,7 @@ import java.lang.reflect.Proxy;
 /**
  * Provides various native platform integration services.
  */
-public class NativeServices extends DefaultServiceRegistry implements InitializableServiceRegistry {
+public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
@@ -55,6 +55,10 @@ public class NativeServices extends DefaultServiceRegistry implements Initializa
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
     public static void initialize(File userHomeDir) {
+        initialize(userHomeDir, true);
+    }
+
+    public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
         File nativeDir = new File(userHomeDir, "native");
         if (useNativePlatform) {
             try {
@@ -67,28 +71,24 @@ public class NativeServices extends DefaultServiceRegistry implements Initializa
                 useNativePlatform = false;
             }
         }
-        if (OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows() && initializeJNA) {
             // JNA is still being used by jansi
             new JnaBootPathConfigurer().configure(nativeDir);
         }
         initialized = true;
     }
 
-    public static NativeServices getInstance() {
-        return INSTANCE.getInitialized();
-    }
-
-    public NativeServices getInitialized() {
+    public static synchronized NativeServices getInstance() {
         if (!initialized) {
+            // If this occurs while running gradle or running integration tests, it is indicative of a problem.
+            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
-        return this;
+        return INSTANCE;
     }
 
     private NativeServices() {
-        // We initialize FileSystemServices with this instance because calling NativeServices.getInstance() from inside
-        // FileSystemServices would create a class cycle across packages.
-        addProvider(new FileSystemServices(this));
+        addProvider(new FileSystemServices());
     }
 
     @Override
@@ -203,7 +203,7 @@ public class NativeServices extends DefaultServiceRegistry implements Initializa
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
         }
     }
 }

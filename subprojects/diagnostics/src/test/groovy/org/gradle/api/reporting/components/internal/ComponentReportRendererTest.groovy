@@ -15,12 +15,15 @@
  */
 
 package org.gradle.api.reporting.components.internal
+
 import org.gradle.api.Project
-import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.DefaultNamedDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Specification
@@ -93,7 +96,9 @@ class ComponentReportRendererTest extends Specification {
             getDisplayName() >> "<source set>"
         }
         def component = Stub(ComponentSpec) {
-            getSource() >> set(LanguageSourceSet, sourceSet1)
+            getSource() >> Stub(ModelMap) {
+                values() >> [sourceSet1]
+            }
         }
 
         when:
@@ -116,7 +121,7 @@ class ComponentReportRendererTest extends Specification {
         def binary1 = Stub(BinarySpec)
         def binary2 = Stub(BinarySpec)
         def component = Stub(ComponentSpec) {
-            getBinaries() >> set(BinarySpec, binary1)
+            getBinaries() >> namedSet(BinarySpec, binary1)
         }
         binaryRenderer.render(binary2, _) >> { BinarySpec binary, TextReportBuilder builder -> builder.output.println("<binary>")}
 
@@ -134,8 +139,8 @@ class ComponentReportRendererTest extends Specification {
 """)
     }
 
-    def set(Class type, Object... values) {
-        def collection = new DefaultDomainObjectSet(type)
+    def namedSet(Class type, Object... values) {
+        def collection = new DefaultNamedDomainObjectSet(type, DirectInstantiator.INSTANCE)
         collection.addAll(values)
         return collection
     }

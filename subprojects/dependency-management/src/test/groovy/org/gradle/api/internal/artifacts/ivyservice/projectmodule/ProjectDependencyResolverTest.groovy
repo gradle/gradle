@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectComponentRegistry registry = Mock()
     final DependencyToComponentIdResolver target = Mock()
+    final ComponentMetaDataResolver componentResolver = Mock()
     final LocalComponentFactory converter = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, converter, target)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, converter, target, componentResolver)
 
     def "resolves project dependency"() {
         setup:
@@ -51,6 +57,24 @@ class ProjectDependencyResolverTest extends Specification {
         0 * result._
     }
 
+    def "resolves project component"() {
+        setup:
+        def resolveMetaData = Stub(ModuleComponentResolveMetaData)
+        def componentMetaData = Stub(MutableLocalComponentMetaData) {
+            toResolveMetaData() >> resolveMetaData
+        }
+        def result = Mock(BuildableComponentResolveResult)
+        def projectComponentId = new DefaultProjectComponentIdentifier(":projectPath")
+
+        when:
+        resolver.resolve(projectComponentId, new DefaultComponentOverrideMetadata(), result)
+
+        then:
+        1 * registry.getProject(":projectPath") >> componentMetaData
+        1 * result.resolved(resolveMetaData)
+        0 * result._
+    }
+
     def "delegates to backing resolver for non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyDescriptor = Stub(DependencyDescriptor)
@@ -63,6 +87,19 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * target.resolve(dependencyMetaData, result)
+        0 * _
+    }
+
+    def "delegates to backing resolver for non-project identifier"() {
+        def result = Mock(BuildableComponentResolveResult)
+        def componentIdentifier = Mock(ComponentIdentifier)
+        def overrideMetaData = Mock(ComponentOverrideMetadata)
+
+        when:
+        resolver.resolve(componentIdentifier, overrideMetaData, result)
+
+        then:
+        1 * componentResolver.resolve(componentIdentifier, overrideMetaData, result)
         0 * _
     }
 }

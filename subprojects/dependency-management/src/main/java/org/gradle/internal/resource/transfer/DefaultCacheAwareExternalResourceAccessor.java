@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
+import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -27,15 +28,11 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
+import org.gradle.internal.resource.local.*;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -161,10 +158,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) {
+    private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
-            GFileUtils.copyFile(local.getFile(), destination);
+            Files.copy(local.getFile(), destination);
             HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
             if (!localChecksum.equals(remoteChecksum)) {
                 return null;
@@ -194,7 +191,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                 throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
+                throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {

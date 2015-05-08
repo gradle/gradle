@@ -84,10 +84,10 @@ class RemoveMeListener implements TestOutputListener {
         def failure = executer.withTasks('test').runWithFailure()
 
         then:
-        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdOut out passing')
-        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdOut out failing')
-        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdErr err passing')
-        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdErr err failing')
+        failure.output.contains('Test showsOutputWhenPassing(SomeTest) StdOut out passing')
+        failure.output.contains('Test showsOutputWhenFailing(SomeTest) StdOut out failing')
+        failure.output.contains('Test showsOutputWhenPassing(SomeTest) StdErr err passing')
+        failure.output.contains('Test showsOutputWhenFailing(SomeTest) StdErr err failing')
 
         !failure.output.contains("remove me!")
     }

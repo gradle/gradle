@@ -23,4 +23,8 @@ import org.gradle.api.Incubating;
  * */
 @Incubating
 public interface ApplicationBinarySpec extends BinarySpec {
+    /**
+     * The application that this binary belongs to.
+     */
+    ApplicationSpec getApplication();
 }

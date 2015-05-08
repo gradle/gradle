@@ -70,8 +70,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<?> createCppPCHCompiler() {
-        CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppPCHCompiler cppPCHCompiler = new CppPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), allSpecTransforms(CppPCHCompileSpec.class), getPCHFileExtension(), true);
+        CommandLineToolInvocationWorker commandLineTool = tool("C++ PCH compiler", visualCpp.getCompiler(targetPlatform));
+        CppPCHCompiler cppPCHCompiler = new CppPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), pchSpecTransforms(CppPCHCompileSpec.class), getPCHFileExtension(), true);
         return new OutputCleaningCompiler<CppPCHCompileSpec>(cppPCHCompiler, getPCHFileExtension());
     }
 
@@ -84,8 +84,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<?> createCPCHCompiler() {
-        CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CPCHCompiler cpchCompiler = new CPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), allSpecTransforms(CPCHCompileSpec.class), getPCHFileExtension(), true);
+        CommandLineToolInvocationWorker commandLineTool = tool("C PCH compiler", visualCpp.getCompiler(targetPlatform));
+        CPCHCompiler cpchCompiler = new CPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), pchSpecTransforms(CPCHCompileSpec.class), getPCHFileExtension(), true);
         return new OutputCleaningCompiler<CPCHCompileSpec>(cpchCompiler, getPCHFileExtension());
     }
 
@@ -154,12 +154,12 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         }
     }
 
-    private <T extends NativeCompileSpec> Transformer<T, T> allSpecTransforms(final Class<T> type) {
+    private <T extends NativeCompileSpec> Transformer<T, T> pchSpecTransforms(final Class<T> type) {
         return new Transformer<T, T>() {
             @Override
             public T transform(T original) {
                 List<Transformer<T, T>> transformers = Lists.newArrayList();
-                transformers.add(new VisualCppPCHSourceFileTransformer<T>());
+                transformers.add(PCHUtils.getHeaderToSourceFileTransformer(type));
                 transformers.add(addIncludePathAndDefinitions(type));
 
                 T next = original;
@@ -194,7 +194,6 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         };
     }
 
-    @Override
     public String getPCHFileExtension() {
         return ".pch";
     }

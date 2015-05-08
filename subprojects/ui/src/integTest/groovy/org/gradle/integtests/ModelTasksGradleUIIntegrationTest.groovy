@@ -20,6 +20,7 @@ import org.gradle.foundation.ProjectView
 import org.gradle.foundation.TestUtility
 import org.gradle.gradleplugin.foundation.GradlePluginLord
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.util.concurrent.TimeUnit
 
@@ -28,6 +29,7 @@ class ModelTasksGradleUIIntegrationTest extends AbstractIntegrationSpec {
     GradlePluginLord gradlePluginLord = new GradlePluginLord()
 
     def setup() {
+        NativeServicesTestFixture.initialize(executer.gradleUserHomeDir)
         gradlePluginLord.setCurrentDirectory(temporaryFolder.testDirectory);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
         gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))

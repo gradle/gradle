@@ -49,7 +49,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("echo", MessageTask)
                     tasks.named("echo", EchoRules)
                 }
@@ -80,7 +80,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithThrowingRuleApplied", ThrowingRule)
                     tasks.create("taskWithThrowingRuleApplied")
                 }
@@ -111,7 +111,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithInvalidRuleSourceApplied", InvalidRuleSource)
                     tasks.create("taskWithInvalidRuleSourceApplied")
                 }
@@ -124,7 +124,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
+        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.ModelMap<org.gradle.api.Task>)")
         failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
     }
 
@@ -142,7 +142,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.named("taskWithUnboundRuleSourceApplied", UnboundRuleSource)
                     tasks.create("taskWithUnboundRuleSourceApplied")
                 }

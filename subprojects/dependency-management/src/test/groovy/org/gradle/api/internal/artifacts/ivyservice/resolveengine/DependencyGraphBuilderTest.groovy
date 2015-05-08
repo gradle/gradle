@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
-
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -30,8 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
@@ -63,7 +61,7 @@ class DependencyGraphBuilderTest extends Specification {
     def idResolver = Mock(DependencyToComponentIdResolver)
     def metaDataResolver = Mock(ComponentMetaDataResolver)
     def artifactResolver = Mock(ArtifactResolver)
-    def resultBuilder = Mock(ResolutionResultBuilder)
+    def resolutionResultBuilder = Mock(ResolutionResultBuilder)
     def projectModelBuilder = Mock(ResolvedProjectConfigurationResultBuilder)
     def TestMetaData root = project('root')
     def moduleResolver = Mock(ModuleToComponentResolver)
@@ -83,9 +81,16 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
-        builder.resolve(configuration, resultBuilder, results, projectModelBuilder)
-        new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
+        def transientConfigurationResultsBuilder = new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore())
+        def modelBuilder = new DefaultResolvedConfigurationBuilder(transientConfigurationResultsBuilder)
+        def artifactsBuilder = new DefaultResolvedArtifactsBuilder()
+
+        builder.resolve(configuration, resolutionResultBuilder, modelBuilder, artifactsBuilder, projectModelBuilder)
+
+        def graphResults = modelBuilder.complete()
+        def artifactResults = artifactsBuilder.resolve()
+
+        new DefaultLenientConfiguration(configuration, Stub(CacheLockingManager), graphResults, artifactResults, new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults))
     }
 
     def "does not resolve a given module selector more than once"() {
@@ -121,11 +126,11 @@ class DependencyGraphBuilderTest extends Specification {
         resolve()
 
         then:
-        1 * resultBuilder.start(newId("group", "root", "1.0"), new DefaultProjectComponentIdentifier(":root"))
+        1 * resolutionResultBuilder.start(newId("group", "root", "1.0"), new DefaultProjectComponentIdentifier(":root"))
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.module == ['a', 'b'] })
+        1 * resolutionResultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.module == ['a', 'b'] })
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.module == ['c', 'd'] && it*.failure.count { it != null } == 1 })
+        1 * resolutionResultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.module == ['c', 'd'] && it*.failure.count { it != null } == 1 })
     }
 
     def "correctly notifies the project configuration result builder"() {
@@ -941,7 +946,10 @@ class DependencyGraphBuilderTest extends Specification {
     def traverses(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(dependencyMetaData, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
+
+        // Resolves project component again to resolve artifacts
+        def resolveCount = to instanceof TestProjectMetaData ? 2 : 1
+        resolveCount * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.resolved(to)
         }
     }
@@ -949,27 +957,27 @@ class DependencyGraphBuilderTest extends Specification {
     def doesNotTraverse(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        0 * metaDataResolver.resolve(_, to.componentId, _)
+        0 * metaDataResolver.resolve(to.componentId, _, _)
     }
 
     def doesNotResolve(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         0 * idResolver.resolve(dependencyMetaData, _)
-        0 * metaDataResolver.resolve(_, to.componentId, _)
+        0 * metaDataResolver.resolve(to.componentId, _, _)
     }
 
     def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(_, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
-            result.notFound(to.id)
+        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
+            result.notFound(to.componentId)
         }
     }
 
     def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(_, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
+        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
         }
     }
@@ -1083,7 +1091,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        ComponentArtifactMetaData artifact(Artifact artifact) {
+        ComponentArtifactMetaData artifact(IvyArtifactName artifact) {
             return null
         }
 

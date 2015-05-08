@@ -69,4 +69,9 @@ interface Extra {
             resources[0],
             resources[1]
     ]
+
+    @Override
+    TestFile createIgnoredFileInSources(TestFile sourceDir) {
+        sourceDir.createFile("java/SomeIgnoredFile.java~") << '// this file should be ignored'
+    }
 }

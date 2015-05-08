@@ -92,9 +92,15 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        module.jar.expectMkdirs()
-        module.jar.expectFileAndSha1Upload()
-        module.ivy.expectFileAndSha1Upload()
+        module.jar.expectParentMkdir()
+        module.jar.expectFileUpload()
+        // TODO - should not check on each upload to a particular directory
+        module.jar.sha1.expectParentCheckdir()
+        module.jar.sha1.expectFileUpload()
+        module.ivy.expectParentCheckdir()
+        module.ivy.expectFileUpload()
+        module.ivy.sha1.expectParentCheckdir()
+        module.ivy.sha1.expectFileUpload()
 
         then:
         succeeds 'publish'
@@ -145,9 +151,15 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        module.jar.expectMkdirs()
-        module.jar.expectFileAndSha1Upload()
-        module.ivy.expectFileAndSha1Upload()
+        module.jar.expectParentMkdir()
+        module.jar.expectFileUpload()
+        // TODO - should not check on each upload to a particular directory
+        module.jar.sha1.expectParentCheckdir()
+        module.jar.sha1.expectFileUpload()
+        module.ivy.expectParentCheckdir()
+        module.ivy.expectFileUpload()
+        module.ivy.sha1.expectParentCheckdir()
+        module.ivy.sha1.expectFileUpload()
 
         then:
         succeeds 'publish'
@@ -185,12 +197,8 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         def module = ivySftpRepo.module('org.group.name', 'publish', '2')
 
         when:
-        server.expectLstat('/repo/org.group.name/publish/2')
-        module.jar.expectMkdirs()
-        module.jar.expectOpen()
-        module.jar.expectWriteBroken()
-        // TODO - should not need this request, should be CLOSE instead
-        module.jar.expectStat()
+        module.jar.expectParentMkdir()
+        module.jar.expectUploadBroken()
 
         then:
         fails 'publish'

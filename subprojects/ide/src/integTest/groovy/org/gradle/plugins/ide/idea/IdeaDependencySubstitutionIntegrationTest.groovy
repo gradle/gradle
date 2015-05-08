@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,7 +46,7 @@ project(":project2") {
     }
 }
 """)
-        
+
         def dependencies = parseIml("project2/project2.iml").dependencies
         assert dependencies.libraries.size() == 0
         assert dependencies.modules.size() == 1
@@ -53,6 +54,7 @@ project(":project2") {
     }
 
     @Test
+    @Ignore("not supported in 2.4 - LD - 14/4/15")
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()

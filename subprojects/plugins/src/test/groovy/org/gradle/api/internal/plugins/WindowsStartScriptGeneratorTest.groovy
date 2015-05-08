@@ -22,13 +22,8 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class WindowsStartScriptGeneratorTest extends Specification {
-    WindowsStartScriptGenerator generator = new WindowsStartScriptGenerator()
 
-    def "uses expected template and line separator"() {
-        expect:
-        generator.defaultTemplateFilename == 'windowsStartScript.txt'
-        generator.lineSeparator == TextUtil.windowsLineSeparator
-    }
+    WindowsStartScriptGenerator generator = new WindowsStartScriptGenerator()
 
     def "classpath for windows script uses backslash as path separator and windows line separator"() {
         given:

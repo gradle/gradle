@@ -26,31 +26,31 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
-class PathBinderCreationListener extends BinderCreationListener {
+class PathBinderCreationListener extends ModelBinding {
     private final Action<? super ModelNodeInternal> bindAction;
     private final ModelPath path;
 
-    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
+    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelNodeInternal> bindAction) {
         super(descriptor, reference, writable);
         this.bindAction = bindAction;
-        this.path = scope.descendant(reference.getPath());
+        this.path = reference.getPath();
     }
 
     @Nullable
     @Override
-    public ModelPath matchPath() {
+    public ModelPath getPath() {
         return path;
     }
 
     public boolean onCreate(ModelNodeInternal node) {
-        ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         ModelPromise promise = node.getPromise();
         if (isTypeCompatible(promise)) {
+            boundTo = node;
             bindAction.execute(node);
             return true; // bound by type and path, stop listening
         } else {
-            throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                    IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                    IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
             ));
         }
     }

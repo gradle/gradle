@@ -43,6 +43,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     String libraryCompileTask
     TestFile sourceFile
     TestFile headerFile
+    TestFile commonHeaderFile
     List<TestFile> librarySourceFiles = []
 
     boolean isCanBuildForMultiplePlatforms() {
@@ -86,6 +87,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         settingsFile << "rootProject.name = 'test'"
         sourceFile = app.mainSource.writeToDir(file("src/main"))
         headerFile = app.libraryHeader.writeToDir(file("src/hello"))
+        commonHeaderFile = app.commonHeader.writeToDir(file("src/hello"))
         app.librarySources.each {
             librarySourceFiles << it.writeToDir(file("src/hello"))
         }

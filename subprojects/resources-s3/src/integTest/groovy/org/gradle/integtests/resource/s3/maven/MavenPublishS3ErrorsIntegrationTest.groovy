@@ -34,7 +34,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withArgument('-i')
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
     def "should fail with an authentication error"() {
@@ -69,6 +69,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
         when:
         def module = mavenS3Repo.module("org.gradle", "publishS3Test", "1.45")
         module.artifact.expectPutAuthencicationError()
+        module.pom.expectPutAuthencicationError()
 
         then:
         fails 'publish'

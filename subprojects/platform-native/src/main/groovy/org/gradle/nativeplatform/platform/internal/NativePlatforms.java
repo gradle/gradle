@@ -28,7 +28,7 @@ public class NativePlatforms {
     private static final String ARCH_X86 = "x86";
 
     // TODO:DAZ This config should be used via platforms.create {}
-    public static Set<DefaultNativePlatform> defaultPlatformDefinitions() {
+    public Set<DefaultNativePlatform> defaultPlatformDefinitions() {
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
 
         OperatingSystemInternal windows = new DefaultOperatingSystem(OS_WINDOWS);
@@ -91,7 +91,7 @@ public class NativePlatforms {
         return String.format("%s_%s", os, arch);
     }
 
-    public static String getDefaultPlatformName() {
+    public String getDefaultPlatformName() {
         NativePlatformInternal defaultPlatform = new DefaultNativePlatform("default");
         OperatingSystemInternal os = defaultPlatform.getOperatingSystem();
         ArchitectureInternal architecture = defaultPlatform.getArchitecture();

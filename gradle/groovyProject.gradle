@@ -34,7 +34,7 @@ if (!javaVersion.java6Compatible) {
         groovy.exclude '**/jdk6/**'
     }
 }
-if (!javaVersion.java7) {
+if (!javaVersion.java7Compatible) {
     sourceSets.all {
         java.exclude '**/jdk7/**'
         groovy.exclude '**/jdk7/**'

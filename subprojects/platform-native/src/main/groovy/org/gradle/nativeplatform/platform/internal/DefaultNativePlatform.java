@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.platform.internal;
 
-import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 
@@ -44,7 +44,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         String architectureName;
         try {
             architectureName = NativeServices.getInstance().get(SystemInfo.class).getArchitectureName();
-        } catch (NativeException e) {
+        } catch (NativeIntegrationUnavailableException e) {
             architectureName = System.getProperty("os.arch");
         }
         return Architectures.forInput(architectureName);

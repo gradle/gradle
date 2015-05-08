@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -32,7 +30,10 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     /**
@@ -44,7 +45,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        Set<ResolvedComponentResult> projectComponents = findAllResolvedProjectDependencyResultsAccessibleOnlyFromRoot(result.getRoot());
+        List<ResolvedComponentResult> projectComponents = findAllResolvedDependencyResults(result.getRoot().getDependencies(), ProjectComponentIdentifier.class);
 
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
@@ -57,55 +58,24 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     }
 
     /**
-     * Finds all project dependencies that are inaccessible from any other project dependencies of the component, only from root.
-     * Direct and transitive dependencies are both considered accessible here.
+     * Finds all resolved components of the given type from the given set of dependency edges.
      *
-     * @param root root component
+     * @param dependencies Dependencies
      * @return Resolved dependency results
      */
-    private Set<ResolvedComponentResult> findAllResolvedProjectDependencyResultsAccessibleOnlyFromRoot(ResolvedComponentResult root) {
-        Multimap<ResolvedComponentResult, ResolvedComponentResult> parents = LinkedHashMultimap.create();
-        findAllResolvedDependencyResultsAndTheirDependenciesAndRecordTheirParents(parents, root);
+    private List<ResolvedComponentResult> findAllResolvedDependencyResults(Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
+        List<ResolvedComponentResult> matches = new ArrayList<ResolvedComponentResult>();
 
-        Set<ResolvedComponentResult> matches = new LinkedHashSet<ResolvedComponentResult>();
-
-        for (ResolvedComponentResult component : parents.keySet()) {
-            if (component.getId() instanceof ProjectComponentIdentifier) {
-                boolean hasNoParentOtherThanRoot = true;
-                for (ResolvedComponentResult parent : parents.get(component)) {
-                    if (!parent.getId().equals(root.getId()) && parent.getId() instanceof ProjectComponentIdentifier) {
-                        hasNoParentOtherThanRoot = false;
-                        break;
-                    }
-                }
-                if (hasNoParentOtherThanRoot) {
-                    matches.add(component);
+        for (DependencyResult dependencyResult : dependencies) {
+            if (dependencyResult instanceof ResolvedDependencyResult) {
+                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
+                if (type.isInstance(resolvedResult.getSelected().getId())) {
+                    matches.add(resolvedResult.getSelected());
                 }
             }
         }
 
         return matches;
-    }
-
-    private void findAllResolvedDependencyResultsAndTheirDependenciesAndRecordTheirParents(Multimap<ResolvedComponentResult, ResolvedComponentResult> parents, ResolvedComponentResult parent) {
-        for (DependencyResult dependencyResult : parent.getDependencies()) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                ResolvedComponentResult child = ((ResolvedDependencyResult) dependencyResult).getSelected();
-                // avoid circular dependencies by checking whether component result is already visited
-                if (parents.containsKey(child)) {
-                    continue;
-                }
-                recordParents(parents, parent, child);
-                findAllResolvedDependencyResultsAndTheirDependenciesAndRecordTheirParents(parents, child);
-            }
-        }
-    }
-
-    private void recordParents(Multimap<ResolvedComponentResult, ResolvedComponentResult> parents, ResolvedComponentResult parent, ResolvedComponentResult child) {
-        parents.put(child, parent);
-        for (ResolvedComponentResult grandParent : parents.get(parent)) {
-            recordParents(parents, grandParent, child);
-        }
     }
 
     /**
@@ -166,8 +136,8 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * Finds all resolved components of the given type from the given set of dependency edges. If resolved component has dependencies itself, recursively resolve them as well
      * and add them to the results. This method can handle circular dependencies.
      *
-     * @param matches Resolved dependency results
      * @param dependencies Dependencies
+     * @return Resolved dependency results
      */
     private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
         for (DependencyResult dependencyResult : dependencies) {

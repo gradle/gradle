@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestDescriptor;
 
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
@@ -36,7 +35,7 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
         return false;
     }
 
-    public TestDescriptor getParent() {
+    public TestDescriptorInternal getParent() {
         return null;
     }
 }

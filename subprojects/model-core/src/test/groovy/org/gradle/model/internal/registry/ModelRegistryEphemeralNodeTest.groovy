@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.rules.ModelMapCreators
 import org.gradle.internal.Factory
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -91,15 +92,14 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
     def "children of ephemeral collection nodes are implicitly ephemeral"() {
         when:
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Thing)
-        def iRef = ModelReference.of("instantiator", iType)
-
         registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Thing(name: name) } as NamedEntityInstantiator).build())
                 .create("things") {
-            it.ephemeral(true).collection(Thing, iRef)
+            it.ephemeral(true).modelMap(Thing)
         }
-        registry.mutateCollection("things", Thing) {
+        .mutate(ModelMapCreators.instantiatorType(Thing)) {
+            it.registerFactory(Thing) { new Thing(name: it) }
+        }
+        registry.mutateModelMap("things", Thing) {
             it.create("foo") {
                 it.value = "1"
             }

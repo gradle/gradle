@@ -43,7 +43,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         file("root/root") << "root"
         rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
         root = new RootClassLoaderScope(rootClassLoader, rootClassLoader, classLoaderCache)
-        scope = root.createChild()
+        scope = root.createChild("child")
     }
 
     TestFile file(String path) {
@@ -245,7 +245,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         file("export/export") << "bar"
         scope.local(classPath("local"))
         scope.export(classPath("export"))
-        def child = scope.lock().createChild().lock()
+        def child = scope.lock().createChild("child").lock()
 
         then:
         child.localClassLoader.getResource("root").text == "root"
@@ -262,17 +262,17 @@ class DefaultClassLoaderScopeTest extends Specification {
         def c2 = classPath("c2")
 
         when:
-        def scope1 = root.createChild().export(c1).local(c2).lock()
+        def scope1 = root.createChild("child1").export(c1).local(c2).lock()
         scope1.exportClassLoader
 
-        def scope2 = root.createChild().export(c1).local(c2).lock()
+        def scope2 = root.createChild("child2").export(c1).local(c2).lock()
         scope2.exportClassLoader
 
         then:
         scope1.exportClassLoader.is scope2.exportClassLoader
 
         when:
-        def child = scope1.createChild().export(c1).local(c2).lock()
+        def child = scope1.createChild("child").export(c1).local(c2).lock()
         child.exportClassLoader
 
         then:
@@ -289,14 +289,44 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.lock().localClassLoader.getResource("root").text == "root"
     }
 
-    def "knows class loader id"() {
-        scope = (DefaultClassLoaderScope) scope
-
+    def "manages cache"() {
         expect:
-        scope.id.localId() == ClassLoaderIds.scopeNode("root:c1-local")
-        scope.id.exportId() == ClassLoaderIds.scopeNode("root:c1-export")
-        ((DefaultClassLoaderScope) scope.createChild()).id.localId() == ClassLoaderIds.scopeNode("root:c1:c1-local")
-        ((DefaultClassLoaderScope) scope.createChild()).id.exportId() == ClassLoaderIds.scopeNode("root:c1:c2-export")
+        classLoaderCache.size() == 0
+
+        file("c1/f") << "c1"
+        file("c2/f") << "c2"
+        def c1 = classPath("c1")
+        def c2 = classPath("c2")
+
+        when:
+        root.createChild("c").local(c1).export(c2).lock().exportClassLoader
+
+        then:
+        classLoaderCache.size() == 2
+
+        when:
+        root.createChild("d").local(c1).export(c2).lock().exportClassLoader
+
+        then:
+        classLoaderCache.size() == 2
+
+        when:
+        root.createChild("c").local(c1).lock().exportClassLoader
+
+        then:
+        classLoaderCache.size() == 2
+
+        when:
+        root.createChild("d").lock().exportClassLoader
+
+        then:
+        classLoaderCache.size() == 1
+
+        when:
+        root.createChild("c").lock().exportClassLoader
+
+        then:
+        classLoaderCache.size() == 0
     }
 
     void copyTo(Class<?> clazz, TestFile destDir) {

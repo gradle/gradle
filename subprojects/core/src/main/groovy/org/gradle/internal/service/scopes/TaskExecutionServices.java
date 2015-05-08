@@ -22,7 +22,10 @@ import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateR
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
 import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.tasks.DefaultTaskFileSystemInputsAccumulator;
+import org.gradle.api.internal.tasks.NoopTaskFileSystemInputsAccumulator;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -31,26 +34,34 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
+
+    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator(StartParameter startParameter) {
+        return startParameter.isContinuousModeEnabled()
+            ? new DefaultTaskFileSystemInputsAccumulator()
+            : new NoopTaskFileSystemInputsAccumulator();
+    }
+
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, TaskFileSystemInputsAccumulator taskFileSystemInputsAccumulator) {
         return new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                                new SkipEmptySourceFilesTaskExecuter(
-                                        new ValidatingTaskExecuter(
-                                                new SkipUpToDateTaskExecuter(repository,
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        listenerManager.getBroadcaster(TaskActionListener.class)
-                                                                ))))))));
+            new SkipOnlyIfTaskExecuter(
+                new SkipTaskWithNoActionsExecuter(
+                    new SkipEmptySourceFilesTaskExecuter(
+                        new FileSystemInputsAccumulatingTaskExecuter(taskFileSystemInputsAccumulator,
+                            new ValidatingTaskExecuter(
+                                new SkipUpToDateTaskExecuter(repository,
+                                    new PostExecutionAnalysisTaskExecuter(
+                                        new ExecuteActionsTaskExecuter(
+                                            listenerManager.getBroadcaster(TaskActionListener.class)
+                                        )))))))));
     }
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
@@ -77,19 +88,19 @@ public class TaskExecutionServices {
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
-                new CacheBackedFileSnapshotRepository(cacheAccess,
-                        serializerRegistry.build(),
-                        new RandomLongIdGenerator()));
+            new CacheBackedFileSnapshotRepository(cacheAccess,
+                serializerRegistry.build(),
+                new RandomLongIdGenerator()));
 
         return new ShortCircuitTaskArtifactStateRepository(
-                        startParameter,
-                        instantiator,
-                        new DefaultTaskArtifactStateRepository(
-                                taskHistoryRepository,
-                                instantiator,
-                                outputFilesSnapshotter,
-                                fileCollectionSnapshotter
-                        )
+            startParameter,
+            instantiator,
+            new DefaultTaskArtifactStateRepository(
+                taskHistoryRepository,
+                instantiator,
+                outputFilesSnapshotter,
+                fileCollectionSnapshotter
+            )
         );
     }
 

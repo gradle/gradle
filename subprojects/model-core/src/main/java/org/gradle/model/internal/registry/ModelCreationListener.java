@@ -16,49 +16,14 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.core.ModelPredicate;
 
-public abstract class ModelCreationListener {
+public abstract class ModelCreationListener extends ModelPredicate {
     /**
-     * Returns the path of the node which this listener is interested in, or null if path is not relevant.
-     */
-    @Nullable
-    public ModelPath matchPath() {
-        return null;
-    }
-
-    /**
-     * Returns the parent path of the node which this listener is interested in, or null if path is not relevant.
-     */
-    @Nullable
-    public ModelPath matchParent() {
-        return null;
-    }
-
-    /**
-     * Return the path of the scope this listener is interested in, or null if the scope is not relevant.
+     * Invoked for each node that matches the criteria specified by {@link #getPath()}, {@link #getParent()}, {@link #getScope()} <em>and</em> {@link #getType()},
+     * or every node if no criteria specified. Stops notifying listener with further nodes when this method returns true.
      *
-     * If the returned value is not null then the listener will be informed about element created at the returned path and about its immediate children if other criteria specified by this listener
-     * match as well.
-     */
-    @Nullable
-    public ModelPath matchScope() {
-        return null;
-    }
-
-    /**
-     * Returns the type of node which this listener is interested in, or null if type is not relevant.
-     */
-    @Nullable
-    public ModelType<?> matchType() {
-        return null;
-    }
-
-    /**
-     * Invoked for each node that matches the criteria specified by {@link #matchPath()}, {@link #matchParent()}, {@link #matchScope()} or {@link #matchType()}, or every node if
-     * no criteria specified. Stops notifying listener with further nodes when this method returns true.
+     * @return true if this listener should no longer receive any notifications of additional nodes.
      */
     public abstract boolean onCreate(ModelNodeInternal node);
 }

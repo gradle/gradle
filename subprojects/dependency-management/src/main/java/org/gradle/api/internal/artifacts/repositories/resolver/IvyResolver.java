@@ -21,6 +21,7 @@ import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaD
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -28,15 +29,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Downloaded
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
+import java.util.Set;
 
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
@@ -100,8 +98,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return new IvyRemoteRepositoryAccess();
     }
 
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return new DefaultIvyModuleResolveMetaData(dependency);
+    protected MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
+        return new DefaultIvyModuleResolveMetaData(moduleComponentIdentifier, artifacts);
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
@@ -112,7 +110,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration(usage.getConfigurationName());
             result.resolved(configuration.getArtifacts());
         }
 
@@ -135,7 +134,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             // Configuration artifacts are determined locally
         }
 

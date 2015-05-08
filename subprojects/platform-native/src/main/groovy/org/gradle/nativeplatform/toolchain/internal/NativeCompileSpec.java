@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
@@ -75,9 +74,9 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile);
 
-    Set<String> getPreCompiledHeaders();
+    String getPreCompiledHeader();
 
-    void setPreCompiledHeaders(Set<String> headers);
+    void setPreCompiledHeader(String header);
 
     Map<File, SourceIncludes> getSourceFileIncludes();
 

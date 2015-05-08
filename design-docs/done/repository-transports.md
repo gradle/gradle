@@ -120,3 +120,74 @@ In many cases, this may be a matter of adapting existing test coverage to run ag
     - resolve with invalid credentials
     - resolve where cannot connect to server
     - resolve where server throws exception
+
+## Support resolving from a Ivy/Maven repository backed by AWS S3
+
+### User visible changes
+
+    repositories {
+        maven {
+            url "s3://bucket/repo-path"
+            credentials(AwsCredentials) {
+                accessKey "someKey"
+                secretKey "someSecret"
+            }
+        }
+    }
+
+### Implementation plan
+
+- ~~Basic support for `Credentials` other than `PasswordCredentials`: `AwsCredentials`~~
+- ~~`AuthenticationSupported.getCredentials(Class<? extends Credentials>)` provides a credentials instance of the appropriate type~~
+
+    - ~~Instantiates a new credentials of that type if no credentials is configured~~
+    - ~~Hard coded factory method can create only `AwsCredentials` and `PasswordCredentials`~~
+    - ~~Returns existing credentials of that type~~
+         - ~~Fails if existing credentials is of a different type~~
+         - ~~Fails for credentials of unknown type~~
+    - `AuthenticationSupported.credentials(Class<T extends Credentials>, Action<? super T>)` configures credentials of the specified type~~
+         - ~~Creates credentials on demand if required~~
+         - ~~Fails if existing credentials have a different type~~
+         - ~~Fails for credentials of unknown type~~
+    - ~~Existing untyped credentials methods on `AuthenticationSupported` simply call the typed methods with `PasswordCredentials.class`~~
+
+### Test cases
+
+- Resolve from Maven & Ivy repositories
+- Reasonable error message produced when resolving:
+    - S3 Repository with empty credentials
+    - S3 Repository with `PasswordCredentials` (error may be thrown when configuring repository)
+    - S3 Repository with incorrect credentials
+    - Resource not found
+
+### Open issues
+
+- Mechanism to register different types of `Credentials`
+- Add common test suites for different repository protocols
+
+## Support publishing to a Maven repository backed by AWS S3
+
+## Support publishing to a Ivy repository backed by AWS S3
+
+## Support publishing to a Maven repository declared with 'sftp' as the URL scheme, using password credentials
+
+### Test cases
+
+In many cases, this may be a matter of adapting existing test coverage to run against multiple transports.
+
+- Un `@Ignore` `MavenPublishSftpIntegrationTest`.
+- Publish via 'sftp' to maven repository (old and new plugins)
+- Reasonable error message produced when:
+    - publish with invalid credentials
+    - publish where cannot connect to server
+    - publish where server throws exception
+
+## Make it easier to add a repository transport implementation
+
+- Add a ResourceConnector API that can be used as the interface between dependencyManagement and a custom transport.
+    - Similar to `S3ResourceConnector`
+    - Create an implementation for 'http', 'https', 'sftp', 'file', 's3': none of these should live in ':dependencyManagement'
+    - This API will be internal for now.
+- Remove the dependency of 'dependencyManagement' subproject on the various resource subprojects.
+    - The dependency management project will create a ResourceConnectorRegistry, and each resource subproject will register their ResourceConnector (factory).
+    - Replace the existing `RepositoryTransport` implementations with a single implementation backed by `ResourceConnector`

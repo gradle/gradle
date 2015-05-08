@@ -16,18 +16,15 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
+
 import java.io.File;
-import java.util.List;
 
 /**
  * A parser to extract information from C-compatible source files.
  */
 public interface CSourceParser {
 
-    SourceDetails parseSource(File sourceFile);
+    SourceIncludes parseSource(File sourceFile);
 
-    interface SourceDetails {
-        List<String> getIncludes();
-        List<String> getImports();
-    }
 }

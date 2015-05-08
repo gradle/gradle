@@ -36,7 +36,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
     private Map<File, SourceIncludes> sourceFileIncludes;
-    private Set<String> preCompiledHeaders;
+    private String preCompiledHeader;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -137,12 +137,13 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public Set<String> getPreCompiledHeaders() {
-        return preCompiledHeaders;
+    public String getPreCompiledHeader() {
+        return preCompiledHeader;
     }
 
-    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
-        this.preCompiledHeaders = preCompiledHeaders;
+    @Override
+    public void setPreCompiledHeader(String preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
     }
 
     private void addAll(List<File> list, Iterable<File> iterable) {

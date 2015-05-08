@@ -21,5 +21,5 @@ import java.lang.reflect.Type;
 interface TypeWrapper {
     Type unwrap();
 
-    String getRepresentation();
+    String getRepresentation(boolean full);
 }

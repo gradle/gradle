@@ -330,4 +330,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() {
         return new DefaultBuildOperationLoggerFactory();
     }
+
 }

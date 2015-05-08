@@ -39,5 +39,6 @@ dependencies {
 }
 
 useTestFixtures()
-useClassycle()
-strictCompile()
+//Re-enable classycle after removal of CollectionBuilder
+//useClassycle()
+strictCompileIgnoreDeprecations()

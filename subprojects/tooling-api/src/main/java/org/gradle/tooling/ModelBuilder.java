@@ -16,10 +16,15 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.build.BuildProgressListener;
+import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.test.TestProgressListener;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 /**
  * A {@code ModelBuilder} allows you to fetch a snapshot of some model for a project or a build.
@@ -119,10 +124,32 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.5
+     */
+    @Incubating
+    ModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+
+    /**
+     * {@inheritDoc}
      * @since 2.4
      */
     @Incubating
     ModelBuilder<T> addTestProgressListener(TestProgressListener listener);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.5
+     */
+    @Incubating
+    ModelBuilder<T> addTaskProgressListener(TaskProgressListener listener);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.5
+     */
+    @Incubating
+    ModelBuilder<T> addBuildProgressListener(BuildProgressListener listener);
 
     /**
      * {@inheritDoc}

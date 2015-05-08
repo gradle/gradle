@@ -16,10 +16,15 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.build.BuildProgressListener;
+import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.test.TestProgressListener;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 /**
  * Offers ways to communicate both ways with a Gradle operation, be it building a model or running tasks.
@@ -94,8 +99,8 @@ public interface LongRunningOperation {
      *
      * @param javaHome to use for the Gradle process
      * @return this
-     * @since 1.0-milestone-8
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder.
+     * @since 1.0-milestone-8
      */
     LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException;
 
@@ -147,7 +152,7 @@ public interface LongRunningOperation {
      * @return this
      * @since 1.0
      */
-    LongRunningOperation withArguments(String ... arguments);
+    LongRunningOperation withArguments(String... arguments);
 
     /**
      * Adds a progress listener which will receive progress events as the operation runs.
@@ -159,6 +164,17 @@ public interface LongRunningOperation {
     LongRunningOperation addProgressListener(ProgressListener listener);
 
     /**
+     * Adds a progress listener which will receive progress events of the requested types as the operation runs.
+     *
+     * @param listener The listener
+     * @param eventTypes The types of progress events to receive
+     * @return this
+     * @since 2.5
+     */
+    @Incubating
+    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+
+    /**
      * Adds a test progress listener which will receive test progress events as the operation runs.
      *
      * @param listener The listener
@@ -167,6 +183,26 @@ public interface LongRunningOperation {
      */
     @Incubating
     LongRunningOperation addTestProgressListener(TestProgressListener listener);
+
+    /**
+     * Adds a task progress listener which will receive task progress events as the operation runs.
+     *
+     * @param listener The listener
+     * @return this
+     * @since 2.5
+     */
+    @Incubating
+    LongRunningOperation addTaskProgressListener(TaskProgressListener listener);
+
+    /**
+     * Adds a build progress listener which will receive build progress events as the operation runs.
+     *
+     * @param listener The listener
+     * @return this
+     * @since 2.5
+     */
+    @Incubating
+    LongRunningOperation addBuildProgressListener(BuildProgressListener listener);
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.

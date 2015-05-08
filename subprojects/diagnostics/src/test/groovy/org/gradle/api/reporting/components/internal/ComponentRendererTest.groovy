@@ -19,11 +19,11 @@
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.Project
-import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.DefaultNamedDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
-import org.gradle.language.base.LanguageSourceSet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
@@ -43,7 +43,6 @@ class ComponentRendererTest extends Specification {
     def "renders component"() {
         def component = Stub(ComponentSpec)
         component.displayName >> "<component>"
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
         when:
         renderer.render(component, builder)
@@ -56,7 +55,6 @@ class ComponentRendererTest extends Specification {
 
     def "renders component with no source sets"() {
         def component = Stub(ComponentSpec)
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
 
         when:
         renderer.render(component, builder)
@@ -67,7 +65,7 @@ class ComponentRendererTest extends Specification {
 
     def "renders component with no binaries"() {
         def component = Stub(ComponentSpec)
-        component.binaries >> new DefaultDomainObjectSet<BinarySpec>(BinarySpec)
+        component.binaries >> new DefaultNamedDomainObjectSet<BinarySpec>(BinarySpec, DirectInstantiator.INSTANCE)
 
         when:
         renderer.render(component, builder)
@@ -78,7 +76,7 @@ class ComponentRendererTest extends Specification {
 
     def "renders component binaries ordered by name"() {
         def component = Stub(ComponentSpec)
-        def binaries = new DefaultDomainObjectSet<BinarySpec>(BinarySpec)
+        def binaries = new DefaultNamedDomainObjectSet<BinarySpec>(BinarySpec, DirectInstantiator.INSTANCE)
         binaries.add(binary("cBinary"))
         binaries.add(binary("aBinary"))
         binaries.add(binary("bBinary"))

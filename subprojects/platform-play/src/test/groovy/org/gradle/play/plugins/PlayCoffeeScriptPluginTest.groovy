@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.play.PlayApplicationSpec
 import spock.lang.Specification
@@ -28,7 +28,7 @@ import spock.lang.Specification
 class PlayCoffeeScriptPluginTest extends Specification {
     def "adds coffeescript source sets to play components" () {
         def plugin = new PlayCoffeeScriptPlugin()
-        def components = Mock(CollectionBuilder)
+        def components = Mock(ModelMap)
         def sources = Mock(FunctionalSourceSet)
         def sourceSet = Mock(CoffeeScriptSourceSet)
         def sourceDirSet = Mock(SourceDirectorySet)

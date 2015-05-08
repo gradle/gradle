@@ -20,6 +20,7 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashUtil
 import org.gradle.language.nativeplatform.internal.SourceIncludes
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

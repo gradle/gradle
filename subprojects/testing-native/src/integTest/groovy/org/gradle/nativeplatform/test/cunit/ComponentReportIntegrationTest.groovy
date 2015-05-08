@@ -15,12 +15,14 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C executable with test suite"() {
         given:
         buildFile << """

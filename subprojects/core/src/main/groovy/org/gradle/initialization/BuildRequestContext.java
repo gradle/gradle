@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.logging.StandardOutputListener;
+
 /**
  * Provides access to services provided by build requester.
  */
@@ -29,4 +31,14 @@ public interface BuildRequestContext extends BuildRequestMetaData {
      * Returns an event consumer that will forward events to the build requester.
      */
     BuildEventConsumer getEventConsumer();
+
+    /**
+     * Returns an output listener that will receive standard output from the build.
+     */
+    StandardOutputListener getOutputListener();
+
+    /**
+     * Returns an output listener that will receive standard error from the build.
+     */
+    StandardOutputListener getErrorListener();
 }

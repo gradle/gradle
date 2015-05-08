@@ -18,49 +18,21 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 
+import java.util.List;
+
 public final class DefaultJavaAppStartScriptGenerationDetails implements JavaAppStartScriptGenerationDetails {
-    /**
-     * The display name of the application.
-     */
+
     private final String applicationName;
-
-    /**
-     * The environment variable to use to provide additional options to the JVM.
-     */
     private final String optsEnvironmentVar;
-
-    /**
-     * The environment variable to use to control exit value (Windows only).
-     */
     private final String exitEnvironmentVar;
-
-    /**
-     * The main classname used to start the Java application.
-     */
     private final String mainClassName;
-
-    /**
-     * The default JVM options.
-     */
-    private final Iterable<String> defaultJvmOpts;
-
-    /**
-     * The classpath, relative to the application home directory.
-     */
-    private final Iterable<String> classpath;
-
-    /**
-     * The path of the script, relative to the application home directory.
-     */
+    private final List<String> defaultJvmOpts;
+    private final List<String> classpath;
     private final String scriptRelPath;
-
-    /**
-     * This system property to use to pass the script name to the application. May be null.
-     */
     private final String appNameSystemProperty;
 
-    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName, Iterable<String> defaultJvmOpts,
-                                                      Iterable<String> classpath, String scriptRelPath, String appNameSystemProperty) {
+    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName, List<String> defaultJvmOpts,
+                                                      List<String> classpath, String scriptRelPath, String appNameSystemProperty) {
         this.applicationName = applicationName;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;
@@ -87,11 +59,11 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         return mainClassName;
     }
 
-    public Iterable<String> getDefaultJvmOpts() {
+    public List<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }
 
-    public Iterable<String> getClasspath() {
+    public List<String> getClasspath() {
         return classpath;
     }
 
@@ -103,6 +75,7 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         return appNameSystemProperty;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) {

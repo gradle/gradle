@@ -74,7 +74,7 @@ model {
 
     def "can manually define C++ source sets"() {
         given:
-        helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
+        helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
 
         file("src/main/cpp/main.cpp") << helloWorldApp.mainSource.content
         file("src/main/cpp2/hello.cpp") << helloWorldApp.librarySources[0].content

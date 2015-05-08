@@ -21,15 +21,22 @@ import org.gradle.api.Incubating;
 import java.io.Writer;
 
 /**
- * Interface for generating scripts with the provided details.
+ * Generates a script to start a JVM application.
+ *
+ * @see TemplateBasedScriptGenerator
  */
 @Incubating
 public interface ScriptGenerator {
+
     /**
-     * Generates a script.
+     * Generate the script.
+     * <p>
+     * Implementations should not close the given writer.
+     * It is the responsibility of the caller to close the stream.
      *
-     * @param details Script generation details
-     * @param destination Target script destination
+     * @param details the application details
+     * @param destination the script destination
      */
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination);
+
 }

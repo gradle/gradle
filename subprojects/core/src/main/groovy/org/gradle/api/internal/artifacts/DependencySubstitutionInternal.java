@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-public interface DependencySubstitutionInternal<T extends ComponentSelector> extends DependencySubstitution<T> {
-
+public interface DependencySubstitutionInternal extends DependencySubstitution {
     ModuleVersionSelector getOldRequested();
 
     void useTarget(Object notation, ComponentSelectionReason selectionReason);

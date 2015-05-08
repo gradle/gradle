@@ -22,17 +22,15 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
 
-import org.gradle.util.GradleVersion
-
 import java.util.regex.Pattern
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
                 continue
             }
-            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+            for (String name : ["fileHashes", "outputFileStates", "fileSnapshots"]) {
                 def stateDir = new File(cacheDir, name)
                 if (stateDir.directory) {
                     println "Removing old cache directory : ${stateDir}"
@@ -46,7 +44,7 @@ def removeDodgyCacheFiles(File dir) {
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
                 continue
             }
@@ -162,7 +160,7 @@ integTestTasks.all { Test task ->
     dependsOn ':intTestImage', ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
-    
+
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
@@ -183,7 +181,7 @@ integTestTasks.all { Test task ->
             systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
             systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
             systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-            
+
             // If the projects int test need the distributions, they should add:
             // inputs.files rootProject.buildDists
             systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
@@ -198,6 +196,10 @@ integTestTasks.all { Test task ->
 task integTest(type: Test) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
     systemProperties['org.gradle.integtest.executer'] = defaultExecuter
+    if (project.hasProperty('org.gradle.integtest.debug')) {
+        systemProperties['org.gradle.integtest.debug'] = 'true'
+        testLogging.showStandardStreams = true
+    }
 }
 check.dependsOn(integTest)
 
@@ -240,4 +242,33 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
             plusConfigurations.add(configurations.integTestRuntime)
         }
     }
+}
+
+String jdkVarName = 'JAVA_9'
+
+model {
+    tasks {
+        create("java9Test", Test) {
+            doFirst {
+                jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
+            }
+            executable = "${System.getenv(jdkVarName)}/bin/java"
+            include '**/*CommandLineJavaCompilerIntegrationTest*'
+            reports.junitXml.destination = file("${project.testResultsDir}/$name")
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+        }
+    }
+}
+
+if(!gradle.hasProperty("java9Check")){
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name == "java9Test" }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
+        }
+    }
+    gradle.ext.java9Check = true
 }

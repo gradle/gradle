@@ -62,7 +62,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     /**
      * Sets the validator to invoke prior to each mutation.
      */
-    public void beforeChange(MutationValidator mutationValidator) {
+    public void setMutationValidator(MutationValidator mutationValidator) {
         this.mutationValidator = mutationValidator;
     }
 

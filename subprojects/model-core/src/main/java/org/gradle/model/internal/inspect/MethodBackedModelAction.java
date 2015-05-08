@@ -62,4 +62,9 @@ class MethodBackedModelAction<T> implements ModelAction<T> {
         }
         ruleInvoker.invoke(args);
     }
+
+    @Override
+    public String toString() {
+        return "MethodBackedModelAction{descriptor=" + descriptor + ", subject=" + subject + ", inputs=" + inputs + '}';
+    }
 }

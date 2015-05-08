@@ -16,14 +16,12 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
-import spock.lang.IgnoreIf
 
 import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
 
-@IgnoreIf({ !GradleContextualExecuter.daemon })
-class DaemonStartupMessageIntegrationTest extends IsolatedDaemonSpec {
+class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
         executer.withDaemonStartingMessageEnabled()

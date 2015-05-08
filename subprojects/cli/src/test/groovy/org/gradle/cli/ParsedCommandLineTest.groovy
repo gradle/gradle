@@ -36,4 +36,22 @@ class ParsedCommandLineTest extends Specification {
     private CommandLineOption cmdOption(String opt) {
         new CommandLineOption([opt])
     }
+
+    def "keeps track of removed options"() {
+        when:
+        def line = new ParsedCommandLine([cmdOption("a"), cmdOption("b"), cmdOption("c")]);
+        line.addOption("a", cmdOption("a"))
+        line.addOption("b", cmdOption("b"))
+        // allowOneOf(a, b)
+        line.removeOption(cmdOption("a"))
+
+        then:
+        !line.hasOption("a")
+        line.hasOption("b")
+
+        line.hadOptionRemoved("a")
+
+        !line.hasAnyOption(["a", "c"])
+        line.hasAnyOption(["b", "c"])
+    }
 }

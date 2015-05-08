@@ -56,7 +56,7 @@ public class ContextualArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        executeInContext("Resolve " + artifact, new Action<Ivy>() {
+        executeInContext("Resolve ".concat(artifact.toString()), new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveArtifact(artifact, moduleSource, result);
             }

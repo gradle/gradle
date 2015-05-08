@@ -105,7 +105,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
             class MyPlugin {
                 static class Rules extends RuleSource {
-                    @Mutate void addPrintTask(CollectionBuilder<Task> tasks, List<String> strings) {
+                    @Mutate void addPrintTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printMessage", PrintTask) {
                             it.message = strings
                         }
@@ -197,7 +197,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks) {
+                    void addTasks(ModelMap<Task> tasks) {
                         tasks.create("foobar")
                         tasks.create("raboof")
                     }

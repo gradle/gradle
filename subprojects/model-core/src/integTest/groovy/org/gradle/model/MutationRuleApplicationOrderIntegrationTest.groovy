@@ -64,7 +64,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, MutationRecorder recorderInput) {
+                    void addTasks(ModelMap<Task> tasks, MutationRecorder recorderInput) {
                         tasks.create("echo", EchoTask) {
                             recorder = recorderInput
                         }
@@ -115,7 +115,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks, MutationRecorder recorderInput) {
+                void addTasks(ModelMap<Task> tasks, MutationRecorder recorderInput) {
                     tasks.create("echo", EchoTask) {
                         recorder = recorderInput
                     }

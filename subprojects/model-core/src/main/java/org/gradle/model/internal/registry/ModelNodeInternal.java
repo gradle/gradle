@@ -17,9 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.base.Supplier;
+import com.google.common.collect.*;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -31,13 +30,21 @@ import java.util.*;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
+    private static final Supplier<List<MutatorRuleBinder<?>>> LIST_SUPPLIER = new Supplier<List<MutatorRuleBinder<?>>>() {
+        @Override
+        public List<MutatorRuleBinder<?>> get() {
+            return Lists.newArrayList();
+        }
+    };
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
     private CreatorRuleBinder creatorBinder;
-    private Map<ModelActionRole, List<MutatorRuleBinder<?>>> mutators;
+    private ListMultimap<ModelActionRole, MutatorRuleBinder<?>> mutators;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
+    private boolean hidden;
 
     public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
         this.creatorBinder = creatorBinder;
@@ -70,22 +77,40 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    @Override
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    @Override
     public boolean isEphemeral() {
         return creatorBinder.getCreator().isEphemeral();
     }
 
     public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
+        if (!canApply(role)) {
+            throw new IllegalStateException(String.format(
+                "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
+                role,
+                mutator.getAction().getDescriptor(),
+                getPath(),
+                getState()
+            ));
+        }
+
         if (mutators == null) {
-            mutators = Maps.newEnumMap(ModelActionRole.class);
+            mutators = createMutatorsMap();
         }
 
-        List<MutatorRuleBinder<?>> mutatorsForRole = mutators.get(role);
-        if (mutatorsForRole == null) {
-            mutatorsForRole = Lists.newLinkedList();
-            mutators.put(role, mutatorsForRole);
-        }
+        mutators.put(role, mutator);
+    }
 
-        mutatorsForRole.add(mutator);
+    private static ListMultimap<ModelActionRole, MutatorRuleBinder<?>> createMutatorsMap() {
+        return Multimaps.newListMultimap(new EnumMap<ModelActionRole, Collection<MutatorRuleBinder<?>>>(ModelActionRole.class), LIST_SUPPLIER);
     }
 
     public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelActionRole role) {
@@ -128,7 +153,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public void notifyFired(RuleBinder binder) {
         assert binder.isBound();
-        for (ModelBinding<?> inputBinding : binder.getInputBindings()) {
+        for (ModelBinding inputBinding : binder.getInputBindings()) {
             ModelNodeInternal node = inputBinding.getNode();
             dependencies.add(node);
             node.dependents.add(this);

@@ -18,8 +18,6 @@ package org.gradle.test.fixtures.ivy
 import org.gradle.test.fixtures.Repository
 
 interface IvyRepository extends Repository {
-    URI getUri()
-
     String getArtifactPattern()
 
     String getIvyPattern()

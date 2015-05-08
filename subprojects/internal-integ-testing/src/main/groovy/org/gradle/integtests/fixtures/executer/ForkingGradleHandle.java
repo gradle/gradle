@@ -44,6 +44,14 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.outputEncoding = outputEncoding;
     }
 
+    public void clearStandardOutput() {
+        standardOutput.reset();
+    }
+
+    public void clearErrorOutput() {
+        errorOutput.reset();
+    }
+
     public String getStandardOutput() {
         try {
             return standardOutput.toString(outputEncoding);

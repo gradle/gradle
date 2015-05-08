@@ -21,8 +21,6 @@ import org.gradle.platform.base.internal.toolchain.ToolProvider;
 public interface PlatformToolProvider extends ToolProvider {
     String getObjectFileExtension();
 
-    String getPCHFileExtension();
-
     String getExecutableName(String executablePath);
 
     String getSharedLibraryName(String libraryPath);

@@ -17,11 +17,11 @@
 package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -31,63 +31,57 @@ public abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputReferences;
-    private final ModelPath scope;
     private final Collection<RuleBinder> binders;
 
-    private boolean bindingInputs;
     private int inputsBound;
-    private List<ModelBinding<?>> inputBindings;
+    private List<ModelBinding> inputBindings;
+    private Action<ModelNodeInternal> inputBindAction;
 
-    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope, Collection<RuleBinder> binders) {
+    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
-        this.scope = scope;
         this.binders = binders;
-        this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
+        inputBindAction = new Action<ModelNodeInternal>() {
+            @Override
+            public void execute(ModelNodeInternal nodeInternal) {
+                ++inputsBound;
+                maybeFire();
+            }
+        };
+        this.inputBindings = inputBindings(inputReferences);
         if (!isBound()) {
             binders.add(this);
         }
     }
 
-    // is binding then inputs for this binder in progress?
-    public boolean isBindingInputs() {
-        return bindingInputs;
+    private List<ModelBinding> inputBindings(List<? extends ModelReference<?>> inputReferences) {
+        if (inputReferences.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        for (ModelReference<?> inputReference : inputReferences) {
+            bindings.add(binding(inputReference, false, inputBindAction));
+        }
+        return bindings;
     }
 
-    public void setBindingInputs(boolean bindingInputs) {
-        this.bindingInputs = bindingInputs;
+    protected ModelBinding binding(ModelReference<?> reference, boolean writable, Action<ModelNodeInternal> bindAction) {
+        if (reference.getPath() != null) {
+            return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
+        }
+        return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
     }
 
-    public List<? extends ModelReference<?>> getInputReferences() {
-        return inputReferences;
-    }
-
-    public ModelBinding<?> getSubjectBinding() {
+    public ModelBinding getSubjectBinding() {
         return null;
     }
 
-    public ModelReference<?> getSubjectReference() {
-        return null;
-    }
-
-    public List<ModelBinding<?>> getInputBindings() {
+    public List<ModelBinding> getInputBindings() {
         return inputBindings;
     }
 
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
-    }
-
-    public ModelPath getScope() {
-        return scope;
-    }
-
-    public void bindInput(int i, ModelNodeInternal modelNode) {
-        assert this.inputBindings.get(i) == null;
-        assert inputsBound < inputBindings.size();
-        this.inputBindings.set(i, bind(inputReferences.get(i), modelNode));
-        ++inputsBound;
-        maybeFire();
     }
 
     protected void maybeFire() {
@@ -98,9 +92,5 @@ public abstract class RuleBinder {
 
     public boolean isBound() {
         return inputsBound == inputReferences.size();
-    }
-
-    static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelNodeInternal modelNode) {
-        return ModelBinding.of(reference, modelNode);
     }
 }

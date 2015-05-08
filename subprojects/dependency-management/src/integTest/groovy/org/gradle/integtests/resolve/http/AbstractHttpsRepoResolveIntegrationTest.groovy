@@ -71,7 +71,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         fails "libs"
 
         then:
-        failure.assertThatCause(containsText("Could not GET 'https://localhost:(\\d*)/repo1/my-group/my-module/1.0/"))
+        failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
         failure.assertHasCause("peer not authenticated")
     }
 
@@ -88,14 +88,14 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         fails "libs"
 
         then:
-        failure.assertThatCause(containsText("Could not GET 'https://localhost:(\\d*)/repo1/my-group/my-module/1.0/"))
+        failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
         failure.assertHasCause("peer not authenticated")
     }
 
     private void setupBuildFile(String repoType) {
         buildFile << """
 repositories {
-    $repoType { url 'https://localhost:${server.sslPort}/repo1' }
+    $repoType { url '${server.uri}/repo1' }
 }
 configurations { compile }
 dependencies {

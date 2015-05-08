@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection
 
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.tasks.testing.TestFramework
@@ -37,12 +38,15 @@ class DefaultTestExecuterTest extends Specification {
     TestFrameworkDetector testFrameworkTestDetector = Mock()
     File testClassesDir = Mock()
     FileCollection testClasspath = Mock()
+    Project project = Mock()
 
     DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory)
 
     def setup() {
         _ * testTask.testFramework >> testFramework
         _ * testTask.getCandidateClassFiles() >> Mock(FileTree)
+        _ * testTask.getPath() >> ':'
+        _ * testTask.getProject() >> project
         _ * actorFactory.createActor(_) >> resultProcessorActor
         _ * resultProcessorActor.getProxy(_) >> resultProcessor
         _ * testTask.isScanForTestClasses() >> true

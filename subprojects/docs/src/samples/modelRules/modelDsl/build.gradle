@@ -1,0 +1,28 @@
+@Managed
+interface Person {
+  void setFirstName(String n); String getFirstName()
+  void setLastName(String n); String getLastName()
+}
+
+class PersonRules extends RuleSource {
+ @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
+    tasks.create("hello") {
+      doLast {
+        println "Hello $p.firstName $p.lastName!"
+      }
+    }
+  }
+}
+
+apply plugin: PersonRules
+
+model {
+  person {
+    lastName = "Smith"
+  }
+// START SNIPPET create-rule
+  person(Person) {
+    firstName = "John"
+  }
+// END SNIPPET create-rule
+}

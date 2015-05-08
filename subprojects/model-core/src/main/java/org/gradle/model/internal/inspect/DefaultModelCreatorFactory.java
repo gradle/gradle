@@ -42,37 +42,36 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
 
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema) {
-        ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        return creator(descriptor, modelReference, schema, null);
+        return creator(descriptor, path, schema, (ModelAction<T>) null);
     }
 
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, Action<? super T> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
         ModelAction<T> modelAction = new ActionBackedModelAction<T>(modelReference, descriptor, initializer);
-        return creator(descriptor, modelReference, schema, modelAction);
+        return creator(descriptor, path, schema, modelAction);
     }
 
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
         ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
-        return creator(descriptor, modelReference, schema, modelAction);
+        return creator(descriptor, path, schema, modelAction);
     }
 
-    private <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelReference<T> modelReference, ModelSchema<T> schema, @Nullable ModelAction<T> initializer) {
+    private <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, @Nullable ModelAction<T> initializer) {
         // TODO reuse pooled projections
         if (schema instanceof ModelCollectionSchema) {
             ModelCollectionSchema<T> collectionSchema = (ModelCollectionSchema<T>) schema;
             ModelSchema<?> elementSchema = schemaStore.getSchema(collectionSchema.getElementType());
-            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
+            return ModelCreators.of(path, new ManagedSetInitializer<T>(initializer))
                     .withProjection(ManagedSetModelProjection.of(elementSchema, this))
                     .descriptor(descriptor)
                     .build();
         }
         if (schema instanceof ModelStructSchema) {
             ModelStructSchema<T> structSchema = (ModelStructSchema<T>) schema;
-            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this, initializer))
+            return ModelCreators.of(path, new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this, initializer))
                     .withProjection(new ManagedModelProjection<T>(structSchema, schemaStore, proxyFactory))
                     .descriptor(descriptor)
                     .build();

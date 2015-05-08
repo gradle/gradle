@@ -24,12 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the associated method 'finalizes' a model element in some way, after the element has been configured and
- * prior to the element being used as an input.
- *
- * <p>The subject of the method should be the first parameter ot the method. Any inputs required by the method can be
- * declared as additional parameters.
- * </p>
+ * Denotes that the {@link RuleSource} method rule carrying this annotation finalizes the rule subject.
+ * <p>
+ * Finalize rules execute after {@link Mutate} rules, but before {@link Validate} rules.
+ * The first parameter of the rule is the rule subject, which is mutable for the duration of the rule.
+ * <p>
+ * Please see {@link RuleSource} for more information on method rules.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

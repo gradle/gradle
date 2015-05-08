@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
+import org.gradle.internal.Actions;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
@@ -25,15 +27,21 @@ public class InstanceModelView<T> implements ModelView<T> {
     private final ModelPath path;
     private final ModelType<T> type;
     private final T instance;
+    private final Action<? super T> onClose;
 
-    public InstanceModelView(ModelPath path, ModelType<T> type, T instance) {
+    public InstanceModelView(ModelPath path, ModelType<T> type, T instance, Action<? super T> onClose) {
         this.path = path;
         this.type = type;
         this.instance = instance;
+        this.onClose = onClose;
     }
 
     public static <T> ModelView<T> of(ModelPath path, ModelType<T> type, T instance) {
-        return new InstanceModelView<T>(path, type, instance);
+        return of(path, type, instance, Actions.doNothing());
+    }
+
+    public static <T> ModelView<T> of(ModelPath path, ModelType<T> type, T instance, Action<? super T> onClose) {
+        return new InstanceModelView<T>(path, type, instance, onClose);
     }
 
     @Override
@@ -50,6 +58,6 @@ public class InstanceModelView<T> implements ModelView<T> {
     }
 
     public void close() {
-
+        onClose.execute(instance);
     }
 }

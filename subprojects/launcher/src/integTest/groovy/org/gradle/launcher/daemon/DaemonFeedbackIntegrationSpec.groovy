@@ -16,7 +16,9 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -157,7 +159,7 @@ task sleep << {
 
         when:
         def daemon = executer.noExtraLogging().withArguments("--foreground").start()
-        
+
         then:
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
@@ -183,16 +185,14 @@ task sleep << {
         debugBuild.output.count("debug me!") == 1
     }
 
-    List<File> getLogs(baseDir) {
+    List<File> getLogs(File baseDir) {
         //the gradle version dir
-        def daemonDirs = baseDir.listFiles().findAll { it.name != "native" }
-        assert daemonDirs.size() == 1
-        def daemonFiles = daemonDirs[0].listFiles()
-
-        daemonFiles.findAll { it.name.endsWith('.log') }
+        def daemonDir = new File(baseDir, GradleVersion.current().version)
+        assert daemonDir.exists()
+        daemonDir.listFiles().findAll { it.name.endsWith('.log') }
     }
 
-    String readLog(baseDir) {
+    String readLog(File baseDir) {
         def logs = getLogs(baseDir)
 
         //assert single log
@@ -200,12 +200,12 @@ task sleep << {
 
         logs[0].text
     }
-    
-    void printAllLogs(baseDir) {
+
+    void printAllLogs(File baseDir) {
         getLogs(baseDir).each { println "\n---- ${it.name} ----\n${it.text}\n--------\n" }
     }
 
-    File firstLog(baseDir) {
+    File firstLog(File baseDir) {
         getLogs(baseDir)[0]
     }
 }

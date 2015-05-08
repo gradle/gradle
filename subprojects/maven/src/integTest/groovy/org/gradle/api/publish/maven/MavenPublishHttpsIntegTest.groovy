@@ -35,14 +35,13 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         server.start()
 
         mavenRemoteRepo = new MavenHttpRepository(server, "/repo", mavenRepo)
-        module = mavenRemoteRepo.module('org.gradle', 'publish', '2').allowAll()
-
+        module = mavenRemoteRepo.module('org.gradle', 'publish', '2')
     }
 
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -56,7 +55,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -69,7 +68,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         keyStore.configureIncorrectServerCert(executer)
@@ -78,14 +77,14 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // TODO:DAZ Get this exception into the cause
         failure.error.contains("peer not authenticated")
     }
 
     def "decent error message when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         executer.withStackTraceChecksDisabled() // Jetty logs stuff to console
@@ -95,7 +94,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (https://localhost:${server.sslPort}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // TODO:DAZ Get this exception into the cause
         failure.error.contains("peer not authenticated")
     }
@@ -127,7 +126,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         true
     }
 
-    def initBuild(HttpServer server) {
+    def initBuild() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
             apply plugin: 'java'
@@ -138,7 +137,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url 'https://localhost:${server.sslPort}/repo'
+                        url '${mavenRemoteRepo.uri}'
                     }
                 }
                 publications {

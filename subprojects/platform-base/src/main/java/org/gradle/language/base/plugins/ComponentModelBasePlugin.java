@@ -26,22 +26,24 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
+import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.BridgedCollections;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelMapSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Base plugin for language support.
@@ -52,33 +54,29 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  */
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
-
-    private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore schemaStore;
 
     @Inject
-    public ComponentModelBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
-        this.instantiator = instantiator;
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
         this.modelRegistry = modelRegistry;
+        this.schemaStore = schemaStore;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
-        DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
-        BridgedCollections.dynamicTypes(
-                modelRegistry,
-                ModelPath.path("components"),
-                descriptor,
-                ModelType.of(DefaultComponentSpecContainer.class),
-                ModelType.of(DefaultComponentSpecContainer.class),
-                ModelType.of(ComponentSpec.class),
-                components,
-                Named.Namer.INSTANCE,
-                BridgedCollections.itemDescriptor(descriptor)
-        );
+
+        ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
+        ModelCreator componentsCreator = ModelMapCreators.specialized(ModelPath.path("components"), ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
+        modelRegistry.create(componentsCreator);
+
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
+            DirectNodeModelAction.of(
+                ModelReference.of(ComponentSpec.class),
+                new SimpleModelRuleDescriptor(descriptor),
+                ComponentSpecInitializer.action()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -94,7 +92,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
+        void initializeSourceSetsForComponents(ComponentSpecContainer components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 // TODO - allow beforeEach() to be applied to internal types
                 components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
@@ -103,7 +101,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
         @Mutate
-        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, ComponentSpecContainer components) {
+        void closeComponentsForBinaries(ModelMap<Task> tasks, ComponentSpecContainer components) {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
@@ -135,11 +133,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void applyDefaultSourceConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
             componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
-                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
+                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource().values()) {
                         // Only apply default locations when none explicitly configured
                         if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
                             languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
@@ -170,6 +168,28 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Mutate
         void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
             extensions.add("platforms", platforms);
+        }
+
+        static class RegisterBinaryFactories extends RuleSource {
+            @Defaults
+            void apply(ComponentSpec componentSpec, BinarySpecFactoryRegistry binaryFactoryRegistry) {
+                ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
+                binaryFactoryRegistry.copyInto(componentSpecInternal.getBinaries());
+            }
+        }
+
+        @Defaults
+        void registerBinaryFactories(ComponentSpecContainer componentSpecs, final BinarySpecFactoryRegistry binaryFactoryRegistry) {
+            componentSpecs.withType(ComponentSpec.class, RegisterBinaryFactories.class);
+        }
+
+        @Defaults
+        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs.values()) {
+                for (BinarySpec binary : componentSpec.getBinaries()) {
+                    binaries.add(binary);
+                }
+            }
         }
 
     }
@@ -212,4 +232,5 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
     }
+
 }

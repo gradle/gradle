@@ -17,13 +17,18 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
+
     def "can combine legacy java and jvm-component plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
-        buildFile << """
+        buildFile << '''
             apply plugin: "java"
             apply plugin: "jvm-component"
             apply plugin: "java-lang"
@@ -32,18 +37,22 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
                 components {
                     jvmLib(JvmLibrarySpec)
                 }
-            }
+                tasks {
+                    create("checkModel") {
+                        def components = $("components")
+                        doLast {
+                            assert components.size() == 1
+                            assert components.jvmLib instanceof JvmLibrarySpec
 
-            task checkModel << {
-                assert componentSpecs.size() == 1
-                assert componentSpecs.jvmLib instanceof JvmLibrarySpec
-
-                assert binaries.size() == 3
-                assert binaries.jvmLibJar instanceof JarBinarySpec
-                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
+                            assert project.binaries.size() == 3
+                            assert project.binaries.jvmLibJar instanceof JarBinarySpec
+                            assert project.binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                            assert project.binaries.testClasses instanceof ClassDirectoryBinarySpec
+                        }
+                    }
+                }
             }
-"""
+'''
         expect:
         succeeds "checkModel"
     }

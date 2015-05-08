@@ -196,8 +196,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
@@ -221,8 +220,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
@@ -384,6 +382,7 @@ tasks.withType(RunTestExecutable) {
                 "src/hello/cpp/sum.cpp"
         ] as Set
         projectFile.headerFiles == [
+                "src/hello/headers/common.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set

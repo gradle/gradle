@@ -25,9 +25,13 @@ import java.util.List;
 @NotThreadSafe
 public class DeferredProjectConfiguration {
 
+    private final static String TRACE = "org.gradle.trace.deferred.project.configuration";
+
     private final Project project;
     private final List<Runnable> configuration = Lists.newLinkedList();
     private boolean fired;
+
+    private Throwable firedSentinel;
 
     public DeferredProjectConfiguration(Project project) {
         this.project = project;
@@ -35,7 +39,12 @@ public class DeferredProjectConfiguration {
 
     public void add(Runnable configuration) {
         if (fired) {
-            throw new IllegalStateException("Cannot add deferred configuration for project " + project.getPath());
+            String message = "Cannot add deferred configuration for project " + project.getPath();
+            if (firedSentinel == null) {
+                throw new IllegalStateException(message);
+            } else {
+                throw new IllegalStateException(message, firedSentinel);
+            }
         } else {
             this.configuration.add(configuration);
         }
@@ -43,11 +52,14 @@ public class DeferredProjectConfiguration {
 
     public void fire() {
         if (!fired) {
+            if (Boolean.getBoolean(TRACE)) {
+                firedSentinel = new Exception("Project '" + project.getPath() + "' deferred configuration fired");
+            }
             fired = true;
             for (Runnable runnable : configuration) {
                 runnable.run();
             }
         }
     }
-    
+
 }

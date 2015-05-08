@@ -271,7 +271,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     def "mutations trigger lenient validation"() {
         given:
         def validator = Mock(MutationValidator)
-        substitutions.beforeChange(validator)
+        substitutions.setMutationValidator(validator)
         
         when: substitutions.all(Mock(Action))
         then: 1 * validator.validateMutation(STRATEGY)
@@ -307,7 +307,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     def "mutating copy does not trigger original validator"() {
         given:
         def validator = Mock(MutationValidator)
-        substitutions.beforeChange(validator)
+        substitutions.setMutationValidator(validator)
         def copy = substitutions.copy()
 
         when:

@@ -21,14 +21,15 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GFileUtils
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.Matchers.equalTo
 
+@UsesNativeServices
 public class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory
@@ -36,7 +37,6 @@ public class DefaultSourceDirectorySetTest extends Specification {
     private DefaultSourceDirectorySet set
 
     public void setup() {
-        NativeServicesTestFixture.initialize()
         resolver = {src -> src instanceof File ? src : new File(testDir, src as String)} as FileResolver
         set = new DefaultSourceDirectorySet('<display-name>', resolver)
     }

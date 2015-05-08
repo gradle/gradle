@@ -32,6 +32,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -54,7 +55,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices = globalServices;
         tracker = new NestedBuildTracker();
 
-        // Register default loggers 
+        // Register default loggers
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
         buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
@@ -124,27 +125,28 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
-                gradle,
-                serviceRegistry.get(InitScriptHandler.class),
-                new SettingsHandler(
-                        new DefaultSettingsFinder(
-                                new BuildLayoutFactory()),
-                        serviceRegistry.get(SettingsProcessor.class),
-                        new BuildSourceBuilder(
-                                this,
-                                serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
-                                serviceRegistry.get(CacheRepository.class))
-                ),
-                serviceRegistry.get(BuildLoader.class),
-                serviceRegistry.get(BuildConfigurer.class),
-                gradle.getBuildListenerBroadcaster(),
-                serviceRegistry.get(ExceptionAnalyser.class),
-                loggingManager,
-                listenerManager.getBroadcaster(ModelConfigurationListener.class),
-                listenerManager.getBroadcaster(TasksCompletionListener.class),
-                gradle.getServices().get(BuildExecuter.class),
-                listenerManager.getBroadcaster(BuildCompletionListener.class),
-                serviceRegistry
+            gradle,
+            serviceRegistry.get(InitScriptHandler.class),
+            new SettingsHandler(
+                new DefaultSettingsFinder(
+                    new BuildLayoutFactory()),
+                serviceRegistry.get(SettingsProcessor.class),
+                new BuildSourceBuilder(
+                    this,
+                    serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
+                    serviceRegistry.get(CacheRepository.class))
+            ),
+            serviceRegistry.get(BuildLoader.class),
+            serviceRegistry.get(BuildConfigurer.class),
+            serviceRegistry.get(ExceptionAnalyser.class),
+            loggingManager,
+            gradle.getBuildListenerBroadcaster(),
+            listenerManager.getBroadcaster(ModelConfigurationListener.class),
+            listenerManager.getBroadcaster(TasksCompletionListener.class),
+            listenerManager.getBroadcaster(BuildCompletionListener.class),
+            listenerManager.getBroadcaster(InternalBuildListener.class),
+            gradle.getServices().get(BuildExecuter.class),
+            serviceRegistry
         );
     }
 }

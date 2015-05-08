@@ -25,14 +25,14 @@ Using multiple precompiled headers for a single .c or .cpp file is unsupported b
 
 # DSL (WIP)
 
-General idea is to include the PCH as a property on a native source set (C/C++).  precompiledHeader should be a `Buildable` so we could potentially generate it.
+General idea is to include the PCH as a property on a native source set (C/C++).  The preCompiledHeader value should be a string suitable in a "#include" statement.
 
     model {
         components {
             mainExe(NativeExecutableSpec) {
                 sources {
                     cpp {
-                        precompiledHeader file("path/to/my_pch.h")
+                        preCompiledHeader "path/to/my_pch.h"
                         source { }
                         headers { }
                     }
@@ -42,96 +42,50 @@ General idea is to include the PCH as a property on a native source set (C/C++).
     }
 
 ## Implementation
-Basically, the approach is to generate a new source set for any precompiled header that gets defined, then add the compiled header
-as a NativeDependencySet of the source set that uses it.
+Basically, the approach is to generate a prefix header file containing the specified header to pre-compile.  For VisualCpp, we also need to
+generate a source file including the prefix header file.  Then we compile the prefix header and then explicitly include it on the command line
+("-include" for gcc/clang, "/Yu" for VisualCpp).
 
 Add a method to DependentSourceSet that allows the user to define a precompiled header file.
 
     public interface DependentSourceSet extends LanguageSourceSet {
-        void preCompiledHeader(Object headerFile);
+        void preCompiledHeader(String header);
     }
 
-headerFile will be interpreted as in project.files().
+Then, for every source set that defines a precompiled header, we define a prefix header file generation task as well as a header compile task.
+In order to do this, we introduce a new PreCompiledHeaderCompile task, PCH compile specs, PCH compilers and LangPCH plugins.  The LangPCH
+plugins exist to register that when a pre-compiled header is set on a source set of type X, a compile task of type Y should be used.
 
-Add a PreCompiledHeaderExportingSourceSetInternal interface to track the relationship between precompiled header source sets and "consuming" source sets.
-
-    public interface PreCompiledHeaderExportingSourceSetInternal extends HeaderExportingSourceSet {
-        boolean isPreCompiledHeader();
-        void setIsPreCompiledHeader(boolean isPreCompiledHeader);
-        DependentSourceSet getConsumingSourceSet();
-        void setConsumingSourceSet(DependentSourceSet dependentSourceSet);
-    }
-
-Add a method to NativeBinarySpecInternal to track the mapping between "consuming" source sets and precompiled header object outputs.
-
-    public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
-        Map<DependentSourceSet, FileCollection> getPrecompiledHeaderObjectMappings();
-    }
-
-Then, for every source set that defines a precompiled header, we generate a source set and link it to the "consuming" source set.
-When we are configuring the compile task for the PCH source set, set the mapping between the consuming source set and the output of the
-PCH compile task.
-
-We potentially have to produce different compiler arguments when compiling a precompiled header (MSVC), so we need to specify on the compiletask that
-it is compiling a PCH instead of a "normal" source.  So, in NativeCompileSpec:
+For the sourceset, if there is a pre-compiled header set, then we need to check each source file to see if the specified pre-compiled header
+is in the list of includes.  We already parse the includes for the incremental compiler, so we can pass that information through as part of
+the compile spec.
 
     public interface NativeCompileSpec extends BinaryToolSpec {
-        boolean isPrecompiledHeader();
-        void setPrecompiledHeader(boolean true);
+        Map<File, SourceIncludes> getSourceFileIncludes();
+        void setSourceFileIncludes(Map<File, SourceIncludes> map);
     }
 
-Then in NativeCompiler, instead of constructing with a single args transformer, we construct with an args transformer factory.
-
-    public interface ArgsTransformerFactory<T extends BinaryToolSpec> {
-        ArgsTransformer<T extends BinaryToolSpec> create(T spec);
-    }
-
-Each subclass of NativeCompiler would call the super constructor with a factory that produces the appropriate args transformer for the spec.
-For the gcc/clang compilers they probably just produce the same args transformer, but for MSVC, it would probably be different.
-
-For the consuming source set, we also need to know if it should be compiled with a precompiled header.  We add this to AbstractNativeCompileTask:
-
-    public abstract class AbstractNativeCompileTask extends DefaultTask {
-        private ConfigurableFileCollection precompiledHeader;
-        public void preCompiledHeader(Object header) {
-            precompiledHeader.from(header);
-        }
-    }
-
-Then in NativeCompileSpec, we add the reference to the precompiled header:
-
-    public interface NativeCompileSpec extends BinaryToolSpec {
-        File getPrecompiledHeader()
-    }
-
-In AbstractNativeCompileTask, we resolve the file collection to a single file (throwing error if >1?) and set it on the spec.
-In NativeCompiler, if we find a non-null precompiledHeader, we add the appropriate args to the compile operation.
+If a source file does not contain the pre-compiled header as the first included header, then we warn but do not include the PCH args on
+the command line.
 
 ## Test Cases
 
-- Build fails when developer defines precompiled header, but the precompiled header does not exist.  
-- Build fails when developer defines PCH, but the intermediate file cannot be generated.
-- Gradle warns when developer defines PCH, but the compiler cannot use it for some reason.
-- When any file included in PCH header changes, intermediate file is rebuilt.
+- Build fails when developer defines precompiled header, but the precompiled header does not exist.
+- Gradle warns when developer defines PCH, but the header is not the first header in the source file.
+- When any file included in prefix header file changes, the precompiled header object file and any target binaries are rebuilt.
 - Build produces an intermediate file for each variant and language combination.
+- Build uses the same compiler settings for PCH compile as variant compile.
+- Can set a PCH for a file in headers directory.
+- Can set a PCH for a file in an include directory.
+- Can set a PCH for a relative file in the source directory.
 - For GCC, build of PCH produces <precompiledHeader>.gch
 - For MSVC/Clang, build of PCH produces <precompiledHeader>.pch
-- For MSVC, Gradle looks for a <precompiledHeader>.c/cpp.  If it does not exist, we will generate one that #include's <precompiledHeader>.h
-
-Steps for creating PCH for each toolchain are below.
-
-- For all, build of component using PCH inclues PCH-build directory ahead of normal include path.
-- For GCC, no other special arguments are needed.
-- For Clang, build of component using PCH adds -include-pch for source files that have a dependency on the PCH.
-- For MSVC, build of component using PCH adds /Yu<precompiledHeader>.pch for source files that have a dependency on the PCH.
 
 ## Compiler Implementation Details
 
 PCH intermediate files are machine and host specific.  Need to include this into any input snapshotting.
 
 ### GCC
-
-TODO: Flesh out
 
 Uses .gch extension for precompiled headers (e.g., my_pch.h.gch)
 
@@ -148,8 +102,6 @@ The following will work for GCC:
 [Reference](https://gcc.gnu.org/onlinedocs/gcc/Precompiled-Headers.html)
 
 ### Clang
-
-TODO: Flesh out
 
 Similar to GCC, except uses .pch extension.
 
@@ -206,7 +158,6 @@ TBD
 
 - Can we/should we try to generate precompiled header/source files given a list of headers to precompile? 
     - Not sure if we have all the info, but usage statistics on header files would give us some insight so we could provide recommendations for a PCH or automatic generation of a precompiled header.
-- At least GCC can tell us if the precompiled header is actually used.  Do the other compilers?
 - ~~Does this extend well to "lump" or "unity" builds? -- No, not really.~~
 - ~~Should we make use of -include or /FI to include precompiled headers in a given source set compilation? (aka prefix headers) -- No~~
 - ~~Should probably be easy to turn off PCH for testing/diagnosing a broken build? -- No~~

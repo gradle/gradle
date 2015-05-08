@@ -29,7 +29,7 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
 
     def setup() {
         executer.withArgument('-i')
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
     String getBucket() {

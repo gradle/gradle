@@ -16,6 +16,8 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.resource.RemoteResource
+
 interface RemoteIvyRepository extends IvyRepository {
 
     RemoteIvyModule module(String organisation, String module)
@@ -26,5 +28,5 @@ interface RemoteIvyRepository extends IvyRepository {
 
     String getBaseArtifactPattern()
 
-    void expectDirectoryList(String organisation, String module)
+    RemoteResource directoryList(String organisation, String module)
 }

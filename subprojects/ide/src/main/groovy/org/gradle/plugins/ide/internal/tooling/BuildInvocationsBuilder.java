@@ -26,15 +26,17 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
-import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
-import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
 
@@ -86,12 +88,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     private List<LaunchableGradleTask> tasks(Project project) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(new LaunchableGradleTask()
-                    .setPath(task.getPath())
-                    .setName(task.getName())
-                    .setDisplayName(task.toString())
-                    .setDescription(task.getDescription())
-                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
+            tasks.add(buildFromTask(new LaunchableGradleTask(), task));
         }
         return tasks;
     }

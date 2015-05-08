@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.googletest
+
 import org.gradle.language.cpp.plugins.CppPlugin
+import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestPlugin
-import org.gradle.platform.base.test.TestSuiteContainer
+import org.gradle.platform.base.test.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -38,7 +39,7 @@ class GoogleTestTest extends Specification {
         project.evaluate()
 
         then:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer)).getByName("mainTest").binaries
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries
         binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()
     }
 }

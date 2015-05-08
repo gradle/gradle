@@ -22,29 +22,28 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
+import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -79,16 +78,21 @@ public class LanguageBasePlugin implements Plugin<Project> {
         final String descriptor = LanguageBasePlugin.class.getName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
-        BridgedCollections.dynamicTypes(
-                modelRegistry,
-                binariesPath,
-                descriptor,
-                ModelType.of(DefaultBinaryContainer.class),
-                ModelType.of(DefaultBinaryContainer.class),
-                ModelType.of(BinarySpec.class),
-                binaries,
+
+        ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
+        modelRegistry.createOrReplace(
+            BridgedCollections.creator(
+                ModelReference.of(binariesPath, DefaultBinaryContainer.class),
+                Transformers.constant(binaries),
                 Named.Namer.INSTANCE,
+                descriptor,
                 BridgedCollections.itemDescriptor(descriptor)
+            )
+                .descriptor(descriptor)
+                .ephemeral(true)
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, DefaultModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
+                .build()
         );
 
         modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
@@ -105,26 +109,20 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         }
                     }
                 }));
-
-                binariesNode.applyToAllLinks(ModelActionRole.Initialize, DirectNodeModelAction.of(ModelReference.of(BinarySpec.class), new SimpleModelRuleDescriptor(descriptor + ".tasks"), new Action<MutableModelNode>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode) {
-                        ModelPath binaryPath = modelNode.getPath();
-                        ModelPath taskNodePath = binaryPath.child("__tasks");
-                        ModelType<Collection<Task>> taskCollectionType = ModelTypes.collectionOf(Task.class);
-                        ModelReference<Collection<Task>> tasksNodeReference = ModelReference.of(taskNodePath, taskCollectionType);
-                        modelNode.addLink(ModelCreators.of(tasksNodeReference, BiActions.doNothing())
-                                        .withProjection(new UnmanagedModelProjection<Collection<Task>>(taskCollectionType))
-                                        .descriptor(descriptor + ".createTasksNode")
-                                        .build()
-                        );
-                        MutableModelNode link = modelNode.getLink(taskNodePath.getName());
-                        assert link != null;
-                        link.setPrivateData(taskCollectionType, modelNode.getPrivateData(ModelType.of(BinarySpec.class)).getTasks());
-                    }
-                }));
             }
         }));
+
+        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
+            .descriptor(ruleDescriptor)
+            .ephemeral(true)
+            .hidden(true)
+            .build());
+
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
+            DirectNodeModelAction.of(
+                ModelReference.of(BinarySpec.class),
+                new SimpleModelRuleDescriptor(descriptor),
+                ComponentSpecInitializer.binaryAction()));
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -163,6 +161,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
             }
+        }
+
+        @Defaults
+        void registerBinaryFactories(BinaryContainer binaries, BinarySpecFactoryRegistry binaryFactoryRegistry) {
+            binaryFactoryRegistry.copyInto(binaries);
         }
 
         private static class CheckForNotBuildableBinariesAction implements Action<Task> {

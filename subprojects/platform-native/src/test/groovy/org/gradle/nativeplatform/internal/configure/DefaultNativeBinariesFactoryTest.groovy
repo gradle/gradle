@@ -21,17 +21,17 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.*
-import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
-import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.nativeplatform.internal.*
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeBinariesFactoryTest extends Specification {
@@ -48,22 +48,24 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def instantiator = DirectInstantiator.INSTANCE;
-    def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver, Mock(ITaskFactory))
+    def binaries = Mock(ModelMap)
+    def factory = new DefaultNativeBinariesFactory(binaries, configAction, resolver)
     def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet));
+    def taskFactory = Mock(ITaskFactory)
 
     def "creates binaries for executable"() {
         given:
         def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
+        def binary = BaseBinarySpec.create(DefaultNativeExecutableBinarySpec, "testExecutable", instantiator, taskFactory)
 
         when:
-        1 * configAction.execute(_)
-
-        and:
         factory.createNativeBinaries(executable, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
 
         then:
-        executable.binaries.size() == 1
-        def binary = (executable.binaries as List)[0] as NativeBinarySpecInternal
+        1 * binaries.create("testExecutable", NativeExecutableBinarySpec, { it.execute(binary); true })
+        1 * configAction.execute(binary)
+
+        and:
         binary.name == "testExecutable"
         binary.toolChain == toolChain
         binary.platformToolProvider == toolProvider
@@ -75,16 +77,19 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def "creates binaries for library"() {
         given:
         def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, mainSourceSet, DirectInstantiator.INSTANCE)
+        def staticLibrary = BaseBinarySpec.create(DefaultStaticLibraryBinarySpec, "testStaticLibrary", instantiator, taskFactory)
+        def sharedLibrary = BaseBinarySpec.create(DefaultSharedLibraryBinarySpec, "testSharedLibrary", instantiator, taskFactory)
 
         when:
-        2 * configAction.execute(_)
-
-        and:
         factory.createNativeBinaries(library, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
 
         then:
-        library.binaries.size() == 2
-        def sharedLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpecInternal
+        1 * binaries.create("testStaticLibrary", StaticLibraryBinarySpec, { it.execute(staticLibrary); true })
+        1 * configAction.execute(staticLibrary)
+        1 * binaries.create("testSharedLibrary", SharedLibraryBinarySpec, { it.execute(sharedLibrary); true })
+        1 * configAction.execute(sharedLibrary)
+
+        and:
         sharedLibrary.name == "testSharedLibrary"
         sharedLibrary.toolChain == toolChain
         sharedLibrary.platformToolProvider == toolProvider
@@ -92,8 +97,8 @@ class DefaultNativeBinariesFactoryTest extends Specification {
         sharedLibrary.buildType == buildType
         sharedLibrary.flavor == flavor
 
-        def staticLibrary = (library.binaries.withType(SharedLibraryBinarySpec) as List)[0] as NativeBinarySpecInternal
-        staticLibrary.name == "testSharedLibrary"
+        and:
+        staticLibrary.name == "testStaticLibrary"
         staticLibrary.toolChain == toolChain
         staticLibrary.platformToolProvider == toolProvider
         staticLibrary.targetPlatform == platform

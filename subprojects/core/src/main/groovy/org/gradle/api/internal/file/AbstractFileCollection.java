@@ -19,20 +19,22 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.GUtil;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractFileCollection implements FileCollection, MinimalFileSet {
+public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -125,9 +127,7 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
         List<DirectoryFileTree> fileTrees = new ArrayList<DirectoryFileTree>();
         for (File file : getFiles()) {
             if (file.isFile()) {
-                PatternSet patternSet = new PatternSet();
-                patternSet.include(new String[]{file.getName()});
-                fileTrees.add(new DirectoryFileTree(file.getParentFile(), patternSet));
+                fileTrees.add(new FileBackedDirectoryFileTree(file));
             }
         }
         return fileTrees;
@@ -216,5 +216,13 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
 
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
+    }
+
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (File file : getFiles()) {
+            builder.add(file);
+        }
     }
 }

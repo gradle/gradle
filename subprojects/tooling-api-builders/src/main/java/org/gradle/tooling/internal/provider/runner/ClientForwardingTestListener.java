@@ -15,84 +15,115 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
-import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
+import org.gradle.tooling.internal.provider.events.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListener {
+class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
+    private final ConsumerListenerConfiguration listenerConfiguration;
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
         this.eventConsumer = eventConsumer;
+        this.listenerConfiguration = listenerConfiguration;
     }
 
     @Override
-    public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_SUITE_STARTED, toTestDescriptor(suite), null));
+    public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+        eventConsumer.dispatch(new DefaultTestStartedProgressEvent(startEvent.getStartTime(), adapt(testDescriptor)));
     }
 
     @Override
-    public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestSuiteEventType(result), toTestDescriptor(suite), toTestResult(result)));
-    }
-
-
-    private String getFinishTestSuiteEventType(TestResult result) {
-        TestResult.ResultType resultType = result.getResultType();
-        switch (resultType) {
-            case SUCCESS:
-                return TestProgressEventVersion1.TEST_SUITE_SUCCEEDED;
-            case SKIPPED:
-                return TestProgressEventVersion1.TEST_SUITE_SKIPPED;
-            case FAILURE:
-                return TestProgressEventVersion1.TEST_SUITE_FAILED;
-            default:
-                throw new IllegalStateException("Unknown test result type: " + resultType);
-        }
+    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+        eventConsumer.dispatch(new DefaultTestFinishedProgressEvent(completeEvent.getEndTime(), adapt(testDescriptor), adapt(testResult)));
     }
 
     @Override
-    public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_STARTED, toTestDescriptor(test), null));
+    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
+        // Don't forward
     }
 
-    @Override
-    public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestEventType(result), toTestDescriptor(test), toTestResult(result)));
+    private DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
+        return testDescriptor.isComposite() ? toTestDescriptorForSuite(testDescriptor) : toTestDescriptorForTest(testDescriptor);
     }
 
-    private String getFinishTestEventType(TestResult result) {
-        TestResult.ResultType resultType = result.getResultType();
-        switch (resultType) {
-            case SUCCESS:
-                return TestProgressEventVersion1.TEST_SUCCEEDED;
-            case SKIPPED:
-                return TestProgressEventVersion1.TEST_SKIPPED;
-            case FAILURE:
-                return TestProgressEventVersion1.TEST_FAILED;
-            default:
-                throw new IllegalStateException("Unknown test result type: " + resultType);
-        }
-    }
-
-    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptor(TestDescriptor suite) {
-        Object id = ((TestDescriptorInternal) suite).getId();
+    private DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
+        Object id = suite.getId();
         String name = suite.getName();
+        String displayName = suite.toString();
+        String testKind = InternalJvmTestDescriptor.KIND_SUITE;
+        String suiteName = suite.getName();
         String className = suite.getClassName();
-        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, className, parentId);
+        String methodName = null;
+        Object parentId = getParentId(suite);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), result.getExceptions());
+    private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
+        Object id = test.getId();
+        String name = test.getName();
+        String displayName = test.toString();
+        String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
+        String suiteName = null;
+        String className = test.getClassName();
+        String methodName = test.getName();
+        Object parentId = getParentId(test);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private Object getParentId(TestDescriptorInternal descriptor) {
+        TestDescriptorInternal parent = descriptor.getParent();
+        Object parentId = parent != null ? parent.getId() : null;
+        if (parentId == null) {
+            // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+            if (listenerConfiguration.isSendTaskProgressEvents()) {
+                if (descriptor instanceof DecoratingTestDescriptor) {
+                    descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
+                }
+                if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
+                    parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
+                }
+            }
+        }
+        return parentId;
+    }
+
+    private static AbstractTestResult adapt(TestResult result) {
+        TestResult.ResultType resultType = result.getResultType();
+        switch (resultType) {
+            case SUCCESS:
+                return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+            case SKIPPED:
+                return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
+            case FAILURE:
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+            default:
+                throw new IllegalStateException("Unknown test result type: " + resultType);
+        }
+    }
+
+    private static List<DefaultFailure> convertExceptions(List<Throwable> exceptions) {
+        List<DefaultFailure> failures = new ArrayList<DefaultFailure>(exceptions.size());
+        for (Throwable exception : exceptions) {
+            failures.add(DefaultFailure.fromThrowable(exception));
+        }
+        return failures;
     }
 
 }

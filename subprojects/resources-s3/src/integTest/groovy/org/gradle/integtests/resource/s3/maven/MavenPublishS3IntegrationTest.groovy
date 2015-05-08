@@ -17,15 +17,13 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
+import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
-
-    String bucket = 'tests3bucket'
-
     @Rule
-    public S3FileBackedServer server = new S3FileBackedServer(file())
+    public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
@@ -33,7 +31,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to a S3 Maven repository"() {
         given:
-        def mavenRepo = maven(server.getBackingDir(bucket))
+        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
         settingsFile << 'rootProject.name = "publishS3Test"'
         buildFile << """
 apply plugin: 'java'
@@ -61,13 +59,22 @@ publishing {
 """
 
         when:
+        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0')
+        module.artifact.expectUpload()
+        module.artifact.sha1.expectUpload()
+        module.artifact.md5.expectUpload()
+        module.pom.expectUpload()
+        module.pom.sha1.expectUpload()
+        module.pom.md5.expectUpload()
+        module.mavenRootMetaData.expectDownloadMissing()
+        module.mavenRootMetaData.expectUpload()
+        module.mavenRootMetaData.sha1.expectUpload()
+        module.mavenRootMetaData.md5.expectUpload()
+
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
-        // TODO Verify published checksums: move functionality from HttpArtifact to something that works for MavenFileRepository
-
     }
 }

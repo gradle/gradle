@@ -19,13 +19,12 @@ package org.gradle.jvm.application.scripts;
 import org.gradle.api.Incubating;
 import org.gradle.api.resources.TextResource;
 
-import java.io.Reader;
-
 /**
  * Interface for generating scripts with the provided details based on a provided template.
  */
 @Incubating
 public interface TemplateBasedScriptGenerator extends ScriptGenerator {
+
     /**
      * Sets the template text resource used for generating script.
      *
@@ -38,5 +37,6 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      *
      * @return Template reader
      */
-    Reader getTemplate();
+    TextResource getTemplate();
+
 }

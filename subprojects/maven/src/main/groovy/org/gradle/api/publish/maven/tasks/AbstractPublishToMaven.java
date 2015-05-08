@@ -30,7 +30,7 @@ import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
- * Abstract class for publishing a {@link org.gradle.api.publish.maven.MavenPublication}.
+ * Base class for tasks that publish a {@link org.gradle.api.publish.maven.MavenPublication}.
  *
  * @since 2.4
  */

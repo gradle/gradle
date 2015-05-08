@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.Nullable;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 public interface ExternalResourceArtifactResolver {
     @Nullable

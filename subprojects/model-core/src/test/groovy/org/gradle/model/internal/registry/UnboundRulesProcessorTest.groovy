@@ -167,10 +167,9 @@ class UnboundRulesProcessorTest extends Specification {
     def "creates scoped unbound rules with by-type bound subject"() {
         binder {
             descriptor("ruleWithUnboundSubjectReference")
-            scope("some.scope")
-            subjectReference(String)
+            subjectReference(ModelReference.of(String).withScope(ModelPath.path("some.scope")))
             inputReference(String)
-            inputReference("input", Boolean)
+            inputReference(ModelReference.of(Boolean).withScope(ModelPath.path("other.scope")))
         }
 
         expect:
@@ -178,21 +177,7 @@ class UnboundRulesProcessorTest extends Specification {
                 UnboundRule.descriptor("ruleWithUnboundSubjectReference")
                         .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
                         .immutableInput(UnboundRuleInput.type(String))
-                        .immutableInput(UnboundRuleInput.type(Boolean).path("some.scope.input"))
-        )
-    }
-
-    def "creates scoped unbound rules with by-path bound subject"() {
-        binder {
-            descriptor("ruleWithUnboundSubjectReference")
-            scope("some.scope")
-            subjectReference("subject", String)
-        }
-
-        expect:
-        reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithUnboundSubjectReference")
-                        .mutableInput(UnboundRuleInput.type(String).path("some.scope.subject"))
+                        .immutableInput(UnboundRuleInput.type(Boolean).scope("other.scope"))
         )
     }
 
@@ -203,7 +188,10 @@ class UnboundRulesProcessorTest extends Specification {
         private String subjectReferenceBindingPath
         private List<ModelReference<?>> inputReferences = []
         private Map<Integer, String> boundInputReferencePaths = [:]
-        private ModelPath scope = ModelPath.ROOT
+
+        void subjectReference(ModelReference<?> reference) {
+            subjectReference = reference
+        }
 
         void subjectReference(Class type) {
             subjectReference = ModelReference.of(ModelType.of(type))
@@ -215,6 +203,10 @@ class UnboundRulesProcessorTest extends Specification {
 
         void bindSubjectReference(String path) {
             subjectReferenceBindingPath = path
+        }
+
+        void inputReference(ModelReference<?> reference) {
+            inputReferences.add(reference)
         }
 
         void inputReference(Class type) {
@@ -233,24 +225,25 @@ class UnboundRulesProcessorTest extends Specification {
             this.descriptor = new SimpleModelRuleDescriptor(descriptor)
         }
 
-        void scope(String path) {
-            scope = ModelPath.path(path)
-        }
-
         RuleBinder build() {
-            def binder = new RuleBinder(inputReferences, descriptor, scope, []) {
+            def subjBinding = subjectReference == null ? null : new ModelBinding(null, subjectReference, true) {
                 @Override
-                ModelBinding<?> getSubjectBinding() {
-                    subjectReferenceBindingPath ? bind(getSubjectReference(), new TestNode(subjectReferenceBindingPath)) : null
+                boolean onCreate(ModelNodeInternal node) {
+                    return false
                 }
+            }
+            if (subjectReferenceBindingPath) {
+                subjBinding.boundTo = new TestNode(subjectReferenceBindingPath)
+            }
 
+            def binder = new RuleBinder(inputReferences, descriptor, []) {
                 @Override
-                ModelReference<?> getSubjectReference() {
-                    RuleBinderTestBuilder.this.subjectReference
+                ModelBinding getSubjectBinding() {
+                    return subjBinding
                 }
             }
             boundInputReferencePaths.each { index, path ->
-                binder.bindInput(index, new TestNode(path))
+                binder.inputBindings[index].boundTo = new TestNode(path)
             }
             return binder
         }
@@ -262,8 +255,8 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         private static CreatorRuleBinder toBinder(String creationPath) {
-            def creator = ModelCreators.of(ModelReference.of(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
-            def binder = new CreatorRuleBinder(creator, ModelPath.ROOT, [])
+            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
+            def binder = new CreatorRuleBinder(creator, [], [])
             binder
         }
 
@@ -313,10 +306,14 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
 
         }
 
+        @Override
+        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+
+        }
 
         @Override
         def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
@@ -390,6 +387,11 @@ class UnboundRulesProcessorTest extends Specification {
 
         @Override
         def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            return null
+        }
+
+        @Override
+        MutableModelNode getParent() {
             return null
         }
     }

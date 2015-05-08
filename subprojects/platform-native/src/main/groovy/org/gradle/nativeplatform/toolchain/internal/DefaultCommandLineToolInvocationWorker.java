@@ -63,7 +63,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if(OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())){
+            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())) {
                 toolExec.getEnvironment().remove(pathVar.toUpperCase());
             }
         }
@@ -80,7 +80,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             invocation.getLogger().operationSuccess(invocation.getDescription(), combineOutput(stdOutput, errOutput));
         } catch (ExecException e) {
             invocation.getLogger().operationFailed(invocation.getDescription(), combineOutput(stdOutput, errOutput));
-            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()));
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, invocation.getDescription()));
         }
     }
 

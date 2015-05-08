@@ -38,33 +38,4 @@ public class DefaultAwsCredentials implements AwsCredentials {
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
     }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultAwsCredentials that = (DefaultAwsCredentials) o;
-
-        if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) {
-            return false;
-        }
-        if (secretKey != null ? !secretKey.equals(that.secretKey) : that.secretKey != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = accessKey != null ? accessKey.hashCode() : 0;
-        result = 31 * result + (secretKey != null ? secretKey.hashCode() : 0);
-        return result;
-    }
 }

@@ -37,6 +37,9 @@ import org.gradle.api.NonExtensible;
  *
  *      @TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
+ *          if (!inputs.incremental)
+ *              project.delete(outputDir.listFiles())
+ *
  *          inputs.outOfDate { change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()

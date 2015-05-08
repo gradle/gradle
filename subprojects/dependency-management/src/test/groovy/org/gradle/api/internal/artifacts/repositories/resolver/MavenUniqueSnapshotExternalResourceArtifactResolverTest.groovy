@@ -21,7 +21,7 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.resource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import spock.lang.Specification
 
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {

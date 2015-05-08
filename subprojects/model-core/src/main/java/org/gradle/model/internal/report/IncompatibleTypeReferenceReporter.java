@@ -20,6 +20,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.io.PrintWriter;
@@ -46,12 +47,13 @@ public class IncompatibleTypeReferenceReporter {
         this.candidateTypes = candidateTypes;
     }
 
-    public static IncompatibleTypeReferenceReporter of(ModelRuleDescriptor creator, ModelPromise promise, ModelReference<?> reference, boolean writable) {
+    public static IncompatibleTypeReferenceReporter of(MutableModelNode node, ModelPromise promise, ModelReference<?> reference, boolean writable) {
         ModelPath path = reference.getPath();
+        ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         String pathString = path == null ? "«none»" : path.toString();
         return new IncompatibleTypeReferenceReporter(
-                creator.toString(), pathString, reference.getType().toString(), reference.getDescription(), writable,
-                writable ? promise.getWritableTypeDescriptions() : promise.getReadableTypeDescriptions()
+                creatorDescriptor.toString(), pathString, reference.getType().toString(), reference.getDescription(), writable,
+                writable ? promise.getWritableTypeDescriptions(node) : promise.getReadableTypeDescriptions(node)
         );
     }
 

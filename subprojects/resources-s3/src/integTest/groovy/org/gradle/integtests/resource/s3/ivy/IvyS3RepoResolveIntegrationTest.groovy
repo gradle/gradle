@@ -32,7 +32,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
         result = executer.withTasks(*tasks).run()
     }

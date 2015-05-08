@@ -28,9 +28,9 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
-    private final Action<DependencySubstitution<ComponentSelector>> rule;
+    private final Action<DependencySubstitution> rule;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution<ComponentSelector>> rule) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule) {
         this.resolver = resolver;
         this.rule = rule;
     }

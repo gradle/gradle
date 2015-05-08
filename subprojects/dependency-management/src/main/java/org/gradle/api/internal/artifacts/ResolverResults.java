@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 
 public class ResolverResults {
@@ -26,10 +29,13 @@ public class ResolverResults {
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
     private ResolvedProjectConfigurationResults resolvedProjectConfigurationResults;
+    private TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
+    private ResolvedGraphResults graphResults;
+    private ResolvedArtifactsBuilder artifactResults;
 
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertHasResult();
+        assertHasArtifacts();
         return resolvedConfiguration;
     }
 
@@ -51,25 +57,47 @@ public class ResolverResults {
     }
 
     private void assertHasResult() {
-        if (resolvedConfiguration == null) {
+        if (resolutionResult == null && fatalFailure == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
         }
+    }
+
+    private void assertHasArtifacts() {
+        if (resolvedConfiguration == null) {
+            throw new IllegalStateException("Resolution artifacts have not been attached.");
+        }
+    }
+
+    public void resolved(ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
+        this.resolutionResult = resolutionResult;
+        this.resolvedProjectConfigurationResults = resolvedProjectConfigurationResults;
+        this.fatalFailure = null;
+    }
+
+    public void failed(ResolveException failure) {
+        this.resolutionResult = null;
+        this.fatalFailure = failure;
     }
 
     public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
         this.resolvedConfiguration = resolvedConfiguration;
     }
 
-    public void resolved(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
-        this.resolvedConfiguration = resolvedConfiguration;
-        this.resolutionResult = resolutionResult;
-        this.resolvedProjectConfigurationResults = resolvedProjectConfigurationResults;
-        this.fatalFailure = null;
+    public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+        this.graphResults = graphResults;
+        this.artifactResults = artifactResults;
+        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
     }
 
-    public void failed(ResolvedConfiguration resolvedConfiguration, ResolveException failure) {
-        this.resolvedConfiguration = resolvedConfiguration;
-        this.resolutionResult = null;
-        this.fatalFailure = failure;
+    public ResolvedGraphResults getGraphResults() {
+        return graphResults;
+    }
+
+    public ResolvedArtifactsBuilder getArtifactsBuilder() {
+        return artifactResults;
+    }
+
+    public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {
+        return transientConfigurationResultsBuilder;
     }
 }

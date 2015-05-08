@@ -60,12 +60,27 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         """
 
         when:
-        module.artifact.expectMkdirs()
-        module.artifact.expectFileAndChecksumsUpload()
+        module.artifact.expectParentMkdir()
+        module.artifact.expectFileUpload()
+        // TODO - should not check on each upload to a particular directory
+        module.artifact.sha1.expectParentCheckdir()
+        module.artifact.sha1.expectFileUpload()
+        module.artifact.md5.expectParentCheckdir()
+        module.artifact.md5.expectFileUpload()
 
         module.rootMavenMetadata.expectLstatMissing()
-        module.rootMavenMetadata.expectFileAndChecksumsUpload()
-        module.pom.expectFileAndChecksumsUpload()
+        module.rootMavenMetadata.expectParentCheckdir()
+        module.rootMavenMetadata.expectFileUpload()
+        module.rootMavenMetadata.sha1.expectParentCheckdir()
+        module.rootMavenMetadata.sha1.expectFileUpload()
+        module.rootMavenMetadata.md5.expectParentCheckdir()
+        module.rootMavenMetadata.md5.expectFileUpload()
+        module.pom.expectParentCheckdir()
+        module.pom.expectFileUpload()
+        module.pom.sha1.expectParentCheckdir()
+        module.pom.sha1.expectFileUpload()
+        module.pom.md5.expectParentCheckdir()
+        module.pom.md5.expectFileUpload()
 
         and:
         succeeds 'publish'

@@ -33,12 +33,15 @@ public class DaemonParameters {
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
 
     private final String uid;
+    private final File gradleUserHomeDir;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private File javaHome;
+    private boolean foreground;
+    private boolean stop;
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -49,6 +52,7 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
+        gradleUserHomeDir = layout.getGradleUserHomeDir();
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
@@ -64,6 +68,10 @@ public class DaemonParameters {
         return baseDir;
     }
 
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
+    }
+
     public int getIdleTimeout() {
         return idleTimeout;
     }
@@ -74,6 +82,10 @@ public class DaemonParameters {
 
     public List<String> getEffectiveJvmArgs() {
         return jvmOptions.getAllImmutableJvmArgs();
+    }
+
+    public List<String> getJvmArgs() {
+        return jvmOptions.getJvmArgs();
     }
 
     public List<String> getAllJvmArgs() {
@@ -87,11 +99,11 @@ public class DaemonParameters {
         return javaHome;
     }
 
-    public String getEffectiveJavaExecutable() {
+    public File getEffectiveJavaExecutable() {
         if (javaHome == null) {
-            return Jvm.current().getJavaExecutable().getAbsolutePath();
+            return Jvm.current().getJavaExecutable();
         }
-        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
+        return Jvm.forHome(javaHome).getJavaExecutable();
     }
 
     public DaemonParameters setJavaHome(File javaHome) {
@@ -131,5 +143,21 @@ public class DaemonParameters {
 
     public DaemonUsage getDaemonUsage() {
         return daemonUsage;
+    }
+
+    public boolean isForeground() {
+        return foreground;
+    }
+
+    public void setForeground(boolean foreground) {
+        this.foreground = foreground;
+    }
+
+    public boolean isStop() {
+        return stop;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
     }
 }

@@ -16,16 +16,12 @@
 
 package org.gradle.model
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
-class ModelRuleCachingIntegrationTest extends AbstractIntegrationSpec {
+class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def setup() {
-        executer.requireIsolatedDaemons()
         buildFile << """
             def ruleCache = project.services.get($ModelRuleExtractor.name).cache
             def initialSize = ruleCache.size()
@@ -38,7 +34,7 @@ class ModelRuleCachingIntegrationTest extends AbstractIntegrationSpec {
         match[0][1] == "true"
     }
 
-    def "rules extracted from core plugins are reused across builds when using the daemon"() {
+    def "rules extracted from core plugins are reused across builds"() {
         given:
         buildFile << '''
             apply plugin: 'java-lang'

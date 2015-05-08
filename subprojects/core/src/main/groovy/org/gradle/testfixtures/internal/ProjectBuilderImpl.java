@@ -18,7 +18,6 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -39,28 +38,9 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 public class ProjectBuilderImpl {
-    static {
-        try {
-            File nativeDir = File.createTempFile("native", "dir");
-            nativeDir.delete();
-            nativeDir.mkdirs();
-            nativeDir.deleteOnExit();
-            NativeServices.initialize(nativeDir);
-        } catch(IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder
-            .builder()
-            .displayName("global services")
-            .parent(new TestGlobalScopeServices.TestLoggingServices())
-            .parent(NativeServices.getInstance())
-            .provider(new TestGlobalScopeServices())
-            .build();
+    private static ServiceRegistry globalServices;
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {
@@ -73,7 +53,7 @@ public class ProjectBuilderImpl {
                 new StringScriptSource("test build file", null),
                 parentProject.getGradle(),
                 parentProject.getGradle().getServiceRegistryFactory(),
-                parentProject.getClassLoaderScope().createChild(),
+                parentProject.getClassLoaderScope().createChild("project-" + name),
                 parentProject.getBaseClassLoaderScope()
         );
         parentProject.addChildProject(project);
@@ -87,21 +67,37 @@ public class ProjectBuilderImpl {
         final File homeDir = new File(projectDir, "gradleHome");
 
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
+        File userHomeDir = new File(projectDir, "userHome");
+        startParameter.setGradleUserHomeDir(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
+        NativeServices.initialize(userHomeDir);
+
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope rootProjectScope = baseScope.createChild();
+        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
         return project;
+    }
+
+    private ServiceRegistry getGlobalServices() {
+        if (globalServices == null) {
+            globalServices = ServiceRegistryBuilder
+                    .builder()
+                    .displayName("global services")
+                    .parent(new TestGlobalScopeServices.TestLoggingServices())
+                    .parent(NativeServices.getInstance())
+                    .provider(new TestGlobalScopeServices())
+                    .build();
+        }
+        return globalServices;
     }
 
     public File prepareProjectDir(File projectDir) {

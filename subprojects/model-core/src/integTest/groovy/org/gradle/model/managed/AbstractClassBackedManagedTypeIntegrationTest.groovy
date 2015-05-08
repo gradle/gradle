@@ -39,7 +39,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -84,7 +84,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -126,7 +126,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, CustomToString element) {
+                void addEchoTask(ModelMap<Task> tasks, CustomToString element) {
                     tasks.create("echo") {
                         it.doLast {
                             println "element: ${element.toString()}"
@@ -167,7 +167,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, CustomToStringCallingSetter element) {
+                void addEchoTask(ModelMap<Task> tasks, CustomToStringCallingSetter element) {
                     tasks.create("echo") {
                         it.doLast {
                             println "element: ${element.toString()}"
@@ -214,7 +214,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSetterInNonAbstractGetter element) {
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSetterInNonAbstractGetter element) {
                     element.invalidGenerativeProperty
                 }
             }
@@ -255,7 +255,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
                     element.invalidGenerativeProperty
                 }
             }
@@ -288,7 +288,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void tasks(CollectionBuilder<Task> tasks, Person person) {
+                void tasks(ModelMap<Task> tasks, Person person) {
                     println person.unknown
                 }
             }

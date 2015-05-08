@@ -21,23 +21,23 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
-import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,14 +53,10 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private File prefixHeaderFile;
-    private Set<String> preCompiledHeaders;
-    private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
-        preCompiledHeaderInclude = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -94,21 +90,21 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
 
-        if (!preCompiledHeaderInclude.isEmpty()) {
-            File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
-            spec.setPrefixHeaderFile(new File(pchDir, prefixHeaderFile.getName()));
-            spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
-            spec.setPreCompiledHeaders(getPreCompiledHeaders());
-        }
+        configureSpec(spec);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        operationLogger.start();
-        try {
-            WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
-            setDidWork(result.getDidWork());
-        } finally {
-            operationLogger.done();
-        }
+        setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+    }
+
+    protected void configureSpec(NativeCompileSpec spec) {
+    }
+
+    private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
+        Class<T> specType = Cast.uncheckedCast(spec.getClass());
+        Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
+        return loggingCompiler.execute(spec);
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
@@ -211,39 +207,5 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Returns the pre-compiled header file to be used during compilation
-     */
-    public File getPrefixHeaderFile() {
-        return prefixHeaderFile;
-    }
-
-    public void setPrefixHeaderFile(File prefixHeaderFile) {
-        this.prefixHeaderFile = prefixHeaderFile;
-    }
-
-    /**
-     * Returns the pre-compiled header object file to be used during compilation
-     */
-    @InputFiles
-    public FileCollection getPreCompiledHeaderInclude() {
-        return preCompiledHeaderInclude;
-    }
-
-    /**
-     * Set the pre-compiled header the compiler should use.
-     */
-    public void preCompiledHeaderInclude(Object preCompiledHeader) {
-        preCompiledHeaderInclude.from(preCompiledHeader);
-    }
-
-    public Set<String> getPreCompiledHeaders() {
-        return preCompiledHeaders;
-    }
-
-    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
-        this.preCompiledHeaders = preCompiledHeaders;
     }
 }

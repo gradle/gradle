@@ -26,17 +26,12 @@ import java.util.Arrays;
 public class ClassLoaderIds {
 
     public enum Type {
-        SCOPE,
         SCRIPT,
         TEST_TASK_CLASSPATH
     }
 
     private static ClassLoaderId of(Type type, String... attributes) {
         return new DefaultClassLoaderId(type, attributes);
-    }
-
-    public static ClassLoaderId scopeNode(String node) {
-        return of(Type.SCOPE, node);
     }
 
     public static ClassLoaderId buildScript(String fileName, String operationId) {

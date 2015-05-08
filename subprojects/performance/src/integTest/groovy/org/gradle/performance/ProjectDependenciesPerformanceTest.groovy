@@ -27,7 +27,6 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = "lotProjectDependencies"
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
-        runner.warmUpRuns = 3
         runner.targetVersions = ['2.2.1', '2.3', '2.4', 'last']
 
         when:

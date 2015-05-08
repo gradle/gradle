@@ -20,11 +20,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@UsesNativeServices
 class BaseDirFileResolverSpec extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -161,7 +163,7 @@ class BaseDirFileResolverSpec extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "normalizes non-existent file system root"() {
-        def file = new File("Q:\\")
+        def file = nonexistentFsRoot()
         assert !file.exists()
         assert file.absolute
 
@@ -214,5 +216,13 @@ The following types/formats are supported:
 
     private File[] getFsRoots() {
         File.listRoots().findAll { !it.absolutePath.startsWith("A:") }
+    }
+    
+    private File nonexistentFsRoot() {
+        ('Z'..'A').collect { 
+            "$it:\\" 
+        }.findResult {
+            new File(it).exists() ? null : new File(it)
+        }
     }
 }

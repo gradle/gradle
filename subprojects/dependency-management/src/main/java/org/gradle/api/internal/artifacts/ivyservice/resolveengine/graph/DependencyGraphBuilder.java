@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
@@ -74,8 +75,9 @@ public class DependencyGraphBuilder {
     public void resolve(ConfigurationInternal configuration,
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder,
+                        ResolvedArtifactsBuilder artifactsBuilder,
                         ResolvedProjectConfigurationResultBuilder projectModelBuilder) throws ResolveException {
-        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactResolver);
+        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, metaDataResolver, artifactResolver);
         DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
         DependencyGraphVisitor projectModelVisitor = new ResolvedProjectConfigurationResultGraphVisitor(projectModelBuilder);
         DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
@@ -87,7 +89,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver, artifactResolver);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
@@ -328,17 +330,14 @@ public class DependencyGraphBuilder {
         private final DependencyToComponentIdResolver idResolver;
         private final ComponentMetaDataResolver metaDataResolver;
         private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
-        private final ArtifactResolver artifactResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
         public ResolveState(ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                            ComponentMetaDataResolver metaDataResolver, DependencyToConfigurationResolver dependencyToConfigurationResolver,
-                            ArtifactResolver artifactResolver) {
+                            ComponentMetaDataResolver metaDataResolver, DependencyToConfigurationResolver dependencyToConfigurationResolver) {
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
-            this.artifactResolver = artifactResolver;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
@@ -367,7 +366,7 @@ public class DependencyGraphBuilder {
             ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.id, configurationName);
             ConfigurationNode configuration = nodes.get(id);
             if (configuration == null) {
-                configuration = new ConfigurationNode(module, id, this);
+                configuration = new ConfigurationNode(id, module, this);
                 nodes.put(id, configuration);
             }
             return configuration;
@@ -573,7 +572,7 @@ public class DependencyGraphBuilder {
             }
 
             DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
-            resolver.resolve(firstReference.dependencyMetaData, idResolveResult.getId(), result);
+            resolver.resolve(idResolveResult.getId(), DefaultComponentOverrideMetadata.forDependency(firstReference.dependencyMetaData), result);
             if (result.getFailure() != null) {
                 failure = result.getFailure();
                 return;
@@ -625,21 +624,19 @@ public class DependencyGraphBuilder {
      */
     static class ConfigurationNode {
         public final ModuleVersionResolveState moduleRevision;
-        public final ConfigurationMetaData metaData;
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
         public final ResolvedConfigurationIdentifier id;
 
+        private final ConfigurationMetaData metaData;
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
-        private Set<ComponentArtifactMetaData> artifacts;
-        private Map<IvyArtifactName, ResolvedArtifact> resolvedArtifacts = new HashMap<IvyArtifactName, ResolvedArtifact>();
 
-        private ConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
+        private ConfigurationNode(ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
+            this.id = id;
             this.moduleRevision = moduleRevision;
             this.resolveState = resolveState;
             this.metaData = moduleRevision.metaData.getConfiguration(id.getConfiguration());
-            this.id = id;
             moduleRevision.addConfiguration(this);
         }
 
@@ -647,34 +644,18 @@ public class DependencyGraphBuilder {
             return moduleRevision.id;
         }
 
-        @Override
-        public String toString() {
-            return String.format("%s(%s)", moduleRevision, metaData.getName());
+        public ComponentIdentifier getComponentId() {
+            return moduleRevision.getComponentId();
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleResolutionFilter moduleResolutionFilter) {
-            if (artifacts == null) {
-                BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
-                artifacts = result.getArtifacts();
-            }
+        // TODO:DAZ Need to get rid of this
+        public ConfigurationMetaData getMetaData() {
+            return metaData;
+        }
 
-            Set<ResolvedArtifact> result = new LinkedHashSet<ResolvedArtifact>();
-            ModuleIdentifier moduleId = id.getId().getModule();
-            for (ComponentArtifactMetaData artifact : artifacts) {
-                IvyArtifactName artifactName = artifact.getName();
-                if (!moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
-                    continue;
-                }
-                ResolvedArtifact resolvedArtifact = resolvedArtifacts.get(artifactName);
-                if (resolvedArtifact == null) {
-                    resolvedArtifact = builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver);
-                    resolvedArtifacts.put(artifactName, resolvedArtifact);
-                }
-                result.add(resolvedArtifact);
-            }
-
-            return result;
+        @Override
+        public String toString() {
+            return String.format("%s(%s)", id.getId(), id.getConfiguration());
         }
 
         public boolean isTransitive() {
@@ -812,7 +793,7 @@ public class DependencyGraphBuilder {
 
     private static class RootConfigurationNode extends ConfigurationNode {
         private RootConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
-            super(moduleRevision, id, resolveState);
+            super(id, moduleRevision, resolveState);
         }
 
         @Override

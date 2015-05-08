@@ -102,7 +102,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks) {
+                    void addTasks(ModelMap<Task> tasks) {
                         tasks.create("foobar")
                         tasks.create("raboof")
                     }
@@ -199,6 +199,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("There is a problem with model rule Plugin1\$Rules#addTasks(java.lang.Integer).")
         failure.assertHasCause("""Model reference to element 'tasks' with type java.lang.Integer (parameter 1) is invalid due to incompatible types.
 This element was created by Project.<init>.tasks() and can be mutated as the following types:
+  - org.gradle.model.ModelMap<org.gradle.api.Task>
   - org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>
   - org.gradle.api.tasks.TaskContainer (or assignment compatible type thereof)""")
     }

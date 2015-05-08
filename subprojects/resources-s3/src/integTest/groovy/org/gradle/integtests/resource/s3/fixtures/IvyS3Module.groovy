@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
-import org.gradle.test.fixtures.resource.RemoteResource
 
 class IvyS3Module implements RemoteIvyModule {
     IvyFileModule backingModule
@@ -37,18 +36,33 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
+    void assertPublished() {
+        backingModule.assertPublished()
+    }
+
+    @Override
+    void assertArtifactsPublished(String... names) {
+        backingModule.assertArtifactsPublished(names)
+    }
+
+    @Override
+    void assertPublishedAsJavaModule() {
+        backingModule.assertPublishedAsJavaModule()
+    }
+
+    @Override
     String getOrganisation() {
         return backingModule.getOrganisation()
     }
 
-
-    S3Resource getIvy() {
-        new S3Resource(server, ivyFile, repositoryPath, bucket)
+    @Override
+    S3Artifact getIvy() {
+        return new S3Artifact(server, ivyFile, repositoryPath, bucket)
     }
 
     @Override
-    RemoteResource getJar() {
-        new S3Resource(server, jarFile, repositoryPath, bucket)
+    S3Artifact getJar() {
+        return new S3Artifact(server, jarFile, repositoryPath, bucket)
     }
 
     @Override

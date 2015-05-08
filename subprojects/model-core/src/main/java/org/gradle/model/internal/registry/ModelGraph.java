@@ -96,18 +96,18 @@ public class ModelGraph {
     private void doAddListener(ModelCreationListener listener) {
         notifying = true;
         try {
-            if (listener.matchPath() != null) {
-                ModelNodeInternal node = flattened.get(listener.matchPath());
+            if (listener.getPath() != null) {
+                ModelNodeInternal node = flattened.get(listener.getPath());
                 if (node != null) {
                     if (maybeNotify(node, listener)) {
                         return;
                     }
                 }
-                pathListeners.put(listener.matchPath(), listener);
+                pathListeners.put(listener.getPath(), listener);
                 return;
             }
-            if (listener.matchParent() != null) {
-                ModelNodeInternal parent = flattened.get(listener.matchParent());
+            if (listener.getParent() != null) {
+                ModelNodeInternal parent = flattened.get(listener.getParent());
                 if (parent != null) {
                     for (ModelNodeInternal node : parent.getLinks()) {
                         if (maybeNotify(node, listener)) {
@@ -115,11 +115,11 @@ public class ModelGraph {
                         }
                     }
                 }
-                parentListeners.put(listener.matchParent(), listener);
+                parentListeners.put(listener.getParent(), listener);
                 return;
             }
-            if (listener.matchScope() != null) {
-                ModelNodeInternal scope = flattened.get(listener.matchScope());
+            if (listener.getScope() != null) {
+                ModelNodeInternal scope = flattened.get(listener.getScope());
                 if (scope != null) {
                     if (maybeNotify(scope, listener)) {
                         return;
@@ -130,7 +130,7 @@ public class ModelGraph {
                         }
                     }
                 }
-                scopeListeners.put(listener.matchScope(), listener);
+                scopeListeners.put(listener.getScope(), listener);
                 return;
             }
             for (ModelNodeInternal node : flattened.values()) {
@@ -154,7 +154,7 @@ public class ModelGraph {
     }
 
     private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
-        if (listener.matchType() != null && !node.getPromise().canBeViewedAsWritable(listener.matchType()) && !node.getPromise().canBeViewedAsReadOnly(listener.matchType())) {
+        if (listener.getType() != null && !node.getPromise().canBeViewedAsWritable(listener.getType()) && !node.getPromise().canBeViewedAsReadOnly(listener.getType())) {
             return false;
         }
         return listener.onCreate(node);

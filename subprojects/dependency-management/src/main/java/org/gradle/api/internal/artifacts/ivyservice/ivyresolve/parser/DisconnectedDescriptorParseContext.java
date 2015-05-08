@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 /**
  * An implementation of {@link DescriptorParseContext} that is useful for parsing an ivy.xml file without attempting to download
@@ -26,7 +26,7 @@ import org.gradle.internal.resource.LocallyAvailableExternalResource;
  */
 public class DisconnectedDescriptorParseContext implements DescriptorParseContext {
 
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, ArtifactType artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
         throw new UnsupportedOperationException();
     }
 

@@ -16,36 +16,36 @@
 
 package org.gradle.nativeplatform.tasks;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.nativeplatform.toolchain.internal.PrefixHeaderFileGeneratorUtil;
+import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * Generates a prefix header file from a list of headers to be precompiled.
  */
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
     @Input
-    Set<String> headers;
+    String header;
 
     @OutputFile
     File prefixHeaderFile;
 
     @TaskAction
     void generatePrefixHeaderFile() {
-        PrefixHeaderFileGeneratorUtil.generatePCHFile(headers, prefixHeaderFile);
+        PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
     }
 
-    public Set<String> getHeaders() {
-        return headers;
+    public String getHeaders() {
+        return header;
     }
 
-    public void setHeaders(Set<String> headers) {
-        this.headers = headers;
+    public void setHeader(String header) {
+        this.header = header;
     }
 
     public File getPrefixHeaderFile() {

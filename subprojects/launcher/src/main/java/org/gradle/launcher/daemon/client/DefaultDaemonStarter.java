@@ -16,9 +16,12 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
@@ -28,12 +31,13 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.util.Clock;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,12 +51,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonParameters daemonParameters;
     private final DaemonGreeter daemonGreeter;
     private final DaemonStartListener listener;
+    private final JvmVersionValidator versionValidator;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener, JvmVersionValidator versionValidator) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
         this.listener = listener;
+        this.versionValidator = versionValidator;
     }
 
     public DaemonStartupInfo startDaemon() {
@@ -67,41 +73,56 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
-        new JvmVersionValidator().validate(daemonParameters);
+        versionValidator.validate(daemonParameters);
 
         List<String> daemonArgs = new ArrayList<String>();
-        daemonArgs.add(daemonParameters.getEffectiveJavaExecutable());
+        daemonArgs.add(daemonParameters.getEffectiveJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
-        //Useful for debugging purposes - simply uncomment and connect to debug
-//        daemonArgs.add("-Xdebug");
-//        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
+
+        if (Boolean.getBoolean("org.gradle.daemon.debug")) {
+            daemonArgs.add("-Xdebug");
+            daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+        }
+
         daemonArgs.add(GradleDaemon.class.getName());
+        // Version isn't used, except by a human looking at the output of jps.
         daemonArgs.add(GradleVersion.current().getVersion());
-        daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
-        daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
-        daemonArgs.add(daemonParameters.getUid());
 
-        //all remaining arguments are daemon startup jvm opts.
-        //we need to pass them as *program* arguments to avoid problems with getInputArguments().
-        daemonArgs.addAll(daemonOpts);
+        // Serialize configuration to daemon via the process' stdin
+        ByteArrayOutputStream serializedConfig = new ByteArrayOutputStream();
+        FlushableEncoder encoder = new KryoBackedEncoder(new EncodedStream.EncodedOutput(serializedConfig));
+        try {
+            encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
+            encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
+            encoder.writeSmallInt(daemonParameters.getIdleTimeout());
+            encoder.writeString(daemonParameters.getUid());
+            encoder.writeSmallInt(daemonOpts.size());
+            for (String daemonOpt : daemonOpts) {
+                encoder.writeString(daemonOpt);
+            }
+            encoder.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        ByteArrayInputStream stdInput = new ByteArrayInputStream(serializedConfig.toByteArray());
 
-        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir());
+        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
         listener.daemonStarted(daemonInfo);
         return daemonInfo;
     }
 
-    private DaemonStartupInfo startProcess(final List<String> args, final File workingDir) {
+    private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Clock clock = new Clock();
         try {
             GFileUtils.mkdirs(workingDir);
 
-            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer(stdInput);
             ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
 
             handle.start();

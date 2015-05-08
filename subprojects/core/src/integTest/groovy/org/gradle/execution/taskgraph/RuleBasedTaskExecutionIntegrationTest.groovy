@@ -128,7 +128,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("requested") {
                         dependsOn "dependency"
                         finalizedBy "finalizer"
@@ -166,7 +166,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
             class ProjectARules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("executed") {
                         dependsOn ":b:dependency"
                     }
@@ -175,7 +175,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
             class ProjectBRules extends RuleSource {
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks) {
+                void addTasks(ModelMap<Task> tasks) {
                     tasks.create("dependency")
                 }
             }
@@ -187,4 +187,48 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         ":b:dependency" in executedTasks
     }
+
+    def "can get name of task defined in rules only script plugin after configuration"() {
+        when:
+        buildScript """
+            apply from: "fooTask.gradle"
+            task check << {
+              assert getTasksByName("foo", false).toList().first().name == "foo"
+            }
+        """
+
+        file("fooTask.gradle") << """
+            model {
+                tasks { create("foo") }
+            }
+        """
+
+        then:
+        succeeds "check", "foo"
+    }
+
+    def "cant get name of task defined in rules only script plugin during configuration"() {
+        // Not really a test, more of a documentation of the current behaviour
+        // getTasksByName() doesn't exhaustively check for rule based tasks
+        when:
+        buildScript """
+            apply from: "fooTask.gradle"
+            task check {
+              def fooTasks = getTasksByName("foo", false).toList()
+              doFirst {
+                assert fooTasks.isEmpty()
+              }
+            }
+        """
+
+        file("fooTask.gradle") << """
+            model {
+                tasks { create("foo") }
+            }
+        """
+
+        then:
+        succeeds "check", "foo"
+    }
+
 }

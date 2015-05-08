@@ -19,22 +19,16 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class HttpResource {
-
-    protected HttpServer server
-
+abstract class HttpResource extends AbstractHttpResource {
     public HttpResource(HttpServer server) {
-        this.server = server
-    }
-
-    URI getUri() {
-        return new URI("http", "localhost:${server.port}", path, null, null)
+        super(server)
     }
 
     void allowGetOrHead() {
         server.allowGetOrHead(getPath(), file)
     }
 
+    @Override
     void expectGet() {
         server.expectGet(getPath(), file)
     }
@@ -79,7 +73,9 @@ abstract class HttpResource {
         server.expectPut(getPath(), getFile(), statusCode, credentials)
     }
 
-    abstract TestFile getFile();
+    void expectPutBroken(PasswordCredentials credentials = null) {
+        server.expectPut(getPath(), getFile(), 500, credentials)
+    }
 
-    abstract protected String getPath();
+    abstract TestFile getFile();
 }

@@ -396,7 +396,7 @@ configure p3
               }
 
               @Mutate
-              void tasks(CollectionBuilder<Task> tasks, ManagedSet<Person> people) { }
+              void tasks(ModelMap<Task> tasks, ManagedSet<Person> people) { }
             }
 
             apply type: Rules
@@ -428,7 +428,7 @@ configure p3
                 }
 
                 @Mutate
-                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
                 }
             }
 
@@ -464,7 +464,7 @@ configure p3
                 }
 
                 @Mutate
-                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
                 }
             }
 
@@ -494,7 +494,7 @@ configure p3
                 void people(ManagedSet<Person> people) {}
 
                 @Mutate
-                void tryToMutateInputManagedSet(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateInputManagedSet(ModelMap<Task> tasks, ManagedSet<Person> people) {
                     people.create {}
                 }
             }
@@ -507,7 +507,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
@@ -531,7 +531,7 @@ configure p3
                 }
 
                 @Mutate
-                void tryToMutateManagedSetOutsideOfCreationRule(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateManagedSetOutsideOfCreationRule(ModelMap<Task> tasks, ManagedSet<Person> people) {
                     Holder.people.create {}
                 }
             }

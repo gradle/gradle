@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.project
 
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DeferredProjectConfigurationTest extends Specification {
 
     def project = TestUtil.createRootProject()
     def config = new DeferredProjectConfiguration(project)
+
+    @Rule
+    SetSystemProperties setSystemProperties
 
     def "can add config and fire"() {
         given:
@@ -62,7 +67,23 @@ class DeferredProjectConfigurationTest extends Specification {
         config.add {}
 
         then:
-        thrown IllegalStateException
+        def e = thrown IllegalStateException
+        e.cause == null
+    }
+
+    def "can get trace info"() {
+        given:
+        System.setProperty("org.gradle.trace.deferred.project.configuration", "true")
+
+        when:
+        config.fire()
+
+        and:
+        config.add {}
+
+        then:
+        def e = thrown IllegalStateException
+        e.cause instanceof Exception
     }
 
 }

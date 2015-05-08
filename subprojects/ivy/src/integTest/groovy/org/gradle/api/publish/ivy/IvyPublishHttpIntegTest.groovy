@@ -356,7 +356,7 @@ credentials {
         """
 
         and:
-        module.jar.expectPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
+        module.jar.expectPutBroken()
 
         when:
         fails ':publish'

@@ -304,7 +304,7 @@
                 <td>org.gradle.api.tasks.Copy</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.application.CreateStartScripts</td>
+                <td>org.gradle.jvm.application.tasks.CreateStartScripts</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Delete</td>

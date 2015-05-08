@@ -18,20 +18,19 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.id.LongIdGenerator;
 
 public class RootClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoader localClassLoader;
     private final ClassLoader exportClassLoader;
     private final ClassLoaderCache classLoaderCache;
-    private final ScopeNodeIdentifier id;
+    private final ClassLoaderScopeIdentifier id;
 
     public RootClassLoaderScope(ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache) {
         this.localClassLoader = localClassLoader;
         this.exportClassLoader = exportClassLoader;
         this.classLoaderCache = classLoaderCache;
-        this.id = new ScopeNodeIdentifier("root", new LongIdGenerator());
+        this.id = new ClassLoaderScopeIdentifier(null, "root");
     }
 
     public ClassLoader getLocalClassLoader() {
@@ -59,8 +58,11 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
-    public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(id.newChild(), this, classLoaderCache);
+    public ClassLoaderScope createChild(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("'name' cannot be null");
+        }
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
     public ClassLoaderScope lock() {

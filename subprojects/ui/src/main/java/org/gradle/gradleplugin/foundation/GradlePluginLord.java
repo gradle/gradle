@@ -34,7 +34,6 @@ import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
@@ -127,8 +126,8 @@ public class GradlePluginLord {
     public interface SettingsObserver {
 
         /**
-         * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this is
-         * changed by other means.
+         * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this
+         * is changed by other means.
          */
         public void settingsChanged();
     }
@@ -259,10 +258,6 @@ public class GradlePluginLord {
             File currentDirectory = getCurrentDirectory();
             File gradleHomeDirectory = getGradleHomeDirectory();
             File customGradleExecutor = getCustomGradleExecutor();
-
-            //We don't have any information to use here (user home dir or daemon dir) so we just initialize
-            //using the default temp directory
-            NativeServices.initialize(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
 
             //the protocol handles the command line to launch gradle and messaging between us and said externally launched gradle.
             ProcessLauncherServer.Protocol serverProtocol = request.createServerProtocol(logLevel, stackTraceLevel, currentDirectory, gradleHomeDirectory, customGradleExecutor);

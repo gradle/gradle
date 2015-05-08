@@ -126,8 +126,10 @@ public interface ModelRegistry extends ModelRegistrar {
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 
+    MutableModelNode getRoot();
+
     @Nullable
-    ModelNode node(ModelPath path);
+    MutableModelNode node(ModelPath path);
 
     /**
      * Resets the state of the model registry, discarding all ephemeral state.

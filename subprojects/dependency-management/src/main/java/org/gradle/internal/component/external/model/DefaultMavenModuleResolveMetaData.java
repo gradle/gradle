@@ -22,10 +22,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements MavenModuleResolveMetaData {
     private static final String POM_PACKAGING = "pom";
@@ -52,8 +53,8 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleResolveMetaData(DependencyMetaData dependencyMetaData) {
-        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()), "jar", false);
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
 
     @Override

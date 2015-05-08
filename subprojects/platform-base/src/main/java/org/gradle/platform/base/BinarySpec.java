@@ -55,7 +55,7 @@ public interface BinarySpec extends BuildableModelElement, Named {
     void source(Object source);
 
     /**
-     * Configure the source sets used to build this binary.
+     * Configures the source sets used to build this binary.
      */
     void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
@@ -63,4 +63,9 @@ public interface BinarySpec extends BuildableModelElement, Named {
      * The set of tasks associated with this binary.
      */
     BinaryTasksCollection getTasks();
+
+    /**
+     * Configures the tasks that build this binary.
+     */
+    void tasks(Action<? super BinaryTasksCollection> action);
 }

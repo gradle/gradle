@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
-import org.gradle.api.publication.maven.internal.action.MavenDeployAction;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.api.publication.maven.internal.action.MavenWagonDeployAction;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenDeployAction deployAction = new MavenDeployAction(pomFile);
+        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile);
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         deployAction.setUniqueVersion(isUniqueVersion());
         deployAction.setRepositories(remoteRepository, remoteSnapshotRepository);

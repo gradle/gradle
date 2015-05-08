@@ -16,27 +16,25 @@
 
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.io.File;
-import java.io.IOException;
 
 public class NativeServicesTestFixture {
     static NativeServices nativeServices;
     static boolean initialized;
 
+    public static void initialize(File gradleUserHomeDir) {
+        if (!initialized) {
+            NativeServices.initialize(gradleUserHomeDir);
+        }
+    }
+
     public static void initialize() {
         if (!initialized) {
-            try {
-                File nativeDir = File.createTempFile("native", "dir");
-                nativeDir.delete();
-                nativeDir.mkdirs();
-                nativeDir.deleteOnExit();
-                NativeServices.initialize(nativeDir);
-            } catch(IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            File nativeDir = TestNameTestDirectoryProvider.newInstance().getTestDirectory();
+            NativeServices.initialize(nativeDir);
         }
     }
 

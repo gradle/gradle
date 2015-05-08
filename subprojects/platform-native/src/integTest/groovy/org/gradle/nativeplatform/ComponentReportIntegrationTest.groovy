@@ -15,12 +15,14 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ library"() {
         given:
         buildFile << """
@@ -67,6 +69,7 @@ Binaries
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ library that is not buildable"() {
         given:
         buildFile << """
@@ -149,6 +152,7 @@ Binaries
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of polyglot native library with multiple variants"() {
         given:
         buildFile << """

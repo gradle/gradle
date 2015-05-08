@@ -16,53 +16,55 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
+import org.gradle.language.nativeplatform.internal.Include
+import org.gradle.language.nativeplatform.internal.SourceIncludes
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import spock.lang.Specification
 
 class DefaultSourceIncludesParserTest extends Specification {
     def sourceParser = Mock(CSourceParser)
-    def sourceDetails = Mock(CSourceParser.SourceDetails)
+    def sourceIncludes = Mock(SourceIncludes)
 
-    def "imports are not included in includes"() {
+    def "returns a filtered SourceIncludes when not importAware"() {
         given:
         def file = new File("test")
 
         when:
         def includesParser = new DefaultSourceIncludesParser(sourceParser, false)
 
-        1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
-        0 * sourceDetails._
+        1 * sourceParser.parseSource(file) >> sourceIncludes
+        1 * sourceIncludes.includesOnly >> ['"quoted"', '<system>', 'DEFINED'].collect { include(it) }
+        0 * sourceIncludes._
 
         and:
         def includes = includesParser.parseIncludes(file)
 
         then:
-        includes.quotedIncludes == ["quoted"]
-        includes.systemIncludes == ["system"]
-        includes.macroIncludes == ["DEFINED"]
+        includes.quotedIncludes.collect { it.value } == ["quoted"]
+        includes.systemIncludes.collect { it.value } == ["system"]
+        includes.macroIncludes.collect { it.value } == ["DEFINED"]
     }
 
 
-    def "imports are included in includes"() {
+    def "returns the parsed SourceIncludes when importAware"() {
         given:
         def file = new File("test")
 
         when:
         def includesParser = new DefaultSourceIncludesParser(sourceParser, true)
 
-        1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
-        1 * sourceDetails.imports >> ['"quotedImport"', '<systemImport>', 'DEFINED_IMPORT']
-        0 * sourceDetails._
+        1 * sourceParser.parseSource(file) >> sourceIncludes
+        0 * sourceIncludes._
 
         and:
         def includes = includesParser.parseIncludes(file)
 
         then:
-        includes.quotedIncludes == ["quoted", "quotedImport"]
-        includes.systemIncludes == ["system", "systemImport"]
-        includes.macroIncludes == ["DEFINED", "DEFINED_IMPORT"]
+        includes == sourceIncludes
     }
 
+    Include include(String value, boolean isImport = false) {
+        return DefaultInclude.parse(value, isImport)
+    }
 }

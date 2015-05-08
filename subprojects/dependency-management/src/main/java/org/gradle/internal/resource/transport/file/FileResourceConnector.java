@@ -16,16 +16,19 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.local.LocalResource;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -59,12 +62,12 @@ public class FileResourceConnector implements ExternalResourceRepository {
         try {
             FileOutputStream output = new FileOutputStream(target);
             try {
-                IOUtils.copy(input, output);
+                IOUtils.copyLarge(input, output);
             } finally {
-                IOUtils.closeQuietly(output);
+                output.close();
             }
         } finally {
-            IOUtils.closeQuietly(input);
+            input.close();
         }
     }
 

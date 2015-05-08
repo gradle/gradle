@@ -16,8 +16,8 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.nativeplatform.fixtures.app.ObjectiveCPCHHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,12 +25,7 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
-    PCHHelloWorldApp getApp() {
-        return new ObjectiveCPCHHelloWorldApp()
-    }
-
-    @Override
-    String getSourceSet() {
-        return "objc"
+    IncrementalHelloWorldApp getApp() {
+        return new ObjectiveCHelloWorldApp()
     }
 }

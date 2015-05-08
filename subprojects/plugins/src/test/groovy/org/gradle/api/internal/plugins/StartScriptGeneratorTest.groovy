@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class StartScriptGeneratorTest extends Specification {
+
     private static final String APP_NAME = 'Gradle'
     private static final String OPTS_ENV_VAR = 'GRADLE_OPTS'
     private static final String EXIT_ENV_VAR = 'GRADLE_EXIT_CONSOLE'
@@ -51,7 +52,7 @@ class StartScriptGeneratorTest extends Specification {
         startScriptGenerator.generateUnixScript(script)
 
         then:
-        1 * unixStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as FileWriter)
+        1 * unixStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as Writer)
         0 * windowsStartScriptGenerator.generateScript(_, _)
         1 * unixFileOperation.createExecutablePermission(script)
     }
@@ -64,7 +65,7 @@ class StartScriptGeneratorTest extends Specification {
         startScriptGenerator.generateWindowsScript(script)
 
         then:
-        1 * windowsStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as FileWriter)
+        1 * windowsStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as Writer)
         0 * unixStartScriptGenerator.generateScript(_, _)
         0 * unixFileOperation.createExecutablePermission(script)
     }

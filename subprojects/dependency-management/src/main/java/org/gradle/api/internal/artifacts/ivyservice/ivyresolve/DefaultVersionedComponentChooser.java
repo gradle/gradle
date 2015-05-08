@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -68,9 +67,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, DependencyMetaData dependency, BuildableComponentSelectionResult result) {
-        ModuleVersionSelector requestedModule = dependency.getRequested();
-        VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, BuildableComponentSelectionResult result, ModuleVersionSelector requested) {
+        VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {

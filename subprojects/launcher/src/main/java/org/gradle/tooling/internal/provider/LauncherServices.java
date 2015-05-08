@@ -19,12 +19,13 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.continuous.BlockingTriggerable;
+import org.gradle.launcher.exec.*;
 
 import java.util.List;
 
@@ -44,9 +45,15 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
+        BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
-            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
+
+            ListenerManager listenerManager = services.get(ListenerManager.class);
+
+            BlockingTriggerable blockingTriggerable = new BlockingTriggerable();
+            listenerManager.addListener(blockingTriggerable);
+
+            return new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)), blockingTriggerable, services);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

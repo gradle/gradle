@@ -35,3 +35,4 @@
 .idea
 *.sublime-*
 .nb-gradle
+.java-version

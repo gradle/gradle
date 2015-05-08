@@ -36,10 +36,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.*;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -47,6 +44,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -61,9 +60,9 @@ import org.gradle.model.internal.core.ModelCreatorFactory;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
-import org.gradle.model.persist.AlwaysNewModelRegistryStore;
-import org.gradle.model.persist.ModelRegistryStore;
-import org.gradle.model.persist.ReusingModelRegistryStore;
+import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
+import org.gradle.model.internal.persist.ModelRegistryStore;
+import org.gradle.model.internal.persist.ReusingModelRegistryStore;
 
 import java.util.List;
 
@@ -92,7 +91,7 @@ public class GlobalScopeServices {
         }
     }
 
-    DefaultGradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
+    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
         return new DefaultGradleLauncherFactory(services);
     }
 
@@ -233,5 +232,7 @@ public class GlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-
+    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
+        return new DefaultFileWatcherFactory(executorFactory);
+    }
 }

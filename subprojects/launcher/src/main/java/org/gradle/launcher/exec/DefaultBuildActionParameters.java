@@ -30,10 +30,12 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
     private final DaemonUsage daemonUsage;
+    private final boolean continuousModeEnabled;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuousModeEnabled) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
+        this.continuousModeEnabled = continuousModeEnabled;
         assert systemProperties != null;
         assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
@@ -64,11 +66,18 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", currentDir=" + currentDir
                 + ", systemProperties size=" + systemProperties.size()
                 + ", envVariables size=" + envVariables.size()
+                + ", logLevel=" + logLevel
+                + ", daemonUsage=" + daemonUsage
+                + ", continuousModeEnabled=" + continuousModeEnabled
                 + '}';
     }
 
     @Override
     public DaemonUsage getDaemonUsage() {
         return daemonUsage;
+    }
+
+    public boolean isContinuousModeEnabled() {
+        return continuousModeEnabled;
     }
 }

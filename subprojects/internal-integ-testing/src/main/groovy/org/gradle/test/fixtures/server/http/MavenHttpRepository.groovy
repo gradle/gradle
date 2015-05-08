@@ -38,7 +38,7 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
     }
 
     URI getUri() {
-        return new URI("http://localhost:${server.port}${contextPath}")
+        return new URI("${server.uri}${contextPath}")
     }
 
     HttpResource getModuleMetaData(String groupId, String artifactId) {

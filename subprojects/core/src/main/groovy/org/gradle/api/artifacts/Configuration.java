@@ -16,6 +16,8 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -322,6 +324,32 @@ public interface Configuration extends FileCollection {
      * @return this
      */
     Configuration exclude(Map<String, String> excludeProperties);
+
+    /**
+     * Execute the given action if the configuration is empty when it first participates in
+     * dependency resolution. A {@code Configuration} can participate in dependency resolution
+     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
+     * The {@code Configuration} is considered empty even if it extends another, non-empty
+     * {@code Configuration}.
+     *
+     * @param action the action to execute when the configuration is empty.
+     * @return this
+     */
+    @Incubating
+    Configuration whenEmpty(Action<? super DependencySet> action);
+
+    /**
+     * Execute the given action if the configuration is empty when it first participates in
+     * dependency resolution. A {@code Configuration} can participate in dependency resolution
+     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
+     * The {@code Configuration} is considered empty even if it extends another, non-empty
+     * {@code Configuration}.
+     *
+     * @param action the action to execute when the configuration is empty.
+     * @return this
+     */
+    @Incubating
+    Configuration whenEmpty(Closure action);
 
     /**
      * Returns all the configurations belonging to the same configuration container as this

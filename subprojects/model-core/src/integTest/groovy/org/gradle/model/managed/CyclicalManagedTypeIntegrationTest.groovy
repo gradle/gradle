@@ -48,7 +48,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+                void addEchoTask(ModelMap<Task> tasks, Parent parent) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $parent.child.parent.name"
@@ -100,7 +100,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, A a) {
+                void addEchoTask(ModelMap<Task> tasks, A a) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $a.b.c.a.name"

@@ -25,5 +25,4 @@ public abstract class ModelTypes {
         }.where(new ModelType.Parameter<T>() {
         }, ModelType.of(type)).build();
     }
-
 }

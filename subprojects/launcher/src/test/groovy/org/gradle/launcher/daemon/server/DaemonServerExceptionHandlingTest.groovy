@@ -15,7 +15,6 @@
  */
 
 package org.gradle.launcher.daemon.server
-
 import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
@@ -31,27 +30,24 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
+import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.IMPLICITLY_DISABLED
 
+@UsesNativeServices
 class DaemonServerExceptionHandlingTest extends Specification {
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED)
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter
@@ -83,7 +79,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(get(InProcessBuildActionExecuter),
+                return new DefaultDaemonCommandExecuter(get(BuildActionExecuter),
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {

@@ -49,7 +49,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $os.name" }
                   }
@@ -102,7 +102,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $os.name" }
                   }
@@ -147,7 +147,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.name") String name) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.name") String name) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $name" }
                   }
@@ -197,7 +197,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem.name") String name) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem.name") String name) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $name" }
                   }
@@ -247,7 +247,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("name") String name) {
+                void addTask(ModelMap<Task> tasks, @Path("name") String name) {
                   tasks.create("echo") {
                     doLast { println "name: $name" }
                   }

@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Issue
@@ -33,10 +35,10 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     def "configures the java settings"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment.class)
+            def model = it.model(BuildEnvironment)
             model
-                .setJvmArguments("-Xmx333m", "-Xms13m")
-                .get()
+                    .setJvmArguments("-Xmx333m", "-Xms13m")
+                    .get()
         }
 
         then:
@@ -44,13 +46,36 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments.contains "-Xmx333m"
     }
 
+    @TargetGradleVersion('>=2.5')
+    @ToolingApiVersion('>=2.5')
+    def "managed JVM arguments are not filtered out of requested JVM arguments"() {
+        when:
+        BuildEnvironment env = withConnection {
+            def model = it.model(BuildEnvironment)
+            model
+                    .setJvmArguments("-Xmx333m", "-Xms13m","-Dfoo=bar")
+                    .get()
+        }
+
+        then: "requested JVM arguments contains all JVM arguments provided by the user which are not system properties"
+        env.java.requestedJvmArguments as Set == ['-Xmx333m', '-Xms13m'] as Set
+
+        and: "JVM arguments contains more than the requested arguments but not the user provided system properties"
+        env.java.jvmArguments.size() > env.java.requestedJvmArguments.size()
+        !env.java.jvmArguments.contains('-Dfoo=bar')
+
+        and: "all JVM arguments contains user provided system properties"
+        env.java.allJvmArguments.size() > env.java.jvmArguments.size()
+        env.java.allJvmArguments.contains('-Dfoo=bar')
+    }
+
     def "uses sensible java defaults if nulls configured"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment.class)
+            def model = it.model(BuildEnvironment)
             model
-                .setJvmArguments(null)
-                .get()
+                    .setJvmArguments(null)
+                    .get()
         }
 
         then:
@@ -68,8 +93,8 @@ assert System.getProperty('some-prop') == 'BBB'
         when:
         def model = withConnection {
             it.model(GradleProject.class)
-                .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
-                .get()
+                    .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
+                    .get()
         }
 
         then:
@@ -85,8 +110,8 @@ assert System.getProperty('some-prop') == 'BBB'
         BuildEnvironment env
         GradleProject project
         withConnection {
-            env = it.model(BuildEnvironment.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
-            project = it.model(GradleProject.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            env = it.model(BuildEnvironment).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            project = it.model(GradleProject).setJvmArguments('-Xmx200m', '-Xms100m').get()
         }
 
         then:

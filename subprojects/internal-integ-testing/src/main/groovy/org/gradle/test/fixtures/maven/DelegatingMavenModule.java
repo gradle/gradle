@@ -30,6 +30,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public void assertPublishedAsJavaModule() {
+        backingModule.assertPublishedAsJavaModule();
+    }
+
+    @Override
     public T dependsOn(String group, String artifactId, String version) {
         backingModule.dependsOn(group, artifactId, version);
         return t();

@@ -42,7 +42,7 @@ assert System.getProperty('some-prop') == 'some-value'
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
             connection.newBuild().run() //the assert
-            connection.getModel(BuildEnvironment.class)
+            connection.getModel(BuildEnvironment)
         }
 
         then:
@@ -61,7 +61,7 @@ assert System.getProperty('some-prop') == 'some-value'
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
             connection.newBuild().run() //the assert
-            connection.getModel(BuildEnvironment.class)
+            connection.getModel(BuildEnvironment)
         }
 
         then:

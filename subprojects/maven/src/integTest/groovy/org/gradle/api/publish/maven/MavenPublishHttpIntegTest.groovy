@@ -152,6 +152,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
+        module.pom.expectPut(401, credentials)
 
         when:
         fails 'publish'
@@ -159,7 +160,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // Cause goes missing through the maven classes, but does end up logged to stderr
         failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
@@ -172,6 +173,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         given:
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
+        module.pom.expectPut(401)
 
         when:
         fails 'publish'
@@ -179,7 +181,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
         // Cause goes missing through the maven classes, but does end up logged to stderr
         failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 

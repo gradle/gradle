@@ -20,6 +20,6 @@ import groovy.transform.ToString
 
 @ToString(includeNames = true)
 class HttpMessage {
-    Map<String, String> headers = [:]
-    def body
+    Map<String, ?> headers = [:]
+    def Closure<?> body
 }

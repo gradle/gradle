@@ -18,7 +18,7 @@ package org.gradle.play.internal.distribution;
 
 import org.gradle.api.distribution.Distribution;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
+import org.gradle.api.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
 public class DefaultPlayDistributionContainer extends RuleAwarePolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {

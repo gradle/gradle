@@ -89,26 +89,7 @@ Add a `defaultImports` property to `GradleScript` to expose the default imports 
 
 Add a way to take a file path and request a `BuildScript` model for it.
 
-## Feature: Custom tooling models
-
-## Story: Gradle plugin provides a custom tooling model to the tooling API client
-
-This story allows a custom plugin to expose a tooling model to any tooling API client that shares compatible model classes.
-
-1. Add a public API to allow a plugin to register a tooling model to make available to the tooling API clients.
-2. Move core tooling model implementations to live with their plugin implementations.
-3. Custom plugin classpath travels with serialized model object back to the provider.
-
-### Test cases
-
-- Client requests a tooling model provided by a custom plugin.
-- Client receives a reasonable error message when:
-    - Target Gradle version does not support custom tooling models. Should receive an `UnknownModelException`
-    - No plugin in the target build provides the requested model. Should receive an `UnknownModelException`.
-    - Failure occurs when the plugin attempts to build the requested model.
-    - Failure to serialize or deserialize the requested model.
-- Generalise `UnsupportedModelFeedbackCrossVersionSpec`.
-- Plugin attempts to register a model that some other plugin already has registered.
+# Feature: Fetching models
 
 ## Story: Tooling API client builds a complex tooling model in a single batch operation (DONE)
 
@@ -342,8 +323,6 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 # Open issues
 
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
-* Handle cancellation during the Gradle distribution download.
-* Daemon cleanly stops the build when cancellation is requested.
 * Change the tooling API protocol to allow the provider to inform the consumer that it is deprecated and/or no longer supported, and fix the exception
   handling in the consumer to deal with this.
 * Test fixtures should stop daemons at end of test when custom user home dir is used.

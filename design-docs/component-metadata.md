@@ -30,6 +30,8 @@ Also pom import, ivy extends and so on.
 
 ## Dependency reports should indicate reasons for candidate selection (e.g. why other candidates were rejected).
 
+## Declarative substitution of group, module and version
+
 ## Feature open issues:
 
 - No way to say 'this must be an Ivy module'. Currently, can only say 'if this happens to be an Ivy module, then filter'.

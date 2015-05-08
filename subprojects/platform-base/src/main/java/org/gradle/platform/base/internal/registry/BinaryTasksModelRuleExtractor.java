@@ -16,26 +16,29 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import org.gradle.api.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
@@ -64,7 +67,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
     private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
+        visitSubject(taskDataCollector, ruleDefinition, Task.class);
         visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
     }
 
@@ -76,38 +79,124 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, T> {
+    private class BinaryTaskRule<R, T extends BinarySpec> extends ModelMapBasedRule<R, Task, T, T> {
 
         public BinaryTaskRule(Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(ModelReference.of(binaryType), binaryType, ruleDefinition);
         }
 
-        public void execute(MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
-            DefaultCollectionBuilder<TaskInternal> collectionBuilder = new DefaultCollectionBuilder<TaskInternal>(
-                    ModelType.of(TaskInternal.class),
-                    getDescriptor(),
-                    modelNode,
-                    DefaultCollectionBuilder.createAndStoreVia(
-                            ModelReference.of(ITaskFactory.class),
-                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task .class))
-                    )
+        public void execute(final MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
 
-            ) {
-                @Override
-                protected <S extends TaskInternal> void onCreate(final String name, ModelType<S> type) {
-                    Task task = get(name);
-                    binary.builtBy(task);
+            ModelMap<Task> cast = new DomainObjectSetBackedModelMap<Task>(
+                binary,
+                Task.class,
+                binary.getTasks(),
+                new NamedEntityInstantiator<Task>() {
+                    @Override
+                    public <S extends Task> S create(String name, Class<S> type) {
+                        modelNode.getPrivateData(ModelType.of(BinarySpec.class)).getTasks().create(name, type, Actions.doNothing());
+                        return null; // we know it's not needed
+                    }
+                },
+                new Namer<Object>() {
+                    @Override
+                    public String determineName(Object object) {
+                        return Cast.cast(Task.class, object).getName();
+                    }
                 }
-            };
-
-            CollectionBuilder<Task> cast = Cast.uncheckedCast(collectionBuilder);
+            );
 
             List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size() + 1);
             inputsWithBinary.addAll(inputs);
-            inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(), getSubject().getType(), binary));
+            inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(), getSubject().getType(), binary));
 
             invoke(inputsWithBinary, cast, binary, binary);
         }
     }
 
+    private static class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, DomainObjectSet<T>> {
+
+        private final BinarySpec binary;
+
+        public DomainObjectSetBackedModelMap(BinarySpec binary, Class<T> elementClass, DomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer) {
+            super(elementClass, backingSet, instantiator, namer);
+            this.binary = binary;
+        }
+
+        @Override
+        protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
+            DomainObjectSet<S> cast = toNonSubtype(type);
+            return new DomainObjectSetBackedModelMap<S>(binary, type, cast, new NamedEntityInstantiator<S>() {
+                @Override
+                public <D extends S> D create(String name, Class<D> type) {
+                    throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementClass.toString()));
+                }
+            }, namer);
+        }
+
+        private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
+            DomainObjectSet<T> matching = backingCollection.matching(new Spec<T>() {
+                @Override
+                public boolean isSatisfiedBy(T element) {
+                    return type.isInstance(element);
+                }
+            });
+
+            return Cast.uncheckedCast(matching);
+        }
+
+        protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
+            NamedEntityInstantiator<S> instantiator = Cast.uncheckedCast(this.instantiator);
+            return new DomainObjectSetBackedModelMap<S>(binary, itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer);
+        }
+
+        @Nullable
+        @Override
+        public T get(String name) {
+            return Iterables.find(backingCollection, new HasNamePredicate<T>(name, namer), null);
+        }
+
+        @Override
+        public Set<String> keySet() {
+            return Sets.newHashSet(Iterables.transform(backingCollection, new ToName<T>(namer)));
+        }
+
+        @Override
+        protected void onCreate(T item) {
+            binary.builtBy(item);
+        }
+
+        @Override
+        public <S> void withType(Class<S> type, Action<? super S> configAction) {
+            toNonSubtype(type).all(configAction);
+        }
+    }
+
+    private static class HasNamePredicate<T> implements Predicate<T> {
+        private final String name;
+        private final Namer<? super T> namer;
+
+        public HasNamePredicate(String name, Namer<? super T> namer) {
+            this.name = name;
+            this.namer = namer;
+        }
+
+        @Override
+        public boolean apply(@Nullable T input) {
+            return namer.determineName(input).equals(name);
+        }
+    }
+
+    private static class ToName<T> implements Function<T, String> {
+        private final Namer<? super T> namer;
+
+        public ToName(Namer<? super T> namer) {
+            this.namer = namer;
+        }
+
+        @Override
+        public String apply(@Nullable T input) {
+            return namer.determineName(input);
+        }
+    }
 }

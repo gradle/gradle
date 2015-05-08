@@ -46,7 +46,7 @@ import java.lang.annotation.Target;
  *     }
  *
  *     {@literal @}Mutate
- *     void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+ *     void createSampleLibraryComponents(ModelMap<SampleComponent> componentSpecs) {
  *         componentSpecs.create("sampleComponent")
  *     }
  * }

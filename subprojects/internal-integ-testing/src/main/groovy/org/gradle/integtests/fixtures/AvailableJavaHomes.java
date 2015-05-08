@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import net.rubygrapefruit.platform.SystemInfo;
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -26,6 +28,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
@@ -139,10 +142,12 @@ abstract public class AvailableJavaHomes {
 
     private static List<JvmInstallation> getJvms() {
         if (jvms == null) {
-            FileCanonicalizer fileCanonicalizer = NativeServicesTestFixture.getInstance().get(FileCanonicalizer.class);
+            NativeServices nativeServices = NativeServicesTestFixture.getInstance();
+            FileCanonicalizer fileCanonicalizer = nativeServices.get(FileCanonicalizer.class);
             jvms = new ArrayList<JvmInstallation>();
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
-            jvms.addAll(new InstalledJvmLocator().findJvms());
+            InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
+            jvms.addAll(installedJvmLocator.findJvms());
             jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
             // Order from most recent to least recent
             Collections.sort(jvms, new Comparator<JvmInstallation>() {

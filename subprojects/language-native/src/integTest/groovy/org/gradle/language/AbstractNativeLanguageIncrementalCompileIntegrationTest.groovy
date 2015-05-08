@@ -29,6 +29,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     String compileTask
     TestFile sourceFile
     TestFile sharedHeaderFile
+    TestFile commonHeaderFile
     TestFile otherHeaderFile
     List<TestFile> otherSourceFiles = []
     TestFile objectFileDir
@@ -57,6 +58,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         and:
         sourceFile = app.mainSource.writeToDir(file("src/main"))
         sharedHeaderFile = app.libraryHeader.writeToDir(file("src/main"))
+        commonHeaderFile = app.commonHeader.writeToDir(file("src/main"))
         app.librarySources.each {
             otherSourceFiles << it.writeToDir(file("src/main"))
         }
@@ -271,6 +273,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.snapshot { run "mainExecutable" }
 
         file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text
 
         when:
         buildFile << """
@@ -319,6 +322,7 @@ model {
 
         when:
         file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text
 
         and:
         run "mainExecutable"
@@ -336,6 +340,7 @@ model {
 
         when:
         sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text
+        sourceFile.parentFile.file(commonHeaderFile.name) << commonHeaderFile.text
 
         and:
         run "mainExecutable"
@@ -344,7 +349,7 @@ model {
         executedAndNotSkipped compileTask
 
         and:
-        outputs.recompiledFiles allSources
+        outputs.recompiledFiles allSources + [commonHeaderFile]
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
@@ -492,6 +497,7 @@ model {
 }
 """
         app.writeSources(file("src/other"))
+        app.commonHeader.writeToDir(file("src/other"))
 
         and:
         outputs.snapshot { run "mainExecutable" }

@@ -67,7 +67,7 @@ import java.util.Set;
  * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
+ * present, against the project. The projects are evaluated in breadth-wise order, such that a project is evaluated
  * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
  * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
@@ -296,7 +296,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the group of this project. Gradle always uses the {@code toString()} value of the group. The group
-     * defaults to the path with dots a separators.</p>
+     * defaults to the path with dots as separators.</p>
      *
      * @return The group of this project. Never returns null.
      */
@@ -1352,6 +1352,32 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The CopySpec
      */
     CopySpec copySpec(Closure closure);
+
+    /**
+     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
+     * copy the files.
+     * @see #copy(Closure)
+     * @param action Action to configure the CopySpec
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
+     */
+    WorkResult copy(Action<? super CopySpec> action);
+
+    /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
+     * to configure the {@link CopySpec} before it is returned by this method.
+     *
+     * @see #copySpec(Closure)
+     * @param action Action to configure the CopySpec
+     * @return The CopySpec
+     */
+    CopySpec copySpec(Action<? super CopySpec> action);
+
+    /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
+     *
+     * @return a newly created copy spec
+     */
+    CopySpec copySpec();
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this

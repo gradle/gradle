@@ -36,7 +36,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.jvm.tasks.Jar
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.PlayApplicationBinarySpec
@@ -94,7 +94,7 @@ class PlayDistributionPluginTest extends Specification {
         binary.getJarFile() >> Stub(File) {
             getName() >> "playBinary.zip"
         }
-        CollectionBuilder tasks = Mock(CollectionBuilder) {
+        ModelMap tasks = Mock(ModelMap) {
             get("createPlayBinaryStartScripts") >> Stub(CreateStartScripts)
             get("createPlayBinaryDistributionJar") >> Stub(Jar)
         }
@@ -163,7 +163,7 @@ class PlayDistributionPluginTest extends Specification {
         File buildDir = new File("")
         DomainObjectSet jarTasks = Stub(DomainObjectSet)
         PlayApplicationBinarySpec binary = binary("playBinary", jarTasks)
-        CollectionBuilder tasks = Mock(CollectionBuilder) {
+        ModelMap tasks = Mock(ModelMap) {
             get("stagePlayBinaryDist") >> Stub(Copy)
         }
         PlayDistribution distribution = Mock(PlayDistribution) {

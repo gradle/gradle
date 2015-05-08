@@ -18,15 +18,11 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer
 import org.gradle.process.internal.ExecHandleBuilder
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DaemonExecHandleBuilderSpec extends Specification {
-
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     def builder = Mock(ExecHandleBuilder)
     def daemonBuilder = new DaemonExecHandleBuilder(builder: builder)
 

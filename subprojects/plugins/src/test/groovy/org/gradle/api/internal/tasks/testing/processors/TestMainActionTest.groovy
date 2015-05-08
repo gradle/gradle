@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.internal.TimeProvider
-import org.gradle.internal.id.IdGenerator
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
@@ -34,19 +33,16 @@ class TestMainActionTest {
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
     private final Runnable detector = context.mock(Runnable.class)
     private final TimeProvider timeProvider = context.mock(TimeProvider.class)
-    private final IdGenerator<?> idGenerator = context.mock(IdGenerator.class)
-    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, idGenerator, "Test Run")
+    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "taskOperationId123", "rootTestSuiteId456", "Test Run")
 
     @Test
     public void firesStartAndEndEventsAroundDetectorExecution() {
         context.checking {
-            one(idGenerator).generateId()
-            will(returnValue(999))
             one(timeProvider).getCurrentTime()
             will(returnValue(100L))
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite, TestStartEvent event ->
-                assertThat(suite.id, equalTo(999))
+                assertThat(suite.id as String, equalTo("rootTestSuiteId456"))
                 assertThat(event.startTime, equalTo(100L))
             }
             one(processor).startProcessing(withParam(notNullValue()))
@@ -54,9 +50,9 @@ class TestMainActionTest {
             one(processor).stop()
             one(timeProvider).getCurrentTime()
             will(returnValue(200L))
-            one(resultProcessor).completed(withParam(equalTo(999)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(id, equalTo(999))
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { Object id, TestCompleteEvent event ->
+                assertThat(id as String, equalTo("rootTestSuiteId456"))
                 assertThat(event.endTime, equalTo(200L))
                 assertThat(event.resultType, nullValue())
             }
@@ -70,7 +66,6 @@ class TestMainActionTest {
         RuntimeException failure = new RuntimeException()
 
         context.checking {
-            ignoring(idGenerator).generateId()
             ignoring(timeProvider).getCurrentTime()
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             one(processor).startProcessing(withParam(notNullValue()))
@@ -93,7 +88,6 @@ class TestMainActionTest {
         RuntimeException failure = new RuntimeException()
 
         context.checking {
-            ignoring(idGenerator).generateId()
             ignoring(timeProvider).getCurrentTime()
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             one(processor).startProcessing(withParam(notNullValue()))
@@ -114,7 +108,6 @@ class TestMainActionTest {
         RuntimeException failure = new RuntimeException()
 
         context.checking {
-            ignoring(idGenerator).generateId()
             ignoring(timeProvider).getCurrentTime()
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             one(processor).startProcessing(withParam(notNullValue()))

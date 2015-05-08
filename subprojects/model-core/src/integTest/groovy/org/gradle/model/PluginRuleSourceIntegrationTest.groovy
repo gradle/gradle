@@ -39,7 +39,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
+                    void addTasks(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -307,7 +307,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
+                    void addTasks(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -354,7 +354,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, String value) {
+                    void addTasks(ModelMap<Task> tasks, String value) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $value"
@@ -387,7 +387,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
+                    void addTasks(ModelMap<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
                             it.doLast {
                                 println "name: ${execTask.name}"
