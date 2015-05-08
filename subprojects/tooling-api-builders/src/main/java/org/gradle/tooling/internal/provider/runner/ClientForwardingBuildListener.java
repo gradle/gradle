@@ -37,14 +37,6 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         this.eventConsumer = eventConsumer;
     }
 
-    private AbstractBuildOperationResult adaptResult(BuildResult result, long startTime, long endTime) {
-        Throwable failure = result.getFailure();
-        if (failure != null) {
-            return new DefaultBuildOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-        }
-        return new DefaultBuildOperationSuccessResult(startTime, endTime);
-    }
-
     @Override
     public void started(BuildOperationInternal source, long startTime) {
         DefaultBuildDescriptor descriptor = createDescriptor(source, source.getName() + " started");
@@ -71,11 +63,19 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     private AbstractBuildOperationResult adaptResult(Object result, long startTime, long endTime) {
-        if (result instanceof Throwable) {
-            return adaptResult((Throwable) result, startTime, endTime);
-        }
         if (result instanceof BuildResult) {
             return adaptResult((BuildResult) result, startTime, endTime);
+        } else if (result instanceof Throwable) {
+            return adaptResult((Throwable) result, startTime, endTime);
+        } else {
+            return new DefaultBuildOperationSuccessResult(startTime, endTime);
+        }
+    }
+
+    private AbstractBuildOperationResult adaptResult(BuildResult result, long startTime, long endTime) {
+        Throwable failure = result.getFailure();
+        if (failure != null) {
+            return new DefaultBuildOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
         return new DefaultBuildOperationSuccessResult(startTime, endTime);
     }
