@@ -43,7 +43,6 @@ class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private final ModuleResolutionFilter selector;
     private final ComponentIdentifier componentIdentifier;
     private final ComponentMetaDataResolver componentResolver;
-    private Set<ComponentArtifactMetaData> artifacts;
 
     public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
                                                ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
@@ -56,17 +55,16 @@ class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
 
     @Override
     protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
-        if (artifacts == null) {
-            // TODO:DAZ For this to work with external components, we'll need to use the correct ModuleSource and ComponentOverrideMetadata to resolve the component
-            BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-            componentResolver.resolve(componentIdentifier, new DefaultComponentOverrideMetadata(), moduleResolveResult);
-            ComponentResolveMetaData component = moduleResolveResult.getMetaData();
 
-            BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-            getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
-            artifacts = result.getArtifacts();
-        }
+        // TODO:DAZ For this to work with external components, we'll need to use the correct ModuleSource and ComponentOverrideMetadata to resolve the component
+        BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
+        componentResolver.resolve(componentIdentifier, new DefaultComponentOverrideMetadata(), moduleResolveResult);
+        ComponentResolveMetaData component = moduleResolveResult.getMetaData();
 
+        BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
+        getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), artifactSetResolveResult);
+
+        Set<ComponentArtifactMetaData> artifacts = artifactSetResolveResult.getArtifacts();
         Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
         ModuleIdentifier moduleId = configurationId.getId().getModule();
         for (ComponentArtifactMetaData artifact : artifacts) {
