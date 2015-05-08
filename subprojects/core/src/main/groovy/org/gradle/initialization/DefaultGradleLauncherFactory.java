@@ -125,28 +125,28 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
-                gradle,
-                serviceRegistry.get(InitScriptHandler.class),
-                new SettingsHandler(
-                        new DefaultSettingsFinder(
-                                new BuildLayoutFactory()),
-                        serviceRegistry.get(SettingsProcessor.class),
-                        new BuildSourceBuilder(
-                                this,
-                                serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
-                                serviceRegistry.get(CacheRepository.class))
-                ),
-                serviceRegistry.get(BuildLoader.class),
-                serviceRegistry.get(BuildConfigurer.class),
-                gradle.getBuildListenerBroadcaster(),
-                serviceRegistry.get(ExceptionAnalyser.class),
-                loggingManager,
-                listenerManager.getBroadcaster(ModelConfigurationListener.class),
-                listenerManager.getBroadcaster(TasksCompletionListener.class),
-                gradle.getServices().get(BuildExecuter.class),
-                listenerManager.getBroadcaster(BuildCompletionListener.class),
-                serviceRegistry,
-                listenerManager.getBroadcaster(InternalBuildListener.class)
+            gradle,
+            serviceRegistry.get(InitScriptHandler.class),
+            new SettingsHandler(
+                new DefaultSettingsFinder(
+                    new BuildLayoutFactory()),
+                serviceRegistry.get(SettingsProcessor.class),
+                new BuildSourceBuilder(
+                    this,
+                    serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
+                    serviceRegistry.get(CacheRepository.class))
+            ),
+            serviceRegistry.get(BuildLoader.class),
+            serviceRegistry.get(BuildConfigurer.class),
+            serviceRegistry.get(ExceptionAnalyser.class),
+            loggingManager,
+            gradle.getBuildListenerBroadcaster(),
+            listenerManager.getBroadcaster(ModelConfigurationListener.class),
+            listenerManager.getBroadcaster(TasksCompletionListener.class),
+            listenerManager.getBroadcaster(BuildCompletionListener.class),
+            listenerManager.getBroadcaster(InternalBuildListener.class),
+            gradle.getServices().get(BuildExecuter.class),
+            serviceRegistry
         );
     }
 }

@@ -115,9 +115,9 @@ public class DefaultGradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-            buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-            modelListenerMock, tasksCompletionListener, buildExecuter, buildCompletionListener, buildServices,
-            internalBuildListener);
+            buildLoaderMock, buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
+            modelListenerMock, tasksCompletionListener, buildCompletionListener, internalBuildListener, buildExecuter,
+            buildServices);
 
         context.checking(new Expectations() {
             {

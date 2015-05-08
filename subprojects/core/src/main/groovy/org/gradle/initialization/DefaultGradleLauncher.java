@@ -39,19 +39,19 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private final GradleInternal gradle;
+    private final InitScriptHandler initScriptHandler;
     private final SettingsHandler settingsHandler;
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final BuildListener buildListener;
-    private final InitScriptHandler initScriptHandler;
     private final LoggingManagerInternal loggingManager;
+    private final BuildListener buildListener;
     private final ModelConfigurationListener modelConfigurationListener;
     private final TasksCompletionListener tasksCompletionListener;
     private final BuildCompletionListener buildCompletionListener;
+    private final InternalBuildListener internalBuildListener;
     private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
-    private final InternalBuildListener internalBuildListener;
 
     private BuildOperationInternal parentEvent;
 
@@ -59,11 +59,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
      * Creates a new instance.
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                                 BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
-                                 ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
+                                 BuildLoader buildLoader, BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
+                                 LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener,
-                                 Closeable buildServices, InternalBuildListener internalBuildListener) {
+                                 BuildCompletionListener buildCompletionListener, InternalBuildListener internalBuildListener,
+                                 BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
