@@ -28,7 +28,6 @@ import org.gradle.util.CollectionUtils;
 import java.util.*;
 
 public abstract class AbstractModuleDescriptorBackedMetaData implements ComponentResolveMetaData {
-    private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;

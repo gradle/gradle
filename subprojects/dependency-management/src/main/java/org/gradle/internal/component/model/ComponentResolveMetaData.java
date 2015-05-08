@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,8 @@ import java.util.Set;
  * The meta-data for a component instance that is required during dependency resolution.
  */
 public interface ComponentResolveMetaData {
+    static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+
     /**
      * Returns the identifier for this component.
      */

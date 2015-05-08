@@ -128,8 +128,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file2 = new File("artifact-2.zip")
 
         given:
-        moduleDescriptor.addConfiguration(new Configuration("conf1"))
-        moduleDescriptor.addConfiguration(new Configuration("conf2"))
+        metaData.addConfiguration("conf1", true, "conf1", new String[0], true)
+        metaData.addConfiguration("conf2", true, "conf2", new String[0], true)
         metaData.addArtifact("conf1", artifact1, file1)
         metaData.addArtifact("conf2", artifact2, file2)
 
