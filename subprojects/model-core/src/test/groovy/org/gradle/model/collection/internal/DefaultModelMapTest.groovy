@@ -678,7 +678,7 @@ class DefaultModelMapTest extends Specification {
             }
         }
         .mutate {
-            it.path "beans.element" node {
+            it.path "beans.element" descriptor "element child" node {
                 it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
             }
         }

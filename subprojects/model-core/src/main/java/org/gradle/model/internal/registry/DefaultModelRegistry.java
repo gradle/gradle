@@ -254,16 +254,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
-        ModelPath parent = path.getParent();
-        if (parent != null) {
-            if (selfCloseAncestryAndSelf(parent) == null) {
-                return null;
-            }
-        }
-        return atStateOrLater(path, SelfClosed);
-    }
-
     public void bindAllReferences() throws UnboundModelRulesException {
         flushPendingMutatorBinders();
         if (unboundRules.isEmpty()) {
@@ -276,7 +266,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             newInputsBound = false;
             RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[unboundRules.size()]);
             for (RuleBinder binder : unboundBinders) {
-                transitionTo(graph, new BindInputs(binder));
+                transitionTo(graph, new TryBindInputs(binder));
                 newInputsBound = newInputsBound || binder.isBound();
             }
         }
@@ -430,35 +420,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         GoalGraph goalGraph = new GoalGraph();
         transitionTo(goalGraph, goalGraph.nodeAtState(new NodeIsAtState(node.getPath(), desired)));
-    }
-
-    private void forceBindReference(ModelBinding binding) {
-        if (!binding.isBound()) {
-            ModelPath path = binding.getReference().getPath();
-            if (path == null) {
-                selfCloseAncestryAndSelf(binding.getReference().getScope());
-            } else {
-                selfCloseAncestryAndSelf(path.getParent());
-            }
-        }
-    }
-
-    private void tryForceBind(RuleBinder binder) {
-        if (binder.isBound()) {
-            return;
-        }
-
-        for (ModelBinding binding : binder.getInputBindings()) {
-            registerListener(binding);
-        }
-
-        if (binder.getSubjectBinding() != null) {
-            forceBindReference(binder.getSubjectBinding());
-        }
-
-        for (int i = 0; i < binder.getInputBindings().size(); i++) {
-            forceBindReference(binder.getInputBindings().get(i));
-        }
     }
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
@@ -1032,6 +993,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         /**
          * Calculates any dependencies for this goal. May be invoked multiple times, should only add newly dependencies discovered dependencies on each invocation.
+         *
+         * <p>The dependencies returned by this method are all traversed before this method is called another time.</p>
+         *
          * @return true if this goal will have no additional dependencies discovered later, false if not.
          */
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
@@ -1079,9 +1043,6 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return;
             }
             node = modelGraph.find(getPath());
-            if (node == null) {
-                throw new IllegalStateException(String.format("Model element '%s' does not exist.", getPath()));
-            }
         }
     }
 
@@ -1097,7 +1058,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean doIsAchieved() {
-            return node != null;
+            // Only called when node exists, therefore node is known
+            return true;
         }
 
         @Override
@@ -1142,6 +1104,9 @@ public class DefaultModelRegistry implements ModelRegistry {
                 dependencies.add(graph.nodeAtState(new NodeIsAtState(getPath(), getTargetState().previous())));
                 seenPredecessor = true;
                 return false;
+            }
+            if (node == null) {
+                throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it does not exist.", getPath(), getTargetState().name()));
             }
             return doCalculateDependencies(graph, dependencies);
         }
@@ -1231,10 +1196,48 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class BindInputs extends ModelGoal {
+    /**
+     * Attempts to define the children of a given node. Does not fail if not possible to do so.
+     */
+    private class TryDefineChildren extends ModelGoal {
+        private final ModelPath path;
+        private boolean attemptedParent;
+
+        public TryDefineChildren(ModelPath path) {
+            this.path = path;
+        }
+
+        public ModelPath getPath() {
+            return path;
+        }
+
+        @Override
+        public boolean isAchieved() {
+            ModelNodeInternal node = modelGraph.find(path);
+            return node != null && node.getState().compareTo(SelfClosed) >= 0;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (path.getParent() != null && !attemptedParent) {
+                dependencies.add(new TryDefineChildren(path.getParent()));
+                attemptedParent = true;
+                return false;
+            }
+            if (modelGraph.find(path) != null) {
+                dependencies.add(graph.nodeAtState(new NodeIsAtState(path, SelfClosed)));
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Attempts to bind the inputs of a rule. Does not fail if not possible to bind all inputs.
+     */
+    private class TryBindInputs extends ModelGoal {
         private final RuleBinder binder;
 
-        public BindInputs(RuleBinder binder) {
+        public TryBindInputs(RuleBinder binder) {
             this.binder = binder;
         }
 
@@ -1244,9 +1247,29 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply() {
-            LOGGER.debug("Binding inputs for rule {}", binder.getDescriptor());
-            tryForceBind(binder);
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (binder.getSubjectBinding() != null) {
+                // Shouldn't really be here. Currently this goal is used by {@link #bindAllReferences} which also expects the subject to be bound
+                maybeBind(binder.getSubjectBinding(), dependencies);
+            }
+            for (ModelBinding binding : binder.getInputBindings()) {
+                maybeBind(binding, dependencies);
+            }
+            return true;
+        }
+
+        private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
+            if (!binding.isBound()) {
+                registerListener(binding);
+            }
+            // Second check, as attaching the listener may bind it
+            if (!binding.isBound()) {
+                if (binding.getReference().getPath() != null) {
+                    dependencies.add(new TryDefineChildren(binding.getReference().getPath().getParent()));
+                } else {
+                    dependencies.add(new TryDefineChildren(binding.getReference().getScope()));
+                }
+            }
         }
     }
 
@@ -1269,7 +1292,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             if (!bindInputs) {
                 // Must prepare to bind inputs first
-                dependencies.add(new BindInputs(binder));
+                dependencies.add(new TryBindInputs(binder));
                 bindInputs = true;
                 return false;
             }
