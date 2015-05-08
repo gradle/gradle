@@ -16,16 +16,17 @@
 package org.gradle.internal.progress;
 
 public interface InternalBuildListener {
-    String BUILD_TYPE = "build";
-    String SETTINGS_EVAL_TYPE = "settings evaluation";
-    String PROJECTS_LOADING_TYPE = "projects loading";
-    String PROJECTS_EVALUATION_TYPE = "projects evaluation";
-    String EVAL_INIT_SCRIPTS = "init scripts evaluation";
-    String CONFIGURE_BUILD_TYPE = "build configuration";
-    String EXECUTE_BUILD_TYPE = "build execution";
-    String POPULATE_TASKS_TYPE = "task graph population";
+
+    String RUNNING_BUILD_OPERATION = "Running build";
+    String EVALUATING_INIT_SCRIPTS_OPERATION = "Evaluating init scripts";
+    String EVALUATING_SETTINGS_OPERATION = "Evaluating settings";
+    String LOADING_BUILD_OPERATION = "Loading build";
+    String CONFIGURING_BUILD_OPERATION = "Configuring build";
+    String POPULATING_TASK_GRAPH_OPERATION = "Populating task graph";
+    String EXECUTING_TASKS = "Executing tasks";
 
     void started(BuildOperationInternal source, long startTime, String eventType);
 
     void finished(BuildOperationInternal source, long startTime, long endTime, String eventType);
+
 }

@@ -142,109 +142,98 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        // running build started
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            // build start
-            assert event.displayName == 'build started'
+            assert event.displayName == 'Running build started'
             buildDescriptor = event.descriptor
         }
 
-        // init scripts evaluation
+        // evaluating init scripts
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'init scripts evaluation started'
-            assert event.descriptor.name == 'init scripts evaluation'
+            assert event.displayName == 'Evaluating init scripts started'
+            assert event.descriptor.name == 'Evaluating init scripts'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'init scripts evaluation finished with success'
-            assert event.descriptor.name == 'init scripts evaluation'
+            assert event.displayName == 'Evaluating init scripts finished with success'
+            assert event.descriptor.name == 'Evaluating init scripts'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // settings evaluated
+        // evaluating settings
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'settings evaluation started'
-            assert event.descriptor.name == 'settings evaluation'
+            assert event.displayName == 'Evaluating settings started'
+            assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'settings evaluation'
+            assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // projects loaded
+        // loading build
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.descriptor.name == 'projects loading'
+            assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'projects loading'
+            assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // build configuration
+        // configuring build
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'build configuration started'
-            assert event.descriptor.name == 'build configuration'
+            assert event.displayName == 'Configuring build started'
+            assert event.descriptor.name == 'Configuring build'
             assert event.descriptor.parent == buildDescriptor
             configDescriptor = event.descriptor
         }
 
-        // projects evaluated
-        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.descriptor.name == 'projects evaluation'
-            assert event.descriptor.parent == configDescriptor
-        }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'projects evaluation'
-            assert event.descriptor.parent == configDescriptor
-            def result = event.result
-            assert result instanceof BuildSuccessResult
-        }
-
-        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build configuration finished with success'
-            assert event.descriptor.name == 'build configuration'
+            assert event.displayName == 'Configuring build finished with success'
+            assert event.descriptor.name == 'Configuring build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // task graph
+        // populating task graph
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'task graph population started'
-            assert event.descriptor.name == 'task graph population'
+            assert event.displayName == 'Populating task graph started'
+            assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'task graph population finished with success'
-            assert event.descriptor.name == 'task graph population'
+            assert event.displayName == 'Populating task graph finished with success'
+            assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // build execution
+        // executing tasks
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'build execution started'
-            assert event.descriptor.name == 'build execution'
+            assert event.displayName == 'Executing tasks started'
+            assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build execution finished with success'
-            assert event.descriptor.name == 'build execution'
+            assert event.displayName == 'Executing tasks finished with success'
+            assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
-        // build finish
+
+        // running build finished
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build finished with success'
+            assert event.displayName == 'Running build finished with success'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
             assert result instanceof BuildSuccessResult
@@ -283,15 +272,16 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        BuildException ex = thrown()
+        thrown(BuildException)
+
         then:
+        // running build started
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            // build start
-            assert event.displayName == 'build started'
+            assert event.displayName == 'Running build started'
             buildDescriptor = event.descriptor
         }
 
-        // init scripts evaluation
+        // evaluating init scripts
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
             assert event.displayName == 'init scripts evaluation started'
             assert event.descriptor.name == 'init scripts evaluation'
@@ -305,91 +295,78 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert result instanceof BuildSuccessResult
         }
 
-        // settings evaluated
+        // evaluating settings
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'settings evaluation started'
-            assert event.descriptor.name == 'settings evaluation'
+            assert event.displayName == 'Evaluating settings started'
+            assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'settings evaluation'
+            assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // projects loaded
+        // loading build
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.descriptor.name == 'projects loading'
+            assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'projects loading'
+            assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // build configuration
+        // configuring build
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'build configuration started'
-            assert event.descriptor.name == 'build configuration'
+            assert event.displayName == 'Configuring build started'
+            assert event.descriptor.name == 'Configuring build'
             assert event.descriptor.parent == buildDescriptor
             configDescriptor = event.descriptor
         }
-
-        // projects evaluated
-        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.descriptor.name == 'projects evaluation'
-            assert event.descriptor.parent == configDescriptor
-        }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.descriptor.name == 'projects evaluation'
-            assert event.descriptor.parent == configDescriptor
-            def result = event.result
-            assert result instanceof BuildSuccessResult
-        }
-
-        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build configuration finished with success'
-            assert event.descriptor.name == 'build configuration'
+            assert event.displayName == 'Configuring build finished with success'
+            assert event.descriptor.name == 'Configuring build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // task graph
+        // populating task graph
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'task graph population started'
-            assert event.descriptor.name == 'task graph population'
+            assert event.displayName == 'Populating task graph started'
+            assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'task graph population finished with success'
-            assert event.descriptor.name == 'task graph population'
+            assert event.displayName == 'Populating task graph finished with success'
+            assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildSuccessResult
         }
 
-        // build execution
+        // executing tasks
         1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
-            assert event.displayName == 'build execution started'
-            assert event.descriptor.name == 'build execution'
+            assert event.displayName == 'Executing tasks started'
+            assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
         }
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build execution finished with failure'
-            assert event.descriptor.name == 'build execution'
+            assert event.displayName == 'Executing tasks finished with failure'
+            assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
             assert result instanceof BuildFailureResult
             assert result.failures.size() == 1
         }
 
-        // build finish
+        // running build finished
         1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
-            assert event.displayName == 'build finished with failure'
+            assert event.displayName == 'Running build finished with failure'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
             assert result instanceof BuildFailureResult

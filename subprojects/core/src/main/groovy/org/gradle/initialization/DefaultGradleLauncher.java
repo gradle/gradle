@@ -109,18 +109,20 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        return internalBuildOperation(OperationIdGenerator.generateId(gradle), InternalBuildListener.BUILD_TYPE, new Factory<BuildResult>() {
+        return internalBuildOperation(OperationIdGenerator.generateId(gradle), InternalBuildListener.RUNNING_BUILD_OPERATION, new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
+                buildListener.buildStarted(gradle);
+
                 Throwable failure = null;
                 try {
-                    buildListener.buildStarted(gradle);
                     doBuildStages(upTo);
                 } catch (Throwable t) {
                     failure = exceptionAnalyser.transform(t);
                 }
                 BuildResult buildResult = new BuildResult(gradle, failure);
                 buildListener.buildFinished(buildResult);
+
                 return buildResult;
             }
         });
@@ -128,7 +130,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        internalBuildOperation(InternalBuildListener.EVAL_INIT_SCRIPTS, new Factory<Void>() {
+        internalBuildOperation(InternalBuildListener.EVALUATING_INIT_SCRIPTS_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 initScriptHandler.executeScripts(gradle);
@@ -137,7 +139,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Evaluate settings script
-        final SettingsInternal settings = internalBuildOperation(InternalBuildListener.SETTINGS_EVAL_TYPE, new Factory<SettingsInternal>() {
+        final SettingsInternal settings = internalBuildOperation(InternalBuildListener.EVALUATING_SETTINGS_OPERATION, new Factory<SettingsInternal>() {
             @Override
             public SettingsInternal create() {
                 SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
@@ -147,7 +149,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Load build
-        internalBuildOperation(InternalBuildListener.PROJECTS_LOADING_TYPE, new Factory<Void>() {
+        internalBuildOperation(InternalBuildListener.LOADING_BUILD_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
@@ -157,19 +159,13 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Configure build
-        internalBuildOperation(InternalBuildListener.CONFIGURE_BUILD_TYPE, new Factory<Void>() {
+        internalBuildOperation(InternalBuildListener.CONFIGURING_BUILD_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildConfigurer.configure(gradle);
 
                 if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                    internalBuildOperation(InternalBuildListener.PROJECTS_EVALUATION_TYPE, new Factory<Void>() {
-                        @Override
-                        public Void create() {
-                            buildListener.projectsEvaluated(gradle);
-                            return null;
-                        }
-                    });
+                    buildListener.projectsEvaluated(gradle);
                 }
 
                 modelConfigurationListener.onConfigure(gradle);
@@ -183,26 +179,21 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        internalBuildOperation(InternalBuildListener.POPULATE_TASKS_TYPE, new Factory<Void>() {
+        internalBuildOperation(InternalBuildListener.POPULATING_TASK_GRAPH_OPERATION, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.select(gradle);
+
+                if (gradle.getStartParameter().isConfigureOnDemand()) {
+                    buildListener.projectsEvaluated(gradle);
+                }
+
                 return null;
             }
         });
 
-        if (gradle.getStartParameter().isConfigureOnDemand()) {
-            internalBuildOperation(InternalBuildListener.PROJECTS_EVALUATION_TYPE, new Factory<Void>() {
-                @Override
-                public Void create() {
-                    buildListener.projectsEvaluated(gradle);
-                    return null;
-                }
-            });
-        }
-
         // Execute build
-        internalBuildOperation(InternalBuildListener.EXECUTE_BUILD_TYPE, new Factory<Void>() {
+        internalBuildOperation(InternalBuildListener.EXECUTING_TASKS, new Factory<Void>() {
             @Override
             public Void create() {
                 buildExecuter.execute();
