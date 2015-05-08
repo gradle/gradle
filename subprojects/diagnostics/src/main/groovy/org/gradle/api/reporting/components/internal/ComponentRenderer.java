@@ -39,7 +39,7 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.subheading(StringUtils.capitalize(component.getDisplayName()));
         builder.getOutput().println();
-        builder.collection("Source sets", component.getSource(), sourceSetRenderer, "source sets");
+        builder.collection("Source sets", component.getSource().values(), sourceSetRenderer, "source sets");
         builder.getOutput().println();
         builder.collection("Binaries", CollectionUtils.sort(component.getBinaries(), new Comparator<BinarySpec>() {
             public int compare(BinarySpec binary1, BinarySpec binary2) {

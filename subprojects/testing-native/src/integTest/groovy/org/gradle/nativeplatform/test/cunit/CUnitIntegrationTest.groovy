@@ -224,8 +224,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
+                c {
                     source.srcDir "src/alternateHelloTest/c"
                 }
             }
@@ -250,8 +249,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
+                c {
                     source.srcDir "src/alternateHelloTest/c"
                 }
             }

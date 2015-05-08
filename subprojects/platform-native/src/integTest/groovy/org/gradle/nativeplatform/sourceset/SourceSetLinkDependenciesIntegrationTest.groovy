@@ -68,7 +68,6 @@ model {
         lib1(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                cpp(CppSourceSet)
                 cpp1(CppSourceSet)
             }
         }

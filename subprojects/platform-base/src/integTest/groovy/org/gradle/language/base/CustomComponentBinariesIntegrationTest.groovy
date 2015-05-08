@@ -63,7 +63,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                 componentSpecs.create("sampleLib", new Action<SampleLibrary>() {
                     public void execute(SampleLibrary library) {
                         library.sources {
-                            it.add(BaseLanguageSourceSet.create(DefaultLibrarySourceSet, "librarySource", "librarySource", serviceRegistry.get(FileResolver), serviceRegistry.get(Instantiator)))
+                            librarySource(LibrarySourceSet)
                         }
                     }
                 });
@@ -77,6 +77,12 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             @BinaryType
             void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
                 builder.defaultImplementation(OtherSampleBinaryImpl)
+            }
+
+            @LanguageType
+            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
+                builder.setLanguageName("librarySource")
+                builder.defaultImplementation(DefaultLibrarySourceSet)
             }
         }
     }
@@ -120,7 +126,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 --------------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'librarySource:librarySource'
+    DefaultLibrarySourceSet 'sampleLib:librarySource'
         src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
@@ -139,9 +145,9 @@ Binaries
             def sampleBinary = project.binaries.sampleLibBinary
             def othersSampleBinary = project.binaries.sampleLibOtherBinary
             assert sampleBinary.source[0] instanceof DefaultLibrarySourceSet
-            assert sampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'librarySource:librarySource'"
+            assert sampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
             assert othersSampleBinary.source[0] instanceof DefaultLibrarySourceSet
-            assert othersSampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'librarySource:librarySource'"
+            assert othersSampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
         }
 """
         then:
@@ -219,7 +225,7 @@ DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
 Source sets
-    DefaultLibrarySourceSet 'librarySource:librarySource'
+    DefaultLibrarySourceSet 'sampleLib:librarySource'
         src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries

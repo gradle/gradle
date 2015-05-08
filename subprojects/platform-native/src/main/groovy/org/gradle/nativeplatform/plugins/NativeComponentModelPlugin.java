@@ -196,7 +196,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
+                    for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class).values()) {
                         Task generatorTask = languageSourceSet.getGeneratorTask();
                         if (generatorTask != null) {
                             languageSourceSet.builtBy(generatorTask);
@@ -215,7 +215,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    for (DependentSourceSetInternal dependentSourceSet : componentSpec.getSource().withType(DependentSourceSetInternal.class)) {
+                    for (DependentSourceSetInternal dependentSourceSet : componentSpec.getSource().withType(DependentSourceSetInternal.class).values()) {
                         if (dependentSourceSet.getPreCompiledHeader() != null) {
                             String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
                             File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
@@ -281,8 +281,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
-                    for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
+                    ModelMap<HeaderExportingSourceSet> headerSourceSets = componentSpec.getSource().withType(HeaderExportingSourceSet.class);
+                    for (HeaderExportingSourceSet headerSourceSet : headerSourceSets.values()) {
                         // Only apply default locations when none explicitly configured
                         if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
                             headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));

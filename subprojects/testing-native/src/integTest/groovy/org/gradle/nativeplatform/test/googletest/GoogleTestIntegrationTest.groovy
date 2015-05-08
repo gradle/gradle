@@ -196,8 +196,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
@@ -221,8 +220,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                cpp(CppSourceSet) {
+                cpp {
                     source.srcDir "src/alternateHelloTest/cpp"
                 }
             }

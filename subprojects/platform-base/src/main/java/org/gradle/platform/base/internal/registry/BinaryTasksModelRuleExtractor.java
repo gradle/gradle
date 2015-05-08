@@ -28,7 +28,6 @@ import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.ModelMap;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -38,11 +37,8 @@ import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
@@ -118,34 +114,17 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private static class DomainObjectSetBackedModelMap<T> implements ModelMap<T> {
+    private static class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, DomainObjectSet<T>> {
 
-        private final DomainObjectSet<T> backingSet;
-        private final NamedEntityInstantiator<T> instantiator;
         private final BinarySpec binary;
-        private final Class<T> elementClass;
-        private final Namer<Object> namer;
 
         public DomainObjectSetBackedModelMap(BinarySpec binary, Class<T> elementClass, DomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer) {
+            super(elementClass, backingSet, instantiator, namer);
             this.binary = binary;
-            this.elementClass = elementClass;
-            this.instantiator = instantiator;
-            this.backingSet = backingSet;
-            this.namer = namer;
         }
 
         @Override
-        public <S> ModelMap<S> withType(final Class<S> type) {
-            if (type.equals(elementClass)) {
-                return uncheckedCast(this);
-            }
-
-            if (elementClass.isAssignableFrom(type)) {
-                Class<? extends T> castType = uncheckedCast(type);
-                ModelMap<? extends T> subType = toSubtype(castType);
-                return uncheckedCast(subType);
-            }
-
+        protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
             DomainObjectSet<S> cast = toNonSubtype(type);
             return new DomainObjectSetBackedModelMap<S>(binary, type, cast, new NamedEntityInstantiator<S>() {
                 @Override
@@ -156,7 +135,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
 
         private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
-            DomainObjectSet<T> matching = backingSet.matching(new Spec<T>() {
+            DomainObjectSet<T> matching = backingCollection.matching(new Spec<T>() {
                 @Override
                 public boolean isSatisfiedBy(T element) {
                     return type.isInstance(element);
@@ -166,136 +145,30 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             return Cast.uncheckedCast(matching);
         }
 
-        private <S extends T> ModelMap<S> toSubtype(Class<S> itemSubtype) {
+        protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
             NamedEntityInstantiator<S> instantiator = Cast.uncheckedCast(this.instantiator);
-            return new DomainObjectSetBackedModelMap<S>(binary, itemSubtype, backingSet.withType(itemSubtype), instantiator, namer);
-        }
-
-        @Override
-        public int size() {
-            return backingSet.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return backingSet.isEmpty();
-        }
-
-        @Nullable
-        @Override
-        public T get(Object name) {
-            return get(name.toString());
+            return new DomainObjectSetBackedModelMap<S>(binary, itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer);
         }
 
         @Nullable
         @Override
         public T get(String name) {
-            return Iterables.find(backingSet, new HasNamePredicate<T>(name, namer), null);
-        }
-
-        @Override
-        public boolean containsKey(Object name) {
-            return keySet().contains(name.toString());
-        }
-
-        @Override
-        public boolean containsValue(Object item) {
-            //noinspection SuspiciousMethodCalls
-            return backingSet.contains(item);
+            return Iterables.find(backingCollection, new HasNamePredicate<T>(name, namer), null);
         }
 
         @Override
         public Set<String> keySet() {
-            return Sets.newHashSet(Iterables.transform(backingSet, new ToName<T>(namer)));
+            return Sets.newHashSet(Iterables.transform(backingCollection, new ToName<T>(namer)));
         }
 
         @Override
-        public void create(String name) {
-            create(name, elementClass, Actions.doNothing());
-        }
-
-        @Override
-        public void create(String name, Action<? super T> configAction) {
-            create(name, elementClass, configAction);
-        }
-
-        @Override
-        public <S extends T> void create(String name, Class<S> type) {
-            create(name, type, Actions.doNothing());
-        }
-
-        @Override
-        public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-            instantiator.create(name, type);
-            S task = Cast.uncheckedCast(get(name));
-            configAction.execute(task);
-            binary.builtBy(task);
-        }
-
-        @Override
-        public void named(String name, Action<? super T> configAction) {
-            backingSet.matching(new HasNameSpec<T>(name, namer)).all(configAction);
-        }
-
-        @Override
-        public void named(String name, Class<? extends RuleSource> ruleSource) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void beforeEach(Action<? super T> configAction) {
-            all(configAction);
-        }
-
-        @Override
-        public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
-            withType(type, configAction);
-        }
-
-        @Override
-        public void all(Action<? super T> configAction) {
-            backingSet.all(configAction);
+        protected void onCreate(T item) {
+            binary.builtBy(item);
         }
 
         @Override
         public <S> void withType(Class<S> type, Action<? super S> configAction) {
             toNonSubtype(type).all(configAction);
-        }
-
-        @Override
-        public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void afterEach(Action<? super T> configAction) {
-            all(configAction);
-        }
-
-        @Override
-        public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
-            withType(type, configAction);
-        }
-
-        @Override
-        public Collection<T> values() {
-            return backingSet;
-        }
-
-    }
-
-    private static class HasNameSpec<T> implements Spec<T> {
-        private final String name;
-        private final Namer<? super T> namer;
-
-        public HasNameSpec(String name, Namer<? super T> namer) {
-            this.name = name;
-            this.namer = namer;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(T element) {
-            return namer.determineName(element).equals(name);
         }
     }
 

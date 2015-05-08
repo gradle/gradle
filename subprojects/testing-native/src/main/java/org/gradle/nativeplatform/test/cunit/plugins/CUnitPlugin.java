@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -142,19 +141,15 @@ public class CUnitPlugin implements Plugin<Project> {
                 String taskName = suite.getName() + "CUnitLauncher";
                 GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
 
-                CSourceSet launcherSources = findLaucherSources(suite);
+                CSourceSet launcherSources = findLauncherSources(suite);
                 skeletonTask.setSourceDir(launcherSources.getSource().getSrcDirs().iterator().next());
                 skeletonTask.setHeaderDir(launcherSources.getExportedHeaders().getSrcDirs().iterator().next());
                 launcherSources.builtBy(skeletonTask);
             }
         }
 
-        private CSourceSet findLaucherSources(CUnitTestSuiteSpec suite) {
-            return suite.getSource().withType(CSourceSet.class).matching(new Spec<CSourceSet>() {
-                public boolean isSatisfiedBy(CSourceSet element) {
-                    return element.getName().equals(CUNIT_LAUNCHER_SOURCE_SET);
-                }
-            }).iterator().next();
+        private CSourceSet findLauncherSources(CUnitTestSuiteSpec suite) {
+            return suite.getSource().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
         }
 
         @Mutate

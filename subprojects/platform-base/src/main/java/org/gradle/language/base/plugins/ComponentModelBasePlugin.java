@@ -137,7 +137,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
-                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
+                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource().values()) {
                         // Only apply default locations when none explicitly configured
                         if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
                             languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
