@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
@@ -119,15 +120,9 @@ class ModelGraph {
                 return;
             }
             if (listener.getScope() != null) {
-                ModelNodeInternal scope = flattened.get(listener.getScope());
-                if (scope != null) {
-                    if (maybeNotify(scope, listener)) {
+                for (ModelNodeInternal node : findAllInScope(listener.getScope())) {
+                    if (maybeNotify(node, listener)) {
                         return;
-                    }
-                    for (ModelNodeInternal node : scope.getLinks()) {
-                        if (maybeNotify(node, listener)) {
-                            return;
-                        }
                     }
                 }
                 scopeListeners.put(listener.getScope(), listener);
@@ -172,6 +167,14 @@ class ModelGraph {
         }
 
         return found;
+    }
+
+    public Iterable<ModelNodeInternal> findAllInScope(ModelPath scope) {
+        ModelNodeInternal node = flattened.get(scope);
+        if (node == null) {
+            return Collections.emptyList();
+        }
+        return Iterables.concat(Collections.singleton(node), node.getLinks());
     }
 
     @Nullable

@@ -95,14 +95,13 @@ class DefaultModelRegistryTest extends Specification {
       - <unspecified> (java.lang.Long)"""
     }
 
-    def "cannot get element for which creator by-type input is ambiguous"() {
+    def "cannot register creator when by-type input is ambiguous"() {
         given:
         registry.createInstance("other-1", 11)
         registry.createInstance("other-2", 12)
-        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
 
         when:
-        registry.realize(ModelPath.path("foo"), ModelType.untyped())
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
 
         then:
         InvalidModelRuleException e = thrown()
@@ -475,8 +474,9 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("thing"), ModelType.untyped())
 
         then:
-        IllegalStateException e = thrown()
-        e.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromRole.targetState.previous()}."
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromRole.targetState.previous()}."
 
         where:
         fromRole                   | targetRole
@@ -511,8 +511,9 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("another"), ModelType.untyped())
 
         then:
-        IllegalStateException e = thrown()
-        e.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromState}."
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromState}."
 
         where:
         fromState                       | targetRole
@@ -974,12 +975,12 @@ foo
 
     def "only the elements actually forming the cycle are reported when configuration cycles are detected"() {
         given:
-        registry.create("foo") { it.unmanaged(String, "bar") { "foo" } }
+        registry.create("foo") { it.unmanaged(Long, "bar") { 12 } }
                 .create("bar") { it.unmanaged(String, "fizz") { "bar" } }
-                .mutate { it.path("foo").type(String).action(String) {} }
-                .create("fizz") { it.unmanaged(String, "buzz") { "buzz" } }
-                .mutate { it.path("fizz").descriptor("fizz mutator").type(String).action("bar", ModelType.of(String), {}) }
-                .createInstance("buzz", "buzz")
+                .mutate { it.path("foo").action(String) {} }
+                .create("fizz") { it.unmanaged(Boolean, "buzz") { "buzz" } }
+                .mutate { it.path("fizz").descriptor("fizz mutator").action("bar", ModelType.of(String), {}) }
+                .createInstance("buzz", Long)
 
         when:
         registry.get("foo")

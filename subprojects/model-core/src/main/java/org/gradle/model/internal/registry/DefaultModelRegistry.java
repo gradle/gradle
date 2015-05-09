@@ -47,10 +47,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     private final ModelGraph modelGraph;
+    private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
 
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
-    private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
 
     boolean reset;
 
@@ -59,6 +59,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT, BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator, ModelPath.ROOT), null));
         modelGraph.getRoot().setState(Created);
+        ruleBindings = new RuleBindings(modelGraph);
     }
 
     private static String toString(ModelRuleDescriptor descriptor) {
@@ -128,6 +129,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         node = parent.addLink(child);
         modelGraph.add(node);
+        ruleBindings.add(node.getCreatorBinder());
         return node;
     }
 
@@ -154,16 +156,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelReference<T> mappedSubject = mapSubject(subject, role, scope);
         List<ModelReference<?>> mappedInputs = mapInputs(mutator.getInputs(), scope);
         MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, mutator, unboundRules);
-        pendingMutatorBinders.add(binder);
-    }
-
-    private void flushPendingMutatorBinders() {
-        Iterator<MutatorRuleBinder<?>> iterator = pendingMutatorBinders.iterator();
-        while (iterator.hasNext()) {
-            MutatorRuleBinder<?> binder = iterator.next();
-            iterator.remove();
-            registerListener(binder.getSubjectBinding());
-        }
+        ruleBindings.add(binder);
     }
 
     public <T> T realize(ModelPath path, ModelType<T> type) {
@@ -251,11 +244,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         // Will internally verify that this is valid
         node.replaceCreatorRuleBinder(toCreatorBinder(newCreator, ModelPath.ROOT));
+        ruleBindings.add(node.getCreatorBinder());
         return this;
     }
 
     public void bindAllReferences() throws UnboundModelRulesException {
-        flushPendingMutatorBinders();
         if (unboundRules.isEmpty()) {
             return;
         }
@@ -1161,7 +1154,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must run each action
-            flushPendingMutatorBinders();
             for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState())) {
                 if (seenRules.add(binder)) {
                     dependencies.add(new RunModelAction(getPath(), binder));
@@ -1260,10 +1252,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
-                registerListener(binding);
-            }
-            // Second check, as attaching the listener may bind it
-            if (!binding.isBound()) {
                 if (binding.getReference().getPath() != null) {
                     dependencies.add(new TryDefineChildren(binding.getReference().getPath().getParent()));
                 } else {
@@ -1339,7 +1327,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
             fireMutation(binder);
             node.notifyFired(binder);
-            flushPendingMutatorBinders();
         }
     }
 

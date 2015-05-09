@@ -27,6 +27,29 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
     def registry = new ModelRegistryHelper()
 
+    def "non-ephemeral model nodes are reused when registry is reset"() {
+        when:
+        def events = []
+        registry.create("foo") { it.unmanaged(List, { [] } as Factory) }
+        registry.mutate(List) {
+            it.add "1"
+            events.add "mutate"
+        }
+
+        then:
+        registry.get("foo") == ["1"]
+        registry.node("foo").state == ModelNode.State.GraphClosed
+        events.size() == 1
+
+        when:
+        registry.prepareForReuse()
+
+        then:
+        registry.node("foo").state == ModelNode.State.GraphClosed
+        registry.get("foo") == ["1"]
+        events.size() == 1
+    }
+
     def "ephemeral model nodes are discarded when registry is reset"() {
         when:
         def events = []
@@ -83,6 +106,39 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.node("bar").state == ModelNode.State.Known
         registry.get("bar") == ["1"]
         events.size() == 4
+    }
+
+    def "creator inputs for replaced ephemeral nodes are bound"() {
+        when:
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["old"])})
+        registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
+        registry.mutate(List) {
+            it.add "2"
+        }
+        registry.mutate {
+            it.path("bar").type(StringBuilder).action(List) { bar, foo ->
+                bar.append " bar"
+            }
+        }
+
+        then:
+        registry.get("bar").toString() == "old bar"
+        registry.get("foo") == ["old", "2"]
+        registry.node("foo").state == ModelNode.State.GraphClosed
+        registry.node("bar").state == ModelNode.State.GraphClosed
+
+        when:
+        registry.prepareForReuse()
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["new"])})
+        registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
+
+        then:
+        registry.node("foo").state == ModelNode.State.Known
+        registry.node("bar").state == ModelNode.State.Known
+        registry.get("foo") == ["new", "2"]
+
+        registry.node("bar").state == ModelNode.State.Known
+        registry.get("bar").toString() == "new bar"
     }
 
     static class Thing {

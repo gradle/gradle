@@ -367,9 +367,10 @@ class DefaultModelMapTest extends Specification {
         realize()
 
         then:
-        InvalidModelRuleException e = thrown()
-        e.cause instanceof ModelRuleBindingException
-        e.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof InvalidModelRuleException
+        e.cause.cause instanceof ModelRuleBindingException
+        e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
     }
 
     static class SetOtherToName extends RuleSource {

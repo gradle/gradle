@@ -16,24 +16,18 @@
 
 package org.gradle.model.internal.registry
 
-import org.gradle.api.Nullable
 import org.gradle.api.Transformer
-import org.gradle.internal.BiActions
 import org.gradle.internal.Transformers
-import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import org.gradle.model.internal.report.unbound.UnboundRulesReporter
-import org.gradle.model.internal.type.ModelType
 import org.gradle.util.ConfigureUtil
-import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class UnboundRulesProcessorTest extends Specification {
+class UnboundRulesProcessorTest extends RegistrySpec {
 
     List<RuleBinder> binders = []
 
@@ -181,218 +175,5 @@ class UnboundRulesProcessorTest extends Specification {
         )
     }
 
-    private class RuleBinderTestBuilder {
 
-        private ModelRuleDescriptor descriptor
-        private ModelReference<?> subjectReference
-        private String subjectReferenceBindingPath
-        private List<ModelReference<?>> inputReferences = []
-        private Map<Integer, String> boundInputReferencePaths = [:]
-
-        void subjectReference(ModelReference<?> reference) {
-            subjectReference = reference
-        }
-
-        void subjectReference(Class type) {
-            subjectReference = ModelReference.of(ModelType.of(type))
-        }
-
-        void subjectReference(String path, Class type) {
-            subjectReference = ModelReference.of(new ModelPath(path), ModelType.of(type))
-        }
-
-        void bindSubjectReference(String path) {
-            subjectReferenceBindingPath = path
-        }
-
-        void inputReference(ModelReference<?> reference) {
-            inputReferences.add(reference)
-        }
-
-        void inputReference(Class type) {
-            inputReferences.add(ModelReference.of(ModelType.of(type)))
-        }
-
-        void inputReference(String path, Class type) {
-            inputReferences.add(ModelReference.of(new ModelPath(path), ModelType.of(type)))
-        }
-
-        void bindInputReference(int index, String path) {
-            boundInputReferencePaths[index] = path
-        }
-
-        void descriptor(String descriptor) {
-            this.descriptor = new SimpleModelRuleDescriptor(descriptor)
-        }
-
-        RuleBinder build() {
-            def subjBinding = subjectReference == null ? null : new ModelBinding(null, subjectReference, true) {
-                @Override
-                boolean onCreate(ModelNodeInternal node) {
-                    return false
-                }
-            }
-            if (subjectReferenceBindingPath) {
-                subjBinding.boundTo = new TestNode(subjectReferenceBindingPath)
-            }
-
-            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, []) {
-                @Override
-                ModelBinding getSubjectBinding() {
-                    return subjBinding
-                }
-            }
-            boundInputReferencePaths.each { index, path ->
-                binder.inputBindings[index].boundTo = new TestNode(path)
-            }
-            return binder
-        }
-    }
-
-    private static class TestNode extends ModelNodeInternal {
-        TestNode(String creationPath) {
-            super(toBinder(creationPath))
-        }
-
-        private static CreatorRuleBinder toBinder(String creationPath) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
-            def binder = new CreatorRuleBinder(creator, [], [])
-            binder
-        }
-
-        @Override
-        ModelNodeInternal getTarget() {
-            return this
-        }
-
-        @Override
-        Iterable<? extends ModelNodeInternal> getLinks() {
-            return null
-        }
-
-        @Override
-        ModelNodeInternal addLink(ModelNodeInternal node) {
-            return null
-        }
-
-        @Override
-        def <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
-            return null
-        }
-
-        @Override
-        void addReference(ModelCreator creator) {
-
-        }
-
-        @Override
-        void addLink(ModelCreator creator) {
-
-        }
-
-        @Override
-        void removeLink(String name) {
-
-        }
-
-        @Override
-        def <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
-
-        }
-
-        @Override
-        def <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
-
-        }
-
-        @Override
-        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
-
-        }
-
-        @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
-
-        }
-
-        @Override
-        def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToLink(String name, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToSelf(Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        MutableModelNode getLink(String name) {
-            return null
-        }
-
-        @Override
-        int getLinkCount(ModelType<?> type) {
-            return 0
-        }
-
-        @Override
-        Set<String> getLinkNames(ModelType<?> type) {
-            return null
-        }
-
-        @Override
-        Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-            return null
-        }
-
-        @Override
-        boolean hasLink(String name) {
-            return false
-        }
-
-        @Override
-        boolean hasLink(String name, ModelType<?> type) {
-            return false
-        }
-
-        @Override
-        def <T> void setPrivateData(ModelType<? super T> type, T object) {
-
-        }
-
-        @Override
-        def <T> T getPrivateData(ModelType<T> type) {
-            return null
-        }
-
-        @Override
-        Object getPrivateData() {
-            return null
-        }
-
-        @Override
-        void setTarget(ModelNode target) {
-
-        }
-
-        @Override
-        void ensureUsable() {
-
-        }
-
-        @Override
-        def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            return null
-        }
-
-        @Override
-        MutableModelNode getParent() {
-            return null
-        }
-    }
 }
