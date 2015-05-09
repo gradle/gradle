@@ -19,45 +19,40 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.*;
 
 import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
-    // TODO:DAZ Probably don't need order-preserving map here
-    private final Map<String, PublishArtifactSet> configurationArtifacts = new LinkedHashMap<String, PublishArtifactSet>();
+    // TODO:DAZ Probably don't need order-preserving maps here
+    private final Map<String, PublishArtifactSet> configurationArtifacts = Maps.newLinkedHashMap();
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = Maps.newLinkedHashMap();
     private final Map<IvyArtifactName, DefaultLocalArtifactMetaData> artifactsByIvyName = Maps.newLinkedHashMap();
     private final List<DependencyMetaData> dependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
     private final Map<String, Configuration> allIvyConfigurations = Maps.newHashMap();
-    private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
+    private final String status;
     private boolean artifactsResolved;
 
-    public DefaultLocalComponentMetaData(DefaultModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
-        this.moduleDescriptor = moduleDescriptor;
-        id = DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
+    public DefaultLocalComponentMetaData(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status) {
+        this.id = id;
         this.componentIdentifier = componentIdentifier;
+        this.status = status;
     }
 
     public ModuleVersionIdentifier getId() {
         return id;
-    }
-
-    public DefaultModuleDescriptor getModuleDescriptor() {
-        return moduleDescriptor;
     }
 
     public void addArtifacts(String configuration, PublishArtifactSet artifacts) {
@@ -97,18 +92,14 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
         Configuration conf = new Configuration(name, visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE, description, superConfigs, transitive, null);
         allIvyConfigurations.put(name, conf);
-        moduleDescriptor.addConfiguration(conf);
     }
-
 
     public void addDependency(DependencyMetaData dependency) {
         dependencies.add(dependency);
-        moduleDescriptor.addDependency(dependency.getDescriptor());
     }
 
     public void addExcludeRule(ExcludeRule excludeRule) {
         allExcludeRules.add(excludeRule);
-        moduleDescriptor.addExcludeRule(excludeRule);
     }
 
     // TODO:DAZ This is used in unit-tests only
@@ -124,28 +115,25 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public ComponentResolveMetaData toResolveMetaData() {
-        return new LocalComponentResolveMetaData(moduleDescriptor.getStatus(), moduleDescriptor.isDefault());
+        return new LocalComponentResolveMetaData();
     }
 
     public BuildableIvyModulePublishMetaData toPublishMetaData() {
         resolveArtifacts();
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id);
-        for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
-            IvyArtifactName artifactName = artifact.getName();
-            MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, ivyArtifactAttributes(artifactName));
-            for (String configuration : artifact.configurations) {
-                ivyArtifact.addConfiguration(configuration);
-            }
-            publishMetaData.addArtifact(ivyArtifact, artifact.file);
+        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, status);
+        for (Configuration configuration : allIvyConfigurations.values()) {
+            publishMetaData.addConfiguration(configuration);
+        }
+        for (ExcludeRule excludeRule : allExcludeRules) {
+            publishMetaData.addExcludeRule(excludeRule);
+        }
+        for (DependencyMetaData dependency : dependencies) {
+            publishMetaData.addDependency(dependency);
+        }
+        for (LocalArtifactMetaData artifact : artifactsById.values()) {
+            publishMetaData.addArtifact(artifact);
         }
         return publishMetaData;
-    }
-
-    private Map<String, String> ivyArtifactAttributes(IvyArtifactName ivyArtifactName) {
-        if (ivyArtifactName.getClassifier() == null) {
-            return Collections.emptyMap();
-        }
-        return Collections.singletonMap("m:classifier", ivyArtifactName.getClassifier());
     }
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
@@ -188,25 +176,19 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         public File getFile() {
             return file;
         }
+
+        public Set<String> getConfigurations() {
+            return configurations;
+        }
     }
 
     private class LocalComponentResolveMetaData implements ComponentResolveMetaData {
         private ModuleVersionIdentifier moduleVersionIdentifier;
-        private boolean generated;
-
-        private String status;
-        private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
         private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
-        public LocalComponentResolveMetaData(String status, boolean generated) {
+        public LocalComponentResolveMetaData() {
             // TODO:ADAM - need to clone the descriptor
             this.moduleVersionIdentifier = id;
-            this.status = status;
-            this.generated = generated;
-        }
-
-        public ModuleComponentResolveMetaData withSource(ModuleSource source) {
-            throw new UnsupportedOperationException();
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
@@ -236,8 +218,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             return null;
         }
 
+        public ComponentResolveMetaData withSource(ModuleSource source) {
+            throw new UnsupportedOperationException();
+        }
+
         public boolean isGenerated() {
-            return generated;
+            return false;
         }
 
         public boolean isChanging() {
@@ -249,7 +235,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public List<String> getStatusScheme() {
-            return statusScheme;
+            return DEFAULT_STATUS_SCHEME;
         }
 
         public ComponentIdentifier getComponentId() {
@@ -340,7 +326,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             }
 
             private boolean include(DependencyMetaData dependency) {
-                String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+                String[] moduleConfigurations = dependency.getModuleConfigurations();
                 for (int i = 0; i < moduleConfigurations.length; i++) {
                     String moduleConfiguration = moduleConfigurations[i];
                     if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {

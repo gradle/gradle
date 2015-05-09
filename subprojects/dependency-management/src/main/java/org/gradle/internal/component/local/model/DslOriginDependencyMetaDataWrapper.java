@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -44,10 +43,6 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
 
     public ModuleVersionSelector getRequested() {
         return delegate.getRequested();
-    }
-
-    public DependencyDescriptor getDescriptor() {
-        return delegate.getDescriptor();
     }
 
     @Override

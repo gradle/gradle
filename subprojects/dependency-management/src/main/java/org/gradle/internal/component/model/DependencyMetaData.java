@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -62,16 +61,7 @@ public interface DependencyMetaData {
      */
     ComponentSelector getSelector();
 
-    /**
-     * Returns this dependency as an Ivy DependencyDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    DependencyDescriptor getDescriptor();
-
     // The following methods all wrap an underlying method on DependencyDescriptor that we use, to help migrate away from using Ivy types.
-
     String[] getModuleConfigurations();
 
     String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);

@@ -15,15 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
@@ -35,31 +31,25 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         super(excludeRuleConverter);
     }
 
-    private ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
-        return IvyUtil.createModuleRevisionId(dependency);
-    }
-
-    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent, moduleRevisionId, force, changing, transitive);
-        configureDependencyDescriptor(configuration, externalModuleDependency, dependencyDescriptor);
-
-        // TODO:DAZ Only using ModuleRevisionId here to convert nulls to empty strings
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         LocalComponentDependencyMetaData dependencyMetaData = new LocalComponentDependencyMetaData(
                 selector, requested, configuration, dependency.getConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 convertExcludeRules(configuration, dependency.getExcludeRules()),
-                force, changing, transitive,
-                dependencyDescriptor);
+                force, changing, transitive);
         return new DslOriginDependencyMetaDataWrapper(dependencyMetaData, dependency);
+    }
+
+    private String nullToEmpty(String input) {
+        return input == null ? "" : input;
     }
 
     public boolean canConvert(ModuleDependency dependency) {

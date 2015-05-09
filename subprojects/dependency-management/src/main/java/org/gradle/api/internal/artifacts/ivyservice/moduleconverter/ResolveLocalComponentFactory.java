@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -30,9 +30,6 @@ import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 import java.util.Set;
 
 public class ResolveLocalComponentFactory implements LocalComponentFactory {
-    static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
-    static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";
-
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -50,10 +47,9 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
 
     public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
-        moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
+        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
         configurationsToArtifactsConverter.addArtifacts(metaData, configurations);

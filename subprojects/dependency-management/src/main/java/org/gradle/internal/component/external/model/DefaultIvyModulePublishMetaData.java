@@ -16,26 +16,76 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.internal.component.local.model.LocalArtifactMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData {
     private final ModuleVersionIdentifier id;
+    private final DefaultModuleDescriptor moduleDescriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
 
-    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id) {
+    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, String status) {
         this.id = id;
+        moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null);
+        moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
+    }
+
+    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor) {
+        this.id = id;
+        this.moduleDescriptor = (DefaultModuleDescriptor) moduleDescriptor;
     }
 
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    public DefaultModuleDescriptor getModuleDescriptor() {
+        return moduleDescriptor;
+    }
+
+    @Override
+    public void addConfiguration(Configuration configuration) {
+        moduleDescriptor.addConfiguration(configuration);
+    }
+
+    @Override
+    public void addExcludeRule(ExcludeRule excludeRule) {
+        moduleDescriptor.addExcludeRule(excludeRule);
+    }
+
+    @Override
+    public void addDependency(DependencyMetaData dependency) {
+        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
+        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(moduleDescriptor, moduleRevisionId, dependency.isForce(), dependency.isChanging(), dependency.isTransitive());
+
+        // In reality, there will only be 1 module configuration and 1 matching dependency configuration
+        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+            for (String dependencyConfiguration : dependency.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
+                dependencyDescriptor.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
+            }
+            addDependencyArtifacts(moduleConfiguration, dependency.getArtifacts(), dependencyDescriptor);
+        }
+    }
+
+    private void addDependencyArtifacts(String configuration, Set<IvyArtifactName> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
+        for (IvyArtifactName artifact : artifacts) {
+            DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(
+                    dependencyDescriptor, artifact.getName(), artifact.getType(), artifact.getExtension(),
+                    null,
+                    artifact.getClassifier() != null ? WrapUtil.toMap(Dependency.CLASSIFIER, artifact.getClassifier()) : null);
+            dependencyDescriptor.addDependencyArtifact(configuration, artifactDescriptor);
+        }
     }
 
     public void addArtifact(Artifact artifact, File file) {
@@ -45,6 +95,22 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
 
     public void addArtifact(IvyModuleArtifactPublishMetaData artifact) {
         artifactsById.put(artifact.getId(), artifact);
+    }
+
+    public void addArtifact(LocalArtifactMetaData artifact) {
+        IvyArtifactName artifactName = artifact.getName();
+        MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, ivyArtifactAttributes(artifactName));
+        for (String configuration : artifact.getConfigurations()) {
+            ivyArtifact.addConfiguration(configuration);
+        }
+        addArtifact(ivyArtifact, artifact.getFile());
+    }
+
+    private Map<String, String> ivyArtifactAttributes(IvyArtifactName ivyArtifactName) {
+        if (ivyArtifactName.getClassifier() == null) {
+            return Collections.emptyMap();
+        }
+        return Collections.singletonMap("m:classifier", ivyArtifactName.getClassifier());
     }
 
     public Collection<IvyModuleArtifactPublishMetaData> getArtifacts() {

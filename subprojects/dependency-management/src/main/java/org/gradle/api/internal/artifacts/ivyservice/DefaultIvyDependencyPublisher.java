@@ -37,7 +37,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         IvyModulePublishMetaData publishMetaData) {
         try {
             // Make a copy of the publication and filter missing artifacts
-            DefaultIvyModulePublishMetaData publication = new DefaultIvyModulePublishMetaData(publishMetaData.getId());
+            DefaultIvyModulePublishMetaData publication = new DefaultIvyModulePublishMetaData(publishMetaData.getId(), publishMetaData.getModuleDescriptor());
             for (IvyModuleArtifactPublishMetaData artifact: publishMetaData.getArtifacts()) {
                 addPublishedArtifact(artifact, publication);
             }

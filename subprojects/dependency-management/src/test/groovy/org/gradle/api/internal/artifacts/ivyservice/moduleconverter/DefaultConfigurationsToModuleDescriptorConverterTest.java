@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 import org.gradle.util.TestUtil;
@@ -28,8 +32,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collections;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -38,16 +40,18 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
     private DefaultConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    private ModuleComponentIdentifier componentId = DefaultModuleComponentIdentifier.newId("org", "name", "rev");
+    private ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(componentId);
 
     @Test
     public void testAddConfigurations() {
         Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
-        DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(Collections.EMPTY_SET);
-        MutableLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, null);
+        MutableLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(id, componentId, "status");
 
         configurationsToModuleDescriptorConverter.addConfigurations(metaData, WrapUtil.toSet(configurationStub1, configurationStub2));
 
+        ModuleDescriptor moduleDescriptor = metaData.toPublishMetaData().getModuleDescriptor();
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub1.getName()),
                 expectedIvyConfiguration(configurationStub1));
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub2.getName()),

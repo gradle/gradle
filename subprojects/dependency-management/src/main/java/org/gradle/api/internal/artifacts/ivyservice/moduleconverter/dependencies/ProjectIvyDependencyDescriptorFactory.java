@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -25,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -38,13 +35,11 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         ((ConfigurationInternal) projectDependency.getProjectConfiguration()).triggerWhenEmptyActionsIfNecessary();
         Module module = getProjectModule(dependency);
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent, IvyUtil.createModuleRevisionId(module), false, false, dependency.isTransitive());
-        configureDependencyDescriptor(configuration, dependency, dependencyDescriptor);
 
         // TODO:DAZ What are the GAV values for the dependency here?
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
@@ -54,8 +49,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
                 selector, requested, configuration, dependency.getConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 convertExcludeRules(configuration, dependency.getExcludeRules()),
-                false, false, dependency.isTransitive(),
-                dependencyDescriptor);
+                false, false, dependency.isTransitive());
         return new DslOriginDependencyMetaDataWrapper(dependencyMetaData, dependency);
     }
 
