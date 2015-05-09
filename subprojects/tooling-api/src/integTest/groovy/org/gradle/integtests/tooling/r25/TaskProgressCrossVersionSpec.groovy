@@ -131,6 +131,108 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
+    def "receive task progress events for all tasks"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            classes.enabled = false
+
+            task failingTask() << { throw new RuntimeException() }
+
+        """
+
+        file("src/main/java/example/MyClass.java") << """
+            package example;
+            public class MyClass {
+                public void foo() throws Exception {
+                    Thread.sleep(100);
+                }
+            }
+        """
+
+        when:
+        List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('classes').addTaskProgressListener { TaskProgressEvent event ->
+                    assert event != null
+                    result << event
+                }.run()
+        }
+
+        then:
+        result.size() % 2 == 0          // same number of start events as finish events
+        result.size() == 6              // compileJava, processResources, classes
+        result.each {
+            assert it.displayName == it.toString()
+            assert it.descriptor.displayName == it.descriptor.toString()
+        }
+
+        def compileJavaStartEvent = result[0]
+        compileJavaStartEvent instanceof TaskStartEvent &&
+            compileJavaStartEvent.eventTime > 0 &&
+            compileJavaStartEvent.displayName == "Task :compileJava started" &&
+            compileJavaStartEvent.descriptor.name == 'compileJava' &&
+            compileJavaStartEvent.descriptor.displayName == 'Task :compileJava' &&
+            compileJavaStartEvent.descriptor.taskPath == ':compileJava' &&
+            compileJavaStartEvent.descriptor.parent == null
+        def compileJavaFinishEvent = result[1]
+        compileJavaFinishEvent instanceof TaskFinishEvent &&
+            compileJavaFinishEvent.eventTime > 0 &&
+            compileJavaFinishEvent.displayName == "Task :compileJava succeeded" &&
+            compileJavaFinishEvent.descriptor.name == 'compileJava' &&
+            compileJavaFinishEvent.descriptor.displayName == 'Task :compileJava' &&
+            compileJavaFinishEvent.descriptor.taskPath == ':compileJava' &&
+            compileJavaFinishEvent.descriptor.parent == null &&
+            compileJavaFinishEvent.result instanceof TaskSuccessResult &&
+            compileJavaFinishEvent.result.startTime == compileJavaStartEvent.eventTime &&
+            compileJavaFinishEvent.result.endTime == compileJavaFinishEvent.eventTime &&
+            !compileJavaFinishEvent.result.isUpToDate()
+        def processResourcesStartEvent = result[2]
+        processResourcesStartEvent instanceof TaskStartEvent &&
+            processResourcesStartEvent.eventTime > 0 &&
+            processResourcesStartEvent.displayName == "Task :processResources started" &&
+            processResourcesStartEvent.descriptor.name == 'processResources' &&
+            processResourcesStartEvent.descriptor.displayName == 'Task :processResources' &&
+            processResourcesStartEvent.descriptor.taskPath == ':processResources' &&
+            processResourcesStartEvent.descriptor.parent == null
+        def processResourcesFinishEvent = result[3]
+        processResourcesFinishEvent instanceof TaskFinishEvent &&
+            processResourcesFinishEvent.eventTime > 0 &&
+            processResourcesFinishEvent.displayName == "Task :processResources succeeded" &&
+            processResourcesFinishEvent.descriptor.name == 'processResources' &&
+            processResourcesFinishEvent.descriptor.displayName == 'Task :processResources' &&
+            processResourcesFinishEvent.descriptor.taskPath == ':processResources' &&
+            processResourcesFinishEvent.descriptor.parent == null &&
+            processResourcesFinishEvent.result instanceof TaskSuccessResult &&
+            processResourcesFinishEvent.result.startTime == processResourcesStartEvent.eventTime &&
+            processResourcesFinishEvent.result.endTime == processResourcesFinishEvent.eventTime &&
+            processResourcesFinishEvent.result.upToDate
+        def classesStartEvent = result[4]
+        classesStartEvent instanceof TaskStartEvent &&
+            classesStartEvent.eventTime > 0 &&
+            classesStartEvent.displayName == "Task :classes started" &&
+            classesStartEvent.descriptor.name == 'classes' &&
+            classesStartEvent.descriptor.displayName == 'Task :classes' &&
+            classesStartEvent.descriptor.taskPath == ':classes' &&
+            classesStartEvent.descriptor.parent == null
+        def classesFinishEvent = result[5]
+        classesFinishEvent instanceof TaskFinishEvent &&
+            classesFinishEvent.eventTime > 0 &&
+            classesFinishEvent.displayName == "Task :classes skipped" &&
+            classesFinishEvent.descriptor.name == 'classes' &&
+            classesFinishEvent.descriptor.displayName == 'Task :classes' &&
+            classesFinishEvent.descriptor.taskPath == ':classes' &&
+            classesFinishEvent.descriptor.parent == null &&
+            classesFinishEvent.result instanceof TaskSkippedResult &&
+            classesFinishEvent.result.startTime == classesStartEvent.eventTime &&
+            classesFinishEvent.result.endTime == classesFinishEvent.eventTime &&
+            classesFinishEvent.result.skipMessage == 'SKIPPED'
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
     def "receive task progress events for successful tasks"() {
         given:
         goodCode()
@@ -151,11 +253,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         tasks = [
-            compileJava: ['started', 'succeeded'],
-            processResources    : ['started', 'up-to-date'],
-            classes    : ['started', 'succeeded'],
-            jar        : ['started', 'succeeded'],
-            assemble   : ['started', 'succeeded']
+            compileJava     : ['started', 'succeeded'],
+            processResources: ['started', 'up-to-date'],
+            classes         : ['started', 'succeeded'],
+            jar             : ['started', 'succeeded'],
+            assemble        : ['started', 'succeeded']
         ]
     }
 

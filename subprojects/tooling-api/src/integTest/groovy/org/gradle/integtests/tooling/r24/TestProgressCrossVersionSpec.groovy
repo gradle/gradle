@@ -200,7 +200,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def rootStartedEvent = result[0]
-        rootStartedEvent instanceof StartEvent &&
+        rootStartedEvent instanceof TestStartEvent &&
             rootStartedEvent.eventTime > 0 &&
             rootStartedEvent.displayName == "Gradle Test Run :test started" &&
             rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -211,7 +211,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.methodName == null &&
             rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
-        testProcessStartedEvent instanceof StartEvent &&
+        testProcessStartedEvent instanceof TestStartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
             testProcessStartedEvent.displayName == "Gradle Test Executor 2 started" &&
             testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -222,7 +222,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessStartedEvent.descriptor.methodName == null &&
             testProcessStartedEvent.descriptor.parent == rootStartedEvent.descriptor
         def testClassStartedEvent = result[2]
-        testClassStartedEvent instanceof StartEvent &&
+        testClassStartedEvent instanceof TestStartEvent &&
             testClassStartedEvent.eventTime > 0 &&
             testClassStartedEvent.displayName == "Test class example.MyTest started" &&
             testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -233,7 +233,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassStartedEvent.descriptor.methodName == null &&
             testClassStartedEvent.descriptor.parent == testProcessStartedEvent.descriptor
         def testStartedEvent = result[3]
-        testStartedEvent instanceof StartEvent &&
+        testStartedEvent instanceof TestStartEvent &&
             testStartedEvent.eventTime > 0 &&
             testStartedEvent.displayName == "Test foo(example.MyTest) started" &&
             testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
@@ -244,7 +244,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testStartedEvent.descriptor.methodName == 'foo' &&
             testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testSucceededEvent = result[4]
-        testSucceededEvent instanceof FinishEvent &&
+        testSucceededEvent instanceof TestFinishEvent &&
             testSucceededEvent.eventTime >= testSucceededEvent.result.endTime &&
             testSucceededEvent.displayName == "Test foo(example.MyTest) succeeded" &&
             testSucceededEvent.descriptor == testStartedEvent.descriptor &&
@@ -253,7 +253,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testSucceededEvent.result.endTime > testSucceededEvent.result.startTime &&
             testSucceededEvent.result.endTime == testSucceededEvent.eventTime
         def testClassSucceededEvent = result[5]
-        testClassSucceededEvent instanceof FinishEvent &&
+        testClassSucceededEvent instanceof TestFinishEvent &&
             testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.endTime &&
             testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
             testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
@@ -262,7 +262,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassSucceededEvent.result.endTime > testClassSucceededEvent.result.startTime &&
             testClassSucceededEvent.result.endTime == testClassSucceededEvent.eventTime
         def testProcessSucceededEvent = result[6]
-        testProcessSucceededEvent instanceof FinishEvent &&
+        testProcessSucceededEvent instanceof TestFinishEvent &&
             testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.endTime &&
             testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
             testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
@@ -271,7 +271,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessSucceededEvent.result.endTime > testProcessSucceededEvent.result.startTime &&
             testProcessSucceededEvent.result.endTime == testProcessSucceededEvent.eventTime
         def rootSucceededEvent = result[7]
-        rootSucceededEvent instanceof FinishEvent &&
+        rootSucceededEvent instanceof TestFinishEvent &&
             rootSucceededEvent.eventTime >= rootSucceededEvent.result.endTime &&
             rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
             rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
@@ -325,7 +325,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def rootStartedEvent = result[0]
-        rootStartedEvent instanceof StartEvent &&
+        rootStartedEvent instanceof TestStartEvent &&
             rootStartedEvent.eventTime > 0 &&
             rootStartedEvent.displayName == "Gradle Test Run :test started" &&
             rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -336,7 +336,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.methodName == null &&
             rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
-        testProcessStartedEvent instanceof StartEvent &&
+        testProcessStartedEvent instanceof TestStartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
             testProcessStartedEvent.displayName == "Gradle Test Executor 2 started" &&
             testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -347,7 +347,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessStartedEvent.descriptor.methodName == null &&
             testProcessStartedEvent.descriptor.parent == rootStartedEvent.descriptor
         def testClassStartedEvent = result[2]
-        testClassStartedEvent instanceof StartEvent &&
+        testClassStartedEvent instanceof TestStartEvent &&
             testClassStartedEvent.eventTime > 0 &&
             testClassStartedEvent.displayName == "Test class example.MyTest started" &&
             testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -358,7 +358,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassStartedEvent.descriptor.methodName == null &&
             testClassStartedEvent.descriptor.parent == testProcessStartedEvent.descriptor
         def testStartedEvent = result[3]
-        testStartedEvent instanceof StartEvent &&
+        testStartedEvent instanceof TestStartEvent &&
             testStartedEvent.eventTime > 0 &&
             testStartedEvent.displayName == "Test foo(example.MyTest) started" &&
             testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
@@ -369,7 +369,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testStartedEvent.descriptor.methodName == 'foo' &&
             testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testFailedEvent = result[4]
-        testFailedEvent instanceof FinishEvent &&
+        testFailedEvent instanceof TestFinishEvent &&
             testFailedEvent.eventTime >= testFailedEvent.result.endTime &&
             testFailedEvent.displayName == "Test foo(example.MyTest) failed" &&
             testFailedEvent.descriptor == testStartedEvent.descriptor &&
@@ -384,7 +384,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testFailedEvent.result.failures[0].causes[0].message == 'nope' &&
             testFailedEvent.result.failures[0].causes[0].causes.empty
         def testClassFailedEvent = result[5]
-        testClassFailedEvent instanceof FinishEvent &&
+        testClassFailedEvent instanceof TestFinishEvent &&
             testClassFailedEvent.eventTime >= testClassFailedEvent.result.endTime &&
             testClassFailedEvent.displayName == "Test class example.MyTest failed" &&
             testClassFailedEvent.descriptor == testClassStartedEvent.descriptor &&
@@ -393,7 +393,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassFailedEvent.result.endTime == testClassFailedEvent.eventTime &&
             testClassFailedEvent.result.failures.size() == 0
         def testProcessFailedEvent = result[6]
-        testProcessFailedEvent instanceof FinishEvent &&
+        testProcessFailedEvent instanceof TestFinishEvent &&
             testProcessFailedEvent.eventTime >= testProcessFailedEvent.result.endTime &&
             testProcessFailedEvent.displayName == "Gradle Test Executor 2 failed" &&
             testProcessFailedEvent.descriptor == testProcessStartedEvent.descriptor &&
@@ -402,7 +402,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessFailedEvent.result.endTime == testProcessFailedEvent.eventTime &&
             testProcessFailedEvent.result.failures.size() == 0
         def rootFailedEvent = result[7]
-        rootFailedEvent instanceof FinishEvent &&
+        rootFailedEvent instanceof TestFinishEvent &&
             rootFailedEvent.eventTime >= rootFailedEvent.result.endTime &&
             rootFailedEvent.displayName == "Gradle Test Run :test failed" &&
             rootFailedEvent.descriptor == rootStartedEvent.descriptor &&
@@ -455,7 +455,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def rootStartedEvent = result[0]
-        rootStartedEvent instanceof StartEvent &&
+        rootStartedEvent instanceof TestStartEvent &&
             rootStartedEvent.eventTime > 0 &&
             rootStartedEvent.displayName == "Gradle Test Run :test started" &&
             rootStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -466,7 +466,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootStartedEvent.descriptor.methodName == null &&
             rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
-        testProcessStartedEvent instanceof StartEvent &&
+        testProcessStartedEvent instanceof TestStartEvent &&
             testProcessStartedEvent.eventTime > 0 &&
             testProcessStartedEvent.displayName == "Gradle Test Executor 2 started" &&
             testProcessStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -477,7 +477,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessStartedEvent.descriptor.methodName == null &&
             testProcessStartedEvent.descriptor.parent == rootStartedEvent.descriptor
         def testClassStartedEvent = result[2]
-        testClassStartedEvent instanceof StartEvent &&
+        testClassStartedEvent instanceof TestStartEvent &&
             testClassStartedEvent.eventTime > 0 &&
             testClassStartedEvent.displayName == "Test class example.MyTest started" &&
             testClassStartedEvent.descriptor.jvmTestKind == JvmTestKind.SUITE &&
@@ -488,7 +488,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassStartedEvent.descriptor.methodName == null &&
             testClassStartedEvent.descriptor.parent == testProcessStartedEvent.descriptor
         def testStartedEvent = result[3]
-        testStartedEvent instanceof StartEvent &&
+        testStartedEvent instanceof TestStartEvent &&
             testStartedEvent.eventTime > 0 &&
             testStartedEvent.displayName == "Test foo(example.MyTest) started" &&
             testStartedEvent.descriptor.jvmTestKind == JvmTestKind.ATOMIC &&
@@ -499,7 +499,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testStartedEvent.descriptor.methodName == 'foo' &&
             testStartedEvent.descriptor.parent == testClassStartedEvent.descriptor
         def testSkippedEvent = result[4]
-        testSkippedEvent instanceof FinishEvent &&
+        testSkippedEvent instanceof TestFinishEvent &&
             testSkippedEvent.eventTime > 0 &&
             testSkippedEvent.displayName == "Test foo(example.MyTest) skipped" &&
             testSkippedEvent.descriptor == testStartedEvent.descriptor &&
@@ -507,7 +507,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testSkippedEvent.result.startTime == testStartedEvent.eventTime &&
             testSkippedEvent.result.endTime == testSkippedEvent.eventTime
         def testClassSucceededEvent = result[5]
-        testClassSucceededEvent instanceof FinishEvent &&
+        testClassSucceededEvent instanceof TestFinishEvent &&
             testClassSucceededEvent.eventTime >= testClassSucceededEvent.result.endTime &&
             testClassSucceededEvent.displayName == "Test class example.MyTest succeeded" &&
             testClassSucceededEvent.descriptor == testClassStartedEvent.descriptor &&
@@ -515,7 +515,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testClassSucceededEvent.result.startTime == testClassStartedEvent.eventTime &&
             testClassSucceededEvent.result.endTime == testClassSucceededEvent.eventTime
         def testProcessSucceededEvent = result[6]
-        testProcessSucceededEvent instanceof FinishEvent &&
+        testProcessSucceededEvent instanceof TestFinishEvent &&
             testProcessSucceededEvent.eventTime >= testProcessSucceededEvent.result.endTime &&
             testProcessSucceededEvent.displayName == "Gradle Test Executor 2 succeeded" &&
             testProcessSucceededEvent.descriptor == testProcessStartedEvent.descriptor &&
@@ -523,7 +523,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             testProcessSucceededEvent.result.startTime == testProcessStartedEvent.eventTime &&
             testProcessSucceededEvent.result.endTime == testProcessSucceededEvent.eventTime
         def rootSucceededEvent = result[7]
-        rootSucceededEvent instanceof FinishEvent &&
+        rootSucceededEvent instanceof TestFinishEvent &&
             rootSucceededEvent.eventTime >= rootSucceededEvent.result.endTime &&
             rootSucceededEvent.displayName == "Gradle Test Run :test succeeded" &&
             rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
