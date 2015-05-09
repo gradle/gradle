@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -38,8 +38,6 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final dependency = Stub(DependencyMetaData)
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
     final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
-    final moduleVersionId = DefaultModuleVersionIdentifier.newId("group", "project", "1.0")
-    final dependencyDescriptor = Stub(DependencyDescriptor)
 
     final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
@@ -58,7 +56,6 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
 
     def setup() {
         _ * dependency.requested >> selector
-        _ * dependency.descriptor >> dependencyDescriptor
     }
 
     def addRepo1() {

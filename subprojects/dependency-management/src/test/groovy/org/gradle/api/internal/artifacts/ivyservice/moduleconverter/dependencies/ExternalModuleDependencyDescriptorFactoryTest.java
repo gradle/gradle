@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.hamcrest.Matchers;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -47,7 +45,9 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
         DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency, moduleDescriptor);
-        assertThat(dependencyMetaData.getDescriptor().getDependencyRevisionId(), equalTo(IvyUtil.createModuleRevisionId(dependency)));
+        assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
+        assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
+        assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
     }
 
     @Test
@@ -58,10 +58,11 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
 
         DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency, moduleDescriptor);
 
-        DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
-        assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
-        assertEquals(dependencyDescriptor.isForce(), moduleDependency.isForce());
-        assertEquals(IvyUtil.createModuleRevisionId(moduleDependency), dependencyDescriptor.getDependencyRevisionId());
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
+        assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
+        assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());
+        assertEquals(moduleDependency.getGroup(), dependencyMetaData.getRequested().getGroup());
+        assertEquals(moduleDependency.getName(), dependencyMetaData.getRequested().getName());
+        assertEquals(moduleDependency.getVersion(), dependencyMetaData.getRequested().getVersion());
+        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
     }
 }

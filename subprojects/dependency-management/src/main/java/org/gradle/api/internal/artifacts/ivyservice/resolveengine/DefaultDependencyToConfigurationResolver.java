@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -29,13 +28,12 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
     // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
     public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ComponentResolveMetaData targetComponent) {
         // TODO - resolve directly to config meta data
-        DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
         Set<String> targetConfigurationNames = new LinkedHashSet<String>();
-        for (String config : dependencyDescriptor.getModuleConfigurations()) {
+        for (String config : dependencyMetaData.getModuleConfigurations()) {
             if (config.equals("*") || config.equals("%")) {
-                collectTargetConfiguration(dependencyDescriptor, fromConfiguration, fromConfiguration.getName(), targetComponent, targetConfigurationNames);
+                collectTargetConfiguration(dependencyMetaData, fromConfiguration, fromConfiguration.getName(), targetComponent, targetConfigurationNames);
             } else if (fromConfiguration.getHierarchy().contains(config)) {
-                collectTargetConfiguration(dependencyDescriptor, fromConfiguration, config, targetComponent, targetConfigurationNames);
+                collectTargetConfiguration(dependencyMetaData, fromConfiguration, config, targetComponent, targetConfigurationNames);
             }
         }
 
@@ -47,7 +45,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
         return targets;
     }
 
-    private void collectTargetConfiguration(DependencyDescriptor dependencyDescriptor, ConfigurationMetaData fromConfiguration, String mappingRhs, ComponentResolveMetaData targetModule, Collection<String> targetConfigs) {
+    private void collectTargetConfiguration(DependencyMetaData dependencyDescriptor, ConfigurationMetaData fromConfiguration, String mappingRhs, ComponentResolveMetaData targetModule, Collection<String> targetConfigs) {
         String[] dependencyConfigurations = dependencyDescriptor.getDependencyConfigurations(mappingRhs, fromConfiguration.getName());
         for (String target : dependencyConfigurations) {
             String candidate = target;

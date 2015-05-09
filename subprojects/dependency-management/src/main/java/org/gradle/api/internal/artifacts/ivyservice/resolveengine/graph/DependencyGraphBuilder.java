@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -205,7 +205,6 @@ public class DependencyGraphBuilder {
         public final ModuleVersionSelectorResolveState selector;
 
         private final DependencyMetaData dependencyMetaData;
-        private final DependencyDescriptor dependencyDescriptor;
         private final ResolveState resolveState;
         private final ModuleResolutionFilter resolutionFilter;
         private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
@@ -214,7 +213,6 @@ public class DependencyGraphBuilder {
         public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleResolutionFilter resolutionFilter, ResolveState resolveState) {
             this.from = from;
             this.dependencyMetaData = dependencyMetaData;
-            this.dependencyDescriptor = dependencyMetaData.getDescriptor();
             this.resolutionFilter = resolutionFilter;
             this.resolveState = resolveState;
             selector = resolveState.getSelector(dependencyMetaData);
@@ -222,7 +220,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), dependencyDescriptor);
+            return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), Joiner.on(',').join(dependencyMetaData.getModuleConfigurations()));
         }
 
         /**
@@ -284,8 +282,8 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleResolutionFilter getSelector() {
-            String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
-            ModuleResolutionFilter selector = DefaultModuleResolutionFilter.excludeAny(dependencyDescriptor.getExcludeRules(configurations));
+            Set<String> hierarchy = from.metaData.getHierarchy();
+            ModuleResolutionFilter selector = DefaultModuleResolutionFilter.excludeAny(dependencyMetaData.getExcludeRules(hierarchy));
             return selector.intersect(resolutionFilter);
         }
 
@@ -889,7 +887,7 @@ public class DependencyGraphBuilder {
         public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
-                    if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
+                    if (outgoingEdge.dependencyMetaData.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
                         outgoingEdge.targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
                         return (T) outgoingEdge.targetModuleRevision;
                     }

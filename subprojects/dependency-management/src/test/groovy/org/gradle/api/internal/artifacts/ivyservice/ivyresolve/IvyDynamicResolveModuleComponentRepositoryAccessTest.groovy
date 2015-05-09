@@ -15,12 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
@@ -64,9 +63,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
 
     def dependency(String revConstraint = '1.0') {
         def dep = Mock(DependencyMetaData)
-        def descriptor = Mock(DependencyDescriptor)
-        _ * descriptor.dynamicConstraintDependencyRevisionId >> IvyUtil.createModuleRevisionId('org', 'module', revConstraint)
-        _ * dep.descriptor >> descriptor
+        _ * dep.dynamicConstraintVersion >> revConstraint
         return dep
     }
 }

@@ -224,7 +224,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         }
 
         private boolean include(DependencyMetaData dependency) {
-            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+            String[] moduleConfigurations = dependency.getModuleConfigurations();
             for (int i = 0; i < moduleConfigurations.length; i++) {
                 String moduleConfiguration = moduleConfigurations[i];
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
