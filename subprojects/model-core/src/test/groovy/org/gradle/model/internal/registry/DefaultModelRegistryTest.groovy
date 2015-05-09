@@ -27,6 +27,7 @@ import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -461,6 +462,7 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message == "Cannot set value for model element 'thing' as this element is not mutable."
     }
 
+    @Unroll
     def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
         def action = Stub(Action)
 
@@ -474,7 +476,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+        e.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromRole.targetState.previous()}."
 
         where:
         fromRole                   | targetRole
@@ -490,6 +492,7 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Validate   | ModelActionRole.Finalize
     }
 
+    @Unroll
     def "cannot add action for #targetRole mutation when in #fromState state"() {
         def action = Stub(Action)
 
@@ -509,7 +512,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+        e.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromState}."
 
         where:
         fromState                       | targetRole

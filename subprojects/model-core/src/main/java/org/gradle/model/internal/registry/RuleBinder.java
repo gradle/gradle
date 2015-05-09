@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -30,6 +31,7 @@ import java.util.List;
 abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
+    private final ModelReference<?> subjectReference;
     private final List<? extends ModelReference<?>> inputReferences;
     private final Collection<RuleBinder> binders;
 
@@ -37,7 +39,8 @@ abstract class RuleBinder {
     private List<ModelBinding> inputBindings;
     private Action<ModelNodeInternal> inputBindAction;
 
-    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
+    public RuleBinder(ModelReference<?> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
+        this.subjectReference = subjectReference;
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
         this.binders = binders;
@@ -72,6 +75,18 @@ abstract class RuleBinder {
         return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
     }
 
+    /**
+     * Returns the reference to the <em>output</em> of the rule. The state returned from {@link ModelReference#getState()} should reflect
+     * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
+     */
+    public ModelReference<?> getSubjectReference() {
+        return subjectReference;
+    }
+
+    /**
+     * A rule may have a subject binding, but may not require it. All rules, however, have a subject and hence a subject reference.
+     */
+    @Nullable
     public ModelBinding getSubjectBinding() {
         return null;
     }

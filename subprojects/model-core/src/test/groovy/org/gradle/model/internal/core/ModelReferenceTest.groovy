@@ -29,6 +29,7 @@ class ModelReferenceTest extends Specification {
         reference.path == null
         reference.type == ModelType.of(Object)
         reference.untyped
+        reference.state == ModelNode.State.GraphClosed
     }
 
     def "path only"() {
@@ -39,6 +40,7 @@ class ModelReferenceTest extends Specification {
         reference.path == ModelPath.path("some.path")
         reference.type == ModelType.of(Object)
         reference.untyped
+        reference.state == ModelNode.State.GraphClosed
     }
 
     def "type only"() {
@@ -49,26 +51,43 @@ class ModelReferenceTest extends Specification {
         reference.path == null
         reference.type == ModelType.of(String)
         !reference.untyped
+        reference.state == ModelNode.State.GraphClosed
+    }
+
+    def "can replace state"() {
+        expect:
+        def reference = ModelReference.of("some.path", String).atState(ModelNode.State.Mutated)
+        reference.scope == null
+        reference.parent == null
+        reference.path == ModelPath.path("some.path")
+        reference.type == ModelType.of(String)
+        !reference.untyped
+        reference.state == ModelNode.State.Mutated
+
+        def original = ModelReference.of(String)
+        original.atState(original.state).is(original)
     }
 
     def "can replace path"() {
         expect:
-        def reference = ModelReference.of("some.path", String).withPath(ModelPath.path("other.path"))
+        def reference = ModelReference.of(ModelPath.path("some.path"), ModelType.of(String), ModelNode.State.Mutated).withPath(ModelPath.path("other.path"))
         reference.scope == null
         reference.parent == null
         reference.path == ModelPath.path("other.path")
         reference.type == ModelType.of(String)
         !reference.untyped
+        reference.state == ModelNode.State.Mutated
     }
 
     def "can attach a scope"() {
         expect:
-        def reference = ModelReference.of(String).withScope(ModelPath.path("some.scope"))
+        def reference = ModelReference.of(String).inScope(ModelPath.path("some.scope"))
         reference.scope == ModelPath.path("some.scope")
         reference.parent == null
         reference.path == null
         reference.type == ModelType.of(String)
         !reference.untyped
+        reference.state == ModelNode.State.GraphClosed
     }
 
     def "equals"() {
@@ -76,12 +95,12 @@ class ModelReferenceTest extends Specification {
         def path = ModelReference.of("path")
         def type = ModelReference.of(String)
         def pathAndType = ModelReference.of("path", String)
-        def scopeAndType = ModelReference.of(String).withScope(ModelPath.path("scope"))
+        def scopeAndType = ModelReference.of(String).inScope(ModelPath.path("scope"))
 
         Matchers.strictlyEquals(path, ModelReference.of("path"))
         Matchers.strictlyEquals(type, ModelReference.of(String))
         Matchers.strictlyEquals(pathAndType, ModelReference.of("path", String))
-        Matchers.strictlyEquals(scopeAndType, type.withScope(ModelPath.path("scope")))
+        Matchers.strictlyEquals(scopeAndType, type.inScope(ModelPath.path("scope")))
 
         path != type
         path != pathAndType
@@ -93,7 +112,7 @@ class ModelReferenceTest extends Specification {
         type != ModelReference.of(Long)
         pathAndType != pathAndType.withPath(ModelPath.path("other"))
         pathAndType != ModelReference.of("path", Long)
-        scopeAndType != ModelReference.of(Long).withScope(ModelPath.path("scope"))
-        scopeAndType != scopeAndType.withScope(ModelPath.path("other"))
+        scopeAndType != ModelReference.of(Long).inScope(ModelPath.path("scope"))
+        scopeAndType != scopeAndType.inScope(ModelPath.path("other"))
     }
 }

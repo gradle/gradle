@@ -17,36 +17,27 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 
 import java.util.Collection;
 import java.util.List;
 
 class MutatorRuleBinder<T> extends RuleBinder {
-
     private ModelBinding subjectBinding;
-    private final ModelReference<T> subjectReference;
-    private final ModelActionRole role;
     private final ModelAction<T> action;
 
-    public MutatorRuleBinder(ModelReference<T> subjectReference, List<ModelReference<?>> inputs, final ModelActionRole role, ModelAction<T> action, Collection<RuleBinder> binders) {
-        super(inputs, action.getDescriptor(), binders);
-        this.subjectReference = subjectReference;
+    public MutatorRuleBinder(final ModelReference<T> subjectReference, List<ModelReference<?>> inputs, ModelAction<T> action, Collection<RuleBinder> binders) {
+        super(subjectReference, inputs, action.getDescriptor(), binders);
         subjectBinding = binding(subjectReference, true, new Action<ModelNodeInternal>() {
             @Override
             public void execute(ModelNodeInternal subject) {
-                subject.addMutatorBinder(role, MutatorRuleBinder.this);
+                subject.addMutatorBinder(subjectReference.getState(), MutatorRuleBinder.this);
                 maybeFire();
             }
         });
-        this.role = role;
         this.action = action;
-    }
-
-    public ModelActionRole getRole() {
-        return role;
     }
 
     public ModelAction<T> getAction() {
@@ -54,7 +45,7 @@ class MutatorRuleBinder<T> extends RuleBinder {
     }
 
     public ModelReference<T> getSubjectReference() {
-        return subjectReference;
+        return Cast.uncheckedCast(super.getSubjectReference());
     }
 
     public ModelBinding getSubjectBinding() {

@@ -17,7 +17,9 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +28,7 @@ class CreatorRuleBinder extends RuleBinder {
     private final ModelCreator creator;
 
     public CreatorRuleBinder(ModelCreator creator, List<ModelReference<?>> inputs, Collection<RuleBinder> binders) {
-        super(inputs, creator.getDescriptor(), binders);
+        super(ModelReference.of(creator.getPath(), ModelType.untyped(), ModelNode.State.Created), inputs, creator.getDescriptor(), binders);
         this.creator = creator;
     }
 

@@ -79,7 +79,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private CreatorRuleBinder toCreatorBinder(ModelCreator creator, ModelPath scope) {
-        List<ModelReference<?>> inputs = inputsToScope(creator.getInputs(), scope);
+        List<ModelReference<?>> inputs = mapInputs(creator.getInputs(), scope);
         return new CreatorRuleBinder(creator, inputs, unboundRules);
     }
 
@@ -151,9 +151,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (reset) {
             return;
         }
-        ModelReference<T> mappedSubject = subjectToScope(subject, scope);
-        List<ModelReference<?>> mappedInputs = inputsToScope(mutator.getInputs(), scope);
-        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, role, mutator, unboundRules);
+        ModelReference<T> mappedSubject = mapSubject(subject, role, scope);
+        List<ModelReference<?>> mappedInputs = mapInputs(mutator.getInputs(), scope);
+        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, mutator, unboundRules);
         pendingMutatorBinders.add(binder);
     }
 
@@ -531,23 +531,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelReference<T> subjectToScope(ModelReference<T> subjectReference, ModelPath scope) {
+    private <T> ModelReference<T> mapSubject(ModelReference<T> subjectReference, ModelActionRole role, ModelPath scope) {
         if (subjectReference.getPath() == null) {
-            return subjectReference.withScope(scope);
+            return subjectReference.atState(role.getTargetState()).inScope(scope);
         }
-        return subjectReference.withPath(scope.descendant(subjectReference.getPath()));
+        return subjectReference.atState(role.getTargetState()).withPath(scope.descendant(subjectReference.getPath()));
     }
 
-    private List<ModelReference<?>> inputsToScope(List<ModelReference<?>> inputs, ModelPath scope) {
+    private List<ModelReference<?>> mapInputs(List<ModelReference<?>> inputs, ModelPath scope) {
         if (inputs.isEmpty()) {
             return inputs;
         }
         ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() != null) {
-                result.add(input.withPath(scope.descendant(input.getPath())));
+                result.add(input.atState(GraphClosed).withPath(scope.descendant(input.getPath())));
             } else {
-                result.add(input.withScope(ModelPath.ROOT));
+                result.add(input.atState(GraphClosed).inScope(ModelPath.ROOT));
             }
         }
         return result;
@@ -1162,7 +1162,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must run each action
             flushPendingMutatorBinders();
-            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState().role())) {
+            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState())) {
                 if (seenRules.add(binder)) {
                     dependencies.add(new RunModelAction(getPath(), binder));
                 }

@@ -18,7 +18,10 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
-import com.google.common.collect.*;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -40,7 +43,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
     private CreatorRuleBinder creatorBinder;
-    private ListMultimap<ModelActionRole, MutatorRuleBinder<?>> mutators;
+    private ListMultimap<ModelNode.State, MutatorRuleBinder<?>> mutators;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
@@ -91,12 +94,12 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return creatorBinder.getCreator().isEphemeral();
     }
 
-    public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
-        if (!canApply(role)) {
+    public void addMutatorBinder(ModelNode.State targetState, MutatorRuleBinder<?> mutator) {
+        if (!canApply(targetState)) {
             throw new IllegalStateException(String.format(
-                "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
-                role,
+                "Cannot add rule %s with target state %s for model element '%s' when element is in state %s.",
                 mutator.getAction().getDescriptor(),
+                targetState,
                 getPath(),
                 getState()
             ));
@@ -106,14 +109,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
             mutators = createMutatorsMap();
         }
 
-        mutators.put(role, mutator);
+        mutators.put(targetState, mutator);
     }
 
-    private static ListMultimap<ModelActionRole, MutatorRuleBinder<?>> createMutatorsMap() {
-        return Multimaps.newListMultimap(new EnumMap<ModelActionRole, Collection<MutatorRuleBinder<?>>>(ModelActionRole.class), LIST_SUPPLIER);
+    private static ListMultimap<ModelNode.State, MutatorRuleBinder<?>> createMutatorsMap() {
+        return Multimaps.newListMultimap(new EnumMap<ModelNode.State, Collection<MutatorRuleBinder<?>>>(ModelNode.State.class), LIST_SUPPLIER);
     }
 
-    public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelActionRole role) {
+    public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelNode.State role) {
         if (mutators == null) {
             return Collections.emptyList();
         }
@@ -188,8 +191,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return state.mutable;
     }
 
-    public boolean canApply(ModelActionRole type) {
-        return type.ordinal() >= state.ordinal() - ModelNode.State.Created.ordinal();
+    public boolean canApply(ModelNode.State targetState) {
+        return state.compareTo(targetState) < 0;
     }
 
     public ModelPromise getPromise() {

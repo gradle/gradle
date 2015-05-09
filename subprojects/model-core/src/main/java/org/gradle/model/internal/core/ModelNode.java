@@ -30,26 +30,19 @@ public interface ModelNode {
 
     // Note: order is crucial here
     public enum State {
-        Known(true, null),
-        Created(true, null),
-        DefaultsApplied(true, ModelActionRole.Defaults),
-        Initialized(true, ModelActionRole.Initialize),
-        Mutated(true, ModelActionRole.Mutate),
-        Finalized(false, ModelActionRole.Finalize),
-        SelfClosed(false, ModelActionRole.Validate),
-        GraphClosed(false, null);
+        Known(true),
+        Created(true),
+        DefaultsApplied(true),
+        Initialized(true),
+        Mutated(true),
+        Finalized(false),
+        SelfClosed(false),
+        GraphClosed(false);
 
         public final boolean mutable;
-        private final ModelActionRole role;
 
-        State(boolean mutable, ModelActionRole role) {
+        State(boolean mutable) {
             this.mutable = mutable;
-            this.role = role;
-        }
-
-        @Nullable
-        public ModelActionRole role() {
-            return role;
         }
 
         public State previous() {

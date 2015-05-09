@@ -34,18 +34,21 @@ import org.gradle.model.internal.type.ModelType;
  */
 @ThreadSafe
 public class ModelReference<T> extends ModelPredicate {
-
+    @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
     @Nullable
     private final ModelPath scope;
+    private final ModelNode.State state;
+    @Nullable
     private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, ModelNode.State state, @Nullable String description) {
         this.path = path;
         this.type = type;
         this.scope = scope;
         this.description = description;
+        this.state = state != null ? state : ModelNode.State.GraphClosed;
     }
 
     public static ModelReference<Object> any() {
@@ -53,7 +56,7 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return new ModelReference<T>(path, type, null, description);
+        return new ModelReference<T>(path, type, null, null, description);
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -61,7 +64,11 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return new ModelReference<T>(path, type, null, null);
+        return new ModelReference<T>(path, type, null, null, null);
+    }
+
+    public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, ModelNode.State state) {
+        return new ModelReference<T>(path, type, null, state, null);
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -122,16 +129,30 @@ public class ModelReference<T> extends ModelPredicate {
         return type;
     }
 
+    public ModelNode.State getState() {
+        return state;
+    }
+
     public boolean isUntyped() {
         return type.equals(ModelType.UNTYPED);
     }
 
-    public ModelReference<T> withScope(ModelPath scope) {
-        return new ModelReference<T>(path, type, scope, description);
+    public ModelReference<T> inScope(ModelPath scope) {
+        if (scope.equals(this.scope)) {
+            return this;
+        }
+        return new ModelReference<T>(path, type, scope, state, description);
     }
 
     public ModelReference<T> withPath(ModelPath path) {
-        return new ModelReference<T>(path, type, scope, description);
+        return new ModelReference<T>(path, type, scope, state, description);
+    }
+
+    public ModelReference<T> atState(ModelNode.State state) {
+        if (state.equals(this.state)) {
+            return this;
+        }
+        return new ModelReference<T>(path, type, scope, state, description);
     }
 
     @Override
@@ -144,7 +165,7 @@ public class ModelReference<T> extends ModelPredicate {
         }
 
         ModelReference<?> that = (ModelReference<?>) o;
-        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type);
+        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type) && state.equals(that.state);
     }
 
     @Override
@@ -152,11 +173,12 @@ public class ModelReference<T> extends ModelPredicate {
         int result = path == null ? 0 : path.hashCode();
         result = 31 * result + (scope == null ? 0 : scope.hashCode());
         result = 31 * result + type.hashCode();
+        result = 31 * result + state.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return "ModelReference{path=" + path + ", scope=" + scope + ", type=" + type + '}';
+        return "ModelReference{path=" + path + ", scope=" + scope + ", type=" + type + ", state=" + state + '}';
     }
 }

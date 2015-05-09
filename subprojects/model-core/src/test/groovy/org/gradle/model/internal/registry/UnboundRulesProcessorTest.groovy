@@ -167,9 +167,9 @@ class UnboundRulesProcessorTest extends Specification {
     def "creates scoped unbound rules with by-type bound subject"() {
         binder {
             descriptor("ruleWithUnboundSubjectReference")
-            subjectReference(ModelReference.of(String).withScope(ModelPath.path("some.scope")))
+            subjectReference(ModelReference.of(String).inScope(ModelPath.path("some.scope")))
             inputReference(String)
-            inputReference(ModelReference.of(Boolean).withScope(ModelPath.path("other.scope")))
+            inputReference(ModelReference.of(Boolean).inScope(ModelPath.path("other.scope")))
         }
 
         expect:
@@ -236,7 +236,7 @@ class UnboundRulesProcessorTest extends Specification {
                 subjBinding.boundTo = new TestNode(subjectReferenceBindingPath)
             }
 
-            def binder = new RuleBinder(inputReferences, descriptor, []) {
+            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, []) {
                 @Override
                 ModelBinding getSubjectBinding() {
                     return subjBinding
