@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -27,10 +25,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class LocalComponentDependencyMetaData implements DependencyMetaData {
     private final ComponentSelector selector;
@@ -38,18 +33,21 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final ExcludeRule[] excludeRules;
+    private final Set<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
     private final DependencyDescriptor dependencyDescriptor;
 
-    public LocalComponentDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration, ExcludeRule[] excludeRules,
+    public LocalComponentDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
+                                            Set<IvyArtifactName> artifactNames, ExcludeRule[] excludeRules,
                                             boolean force, boolean changing, boolean transitive,
                                             DependencyDescriptor dependencyDescriptor) {
         this.selector = selector;
         this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
         this.dependencyConfiguration = dependencyConfiguration;
+        this.artifactNames = artifactNames;
         this.excludeRules = excludeRules;
         this.force = force;
         this.changing = changing;
@@ -112,32 +110,19 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         return dependencyDescriptor;
     }
 
-    // TODO:DAZ Pull artifacts out of dependency descriptor as well
     public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
-        String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[fromConfiguration.getHierarchy().size()]);
-        DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
-        if (dependencyArtifacts.length == 0) {
+        if (artifactNames.isEmpty()) {
             return Collections.emptySet();
         }
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
-        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
-            artifacts.add(toConfiguration.getComponent().artifact(artifact));
+        for (IvyArtifactName artifactName : artifactNames) {
+            artifacts.add(toConfiguration.getComponent().artifact(artifactName));
         }
         return artifacts;
     }
 
     public Set<IvyArtifactName> getArtifacts() {
-        DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getAllDependencyArtifacts();
-        if (dependencyArtifacts.length == 0) {
-            return Collections.emptySet();
-        }
-        Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
-        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
-            artifactSet.add(artifact);
-        }
-        return artifactSet;
+        return artifactNames;
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {
@@ -146,7 +131,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         }
         ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
         ComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(newRequested);
-        return new LocalComponentDependencyMetaData(newSelector, newRequested, moduleConfiguration, dependencyConfiguration, excludeRules, force, changing, transitive, dependencyDescriptor);
+        return copyWithTarget(newSelector, newRequested);
     }
 
     @Override
@@ -157,20 +142,22 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
             if (requestedVersion.equals(requested)) {
                 return this;
             }
-            return new LocalComponentDependencyMetaData(moduleTarget, requestedVersion, moduleConfiguration, dependencyConfiguration, excludeRules, force, changing, transitive, dependencyDescriptor);
+            return copyWithTarget(moduleTarget, requestedVersion);
         } else if (target instanceof ProjectComponentSelector) {
-            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new LocalComponentDependencyMetaData(projectTarget, requested, moduleConfiguration, dependencyConfiguration, excludeRules, force, changing, transitive, dependencyDescriptor);
+            return copyWithTarget(target, requested);
         } else {
             throw new AssertionError();
         }
+    }
+
+    private DependencyMetaData copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
+        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludeRules, force, changing, transitive, dependencyDescriptor);
     }
 
     public DependencyMetaData withChanging() {
         if (isChanging()) {
             return this;
         }
-        
-        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, excludeRules, force, true, transitive, dependencyDescriptor);
+        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludeRules, force, true, transitive, dependencyDescriptor);
     }
 }

@@ -55,6 +55,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
 
         LocalComponentDependencyMetaData dependencyMetaData = new LocalComponentDependencyMetaData(
                 selector, requested, configuration, dependency.getConfiguration(),
+                convertArtifacts(dependency.getArtifacts()),
                 convertExcludeRules(configuration, dependency.getExcludeRules()),
                 force, changing, transitive,
                 dependencyDescriptor);

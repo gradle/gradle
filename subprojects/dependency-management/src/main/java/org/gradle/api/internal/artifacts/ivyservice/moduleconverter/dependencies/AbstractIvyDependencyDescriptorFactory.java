@@ -19,11 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.WrapUtil;
 
 import java.net.MalformedURLException;
@@ -51,7 +55,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
             try {
                 artifactDescriptor = new DefaultDependencyArtifactDescriptor(dependencyDescriptor, artifact.getName(),
                         artifact.getType(),
-                        artifact.getExtension() != null ? artifact.getExtension() : artifact.getType(),
+                        getExtension(artifact),
                         artifact.getUrl() != null ? new URL(artifact.getUrl()) : null,
                         artifact.getClassifier() != null ? WrapUtil.toMap(Dependency.CLASSIFIER,
                                 artifact.getClassifier()) : null);
@@ -60,6 +64,10 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
             }
             dependencyDescriptor.addDependencyArtifact(configuration, artifactDescriptor);
         }
+    }
+
+    private String getExtension(DependencyArtifact artifact) {
+        return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
     }
 
     private void addDependencyConfiguration(String configuration, ModuleDependency dependency,
@@ -84,5 +92,14 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
             i++;
         }
         return ivyExcludeRules;
+    }
+
+    protected Set<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
+        return CollectionUtils.collect(dependencyArtifacts, new Transformer<IvyArtifactName, DependencyArtifact>() {
+            @Override
+            public IvyArtifactName transform(DependencyArtifact dependencyArtifact) {
+                return new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
+            }
+        });
     }
 }
