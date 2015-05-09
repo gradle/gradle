@@ -37,8 +37,8 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
-                                                       DefaultDependencyDescriptor dependencyDescriptor) {
+    protected void configureDependencyDescriptor(String configuration, ModuleDependency dependency,
+                                                 DefaultDependencyDescriptor dependencyDescriptor) {
         addArtifacts(configuration, dependency.getArtifacts(), dependencyDescriptor);
         addExcludes(configuration, dependency.getExcludeRules(), dependencyDescriptor);
         addDependencyConfiguration(configuration, dependency, dependencyDescriptor);
@@ -70,8 +70,19 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
     private void addExcludes(String configuration, Set<ExcludeRule> excludeRules,
                              DefaultDependencyDescriptor dependencyDescriptor) {
         for (ExcludeRule excludeRule : excludeRules) {
-            dependencyDescriptor.addExcludeRule(configuration, excludeRuleConverter.createExcludeRule(configuration,
-                    excludeRule));
+            org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule = excludeRuleConverter.createExcludeRule(configuration, excludeRule);
+            dependencyDescriptor.addExcludeRule(configuration, ivyExcludeRule);
         }
+    }
+
+    protected org.apache.ivy.core.module.descriptor.ExcludeRule[] convertExcludeRules(String configuration, Set<ExcludeRule> excludeRules) {
+        org.apache.ivy.core.module.descriptor.ExcludeRule[] ivyExcludeRules = new org.apache.ivy.core.module.descriptor.ExcludeRule[excludeRules.size()];
+        int i = 0;
+        for (ExcludeRule excludeRule : excludeRules) {
+            org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule = excludeRuleConverter.createExcludeRule(configuration, excludeRule);
+            ivyExcludeRules[i] = ivyExcludeRule;
+            i++;
+        }
+        return ivyExcludeRules;
     }
 }
