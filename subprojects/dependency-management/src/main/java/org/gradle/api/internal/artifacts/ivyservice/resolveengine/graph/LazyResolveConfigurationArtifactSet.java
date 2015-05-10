@@ -18,16 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -41,26 +37,21 @@ import java.util.Set;
 class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private final ResolvedConfigurationIdentifier configurationId;
     private final ModuleResolutionFilter selector;
-    private final ComponentIdentifier componentIdentifier;
-    private final ComponentMetaDataResolver componentResolver;
+    // TODO:DAZ We are holding onto the resolved component metadata, rather than re-resolving
+    // While this means we're holding more in memory, the overhead of re-resolving is too great, at present
+    // For now we'll just minimise the size of the metadata, and perhaps later cut down on the work required to perform a component resolve
+    private final ComponentResolveMetaData component;
 
     public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
-                                               ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
+                                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
         super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts);
-        this.componentIdentifier = component.getComponentId();
-        this.componentResolver = componentResolver;
+        this.component = component;
         this.configurationId = configurationId;
         this.selector = selector;
     }
 
     @Override
     protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
-
-        // TODO:DAZ For this to work with external components, we'll need to use the correct ModuleSource and ComponentOverrideMetadata to resolve the component
-        BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-        componentResolver.resolve(componentIdentifier, new DefaultComponentOverrideMetadata(), moduleResolveResult);
-        ComponentResolveMetaData component = moduleResolveResult.getMetaData();
-
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), artifactSetResolveResult);
 

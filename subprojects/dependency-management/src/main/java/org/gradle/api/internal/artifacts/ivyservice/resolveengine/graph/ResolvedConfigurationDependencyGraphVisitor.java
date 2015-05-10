@@ -34,7 +34,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,15 +46,13 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private final ResolvedConfigurationBuilder builder;
     private final ResolvedArtifactsBuilder artifactsBuilder;
     private final ArtifactResolver artifactResolver;
-    private final ComponentMetaDataResolver componentResolver;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private DependencyGraphBuilder.ConfigurationNode root;
 
-    ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver) {
+    ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
         this.builder = builder;
         this.artifactsBuilder = artifactsBuilder;
-        this.componentResolver = componentResolver;
         this.artifactResolver = artifactResolver;
     }
 
@@ -107,7 +104,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
 
         // For project components, use the project id to resolve the set of artifacts on demand.
         if (component.getComponentId() instanceof ProjectComponentIdentifier) {
-            return new LazyResolveConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), componentResolver, artifactResolver, allResolvedArtifacts);
+            return new LazyResolveConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts);
         }
 
         // For external components, resolve the set of artifacts now to avoid holding onto state.
