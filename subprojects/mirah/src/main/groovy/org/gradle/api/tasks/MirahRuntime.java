@@ -78,10 +78,6 @@ public class MirahRuntime {
         return new LazilyInitializedFileCollection() {
             @Override
             public FileCollection createDelegate() {
-                if (project.getRepositories().isEmpty()) {
-                    throw new GradleException(String.format("Cannot infer Mirah class path because no repository is declared in %s", project));
-                }
-
                 File mirahLibraryJar = findMirahJar(classpath, null);
                 if (mirahLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Mirah class path because no Mirah library Jar was found. "

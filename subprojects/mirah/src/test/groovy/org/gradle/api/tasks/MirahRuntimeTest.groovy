@@ -51,16 +51,6 @@ class MirahRuntimeTest extends Specification {
         }
     }
 
-    def "inference fails if 'mirahTools' configuration is empty and no repository declared"() {
-        when:
-        def mirahClasspath = project.mirahRuntime.inferMirahClasspath([new File("other.jar"), new File("mirah-library-2.10.1.jar")])
-        mirahClasspath.files
-
-        then:
-        GradleException e = thrown()
-        e.message == "Cannot infer Mirah class path because no repository is declared in $project"
-    }
-
     def "inference fails if 'mirahTools' configuration is empty and no Mirah library Jar is found on class path"() {
         project.repositories {
             mavenCentral()
