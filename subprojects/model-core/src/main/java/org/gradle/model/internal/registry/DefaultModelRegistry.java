@@ -540,9 +540,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() != null) {
-                result.add(input.atState(GraphClosed).withPath(scope.descendant(input.getPath())));
+                result.add(input.withPath(scope.descendant(input.getPath())));
             } else {
-                result.add(input.atState(GraphClosed).inScope(ModelPath.ROOT));
+                result.add(input.inScope(ModelPath.ROOT));
             }
         }
         return result;
@@ -963,6 +963,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    /**
+     * Some abstract goal that must be achieved in the model graph.
+     */
     private abstract static class ModelGoal {
         enum State {
             NotSeen,
@@ -991,7 +994,8 @@ public class DefaultModelRegistry implements ModelRegistry {
          *
          * <p>The dependencies returned by this method are all traversed before this method is called another time.</p>
          *
-         * @return true if this goal will have no additional dependencies discovered later, false if not.
+         * @return true if this goal will be ready to apply once the returned dependencies have been achieved. False if additional dependencies for this goal may be
+         * discovered during the execution of the known dependencies.
          */
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             return true;
@@ -1007,6 +1011,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    /**
+     * Some abstract goal to be achieve for a particular node in the model graph.
+     */
     private abstract class ModelNodeGoal extends ModelGoal {
         public final ModelPath target;
         public ModelNodeInternal node;
@@ -1096,7 +1103,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         public final boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             if (!seenPredecessor) {
                 // Node must be at the predecessor state before calculating dependencies
-                dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), getTargetState().previous())));
+                NodeAtState predecessor = new NodeAtState(getPath(), getTargetState().previous());
+                dependencies.add(graph.nodeAtState(predecessor));
+                // Transition any other nodes that depend on the predecessor state
+                dependencies.add(new TransitionDependents(predecessor));
                 seenPredecessor = true;
                 return false;
             }
@@ -1143,6 +1153,30 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         void doApply(ModelNodeInternal node) {
             // Nothing to do, creator action is run as a dependency
+        }
+    }
+
+    private class TransitionDependents extends ModelGoal {
+        private final NodeAtState input;
+
+        public TransitionDependents(NodeAtState input) {
+            this.input = input;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            for (RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
+                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound()) {
+                    // TODO - implement these cases
+                    continue;
+                }
+                if (rule.getSubjectBinding().getNode().getPath().equals(input.path)) {
+                    // Ignore future states of the input node
+                    continue;
+                }
+                dependencies.add(graph.nodeAtState(new NodeAtState(rule.getSubjectBinding().getNode().getPath(), rule.getSubjectReference().getState())));
+            }
+            return true;
         }
     }
 
@@ -1264,7 +1298,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    // TODO - merge with RuleBinder
     private abstract class RunAction extends ModelNodeGoal {
         private final RuleBinder binder;
         private boolean bindInputs;
@@ -1292,7 +1325,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw unbound(Collections.singleton(binder));
             }
             for (ModelBinding binding : binder.getInputBindings()) {
-                dependencies.add(graph.nodeAtState(new NodeAtState(binding.boundTo.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(binding.boundTo.getPath(), binding.getReference().getState())));
             }
             return true;
         }

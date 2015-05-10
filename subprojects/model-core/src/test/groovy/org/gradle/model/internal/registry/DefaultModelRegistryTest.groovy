@@ -331,6 +331,50 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("bar"), ModelType.of(Bean)).value == "[12]"
     }
 
+    def "transitions elements that depend on a particular state of an element when the target element leaves target state"() {
+        given:
+        registry.createInstance("a", new Bean())
+        registry.createInstance("b", new Bean())
+        registry.configure(ModelActionRole.Finalize) { it.path("b").action(ModelReference.of(ModelPath.path("a"), ModelType.of(Bean), ModelNode.State.DefaultsApplied)) { Bean b, Bean a ->
+            b.value = "$b.value $a.value"
+        }}
+        registry.configure(ModelActionRole.Mutate) { it.path("b").action { Bean b ->
+            b.value = "b-mutate"
+        }}
+        registry.configure(ModelActionRole.Mutate) { it.path("a").action { Bean a ->
+            a.value = "a-mutate"
+        }}
+        registry.configure(ModelActionRole.Defaults) { it.path("a").action { Bean a ->
+            a.value = "a-defaults"
+        }}
+
+        expect:
+        registry.realize(ModelPath.path("a"), ModelType.of(Bean)).value == "a-mutate"
+        registry.realize(ModelPath.path("b"), ModelType.of(Bean)).value == "b-mutate a-defaults"
+    }
+
+    def "transitions input elements to target state"() {
+        given:
+        registry.createInstance("a", new Bean())
+        registry.createInstance("b", new Bean())
+        registry.configure(ModelActionRole.Finalize) { it.path("b").action(ModelReference.of(ModelPath.path("a"), ModelType.of(Bean), ModelNode.State.DefaultsApplied)) { Bean b, Bean a ->
+            b.value = "$b.value $a.value"
+        }}
+        registry.configure(ModelActionRole.Mutate) { it.path("b").action { Bean b ->
+            b.value = "b-mutate"
+        }}
+        registry.configure(ModelActionRole.Mutate) { it.path("a").action { Bean a ->
+            a.value = "a-mutate"
+        }}
+        registry.configure(ModelActionRole.Defaults) { it.path("a").action { Bean a ->
+            a.value = "a-defaults"
+        }}
+
+        expect:
+        registry.realize(ModelPath.path("b"), ModelType.of(Bean)).value == "b-mutate a-defaults"
+        registry.realize(ModelPath.path("a"), ModelType.of(Bean)).value == "a-mutate"
+    }
+
     def "can attach a mutator with inputs to all elements linked from an element"() {
         def creatorAction = Mock(Action)
         def mutatorAction = Mock(BiAction)
