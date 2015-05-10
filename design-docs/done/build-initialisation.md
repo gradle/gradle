@@ -155,3 +155,14 @@ Add the following types:
     - Include a spock unit test
 - `scala-library`
     - Include a scalatest suite
+
+# Story: User specifies target gradle version when generating the wrapper
+
+This story adds a commandline property `--gradle-version` to the `wrapper` task to specify the desired Gradle version:
+
+* Add `--gradle-version` command-line option to `wrapper`.
+
+## Test coverage
+
+* Running `gradle wrapper --gradle-version 1.6` generates valid `wrapper.properties` with correct URL.
+
