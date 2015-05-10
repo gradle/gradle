@@ -29,10 +29,6 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 import org.gradle.model.*
 import org.gradle.model.collection.*
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.Instantiator
-import javax.inject.Inject
-import org.gradle.internal.service.ServiceRegistry
 
 interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}
@@ -59,14 +55,12 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             }
 
             @Mutate
-            void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs, ServiceRegistry serviceRegistry) {
-                componentSpecs.create("sampleLib", new Action<SampleLibrary>() {
-                    public void execute(SampleLibrary library) {
-                        library.sources {
-                            librarySource(LibrarySourceSet)
-                        }
+            void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs) {
+                componentSpecs.create("sampleLib") {
+                    sources {
+                        librarySource(LibrarySourceSet)
                     }
-                });
+                }
             }
 
             @BinaryType
