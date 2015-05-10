@@ -45,6 +45,15 @@ class PmdExtension extends CodeQualityExtension {
      */
     TargetJdk targetJdk
 
+	/**
+	 * The rule priority threshold; rules with lower priority than they will not be used
+	 *
+	 * Ignored if 0
+	 *
+	 * Example: minimumWarningLevel = 3
+	 */
+	int minimumWarningLevel
+
     /**
      * Sets the target jdk used with pmd.
      *

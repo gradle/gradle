@@ -85,6 +85,20 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
+    void "can configure priority level threshold"() {
+        badCode()
+        buildFile << """
+            pmd {
+                minimumWarningLevel = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").exists()
+        file("build/reports/pmd/test.xml").exists()
+    }
+
     def "can set target JDK for PMD versions prior to 5.0"() {
         badCode()
         buildFile << """
