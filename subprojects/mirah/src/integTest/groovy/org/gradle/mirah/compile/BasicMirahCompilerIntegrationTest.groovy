@@ -138,21 +138,31 @@ buildscript {
 """
 package compile.test
 
-import mirah.collection.JavaConversions._
-
-class Person(val name: String, val age: Int) {
-    def hello() {
-        val x: java.util.List[Int] = List(3, 1, 2)
-        java.util.Collections.reverse(x)
-    }
-}
+class Person
+  attr_reader name:String
+  attr_reader age:int
+  
+  def initialize(name:String,age:int)
+    @name = name
+    @age  = age
+  end
+  
+  def hello
+    x = [3, 1, 2]
+    java::util::Collections.reverse(x)
+  end
+end
 """
         file("src/main/mirah/compile/test/Person2.mirah") <<
 """
 package compile.test
 
-class Person2(name: String, age: Int) extends Person(name, age) {
-}
+class Person2 < Person
+
+  def initialize(name:String,age:int)
+    super
+  end
+end
 """
     }
 
