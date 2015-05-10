@@ -86,6 +86,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
         if (reset) {
+            unboundRules.remove(child.getCreatorBinder());
             return child;
         }
 
@@ -214,6 +215,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (Iterables.isEmpty(dependents)) {
             modelGraph.remove(node);
             ruleBindings.remove(node);
+            unboundRules.remove(node.getCreatorBinder());
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }

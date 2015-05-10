@@ -968,6 +968,18 @@ class DefaultModelRegistryTest extends Specification {
       - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
     }
 
+    def "does not report unbound creators of removed nodes"() {
+        given:
+        registry.create(ModelPath.path("unused")) { it.unmanaged(String, "unknown") { }}
+        registry.remove(ModelPath.path("unused"))
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "two element mutation rule based configuration cycles are detected"() {
         given:
         registry.createInstance("foo", "foo")
