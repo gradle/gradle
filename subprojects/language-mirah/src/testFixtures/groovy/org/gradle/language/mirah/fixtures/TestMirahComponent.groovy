@@ -30,14 +30,27 @@ class TestMirahComponent extends IncrementalTestJvmComponent {
             new JvmSourceFile("compile/test", "Person.mirah", '''
 package compile.test
 
-class Person(name: String, age: Integer) {
-    override def toString(): String = name + ", " + age;
-}'''),
+class Person
+  attr_reader name:String
+  attr_reader age:int
+  
+  def initialize(name:String,age:int)
+    @name = name
+    @age  = age
+  end
+  
+  def toString
+  	"#{@name}, #{age}"
+  end
+end
+'''),
             new JvmSourceFile("compile/test", "Person2.mirah", '''
 package compile.test
 
 class Person2 {
 }
+class Person2
+end
 ''')
     ]
 
@@ -50,10 +63,10 @@ class Person2 {
     @Override
     void writeAdditionalSources(TestFile testFile) {
         testFile.file("mirah/Extra.mirah") << """
-object Extra {
-  def someMethod(args: Array[String]) {
-  }
-}
+class Extra
+  def someMethod(args:String[]):void
+  end
+end
 """
 
     }
