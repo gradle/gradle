@@ -169,17 +169,19 @@ end
     def goodCodeEncodedWith(String encoding) {
         def code =
 """
-import java.io.{FileOutputStream, File, OutputStreamWriter}
+import java.io.FileOutputStream
+import java.io.File
+import java.io.OutputStreamWriter
 
-object Main {
-    def main(args: Array[String]) {
-        // Some lowercase greek letters
-        val content = "\u03b1\u03b2\u03b3"
-        val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")
+class Main
+    def self.main(args:String[]):void
+        # Some lowercase greek letters
+        content = "\u03b1\u03b2\u03b3"
+        writer = OutputStreamWriter.new(FileOutputStream.new(File.new("encoded.out")), "utf-8")
         writer.write(content)
         writer.close()
-    }
-}
+    end
+end
 """
         def file = file("src/main/mirah/Main.mirah")
         file.parentFile.mkdirs()
