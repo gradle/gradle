@@ -116,8 +116,6 @@ apply plugin: "mirah"
 
 repositories {
     mavenCentral()
-    // temporary measure for the next few hours, until Zinc 0.2-M2 has landed in Central
-    maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }
 
 buildscript {
