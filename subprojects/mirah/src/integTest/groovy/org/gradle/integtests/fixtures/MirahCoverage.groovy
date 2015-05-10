@@ -22,7 +22,7 @@ class MirahCoverage {
 
     static final boolean USE_SINGLE_VERSION_ONLY = GradleContextualExecuter.isDaemon()
 
-    static final String NEWEST = "0.1.5-SNAPSHOT"
+    static final String NEWEST = "0.1.4"
 
     static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["0.1.4", NEWEST]
 
