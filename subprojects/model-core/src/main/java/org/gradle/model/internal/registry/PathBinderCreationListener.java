@@ -33,13 +33,16 @@ class PathBinderCreationListener extends ModelBinding {
     }
 
     public void onCreate(ModelNodeInternal node) {
+        if (boundTo != null) {
+            throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", reference, referrer, boundTo));
+        }
         ModelPromise promise = node.getPromise();
         if (isTypeCompatible(promise)) {
             boundTo = node;
             bindAction.execute(this);
         } else {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                    IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
+                IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
             ));
         }
     }

@@ -461,6 +461,18 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message == "Cannot set value for model element 'thing' as this element is not mutable."
     }
 
+    def "can replace an element that has not been used as input by a rule"() {
+        given:
+        registry.createInstance("thing", new Bean(value: "old"))
+        registry.configure(ModelActionRole.Mutate) { it.path("thing").action { it.value = "${it.value} path" } }
+        registry.configure(ModelActionRole.Mutate) { it.type(Bean).action { it.value = "${it.value} type" } }
+        registry.remove(ModelPath.path("thing"))
+        registry.createInstance("thing", new Bean(value: "new"))
+
+        expect:
+        registry.realize(ModelPath.path("thing"), ModelType.of(Bean)).value == "new path type"
+    }
+
     @Unroll
     def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
         def action = Stub(Action)

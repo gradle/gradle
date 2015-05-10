@@ -128,6 +128,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         node = parent.addLink(child);
+        ruleBindings.add(node);
         modelGraph.add(node);
         ruleBindings.add(node.getCreatorBinder());
         return node;
@@ -212,6 +213,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         Iterable<? extends ModelNode> dependents = node.getDependents();
         if (Iterables.isEmpty(dependents)) {
             modelGraph.remove(node);
+            ruleBindings.remove(node);
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }

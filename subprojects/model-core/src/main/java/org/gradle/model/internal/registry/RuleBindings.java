@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 
@@ -26,22 +27,22 @@ import java.util.Collection;
 import java.util.Collections;
 
 class RuleBindings {
-    private final ModelGraph graph;
     private final NodeIndex rulesBySubject;
     private final NodeIndex rulesByInput;
 
     public RuleBindings(ModelGraph graph) {
-        this.graph = graph;
         rulesBySubject = new NodeIndex(graph);
         rulesByInput = new NodeIndex(graph);
-        graph.addListener(new ModelCreationListener() {
-            @Override
-            public boolean onCreate(ModelNodeInternal node) {
-                rulesBySubject.nodeAdded(node);
-                rulesByInput.nodeAdded(node);
-                return false;
-            }
-        });
+    }
+
+    public void add(ModelNodeInternal node) {
+        rulesBySubject.nodeAdded(node);
+        rulesByInput.nodeAdded(node);
+    }
+
+    public void remove(ModelNodeInternal node) {
+        rulesBySubject.nodeRemoved(node);
+        rulesByInput.nodeRemoved(node);
     }
 
     public void add(RuleBinder ruleBinder) {
@@ -98,22 +99,36 @@ class RuleBindings {
         }
 
         public void nodeAdded(ModelNodeInternal node) {
-            Collection<Reference> references = rulesByPath.removeAll(node.getPath());
+            Collection<Reference> references = rulesByPath.get(node.getPath());
             for (Reference reference : references) {
                 reference.binding.onCreate(node);
                 bound.put(new NodeAtState(node.getPath(), reference.binding.reference.getState()), reference.owner);
             }
             references = rulesByScope.get(node.getPath());
-            checkTypeMatches(node, references);
+            addTypeMatches(node, references);
             references = rulesByScope.get(node.getPath().getParent());
-            checkTypeMatches(node, references);
+            addTypeMatches(node, references);
         }
 
-        private void checkTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
+        private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
             for (Reference reference : references) {
                 if (reference.binding.isTypeCompatible(node.getPromise())) {
                     reference.binding.onCreate(node);
                     bound.put(new NodeAtState(node.getPath(), reference.binding.reference.getState()), reference.owner);
+                }
+            }
+        }
+
+        public void nodeRemoved(ModelNodeInternal node) {
+            // This could be more efficient; assume that removal happens much less often than addition
+            for (ModelNode.State state : ModelNode.State.values()) {
+                for (RuleBinder rule : bound.removeAll(new NodeAtState(node.getPath(), state))) {
+                    if (rule.getSubjectBinding() != null) {
+                        rule.getSubjectBinding().onRemove(node);
+                    }
+                    for (ModelBinding binding : rule.getInputBindings()) {
+                        binding.onRemove(node);
+                    }
                 }
             }
         }
@@ -128,9 +143,9 @@ class RuleBindings {
                 if (node != null) {
                     binding.onCreate(node);
                     bound.put(new NodeAtState(node.getPath(), reference.getState()), rule);
-                } else {
-                    rulesByPath.put(reference.getPath(), new Reference(rule, binding));
                 }
+                // Need to continue to watch to deal with node removal
+                rulesByPath.put(reference.getPath(), new Reference(rule, binding));
             } else if (reference.getScope() != null) {
                 if (reference.getParent() != null) {
                     throw new UnsupportedOperationException("Currently not implemented");
@@ -141,7 +156,7 @@ class RuleBindings {
                         bound.put(new NodeAtState(node.getPath(), reference.getState()), rule);
                     }
                 }
-                // Need to continue to watch for potential later matches, which will make the binding ambiguous
+                // Need to continue to watch for potential later matches, which will make the binding ambiguous, and node removal
                 rulesByScope.put(reference.getScope(), new Reference(rule, binding));
             } else {
                 throw new UnsupportedOperationException("Currently not implemented");

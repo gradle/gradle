@@ -42,7 +42,7 @@ abstract class ModelBinding {
         return reference;
     }
 
-    public  boolean isBound() {
+    public boolean isBound() {
         return boundTo != null;
     }
 
@@ -63,4 +63,10 @@ abstract class ModelBinding {
     }
 
     public abstract void onCreate(ModelNodeInternal node);
+
+    public void onRemove(ModelNodeInternal node) {
+        if (node == boundTo) {
+            boundTo = null;
+        }
+    }
 }
