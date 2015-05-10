@@ -115,10 +115,10 @@ class RuleBindingsTest extends RegistrySpec {
 
     def "returns empty list when no rules with matching input"() {
         given:
-        bindings.add(rule("other") { it.inputReference("other", ModelNode.State.Created) } )
-        bindings.add(rule("other") { it.inputReference(Long, ModelNode.State.Created) } )
-        bindings.add(rule("other") { it.inputReference(String, ModelNode.State.GraphClosed) } )
-        bindings.add(rule("other") { it.inputReference("path", ModelNode.State.GraphClosed) } )
+        bindings.add(rule("other") { it.inputReference("other", ModelNode.State.Created) })
+        bindings.add(rule("other") { it.inputReference(Long, ModelNode.State.Created) })
+        bindings.add(rule("other") { it.inputReference(String, ModelNode.State.GraphClosed) })
+        bindings.add(rule("other") { it.inputReference("path", ModelNode.State.GraphClosed) })
         addNode(node("path", String))
 
         expect:
@@ -253,6 +253,50 @@ class RuleBindingsTest extends RegistrySpec {
   - b (created by: test)'''
     }
 
+    def "cannot add rule when subject state is not earlier than rule target state"() {
+        given:
+        def node = node("a", Long)
+        def rule = rule(Long, requiredState) { it.descriptor("<rule>") }
+        addNode(node)
+        node.state = currentState
+
+        when:
+        bindings.add(rule)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot add rule <rule> for model element 'a' at state ${requiredState.previous()} as this element is already at state $currentState."
+
+        where:
+        currentState                | requiredState
+        ModelNode.State.Initialized | ModelNode.State.Initialized
+        ModelNode.State.GraphClosed | ModelNode.State.Initialized
+    }
+
+    def "cannot add rule when input state is not at or earlier than input source state"() {
+        given:
+        def node = node("a", Long)
+        def rule = rule("other") {
+            it.descriptor("<rule>")
+            it.inputReference(Long, requiredState)
+        }
+
+        addNode(node)
+        node.state = currentState
+
+        when:
+        bindings.add(rule)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot add rule <rule> with input model element 'a' at state $requiredState as this element is already at state $currentState."
+
+        where:
+        currentState                | requiredState
+        ModelNode.State.Initialized | ModelNode.State.Initialized.previous()
+        ModelNode.State.Initialized | ModelNode.State.Created
+    }
+
     NodeAtState nodeAtState(String path, ModelNode.State state) {
         return new NodeAtState(ModelPath.path(path), state)
     }
@@ -270,6 +314,14 @@ class RuleBindingsTest extends RegistrySpec {
         def builder = new RuleBinderTestBuilder()
         builder.subjectReference(ModelReference.of(null, ModelType.of(subjectType), targetState).inScope(ModelPath.ROOT))
         builder.descriptor("rule with subject of type $subjectType.simpleName")
+        return builder.build()
+    }
+
+    RuleBinder rule(Class subjectType, ModelNode.State targetState, Action<? super RuleBinderTestBuilder> action) {
+        def builder = new RuleBinderTestBuilder()
+        builder.subjectReference(ModelReference.of(null, ModelType.of(subjectType), targetState).inScope(ModelPath.ROOT))
+        builder.descriptor("rule with subject of type $subjectType.simpleName")
+        action.execute(builder)
         return builder.build()
     }
 

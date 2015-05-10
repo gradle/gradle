@@ -1068,21 +1068,21 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private abstract class TransitionNodeToState extends ModelNodeGoal {
-        private final ModelNode.State targetState;
+        final NodeAtState target;
         private boolean seenPredecessor;
 
         public TransitionNodeToState(NodeAtState target) {
             super(target.path);
-            targetState = target.state;
+            this.target = target;
         }
 
         @Override
         public String toString() {
-            return "transition " + getPath() + ", target: " + targetState + ", state: " + state;
+            return "transition " + getPath() + ", target: " + target.state + ", state: " + state;
         }
 
         public ModelNode.State getTargetState() {
-            return targetState;
+            return target.state;
         }
 
         @Override
@@ -1145,7 +1145,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class ApplyActions extends TransitionNodeToState {
-        private final Set<MutatorRuleBinder<?>> seenRules = new HashSet<MutatorRuleBinder<?>>();
+        private final Set<RuleBinder> seenRules = new HashSet<RuleBinder>();
 
         public ApplyActions(NodeAtState target) {
             super(target);
@@ -1154,9 +1154,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             // Must run each action
-            for (MutatorRuleBinder<?> binder : node.getMutatorBinders(getTargetState())) {
+            for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
-                    dependencies.add(new RunModelAction(getPath(), binder));
+                    MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
+                    dependencies.add(new RunModelAction(getPath(), mutator));
                 }
             }
             return false;

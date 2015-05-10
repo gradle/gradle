@@ -30,10 +30,19 @@ class MutatorRuleBinder<T> extends RuleBinder {
 
     public MutatorRuleBinder(final ModelReference<T> subjectReference, List<ModelReference<?>> inputs, ModelAction<T> action, Collection<RuleBinder> binders) {
         super(subjectReference, inputs, action.getDescriptor(), binders);
-        subjectBinding = binding(subjectReference, true, new Action<ModelNodeInternal>() {
+        subjectBinding = binding(subjectReference, true, new Action<ModelBinding>() {
             @Override
-            public void execute(ModelNodeInternal subject) {
-                subject.addMutatorBinder(subjectReference.getState(), MutatorRuleBinder.this);
+            public void execute(ModelBinding modelBinding) {
+                ModelNodeInternal node = modelBinding.getNode();
+                ModelReference<?> reference = modelBinding.getReference();
+                if (node.getState().compareTo(reference.getState()) >= 0) {
+                    throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
+                        modelBinding.referrer,
+                        node.getPath(),
+                        reference.getState().previous(),
+                        node.getState()
+                    ));
+                }
                 maybeFire();
             }
         });

@@ -58,8 +58,7 @@ class RuleBindings {
         // Create a dummy binding. Could probably reorganise things to avoid this
         return new ModelBinding(ruleBinder.getDescriptor(), ruleBinder.getSubjectReference(), true) {
             @Override
-            public boolean onCreate(ModelNodeInternal node) {
-                return false;
+            public void onCreate(ModelNodeInternal node) {
             }
         };
     }

@@ -37,16 +37,26 @@ abstract class RuleBinder {
 
     private int inputsBound;
     private List<ModelBinding> inputBindings;
-    private Action<ModelNodeInternal> inputBindAction;
+    private Action<ModelBinding> inputBindAction;
 
     public RuleBinder(ModelReference<?> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
         this.subjectReference = subjectReference;
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
         this.binders = binders;
-        inputBindAction = new Action<ModelNodeInternal>() {
+        inputBindAction = new Action<ModelBinding>() {
             @Override
-            public void execute(ModelNodeInternal nodeInternal) {
+            public void execute(ModelBinding modelBinding) {
+                ModelNodeInternal node = modelBinding.getNode();
+                ModelReference<?> reference = modelBinding.getReference();
+                if (node.getState().compareTo(reference.getState()) > 0) {
+                    throw new IllegalStateException(String.format("Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",
+                        modelBinding.referrer,
+                        node.getPath(),
+                        reference.getState(),
+                        node.getState()
+                    ));
+                }
                 ++inputsBound;
                 maybeFire();
             }
@@ -68,7 +78,7 @@ abstract class RuleBinder {
         return bindings;
     }
 
-    protected ModelBinding binding(ModelReference<?> reference, boolean writable, Action<ModelNodeInternal> bindAction) {
+    protected ModelBinding binding(ModelReference<?> reference, boolean writable, Action<ModelBinding> bindAction) {
         if (reference.getPath() != null) {
             return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
         }

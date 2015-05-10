@@ -29,7 +29,10 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Set;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
@@ -43,7 +46,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
     private CreatorRuleBinder creatorBinder;
-    private ListMultimap<ModelNode.State, MutatorRuleBinder<?>> mutators;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
@@ -94,64 +96,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return creatorBinder.getCreator().isEphemeral();
     }
 
-    public void addMutatorBinder(ModelNode.State targetState, MutatorRuleBinder<?> mutator) {
-        if (!canApply(targetState)) {
-            throw new IllegalStateException(String.format(
-                "Cannot add rule %s with target state %s for model element '%s' when element is in state %s.",
-                mutator.getAction().getDescriptor(),
-                targetState,
-                getPath(),
-                getState()
-            ));
-        }
-
-        if (mutators == null) {
-            mutators = createMutatorsMap();
-        }
-
-        mutators.put(targetState, mutator);
-    }
-
     private static ListMultimap<ModelNode.State, MutatorRuleBinder<?>> createMutatorsMap() {
         return Multimaps.newListMultimap(new EnumMap<ModelNode.State, Collection<MutatorRuleBinder<?>>>(ModelNode.State.class), LIST_SUPPLIER);
-    }
-
-    public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelNode.State role) {
-        if (mutators == null) {
-            return Collections.emptyList();
-        }
-        final List<MutatorRuleBinder<?>> ruleBinders = mutators.get(role);
-        if (ruleBinders == null) {
-            return Collections.emptyList();
-        } else {
-            return new Iterable<MutatorRuleBinder<?>>() {
-                @Override
-                public Iterator<MutatorRuleBinder<?>> iterator() {
-                    return new Iterator<MutatorRuleBinder<?>>() {
-                        int i;
-
-                        @Override
-                        public void remove() {
-                            throw new UnsupportedOperationException();
-                        }
-
-                        @Override
-                        public boolean hasNext() {
-                            return i < ruleBinders.size();
-                        }
-
-                        @Override
-                        public MutatorRuleBinder<?> next() {
-                            if (hasNext()) {
-                                return ruleBinders.get(i++);
-                            } else {
-                                throw new NoSuchElementException();
-                            }
-                        }
-                    };
-                }
-            };
-        }
     }
 
     public void notifyFired(RuleBinder binder) {

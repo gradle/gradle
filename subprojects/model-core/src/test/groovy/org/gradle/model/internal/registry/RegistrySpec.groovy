@@ -229,19 +229,16 @@ class RegistrySpec extends Specification {
         }
 
         RuleBinder build() {
-            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, []) {
-                def subjectBinding
-
-                @Override
-                ModelBinding getSubjectBinding() {
-                    if (subjectBinding == null && subjectReference != null) {
-                        subjectBinding = binding(subjectReference, true, {})
-                        if (subjectReferenceBindingPath) {
-                            subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)
-                        }
-                    }
-                    return subjectBinding
-                }
+            def binder
+            if (subjectReference == null) {
+                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
+                binder = new CreatorRuleBinder(action, inputReferences, [])
+            } else {
+                def action = ActionBackedModelAction.of(subjectReference, descriptor, {})
+                binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
+            }
+            if (subjectReferenceBindingPath) {
+                binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)
             }
             boundInputReferencePaths.each { index, path ->
                 binder.inputBindings[index].boundTo = new TestNode(path, Object)

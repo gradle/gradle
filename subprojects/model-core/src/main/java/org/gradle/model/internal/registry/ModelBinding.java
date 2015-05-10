@@ -25,7 +25,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
  */
-abstract class ModelBinding extends ModelCreationListener {
+abstract class ModelBinding {
 
     final ModelReference<?> reference;
     final ModelRuleDescriptor referrer;
@@ -62,4 +62,5 @@ abstract class ModelBinding extends ModelCreationListener {
         return "ModelBinding{reference=" + reference + ", node=" + boundTo + '}';
     }
 
+    public abstract void onCreate(ModelNodeInternal node);
 }

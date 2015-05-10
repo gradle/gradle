@@ -476,7 +476,7 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause instanceof IllegalStateException
-        e.cause.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromRole.targetState.previous()}."
+        e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromRole.targetState.previous()}."
 
         where:
         fromRole                   | targetRole
@@ -513,7 +513,7 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause instanceof IllegalStateException
-        e.cause.message == "Cannot add rule X with target state ${targetRole.targetState} for model element 'thing' when element is in state ${fromState}."
+        e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromState}."
 
         where:
         fromState                       | targetRole
