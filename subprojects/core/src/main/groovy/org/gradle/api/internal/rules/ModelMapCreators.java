@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelMapCreators {
@@ -29,7 +30,7 @@ public class ModelMapCreators {
                                                                       final Class<T> typeClass,
                                                                       final Class<C> containerClass,
                                                                       final Class<? extends C> viewClass,
-                                                                      String descriptor) {
+                                                                      ModelRuleDescriptor descriptor) {
 
         final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = instantiatorType(typeClass);
 

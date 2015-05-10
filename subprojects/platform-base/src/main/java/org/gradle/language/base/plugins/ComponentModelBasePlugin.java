@@ -17,6 +17,7 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -28,7 +29,6 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
@@ -66,16 +66,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
+        final SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
 
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        ModelCreator componentsCreator = ModelMapCreators.specialized(ModelPath.path("components"), ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
+        final ModelPath components = ModelPath.path("components");
+        ModelCreator componentsCreator = ModelMapCreators.specialized(components, ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeModelAction.of(
                 ModelReference.of(ComponentSpec.class),
-                new SimpleModelRuleDescriptor(descriptor),
+                descriptor,
                 ComponentSpecInitializer.action()));
     }
 
@@ -191,7 +192,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         }
-
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
