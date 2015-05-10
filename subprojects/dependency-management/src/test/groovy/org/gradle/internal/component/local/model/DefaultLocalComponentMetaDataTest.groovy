@@ -15,28 +15,46 @@
  */
 
 package org.gradle.internal.component.local.model
-
 import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultLocalComponentMetaDataTest extends Specification {
-    def moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId("group", "module", "version"), "status", null)
-    def componentIdentifier = Mock(ComponentIdentifier)
-    def metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier)
+    def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
+    def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
+    def metaData = new DefaultLocalComponentMetaData(id, componentIdentifier, "status")
 
     def "can lookup configuration after it has been added"() {
         when:
+        metaData.addConfiguration("super", false, "description", [] as String[], false)
         metaData.addConfiguration("conf", true, "description", ["super"] as String[], true)
 
         then:
-        metaData.moduleDescriptor.configurations.length == 1
-        metaData.moduleDescriptor.getConfiguration("conf") != null
+        def resolveMetaData = metaData.toResolveMetaData()
+        resolveMetaData.configurationNames == ['conf', 'super'] as Set
+
+        def conf = resolveMetaData.getConfiguration('conf')
+        conf != null
+        conf.public
+        conf.transitive
+
+        def superConf = resolveMetaData.getConfiguration('super')
+        superConf != null
+        !superConf.public
+        !superConf.transitive
+
+        and:
+        def publishMetaData = metaData.toPublishMetaData()
+        publishMetaData.getModuleDescriptor().configurations.length == 2
+        publishMetaData.getModuleDescriptor().getConfiguration('conf') != null
+
+        def ivyConf = publishMetaData.getModuleDescriptor().getConfiguration('conf')
+        ivyConf != null
+        ivyConf.transitive
+        ivyConf.visibility == Configuration.Visibility.PUBLIC
     }
 
     def "can lookup artifact in various ways after it has been added"() {
@@ -44,14 +62,16 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        moduleDescriptor.addConfiguration(new Configuration("conf"))
+        metaData.addConfiguration("conf", true, "", [] as String[], true)
 
         when:
         metaData.addArtifact("conf", artifact, file)
 
         then:
-        metaData.artifacts.size() == 1
-        def publishArtifact = (metaData.artifacts as List).first()
+        def resolveMetaData = metaData.toResolveMetaData()
+        resolveMetaData.artifacts.size() == 1
+
+        def publishArtifact = resolveMetaData.artifact(artifact)
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
@@ -59,17 +79,14 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishArtifact.file == file
 
         and:
-        metaData.getArtifact(publishArtifact.id) == publishArtifact
-
-        and:
-        def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.artifacts.size() == 1
-        def resolveArtifact = (resolveMetaData.artifacts as List).first()
-        resolveArtifact.id
-        resolveArtifact.componentId == resolveMetaData.componentId
-        resolveArtifact.name.name == artifact.name
-        resolveArtifact.name.type == artifact.type
-        resolveArtifact.name.extension == artifact.extension
+        def publishMetaData = metaData.toPublishMetaData()
+        publishMetaData.artifacts.size() == 1
+        def publishMetaDataArtifact = (publishMetaData.artifacts as List).first()
+        publishMetaDataArtifact.id
+        publishMetaDataArtifact.id.componentIdentifier == componentIdentifier
+        publishMetaDataArtifact.artifactName.name == artifact.name
+        publishMetaDataArtifact.artifactName.type == artifact.type
+        publishMetaDataArtifact.artifactName.extension == artifact.extension
     }
 
     def "can add artifact to several configurations"() {
@@ -77,17 +94,14 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        moduleDescriptor.addConfiguration(new Configuration("conf1"))
-        moduleDescriptor.addConfiguration(new Configuration("conf2"))
+        metaData.addConfiguration("conf1", true, "", [] as String[], true)
+        metaData.addConfiguration("conf2", true, "", [] as String[], true)
 
         when:
         metaData.addArtifact("conf1", artifact, file)
         metaData.addArtifact("conf2", artifact, file)
 
         then:
-        metaData.artifacts.size() == 1
-
-        and:
         def resolveMetaData = metaData.toResolveMetaData()
         resolveMetaData.artifacts.size() == 1
     }
@@ -97,7 +111,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        moduleDescriptor.addConfiguration(new Configuration("conf"))
+        metaData.addConfiguration("conf", true, "", [] as String[], true)
 
         and:
         metaData.addArtifact("conf", artifact, file)
@@ -108,7 +122,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         expect:
         def resolveArtifact = metaData.toResolveMetaData().artifact(ivyArtifact)
         resolveArtifact.file == file
-        resolveArtifact == metaData.getArtifact(resolveArtifact.id)
     }
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
@@ -118,7 +131,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
         resolveArtifact != null
         resolveArtifact.file == null
-        metaData.getArtifact(resolveArtifact.id) == null
     }
 
     def "treats as distinct two artifacts with duplicate attributes and different files"() {
@@ -150,49 +162,21 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         and:
         resolveMetaData.artifacts == [artifactMetadata1, artifactMetadata2] as Set
-
-        and:
-        metaData.getArtifact(artifactMetadata1.id).file == file1
-        metaData.getArtifact(artifactMetadata2.id).file == file2
     }
 
     def "can add dependencies"() {
-        def dependencyDescriptor = Stub(DependencyDescriptor)
-        def dependency = Stub(DependencyMetaData) {
-            getDescriptor() >> dependencyDescriptor
-        }
+        def dependency = Mock(DependencyMetaData)
 
         when:
         metaData.addDependency(dependency)
 
         then:
-        metaData.moduleDescriptor.dependencies as List == [dependencyDescriptor]
         metaData.toResolveMetaData().dependencies == [dependency]
-        metaData.toResolveMetaData().descriptor.dependencies as List == [dependencyDescriptor]
-    }
 
-    def "can convert to publish meta-data"() {
-        def artifact = artifactName()
-        def file = new File("artifact.zip")
-
-        given:
-        moduleDescriptor.addConfiguration(new Configuration("conf"))
-        metaData.addArtifact("conf", artifact, file)
-
-        when:
-        def publishMetaData = metaData.toPublishMetaData()
-
-        then:
-        publishMetaData.id == metaData.id
-
-        and:
-        publishMetaData.artifacts.size() == 1
-        def artifacts = publishMetaData.artifacts as List
-        def publishArtifact = artifacts[0]
-        publishArtifact.artifact.name == artifact.name
-        publishArtifact.artifact.type == artifact.type
-        publishArtifact.artifact.ext == artifact.extension
-        publishArtifact.file == file
+        // TODO:DAZ Test conversion of dependency meta data for publishing
+//        and:
+//        def ivyDependencies = metaData.toPublishMetaData().getModuleDescriptor().dependencies
+//        ivyDependencies.length == 1
     }
 
     def artifactName() {

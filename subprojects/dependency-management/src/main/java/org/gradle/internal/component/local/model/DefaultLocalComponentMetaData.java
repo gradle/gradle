@@ -102,18 +102,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         allExcludeRules.add(excludeRule);
     }
 
-    // TODO:DAZ This is used in unit-tests only
-    public Collection<? extends LocalArtifactMetaData> getArtifacts() {
-        resolveArtifacts();
-        return artifactsById.values();
-    }
-
-    // TODO:DAZ This is used in unit-tests only
-    public LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier) {
-        resolveArtifacts();
-        return artifactsById.get(artifactIdentifier);
-    }
-
     public ComponentResolveMetaData toResolveMetaData() {
         return new LocalComponentResolveMetaData();
     }

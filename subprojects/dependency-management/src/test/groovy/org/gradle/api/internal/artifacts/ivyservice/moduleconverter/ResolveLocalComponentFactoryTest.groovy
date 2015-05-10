@@ -43,7 +43,7 @@ public class ResolveLocalComponentFactoryTest extends Specification {
         def module = new DefaultModule('group-one', 'name-one', 'version-one')
 
         when:
-        def actualDescriptor = resolveModuleDescriptorConverter.convert(configurations, module);
+        def componentMetaData = resolveModuleDescriptorConverter.convert(configurations, module);
 
         then:
         1 * configurationsConverter.addConfigurations(!null, configurations)
@@ -51,8 +51,8 @@ public class ResolveLocalComponentFactoryTest extends Specification {
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
 
         and:
-        actualDescriptor instanceof DefaultLocalComponentMetaData
-        actualDescriptor.moduleDescriptor instanceof DefaultModuleDescriptor
-        actualDescriptor.toResolveMetaData().componentId == new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        componentMetaData instanceof DefaultLocalComponentMetaData
+        componentMetaData.toResolveMetaData().componentId == new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        componentMetaData.toPublishMetaData().moduleDescriptor instanceof DefaultModuleDescriptor
     }
 }

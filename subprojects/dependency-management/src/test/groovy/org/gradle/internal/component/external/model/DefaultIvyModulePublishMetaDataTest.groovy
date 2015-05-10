@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetaDataTest extends Specification {
-    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier))
+    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier), "status")
 
     def "can add artifacts"() {
         def artifact = Stub(Artifact)

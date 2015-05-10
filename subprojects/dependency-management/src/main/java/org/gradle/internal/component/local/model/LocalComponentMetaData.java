@@ -16,10 +16,8 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 
 public interface LocalComponentMetaData {
@@ -35,7 +33,4 @@ public interface LocalComponentMetaData {
      */
     BuildableIvyModulePublishMetaData toPublishMetaData();
 
-    // TODO:DAZ This is only used in tests
-    @Nullable
-    LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier);
 }
