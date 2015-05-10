@@ -76,7 +76,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
 
         _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ComponentResolveMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
-            result.resolved(module.artifacts)
+            result.resolved(module.getConfiguration(context.configurationName).artifacts)
         }
     }
 
@@ -1091,11 +1091,6 @@ class DependencyGraphBuilderTest extends Specification {
         @Override
         ComponentArtifactMetaData artifact(IvyArtifactName artifact) {
             return null
-        }
-
-        @Override
-        Set<? extends ComponentArtifactMetaData> getArtifacts() {
-            return []
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier

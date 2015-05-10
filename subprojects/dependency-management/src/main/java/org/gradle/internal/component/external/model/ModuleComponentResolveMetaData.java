@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.util.Set;
-
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
@@ -30,8 +28,6 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
     ModuleComponentIdentifier getComponentId();
 
     ModuleComponentResolveMetaData withSource(ModuleSource source);
-
-    Set<ModuleComponentArtifactMetaData> getArtifacts();
 
     ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 

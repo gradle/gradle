@@ -69,18 +69,20 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.artifacts.size() == 1
+        resolveMetaData.getConfiguration("conf").artifacts.size() == 1
 
-        def publishArtifact = resolveMetaData.artifact(artifact)
+        def publishArtifact = resolveMetaData.getConfiguration("conf").artifacts.first()
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
+        publishArtifact == resolveMetaData.artifact(artifact)
 
         and:
         def publishMetaData = metaData.toPublishMetaData()
         publishMetaData.artifacts.size() == 1
+
         def publishMetaDataArtifact = (publishMetaData.artifacts as List).first()
         publishMetaDataArtifact.id
         publishMetaDataArtifact.id.componentIdentifier == componentIdentifier
@@ -103,7 +105,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.artifacts.size() == 1
+        resolveMetaData.getConfiguration("conf1").artifacts.size() == 1
+        resolveMetaData.getConfiguration("conf1").artifacts == resolveMetaData.getConfiguration("conf2").artifacts
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
@@ -161,7 +164,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        resolveMetaData.artifacts == [artifactMetadata1, artifactMetadata2] as Set
+        resolveMetaData.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
+        resolveMetaData.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
     def "can add dependencies"() {

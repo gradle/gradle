@@ -74,12 +74,6 @@ public interface ComponentResolveMetaData {
      */
     ComponentArtifactMetaData artifact(IvyArtifactName artifact);
 
-    /**
-     * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
-     */
-    // TODO:DAZ This is only used in unit tests
-    Set<? extends ComponentArtifactMetaData> getArtifacts();
-
     boolean isGenerated();
 
     boolean isChanging();

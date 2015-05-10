@@ -175,7 +175,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
         public LocalComponentResolveMetaData() {
-            // TODO:ADAM - need to clone the descriptor
             this.moduleVersionIdentifier = id;
         }
 
