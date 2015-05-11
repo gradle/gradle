@@ -533,7 +533,7 @@ So:
 Note that for this feature, the implementation will assume that any source file affects the output of every task listed on the command-line.
 For example, running `gradle --watch test run` would restart the application if a test source file changes.
 
-### Story: Add continuous Gradle mode triggered by timer
+### ~~Story: Add continuous Gradle mode triggered by timer~~
 
 Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build.
 
@@ -599,7 +599,7 @@ def triggered(TriggerDetails) {
 - ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
 - ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
 
-### Story: Continuous Gradle mode triggered by file change
+### ~~Story: Continuous Gradle mode triggered by file change~~
 
 Gradle will be able to start, run a set of tasks and then monitor one file for changes without exiting.  When this file is changed, the same set of tasks will be re-run.
 
