@@ -174,12 +174,16 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         run "mainJar"
 
         when:
-        sourceFiles[0].text = sourceFiles[0].text + "// Line trailing comment"
+        sourceFiles[0].text = sourceFiles[0].text + commentLine();
         run "mainJar"
 
         then:
         executedAndNotSkipped mainCompileTaskName
         skipped ":createMainJar", ":mainJar"
+    }
+    
+    protected String commentLine() {
+    	  return "// Line trailing comment";
     }
 
 
