@@ -30,6 +30,8 @@ public interface TaskProgressListener {
      *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
      * </ul>
+     *
+     * @param event An event describing the task operation progress.
      */
     void statusChanged(TaskProgressEvent event);
 

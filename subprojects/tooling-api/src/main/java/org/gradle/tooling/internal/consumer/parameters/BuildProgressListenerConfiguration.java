@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.tooling.events.build.BuildProgressListener;
+import org.gradle.tooling.events.build.internal.BuildProgressListener;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 

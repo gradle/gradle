@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.build.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.build.BuildOperationProgressEvent;
 
 /**
- * A listener which is notified as part of running a build make progress.
- *
- * @since 2.5
+ * A listener which is notified when the operations that are executed as part of running a build make progress.
  */
-@Incubating
 public interface BuildProgressListener {
+
     /**
      * Called when the build execution progresses.
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>{@link BuildOperationStartEvent}</li>
-     *     <li>{@link BuildOperationFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildOperationStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.build.BuildOperationFinishEvent}</li>
      * </ul>
      *
-     * You can find out more about the build operation for which progress is reported by querying the build descriptor using {@link BuildOperationProgressEvent#getDescriptor()}.
-     *
      * @param event An event describing the build operation progress.
-     * @see BuildOperationProgressEvent#getDescriptor()
      */
     void statusChanged(BuildOperationProgressEvent event);
 
