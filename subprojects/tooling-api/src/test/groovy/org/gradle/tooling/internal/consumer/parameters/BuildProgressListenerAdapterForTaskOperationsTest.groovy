@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.events.task.internal.TaskProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
@@ -35,7 +33,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.subscribedOperations == []
 
         when:
-        TaskProgressListener listener = Mock()
+        TaskProgressListener listener = Mock(TaskProgressListener)
         adapter = createAdapter(listener)
 
         then:
@@ -44,7 +42,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "only TaskProgressEventX instances are processed if a task listener is added"() {
         given:
-        TaskProgressListener listener = Mock()
+        TaskProgressListener listener = Mock(TaskProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -56,7 +54,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "only TaskProgressEventX instances of known type are processed"() {
         given:
-        TaskProgressListener listener = Mock()
+        TaskProgressListener listener = Mock(TaskProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -69,7 +67,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "conversion of start events throws exception if previous start event with same task descriptor exists"() {
         given:
-        TaskProgressListener listener = Mock()
+        TaskProgressListener listener = Mock(TaskProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -92,7 +90,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "conversion of non-start events throws exception if no previous start event with same task descriptor exists"() {
         given:
-        TaskProgressListener listener = Mock()
+        TaskProgressListener listener = Mock(TaskProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -186,7 +184,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "task started"
             assert event.descriptor.name == 'some task'
@@ -256,7 +254,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "task skipped"
             assert event.descriptor.name == 'some task'
@@ -300,7 +298,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "task succeeded"
             assert event.descriptor.name == 'some task'
@@ -344,7 +342,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as TaskFinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TaskFinishEvent) >> { TaskFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "task failed"
             assert event.descriptor.name == 'some task'
