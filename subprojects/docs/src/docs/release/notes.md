@@ -101,6 +101,20 @@ TODO - We currently watch the entire project directory, so the above isn't 100% 
 Tasks in Gradle may define a _group_ attribute, but this group wasn't accessible from the Tooling API before. It is now possible to query the
 group of a task through `org.gradle.tooling.model.Task#getGroup`.
 
+### Progress events for build operations through the Tooling API
+
+You can now listen to progress events for various build operations through `org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener)`. You
+will receive all available events as the Gradle build being executed goes through its life-cycle. For example, you will receive events when the
+settings are being loaded, when the task graph is being populated, when the tasks are being executed, when each task is executed, when the tests
+are executed, etc. All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via `org.gradle.tooling.events.ProgressEvent#getDescriptor`
+and `org.gradle.tooling.events.OperationDescriptor#getParent`.
+
+If you are only interested in the progress events for a sub-set of all available operations, you can use
+`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.EnumSet<org.gradle.tooling.events.ProgressEventType>)`. For example, you
+can configure to only receive events for the execution of task operations.
+
+Progress events for more fine-grained operations will be added in future releases of Gradle.
+
 ### Increased visibility of components in model report
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
