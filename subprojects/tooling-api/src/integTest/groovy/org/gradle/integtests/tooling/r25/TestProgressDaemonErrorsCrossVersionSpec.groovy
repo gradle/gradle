@@ -23,7 +23,9 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
+import spock.lang.Ignore
 
+@Ignore
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
 
     void setup() {
