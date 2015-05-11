@@ -17,7 +17,6 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEventType;
-import org.gradle.tooling.events.test.TestProgressListener;
 
 import java.io.File;
 import java.io.InputStream;
@@ -126,13 +125,6 @@ public interface ModelBuilder<T> extends LongRunningOperation {
      */
     @Incubating
     ModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
-
-    /**
-     * {@inheritDoc}
-     * @since 2.4
-     */
-    @Incubating
-    ModelBuilder<T> addTestProgressListener(TestProgressListener listener);
 
     /**
      * {@inheritDoc}

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 /**
  * A listener which is notified when the tests that are executed as part of running a build make progress.
  *
- * @see org.gradle.tooling.LongRunningOperation#addTestProgressListener(TestProgressListener)
  * @since 2.4
  */
 @Incubating

@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.r24
 
+
+package org.gradle.integtests.tooling.r25
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=1.0-milestone-8 <2.4")
     def "ignores listeners when Gradle version does not generate test events"() {
         given:
@@ -38,14 +46,16 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener({ throw new RuntimeException() } as TestProgressListener).run()
+                connection.newBuild().forTasks('test').addProgressListener({
+                    throw new RuntimeException()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then:
         noExceptionThrown()
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events when requesting a model"() {
         given:
@@ -55,19 +65,16 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        result.add(event)
-                    }
-                }).get()
+                connection.model(BuildInvocations.class).forTasks('test').addProgressListener({ ProgressEvent event ->
+                    result << (event as TestProgressEvent)
+                }, EnumSet.of(ProgressEventType.TEST)).get()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events when launching a build"() {
         given:
@@ -77,19 +84,19 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "build aborts if a test listener throws an exception"() {
         given:
@@ -98,19 +105,19 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "build aborts if the test listener throws an exception"
         thrown(GradleConnectionException)
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
@@ -121,31 +128,36 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        resultsOfFirstListener.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        resultsOfFirstListener << (event as TestProgressEvent)
                     }
-                }).addTestProgressListener(new TestProgressListener() {
+                }, EnumSet.of(ProgressEventType.TEST)).addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         throw new IllegalStateException("Throwing an exception on purpose")
                     }
-                }).addTestProgressListener(new TestProgressListener() {
+                }, EnumSet.of(ProgressEventType.TEST)).addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        resultsOfLastListener.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        resultsOfLastListener << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
         thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 1
-        resultsOfLastListener.size() == 1
+        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version('2.5')) {
+            assert resultsOfFirstListener.size() > 1
+            assert resultsOfLastListener.size() > 1
+        } else {
+            resultsOfFirstListener.size() == 1
+            resultsOfLastListener.size() == 1
+        }
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events for successful test run"() {
         given:
@@ -170,13 +182,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then:
@@ -269,7 +280,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events for failed test run"() {
         given:
@@ -295,13 +306,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then:
@@ -400,7 +410,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootFailedEvent.result.failures.size() == 0
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events for skipped test run"() {
         given:
@@ -425,13 +435,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then:
@@ -520,7 +529,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test workers"() {
         given:
@@ -579,13 +588,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "start and end event is sent for each node in the test tree"
@@ -600,7 +608,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToolingApiVersion("=2.4")
+    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
@@ -659,13 +667,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
                     }
-                }).withArguments('--parallel').run()
+                }, EnumSet.of(ProgressEventType.TEST)).withArguments('--parallel').run()
         }
 
         then: "start and end event is sent for each node in the test tree"
@@ -681,6 +688,84 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         then: "names for root suites and worker suites are consistent"
         result.findAll { it.descriptor.name =~ 'Gradle Test Run :sub[1|2]:test' }.toSet().size() == 4  // 2 root suites for 2 tasks (start & finish events)
         result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
+    }
+
+    @TargetGradleVersion(">=2.5")
+    @ToolingApiVersion(">=2.4")
+    @NotYetImplemented
+    def "should receive test events from buildSrc"() {
+        buildFile << """task dummy()"""
+        file("buildSrc/build.gradle") << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+        file("buildSrc/src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when:
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().forTasks('dummy').addProgressListener({ ProgressEvent event ->
+                result << (event as TestProgressEvent)
+            }, EnumSet.of(ProgressEventType.TEST)).run()
+        }
+
+        then:
+        !result.empty
+    }
+
+    @TargetGradleVersion(">=2.5")
+    @ToolingApiVersion(">=2.5")
+    def "top-level test operation has test task as parent iff task listener is attached"() {
+        given:
+        goodCode()
+
+        when: 'listening to test progress events and task listener is attached'
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        if (event instanceof TestProgressEvent) {
+                            result << event
+                        }
+                    }
+                }, EnumSet.of(ProgressEventType.TASK, ProgressEventType.TEST)).run()
+        }
+
+        then: 'the parent of the root test progress event is the test task that triggered the tests'
+        !result.isEmpty()
+        [result.first(), result.last()].each { def event ->
+            assert event.descriptor.parent instanceof TaskOperationDescriptor
+            assert event.descriptor.parent.name == 'test'
+        }
+
+        when: 'listening to test progress events and no task listener is attached'
+        result = new ArrayList<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TestProgressEvent)
+                    }
+                }, EnumSet.of(ProgressEventType.TEST)).run()
+        }
+
+        then: 'the parent of the root test progress event is null'
+        !result.isEmpty()
+        [result.first(), result.last()].each { def event ->
+            assert event.descriptor.parent == null
+        }
     }
 
     def goodCode() {

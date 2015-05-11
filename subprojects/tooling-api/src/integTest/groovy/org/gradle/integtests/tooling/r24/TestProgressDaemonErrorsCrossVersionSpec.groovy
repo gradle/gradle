@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.test.TestProgressEvent
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
@@ -31,8 +33,8 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion('>=2.4')
-    @ToolingApiVersion('>=2.4')
-    def "should received failed event when daemon disappears unexpectedly"() {
+    @ToolingApiVersion('=2.4')
+    def "should received failed event when daemon disappears unexpectedly with TAPI 2.4"() {
         given:
         goodCode()
 
@@ -43,6 +45,29 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
                 result << event
                 toolingApi.daemons.daemon.kill()
             }.run()
+        }
+
+        then: "build fails with a DaemonDisappearedException"
+        GradleConnectionException ex = thrown()
+        ex.cause.message.contains('Gradle build daemon disappeared unexpectedly')
+
+        and: "a single event was received"
+        result.size() == 1
+    }
+
+    @TargetGradleVersion('>=2.4')
+    @ToolingApiVersion('>2.4')
+    def "should received failed event when daemon disappears unexpectedly with TAPI >2.4"() {
+        given:
+        goodCode()
+
+        when:
+        def result = []
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
+                result << event
+                toolingApi.daemons.daemon.kill()
+            }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "build fails with a DaemonDisappearedException"
