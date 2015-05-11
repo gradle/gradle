@@ -121,6 +121,14 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     *
+     * @since 2.5
+     */
+    @Incubating
+    ModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
+
+    /**
+     * {@inheritDoc}
      * @since 2.5
      */
     @Incubating
