@@ -28,13 +28,13 @@ class TestMirahComponent extends IncrementalTestJvmComponent {
 
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''
-package compile.test;
+package compile.test
 
 class Person(name: String, age: Integer) {
     override def toString(): String = name + ", " + age;
 }'''),
             new JvmSourceFile("compile/test", "Person2.mirah", '''
-package compile.test;
+package compile.test
 
 class Person2 {
 }
