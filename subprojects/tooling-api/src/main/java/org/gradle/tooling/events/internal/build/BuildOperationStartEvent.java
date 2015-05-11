@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal.build;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.StartEvent;
 
 /**
- * Describes the result of running a build operation.
+ * An event that informs about a build operation having started its execution.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildOperationResult extends OperationResult {
+public interface BuildOperationStartEvent extends BuildOperationProgressEvent, StartEvent {
 }

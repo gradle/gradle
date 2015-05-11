@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.internal.build;
 
-import org.gradle.tooling.events.build.BuildSuccessResult;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * Implementation of the {@code BuildSuccessResult} interface.
+ * Root interface for all events that signal progress while executing a build.
+ *
+ * @since 2.5
  */
-public final class DefaultBuildOperationSuccessResult implements BuildSuccessResult {
-
-    private final long startTime;
-    private final long endTime;
-
-    public DefaultBuildOperationSuccessResult(long startTime, long endTime) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-
+@Incubating
+public interface BuildOperationProgressEvent extends ProgressEvent {
+    /**
+     * Returns the description of the build for which progress is reported.
+     *
+     * @return The description of the underlying build operation.
+     */
     @Override
-    public long getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public long getEndTime() {
-        return endTime;
-    }
+    BuildOperationDescriptor getDescriptor();
 
 }

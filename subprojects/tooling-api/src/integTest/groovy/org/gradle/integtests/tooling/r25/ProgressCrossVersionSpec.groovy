@@ -24,7 +24,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.build.BuildOperationProgressEvent
+import org.gradle.tooling.events.internal.build.BuildOperationProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.test.TestProgressEvent
 

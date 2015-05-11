@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A listener which is notified when operations that are executed as part of running a build make progress.
  *
+ * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener)
  * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.EnumSet)
  * @since 2.5
  */
@@ -30,14 +31,18 @@ public interface ProgressListener {
     /**
      * Called when the execution of an operation progresses.
      *
-     * The following events are currently issued:
+     * The following operation-specific events are currently issued:
      * <ul>
      *     <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.build.BuildOperationStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.build.BuildOperationFinishEvent}</li>
+     * </ul>
+     *
+     * For all other operations, the following generic events are currently issued :
+     * <ul>
+     *     <li>{@link StartEvent}</li>
+     *     <li>{@link FinishEvent}</li>
      * </ul>
      *
      * You can find out more about the operation for which progress is reported
@@ -46,7 +51,7 @@ public interface ProgressListener {
      * @param event An event describing the operation progress.
      * @see org.gradle.tooling.events.test.TestProgressEvent
      * @see org.gradle.tooling.events.task.TaskProgressEvent
-     * @see org.gradle.tooling.events.build.BuildOperationProgressEvent
+     * @see org.gradle.tooling.events.ProgressEvent
      */
     void statusChanged(ProgressEvent event);
 

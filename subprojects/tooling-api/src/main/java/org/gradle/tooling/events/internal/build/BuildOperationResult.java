@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal.build;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.FailureResult;
-
-import java.util.List;
+import org.gradle.tooling.events.OperationResult;
 
 /**
- * Describes how a build operation finished with failures.
+ * Describes the result of running a build operation.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildFailureResult extends BuildOperationResult, FailureResult {
-    /**
-     * Returns the exceptions that occurred while running the build, if any.
-     *
-     * @return the exceptions, empty if the build failed without any exceptions
-     */
-    @Override
-    List<? extends Failure> getFailures();
+public interface BuildOperationResult extends OperationResult {
 }

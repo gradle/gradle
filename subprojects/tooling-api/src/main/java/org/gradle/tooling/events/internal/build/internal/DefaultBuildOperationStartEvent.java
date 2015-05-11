@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.internal.build.internal;
 
-import org.gradle.tooling.events.build.BuildOperationDescriptor;
-import org.gradle.tooling.events.build.BuildOperationStartEvent;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
+import org.gradle.tooling.events.internal.build.BuildOperationDescriptor;
+import org.gradle.tooling.events.internal.build.BuildOperationStartEvent;
 
 public class DefaultBuildOperationStartEvent extends DefaultStartEvent implements BuildOperationStartEvent {
 

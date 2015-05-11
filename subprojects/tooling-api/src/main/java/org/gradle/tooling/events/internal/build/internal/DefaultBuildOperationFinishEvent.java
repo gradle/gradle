@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.internal.build.internal;
 
-import org.gradle.tooling.events.build.BuildOperationDescriptor;
-import org.gradle.tooling.events.build.BuildOperationFinishEvent;
-import org.gradle.tooling.events.build.BuildOperationResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
+import org.gradle.tooling.events.internal.build.BuildOperationDescriptor;
+import org.gradle.tooling.events.internal.build.BuildOperationFinishEvent;
+import org.gradle.tooling.events.internal.build.BuildOperationResult;
 
 public class DefaultBuildOperationFinishEvent extends DefaultFinishEvent implements BuildOperationFinishEvent {
 

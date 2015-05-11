@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal.build;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.SuccessResult;
+import org.gradle.tooling.events.OperationDescriptor;
 
 /**
- * Describes how a build operation finished successfully.
+ * Describes a build operation for which an event has occurred.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildSuccessResult extends BuildOperationResult, SuccessResult {
+public interface BuildOperationDescriptor extends OperationDescriptor {
 }

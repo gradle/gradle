@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal.build;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
- * Root interface for all events that signal progress while executing a build.
+ * Describes how a build operation finished successfully.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildOperationProgressEvent extends ProgressEvent {
-    /**
-     * Returns the description of the build for which progress is reported.
-     *
-     * @return The description of the underlying build operation.
-     */
-    @Override
-    BuildOperationDescriptor getDescriptor();
-
+public interface BuildSuccessResult extends BuildOperationResult, SuccessResult {
 }

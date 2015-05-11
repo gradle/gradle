@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build;
+package org.gradle.tooling.events.internal.build;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.FinishEvent;
 
 /**
- * An event that informs about a build operation having started its execution.
+ * An event that informs about a build operation having finished its execution. You can query the result of the build using {@link #getResult()}.
  *
  * @since 2.5
  */
 @Incubating
-public interface BuildOperationStartEvent extends BuildOperationProgressEvent, StartEvent {
+public interface BuildOperationFinishEvent extends BuildOperationProgressEvent, FinishEvent {
+
+    /**
+     * Returns the result of the finished task operation. Currently, the result will be one of the following sub-types:
+     *
+     * <ul> <li>{@link BuildSuccessResult}</li> <li>{@link BuildFailureResult}</li> </ul>
+     *
+     * @return the result of the finished build operation
+     */
+    @Override
+    BuildOperationResult getResult();
+
 }

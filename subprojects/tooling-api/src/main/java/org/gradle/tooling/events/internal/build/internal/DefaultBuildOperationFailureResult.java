@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.build.internal;
+package org.gradle.tooling.events.internal.build.internal;
 
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.build.BuildFailureResult;
+import org.gradle.tooling.events.internal.build.BuildFailureResult;
 
 import java.util.List;
 
