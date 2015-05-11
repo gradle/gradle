@@ -689,82 +689,45 @@ For a conventional `apply plugin: 'java'` project:
 1. Task can specify project directory as a task input; changes are respected
 1. Task can specify root directory of multi project build as a task input; changes are respected
 
-### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
+### Story: Continuous build is executed via the Tooling API
 
-- All files in the project build directory will be ignored in watching. This simplifies the implementation of the story since task input/output analysis isn't strictly required when we ignore file changes in the build directory.
-- Should not miss file changes that happen during the build. A typical use case is to keep continuous mode running and edit files without waiting for builds to complete.
-  - this requirement will be handled by starting to watch task input file changes in the `beforeExecute` method of a `TaskExecutionListener`. Any changes that happen after this point will trigger a new build after the current build finishes.
-- Should reuse watches of the previous build in the next build "round" to minimize IO resource overhead of file watching and to minimize latency.
-  - Stopping watching during each build would add a lot of overhead in removing all watches and re-adding them back again.
+This story adds support for executing continuous builds via the Tooling API.
+It does not address continually building/providing tooling models.
+It also does not improve the general capabilities of continuous mode.
 
 #### Test Coverage
 
-- Changing/adding/removing a source file of a certain task when the build is running
-  - a) before the task has been executed (should not start a new build when the current build finishes)
-  - b) after the task has been executed (should immediately start a new build when the current build finishes)
-  - c) during the task is executing (should immediately start a new build when the current build finishes)
+- client executes continuous build that succeeds, then responds to input changes and succeeds
+- client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds
+- client executes continuous build that fails, then responds to input changes and succeeds
+- client can cancel during execution of a continuous build
+- client can cancel while a continuous build is waiting for changes
+- client can request continuous mode when building a model, but request is effectively ignored
+- client can receive appropriate logging and progress events for subsequent builds in continuous mode
+- client receives appropriate error if continuous mode attempted on unsupported platform
+- logging does not include message to use `ctrl-c` to exit continuous mode
 
-#### Open Issues
+### Story: Command line user exits continuous build mode without killing the Gradle process
 
-- Enforce 'quiet' period, so we do not rebuild immediately on the first change.
-- Does a new directory being added to an @InputDirectory input trigger a rebuild? (e.g. `mkdir src/main/java/newDir`)
-- Does an @InputFile that is a directory being removed/added trigger a rebuild?
-- How are symlinks being dealt with
-- How are we dealing with @InputDirectory where the value is something like `zipTree`
-- Given tasks A <- B <- C, if B fails and the inputs to C change, should a build be triggered?
+Prior to this story, the only way for a command line user to exit continuous mode is to kill the process.
+This story makes the use of continuous mode more effective by allowing better utilisation of warm Gradle daemons.
 
-### Story: Continuous Gradle mode used through Tooling API
+`ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
 
-Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build through the Tooling API.
+### Backlog & Open Issues
 
-#### Implementation
-
-- BuildActionExecuter used by ProviderConnection understands continuous mode parameters
-- ProviderOperationParameters adds continuous mode flags?
-- DaemonBuildActionExecuter uses continuous mode parameters from ProviderOperationParameters 
-    - Continuous mode is ignored for requesting a model
-    - Continuous mode is ignored when running a build action
-
-#### Test Coverage
-- Test coverage that watch mode works through the tooling API
-    - Client receives logging output, progress events and test events from each build execution until cancelled.
-    - Client receives ‘cancelled’ exception when cancelled.
-    - Cannot use watch mode when requesting a model or running a build action.
-
-### Open Issues
-
-#### Story: Continuous Gradle mode rebuilds if inputs to the model change
-
-Monitor files that are inputs to the model for changes too.
-
-TODO: This should be split into multiple stories.
-
-Model inputs include build.gradle, settings.gradle, gradle.properties, custom configuration files, some web service.
-
-There are a few more inputs that might not be so obvious:
-
-- The gradle-wrapper.properties file.
-- The gradle.properties and init.gradle scripts in ~/.gradle, and their inputs.
-- The plugins and their inputs and dependencies.
-- The contents of the various repositories that the build logic uses, eg to resolve plugins, libraries and so on.
-- The presence/absence of source directories (these affect the new model)
-- The toolchains that the build uses
-- Environment variables, system properties, command-line options provided when Gradle was invoked.
-- Values the user was prompted for, eg from in the IDE.
-
-TODO: See if these make sense incorporated in another story/Feature.
-
-- Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
-- Just use Java 7 watcher for now. We can improve performance on OS X and Windows later.
-    - Do this by adding stuff to native-platform. Could potentially spit out a warning on these platforms.
-- Fail when running on Java 6. We can fix this by using native-platform later, rather than polling.
-- What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
-- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
-  - no complex task graph input/output analysis is required in implementing this story. Therefore possible task graph input/output analysis should be done in a separate story.
-- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
-- If previous build started any service, stop that service before rebuilding.
-- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
-- Ctrl+C kills the daemon process too, maybe we should use something else to exit continuous mode
+- Performance benchmarking
+- Responding the changes that occur during the build that affect inputs of already executed tasks
+- Responding to changes to build logic implementation:
+    - `buildSrc`
+    - project build scripts
+    - script plugins
+    - dynamic plugin dependencies
+- Responding to changes to “dynamic” dependencies (i.e. in the `dependencies {}` sense)
+- Responding to dynamic inputs to build logic (e.g. properties file read by adhoc user code that externalises build logic)
+- A quiet period should be respected for file system changes (e.g. wait for all copy operations to complete, wait for user to complete source edits)
+- Certain inputs might be known to be immutable (e.g. cached repository dependencies have a checksum in their path and will not change, system header files)
+- Changes to files behind symlinks are not respected
 
 ---
 
