@@ -15,9 +15,11 @@
  */
 
 package org.gradle.internal.component.external.model
-
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetaDataTest extends Specification {
@@ -38,5 +40,33 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
 
         and:
         metaData.getArtifact(publishArtifact.id) == publishArtifact
+    }
+
+    def "can add dependencies"() {
+        def dependency = Mock(DependencyMetaData)
+
+        given:
+        metaData.addConfiguration(new Configuration("conf1"))
+
+        and:
+        dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")
+        dependency.force >> true
+        dependency.changing >> true
+        dependency.transitive >> true
+        dependency.moduleConfigurations >> (["conf1"] as String[])
+        dependency.getDependencyConfigurations("conf1", "conf1") >> (["dep1"] as String[])
+        dependency.artifacts >> ([] as Set)
+
+        when:
+        metaData.addDependency(dependency)
+
+        then:
+        metaData.moduleDescriptor.dependencies.length == 1
+        def depDescriptor = metaData.moduleDescriptor.dependencies[0]
+        depDescriptor.force
+        depDescriptor.changing
+        depDescriptor.transitive
+        depDescriptor.moduleConfigurations as List == ["conf1"]
+        depDescriptor.allDependencyArtifacts.length == 0
     }
 }

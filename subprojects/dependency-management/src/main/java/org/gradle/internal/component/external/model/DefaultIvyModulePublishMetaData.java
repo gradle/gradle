@@ -76,6 +76,8 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
             }
             addDependencyArtifacts(moduleConfiguration, dependency.getArtifacts(), dependencyDescriptor);
         }
+
+        moduleDescriptor.addDependency(dependencyDescriptor);
     }
 
     private void addDependencyArtifacts(String configuration, Set<IvyArtifactName> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
