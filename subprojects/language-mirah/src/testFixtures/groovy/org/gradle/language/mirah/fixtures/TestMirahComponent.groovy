@@ -47,8 +47,6 @@ end
             new JvmSourceFile("compile/test", "Person2.mirah", '''
 package compile.test
 
-class Person2 {
-}
 class Person2
 end
 ''')
