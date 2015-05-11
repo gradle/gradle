@@ -482,7 +482,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                             result << (event as TaskProgressEvent)
                         }
                     }
-                }, EnumSet.of(ProgressEventType.BUILD, ProgressEventType.TASK)).run()
+                }, EnumSet.of(ProgressEventType.GENERIC, ProgressEventType.TASK)).run()
         }
 
         then: 'the parent of the task events is the root build operation'

@@ -103,7 +103,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         if (eventTypes.contains(ProgressEventType.TASK)) {
             addTaskProgressListener(delegatingListener);
         }
-        if (eventTypes.contains(ProgressEventType.BUILD)) {
+        if (eventTypes.contains(ProgressEventType.GENERIC)) {
             addBuildOperationProgressListeners(delegatingListener);
         }
         return getThis();

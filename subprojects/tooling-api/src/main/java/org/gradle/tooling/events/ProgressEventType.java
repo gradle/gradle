@@ -23,6 +23,19 @@ package org.gradle.tooling.events;
  */
 public enum ProgressEventType {
 
-    TEST, TASK, BUILD
+    /**
+     * Flag for test operation progress events.
+     */
+    TEST,
+
+    /**
+     * Flag for task operation progress events.
+     */
+    TASK,
+
+    /**
+     * Flag for progress events for which there is no specific operation type.
+     */
+    GENERIC
 
 }
