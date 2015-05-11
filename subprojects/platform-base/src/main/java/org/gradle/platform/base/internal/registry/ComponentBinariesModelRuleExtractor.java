@@ -83,10 +83,18 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                 public void execute(MutableModelNode componentModelNode, C component, List<ModelView<?>> componentRuleInputs) {
                     ComponentSpecInternal componentSpecInternal = uncheckedCast(componentModelNode.getPrivateData());
                     MutableModelNode binariesNode = componentModelNode.getLink("binaries");
-                    PolymorphicDomainObjectContainerBackedModelMap<BinarySpec> binarySpecs = new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
-                        componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
+                    DefaultModelViewState binariesState = new DefaultModelViewState(DefaultModelMap.modelMapTypeOf(binaryType), getDescriptor());
+                    ModelMap<BinarySpec> binarySpecs = new ModelMapGroovyDecorator<BinarySpec>(
+                        new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
+                            componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
+                        ),
+                        binariesState
                     );
-                    invoke(componentRuleInputs, binarySpecs.withType(binaryType), componentSpecInternal);
+                    try {
+                        invoke(componentRuleInputs, binarySpecs.withType(binaryType), componentSpecInternal);
+                    } finally {
+                        binariesState.close();
+                    }
                 }
             };
             modelNode.applyToAllLinks(ModelActionRole.Mutate, TriActionBackedModelAction.of(ModelReference.of(ModelType.of(componentType)), getDescriptor(), getInputs(), action));

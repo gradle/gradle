@@ -196,7 +196,6 @@ Binaries
                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, $ruleInputs) {
                    myModel.values.each{ value ->
                         binaries.create("\${library.name}\${value}Binary")
-
                    }
                }
            }
@@ -247,5 +246,60 @@ Binaries
          }
         apply plugin: MyComponentBinariesPlugin
 """
+    }
+
+    def "subject of @ComponentBinaries rule is Groovy decorated"() {
+        buildFile << """
+            class GroovyComponentBinariesRules extends RuleSource {
+                @ComponentBinaries
+                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleLibrary library) {
+                    binaries.derivedFromMethodName(SampleBinary) {}
+                }
+            }
+
+            apply type: GroovyComponentBinariesRules
+        """
+
+        when:
+        succeeds "components"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+Binaries
+    DefaultSampleBinary 'derivedFromMethodName'
+        build using task: :derivedFromMethodName
+"""))
+    }
+
+    def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {
+        buildFile << """
+            class BinariesHolder {
+                ModelMap<SampleBinary> binaries
+            }
+            class IllegallyMutatingComponentBinariesRules extends RuleSource {
+                @Model
+                BinariesHolder holder() {
+                    return new BinariesHolder()
+                }
+
+                @ComponentBinaries
+                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleLibrary library, BinariesHolder holder) {
+                    holder.binaries = binaries
+                }
+
+                @Mutate
+                void mutateBinariesOutsideOfComponentBinariesRule(ModelMap<Task> task, BinariesHolder holder) {
+                    holder.binaries.create("illegal", SampleBinary)
+                }
+            }
+
+            apply type: IllegallyMutatingComponentBinariesRules
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Attempt to mutate closed view of model of type '${ModelMap.name}<SampleBinary>' given to rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary(org.gradle.model.ModelMap<SampleBinary>, SampleLibrary, BinariesHolder)'")
     }
 }
