@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import com.google.common.base.Strings
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -26,8 +25,12 @@ import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.internal.DefaultFinishEvent
 import org.gradle.tooling.events.internal.DefaultStartEvent
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
+import org.gradle.tooling.events.task.TaskStartEvent
+import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.test.TestStartEvent
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=2.5")
@@ -54,10 +57,10 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it instanceof TestProgressEvent }.size() > 0
         result.findAll { it instanceof TaskProgressEvent }.size() > 0
         result.findAll { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }.size() > 0
-        result.findIndexOf { it.class == DefaultStartEvent || it.class == DefaultFinishEvent } < result.findIndexOf { it instanceof TaskProgressEvent }
-        result.findIndexOf { it instanceof TaskProgressEvent } < result.findIndexOf { it instanceof TestProgressEvent }
-        result.findLastIndexOf { it instanceof TaskProgressEvent } > result.findLastIndexOf { it instanceof TestProgressEvent }
-        result.findLastIndexOf { it.class == DefaultStartEvent || it.class == DefaultFinishEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
+        result.findIndexOf { it.class == DefaultStartEvent } < result.findIndexOf { it instanceof TaskStartEvent }
+        result.findIndexOf { it instanceof TaskStartEvent } < result.findIndexOf { it instanceof TestStartEvent }
+        result.findLastIndexOf { it instanceof TaskFinishEvent } > result.findLastIndexOf { it instanceof TestFinishEvent }
+        result.findLastIndexOf { it.class == DefaultFinishEvent } > result.findLastIndexOf { it instanceof TaskFinishEvent }
     }
 
     def "register for subset of progress events at once"() {
@@ -106,8 +109,6 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         def rootNodes = result.findAll { it.descriptor.parent == null }
         rootNodes.size() == 2
         rootNodes.each { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }
-
-        displayOperationsTree(result)
     }
 
     def goodCode() {
@@ -128,18 +129,18 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    static displayOperationsTree(List<ProgressEvent> events) {
-        traverse(null, events, 0)
-    }
-
-    static def traverse(ProgressEvent parentEvent, List<ProgressEvent> events, int depth) {
-        def spacing = Strings.repeat(' ', depth * 4)
-        println(spacing + (parentEvent == null ? 'Root' : "$parentEvent.displayName ($parentEvent.descriptor.name - $parentEvent.descriptor.displayName)"))
-
-        def directChildren = events.findAll { it.descriptor.parent == parentEvent?.descriptor }
-
-        events.removeAll(directChildren)
-        directChildren.each { traverse(it, events, depth + 1) }
-    }
+//    static displayOperationsTree(List<ProgressEvent> events) {
+//        traverse(null, events, 0)
+//    }
+//
+//    static def traverse(ProgressEvent parentEvent, List<ProgressEvent> events, int depth) {
+//        def spacing = Strings.repeat(' ', depth * 4)
+//        println(spacing + (parentEvent == null ? 'Root' : "$parentEvent.displayName ($parentEvent.descriptor.name - $parentEvent.descriptor.displayName)"))
+//
+//        def directChildren = events.findAll { it.descriptor.parent == parentEvent?.descriptor }
+//
+//        events.removeAll(directChildren)
+//        directChildren.each { traverse(it, events, depth + 1) }
+//    }
 
 }
