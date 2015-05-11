@@ -16,19 +16,24 @@
 
 package org.gradle.tooling.events.build.internal;
 
-import org.gradle.tooling.events.build.BuildSuccessResult;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.build.BuildFailureResult;
+
+import java.util.List;
 
 /**
- * Implementation of the {@code BuildSuccessResult} interface.
+ * Implementation of the {@code BuildFailureResult} interface.
  */
-public final class DefaultBuildSuccessResult implements BuildSuccessResult {
+public final class DefaultBuildOperationFailureResult implements BuildFailureResult {
 
     private final long startTime;
     private final long endTime;
+    private final List<? extends Failure> failures;
 
-    public DefaultBuildSuccessResult(long startTime, long endTime) {
+    public DefaultBuildOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         this.startTime = startTime;
         this.endTime = endTime;
+        this.failures = failures;
     }
 
     @Override
@@ -39,6 +44,11 @@ public final class DefaultBuildSuccessResult implements BuildSuccessResult {
     @Override
     public long getEndTime() {
         return endTime;
+    }
+
+    @Override
+    public List<? extends Failure> getFailures() {
+        return failures;
     }
 
 }

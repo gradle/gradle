@@ -295,9 +295,9 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private static BuildOperationResult toBuildResult(InternalBuildOperationResult result) {
         if (result instanceof InternalBuildSuccessResult) {
-            return new DefaultBuildSuccessResult(result.getStartTime(), result.getEndTime());
+            return new DefaultBuildOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalBuildFailureResult) {
-            return new DefaultBuildFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultBuildOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         } else {
             return null;
         }
