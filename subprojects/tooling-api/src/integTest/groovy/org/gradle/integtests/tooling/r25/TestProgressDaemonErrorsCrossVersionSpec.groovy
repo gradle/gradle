@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-
-package org.gradle.integtests.tooling.r24
+package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
 
@@ -30,19 +30,19 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireIsolatedDaemons()
     }
 
-    @TargetGradleVersion('>=2.4')
-    @ToolingApiVersion('=2.4')
-    def "should received failed event when daemon disappears unexpectedly"() {
+    @TargetGradleVersion(">=2.4")
+    @ToolingApiVersion(">=2.5")
+    def "should received failed event when daemon disappears unexpectedly with TAPI higher 2.4"() {
         given:
         goodCode()
 
         when:
         def result = []
         withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+            connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
                 toolingApi.daemons.daemon.kill()
-            }.run()
+            }, EnumSet.of(ProgressEventType.TEST)).run()
         }
 
         then: "build fails with a DaemonDisappearedException"
