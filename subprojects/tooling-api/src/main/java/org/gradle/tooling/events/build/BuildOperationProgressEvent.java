@@ -25,7 +25,7 @@ import org.gradle.tooling.events.ProgressEvent;
  * @since 2.5
  */
 @Incubating
-public interface BuildProgressEvent extends ProgressEvent {
+public interface BuildOperationProgressEvent extends ProgressEvent {
     /**
      * Returns the description of the build for which progress is reported.
      *

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import com.google.common.base.Strings
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -23,7 +24,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.build.BuildProgressEvent
+import org.gradle.tooling.events.build.BuildOperationProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.test.TestProgressEvent
 
@@ -51,11 +52,11 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
         result.findAll { it instanceof TestProgressEvent }.size() > 0
         result.findAll { it instanceof TaskProgressEvent }.size() > 0
-        result.findAll { it instanceof BuildProgressEvent }.size() > 0
-        result.findIndexOf { it instanceof BuildProgressEvent } < result.findIndexOf { it instanceof TaskProgressEvent }
+        result.findAll { it instanceof BuildOperationProgressEvent }.size() > 0
+        result.findIndexOf { it instanceof BuildOperationProgressEvent } < result.findIndexOf { it instanceof TaskProgressEvent }
         result.findIndexOf { it instanceof TaskProgressEvent } < result.findIndexOf { it instanceof TestProgressEvent }
         result.findLastIndexOf { it instanceof TaskProgressEvent } > result.findLastIndexOf { it instanceof TestProgressEvent }
-        result.findLastIndexOf { it instanceof BuildProgressEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
+        result.findLastIndexOf { it instanceof BuildOperationProgressEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
     }
 
     def "register for subset of progress events at once"() {
@@ -78,7 +79,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
         result.findAll { it instanceof TestProgressEvent }.size() > 0
         result.findAll { it instanceof TaskProgressEvent }.isEmpty()
-        result.findAll { it instanceof BuildProgressEvent }.isEmpty()
+        result.findAll { it instanceof BuildOperationProgressEvent }.isEmpty()
     }
 
     @ToolingApiVersion(">=2.5")
@@ -103,7 +104,9 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         !result.isEmpty()
         def rootNodes = result.findAll { it.descriptor.parent == null }
         rootNodes.size() == 2
-        rootNodes.each { assert it instanceof BuildProgressEvent }
+        rootNodes.each { assert it instanceof BuildOperationProgressEvent }
+
+        displayOperationsTree(result)
     }
 
     def goodCode() {
@@ -122,6 +125,20 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
+    }
+
+    static displayOperationsTree(List<ProgressEvent> events) {
+        traverse(null, events, 0)
+    }
+
+    static def traverse(ProgressEvent parentEvent, List<ProgressEvent> events, int depth) {
+        def spacing = Strings.repeat(' ', depth * 4)
+        println(spacing + (parentEvent == null ? 'Root' : "$parentEvent.displayName ($parentEvent.descriptor.name - $parentEvent.descriptor.displayName)"))
+
+        def directChildren = events.findAll { it.descriptor.parent == parentEvent?.descriptor }
+
+        events.removeAll(directChildren)
+        directChildren.each { traverse(it, events, depth + 1) }
     }
 
 }

@@ -25,7 +25,7 @@ import org.gradle.tooling.events.FinishEvent;
  * @since 2.5
  */
 @Incubating
-public interface BuildOperationFinishEvent extends BuildProgressEvent, FinishEvent {
+public interface BuildOperationFinishEvent extends BuildOperationProgressEvent, FinishEvent {
 
     /**
      * Returns the result of the finished task operation. Currently, the result will be one of the following sub-types:

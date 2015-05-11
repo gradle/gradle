@@ -34,11 +34,11 @@ public interface BuildProgressListener {
      *     <li>{@link BuildOperationFinishEvent}</li>
      * </ul>
      *
-     * You can find out more about the build operation for which progress is reported by querying the build descriptor using {@link BuildProgressEvent#getDescriptor()}.
+     * You can find out more about the build operation for which progress is reported by querying the build descriptor using {@link BuildOperationProgressEvent#getDescriptor()}.
      *
      * @param event An event describing the build operation progress.
-     * @see BuildProgressEvent#getDescriptor()
+     * @see BuildOperationProgressEvent#getDescriptor()
      */
-    void statusChanged(BuildProgressEvent event);
+    void statusChanged(BuildOperationProgressEvent event);
 
 }

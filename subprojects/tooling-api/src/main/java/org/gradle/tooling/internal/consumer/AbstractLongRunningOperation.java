@@ -20,7 +20,7 @@ import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.ProgressEventType;
-import org.gradle.tooling.events.build.BuildProgressEvent;
+import org.gradle.tooling.events.build.BuildOperationProgressEvent;
 import org.gradle.tooling.events.build.BuildProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.events.task.TaskProgressListener;
@@ -143,7 +143,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         }
 
         @Override
-        public void statusChanged(BuildProgressEvent event) {
+        public void statusChanged(BuildOperationProgressEvent event) {
             listener.statusChanged(event);
         }
     }

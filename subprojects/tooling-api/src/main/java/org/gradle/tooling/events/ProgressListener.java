@@ -46,7 +46,7 @@ public interface ProgressListener {
      * @param event An event describing the operation progress.
      * @see org.gradle.tooling.events.test.TestProgressEvent
      * @see org.gradle.tooling.events.task.TaskProgressEvent
-     * @see org.gradle.tooling.events.build.BuildProgressEvent
+     * @see org.gradle.tooling.events.build.BuildOperationProgressEvent
      */
     void statusChanged(ProgressEvent event);
 
