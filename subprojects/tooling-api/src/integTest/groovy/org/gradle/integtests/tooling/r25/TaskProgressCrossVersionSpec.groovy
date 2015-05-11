@@ -24,9 +24,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.build.BuildOperationDescriptor
-import org.gradle.tooling.events.build.BuildProgressEvent
-import org.gradle.tooling.events.build.BuildProgressListener
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -482,12 +483,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addBuildProgressListener(new BuildProgressListener() {
+                connection.newBuild().forTasks('assemble').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(BuildProgressEvent event) {
+                    void statusChanged(ProgressEvent event) {
                         // listener only added to receive the build operation progress events
                     }
-                }).addTaskProgressListener(new TaskProgressListener() {
+                }, EnumSet.of(ProgressEventType.BUILD)).addTaskProgressListener(new TaskProgressListener() {
                     @Override
                     void statusChanged(TaskProgressEvent event) {
                         result << event

@@ -24,6 +24,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.build.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -37,7 +40,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener { throw new RuntimeException() }.run()
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        throw new RuntimeException()
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then:
@@ -51,12 +59,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some task(s) to run first"
-        List<BuildProgressEvent> result = []
+        List<ProgressEvent> result = []
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations).forTasks('test').addBuildProgressListener { BuildProgressEvent event ->
-                    result << event
-                }.get()
+                connection.model(BuildInvocations).forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).get()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
@@ -70,12 +81,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        List<BuildProgressEvent> result = []
+        List<ProgressEvent> result = []
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener { BuildProgressEvent event ->
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
@@ -91,9 +105,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener { BuildProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.run()
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        throw new IllegalStateException("Throwing an exception on purpose")
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then: "build aborts if the build listener throws an exception"
@@ -107,17 +124,26 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        List<BuildProgressEvent> resultsOfFirstListener = new ArrayList<BuildProgressEvent>()
-        List<BuildProgressEvent> resultsOfLastListener = new ArrayList<BuildProgressEvent>()
+        List<ProgressEvent> resultsOfFirstListener = []
+        List<ProgressEvent> resultsOfLastListener = []
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener { BuildProgressEvent event ->
-                    resultsOfFirstListener.add(event)
-                }.addBuildProgressListener { BuildProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.addBuildProgressListener { BuildProgressEvent event ->
-                    resultsOfLastListener.add(event)
-                }.run()
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        resultsOfFirstListener.add(event)
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        throw new IllegalStateException("Throwing an exception on purpose")
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        resultsOfLastListener.add(event)
+                    }
+                }, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then: "current build progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
@@ -131,14 +157,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "receive all possible build progress events types for successful run"() {
         given:
         goodCode()
-        BuildProgressListener listener = Mock()
+        ProgressListener listener = Mock(ProgressListener)
         BuildOperationDescriptor buildDescriptor
         BuildOperationDescriptor configDescriptor
 
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener(listener).run()
+                connection.newBuild().forTasks('test').addProgressListener(listener, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then:
@@ -261,14 +287,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        BuildProgressListener listener = Mock()
+        ProgressListener listener = Mock(ProgressListener)
         BuildOperationDescriptor buildDescriptor
         BuildOperationDescriptor configDescriptor
 
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addBuildProgressListener(listener).run()
+                connection.newBuild().forTasks('test').addProgressListener(listener, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then:
@@ -386,12 +412,12 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             task innerTask()
         """
 
-        BuildProgressListener listener = Mock()
+        ProgressListener listener = Mock(ProgressListener)
 
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('innerBuild').addBuildProgressListener(listener).run()
+                connection.newBuild().forTasks('innerBuild').addProgressListener(listener, EnumSet.of(ProgressEventType.BUILD)).run()
         }
 
         then:

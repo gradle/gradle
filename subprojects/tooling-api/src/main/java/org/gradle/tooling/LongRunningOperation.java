@@ -17,7 +17,6 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEventType;
-import org.gradle.tooling.events.build.BuildProgressListener;
 import org.gradle.tooling.events.task.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 
@@ -193,16 +192,6 @@ public interface LongRunningOperation {
      */
     @Incubating
     LongRunningOperation addTaskProgressListener(TaskProgressListener listener);
-
-    /**
-     * Adds a build progress listener which will receive build progress events as the operation runs.
-     *
-     * @param listener The listener
-     * @return this
-     * @since 2.5
-     */
-    @Incubating
-    LongRunningOperation addBuildProgressListener(BuildProgressListener listener);
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.

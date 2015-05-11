@@ -115,7 +115,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    public T addBuildProgressListener(BuildProgressListener listener) {
+    private T addBuildProgressListener(BuildProgressListener listener) {
         operationParamsBuilder.addBuildProgressListener(listener);
         return getThis();
     }
