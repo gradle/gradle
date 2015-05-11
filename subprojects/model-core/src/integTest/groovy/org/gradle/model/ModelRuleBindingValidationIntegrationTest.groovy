@@ -32,9 +32,6 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
         """
 
         file("unused/build.gradle") << """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class Rules extends RuleSource {
                 @Mutate
                 void unbound(ModelMap<Task> tasks, String unbound) {

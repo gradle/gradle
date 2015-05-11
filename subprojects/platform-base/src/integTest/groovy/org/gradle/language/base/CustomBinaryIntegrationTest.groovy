@@ -21,9 +21,6 @@ import org.gradle.util.TextUtil
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleBinary extends BinarySpec {
     String getVersion()
     void setVersion(String version)

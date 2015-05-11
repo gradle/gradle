@@ -58,8 +58,6 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             task foo {}
 
             afterEvaluate {
@@ -89,8 +87,6 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     def "cant remove task if used by rule"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             task foo {}
             task bar { doLast { tasks.remove(foo) } }
 

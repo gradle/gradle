@@ -29,9 +29,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -92,9 +89,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule can create a managed collection of abstract class backed managed model elements"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
               abstract String getName()
@@ -133,9 +127,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "managed model type has property of collection of managed types"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -186,9 +177,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "managed model type can reference a collection of managed types"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -247,9 +235,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule method can apply defaults to a managed set"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -303,9 +288,6 @@ finalize
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
               Person() {
@@ -378,9 +360,6 @@ configure p3
     def "reports failure that occurs in collection item initializer"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -414,9 +393,6 @@ configure p3
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -446,9 +422,6 @@ configure p3
     def "read methods of ManagedSet throw exceptions when used in a mutation rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -482,9 +455,6 @@ configure p3
     def "mutating a managed set that is an input of a rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -513,9 +483,6 @@ configure p3
     def "mutating a managed set outside of a creation rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -550,9 +517,6 @@ configure p3
     def "mutating managed set which is an input of a DSL rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }

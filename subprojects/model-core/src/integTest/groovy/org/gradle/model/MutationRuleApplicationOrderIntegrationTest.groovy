@@ -41,9 +41,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
     def "mutation rules from inner source classes applied via their common parent are executed in the order specified by class names of these rule sources"() {
         when:
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MultipleRuleSources implements Plugin<Project> {
                 static class B extends RuleSource {
                     @Mutate
@@ -87,9 +84,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
         when:
         EnableModelDsl.enable(executer)
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class FirstSource extends RuleSource {
                 @Mutate
                 void first(MutationRecorder recorder) {
@@ -146,9 +140,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
         when:
         EnableModelDsl.enable(executer)
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class FirstSource extends RuleSource {
                 @Model
                 MutationRecorder recorder() {

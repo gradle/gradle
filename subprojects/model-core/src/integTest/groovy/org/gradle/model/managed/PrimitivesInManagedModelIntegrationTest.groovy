@@ -23,9 +23,6 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     def "values of primitive types and boxed primitive types are widened as usual when using groovy"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface PrimitiveTypes {
                 Long getLongPropertyFromInt()
@@ -69,7 +66,6 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface PrimitiveProperty {
@@ -127,9 +123,6 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     def "can set/get properties of all supported unmanaged types"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface AllSupportedUnmanagedTypes {
                 Boolean getBooleanProperty()

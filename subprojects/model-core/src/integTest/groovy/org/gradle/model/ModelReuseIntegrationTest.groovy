@@ -99,9 +99,6 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
     def "can enable reuse with the variants benchmark"() {
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Flavour {
                 String getName()

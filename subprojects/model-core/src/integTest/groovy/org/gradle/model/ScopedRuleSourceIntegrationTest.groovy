@@ -23,9 +23,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "rule source can be applied in scope of a collection builder element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MessageTask extends DefaultTask {
                 String message = "default"
 
@@ -68,9 +65,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "scoped rule execution failure yields useful error message"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class ThrowingRule extends RuleSource {
                 @Mutate
                 void badRule(Task echo) {
@@ -100,9 +94,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "invalid rule definitions of scoped rules are reported with a message helping to identify the faulty rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class InvalidRuleSource extends RuleSource {
                 @Mutate
                 String invalidRule(Task echo) {
@@ -131,9 +122,6 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "unbound inputs of scoped rules are reported and their scope is shown"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class UnboundRuleSource extends RuleSource {
                 @Mutate
                 void unboundRule(String string, Integer integer, @Path("some.inner.path") String withInnerPath) {

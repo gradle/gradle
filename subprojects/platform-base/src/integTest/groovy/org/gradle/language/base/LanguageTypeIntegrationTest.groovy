@@ -64,9 +64,6 @@ model {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        import org.gradle.model.*
-        import org.gradle.model.collection.*
-
         interface SampleComponent extends ComponentSpec {}
         class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 

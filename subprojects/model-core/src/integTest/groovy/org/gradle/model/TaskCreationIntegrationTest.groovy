@@ -22,9 +22,6 @@ import org.gradle.util.TextUtil
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MessageTask extends DefaultTask {
                 String message = "default"
 
@@ -603,7 +600,7 @@ foo configured
         then:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(25)
+        failure.assertHasLineNumber(22)
     }
 
     def "task created in afterEvaluate() is visible to rules"() {

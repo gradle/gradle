@@ -23,9 +23,6 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-        import org.gradle.model.*
-        import org.gradle.model.collection.*
-
         interface SampleBinary extends BinarySpec {}
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
         interface SampleLibrary extends ComponentSpec {}

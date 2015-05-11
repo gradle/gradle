@@ -24,9 +24,6 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
     def "provides a useful error message when setting an incompatible type on a managed instance in Groovy"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -60,7 +57,6 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
             import java.lang.reflect.*;
 
             @Managed
@@ -96,9 +92,6 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
     def "cannot assign a non-managed instance to a property of a managed type"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -141,11 +134,8 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
     }
 
     def "cannot use value type as subject of void model rule"() {
-        given:
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class Rules extends RuleSource {
               @Model
               void s(String s) {}
@@ -164,9 +154,6 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
     def "provides a useful error message when an invalid managed type is used in a rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()

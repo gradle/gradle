@@ -28,9 +28,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
     def "rule can target structured property of managed element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -78,9 +75,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
     def "rule can target structured property of managed element as subject"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -131,9 +125,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
     def "rule can target simple property of managed element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getName()
@@ -176,9 +167,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
     def "mutation rule can target property of managed element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -226,9 +214,6 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
     def "creation rule can target property of managed element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface OperatingSystem {
                 String getName()

@@ -28,9 +28,6 @@ import java.lang.annotation.Target;
  * {@link LanguageType} annotation.
  *
  * <pre autoTested=''>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface CustomLanguageSourceSet extends LanguageSourceSet {}
  * class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
  *

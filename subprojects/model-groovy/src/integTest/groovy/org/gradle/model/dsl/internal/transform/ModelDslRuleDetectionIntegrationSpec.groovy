@@ -35,8 +35,6 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         buildScript """
-            import org.gradle.model.collection.*
-
             @Managed
             interface Item {
                 String getValue()

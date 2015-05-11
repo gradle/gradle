@@ -23,9 +23,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a composite managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -98,9 +95,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can apply defaults to a nested managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -155,9 +149,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a managed model element that references another managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()

@@ -88,8 +88,6 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
     void withBinaries() {
         buildFile << """
-            import org.gradle.model.collection.*
-
             interface CustomBinary extends BinarySpec {
                 String getData();
             }
@@ -334,8 +332,6 @@ model {
         given:
         withMainSourceSet()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class TaskRules extends RuleSource {
                 @Mutate
                 void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
@@ -361,8 +357,6 @@ model {
         given:
         withMainSourceSet()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class SourceSetRemovalRules extends RuleSource {
                 @Mutate
                 void clearSourceSets(@Path("components.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {
@@ -650,8 +644,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         given:
         withMainSourceSet()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class ComponentSpecContainerRules extends RuleSource {
                 @Mutate
                 void addComponents(ComponentSpecContainer componentSpecs) {
@@ -685,8 +677,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         given:
         withMainSourceSet()
         buildFile << """
-            import org.gradle.model.collection.*
-
             class ComponentSpecContainerRules extends RuleSource {
 
                 @Mutate
@@ -765,8 +755,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         given:
         withBinaries()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class TaskRules extends RuleSource {
                 @Mutate
                 void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
@@ -792,8 +780,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         given:
         withBinaries()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class BinariesRemovalRules extends RuleSource {
                 @Mutate
                 void clearSourceSets(@Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
@@ -842,8 +828,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
     def "can view components container as a model map and as a collection builder"() {
         given:
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class ComponentsRules extends RuleSource {
                 @Mutate
                 void addViaCollectionBuilder(@Path("components") CollectionBuilder<ComponentSpec> components) {

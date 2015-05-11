@@ -33,8 +33,6 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
     def "unbound rules are reported"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class MyThing1 {}
                 static class MyThing2 {}
@@ -96,9 +94,6 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
     def "suggestions are provided for unbound rules"() {
         given:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -122,7 +117,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.foonar @ build file '${buildFile}' line 18, column 17
+  model.tasks.foonar @ build file '${buildFile}' line 15, column 17
     Mutable:
       - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
     }
@@ -130,8 +125,6 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
     def "ambiguous binding integration test"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             class Plugin1 {
                 static class Rules extends RuleSource {
                     @Model
@@ -178,8 +171,6 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
     def "incompatible type binding"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             class Plugin1 {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -207,8 +198,6 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
     def "unbound inputs for creator are reported"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             class Rules extends RuleSource {
                 @Model
                 Integer foo(@Path("bar") Integer bar) {

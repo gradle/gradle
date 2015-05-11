@@ -27,9 +27,6 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}
 

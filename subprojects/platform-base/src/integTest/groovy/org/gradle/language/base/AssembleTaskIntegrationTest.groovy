@@ -91,8 +91,6 @@ class AssembleTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def withSampleBinary() {
         buildFile << """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
             import org.gradle.platform.base.internal.BinaryBuildAbility
 
             interface SampleBinary extends BinarySpec {

@@ -36,8 +36,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "rule inputs can be referenced in closures that are not executed during rule execution"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -78,8 +76,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "inputs are fully configured when used in rules"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -116,8 +112,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "the same input can be referenced more than once, and refers to the same object"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -150,8 +144,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         when:
 
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -205,8 +197,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "only closure literals can be used as rules"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -226,7 +216,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 17
+        failure.assertHasLineNumber 15
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
     }

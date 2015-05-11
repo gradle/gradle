@@ -25,9 +25,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "rule method can define a managed model element backed by an interface"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -81,9 +78,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "rule method can apply defaults to a managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -146,7 +140,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -195,7 +188,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -241,7 +233,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -278,7 +269,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -311,9 +301,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "reports managed interface type in missing property error message"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -339,7 +326,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(15)
         failure.assertHasCause("No such property: unknown for class: Person")
     }
 

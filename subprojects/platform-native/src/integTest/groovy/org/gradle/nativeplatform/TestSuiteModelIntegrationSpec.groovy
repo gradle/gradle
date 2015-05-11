@@ -202,8 +202,6 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         given:
         withMainSourceSet()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class TaskRules extends RuleSource {
                 @Mutate
                 void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("testSuites.main.sources.main") CustomLanguageSourceSet sourceSet) {
@@ -229,8 +227,6 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         given:
         withMainSourceSet()
         buildFile << '''
-            import org.gradle.model.collection.*
-
             class SourceSetRemovalRules extends RuleSource {
                 @Mutate
                 void clearSourceSets(@Path("testSuites.main.sources") NamedDomainObjectCollection<LanguageSourceSet> sourceSets) {

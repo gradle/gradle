@@ -28,9 +28,6 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
     def "can have unmanaged property"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class UnmanagedThing {
               String value
             }
@@ -71,9 +68,6 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
     def "unmanaged property of managed type can be targeted by rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 @Unmanaged

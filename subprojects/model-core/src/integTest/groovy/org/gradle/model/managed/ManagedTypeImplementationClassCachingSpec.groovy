@@ -23,9 +23,6 @@ class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec 
     def "managed type implementation class is generated once for each type and reused"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Named {
                 String getName()

@@ -66,8 +66,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "dollar method is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -100,9 +98,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "input references are found in nested code - #code"() {
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate void addPrintTask(ModelMap<Task> tasks, List<String> strings) {
@@ -160,8 +155,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "input model path must be valid"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -182,7 +175,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber(17)
+        failure.assertHasLineNumber(15)
         failure.assertThatCause(containsString("Invalid model path given as rule input."))
         failure.assertThatCause(containsString("Model path 'foo. bar' is invalid due to invalid name component."))
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
@@ -191,9 +184,6 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -220,10 +210,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.foo", buildFile, 18, 17)
+                UnboundRule.descriptor("model.foo", buildFile, 15, 17)
                         .mutableInput(UnboundRuleInput.type(Object).path("foo"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 19"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 20"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 16"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 17"))
         ))
     }
 

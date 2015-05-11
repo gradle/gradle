@@ -27,9 +27,6 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class Rules extends RuleSource {
                 @Model
                 String first(@Path("second") String second) {
@@ -68,7 +65,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 first
 \\- Rules#first(java.lang.String)
    \\- second
-      \\- model.second @ build file '${buildFile}' line 29, column 17
+      \\- model.second @ build file '${buildFile}' line 26, column 17
          \\- third
             \\- Rules#third(java.lang.String)
                \\- first""")
@@ -80,9 +77,6 @@ first
 
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class Rules extends RuleSource {
                 @Model List<String> m1() { [] }
                 @Model List<String> m2() { [] }
@@ -123,9 +117,6 @@ m1
 
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class Rules extends RuleSource {
                 @Model List<String> m1() { [] }
                 @Model List<String> m2() { [] }

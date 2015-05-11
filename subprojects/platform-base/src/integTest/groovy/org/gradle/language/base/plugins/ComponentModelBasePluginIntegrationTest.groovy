@@ -35,8 +35,6 @@ class ComponentModelBasePluginIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.platform.base.TransformationFileType
             import org.gradle.language.base.internal.registry.*
             import org.gradle.internal.reflect.*
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
 
             class TestComponent extends BaseComponentSpec {
                 public Set<Class<? extends TransformationFileType>> getInputTypes() {

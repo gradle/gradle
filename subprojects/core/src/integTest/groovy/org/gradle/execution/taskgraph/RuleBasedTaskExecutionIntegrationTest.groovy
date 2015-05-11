@@ -105,8 +105,6 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "tasks added via task container and not explicitly required but executed are self closed"() {
         given:
         buildScript '''
-            import org.gradle.model.collection.*
-
             class EchoTask extends DefaultTask {
                 String text = "default"
 
@@ -154,8 +152,6 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         buildScript """
-            import org.gradle.model.collection.*
-
             project(':a') {
                 apply type: ProjectARules
             }

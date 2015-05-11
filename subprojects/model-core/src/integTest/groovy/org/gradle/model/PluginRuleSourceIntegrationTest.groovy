@@ -28,9 +28,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "plugin class can expose model rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -69,8 +66,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "configuration in script is not executed if not needed"() {
         given:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -98,8 +93,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when rules are invalid"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 class Rules extends RuleSource {
                 }
@@ -119,8 +112,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when two plugins declare model at the same path"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -150,8 +141,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when two plugins declare model at the same path and model is already created"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -192,8 +181,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when creation rule throws"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -221,8 +208,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "informative error message when dsl mutation rule throws"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -253,8 +238,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "model creator must provide instance"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model
@@ -283,9 +266,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "plugin applied by plugin can contribute rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyBasePlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -330,9 +310,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "configuration made to a project extension during afterEvaluate() is visible to rule sources"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyExtension {
                 String value = "original"
             }
@@ -381,9 +358,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "rule can depend on a concrete task type"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -412,8 +386,6 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "plugin application fails if rule source constructor throws exception"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-
             class Rules extends RuleSource {
                 Rules() {
                     throw new RuntimeException("failing constructor")

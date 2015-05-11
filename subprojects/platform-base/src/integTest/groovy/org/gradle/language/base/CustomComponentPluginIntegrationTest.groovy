@@ -24,9 +24,6 @@ class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         EnableModelDsl.enable(executer)
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleComponent extends ComponentSpec {
     String getVersion()
     void setVersion(String version)
