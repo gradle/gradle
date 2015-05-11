@@ -22,4 +22,8 @@ import org.gradle.language.mirah.fixtures.TestMirahComponent
 
 class MirahLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestMirahComponent()
+    
+    protected String commentLine() {
+    	  return "# Line trailing comment";
+    }
 }
