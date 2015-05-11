@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
@@ -147,9 +148,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "current build progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
-        thrown(GradleConnectionException)
+        ListenerFailedException ex = thrown()
         resultsOfFirstListener.size() > 0
         resultsOfLastListener.size() > 0
+        ex.causes.size() == resultsOfLastListener.size()
 
         and: "build is successful"
         def lastEvent = resultsOfLastListener[-1]
