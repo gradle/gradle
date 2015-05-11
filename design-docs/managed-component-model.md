@@ -119,7 +119,29 @@ Effectively the same treatment that the component spec container received.
 Implementation should refactor `ComponentModelBasePlugin` and `NativeBinariesTestPlugin` so that this behaviour is reused for the test suite container and not
 duplicated.
 
-# Feature 2: Configuration of key parts of the software model are deferrable until required
+# Feature 2: Public API of the component model does not use domain object collections
+
+## Story: Use `ModelMap` instead of various domain object collection types in public API of component model
+
+- Change the methods currently using domain object collections (i.e. `ComponentSpec.getSource()`, `ComponentSpec.sources()`, `ComponentSpec.getBinaries()`, `ComponentSpec.binaries()`,
+`BinarySpec.getSource()`, `BinarySpec.sources()`) to use `ModelMap`.
+- Create new implementations of `ModelMap` that are backed by appropriate domain object collection and use them in implementation of the above methods.
+- Backing these implementations with domain object collection types means that they will be eager.
+
+### Test coverage
+
+Existing test coverage still works.
+
+### Breaking changes
+
+- `ComponentSpec.getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
+- `ComponentSpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
+- `ComponentSpec.getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `NamedDomainObjectCollection<BinarySpec>`.
+- `ComponentSpec.binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super NamedDomainObjectContainer<BinarySpec>>`.
+- `BinarySpec.getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
+- `BinarySpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
+
+# Feature 3: Configuration of key parts of the software model are deferrable until required
 
 This feature changes the software model to introduce 'managed map' types instead of `DomainObjectSet`.
 
@@ -202,7 +224,7 @@ TODO
 
 TODO
 
-# Feature 3: Plugin author uses managed types to extend the software model
+# Feature 4: Plugin author uses managed types to extend the software model
 
 This feature allows a plugin author to extend certain key types using a managed type:
 
@@ -217,7 +239,7 @@ It is a non-goal of this feature to add any further capabilities to managed type
 This feature will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
 individual nodes.
 
-# Feature 4: Build logic defines tasks for generated source sets and intermediate outputs
+# Feature 5: Build logic defines tasks for generated source sets and intermediate outputs
 
 This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
 and intermediate outputs.
@@ -265,7 +287,7 @@ The implementation would be responsible for invoking the rules when assembling t
 - When a physical thing is used as input, the tasks that build its inputs, if any, should be determined and attached as dependencies of those tasks
 that take the physical thing as input.
 
-# Feature 5: Plugin author uses managed types to define intermediate outputs
+# Feature 6: Plugin author uses managed types to define intermediate outputs
 
 This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
@@ -278,7 +300,7 @@ kind of JVM classpath component.
 One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
 of a buildable thing.
 
-# Feature 6: Build logic defines tasks that run executable things
+# Feature 7: Build logic defines tasks that run executable things
 
 This feature generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
 
@@ -297,7 +319,7 @@ The implementation would be responsible for building the executable things, and 
 
 The `components` report should show details of the executable things, which as the entry point task to run the thing.
 
-# Feature 7: References between key objects in the software model are visible to rules
+# Feature 8: References between key objects in the software model are visible to rules
 
 The relationships exposed in the first feature represent ownership, where the relationship is one between a parent and child.
 This feature exposes other key 'non-ownership' relationships present in the software model.
