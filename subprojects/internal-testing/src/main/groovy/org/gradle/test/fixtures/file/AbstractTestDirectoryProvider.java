@@ -54,7 +54,7 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             @Override
             public void evaluate() throws Throwable {
                 base.evaluate();
-                getTestDirectory().maybeDeleteDir();
+                getTestDirectory().deleteDir();
                 // Don't delete on failure
             }
         };
