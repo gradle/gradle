@@ -19,6 +19,7 @@ package org.gradle.platform.base;
 import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.ModelMap;
 
 /**
  * Represents a binary artifact that is the result of building a project component.
@@ -36,11 +37,6 @@ public interface BinarySpec extends BuildableModelElement, Named {
     boolean isBuildable();
 
     /**
-     * The source sets used to compile this binary.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
      * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
      * <p/>
      * This method accepts the following types:
@@ -55,9 +51,14 @@ public interface BinarySpec extends BuildableModelElement, Named {
     void source(Object source);
 
     /**
+     * The source sets used to compile this binary.
+     */
+    ModelMap<LanguageSourceSet> getSource();
+
+    /**
      * Configures the source sets used to build this binary.
      */
-    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
+    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
 
     /**
      * The set of tasks associated with this binary.

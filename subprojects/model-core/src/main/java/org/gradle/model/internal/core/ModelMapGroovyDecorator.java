@@ -254,5 +254,14 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
         return null;
     }
 
+    public static <T> ModelMapGroovyDecorator<T> alwaysMutable(ModelMap<T> delegate) {
+        return new ModelMapGroovyDecorator<T>(
+            delegate,
+            new ModelViewState() {
+                public void assertCanMutate() {
+                }
+            }
+        );
+    }
 }
 

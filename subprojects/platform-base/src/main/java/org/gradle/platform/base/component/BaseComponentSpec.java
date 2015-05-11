@@ -26,7 +26,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.ModelViewState;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -76,7 +75,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        this.source = new ModelMapGroovyDecorator<LanguageSourceSet>(
+        this.source = ModelMapGroovyDecorator.alwaysMutable(
             new NamedDomainObjectSetBackedModelMap<LanguageSourceSet>(
                 LanguageSourceSet.class,
                 mainSourceSet,
@@ -91,11 +90,8 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                         return Cast.cast(Named.class, object).getName();
                     }
                 }
-            ),
-            new ModelViewState() {
-                public void assertCanMutate() {
-                }
-            });
+            )
+        );
         this.binaries = info.instantiator.newInstance(DefaultBinaryContainer.class, info.instantiator);
     }
 

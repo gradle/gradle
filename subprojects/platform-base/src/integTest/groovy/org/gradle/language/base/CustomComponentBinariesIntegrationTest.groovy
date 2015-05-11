@@ -136,12 +136,12 @@ Binaries
         buildFile << withSimpleComponentBinaries()
         buildFile << """
         task checkSourceSets << {
-            def sampleBinary = project.binaries.sampleLibBinary
-            def othersSampleBinary = project.binaries.sampleLibOtherBinary
-            assert sampleBinary.source[0] instanceof DefaultLibrarySourceSet
-            assert sampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-            assert othersSampleBinary.source[0] instanceof DefaultLibrarySourceSet
-            assert othersSampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+            def sampleBinarySourceSet = project.binaries.sampleLibBinary.source.values()[0]
+            def othersSampleBinarySourceSet = project.binaries.sampleLibOtherBinary.source.values()[0]
+            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
+            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
+            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
         }
 """
         then:

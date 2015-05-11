@@ -78,10 +78,10 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                testSuiteBinary.source(testedBinary.getSource());
+                testSuiteBinary.source(testedBinary.getSource().values());
 
-                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
-                    testSource.lib(testedBinary.getSource());
+                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class).values()) {
+                    testSource.lib(testedBinary.getSource().values());
                 }
             }
         }

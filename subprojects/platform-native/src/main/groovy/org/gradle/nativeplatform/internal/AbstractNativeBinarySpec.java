@@ -112,7 +112,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(getSource().withType(DependentSourceSet.class)).getAllResults();
+        return resolve(getSource().withType(DependentSourceSet.class).values()).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
@@ -124,7 +124,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(getSource().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+        return resolve(getSource().withType(DependentSourceSet.class).values()).getAllLibraryBinaries();
     }
 
     public Map<File, PreCompiledHeader> getPrefixFileToPCH() {

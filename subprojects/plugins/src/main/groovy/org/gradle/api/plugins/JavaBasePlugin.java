@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -150,8 +151,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                binary.getSource().add(javaSourceSet);
-                binary.getSource().add(resourceSet);
+                binary.source(ImmutableList.of(javaSourceSet, resourceSet));
 
                 binary.builtBy(sourceSet.getOutput().getDirs());
             }

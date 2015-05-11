@@ -56,7 +56,7 @@ class JavaBasePluginTest extends Specification {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        
+
         then:
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
@@ -262,6 +262,6 @@ class JavaBasePluginTest extends Specification {
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
-        binary.source as Set == project.sources as Set
+        binary.source.values() as Set == project.sources as Set
     }
 }

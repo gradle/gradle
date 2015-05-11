@@ -36,12 +36,18 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
     protected final Class<T> elementClass;
     protected final NamedEntityInstantiator<T> instantiator;
     protected final Namer<Object> namer;
+    protected final Action<? super T> onCreateAction;
 
     protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, C backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer) {
+        this(elementClass, backingCollection, instantiator, namer, Actions.doNothing());
+    }
+
+    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, C backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreateAction) {
         this.elementClass = elementClass;
         this.backingCollection = backingCollection;
         this.instantiator = instantiator;
         this.namer = namer;
+        this.onCreateAction = onCreateAction;
     }
 
     @Override
@@ -110,10 +116,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
         instantiator.create(name, type);
         S task = Cast.uncheckedCast(get(name));
         configAction.execute(task);
-        onCreate(task);
-    }
-
-    protected void onCreate(T item) {
+        onCreateAction.execute(task);
     }
 
     @Override
