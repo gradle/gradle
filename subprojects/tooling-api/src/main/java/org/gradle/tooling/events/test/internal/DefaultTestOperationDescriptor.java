@@ -16,44 +16,17 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
  * Implementation of the {@code TestOperationDescriptor} interface.
  */
-public class DefaultTestOperationDescriptor implements TestOperationDescriptor {
-
-    private final String name;
-    private final String displayName;
-    private final OperationDescriptor parent;
+public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor implements TestOperationDescriptor {
 
     public DefaultTestOperationDescriptor(String name, String displayName, OperationDescriptor parent) {
-        this.name = name;
-        this.displayName = displayName;
-        this.parent = parent;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Nullable
-    @Override
-    public OperationDescriptor getParent() {
-        return parent;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
+        super(name, displayName, parent);
     }
 
 }

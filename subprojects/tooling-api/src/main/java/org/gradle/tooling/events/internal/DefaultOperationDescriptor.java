@@ -22,7 +22,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 /**
  * Implementation of the {@code BuildOperationDescriptor} interface.
  */
-public final class DefaultOperationDescriptor implements OperationDescriptor {
+public class DefaultOperationDescriptor implements OperationDescriptor {
 
     private final String name;
     private final String displayName;

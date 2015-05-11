@@ -16,35 +16,20 @@
 
 package org.gradle.tooling.events.task.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 
 /**
  * Implementation of the {@code TaskOperationDescriptor} interface.
  */
-public final class DefaultTaskOperationDescriptor implements TaskOperationDescriptor {
+public final class DefaultTaskOperationDescriptor extends DefaultOperationDescriptor implements TaskOperationDescriptor {
 
-    private final String name;
-    private final String displayName;
     private final String taskPath;
-    private final OperationDescriptor parent;
 
     public DefaultTaskOperationDescriptor(String name, String displayName, String taskPath, OperationDescriptor parent) {
-        this.name = name;
-        this.displayName = displayName;
+        super(name, displayName, parent);
         this.taskPath = taskPath;
-        this.parent = parent;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
     }
 
     @Override
@@ -52,15 +37,5 @@ public final class DefaultTaskOperationDescriptor implements TaskOperationDescri
         return taskPath;
     }
 
-    @Nullable
-    @Override
-    public OperationDescriptor getParent() {
-        return parent;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
 
 }
