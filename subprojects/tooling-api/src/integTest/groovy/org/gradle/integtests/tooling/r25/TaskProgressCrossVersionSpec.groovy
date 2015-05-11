@@ -41,7 +41,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { throw new RuntimeException() }.run()
+                connection.newBuild().forTasks('assemble').addProgressListener({
+                    throw new RuntimeException()
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -58,9 +60,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations).forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
-                    result << event
-                }.get()
+                connection.model(BuildInvocations).forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).get()
         }
 
         then: "task progress events must be forwarded to the attached listeners"
@@ -77,9 +79,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
@@ -95,9 +97,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     throw new IllegalStateException("Throwing an exception on purpose")
-                }.run()
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then: "build aborts if the task listener throws an exception"
@@ -115,13 +117,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> resultsOfLastListener = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
-                    resultsOfFirstListener.add(event)
-                }.addTaskProgressListener { TaskProgressEvent event ->
+                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                    resultsOfFirstListener << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).addProgressListener({ ProgressEvent event ->
                     throw new IllegalStateException("Throwing an exception on purpose")
-                }.addTaskProgressListener { TaskProgressEvent event ->
-                    resultsOfLastListener.add(event)
-                }.run()
+                }, EnumSet.of(ProgressEventType.TASK)).addProgressListener({ ProgressEvent event ->
+                    resultsOfLastListener << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then: "current task progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
@@ -156,10 +158,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('classes').addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('classes').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -242,10 +243,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -287,10 +287,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -333,10 +332,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.run()
+                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -372,13 +370,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild()
-                    .withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2')
-                    .forTasks('parallelSleep')
-                    .addTaskProgressListener { TaskProgressEvent event ->
-                    assert event != null
-                    result << event
-                }.run()
+                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener({ ProgressEvent event ->
+                    result << (event as TaskProgressEvent)
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -407,12 +401,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def result = []
+        List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('dummy').addTaskProgressListener { TaskProgressEvent event ->
-                assert event != null
-                result << event
-            }.run()
+            connection.newBuild().forTasks('dummy').addProgressListener({ ProgressEvent event ->
+                result << (event as TaskProgressEvent)
+            }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -454,12 +447,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def result = []
+        List<TaskProgressEvent> result = new ArrayList<TaskProgressEvent>()
         withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('innerBuild').addTaskProgressListener { TaskProgressEvent event ->
-                assert event != null
-                result << event
-            }.run()
+            connection.newBuild().forTasks('innerBuild').addProgressListener({ ProgressEvent event ->
+                result << (event as TaskProgressEvent)
+            }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then:
@@ -486,14 +478,11 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 connection.newBuild().forTasks('assemble').addProgressListener(new ProgressListener() {
                     @Override
                     void statusChanged(ProgressEvent event) {
-                        // listener only added to receive the build operation progress events
+                        if (event instanceof TaskProgressEvent) {
+                            result << (event as TaskProgressEvent)
+                        }
                     }
-                }, EnumSet.of(ProgressEventType.BUILD)).addTaskProgressListener(new TaskProgressListener() {
-                    @Override
-                    void statusChanged(TaskProgressEvent event) {
-                        result << event
-                    }
-                }).run()
+                }, EnumSet.of(ProgressEventType.BUILD, ProgressEventType.TASK)).run()
         }
 
         then: 'the parent of the task events is the root build operation'
@@ -508,12 +497,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         result = new ArrayList<TaskProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addTaskProgressListener(new TaskProgressListener() {
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TaskProgressEvent event) {
-                        result << event
+                    void statusChanged(ProgressEvent event) {
+                        result << (event as TaskProgressEvent)
                     }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TASK)).run()
         }
 
         then: 'the parent of the task events is null'

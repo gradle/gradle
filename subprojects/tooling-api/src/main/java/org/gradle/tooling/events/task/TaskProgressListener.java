@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 /**
  * A listener which is notified when the tasks that are executed as part of running a build make progress.
  *
- * @see org.gradle.tooling.LongRunningOperation#addTaskProgressListener(TaskProgressListener)
  * @since 2.5
  */
 @Incubating

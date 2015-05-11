@@ -22,9 +22,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskOperationDescriptor
-import org.gradle.tooling.events.task.TaskProgressEvent
-import org.gradle.tooling.events.task.TaskProgressListener
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
@@ -736,17 +737,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTaskProgressListener(new TaskProgressListener() {
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
-                    void statusChanged(TaskProgressEvent event) {
-                        // listener only added to receive the task progress events
+                    void statusChanged(ProgressEvent event) {
+                        if (event instanceof TestProgressEvent) {
+                            result << event
+                        }
                     }
-                }).addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        result << event
-                    }
-                }).run()
+                }, EnumSet.of(ProgressEventType.TASK, ProgressEventType.TEST)).run()
         }
 
         then: 'the parent of the root test progress event is the test task that triggered the tests'
