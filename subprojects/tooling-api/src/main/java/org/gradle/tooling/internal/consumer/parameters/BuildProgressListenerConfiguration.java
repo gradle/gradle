@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.tooling.events.build.internal.BuildProgressListener;
+import org.gradle.tooling.events.build.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 
@@ -26,12 +26,12 @@ public class BuildProgressListenerConfiguration {
 
     private final List<TestProgressListener> testListeners;
     private final List<TaskProgressListener> taskListeners;
-    private final List<BuildProgressListener> buildListeners;
+    private final List<BuildOperationProgressListener> buildListeners;
 
     public BuildProgressListenerConfiguration(
         List<TestProgressListener> testListeners,
         List<TaskProgressListener> taskListeners,
-        List<BuildProgressListener> buildListeners) {
+        List<BuildOperationProgressListener> buildListeners) {
         this.testListeners = testListeners;
         this.taskListeners = taskListeners;
         this.buildListeners = buildListeners;
@@ -45,7 +45,7 @@ public class BuildProgressListenerConfiguration {
         return taskListeners;
     }
 
-    public List<BuildProgressListener> getBuildListeners() {
+    public List<BuildOperationProgressListener> getBuildListeners() {
         return buildListeners;
     }
 

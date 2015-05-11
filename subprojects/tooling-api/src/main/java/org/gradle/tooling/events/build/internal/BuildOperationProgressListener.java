@@ -21,7 +21,7 @@ import org.gradle.tooling.events.build.BuildOperationProgressEvent;
 /**
  * A listener which is notified when the operations that are executed as part of running a build make progress.
  */
-public interface BuildProgressListener {
+public interface BuildOperationProgressListener {
 
     /**
      * Called when the build execution progresses.

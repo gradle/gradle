@@ -21,7 +21,7 @@ import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.ProgressEventType;
 import org.gradle.tooling.events.build.BuildOperationProgressEvent;
-import org.gradle.tooling.events.build.internal.BuildProgressListener;
+import org.gradle.tooling.events.build.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressEvent;
@@ -119,7 +119,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    private T addBuildProgressListener(BuildProgressListener listener) {
+    private T addBuildProgressListener(BuildOperationProgressListener listener) {
         operationParamsBuilder.addBuildProgressListener(listener);
         return getThis();
     }
@@ -129,7 +129,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    private static final class AllOperationsProgressListener implements TestProgressListener, TaskProgressListener, BuildProgressListener {
+    private static final class AllOperationsProgressListener implements TestProgressListener, TaskProgressListener, BuildOperationProgressListener {
         private final org.gradle.tooling.events.ProgressListener listener;
 
         private AllOperationsProgressListener(org.gradle.tooling.events.ProgressListener listener) {

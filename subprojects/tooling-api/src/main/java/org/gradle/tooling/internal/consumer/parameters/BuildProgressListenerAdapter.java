@@ -39,7 +39,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
-    private final ListenerBroadcast<BuildProgressListener> buildProgressListeners = new ListenerBroadcast<BuildProgressListener>(BuildProgressListener.class);
+    private final ListenerBroadcast<BuildOperationProgressListener> buildProgressListeners = new ListenerBroadcast<BuildOperationProgressListener>(BuildOperationProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {

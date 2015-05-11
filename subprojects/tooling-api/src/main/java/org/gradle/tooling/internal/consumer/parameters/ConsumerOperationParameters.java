@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.events.build.internal.BuildProgressListener;
+import org.gradle.tooling.events.build.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -47,7 +47,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private final List<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
         private final List<TestProgressListener> testProgressListeners = new ArrayList<TestProgressListener>();
         private final List<TaskProgressListener> taskProgressListeners = new ArrayList<TaskProgressListener>();
-        private final List<BuildProgressListener> buildProgressListeners = new ArrayList<BuildProgressListener>();
+        private final List<BuildOperationProgressListener> buildOperationProgressListeners = new ArrayList<BuildOperationProgressListener>();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -145,8 +145,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             taskProgressListeners.add(listener);
         }
 
-        public void addBuildProgressListener(BuildProgressListener listener) {
-            buildProgressListeners.add(listener);
+        public void addBuildProgressListener(BuildOperationProgressListener listener) {
+            buildOperationProgressListeners.add(listener);
         }
 
         public void setCancellationToken(CancellationToken cancellationToken) {
@@ -161,7 +161,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             BuildProgressListenerConfiguration buildProgressListenerConfiguration = new BuildProgressListenerConfiguration(
                 this.testProgressListeners,
                 this.taskProgressListeners,
-                this.buildProgressListeners
+                this.buildOperationProgressListeners
             );
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
                 new BuildProgressListenerAdapter(buildProgressListenerConfiguration));

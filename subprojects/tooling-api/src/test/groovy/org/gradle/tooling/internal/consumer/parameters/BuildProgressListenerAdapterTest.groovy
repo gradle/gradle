@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.build.internal.BuildProgressListener
+import org.gradle.tooling.events.build.internal.BuildOperationProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.task.internal.TaskProgressListener
 import org.gradle.tooling.events.test.TestProgressListener
@@ -49,7 +49,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION] as Set
 
         when: 'we register a new build listener'
-        adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), Mock(BuildProgressListener))
+        adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), Mock(BuildOperationProgressListener))
 
         then: 'build execution becomes a subscribed operation'
         adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION, InternalBuildProgressListener.BUILD_EXECUTION] as Set
@@ -108,11 +108,11 @@ class BuildProgressListenerAdapterTest extends Specification {
         createAdapter(null, taskListener, null)
     }
 
-    BuildProgressListenerAdapter createAdapter(BuildProgressListener buildListener) {
+    BuildProgressListenerAdapter createAdapter(BuildOperationProgressListener buildListener) {
         createAdapter(null, null, buildListener)
     }
 
-    BuildProgressListenerAdapter createAdapter(TestProgressListener testListener, TaskProgressListener taskListener, BuildProgressListener buildListener) {
+    BuildProgressListenerAdapter createAdapter(TestProgressListener testListener, TaskProgressListener taskListener, BuildOperationProgressListener buildListener) {
         new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration(testListener ? [testListener] : [], taskListener ? [taskListener] : [], buildListener ? [buildListener] : []))
     }
 
