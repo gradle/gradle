@@ -37,5 +37,4 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
         return taskPath;
     }
 
-
 }
