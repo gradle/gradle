@@ -163,14 +163,15 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                 this.taskProgressListeners,
                 this.buildProgressListeners
             );
-            BuildProgressListenerAdapter buildProgressListenerAdapter = new BuildProgressListenerAdapter(buildProgressListenerConfiguration);
+            FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
+                new BuildProgressListenerAdapter(buildProgressListenerConfiguration));
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
     private final ProgressListenerAdapter progressListener;
-    private final BuildProgressListenerAdapter buildProgressListener;
+    private final FailsafeBuildProgressListenerAdapter buildProgressListener;
     private final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
@@ -188,7 +189,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables,
-                                        ProgressListenerAdapter progressListener, BuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
+                                        ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;

@@ -150,6 +150,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         thrown(GradleConnectionException)
         resultsOfFirstListener.size() > 0
         resultsOfLastListener.size() > 0
+
+        and: "build is successful"
+        def lastEvent = resultsOfLastListener[-1]
+        lastEvent.displayName == 'Running build succeeded'
+        lastEvent instanceof BuildOperationFinishEvent
+        def result = lastEvent.result
+        result instanceof BuildSuccessResult
     }
 
     @ToolingApiVersion(">=2.5")

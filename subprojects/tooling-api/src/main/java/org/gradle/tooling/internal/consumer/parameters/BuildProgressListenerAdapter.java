@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
@@ -27,7 +26,6 @@ import org.gradle.tooling.events.test.*;
 import org.gradle.tooling.events.test.internal.*;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalFailSafeProgressListenersProvider;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.*;
 
@@ -37,29 +35,17 @@ import java.util.*;
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements InternalBuildProgressListener, InternalFailSafeProgressListenersProvider {
+class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
     private final ListenerBroadcast<BuildProgressListener> buildProgressListeners = new ListenerBroadcast<BuildProgressListener>(BuildProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
-    private final List<Throwable> listenerFailures = new ArrayList<Throwable>();
-
-    private boolean failSafeListeners;
 
     BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {
         this.testProgressListeners.addAll(configuration.getTestListeners());
         this.taskProgressListeners.addAll(configuration.getTaskListeners());
         this.buildProgressListeners.addAll(configuration.getBuildListeners());
-    }
-
-    @Override
-    public void setListenerFailSafeMode(boolean failSafe) {
-        failSafeListeners = failSafe;
-    }
-
-    public List<Throwable> getListenerFailures() {
-        return ImmutableList.copyOf(listenerFailures);
     }
 
     @Override
@@ -82,15 +68,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener, Int
 
     @Override
     public void onEvent(Object event) {
-        if (failSafeListeners) {
-            try {
-                doBroadcast(event);
-            } catch (Throwable t) {
-                listenerFailures.add(t);
-            }
-        } else {
-            doBroadcast(event);
-        }
+        doBroadcast(event);
     }
 
     private void doBroadcast(Object event) {

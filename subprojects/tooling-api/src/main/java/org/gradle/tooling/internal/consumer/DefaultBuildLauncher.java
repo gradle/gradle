@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
@@ -79,7 +80,10 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
             }
 
             public Void run(ConsumerConnection connection) {
-                return connection.run(Void.class, operationParameters);
+                Void sink = connection.run(Void.class, operationParameters);
+                FailsafeBuildProgressListenerAdapter buildProgressListener = (FailsafeBuildProgressListenerAdapter) operationParameters.getBuildProgressListener();
+                buildProgressListener.rethrowErrors();
+                return sink;
             }
         }, new ResultHandlerAdapter(handler));
     }
