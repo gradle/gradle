@@ -27,18 +27,30 @@ class TestJointCompiledComponent extends TestJvmComponent {
 
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''
-package compile.test;
+package compile.test
 
-class Person(name: String, age: Integer) {
-    override def toString(): String = name + ", " + age;
-}'''),
+class Person
+  attr_reader name:String
+  attr_reader age:int
+  
+  def initialize(name:String,age:int)
+    @name = name
+    @age  = age
+  end
+  
+  
+  def toString
+  	"#{@name}, #{age}"
+  end
+end
+'''),
             new JvmSourceFile("compile/test", "Person2.java", '''
-package compile.test;
+package compile.test
 
-class Person2 {
-    String name;
-    String age;
-}
+class Person2
+  attr_accessor name:String
+  attr_accessor age:int
+end
 ''')
     ]
 
