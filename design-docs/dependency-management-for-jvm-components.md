@@ -3,10 +3,10 @@ This spec outlines work required to introduce dependency management for JVM base
 
 # Approach
 
-The goal is to support dependency graphs made up of components build from Java source that depend on other components
-that present some Java API.
+The goal is to support dependency graphs made up of components built from Java source, that depend on other components
+which present some Java API.
 
-Specifically the following consumers:
+Specifically the following components that consume some other library:
 
 - Java library
 - Custom library or application built from Java
@@ -14,27 +14,27 @@ Specifically the following consumers:
 And the following producers:
 
 - Java library
-- Custom component that provides a Java API
+- Custom library that provides a Java API
 
-Here is an example:
+An example:
 
 <img src="img/jvm_dependency_management.png"/>
 
 External components are out of scope for this work.
 
-The work can be made up of several parts:
+The work can be broken down into:
 
-1. Add an initial DSL to declare the dependencies of a Java source set owned by a Java library.
-2. Add a basic implementation to honour these dependencies at compile time. Only for local Java libraries that consume other Java libraries.
-3. Add support to allow a custom component to be built from Java source with dependencies. Only consume local Java libraries.
-4. Add support to allow a custom component to provide a Java API. Can consume from Java libraries and custom components.
-5. Add support to declare the API of a Java library.
+1. An initial DSL to declare the dependencies of a Java source set owned by a Java library.
+2. A basic implementation to honour these dependencies at compile time. Only for local Java libraries that consume other Java libraries.
+3. Allow a custom component to be built from Java source with dependencies. Only consume local Java libraries.
+4. Allow a custom component to provide a Java API. Can consume from Java libraries and custom components.
+5. Support multiple variants of a Java library or custom component.
 
-And later:
+Later work:
 
-1. Add support for custom component variants.
-2. Add support for execution of Java based components. For example, some way to consume the runtime classpath of a Jvm binary from a task.
-3. Improve dependency DSL.
+1. Declare the API dependencies of a Java library.
+2. Support for runtime dependencies.
+3. TBD - reporting, etc.
 
 # Feature: Build author declares dependencies of Java library
 
@@ -58,7 +58,8 @@ Add a basic DSL to declare the required libraries of a Java source set:
         }
     }
 
-Model `JavaSourceSet.dependencies` as a mutable collection of dependency declarations, with conveniences to add items to the collection.
+Model `JavaSourceSet.dependencies` as a mutable collection of library requirements (that is libraries that are required, not the requirements of a library),
+with conveniences to add items to the collection.
 
 Out of scope:
 
@@ -97,23 +98,27 @@ The implementation *must* make use of the dependency resolution engine, and refa
 
 Resolve the task dependencies and artifacts for the compile time dependency graph for a Java source set, and make the result available at compile time.
 
-- When a Java library is to be compiled, determine the tasks required to build its required libraries.
-- When a Java library is compiled, provide a classpath that contains the Jars of the required libraries.
+- When a Java library is to be compiled, determine the tasks required to build the API of its required libraries.
+- When a Java library is compiled, provide a classpath that contains the API of its required libraries.
+- API of a Java library is its Jar binary only.
 - Error cases:
     - Java library does not have exactly one Jar binary.
 
 Out of scope:
 
+- Transitive API dependencies.
 - API or DSL to query the resolved classpath.
 - Validation of target platform.
 
 ### Implementation:
 
-TBD
+The implementation should continue to build on the dependency resolution engine.
+
+- TBD
 
 ## Feature backlog
 
-Improve resolution implementation: error messages, etc.
+Improve resolution implementation: transitive API dependencies, error messages, etc.
 
 # Feature: Custom component built from Java source
 
@@ -151,6 +156,7 @@ TBD
 - Custom component consumes Java library
 - Custom component consumes custom library
 - Java library consumes custom library
+- Select correct variant of custom library
 - Reporting
 
 # Feature: Java library consumes external Java library
