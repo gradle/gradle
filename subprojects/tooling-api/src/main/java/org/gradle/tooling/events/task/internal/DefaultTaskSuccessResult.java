@@ -16,31 +16,19 @@
 
 package org.gradle.tooling.events.task.internal;
 
+import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.task.TaskSuccessResult;
 
 /**
  * Implementation of the {@code TaskSuccessResult} interface.
  */
-public final class DefaultTaskSuccessResult implements TaskSuccessResult {
+public final class DefaultTaskSuccessResult extends DefaultOperationSuccessResult implements TaskSuccessResult {
 
-    private final long startTime;
-    private final long endTime;
     private final boolean upToDate;
 
     public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate) {
-        this.startTime = startTime;
-        this.endTime = endTime;
+        super(startTime, endTime);
         this.upToDate = upToDate;
-    }
-
-    @Override
-    public long getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public long getEndTime() {
-        return endTime;
     }
 
     @Override

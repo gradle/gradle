@@ -21,7 +21,7 @@ import org.gradle.tooling.events.SuccessResult;
 /**
  * Implementation of the {@code BuildSuccessResult} interface.
  */
-public final class DefaultOperationSuccessResult implements SuccessResult {
+public class DefaultOperationSuccessResult implements SuccessResult {
 
     private final long startTime;
     private final long endTime;
