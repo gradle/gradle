@@ -621,58 +621,73 @@ N/A
 
 ### Story: Continuous Gradle mode triggered by task input changes
 
-Gradle will be able to start, run a set of tasks and then monitor changes to any inputs for the given tasks without exiting.  When any input file is changed, all of the same set of tasks will be re-run.
+After performing a build, Gradle will automatically rerun the same logical build if the file system inputs of any task that was executed change.
 
 #### Implementation
 
-1. Build runs, at the end we have knowledge of the file system inputs for each task
-2. We watch the filesystem for changes
-3. When a change occurs to an input we trigger the build, tearing down all of the file system watches and state
-4. Build ends, we are back at 1.
+1. A logical description of the input files for each task that is executed is captured during the build
+2. At the end of the build, Gradle will monitor the file system for changes
+3. If any change occurs to a file/directory described by #1, the build will execute again after shutting down all file system listeners
 
-Constraints / implementation details:
-- The task's `getInputs()` method will be used to get the `TaskInputs`. Further more, the `FileCollection` returned from the `getFiles()` method is considered as the inputs for the task.
-- All task input `FileCollection` instances should be gathered in to a single `org.gradle.api.internal.file.UnionFileCollection` instance. This class implements the `FileCollectionInternal` interface.
-- The `FileCollectionInternal.getFileSystemRoots()` method should be used to find out all roots to watch for changes. The file watcher will watch for all changes on the given directories. All subdirectories under the root directories will be watched for filesystem changes.
-- Filtering of events should be done in the listener by using the `FileCollection.contains` method since the listener will be called for all files/directories under the roots.
-- Changes made when the build is running, are ignored.
-- Should stop watching for changes while the build is running.
+Constraints:
+
+1. There is no way to stop listening for filesystem changes other than use of ctrl-c or similar
+2. Changes that after the task executes, but before the build completes and starts watching the file system, are “ignored” (i.e. do not trigger a rebuild)
+3. Builds are triggered as soon as a change to a relevant file is noticed (i.e. no quiet period)
+4. Continuous mode is not supported by Tooling API (build fails eagerly as unsupported)
+5. Symlinks are treated as regular files and changes “behind” symlinks are not respected
+6. Only explicit file system inputs are respected (i.e. no consideration given to build logic changes)
+7. Changes to `buildSrc` are not respected
+8. Only changes to inputs of task that were executed in the immediately preceding build are respected (`A.dependsOn(B.dependsOn(C))` - if C fails, changes to inputs of `A` and `B` are not respected)
 
 #### Test Coverage
 
-- ~~Changing a source file that is filtered out of the inputs of a task should not trigger a build. (e.g., `inputs.files fileTree(dir: 'src').matching({ it.name != "foo.bar" })` should not trigger a build when foo.bar changes)~~
-- For an old-style project:
-    - ~~Changing a source file for an input task triggers a build.~~
-    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
-    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
-    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
-- For a component based project:
-    - ~~Changing a source file for an input task triggers a build.~~
-    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
-    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
-    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
-- For a project with buildSrc:
-    - ~~Changing a source file for an input task triggers a build.~~
-    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
-    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
-    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
-    - ~~Adding/removing/Changing a source file in buildSrc triggers a build.~~
-- For a multi-project build:
-    - ~~Changing a source file for an input task triggers a build.~~
-    - ~~Adding/removing a file in a source directory for an input task triggers a build.~~
-    - ~~Changing a source file to a task that was not selected should not trigger a build.~~
-    - ~~Adding/removing a file to a task that was not selected should not trigger a build.~~
-    - Changing/adding/removing a source file in dependent sub-project in a multi-project build triggers a build for another sub-project (f.e. in gradle source "gradle --watch :core:classes" would rebuild if a source file in model-groovy was changed).
-    - Changing/adding/removing a source file in an independent sub-project in a multi-project build should not trigger a build.
+##### General
 
-#### Open Issues
+1. Reasonable feedback when using continuous mode (e.g. incubating message, suitable message at end of build)
+1. If build fails before any task executes, build exits and does not enter continuous mode
+1. Can trigger rebuild by changing input file to simple task (i.e. basic smoke test)
+1. Continuous mode utilises class reuse (e.g. same build script class instance is used for subsequent builds)
 
-- Enforce 'quiet' period, so we do not rebuild immediately on the first change.
-- Does a new directory being added to an @InputDirectory input trigger a rebuild? (e.g. `mkdir src/main/java/newDir`)
-- Does an @InputFile that is a directory being removed/added trigger a rebuild?
-- How are symlinks being dealt with
-- How are we dealing with @InputDirectory where the value is something like `zipTree`
-- Given tasks A <- B <- C, if B fails and the inputs to C change, should a build be triggered?
+##### Simple Java plugin usage scenarios
+
+For a conventional `apply plugin: 'java'` project:
+
+1. Can successfully build in continuous mode when there is no source (i.e. `src/main/java` does not exist)
+1. Can successfully build in continuous after source dir `src/main/java` is removed
+1. Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)
+1. Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)
+1. After compile failure of Java file, correcting file to be compilable triggers a successful build
+1. When running `test` in continuous mode:
+    1. Change to source file causes execution of tests
+    1. Change to test file causes execution of tests
+    1. Change to resource file (`src/main/resources`)
+1. Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)
+1. Remove of a local filesystem compile dependency triggers rebuild
+1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)
+1. In a multi project, changes to Java source of upstream projects trigger the build of downstream projects
+1. Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)
+1. When main source fails to compile, changes to test source does not trigger build
+
+##### Creating archives
+
+1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
+
+##### Verifying constraints
+
+1. Continuous mode can be used successfully on a project with a `buildSrc` directory
+2. Attempting to run a continuous mode build from the Tooling API yields an error immediately
+
+##### Edge cases
+
+1. Changes to input zips are respected
+1. Changes to input tars are respected (compressed and uncompressed)
+1. Can use a symlink as an input file
+1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
+1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
+1. Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)
+1. Task can specify project directory as a task input; changes are respected
+1. Task can specify root directory of multi project build as a task input; changes are respected
 
 ### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
