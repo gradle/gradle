@@ -23,7 +23,7 @@ import org.gradle.tooling.events.OperationResult;
 /**
  * Base implementation of the {@code FinishEvent} interface.
  */
-public abstract class DefaultFinishEvent extends BaseProgressEvent implements FinishEvent {
+public class DefaultFinishEvent extends BaseProgressEvent implements FinishEvent {
 
     private final OperationResult result;
 

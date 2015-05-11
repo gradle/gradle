@@ -19,8 +19,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressEventType;
-import org.gradle.tooling.events.internal.build.BuildOperationProgressEvent;
 import org.gradle.tooling.events.internal.build.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
@@ -147,7 +147,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         }
 
         @Override
-        public void statusChanged(BuildOperationProgressEvent event) {
+        public void statusChanged(ProgressEvent event) {
             listener.statusChanged(event);
         }
     }

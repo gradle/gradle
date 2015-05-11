@@ -27,7 +27,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.internal.build.BuildOperationDescriptor
+import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationDescriptor
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -488,8 +488,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         then: 'the parent of the task events is the root build operation'
         !result.isEmpty()
         result.each { def event ->
-            assert event.descriptor.parent instanceof BuildOperationDescriptor
-            assert event.descriptor.parent.parent instanceof BuildOperationDescriptor
+            assert event.descriptor.parent instanceof DefaultBuildOperationDescriptor
+            assert event.descriptor.parent.parent instanceof DefaultBuildOperationDescriptor
             assert event.descriptor.parent.parent.parent == null
         }
 

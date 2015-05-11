@@ -17,14 +17,14 @@
 package org.gradle.tooling.events.internal.build.internal;
 
 import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.internal.build.BuildFailureResult;
+import org.gradle.tooling.events.FailureResult;
 
 import java.util.List;
 
 /**
  * Implementation of the {@code BuildFailureResult} interface.
  */
-public final class DefaultBuildOperationFailureResult implements BuildFailureResult {
+public final class DefaultBuildOperationFailureResult implements FailureResult {
 
     private final long startTime;
     private final long endTime;

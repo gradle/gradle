@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events.internal.build.internal;
 
-import org.gradle.tooling.events.internal.build.BuildOperationProgressEvent;
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
  * A listener which is notified when the operations that are executed as part of running a build make progress.
@@ -28,12 +28,12 @@ public interface BuildOperationProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>{@link org.gradle.tooling.events.internal.build.BuildOperationStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.internal.build.BuildOperationFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.StartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.FinishEvent}</li>
      * </ul>
      *
      * @param event An event describing the build operation progress.
      */
-    void statusChanged(BuildOperationProgressEvent event);
+    void statusChanged(ProgressEvent event);
 
 }

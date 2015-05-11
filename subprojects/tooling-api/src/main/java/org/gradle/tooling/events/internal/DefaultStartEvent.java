@@ -24,7 +24,7 @@ import org.gradle.tooling.events.StartEvent;
  */
 public class DefaultStartEvent extends BaseProgressEvent implements StartEvent {
 
-    protected DefaultStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
+    public DefaultStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
     }
 

@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.internal.build.BuildFailureResult
-import org.gradle.tooling.events.internal.build.BuildOperationFinishEvent
-import org.gradle.tooling.events.internal.build.BuildOperationStartEvent
-import org.gradle.tooling.events.internal.build.BuildSuccessResult
+import org.gradle.tooling.events.internal.DefaultFinishEvent
+import org.gradle.tooling.events.internal.DefaultStartEvent
 import org.gradle.tooling.events.internal.build.internal.BuildOperationProgressListener
+import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationFailureResult
+import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationSuccessResult
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.events.*
@@ -167,7 +168,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { DefaultStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "build started"
             assert event.descriptor.name == 'my build'
@@ -188,7 +189,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { DefaultStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build started'
             assert event.descriptor.name == 'some build'
@@ -212,12 +213,12 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { DefaultFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build succeeded'
             assert event.descriptor.name == 'some build'
             assert event.descriptor.parent == null
-            assert event.result instanceof BuildSuccessResult
+            assert event.result instanceof DefaultBuildOperationSuccessResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
         }
@@ -239,24 +240,24 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(settingsEvalEnd)
 
         then:
-        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { DefaultStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == 'build started'
             assert event.descriptor.name == 'some build'
             assert event.descriptor.parent == null
         }
-        1 * listener.statusChanged(_ as BuildOperationStartEvent) >> { BuildOperationStartEvent event ->
+        1 * listener.statusChanged(_ as StartEvent) >> { DefaultStartEvent event ->
             assert event.eventTime == 1000
             assert event.displayName == 'settings evaluated'
             assert event.descriptor.name == 'settings evaluated'
             assert event.descriptor.parent.name == 'some build'
         }
-        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { DefaultFinishEvent event ->
             assert event.eventTime == 1001
             assert event.displayName == 'settings evaluated'
             assert event.descriptor.name == 'settings evaluated'
             assert event.descriptor.parent.name == 'some build'
-            assert event.result instanceof BuildSuccessResult
+            assert event.result instanceof DefaultBuildOperationSuccessResult
             assert event.result.startTime == 999
             assert event.result.endTime == 1001
         }
@@ -278,12 +279,12 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as BuildOperationFinishEvent) >> { BuildOperationFinishEvent event ->
+        1 * listener.statusChanged(_ as FinishEvent) >> { DefaultFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "build failed"
             assert event.descriptor.name == 'some build'
             assert event.descriptor.parent == null
-            assert event.result instanceof BuildFailureResult
+            assert event.result instanceof DefaultBuildOperationFailureResult
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1

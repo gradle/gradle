@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.events.internal.build.internal;
 
-import org.gradle.tooling.events.internal.build.BuildSuccessResult;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
  * Implementation of the {@code BuildSuccessResult} interface.
  */
-public final class DefaultBuildOperationSuccessResult implements BuildSuccessResult {
+public final class DefaultBuildOperationSuccessResult implements SuccessResult {
 
     private final long startTime;
     private final long endTime;

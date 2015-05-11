@@ -24,7 +24,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.internal.build.BuildOperationProgressEvent
+import org.gradle.tooling.events.internal.DefaultFinishEvent
+import org.gradle.tooling.events.internal.DefaultStartEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.test.TestProgressEvent
 
@@ -52,11 +53,11 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
         result.findAll { it instanceof TestProgressEvent }.size() > 0
         result.findAll { it instanceof TaskProgressEvent }.size() > 0
-        result.findAll { it instanceof BuildOperationProgressEvent }.size() > 0
-        result.findIndexOf { it instanceof BuildOperationProgressEvent } < result.findIndexOf { it instanceof TaskProgressEvent }
+        result.findAll { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }.size() > 0
+        result.findIndexOf { it.class == DefaultStartEvent || it.class == DefaultFinishEvent } < result.findIndexOf { it instanceof TaskProgressEvent }
         result.findIndexOf { it instanceof TaskProgressEvent } < result.findIndexOf { it instanceof TestProgressEvent }
         result.findLastIndexOf { it instanceof TaskProgressEvent } > result.findLastIndexOf { it instanceof TestProgressEvent }
-        result.findLastIndexOf { it instanceof BuildOperationProgressEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
+        result.findLastIndexOf { it.class == DefaultStartEvent || it.class == DefaultFinishEvent } > result.findLastIndexOf { it instanceof TaskProgressEvent }
     }
 
     def "register for subset of progress events at once"() {
@@ -79,7 +80,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
         result.findAll { it instanceof TestProgressEvent }.size() > 0
         result.findAll { it instanceof TaskProgressEvent }.isEmpty()
-        result.findAll { it instanceof BuildOperationProgressEvent }.isEmpty()
+        result.findAll { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }.isEmpty()
     }
 
     @ToolingApiVersion(">=2.5")
@@ -104,7 +105,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         !result.isEmpty()
         def rootNodes = result.findAll { it.descriptor.parent == null }
         rootNodes.size() == 2
-        rootNodes.each { assert it instanceof BuildOperationProgressEvent }
+        rootNodes.each { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }
 
         displayOperationsTree(result)
     }

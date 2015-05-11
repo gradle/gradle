@@ -18,12 +18,11 @@ package org.gradle.tooling.events.internal.build.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.internal.build.BuildOperationDescriptor;
 
 /**
  * Implementation of the {@code BuildOperationDescriptor} interface.
  */
-public final class DefaultBuildOperationDescriptor implements BuildOperationDescriptor {
+public final class DefaultBuildOperationDescriptor implements OperationDescriptor {
 
     private final String name;
     private final String displayName;
