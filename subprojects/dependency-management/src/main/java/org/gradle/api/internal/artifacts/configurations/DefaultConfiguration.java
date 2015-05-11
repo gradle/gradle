@@ -411,7 +411,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
             for (String targetConfigName : projectResult.getTargetConfigurations()) {
                 Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
-                taskDependency.add(targetConfig);
+                taskDependency.add(targetConfig.getAllDependencies());
                 taskDependency.add(targetConfig.getAllArtifacts());
             }
         }
