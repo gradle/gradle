@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.parameters
 import org.gradle.tooling.events.internal.BuildOperationProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.task.internal.TaskProgressListener
-import org.gradle.tooling.events.test.TestProgressListener
+import org.gradle.tooling.events.test.internal.TestProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent
@@ -88,7 +88,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         then:
         1 * listener.statusChanged(_ as TaskStartEvent) >> { TaskStartEvent event ->
             assert event.eventTime == 1001
-            assert event.displayName == "task started"
+            assert event.displayName == 'task started'
             assert event.descriptor.name == 'some task'
             assert event.descriptor.taskPath == ':some:path'
             assert event.descriptor.parent.name == 'my build'

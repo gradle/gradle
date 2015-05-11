@@ -22,7 +22,7 @@ import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
-import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.test.internal.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;

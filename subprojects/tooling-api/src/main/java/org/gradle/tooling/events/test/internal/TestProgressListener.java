@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events.test;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.test.TestProgressEvent;
 
 /**
  * A listener which is notified when the tests that are executed as part of running a build make progress.
- *
- * @since 2.4
  */
-@Incubating
 public interface TestProgressListener {
 
     /**
@@ -30,15 +27,11 @@ public interface TestProgressListener {
      *
      * The following events are currently issued:
      * <ul>
-     *    <li>{@link TestStartEvent}</li>
-     *    <li>{@link TestFinishEvent}</li>
+     *    <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
+     *    <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
      * </ul>
      *
-     * You can find out more about the test operation for which progress is reported
-     * by querying the test descriptor using {@link TestProgressEvent#getDescriptor()}.
-     *
      * @param event An event describing the test operation progress.
-     * @see TestProgressEvent#getDescriptor()
      */
     void statusChanged(TestProgressEvent event);
 

@@ -38,7 +38,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener({ throw new RuntimeException() } as TestProgressListener).run()
+                connection.newBuild().forTasks('test').addTestProgressListener {
+                    throw new RuntimeException()
+                }.run()
         }
 
         then:
@@ -55,12 +57,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        result.add(event)
-                    }
-                }).get()
+                connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.get()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
@@ -77,12 +76,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        result.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.run()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
@@ -98,12 +94,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        throw new IllegalStateException("Throwing an exception on purpose")
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    throw new IllegalStateException("Throwing an exception on purpose")
+                }.run()
         }
 
         then: "build aborts if the test listener throws an exception"
@@ -121,22 +114,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        resultsOfFirstListener.add(event)
-                    }
-                }).addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        throw new IllegalStateException("Throwing an exception on purpose")
-                    }
-                }).addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        resultsOfLastListener.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    resultsOfFirstListener.add(event)
+                }.addTestProgressListener { TestProgressEvent event ->
+                    throw new IllegalStateException("Throwing an exception on purpose")
+                }.addTestProgressListener { TestProgressEvent event ->
+                    resultsOfLastListener.add(event)
+                }.run()
         }
 
         then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
@@ -170,13 +154,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.run()
         }
 
         then:
@@ -295,13 +275,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.run()
         }
 
         then:
@@ -425,13 +401,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.run()
         }
 
         then:
@@ -579,13 +551,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
-                    }
-                }).run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.run()
         }
 
         then: "start and end event is sent for each node in the test tree"
@@ -659,13 +627,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                    @Override
-                    void statusChanged(TestProgressEvent event) {
-                        assert event != null
-                        result.add(event)
-                    }
-                }).withArguments('--parallel').run()
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    result << event
+                }.withArguments('--parallel').run()
         }
 
         then: "start and end event is sent for each node in the test tree"

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.internal.TestProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.events.*
@@ -35,7 +33,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.subscribedOperations == []
 
         when:
-        TestProgressListener listener = Mock()
+        TestProgressListener listener = Mock(TestProgressListener)
         adapter = createAdapter(listener)
 
         then:
@@ -44,7 +42,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
 
     def "only TestProgressEventX instances are processed if a test listener is added"() {
         given:
-        TestProgressListener listener = Mock()
+        TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -56,7 +54,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
 
     def "only TestProgressEventX instances of known type are processed"() {
         given:
-        TestProgressListener listener = Mock()
+        TestProgressListener listener = Mock(TestProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -189,7 +187,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as TestStartEvent) >> { TestStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite started"
             assert event.descriptor.name == 'some test suite'
@@ -222,7 +220,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as TestStartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as TestStartEvent) >> { TestStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite started"
             assert event.descriptor.name == 'some test suite'
@@ -261,7 +259,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite skipped"
             assert event.descriptor.name == 'some test suite'
@@ -303,7 +301,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite succeeded"
             assert event.descriptor.name == 'some test suite'
@@ -346,7 +344,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test suite failed"
             assert event.descriptor.name == 'some test suite'
@@ -380,7 +378,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(startEvent)
 
         then:
-        1 * listener.statusChanged(_ as StartEvent) >> { StartEvent event ->
+        1 * listener.statusChanged(_ as TestStartEvent) >> { TestStartEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test started"
             assert event.descriptor.name == 'some test'
@@ -421,7 +419,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(skippedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test skipped"
             assert event.descriptor.name == 'some test'
@@ -465,7 +463,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(succeededEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test succeeded"
             assert event.descriptor.name == 'some test'
@@ -510,7 +508,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         adapter.onEvent(failedEvent)
 
         then:
-        1 * listener.statusChanged(_ as FinishEvent) >> { FinishEvent event ->
+        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "test failed"
             assert event.descriptor.name == 'some test'
