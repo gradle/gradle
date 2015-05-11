@@ -21,23 +21,29 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 class BadMirahLibrary {
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.mirah", '''
-package compile.test;
+package compile.test
 
-class Person(name: String, age: Integer) {
-    def toString(): String = name + ", " + age;
-}'''),
+class Person
+  attr_reader name:String
+  attr_reader age:int
+  
+  def initialize(name:String,age:int)
+    @name = name
+    self.age  = age
+  end
+end
+'''),
             new JvmSourceFile("compile/test", "Person2.mirah", '''
 package compile.test;
 
-class Person2 {
-    def test;
-}
+class Person2 < UnknownClass
+  self.foo = bar
+end
 ''')
     ]
 
     List<String> compilerErrors = [
-            "Person.mirah:5: overriding method toString in class Object of type ()String",
-            "Person2.mirah:4: class Person2 needs to be abstract, since method test is not defined"
-
+        "Can't find method compile.test.Person.age_set",
+        "can't use local 'bar'"
     ]
 }
