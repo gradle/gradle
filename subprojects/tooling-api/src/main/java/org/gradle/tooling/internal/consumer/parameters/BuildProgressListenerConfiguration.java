@@ -24,29 +24,29 @@ import java.util.List;
 
 public class BuildProgressListenerConfiguration {
 
-    private final List<TestProgressListener> testListeners;
-    private final List<TaskProgressListener> taskListeners;
-    private final List<BuildOperationProgressListener> buildListeners;
+    private final List<TestProgressListener> testProgressListeners;
+    private final List<TaskProgressListener> taskProgressListeners;
+    private final List<BuildOperationProgressListener> buildOperationProgressListeners;
 
     public BuildProgressListenerConfiguration(
-        List<TestProgressListener> testListeners,
-        List<TaskProgressListener> taskListeners,
-        List<BuildOperationProgressListener> buildListeners) {
-        this.testListeners = testListeners;
-        this.taskListeners = taskListeners;
-        this.buildListeners = buildListeners;
+        List<TestProgressListener> testProgressListeners,
+        List<TaskProgressListener> taskProgressListeners,
+        List<BuildOperationProgressListener> buildOperationProgressListeners) {
+        this.testProgressListeners = testProgressListeners;
+        this.taskProgressListeners = taskProgressListeners;
+        this.buildOperationProgressListeners = buildOperationProgressListeners;
     }
 
-    public List<TestProgressListener> getTestListeners() {
-        return testListeners;
+    public List<TestProgressListener> getTestProgressListeners() {
+        return testProgressListeners;
     }
 
-    public List<TaskProgressListener> getTaskListeners() {
-        return taskListeners;
+    public List<TaskProgressListener> getTaskProgressListeners() {
+        return taskProgressListeners;
     }
 
-    public List<BuildOperationProgressListener> getBuildListeners() {
-        return buildListeners;
+    public List<BuildOperationProgressListener> getBuildOperationProgressListeners() {
+        return buildOperationProgressListeners;
     }
 
 }

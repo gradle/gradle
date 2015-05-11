@@ -145,7 +145,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             taskProgressListeners.add(listener);
         }
 
-        public void addBuildProgressListener(BuildOperationProgressListener listener) {
+        public void addBuildOperationProgressListeners(BuildOperationProgressListener listener) {
             buildOperationProgressListeners.add(listener);
         }
 

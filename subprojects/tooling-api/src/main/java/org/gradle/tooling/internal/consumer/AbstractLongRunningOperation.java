@@ -104,7 +104,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
             addTaskProgressListener(delegatingListener);
         }
         if (eventTypes.contains(ProgressEventType.BUILD)) {
-            addBuildProgressListener(delegatingListener);
+            addBuildOperationProgressListeners(delegatingListener);
         }
         return getThis();
     }
@@ -119,8 +119,8 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    private T addBuildProgressListener(BuildOperationProgressListener listener) {
-        operationParamsBuilder.addBuildProgressListener(listener);
+    private T addBuildOperationProgressListeners(BuildOperationProgressListener listener) {
+        operationParamsBuilder.addBuildOperationProgressListeners(listener);
         return getThis();
     }
 

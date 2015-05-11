@@ -34,24 +34,21 @@ import java.util.*;
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
-class BuildProgressListenerAdapter implements InternalBuildProgressListener {
+public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
     private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
-    private final ListenerBroadcast<BuildOperationProgressListener> buildProgressListeners = new ListenerBroadcast<BuildOperationProgressListener>(BuildOperationProgressListener.class);
+    private final ListenerBroadcast<BuildOperationProgressListener> buildOperationProgressListeners = new ListenerBroadcast<BuildOperationProgressListener>(BuildOperationProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {
-        this.testProgressListeners.addAll(configuration.getTestListeners());
-        this.taskProgressListeners.addAll(configuration.getTaskListeners());
-        this.buildProgressListeners.addAll(configuration.getBuildListeners());
+        this.testProgressListeners.addAll(configuration.getTestProgressListeners());
+        this.taskProgressListeners.addAll(configuration.getTaskProgressListeners());
+        this.buildOperationProgressListeners.addAll(configuration.getBuildOperationProgressListeners());
     }
 
     @Override
     public List<String> getSubscribedOperations() {
-        if (testProgressListeners.isEmpty() && taskProgressListeners.isEmpty() && buildProgressListeners.isEmpty()) {
-            return Collections.emptyList();
-        }
         List<String> operations = new ArrayList<String>();
         if (!testProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_EXECUTION);
@@ -59,7 +56,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
         if (!taskProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TASK_EXECUTION);
         }
-        if (!buildProgressListeners.isEmpty()) {
+        if (!buildOperationProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.BUILD_EXECUTION);
         }
         return operations;
@@ -97,7 +94,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
     private void broadcastProgressEvent(InternalBuildProgressEvent event) {
         ProgressEvent progressEvent = toProgressEvent(event);
         if (progressEvent != null) {
-            buildProgressListeners.getSource().statusChanged(progressEvent);
+            buildOperationProgressListeners.getSource().statusChanged(progressEvent);
         }
     }
 
