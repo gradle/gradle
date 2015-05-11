@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Implementation of the {@code BuildFailureResult} interface.
  */
-public final class DefaultOperationFailureResult implements FailureResult {
+public class DefaultOperationFailureResult implements FailureResult {
 
     private final long startTime;
     private final long endTime;

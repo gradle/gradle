@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.task.internal;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.task.TaskFailureResult;
 
 import java.util.List;
@@ -24,31 +25,10 @@ import java.util.List;
 /**
  * Implementation of the {@code TaskFailureResult} interface.
  */
-public final class DefaultTaskFailureResult implements TaskFailureResult {
-
-    private final long startTime;
-    private final long endTime;
-    private final List<? extends Failure> failures;
+public final class DefaultTaskFailureResult extends DefaultOperationFailureResult implements TaskFailureResult {
 
     public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.failures = failures;
-    }
-
-    @Override
-    public long getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public long getEndTime() {
-        return endTime;
-    }
-
-    @Override
-    public List<? extends Failure> getFailures() {
-        return failures;
+        super(startTime, endTime, failures);
     }
 
 }
