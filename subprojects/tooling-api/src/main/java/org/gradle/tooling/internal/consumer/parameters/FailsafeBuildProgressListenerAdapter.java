@@ -23,11 +23,11 @@ import java.util.List;
 
 public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgressListener {
     private final InternalBuildProgressListener delegate;
-
-    private final List<Throwable> listenerFailures = new ArrayList<Throwable>();
+    private final List<Throwable> listenerFailures;
 
     public FailsafeBuildProgressListenerAdapter(InternalBuildProgressListener delegate) {
         this.delegate = delegate;
+        this.listenerFailures = new ArrayList<Throwable>();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgre
 
     public void rethrowErrors() {
         if (!listenerFailures.isEmpty()) {
-            throw new ListenerNotificationException("Build listeners threw unexpected exceptions", listenerFailures);
+            throw new ListenerNotificationException("One or more progress listeners failed with an exception.", listenerFailures);
         }
     }
 }
