@@ -23,7 +23,7 @@ import org.gradle.tooling.events.ProgressEventType;
 import org.gradle.tooling.events.build.BuildOperationProgressEvent;
 import org.gradle.tooling.events.build.BuildProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
-import org.gradle.tooling.events.task.TaskProgressListener;
+import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;

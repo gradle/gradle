@@ -13,31 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events.task;
+package org.gradle.tooling.events.task.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.task.TaskProgressEvent;
 
 /**
  * A listener which is notified when the tasks that are executed as part of running a build make progress.
- *
- * @since 2.5
  */
-@Incubating
 public interface TaskProgressListener {
+
     /**
      * Called when the task execution progresses.
      *
      * The following events are currently issued:
      * <ul>
-     *     <li>{@link TaskStartEvent}</li>
-     *     <li>{@link TaskFinishEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
      * </ul>
-     *
-     * You can find out more about the task operation for which progress is reported
-     * by querying the task descriptor using {@link TaskProgressEvent#getDescriptor()}.
-     *
-     * @param event An event describing the test operation progress.
-     * @see TaskProgressEvent#getDescriptor()
      */
     void statusChanged(TaskProgressEvent event);
 

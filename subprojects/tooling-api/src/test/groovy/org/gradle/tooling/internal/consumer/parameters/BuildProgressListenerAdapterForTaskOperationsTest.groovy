@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.parameters
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.task.*
+import org.gradle.tooling.events.task.internal.TaskProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.events.*
