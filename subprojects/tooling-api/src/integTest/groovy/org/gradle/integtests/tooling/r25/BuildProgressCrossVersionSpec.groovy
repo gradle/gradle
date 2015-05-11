@@ -27,9 +27,9 @@ import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.internal.DefaultFinishEvent
+import org.gradle.tooling.events.internal.DefaultOperationFailureResult
+import org.gradle.tooling.events.internal.DefaultOperationSuccessResult
 import org.gradle.tooling.events.internal.DefaultStartEvent
-import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationFailureResult
-import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -159,7 +159,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         lastEvent.displayName == 'Running build succeeded'
         lastEvent instanceof DefaultFinishEvent
         def result = lastEvent.result
-        result instanceof DefaultBuildOperationSuccessResult
+        result instanceof DefaultOperationSuccessResult
     }
 
     @ToolingApiVersion(">=2.5")
@@ -195,7 +195,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Evaluating init scripts'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // evaluating settings
@@ -208,7 +208,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // loading build
@@ -220,7 +220,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // configuring build
@@ -250,7 +250,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // executing tasks
@@ -264,7 +264,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // running build finished
@@ -272,7 +272,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.displayName == 'Running build succeeded'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
     }
 
@@ -328,7 +328,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'init scripts evaluation'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // evaluating settings
@@ -341,7 +341,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Evaluating settings'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // loading build
@@ -353,7 +353,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Loading build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // configuring build
@@ -368,7 +368,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Configuring build'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // populating task graph
@@ -382,7 +382,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Populating task graph'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationSuccessResult
+            assert result instanceof DefaultOperationSuccessResult
         }
 
         // executing tasks
@@ -396,7 +396,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.descriptor.name == 'Executing tasks'
             assert event.descriptor.parent == buildDescriptor
             def result = event.result
-            assert result instanceof DefaultBuildOperationFailureResult
+            assert result instanceof DefaultOperationFailureResult
             assert result.failures.size() == 1
         }
 
@@ -405,7 +405,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             assert event.displayName == 'Running build failed'
             assert event.descriptor.is(buildDescriptor)
             def result = event.result
-            assert result instanceof DefaultBuildOperationFailureResult
+            assert result instanceof DefaultOperationFailureResult
             assert result.failures.size() == 1
         }
     }

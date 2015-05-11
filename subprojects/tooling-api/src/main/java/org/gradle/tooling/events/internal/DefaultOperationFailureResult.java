@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal.build.internal;
+package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
@@ -24,13 +24,13 @@ import java.util.List;
 /**
  * Implementation of the {@code BuildFailureResult} interface.
  */
-public final class DefaultBuildOperationFailureResult implements FailureResult {
+public final class DefaultOperationFailureResult implements FailureResult {
 
     private final long startTime;
     private final long endTime;
     private final List<? extends Failure> failures;
 
-    public DefaultBuildOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
+    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;

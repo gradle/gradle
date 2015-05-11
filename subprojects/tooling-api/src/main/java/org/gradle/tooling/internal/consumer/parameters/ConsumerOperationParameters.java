@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.events.internal.build.internal.BuildOperationProgressListener;
+import org.gradle.tooling.events.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;

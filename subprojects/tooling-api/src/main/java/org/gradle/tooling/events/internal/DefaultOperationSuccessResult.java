@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal.build.internal;
+package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.SuccessResult;
 
 /**
  * Implementation of the {@code BuildSuccessResult} interface.
  */
-public final class DefaultBuildOperationSuccessResult implements SuccessResult {
+public final class DefaultOperationSuccessResult implements SuccessResult {
 
     private final long startTime;
     private final long endTime;
 
-    public DefaultBuildOperationSuccessResult(long startTime, long endTime) {
+    public DefaultOperationSuccessResult(long startTime, long endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
     }

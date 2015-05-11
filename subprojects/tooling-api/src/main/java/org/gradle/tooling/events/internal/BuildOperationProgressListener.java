@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal.build.internal;
+package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.ProgressEvent;
 

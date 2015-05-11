@@ -21,7 +21,7 @@ import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressEventType;
-import org.gradle.tooling.events.internal.build.internal.BuildOperationProgressListener;
+import org.gradle.tooling.events.internal.BuildOperationProgressListener;
 import org.gradle.tooling.events.task.TaskProgressEvent;
 import org.gradle.tooling.events.task.internal.TaskProgressListener;
 import org.gradle.tooling.events.test.TestProgressEvent;

@@ -18,12 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.*;
-import org.gradle.tooling.events.internal.DefaultFinishEvent;
-import org.gradle.tooling.events.internal.DefaultStartEvent;
-import org.gradle.tooling.events.internal.build.internal.BuildOperationProgressListener;
-import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationDescriptor;
-import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationFailureResult;
-import org.gradle.tooling.events.internal.build.internal.DefaultBuildOperationSuccessResult;
+import org.gradle.tooling.events.internal.*;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.events.task.internal.*;
 import org.gradle.tooling.events.test.*;
@@ -217,7 +212,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
         if (cachedTestDescriptor == null) {
             throw new IllegalStateException(String.format("Operation %s is not available.", toString(descriptor)));
         }
-        return assertDescriptorType(DefaultBuildOperationDescriptor.class, cachedTestDescriptor);
+        return assertDescriptorType(DefaultOperationDescriptor.class, cachedTestDescriptor);
     }
 
     @SuppressWarnings("unchecked")
@@ -257,7 +252,7 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private OperationDescriptor toDescriptor(InternalBuildDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultBuildOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
+        return new DefaultOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
     }
 
     private synchronized OperationDescriptor getParentDescriptor(Object parentId) {
@@ -299,9 +294,9 @@ class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
     private static OperationResult toResult(InternalBuildOperationResult result) {
         if (result instanceof InternalBuildSuccessResult) {
-            return new DefaultBuildOperationSuccessResult(result.getStartTime(), result.getEndTime());
+            return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalBuildFailureResult) {
-            return new DefaultBuildOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
         } else {
             return null;
         }
