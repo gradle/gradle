@@ -36,7 +36,6 @@ class SampleMirahLanguageIntegrationTest extends AbstractIntegrationSpec {
         then:
         new JarTestFixture(sample.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
                 "org/gradle/samples/HelloWorld.class",
-                "org/gradle/samples/HelloWorld\$.class",
                 "org/gradle/samples/Greeter.class",
                 "org/gradle/samples/Person.class"
         )

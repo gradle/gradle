@@ -16,7 +16,8 @@
 
 package org.gradle.samples
 
-object HelloWorld {
-  def main(args: Array[String]) =
-    new Greeter().greet(new Person("John Doe"));
-}
+class HelloWorld
+  def self.main(args:String[])
+    Greeter.new.greet(Person.new("John Doe"))
+  end
+end

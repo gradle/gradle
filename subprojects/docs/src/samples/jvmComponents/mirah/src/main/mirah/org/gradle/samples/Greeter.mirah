@@ -16,7 +16,8 @@
 
 package org.gradle.samples
 
-class Greeter {
-  def greet(person: Person) =
-    println("Hello ${person.name}");
-}
+class Greeter
+  def greet(person:Person)
+    puts "Hello #{person.name}"
+  end
+end

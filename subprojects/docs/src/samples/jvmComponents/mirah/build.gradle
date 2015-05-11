@@ -15,7 +15,8 @@
  */
 plugins {
     id 'jvm-component'
-    id 'scala-lang'
+    id 'java-lang'
+    id 'mirah-lang'
 }
 
 repositories{
