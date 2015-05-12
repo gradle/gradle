@@ -74,10 +74,6 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         setId(DefaultModuleVersionIdentifier.newId(componentId));
     }
 
-    public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
-    }
-
     public ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetaData(getComponentId(), ivyArtifactName);

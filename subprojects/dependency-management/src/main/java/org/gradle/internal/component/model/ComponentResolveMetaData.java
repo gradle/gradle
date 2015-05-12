@@ -68,12 +68,6 @@ public interface ComponentResolveMetaData {
     @Nullable
     ConfigurationMetaData getConfiguration(String name);
 
-    /**
-     * Converts the given Ivy artifact to the corresponding artifact meta-data. This method is here to allow us to migrate away from the Ivy types and
-     * will be removed.
-     */
-    ComponentArtifactMetaData artifact(IvyArtifactName artifact);
-
     boolean isGenerated();
 
     boolean isChanging();

@@ -1087,10 +1087,5 @@ class DependencyGraphBuilderTest extends Specification {
         ComponentResolveMetaData withSource(ModuleSource source) {
             return null
         }
-
-        @Override
-        ComponentArtifactMetaData artifact(IvyArtifactName artifact) {
-            return null
-        }
     }
 }

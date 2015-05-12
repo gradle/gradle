@@ -112,7 +112,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         }
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (IvyArtifactName artifactName : artifactNames) {
-            artifacts.add(toConfiguration.getComponent().artifact(artifactName));
+            artifacts.add(toConfiguration.artifact(artifactName));
         }
         return artifacts;
     }

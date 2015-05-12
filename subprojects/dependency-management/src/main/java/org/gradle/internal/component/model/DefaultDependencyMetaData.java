@@ -107,7 +107,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
             DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
-            artifacts.add(toConfiguration.getComponent().artifact(artifact));
+            artifacts.add(toConfiguration.artifact(artifact));
         }
         return artifacts;
     }

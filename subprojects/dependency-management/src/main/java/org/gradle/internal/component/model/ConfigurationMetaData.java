@@ -40,4 +40,13 @@ public interface ConfigurationMetaData {
     boolean isTransitive();
 
     boolean isPublic();
+
+    /**
+     * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.
+     *
+     * This is used to create a ComponentArtifactMetaData from an artifact declared as part of a dependency.
+     * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
+     * (For external module components, we just instantiate a new artifact metadata).
+     */
+    ComponentArtifactMetaData artifact(IvyArtifactName artifact);
 }

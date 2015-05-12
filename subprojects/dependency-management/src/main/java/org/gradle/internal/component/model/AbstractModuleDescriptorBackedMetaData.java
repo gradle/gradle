@@ -23,6 +23,8 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -269,6 +271,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
                 artifacts = getArtifactsForConfiguration(this);
             }
             return artifacts;
+        }
+
+        public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
+            return new DefaultModuleComponentArtifactMetaData((org.gradle.api.artifacts.component.ModuleComponentIdentifier) getComponentId(), artifact);
         }
     }
 }

@@ -77,7 +77,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
-        publishArtifact == resolveMetaData.artifact(artifact)
+        publishArtifact == resolveMetaData.getConfiguration("conf").artifact(artifact)
 
         and:
         def publishMetaData = metaData.toPublishMetaData()
@@ -123,15 +123,17 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def ivyArtifact = artifactName()
 
         expect:
-        def resolveArtifact = metaData.toResolveMetaData().artifact(ivyArtifact)
+        def resolveArtifact = metaData.toResolveMetaData().getConfiguration("conf").artifact(ivyArtifact)
         resolveArtifact.file == file
     }
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
         def artifact = artifactName()
+        given:
+        metaData.addConfiguration("conf", true, "", [] as String[], true)
 
         expect:
-        def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
+        def resolveArtifact = metaData.toResolveMetaData().getConfiguration("conf").artifact(artifact)
         resolveArtifact != null
         resolveArtifact.file == null
     }

@@ -169,18 +169,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             this.moduleVersionIdentifier = id;
         }
 
-        public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
-            resolveArtifacts();
-
-            for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsById.values()) {
-                if (localArtifactMetaData.getName().equals(ivyArtifactName)) {
-                    return localArtifactMetaData;
-                }
-            }
-
-            return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
-        }
-
         // TODO:DAZ This is only used in unit tests
         public Set<ComponentArtifactMetaData> getArtifacts() {
             resolveArtifacts();
@@ -358,6 +346,16 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
                     }
                 }
                 return configurationArtifacts;
+            }
+
+            public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
+                for (ComponentArtifactMetaData candidate : getArtifacts()) {
+                    if (candidate.getName().equals(ivyArtifactName)) {
+                        return candidate;
+                    }
+                }
+
+                return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
             }
 
         }
