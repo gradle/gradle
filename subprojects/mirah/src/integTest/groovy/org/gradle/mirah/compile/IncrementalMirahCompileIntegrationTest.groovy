@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Issue
 
 class IncrementalMirahCompileIntegrationTest extends AbstractIntegrationSpec {
 

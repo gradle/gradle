@@ -20,7 +20,6 @@ import spock.lang.Ignore
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.util.VersionNumber
 
 abstract class BasicMirahCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {

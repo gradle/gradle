@@ -16,9 +16,7 @@
 package org.gradle.api.plugins.mirah
 
 import org.gradle.api.Project
-import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.mirah.MirahCompile
 import org.gradle.util.TestUtil
 import org.junit.Test

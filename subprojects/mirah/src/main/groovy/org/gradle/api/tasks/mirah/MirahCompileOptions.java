@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks.mirah;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.language.mirah.tasks.BaseMirahCompileOptions;
 
 /**

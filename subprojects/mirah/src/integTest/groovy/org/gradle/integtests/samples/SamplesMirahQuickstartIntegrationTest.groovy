@@ -20,13 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ForkMirahCompileInDaemonModeFixture
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
-import static org.hamcrest.Matchers.containsString
 
 class SamplesMirahQuickstartIntegrationTest extends AbstractIntegrationTest {
 

@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.mirah.CleaningMirahCompiler;
 import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.internal.tasks.mirah.MirahCompilerFactory;
-import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.mirah.tasks.AbstractMirahCompile;

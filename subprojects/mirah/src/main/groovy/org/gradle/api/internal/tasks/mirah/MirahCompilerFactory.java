@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.mirah;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.tasks.mirah.MirahCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;

@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultMirahSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.MirahRuntime
 import org.gradle.api.tasks.SourceSet

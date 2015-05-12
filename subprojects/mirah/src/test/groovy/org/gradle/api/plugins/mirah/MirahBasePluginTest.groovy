@@ -18,7 +18,6 @@ package org.gradle.api.plugins.mirah
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.mirah.MirahCompile
 import org.gradle.util.TestUtil
