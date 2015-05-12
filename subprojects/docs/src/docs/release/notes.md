@@ -80,10 +80,10 @@ normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_
 
 ### Continuous Mode (--watch)
 
-As described in the [Gradle Roadmap](https://discuss.gradle.org/t/the-gradle-roadmap/105), we've been working on adding a 'watch' mode for
-Gradle builds.  We've called this 'continuous mode'.
+As described in the [Gradle Roadmap](https://discuss.gradle.org/t/the-gradle-roadmap/105), we've been working on adding a 'continuous mode' for
+Gradle builds. 
 
-When you run with the `--watch` command line option, Gradle will not exit at the end of a build.  Gradle will then wait for something to
+When you run with the `--watch` command line option, Gradle will not exit at the end of a build.  Instead, Gradle will wait for something to
 change.  When changes are detected, Gradle will re-run the previous build with the same task selection.
 
 For instance, if you run `gradle --watch build` in a typical Java project.  Main and test sources will be built and tests will be run. If
@@ -93,8 +93,6 @@ made to the project's test sources, Gradle will only rebuild the test Java sourc
 If you run `gradle --watch assemble` in a typical Java project.  Only the main sources will be built.  Tests will not run. If changes are
 made to the project's main sources, Gradle will rebuild the main Java sources.  If changes are made to the project's test sources, Gradle
 will do nothing.
-
-TODO - We currently watch the entire project directory, so the above isn't 100% correct yet.
 
 ### Task group accessible from the Tooling API
 
