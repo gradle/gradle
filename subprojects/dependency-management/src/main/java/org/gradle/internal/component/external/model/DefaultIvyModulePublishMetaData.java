@@ -119,10 +119,6 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         return artifactsById.values();
     }
 
-    public IvyModuleArtifactPublishMetaData getArtifact(ModuleComponentArtifactIdentifier artifactIdentifier) {
-        return artifactsById.get(artifactIdentifier);
-    }
-
     private static class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifactPublishMetaData {
         private final DefaultModuleComponentArtifactIdentifier id;
         private final Artifact artifact;

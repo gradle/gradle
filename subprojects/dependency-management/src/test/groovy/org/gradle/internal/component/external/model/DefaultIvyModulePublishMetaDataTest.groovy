@@ -37,9 +37,6 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         def publishArtifact = metaData.artifacts.iterator().next()
         publishArtifact.artifact == artifact
         publishArtifact.file == file
-
-        and:
-        metaData.getArtifact(publishArtifact.id) == publishArtifact
     }
 
     def "can add dependencies"() {

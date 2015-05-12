@@ -169,12 +169,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             this.moduleVersionIdentifier = id;
         }
 
-        // TODO:DAZ This is only used in unit tests
-        public Set<ComponentArtifactMetaData> getArtifacts() {
-            resolveArtifacts();
-            return new LinkedHashSet<ComponentArtifactMetaData>(artifactsById.values());
-        }
-
         @Override
         public String toString() {
             return componentIdentifier.getDisplayName();
@@ -334,6 +328,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             }
 
             public Set<ComponentArtifactMetaData> getArtifacts() {
+
                 resolveArtifacts();
                 if (configurationArtifacts == null) {
                     configurationArtifacts = Sets.newLinkedHashSet();
