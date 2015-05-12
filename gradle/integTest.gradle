@@ -159,7 +159,7 @@ def pkill(pid) {
     if (result.exitValue != 0) {
         String out = killOutput.toString()
         if (!out.contains('No such process')) {
-            throw new GradleException("""Failed to kill daemon process $pid.
+            logger.warn("""Failed to kill daemon process $pid. Maybe already killed?
 Output: ${killOutput}
 """)
         }
