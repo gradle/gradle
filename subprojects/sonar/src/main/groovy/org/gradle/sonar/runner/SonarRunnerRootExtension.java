@@ -29,8 +29,6 @@ import org.gradle.process.JavaForkOptions;
  * Example usage:
  * <pre autoTested=''>
  * sonarRunner {
- *   toolVersion = '2.3' // default
- *
  *   forkOptions {
  *     maxHeapSize = '1024m'
  *     jvmArgs '-XX:MaxPermSize=128m'
@@ -40,14 +38,6 @@ import org.gradle.process.JavaForkOptions;
  */
 public class SonarRunnerRootExtension extends SonarRunnerExtension {
 
-    /**
-     * The version of Sonar Runner used if another version was not specified with {@link #setToolVersion(String)}.
-     * <p>
-     * Value: {@value}
-     */
-    public static final String DEFAULT_SONAR_RUNNER_VERSION = "2.3"; // IMPORTANT: if updating this, update the DSL doc.
-
-    private String toolVersion = DEFAULT_SONAR_RUNNER_VERSION;
     private JavaForkOptions forkOptions;
 
     public SonarRunnerRootExtension(ActionBroadcast<SonarProperties> propertiesActions) {
@@ -61,20 +51,6 @@ public class SonarRunnerRootExtension extends SonarRunnerExtension {
      */
     public void forkOptions(Action<? super JavaForkOptions> action) {
         action.execute(forkOptions);
-    }
-
-    /**
-     * Version of Sonar Runner JARs to use.
-     * <p>
-     * Defaults to {@code 2.3}.
-     */
-    // IMPORTANT: update above if DEFAULT_SONAR_RUNNER_VERSION changes
-    public String getToolVersion() {
-        return toolVersion;
-    }
-
-    public void setToolVersion(String toolVersion) {
-        this.toolVersion = toolVersion;
     }
 
     /**

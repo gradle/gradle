@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     // TODO - Cleanup and remove old SonarPlugin
+    compile "org.codehaus.sonar.runner:sonar-runner-api:2.4@jar"
 
     compile project(":core")
     compile project(":plugins")

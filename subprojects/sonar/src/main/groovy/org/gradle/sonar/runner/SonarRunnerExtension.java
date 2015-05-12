@@ -52,7 +52,6 @@ import org.gradle.listener.ActionBroadcast;
 @Incubating
 public class SonarRunnerExtension {
 
-    public static final String SONAR_RUNNER_CONFIGURATION_NAME = "sonarRunner";
     public static final String SONAR_RUNNER_EXTENSION_NAME = "sonarRunner";
     public static final String SONAR_RUNNER_TASK_NAME = "sonarRunner";
 

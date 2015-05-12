@@ -24,10 +24,6 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -45,10 +41,7 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.CollectionUtils.nonEmptyOrNull;
@@ -96,7 +89,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             }
         });
         SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class, actionBroadcast);
-        addConfiguration(project, rootExtension);
         rootExtension.setForkOptions(sonarRunnerTask.getForkOptions());
     }
 
@@ -114,7 +106,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         conventionMapping.map("sonarProperties", new Callable<Object>() {
             public Object call() throws Exception {
                 Map<String, Object> properties = Maps.newLinkedHashMap();
-                computeSonarProperties(project, properties, actionBroadcastMap);
+                computeSonarProperties(project, properties, actionBroadcastMap, "");
                 return properties;
             }
         });
@@ -140,7 +132,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         return sonarRunnerTask;
     }
 
-    public void computeSonarProperties(Project project, Map<String, Object> properties, Map<Project, ActionBroadcast<SonarProperties>> sonarPropertiesActionBroadcastMap) {
+    public void computeSonarProperties(Project project, Map<String, Object> properties, Map<Project, ActionBroadcast<SonarProperties>> sonarPropertiesActionBroadcastMap, String prefix) {
         SonarRunnerExtension extension = project.getExtensions().getByType(SonarRunnerExtension.class);
         if (extension.isSkipProject()) {
             return;
@@ -153,12 +145,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             addSystemProperties(rawProperties);
         }
 
-        String projectPrefix = project.getPath().substring(targetProject.getPath().length()).replace(":", ".");
-        if (projectPrefix.startsWith(".")) {
-            projectPrefix = projectPrefix.substring(1);
-        }
-
-        convertProperties(rawProperties, projectPrefix, properties);
+        convertProperties(rawProperties, prefix, properties);
 
         List<Project> enabledChildProjects = Lists.newLinkedList(Iterables.filter(project.getChildProjects().values(), new Predicate<Project>() {
             public boolean apply(Project input) {
@@ -170,18 +157,14 @@ public class SonarRunnerPlugin implements Plugin<Project> {
             return;
         }
 
-        Collections.sort(enabledChildProjects);
-
-        String modules = COMMA_JOINER.join(Iterables.transform(enabledChildProjects, new Function<Project, String>() {
-            public String apply(Project input) {
-                return input.getName();
-            }
-        }));
-
-        properties.put(convertKey("sonar.modules", projectPrefix), modules);
+        List<String> moduleIds = new ArrayList<String>();
         for (Project childProject : enabledChildProjects) {
-            computeSonarProperties(childProject, properties, sonarPropertiesActionBroadcastMap);
+            String moduleId = getProjectKey(childProject);
+            moduleIds.add(moduleId);
+            String modulePrefix = prefix.length() > 0 ? prefix + "." + moduleId : moduleId;
+            computeSonarProperties(childProject, properties, sonarPropertiesActionBroadcastMap, modulePrefix);
         }
+        properties.put(convertKey("sonar.modules", prefix), COMMA_JOINER.join(moduleIds));
     }
 
     private void addGradleDefaults(final Project project, final Map<String, Object> properties) {
@@ -195,13 +178,11 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         properties.put("sonar.dynamicAnalysis", "reuseReports");
 
         if (project.equals(targetProject)) {
-            // We only set project key for root project because Sonar Runner 2.0 will automatically
-            // prefix subproject keys with parent key, even if subproject keys are set explicitly.
-            // Therefore it's better to rely on Sonar's defaults.
+            // Root project
             properties.put("sonar.projectKey", getProjectKey(project));
-            properties.put("sonar.environment.information.key", "Gradle");
-            properties.put("sonar.environment.information.version", project.getGradle().getGradleVersion());
             properties.put("sonar.working.directory", new File(project.getBuildDir(), "sonar"));
+        } else {
+            properties.put("sonar.moduleKey", getProjectKey(project));
         }
 
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
@@ -273,7 +254,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     private void addSystemProperties(Map<String, Object> properties) {
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             String key = entry.getKey().toString();
-            if (key.startsWith("sonar.")) {
+            if (key.startsWith("sonar")) {
                 properties.put(key, entry.getValue());
             }
         }
@@ -319,23 +300,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         } else {
             return value.toString();
         }
-    }
-
-    private void addConfiguration(final Project project, final SonarRunnerRootExtension rootExtension) {
-        final Configuration configuration = project.getConfigurations().create(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
-        configuration
-                .setVisible(false)
-                .setTransitive(false)
-                .setDescription("The SonarRunner configuration to use to run analysis")
-                .whenEmpty(new Action<DependencySet>() {
-                    @Override
-                    public void execute(DependencySet dependencies) {
-                        String toolVersion = rootExtension.getToolVersion();
-                        DependencyHandler dependencyHandler = project.getDependencies();
-                        Dependency dependency = dependencyHandler.create("org.codehaus.sonar.runner:sonar-runner-dist:" + toolVersion);
-                        dependencies.add(dependency);
-                    }
-                });
     }
 
     private static void evaluateSonarPropertiesBlocks(ActionBroadcast<? super SonarProperties> propertiesActions, Map<String, Object> properties) {
