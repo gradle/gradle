@@ -728,6 +728,7 @@ This story makes the use of continuous mode more effective by allowing better ut
 - A quiet period should be respected for file system changes (e.g. wait for all copy operations to complete, wait for user to complete source edits)
 - Certain inputs might be known to be immutable (e.g. cached repository dependencies have a checksum in their path and will not change, system header files)
 - Changes to files behind symlinks are not respected
+- Potentially allowing some way to manually trigger a rebuild (e.g. inputs changes before build finished, file system changed was captured - either correctly or incorrectly)
 
 ---
 
