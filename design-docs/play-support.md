@@ -682,7 +682,7 @@ For a conventional `apply plugin: 'java'` project:
 
 1. Changes to input zips are respected
 1. Changes to input tars are respected (compressed and uncompressed)
-1. Can use a symlink as an input file
+1. ~~Can use a symlink as an input file~~
 1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
 1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
 1. Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)
