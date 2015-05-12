@@ -20,17 +20,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
 import org.gradle.launcher.continuous.ContinuousModeParameters
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ContinuousModeCommandLineConverterTest extends Specification {
 
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
     @Unroll
     def "converts watch options - #options"() {
         when:
-        def converted = convert(options)
+        def converted = convert(options, JavaVersion.VERSION_1_7)
 
         then:
         converted.enabled == enabled
@@ -41,18 +39,17 @@ class ContinuousModeCommandLineConverterTest extends Specification {
         ['--watch'] | true
     }
 
-    @IgnoreIf({ JavaVersion.current().java7Compatible })
     def "fails on Java 6 with reasonable message"() {
         when:
-        convert(["--watch"])
+        convert(["--watch"], JavaVersion.VERSION_1_6)
         then:
         def e = thrown(CommandLineArgumentException)
         e.message == "Continuous mode (--watch) is not supported on versions of Java older than 1.7."
     }
 
-    private ContinuousModeParameters convert(Iterable args) {
+    private ContinuousModeParameters convert(Iterable args, JavaVersion javaVersion) {
         CommandLineParser parser = new CommandLineParser()
-        def converter = new ContinuousModeCommandLineConverter()
+        def converter = new ContinuousModeCommandLineConverter(javaVersion)
         converter.configure(parser)
         converter.convert(args, new ContinuousModeParameters())
     }

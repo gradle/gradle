@@ -26,6 +26,15 @@ import org.gradle.launcher.continuous.ContinuousModeParameters;
 public class ContinuousModeCommandLineConverter extends AbstractCommandLineConverter<ContinuousModeParameters> {
 
     private static final String WATCH = "watch";
+    private final JavaVersion currentVersion;
+
+    ContinuousModeCommandLineConverter(JavaVersion currentVersion) {
+        this.currentVersion = currentVersion;
+    }
+
+    public ContinuousModeCommandLineConverter() {
+        this(JavaVersion.current());
+    }
 
     public ContinuousModeParameters convert(ParsedCommandLine args, ContinuousModeParameters target) throws CommandLineArgumentException {
         if (args.hasOption(WATCH)) {
@@ -36,7 +45,7 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
     }
 
     private void assertJava7OrBetter() {
-        if (!JavaVersion.current().isJava7Compatible()) {
+        if (!currentVersion.isJava7Compatible()) {
             throw new CommandLineArgumentException(String.format("Continuous mode (--%s) is not supported on versions of Java older than %s.", WATCH, JavaVersion.VERSION_1_7));
         }
     }
