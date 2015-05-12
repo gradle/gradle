@@ -15,15 +15,19 @@
  */
 
 package org.gradle.launcher.continuous
-
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+
 class SimpleJavaContinuousModeExecutionIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
+
+    // TODO: Fold test sources into TestJvmComponent?
     List<JvmSourceFile> testSources = [
         new JvmSourceFile("compile/test", "PersonTest.java", '''
 package compile.test;
@@ -34,6 +38,7 @@ public class PersonTest {
     }
 }''')
     ]
+
     TestFile sourceDir = file("src/main")
     TestFile testSourceDir = file("src/test/java")
     TestFile resourceDir = file("src/main/resources")
@@ -131,6 +136,100 @@ public class PersonTest {
         skipped(":compileJava")
     }
 
+    def "failing main source build ignores changes to test source"() {
+        when:
+        def testSourceFiles = testSources*.writeToDir(testSourceDir)
+        def sourceFiles = app.writeSources(sourceDir)
+        def sourceFile = sourceFiles.get(0)
+        def testSourceFile = testSourceFiles.get(0)
+        sourceFile << "/* Broken build"
+        then:
+        fails("test")
+
+        when: "Change to test source file does not cause rebuild"
+        testSourceFile << "// some change"
+        then:
+        noBuildTriggered()
+    }
+
+    def "can resolve dependencies from remote repository in continuous mode"() {
+        when:
+        app.writeSources(sourceDir)
+        def sourceFile = sourceDir.file("java/Another.java")
+        buildFile << """
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        compile "log4j:log4j:1.2.17"
+    }
+"""
+        then:
+        succeeds("build")
+        executedAndNotSkipped ":compileJava", ":build"
+
+        when:
+        sourceFile << """
+    // just adding a real dependency on log4j to the compilation
+    import org.apache.log4j.LogManager;
+    public class Another {}
+"""
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava", ":build"
+    }
+
+    def "dependencies as inputs from local filesystem"() {
+        when:
+        def somelib = file("lib/somelib.jar")
+        somelib.parentFile.mkdir()
+        app.writeSources(sourceDir)
+        buildFile << """
+    dependencies {
+        compile files("lib/somelib.jar")
+    }
+"""
+        then:
+        succeeds("build")
+        executedAndNotSkipped ":compileJava", ":build"
+        when: "dependency is created"
+        createJar(somelib, "META-INF/")
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava"
+        when: "dependency is changed"
+        createJar(somelib, "META-INF/", "another-dir/")
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava"
+        when: "dependency is removed"
+        somelib.delete()
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava"
+    }
+
+    @Ignore("dependency file collection is turned into collection of files vs directory")
+    def "multiple dependencies as inputs from local filesystem"() {
+        when:
+        def libDir = file('libs').createDir()
+        createJar(libDir.file("somelib.jar"), "META-INF/")
+        app.writeSources(sourceDir)
+        buildFile << """
+    dependencies {
+        compile fileTree("libs/")
+    }
+"""
+        then:
+        succeeds("build")
+        executedAndNotSkipped ":compileJava", ":build"
+        when: "another dependency is created"
+        createJar(libDir.file("anotherlib.jar"), "META-INF/")
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava"
+    }
+
     @Ignore("We skip execution of tasks with no sources")
     def "creation of initial source file triggers build"() {
         when:
@@ -146,5 +245,14 @@ public class PersonTest {
         then:
         succeeds()
         executedAndNotSkipped ":compileJava", ":jar", ":build"
+    }
+
+    private def createJar(jarFile, String... entries) throws IOException {
+        def jarOutputStream = new JarOutputStream(new FileOutputStream(jarFile))
+        entries.each {
+            // put some empty directories in the jar
+            jarOutputStream.putNextEntry(new ZipEntry(it))
+        }
+        jarOutputStream.close()
     }
 }

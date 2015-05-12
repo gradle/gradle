@@ -77,4 +77,9 @@ public final class ImmutableDirectoryTree implements DirectoryTree {
         result = 31 * result + (patternSet != null ? patternSet.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "dir: " + dir.getPath();
+    }
 }

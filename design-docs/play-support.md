@@ -662,12 +662,12 @@ For a conventional `apply plugin: 'java'` project:
     1. ~~Change to source file causes execution of tests~~
     1. ~~Change to test file causes execution of tests~~
     1. ~~Change to resource file (`src/main/resources`)~~
-1. Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)
-1. Remove of a local filesystem compile dependency triggers rebuild
+1. ~~Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)~~
+1. ~~Remove of a local filesystem compile dependency triggers rebuild~~
 1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)
 1. In a multi project, changes to Java source of upstream projects trigger the build of downstream projects
-1. Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)
-1. When main source fails to compile, changes to test source does not trigger build
+1. ~~Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)~~
+1. ~~When main source fails to compile, changes to test source does not trigger build~~
 
 ##### Creating archives
 

@@ -44,6 +44,9 @@ abstract public class AbstractContinuousModeExecutionIntegrationTest extends Abs
         if (tasks) {
             runBuild(tasks)
         }
+        if (gradle==null) {
+            throw new UnexpectedBuildFailure("Gradle never started")
+        }
         waitForBuild()
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("build was expected to succeed but failed")

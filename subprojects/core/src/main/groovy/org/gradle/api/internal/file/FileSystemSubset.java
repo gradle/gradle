@@ -84,6 +84,14 @@ public class FileSystemSubset {
         return false;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Files: ").append(files);
+        sb.append(" Trees: ").append(trees);
+        return sb.toString();
+    }
+
     public static class Builder {
         private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
