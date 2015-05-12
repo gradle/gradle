@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.internal.component.local.model.LocalArtifactMetaData;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.internal.component.model.DependencyMetaData;
 
 import java.io.File;
@@ -35,5 +35,5 @@ public interface BuildableIvyModulePublishMetaData extends IvyModulePublishMetaD
 
     void addArtifact(Artifact artifact, File file);
 
-    void addArtifact(LocalArtifactMetaData artifact);
+    void addArtifact(String configuration, PublishArtifact publishArtifact);
 }

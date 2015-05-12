@@ -16,10 +16,15 @@
 
 package org.gradle.internal.component.local.model
 import org.apache.ivy.core.module.descriptor.Configuration
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class DefaultLocalComponentMetaDataTest extends Specification {
@@ -65,7 +70,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addConfiguration("conf", true, "", [] as String[], true)
 
         when:
-        metaData.addArtifact("conf", artifact, file)
+        addArtifact("conf", artifact, file)
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
@@ -91,6 +96,11 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishMetaDataArtifact.artifactName.extension == artifact.extension
     }
 
+    def addArtifact(String configuration, IvyArtifactName name, File file) {
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
+        metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact)))
+    }
+
     def "can add artifact to several configurations"() {
         def artifact = artifactName()
         def file = new File("artifact.zip")
@@ -100,8 +110,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addConfiguration("conf2", true, "", [] as String[], true)
 
         when:
-        metaData.addArtifact("conf1", artifact, file)
-        metaData.addArtifact("conf2", artifact, file)
+        addArtifact("conf1", artifact, file)
+        addArtifact("conf2", artifact, file)
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
@@ -117,7 +127,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addConfiguration("conf", true, "", [] as String[], true)
 
         and:
-        metaData.addArtifact("conf", artifact, file)
+        addArtifact("conf", artifact, file)
 
         and:
         def ivyArtifact = artifactName()
@@ -147,8 +157,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         given:
         metaData.addConfiguration("conf1", true, "conf1", new String[0], true)
         metaData.addConfiguration("conf2", true, "conf2", new String[0], true)
-        metaData.addArtifact("conf1", artifact1, file1)
-        metaData.addArtifact("conf2", artifact2, file2)
+        addArtifact("conf1", artifact1, file1)
+        addArtifact("conf2", artifact2, file2)
 
         when:
         def resolveMetaData = metaData.toResolveMetaData()

@@ -33,7 +33,6 @@ import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
-    // TODO:DAZ Probably don't need order-preserving maps here
     private final Map<String, PublishArtifactSet> configurationArtifacts = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = Maps.newHashMap();
     private final Map<String, Configuration> allIvyConfigurations = Maps.newHashMap();
@@ -104,7 +103,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public BuildableIvyModulePublishMetaData toPublishMetaData() {
-        resolveArtifacts();
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, status);
         for (Configuration configuration : allIvyConfigurations.values()) {
             publishMetaData.addConfiguration(configuration);
@@ -115,8 +113,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         for (DependencyMetaData dependency : dependencies) {
             publishMetaData.addDependency(dependency);
         }
-        for (LocalArtifactMetaData artifact : artifactsById.values()) {
-            publishMetaData.addArtifact(artifact);
+        for (String configuration : configurationArtifacts.keySet()) {
+            PublishArtifactSet publishArtifacts = configurationArtifacts.get(configuration);
+            for (PublishArtifact publishArtifact : publishArtifacts) {
+                publishMetaData.addArtifact(configuration, publishArtifact);
+            }
         }
         return publishMetaData;
     }
@@ -328,7 +329,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             }
 
             public Set<ComponentArtifactMetaData> getArtifacts() {
-
                 resolveArtifacts();
                 if (configurationArtifacts == null) {
                     configurationArtifacts = Sets.newLinkedHashSet();

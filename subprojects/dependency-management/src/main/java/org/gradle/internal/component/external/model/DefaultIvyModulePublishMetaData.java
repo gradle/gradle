@@ -20,8 +20,8 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.local.model.LocalArtifactMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -99,13 +99,20 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         artifactsById.put(artifact.getId(), artifact);
     }
 
-    public void addArtifact(LocalArtifactMetaData artifact) {
-        IvyArtifactName artifactName = artifact.getName();
-        MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, ivyArtifactAttributes(artifactName));
-        for (String configuration : artifact.getConfigurations()) {
-            ivyArtifact.addConfiguration(configuration);
+    @Override
+    public void addArtifact(String configuration, PublishArtifact publishArtifact) {
+        MDArtifact artifact = getOrCreate(DefaultIvyArtifactName.forPublishArtifact(publishArtifact, getId().getName()));
+        artifact.addConfiguration(configuration);
+        addArtifact(artifact, publishArtifact.getFile());
+    }
+
+    private MDArtifact getOrCreate(IvyArtifactName ivyName) {
+        for (IvyModuleArtifactPublishMetaData artifactPublishMetaData : artifactsById.values()) {
+            if (artifactPublishMetaData.getArtifactName().equals(ivyName)) {
+                return (MDArtifact) artifactPublishMetaData.toIvyArtifact();
+            }
         }
-        addArtifact(ivyArtifact, artifact.getFile());
+        return new MDArtifact(moduleDescriptor, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), null, ivyArtifactAttributes(ivyName));
     }
 
     private Map<String, String> ivyArtifactAttributes(IvyArtifactName ivyArtifactName) {
