@@ -157,7 +157,7 @@ public class CUnitPlugin implements Plugin<Project> {
             testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
                 @Override
                 public void execute(CUnitTestSuiteSpec cUnitTestSuite) {
-                    for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+                    for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
 
                         if (testedBinary instanceof SharedLibraryBinary) {
                             // TODO:DAZ For now, we only create test suites for static library variants
@@ -166,7 +166,8 @@ public class CUnitPlugin implements Plugin<Project> {
 
                         DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
                         configure(testBinary, buildDir);
-                        cUnitTestSuite.getBinaries().add(testBinary);
+                        ComponentSpecInternal cUnitTestSuiteInternal = (ComponentSpecInternal) cUnitTestSuite;
+                        cUnitTestSuiteInternal.getBinariesContainer().add(testBinary);
                     }
                 }
             });
@@ -175,8 +176,8 @@ public class CUnitPlugin implements Plugin<Project> {
         @Mutate
         public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
-                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
-                    binaries.addAll(cUnitTestSuite.getBinaries().withType(CUnitTestSuiteBinarySpec.class));
+                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+                    binaries.addAll(cUnitTestSuite.getBinaries().withType(CUnitTestSuiteBinarySpec.class).values());
                 }
             }
         }

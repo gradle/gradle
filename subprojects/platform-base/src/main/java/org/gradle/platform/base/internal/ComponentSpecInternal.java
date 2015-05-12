@@ -30,6 +30,5 @@ public interface ComponentSpecInternal extends ComponentSpec {
 
     Set<Class<? extends TransformationFileType>> getInputTypes();
 
-    @Override
-    ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinaries();
+    ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinariesContainer();
 }

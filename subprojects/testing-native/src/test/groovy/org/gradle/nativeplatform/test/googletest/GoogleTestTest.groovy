@@ -28,7 +28,7 @@ class GoogleTestTest extends Specification {
     final def project = TestUtil.createRootProject();
 
     def "check the correct binary type are created for the test suite"() {
-        when:
+        given:
         project.apply(plugin: CppPlugin)
         project.apply(plugin: GoogleTestPlugin)
         project.model {
@@ -38,8 +38,10 @@ class GoogleTestTest extends Specification {
         }
         project.evaluate()
 
+        when:
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries.values()
+
         then:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries
         binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()
     }
 }

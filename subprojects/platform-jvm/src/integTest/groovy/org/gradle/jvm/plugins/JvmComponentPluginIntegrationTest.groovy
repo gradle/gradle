@@ -73,7 +73,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                     assert myLib.sources.size() == 0
 
                     assert project.binaries.size() == 1
-                    assert myLib.binaries as Set == project.binaries as Set
+                    assert myLib.binaries.values() as Set == project.binaries as Set
 
                     def myLibJar = (project.binaries as List)[0]
                     assert myLibJar instanceof JarBinarySpec
@@ -225,8 +225,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
                     assert components.myLibTwo instanceof JvmLibrarySpec
 
                     assert project.binaries.size() == 2
-                    assert project.binaries.myLibOneJar == components.myLibOne.binaries[0]
-                    assert project.binaries.myLibTwoJar == components.myLibTwo.binaries[0]
+                    assert project.binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
+                    assert project.binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
                 }
             }
         }

@@ -43,7 +43,7 @@ model {
                 assert titleAImage.projectPath == project.path
                 assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
                 assert titleAImage.title == 'TitleA\'
-                assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
+                assert titleAImage.binaries.values()*.name.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
             }
         }
     }

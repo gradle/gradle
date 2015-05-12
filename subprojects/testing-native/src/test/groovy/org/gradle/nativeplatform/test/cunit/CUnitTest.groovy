@@ -28,7 +28,7 @@ class CUnitTest extends Specification {
     final def project = TestUtil.createRootProject();
 
     def "check the correct binary type are created for the test suite"() {
-        when:
+        given:
         project.pluginManager.apply(CPlugin)
         project.pluginManager.apply(CUnitPlugin)
         project.model {
@@ -38,8 +38,9 @@ class CUnitTest extends Specification {
         }
         project.evaluate()
 
-        then:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries
+        when:
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries.values()
+
         then:
         binaries.collect({ it instanceof CUnitTestSuiteBinarySpec }) == [true] * binaries.size()
     }

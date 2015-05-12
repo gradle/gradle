@@ -46,6 +46,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
     private final DefaultBinaryContainer binaries;
+    private final ModelMap<BinarySpec> binariesMap;
 
     public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
         if (type.equals(BaseComponentSpec.class)) {
@@ -76,7 +77,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
         this.source = ModelMapGroovyDecorator.alwaysMutable(
-            new NamedDomainObjectSetBackedModelMap<LanguageSourceSet>(
+            NamedDomainObjectSetBackedModelMap.ofNamed(
                 LanguageSourceSet.class,
                 mainSourceSet,
                 new NamedEntityInstantiator<LanguageSourceSet>() {
@@ -84,15 +85,17 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                         mainSourceSet.create(name, type);
                         return null;
                     }
-                },
-                new org.gradle.api.Namer<Object>() {
-                    public String determineName(Object object) {
-                        return Cast.cast(Named.class, object).getName();
-                    }
                 }
             )
         );
         this.binaries = info.instantiator.newInstance(DefaultBinaryContainer.class, info.instantiator);
+        this.binariesMap = ModelMapGroovyDecorator.alwaysMutable(
+            NamedDomainObjectSetBackedModelMap.ofNamed(
+                BinarySpec.class,
+                this.binaries,
+                this.binaries
+            )
+        );
     }
 
     public String getName() {
@@ -126,13 +129,19 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         action.execute(source);
     }
 
-    public ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinaries() {
+    @Override
+    public ModelMap<BinarySpec> getBinaries() {
+        return binariesMap;
+    }
+
+    @Override
+    public ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinariesContainer() {
         return binaries;
     }
 
     @Override
-    public void binaries(Action<? super NamedDomainObjectContainer<BinarySpec>> action) {
-        action.execute(binaries);
+    public void binaries(Action<? super ModelMap<BinarySpec>> action) {
+        action.execute(binariesMap);
     }
 
     public FunctionalSourceSet getSources() {
@@ -215,6 +224,19 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
             public boolean isSatisfiedBy(T element) {
                 return type.isInstance(element);
             }
+        }
+
+        private static <T> NamedDomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, NamedDomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator) {
+            return new NamedDomainObjectSetBackedModelMap<T>(
+                elementType,
+                domainObjectSet,
+                instantiator,
+                new org.gradle.api.Namer<Object>() {
+                    public String determineName(Object object) {
+                        return Cast.cast(Named.class, object).getName();
+                    }
+                }
+            );
         }
     }
 }

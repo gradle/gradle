@@ -134,7 +134,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
             testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>() {
                 @Override
                 public void execute(GoogleTestTestSuiteSpec testSuiteSpec) {
-                    for (NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+                    for (NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
                         if (testedBinary instanceof SharedLibraryBinary) {
                             // TODO:DAZ For now, we only create test suites for static library variants
                             continue;
@@ -142,7 +142,8 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
                         DefaultGoogleTestTestSuiteBinary testBinary = createTestBinary(serviceRegistry, testSuiteSpec, testedBinary, taskFactory);
                         configure(testBinary, buildDir);
-                        testSuiteSpec.getBinaries().add(testBinary);
+                        ComponentSpecInternal testSuiteSpecInternal = (ComponentSpecInternal) testSuiteSpec;
+                        testSuiteSpecInternal.getBinariesContainer().add(testBinary);
                     }
                 }
             });
@@ -151,8 +152,8 @@ public class GoogleTestPlugin implements Plugin<Project> {
         @Mutate
         public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
             for (GoogleTestTestSuiteSpec testSuite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
-                for (NativeBinarySpec testedBinary : testSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
-                    binaries.addAll(testSuite.getBinaries().withType(GoogleTestTestSuiteBinarySpec.class));
+                for (NativeBinarySpec testedBinary : testSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+                    binaries.addAll(testSuite.getBinaries().withType(GoogleTestTestSuiteBinarySpec.class).values());
                 }
             }
         }

@@ -66,7 +66,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
             }
             componentRenderer.render(component, getBuilder());
             componentSourceSets.addAll(component.getSource().values());
-            componentBinaries.addAll(component.getBinaries());
+            componentBinaries.addAll(component.getBinaries().values());
         }
     }
 

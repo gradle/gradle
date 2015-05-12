@@ -86,7 +86,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                     DefaultModelViewState binariesState = new DefaultModelViewState(DefaultModelMap.modelMapTypeOf(binaryType), getDescriptor());
                     ModelMap<BinarySpec> binarySpecs = new ModelMapGroovyDecorator<BinarySpec>(
                         new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
-                            componentSpecInternal.getBinaries(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
+                            componentSpecInternal.getBinariesContainer(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
                         ),
                         binariesState
                     );

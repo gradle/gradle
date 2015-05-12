@@ -175,7 +175,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             @Defaults
             void apply(ComponentSpec componentSpec, BinarySpecFactoryRegistry binaryFactoryRegistry) {
                 ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
-                binaryFactoryRegistry.copyInto(componentSpecInternal.getBinaries());
+                binaryFactoryRegistry.copyInto(componentSpecInternal.getBinariesContainer());
             }
         }
 
@@ -187,7 +187,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Defaults
         void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpec binary : componentSpec.getBinaries()) {
+                for (BinarySpec binary : componentSpec.getBinaries().values()) {
                     binaries.add(binary);
                 }
             }

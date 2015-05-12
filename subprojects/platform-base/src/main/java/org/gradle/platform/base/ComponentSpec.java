@@ -50,10 +50,10 @@ public interface ComponentSpec extends Named {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    NamedDomainObjectCollection<BinarySpec> getBinaries();
+    ModelMap<BinarySpec> getBinaries();
 
     /**
      * Configures the binaries that are produced for this component.
      */
-    void binaries(Action<? super NamedDomainObjectContainer<BinarySpec>> action);
+    void binaries(Action<? super ModelMap<BinarySpec>> action);
 }

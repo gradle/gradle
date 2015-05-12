@@ -79,7 +79,7 @@ public class ComponentSpecInitializer {
 
         Transformer<NamedDomainObjectCollection<BinarySpec>, ComponentSpecInternal> binariesPropertyTransformer = new Transformer<NamedDomainObjectCollection<BinarySpec>, ComponentSpecInternal>() {
             public NamedDomainObjectCollection<BinarySpec> transform(ComponentSpecInternal componentSpec) {
-                return componentSpec.getBinaries();
+                return componentSpec.getBinariesContainer();
             }
         };
         ModelType<NamedDomainObjectCollection<BinarySpec>> binariesType = namedDomainObjectCollectionOf(BinarySpec.class);
