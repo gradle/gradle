@@ -23,7 +23,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.TestProgressEvent
+import spock.lang.Ignore
 
+@Ignore
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
 
     void setup() {
@@ -58,6 +60,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
         file("src/test/java/example/MyTest.java") << """
