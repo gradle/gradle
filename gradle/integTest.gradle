@@ -117,7 +117,7 @@ def forEachDaemonProcess(Closure action) {
             commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
             standardOutput = output
         }
-        def pattern = Pattern.compile("(\\d+)\\s+(?:$queryString)\\s+(\\S+)\\s+(.+)")
+        def pattern = ~"(\\d+)\\s+(?:$queryString)\\s+(\\S+)\\s+(.+)"
         output.toString().readLines().each { String line ->
             def matcher = pattern.matcher(line)
             if (!matcher.matches()) {
