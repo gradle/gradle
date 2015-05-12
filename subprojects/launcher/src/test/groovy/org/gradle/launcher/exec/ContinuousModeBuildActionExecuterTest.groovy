@@ -16,27 +16,22 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.api.Action
 import org.gradle.initialization.*
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.continuous.BlockingTriggerable
-import org.gradle.launcher.continuous.DefaultTriggerDetails
-import org.gradle.launcher.continuous.TriggerDetails
 import org.gradle.util.Clock
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
     def underlyingExecuter = new UnderlyingExecuter()
-    def triggerDetails = new DefaultTriggerDetails(TriggerDetails.Type.REBUILD, "test reason")
-    def triggerable = Mock(BlockingTriggerable)
     def action = Mock(BuildAction)
     def cancellationToken = Stub(BuildCancellationToken)
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
-    def services = Mock(ServiceRegistry)
     def actionParameters = Stub(BuildActionParameters)
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerable, services)
+    def waiter = Mock(Action)
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, waiter)
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
@@ -80,8 +75,8 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then:
-        1 * triggerable.waitForTrigger() >> triggerDetails
-        1 * clock.reset()
+        1 * waiter.execute(_)
+        0 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
 
@@ -95,8 +90,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then: "hides exceptions"
-        1 * triggerable.waitForTrigger() >> triggerDetails
-        1 * clock.reset()
+        0 * waiter.wait()
         underlyingExecuter.executedAllActions()
     }
 
@@ -112,8 +106,8 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         when:
         executeBuild()
         then:
-        3 * triggerable.waitForTrigger() >> triggerDetails
-        3 * clock.reset()
+        3 * waiter.execute(_)
+        2 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
 

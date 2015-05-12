@@ -16,30 +16,37 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.continuous.BlockingTriggerable;
-import org.gradle.launcher.continuous.TaskInputsWatcher;
-import org.gradle.launcher.continuous.TriggerDetails;
-import org.gradle.launcher.continuous.TriggerListener;
 import org.gradle.util.SingleMessageLogger;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final Logger logger;
-    private final BlockingTriggerable triggerable;
-    private final ServiceRegistry services;
+    private final Action<? super Runnable> waiter;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, BlockingTriggerable triggerable, ServiceRegistry services) {
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, final ServiceRegistry services) {
+        this(delegate, new Waiter(services));
+    }
+
+    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, Action<? super Runnable> waiter) {
         this.delegate = delegate;
-        this.triggerable = triggerable;
-        this.services = services;
+        this.waiter = waiter;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
     }
 
@@ -47,35 +54,20 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
-
-            ListenerManager listenerManager = services.get(ListenerManager.class);
-            TaskInputsWatcher taskInputsWatcher = null;
-
-            if (listenerManager != null) { // TODO: why would this be null?
-                taskInputsWatcher = registerFileWatcherHooks(listenerManager);
-            }
-
-            try {
-                return executeMultipleBuilds(action, requestContext, actionParameters);
-            } finally {
-                if (listenerManager != null && taskInputsWatcher != null) {
-                    listenerManager.removeListener(taskInputsWatcher);
-                }
-            }
+            return executeMultipleBuilds(action, requestContext, actionParameters);
         }
         return executeSingleBuild(action, requestContext, actionParameters);
     }
 
-    private TaskInputsWatcher registerFileWatcherHooks(ListenerManager listenerManager) {
-        FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
-        TaskInputsWatcher taskInputsWatcher = new TaskInputsWatcher(listenerManager.getBroadcaster(TriggerListener.class), fileWatcherFactory);
-        listenerManager.addListener(taskInputsWatcher);
-        return taskInputsWatcher;
-    }
-
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         Object lastResult = null;
+        int counter = 0;
         while (buildNotStopped(requestContext)) {
+            if (++counter != 1) {
+                // reset the time the build started so the total time makes sense
+                requestContext.getBuildTimeClock().reset();
+            }
+
             try {
                 lastResult = executeSingleBuild(action, requestContext, actionParameters);
             } catch (Throwable t) {
@@ -83,16 +75,12 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
             }
 
             if (buildNotStopped(requestContext)) {
-                logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
-                TriggerDetails reason = triggerable.waitForTrigger();
-                logger.lifecycle(reason.getType() + " triggered due to " + reason.getReason());
-                if (reason.getType() == TriggerDetails.Type.REBUILD) {
-                    // reset the time the build started so the total time makes sense
-                    requestContext.getBuildTimeClock().reset();
-                } else {
-                    // stop building
-                    break;
-                }
+                waiter.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+                    }
+                });
             }
         }
 
@@ -112,4 +100,57 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
         return !requestContext.getCancellationToken().isCancellationRequested();
     }
 
+    private static class Waiter implements Action<Runnable> {
+        private final ServiceRegistry services;
+
+        public Waiter(ServiceRegistry services) {
+            this.services = services;
+        }
+
+        @Override
+        public void execute(Runnable runnable) {
+            FileSystemSubset taskFileSystemInputs = services.get(TaskFileSystemInputsAccumulator.class).get();
+            FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
+
+            final CountDownLatch latch = new CountDownLatch(1);
+            final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
+
+            FileWatcher watcher = fileWatcherFactory.watch(
+                taskFileSystemInputs,
+                new Action<Throwable>() {
+                    @Override
+                    public void execute(Throwable throwable) {
+                        error.set(throwable);
+                        latch.countDown();
+                    }
+                },
+                new FileWatcherListener() {
+                    @Override
+                    public void onChange(FileWatcher watcher, FileWatcherEvent event) {
+                        watcher.stop();
+                        latch.countDown();
+                    }
+                }
+            );
+
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                watcher.stop();
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            Throwable throwable = error.get();
+            if (throwable != null) {
+                throw UncheckedException.throwAsUncheckedException(throwable);
+            }
+
+        }
+    }
 }

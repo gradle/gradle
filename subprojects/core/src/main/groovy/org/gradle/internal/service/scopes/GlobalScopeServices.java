@@ -28,6 +28,8 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
+import org.gradle.api.internal.tasks.DefaultTaskFileSystemInputsAccumulator;
+import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.*;
@@ -91,6 +93,11 @@ public class GlobalScopeServices {
         }
     }
 
+    // TODO: This is not right, it's currently at this too high level to allow access in ContinuousModeBuildActionExecuter
+    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator() {
+        return new DefaultTaskFileSystemInputsAccumulator();
+    }
+
     GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
         return new DefaultGradleLauncherFactory(services);
     }
@@ -109,9 +116,9 @@ public class GlobalScopeServices {
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         return new DefaultClassPathRegistry(
-                new DefaultClassPathProvider(moduleRegistry),
-                new DynamicModulesClassPathProvider(moduleRegistry,
-                        pluginModuleRegistry));
+            new DefaultClassPathProvider(moduleRegistry),
+            new DynamicModulesClassPathProvider(moduleRegistry,
+                pluginModuleRegistry));
     }
 
     DefaultModuleRegistry createModuleRegistry() {
@@ -164,9 +171,9 @@ public class GlobalScopeServices {
 
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
-                new DefaultProcessMetaDataProvider(
-                        processEnvironment),
-                fileLockContentionHandler);
+            new DefaultProcessMetaDataProvider(
+                processEnvironment),
+            fileLockContentionHandler);
     }
 
     InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
@@ -175,8 +182,8 @@ public class GlobalScopeServices {
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, MessagingServices messagingServices) {
         return new DefaultFileLockContentionHandler(
-                executorFactory,
-                messagingServices.get(InetAddressFactory.class)
+            executorFactory,
+            messagingServices.get(InetAddressFactory.class)
         );
     }
 

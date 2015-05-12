@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateR
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
 import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.tasks.DefaultTaskFileSystemInputsAccumulator;
 import org.gradle.api.internal.tasks.NoopTaskFileSystemInputsAccumulator;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
@@ -44,13 +43,11 @@ import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
 
-    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator(StartParameter startParameter) {
-        return startParameter.isContinuousModeEnabled()
-            ? new DefaultTaskFileSystemInputsAccumulator()
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, TaskFileSystemInputsAccumulator realTaskFileSystemInputsAccumulator, StartParameter startParameter) {
+        TaskFileSystemInputsAccumulator taskFileSystemInputsAccumulator = startParameter.isContinuousModeEnabled()
+            ? realTaskFileSystemInputsAccumulator
             : new NoopTaskFileSystemInputsAccumulator();
-    }
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, TaskFileSystemInputsAccumulator taskFileSystemInputsAccumulator) {
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
