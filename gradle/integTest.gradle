@@ -135,12 +135,15 @@ def forEachDaemonProcess(Closure action) {
             commandLine('ps', 'x')
             standardOutput = output
         }
+        def pidPattern = /([0-9]+)/
         output.toString().readLines().each { String line ->
             if (line =~ queryString && (line.contains(rootProject.projectDir.absolutePath)
                 && (line.contains('integ test') || line.contains('intTest')))) {
-                def idx = line.indexOf(' ')
-                def pid = line[0..<idx]
-                action.call(pid)
+                def pidMatcher = line =~pidPattern
+                if (pidMatcher.find()) {
+                    def pid = pidMatcher.group(1)
+                    action.call(pid)
+                }
             }
         }
     }
