@@ -107,28 +107,23 @@ project(":") {
 }
 
 def forEachDaemonProcess(Closure action) {
-    def osName = System.getProperty('os.name').toLowerCase()
     def queryString = /GradleDaemon|IsolatedGradleWorkerMain/
     def output = new ByteArrayOutputStream()
-    if (osName =~ /windows/) {
-        // TODO: jps seem to miss hanging processes. It would be better to rely on a system "pgrep" like
-        // command if available
+    if (org.gradle.internal.os.OperatingSystem.current().windows) {
         exec {
-            commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
+            commandLine('wmic', 'process' ,'get', 'processid,commandline')
             standardOutput = output
         }
-        def pattern = ~"(\\d+)\\s+(?:$queryString)\\s+(\\S+)\\s+(.+)"
+        def pidPattern = /([0-9]+)\s*$/
         output.toString().readLines().each { String line ->
-            def matcher = pattern.matcher(line)
-            if (!matcher.matches()) {
-                return
+            if (line =~ queryString && (line.contains(rootProject.projectDir.absolutePath)
+                && (line.contains('integ test') || line.contains('intTest')))) {
+                def pidMatcher = line =~pidPattern
+                if (pidMatcher.find()) {
+                    def pid = pidMatcher.group(1)
+                    action.call(pid)
+                }
             }
-            def remainder = matcher.group(3)
-            if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
-                return
-            }
-            def pid = matcher.group(1)
-            action.call(pid)
         }
     } else {
         exec {
