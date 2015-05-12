@@ -94,6 +94,34 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    void withTestBinaryFactory() {
+        buildFile << """
+            import org.gradle.api.internal.project.taskfactory.ITaskFactory
+
+            interface CustomTestBinary extends TestSuiteBinarySpec {
+                String getData()
+            }
+
+            class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary {
+                TestSuiteSpec testSuite
+                String data = "foo"
+            }
+
+            class TestBinaryTypeRules extends RuleSource {
+                @Defaults
+                public void registerCustomTestBinaryFactory(TestSuiteContainer testSuites, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+                    testSuites.beforeEach { testSuite ->
+                        testSuite.binariesContainer.registerFactory(CustomTestBinary) { name ->
+                            BaseBinarySpec.create(DefaultCustomTestBinary, name, serviceRegistry.get(Instantiator), taskFactory)
+                        }
+                    }
+                }
+            }
+
+            apply type: TestBinaryTypeRules
+        """
+    }
+
     def "test suite sources and binaries containers are visible in model report"() {
         when:
         succeeds "model"
@@ -239,6 +267,136 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             apply type: SourceSetRemovalRules
+        '''
+
+        when:
+        fails()
+
+        then:
+        failureHasCause("This collection does not support element removal.")
+    }
+
+    def "test suite binaries container elements and their tasks containers are visible in model report"() {
+        given:
+        withTestBinaryFactory()
+        buildFile << '''
+            model {
+                testSuites {
+                    main {
+                        binaries {
+                            first(CustomTestBinary)
+                            second(CustomTestBinary)
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "model"
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    testSuites
+        main
+            binaries
+                first
+                    tasks
+                second
+                    tasks"""))
+    }
+
+    def "can reference binaries container for a test suite in a rule"() {
+        given:
+        withTestBinaryFactory()
+        buildFile << '''
+            model {
+                testSuites {
+                    main {
+                        binaries {
+                            first(CustomTestBinary)
+                            second(CustomTestBinary)
+                        }
+                    }
+                }
+                tasks {
+                    create("printBinaryNames") {
+                        def binaries = $("testSuites.main.binaries")
+                        doLast {
+                            println "names: ${binaries*.name}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printBinaryNames"
+
+        then:
+        output.contains "names: [first, second]"
+    }
+
+    def "can reference binaries container elements using specialized type in a rule"() {
+        given:
+        withTestBinaryFactory()
+        buildFile << '''
+            model {
+                testSuites {
+                    main {
+                        binaries {
+                            main(CustomTestBinary)
+                        }
+                    }
+                }
+            }
+            class TaskRules extends RuleSource {
+                @Mutate
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("testSuites.main.binaries.main") DefaultCustomTestBinary binary) {
+                    tasks.create("printBinaryData") {
+                        doLast {
+                            println "binary data: ${binary.data}"
+                        }
+                    }
+                }
+            }
+
+            apply type: TaskRules
+        '''
+
+        when:
+        succeeds "printBinaryData"
+
+        then:
+        output.contains "binary data: foo"
+    }
+
+    def "cannot remove binaries"() {
+        given:
+        withTestBinaryFactory()
+        buildFile << '''
+            model {
+                testSuites {
+                    main {
+                        binaries {
+                            main(CustomTestBinary)
+                        }
+                    }
+                }
+            }
+
+            class BinariesRemovalRules extends RuleSource {
+                @Mutate
+                void clearSourceSets(@Path("testSuites.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
+                    binaries.clear()
+                }
+
+                @Mutate
+                void closeMainComponentBinariesForTasks(ModelMap<Task> tasks, @Path("testSuites.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
+                }
+            }
+
+            apply type: BinariesRemovalRules
         '''
 
         when:
