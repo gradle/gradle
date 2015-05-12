@@ -645,19 +645,19 @@ Constraints:
 ##### General
 
 1. ~~Reasonable feedback when using continuous mode (e.g. incubating message, suitable message at end of build)~~
-1. If build fails before any task executes, build exits and does not enter continuous mode
+1. ~~If build fails before any task executes, build exits and does not enter continuous mode~~
 1. ~~Can trigger rebuild by changing input file to simple task (i.e. basic smoke test)~~
-1. Continuous mode utilises class reuse (e.g. same build script class instance is used for subsequent builds)
+1. ~~Continuous mode utilises class reuse (e.g. same build script class instance is used for subsequent builds)~~
 
 ##### Simple Java plugin usage scenarios
 
 For a conventional `apply plugin: 'java'` project:
 
-1. Can successfully build in continuous mode when there is no source (i.e. `src/main/java` does not exist)
-1. Can successfully build in continuous after source dir `src/main/java` is removed
+1. ~~Can successfully build in continuous mode when there is no source (i.e. `src/main/java` does not exist)~~
+1. ~~Can successfully build in continuous after source dir `src/main/java` is removed~~
 1. Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)
-1. Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)
-1. After compile failure of Java file, correcting file to be compilable triggers a successful build
+1. ~~Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)~~
+1. ~~After compile failure of Java file, correcting file to be compilable triggers a successful build~~
 1. When running `test` in continuous mode:
     1. Change to source file causes execution of tests
     1. Change to test file causes execution of tests

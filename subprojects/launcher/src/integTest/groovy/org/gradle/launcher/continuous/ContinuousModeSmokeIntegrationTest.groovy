@@ -116,4 +116,52 @@ class ContinuousModeSmokeIntegrationTest extends AbstractContinuousModeExecution
         noBuildTriggered()
     }
 
+    def "exits when build fails before any tasks execute"() {
+        when:
+
+        buildFile << """
+            task a {
+              doLast { }
+            }
+
+            'script error
+        """
+
+        then:
+        fails("a")
+        !(":a" in executedTasks)
+    }
+
+    def "reuses build script classes"() {
+        when:
+        file("marker").text = "original"
+
+        buildFile << """
+            task echo {
+              inputs.files file("marker")
+              doLast {
+                println "value: " + file("marker").text
+                println "reuse: " + Reuse.initialized
+                Reuse.initialized = true
+              }
+            }
+            class Reuse {
+                public static Boolean initialized = false
+            }
+        """
+
+        then:
+        succeeds("echo")
+        output.contains "value: original"
+        output.contains "reuse: false"
+
+        when:
+        file("marker").text = "changed"
+
+        then:
+        succeeds()
+        output.contains "value: changed"
+        output.contains "reuse: true"
+
+    }
 }

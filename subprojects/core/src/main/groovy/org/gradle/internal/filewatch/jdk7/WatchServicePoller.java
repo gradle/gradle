@@ -25,6 +25,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Collections;
 import java.util.List;
 
 class WatchServicePoller {
@@ -57,8 +58,22 @@ class WatchServicePoller {
                 return toEvent(kind, file);
             }
         };
-        List<FileWatcherEvent> events = CollectionUtils.collect(watchKey.pollEvents(), watchEventTransformer);
+
+        List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
+        final List<FileWatcherEvent> events;
+        if (!watchEvents.isEmpty()) {
+            events = CollectionUtils.collect(watchEvents, watchEventTransformer);
+        } else {
+            // TODO: When deleting directories, we receive a WatchKey without any events.
+            // This seems to be the same thing as a delete event for the Path.
+            // watchKey.reset() also returns false in this case.
+            events = Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
+        }
+
         watchKey.reset();
+//        if (!valid) {
+//            // TODO: What do we do when we're no longer watching a directory that's still an input?
+//        }
         return events;
     }
 
