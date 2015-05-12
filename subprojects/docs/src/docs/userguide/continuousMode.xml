@@ -25,7 +25,7 @@
     <section>
         <title>Management and configuration</title>
         <section>
-            <title>How do I enable the Gradle Daemon?</title>
+            <title>How do I enable the Gradle Continuous mode?</title>
             <para>
                 The <literal>--watch</literal> command line switches enables the continous mode.
             </para>
@@ -44,7 +44,7 @@
         <section>
             <title>No native file system notifications on Mac OS X</title>
             <para>
-                Dispite the Java JVM has the WatchService API since Java 7, this API doesn't have a native implementation on Mac OS X in Java 7 or Java 8. 
+                Despite the Java JVM has the WatchService API since Java 7, this API doesn't have a native implementation on Mac OS X in Java 7 or Java 8. 
                 <ulink url="https://bugs.openjdk.java.net/browse/JDK-7133447">JDK-7133447</ulink> is the open issue in the Java bug tracker.
                 The Java JVM uses a polling implementation of the WatchService API on Mac OS X for filesystem events. That has longer latency than the native implementations used on 
                 Windows and Linux and doesn't scale so well for very large projects with lots of source directories.
