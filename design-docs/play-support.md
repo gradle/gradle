@@ -644,9 +644,9 @@ Constraints:
 
 ##### General
 
-1. Reasonable feedback when using continuous mode (e.g. incubating message, suitable message at end of build)
+1. ~~Reasonable feedback when using continuous mode (e.g. incubating message, suitable message at end of build)~~
 1. If build fails before any task executes, build exits and does not enter continuous mode
-1. Can trigger rebuild by changing input file to simple task (i.e. basic smoke test)
+1. ~~Can trigger rebuild by changing input file to simple task (i.e. basic smoke test)~~
 1. Continuous mode utilises class reuse (e.g. same build script class instance is used for subsequent builds)
 
 ##### Simple Java plugin usage scenarios

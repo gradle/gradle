@@ -22,19 +22,9 @@ public interface GradleHandle {
     String getStandardOutput();
 
     /**
-     * clear the buffered stdout output
-     */
-    public void clearStandardOutput();
-
-    /**
      * Returns the stderr output currently received from the build. This is live.
      */
     String getErrorOutput();
-
-    /**
-     * clear the buffered stderr output
-     */
-    public void clearErrorOutput();
 
     /**
      * Forcefully kills the build and returns immediately. Does not block until the build has finished.
@@ -55,4 +45,5 @@ public interface GradleHandle {
      * Returns true if the build is currently running.
      */
     boolean isRunning();
+
 }
