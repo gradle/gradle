@@ -4,7 +4,7 @@ jdk:
 install:
   - true
 script:
-  - ./gradlew pullRequestValidation
+  - travis_wait "./travisci_build.sh"
 env:
   - TERM=dumb GRADLE_OPTS="-XX:MaxPermSize=256m"
 branches:

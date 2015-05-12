@@ -31,7 +31,7 @@ buildTypes {
     quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "test"
 
     // For testing pull requests
-    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality"
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
 
     // A full (in-process) test
     developerBuild "check"
