@@ -34,12 +34,11 @@ import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     // TODO:DAZ Probably don't need order-preserving maps here
-    private final Map<String, PublishArtifactSet> configurationArtifacts = Maps.newLinkedHashMap();
-    private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = Maps.newLinkedHashMap();
-    private final Map<IvyArtifactName, DefaultLocalArtifactMetaData> artifactsByIvyName = Maps.newLinkedHashMap();
+    private final Map<String, PublishArtifactSet> configurationArtifacts = Maps.newHashMap();
+    private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = Maps.newHashMap();
+    private final Map<String, Configuration> allIvyConfigurations = Maps.newHashMap();
     private final List<DependencyMetaData> dependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
-    private final Map<String, Configuration> allIvyConfigurations = Maps.newHashMap();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
@@ -78,15 +77,13 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     void addArtifact(String configuration, IvyArtifactName artifactName, File file) {
-        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifactName, file);
-        if (artifactsById.containsKey(artifactMetaData.getId())) {
-            artifactMetaData = artifactsById.get(artifactMetaData.getId());
-        } else {
-            artifactsById.put(artifactMetaData.id, artifactMetaData);
-            // TODO:DAZ It's a bit broken that artifactMetaData.id.name != artifactName
-            artifactsByIvyName.put(artifactName, artifactMetaData);
+        DefaultLocalArtifactMetaData candidateArtifact = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifactName, file);
+        DefaultLocalArtifactMetaData artifact = artifactsById.get(candidateArtifact.getId());
+        if (artifact == null) {
+            artifactsById.put(candidateArtifact.id, candidateArtifact);
+            artifact = candidateArtifact;
         }
-        artifactMetaData.addConfiguration(configuration);
+        artifact.addConfiguration(configuration);
     }
 
     public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
@@ -125,18 +122,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
-        private final ComponentIdentifier componentIdentifier;
         private final DefaultLocalArtifactIdentifier id;
         private final File file;
         private final Set<String> configurations = Sets.newHashSet();
 
         private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, IvyArtifactName artifact, File file) {
-            this.componentIdentifier = componentIdentifier;
-            Map<String, String> attrs = new HashMap<String, String>();
-            attrs.putAll(artifact.getAttributes());
-            attrs.put("file", file == null ? "null" : file.getAbsolutePath());
-            // TODO:DAZ The local artifact identifier should include the file directly, rather than hacking the IvyArtifactName in this way
-            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact.getName(), artifact.getType(), artifact.getExtension(), attrs);
+            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact, file);
             this.file = file;
         }
 
@@ -154,7 +145,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public ComponentIdentifier getComponentId() {
-            return componentIdentifier;
+            return id.getComponentIdentifier();
         }
 
         public ComponentArtifactIdentifier getId() {
@@ -181,9 +172,13 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
             resolveArtifacts();
 
-            // TODO:DAZ Find a matching PublishArtifact and build a ComponentArtifactMetaData from that
-            DefaultLocalArtifactMetaData candidate = artifactsByIvyName.get(ivyArtifactName);
-            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
+            for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsById.values()) {
+                if (localArtifactMetaData.getName().equals(ivyArtifactName)) {
+                    return localArtifactMetaData;
+                }
+            }
+
+            return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
         }
 
         // TODO:DAZ This is only used in unit tests

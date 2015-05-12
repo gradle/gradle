@@ -16,24 +16,25 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Nullable;
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Map;
+import java.io.File;
 
 public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final String componentDisplayName;
     private final IvyArtifactName name;
+    private final File file; // Local artifacts can differ only on file
 
     // The componentDisplayName parameter is temporary
-    public DefaultLocalArtifactIdentifier(ComponentIdentifier componentIdentifier, String componentDisplayName, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+    public DefaultLocalArtifactIdentifier(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName, File file) {
         this.componentIdentifier = componentIdentifier;
         this.componentDisplayName = componentDisplayName;
-        this.name = new DefaultIvyArtifactName(name, type, extension, attributes);
+        this.name = artifactName;
+        this.file = file;
     }
 
     public String getDisplayName() {
@@ -67,6 +68,6 @@ public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifi
             return false;
         }
         DefaultLocalArtifactIdentifier other = (DefaultLocalArtifactIdentifier) obj;
-        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
+        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name) && ObjectUtils.equals(other.file, file);
     }
 }
