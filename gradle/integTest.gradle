@@ -22,8 +22,6 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
 
-import java.util.regex.Pattern
-
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
         for (File cacheDir : dir.listFiles()) {
@@ -108,56 +106,93 @@ project(":") {
     }
 }
 
+def forEachDaemonProcess(Closure action) {
+    def osName = System.getProperty('os.name').toLowerCase()
+    def queryString = /GradleDaemon|IsolatedGradleWorkerMain/
+    def output = new ByteArrayOutputStream()
+    if (osName =~ /windows/) {
+        // TODO: jps seem to miss hanging processes. It would be better to rely on a system "pgrep" like
+        // command if available
+        exec {
+            commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
+            standardOutput = output
+        }
+        def pattern = Pattern.compile("(\\d+)\\s+(?:$queryString)\\s+(\\S+)\\s+(.+)")
+        output.toString().readLines().each { String line ->
+            def matcher = pattern.matcher(line)
+            if (!matcher.matches()) {
+                return
+            }
+            def remainder = matcher.group(3)
+            if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
+                return
+            }
+            def pid = matcher.group(1)
+            action.call(pid)
+        }
+    } else {
+        exec {
+            commandLine('ps', 'x')
+            standardOutput = output
+        }
+        output.toString().readLines().each { String line ->
+            if (line =~ queryString && (line.contains(rootProject.projectDir.absolutePath)
+                && (line.contains('integ test') || line.contains('intTest')))) {
+                def idx = line.indexOf(' ')
+                def pid = line[0..<idx]
+                action.call(pid)
+            }
+        }
+    }
+}
+
+def pkill(pid) {
+    def killOutput = new ByteArrayOutputStream()
+    def result = exec {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
+        } else {
+            commandLine = ["kill", pid]
+        }
+        standardOutput = killOutput
+        errorOutput = killOutput
+        ignoreExitValue = true
+    }
+    if (result.exitValue != 0) {
+        String out = killOutput.toString()
+        if (!out.contains('No such process')) {
+            throw new GradleException("""Failed to kill daemon process $pid.
+Output: ${killOutput}
+""")
+        }
+    }
+}
+
 project(":") {
     if (tasks.findByName('cleanUpDaemons')) {
         return
     }
-    task cleanUpDaemons {
-        onlyIf { !org.gradle.internal.jvm.Jvm.current().ibmJvm }
+    task killExistingDaemons {
         doLast {
-            def output = new ByteArrayOutputStream()
-            exec {
-                commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
-                standardOutput = output
+            forEachDaemonProcess { pid ->
+                logger.warn("A daemon wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid")
+                pkill(pid)
             }
-            def pattern = Pattern.compile("(\\d+)\\s+GradleDaemon\\s+(\\S+)\\s+(.+)")
-            output.toString().readLines().each { String line ->
-                def matcher = pattern.matcher(line)
-                if (!matcher.matches()) {
-                    return
-                }
-                def remainder = matcher.group(3)
-                if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
-                    return
-                }
-                def pid = matcher.group(1)
-                println "killing daemon with pid $pid"
-                def killOutput = new ByteArrayOutputStream()
-                def result = exec {
-                    if (org.gradle.internal.os.OperatingSystem.current().windows) {
-                        commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
-                    } else {
-                        commandLine = ["kill", pid]
-                    }
-                    standardOutput = killOutput
-                    errorOutput = killOutput
-                    ignoreExitValue = true
-                }
-                if (result.exitValue != 0) {
-                    String out = killOutput.toString()
-                    if (!out.contains('No such process')) {
-                        throw new GradleException("""Failed to kill daemon process $pid.
-Output: ${killOutput}
-""")
-                    }
-                }
+        }
+    }
+
+    task cleanUpDaemons {
+        doLast {
+            forEachDaemonProcess { pid ->
+                logger.warn("A daemon wasn't shutdown properly. Killing process with PID $pid")
+                pkill(pid)
             }
         }
     }
 }
 
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', ':cleanUpCaches'
+    dependsOn ':intTestImage', ':cleanUpCaches', ':killExistingDaemons'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
@@ -190,6 +225,44 @@ integTestTasks.all { Test task ->
             // Move the daemon working space underneath the build dir so they don't pile up on CI
             systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
         }
+    }
+
+    ext.daemonListener = null
+    ext.suspiciousDaemons = [:].withDefault {[]}
+    ext.daemonPids = [] as Set
+
+    doFirst {
+        daemonListener = [
+            beforeTest : {test -> },
+            afterTest  : { test, result ->},
+            beforeSuite: { suite ->
+                forEachDaemonProcess {
+                    daemonPids << it
+                }
+            },
+            afterSuite : { suite, result ->
+                forEachDaemonProcess { pid ->
+                    if (!daemonPids.contains(pid)) {
+                        daemonPids << pid
+                        suspiciousDaemons."$suite" << pid
+                    }
+                }
+            }] as TestListener
+        gradle.addListener(daemonListener)
+    }
+
+    doLast {
+        gradle.removeListener(daemonListener)
+        forEachDaemonProcess { pid ->
+            suspiciousDaemons.each { suite, pids ->
+                if (pids.contains(pid)) {
+                    logger.warn("A test has left a daemon behind: $suite. Killing PID $pid")
+                    pkill(pid)
+                }
+            }
+        }
+        // give some time for processes to disappear so that we don't try to kill'em twice
+        sleep(1000)
     }
 }
 
