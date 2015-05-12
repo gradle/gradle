@@ -107,19 +107,43 @@ project(":") {
 }
 
 def forEachDaemonProcess(Closure action) {
+    def osName = System.getProperty('os.name').toLowerCase()
+    def queryString = /GradleDaemon|IsolatedGradleWorkerMain/
     def output = new ByteArrayOutputStream()
-    exec {
-        commandLine('pgrep', '-a','-f', 'GradleDaemon|IsolatedGradleWorkerMain')
-        standardOutput = output
-    }
-    output.toString().readLines().each { String line ->
-        def idx = line.indexOf(' ')
-        def (pid, process) = [line[0..<idx], line[idx + 1..-1]]
-        if (process.contains(rootProject.projectDir.absolutePath)
-            && (process.contains('integ test') || process.contains('intTest'))) {
+    if (osName =~ /windows/) {
+        // TODO: jps seem to miss hanging processes. It would be better to rely on a system "pgrep" like
+        // command if available
+        exec {
+            commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
+            standardOutput = output
+        }
+        def pattern = Pattern.compile("(\\d+)\\s+(?:$queryString)\\s+(\\S+)\\s+(.+)")
+        output.toString().readLines().each { String line ->
+            def matcher = pattern.matcher(line)
+            if (!matcher.matches()) {
+                return
+            }
+            def remainder = matcher.group(3)
+            if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
+                return
+            }
+            def pid = matcher.group(1)
             action.call(pid)
         }
+    } else {
+        exec {
+            commandLine('pgrep', '-a', '-f', queryString)
+            standardOutput = output
+        }
+        output.toString().readLines().each { String line ->
+            def idx = line.indexOf(' ')
+            def (pid, process) = [line[0..<idx], line[idx + 1..-1]]
+            if (process.contains(rootProject.projectDir.absolutePath)
+                && (process.contains('integ test') || process.contains('intTest'))) {
+                action.call(pid)
+            }
 
+        }
     }
 }
 
