@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
@@ -23,7 +24,19 @@ import spock.lang.Ignore
 
 class SimpleJavaContinuousModeExecutionIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
+    List<JvmSourceFile> testSources = [
+        new JvmSourceFile("compile/test", "PersonTest.java", '''
+package compile.test;
+
+public class PersonTest {
+    void testIt() {
+        assert true;
+    }
+}''')
+    ]
     TestFile sourceDir = file("src/main")
+    TestFile testSourceDir = file("src/test/java")
+    TestFile resourceDir = file("src/main/resources")
 
     def setup() {
         buildFile << """
@@ -82,6 +95,40 @@ class SimpleJavaContinuousModeExecutionIntegrationTest extends AbstractContinuou
         then:
         succeeds()
         executedAndNotSkipped(":compileJava", ":build")
+    }
+
+    def "running test in continuous mode"() {
+        when:
+        def resourceFiles = app.writeResources(resourceDir)
+        def testSourceFiles = testSources*.writeToDir(testSourceDir)
+        def sourceFiles = app.writeSources(sourceDir)
+        def sourceFile = sourceFiles.get(0)
+        def testSourceFile = testSourceFiles.get(0)
+        def resourceFile = resourceFiles.get(0)
+        then:
+        succeeds("test")
+        executedAndNotSkipped(":compileJava", ":processResources", ":compileTestJava", ":test")
+
+        when: "Change to source file causes execution of tests"
+        sourceFile << "class Change {}"
+        then:
+        succeeds()
+        executedAndNotSkipped(":compileJava", ":compileTestJava", ":test")
+        skipped(":processResources")
+
+        when: "Change to test file causes execution of tests"
+        testSourceFile << "class Change2 {}"
+        then:
+        succeeds()
+        executedAndNotSkipped(":compileTestJava", ":test")
+        skipped(":processResources", ":compileJava")
+
+        when: "Change to resource file (src/main/resources)"
+        resourceFile << "# another change"
+        then:
+        succeeds()
+        executedAndNotSkipped(":processResources", ":compileTestJava", ":test")
+        skipped(":compileJava")
     }
 
     @Ignore("We skip execution of tasks with no sources")

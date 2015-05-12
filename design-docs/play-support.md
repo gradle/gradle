@@ -658,10 +658,10 @@ For a conventional `apply plugin: 'java'` project:
 1. Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)
 1. ~~Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)~~
 1. ~~After compile failure of Java file, correcting file to be compilable triggers a successful build~~
-1. When running `test` in continuous mode:
-    1. Change to source file causes execution of tests
-    1. Change to test file causes execution of tests
-    1. Change to resource file (`src/main/resources`)
+1. ~~When running `test` in continuous mode:~~
+    1. ~~Change to source file causes execution of tests~~
+    1. ~~Change to test file causes execution of tests~~
+    1. ~~Change to resource file (`src/main/resources`)~~
 1. Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)
 1. Remove of a local filesystem compile dependency triggers rebuild
 1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)

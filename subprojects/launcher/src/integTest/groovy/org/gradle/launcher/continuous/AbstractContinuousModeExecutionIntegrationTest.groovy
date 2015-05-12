@@ -26,7 +26,7 @@ import spock.util.concurrent.PollingConditions
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract public class AbstractContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 20
+    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
 
     GradleHandle gradle
 
