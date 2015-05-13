@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: 'java'
 
 sourceSets {
@@ -107,7 +109,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.)|(?:-classpath.+${rootProject.buildDir.absolutePath}.+?org\\.gradle\\.)).+)"
+    String queryString = "(?i)${Pattern.quote(File.separator)}(java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
     def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
