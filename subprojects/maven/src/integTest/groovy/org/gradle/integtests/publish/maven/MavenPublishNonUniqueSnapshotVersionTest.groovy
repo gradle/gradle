@@ -16,10 +16,8 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class MavenPublishNonUniqueSnapshotVersionTest extends AbstractIntegrationSpec {
-    @Unroll
     public void "can publish a non-unique snapshot version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
@@ -49,8 +47,7 @@ uploadArchives {
         def module = mavenRepo.module("org.gradle.test", "publishTest", "4.2-SNAPSHOT")
         module.withNonUniqueSnapshots()
 
-        def ver = module.publishArtifactVersion
-        module.assertArtifactsPublished("publishTest-${ver}.pom", "publishTest-${ver}.jar", "maven-metadata.xml")
-        module.getParsedPom().version == ver
+        module.assertArtifactsPublished("publishTest-4.2-SNAPSHOT.pom", "publishTest-4.2-SNAPSHOT.jar", "maven-metadata.xml")
+        module.getParsedPom().version == '4.2-SNAPSHOT'
     }
 }
