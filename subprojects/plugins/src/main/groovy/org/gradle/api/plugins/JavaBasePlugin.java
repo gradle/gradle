@@ -16,12 +16,14 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.java.DefaultJavaSourceSet;
+import org.gradle.api.internal.java.DefaultJvmResourceSet;
+import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
@@ -39,9 +41,7 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
-import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.util.WrapUtil;
 
@@ -138,7 +138,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 functionalSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
-                ClassDirectoryBinarySpec binary = binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinarySpec.class);
+                ClassDirectoryBinarySpecInternal binary = (ClassDirectoryBinarySpecInternal) binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinarySpec.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
@@ -151,7 +151,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                binary.source(ImmutableList.of(javaSourceSet, resourceSet));
+                binary.addSourceSet(javaSourceSet);
+                binary.addSourceSet(resourceSet);
 
                 binary.builtBy(sourceSet.getOutput().getDirs());
             }

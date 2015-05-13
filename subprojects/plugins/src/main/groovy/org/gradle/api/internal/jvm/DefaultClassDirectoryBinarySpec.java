@@ -20,14 +20,12 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceSetNotationParser;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectSetBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
@@ -37,10 +35,8 @@ import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
-    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryNamingScheme namingScheme;
     private final String name;
@@ -167,7 +163,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public void source(Object source) {
-        sourceSets.addAll(sourcesNotationParser.parseNotation(source));
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addSourceSet(LanguageSourceSet sourceSet) {
+        sourceSets.add(sourceSet);
     }
 
     public String getDisplayName() {
