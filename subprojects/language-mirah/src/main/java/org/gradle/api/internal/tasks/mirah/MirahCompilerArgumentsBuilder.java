@@ -83,8 +83,10 @@ public class MirahCompilerArgumentsBuilder {
     }
 
     private void addCustomizations() {
+        /*
         if (includeCustomizations) {
         }
+        */
     }
 
     private void addLauncherOptions() {
