@@ -50,11 +50,11 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         normalizedOutput.contains("""
     CoffeeScript source 'play:coffeeScriptAssets'
-        app/assets
+        srcDir: app/assets
         includes: **/*.coffee""")
         normalizedOutput.contains("""
     CoffeeScript source 'play:otherCoffeeScript'
-        src/play/otherCoffeeScript
+        srcDir: src/play/otherCoffeeScript
 """)
     }
 

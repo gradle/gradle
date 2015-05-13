@@ -146,15 +146,15 @@ Play Application 'play'
 -----------------------
 
 Source sets
-    Routes source 'play:extraRoutes'
-        srcDir: extraRoutes
     Java source 'play:java'
         srcDir: app
         includes: **/*.java
-    Routes source 'play:otherRoutes'
-        srcDir: otherRoutes
     JVM resources 'play:resources'
         srcDir: conf
+    Routes source 'play:extraRoutes'
+        srcDir: extraRoutes
+    Routes source 'play:otherRoutes'
+        srcDir: otherRoutes
     Routes source 'play:routesSources'
         srcDir: conf
         includes: routes, *.routes

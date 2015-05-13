@@ -39,7 +39,12 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.subheading(StringUtils.capitalize(component.getDisplayName()));
         builder.getOutput().println();
-        builder.collection("Source sets", component.getSource().values(), sourceSetRenderer, "source sets");
+        builder.collection("Source sets", CollectionUtils.sort(component.getSource().values(), new Comparator<LanguageSourceSet>() {
+            @Override
+            public int compare(LanguageSourceSet o1, LanguageSourceSet o2) {
+                return o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+            }
+        }), sourceSetRenderer, "source sets");
         builder.getOutput().println();
         builder.collection("Binaries", CollectionUtils.sort(component.getBinaries().values(), new Comparator<BinarySpec>() {
             public int compare(BinarySpec binary1, BinarySpec binary2) {

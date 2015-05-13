@@ -142,25 +142,8 @@ Binaries
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-Play Application 'play'
------------------------
-
-Source sets
     ${StringUtils.capitalize(languageName)} source 'play:extra'
-        src${File.separator}extra
-    Java source 'play:java'
-        srcDir: app
-        includes: **/*.java
-    JVM resources 'play:resources'
-        srcDir: conf
-    Routes source 'play:routesSources'
-        srcDir: conf
-        includes: routes, *.routes
-    Scala source 'play:scala'
-        srcDir: app
-        includes: **/*.scala
-    Twirl template source 'play:twirlTemplates'
-        srcDir: app
+        srcDir: src${File.separator}extra
 """))
 
         when:
