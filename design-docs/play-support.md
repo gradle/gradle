@@ -673,7 +673,7 @@ For a conventional `apply plugin: 'java'` project:
 ##### Verifying constraints
 
 1. ~~Continuous mode can be used successfully on a project with a `buildSrc` directory~~
-2. Attempting to run a continuous mode build from the Tooling API yields an error immediately
+2. ~~Attempting to run a continuous mode build from the Tooling API yields an error immediately~~
 
 ##### Edge cases
 
