@@ -20,7 +20,7 @@ dependencies {
     //above can be removed when we implement the auto-apply plugins
 }
 
-ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
+ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
@@ -107,7 +107,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.)).+)"
+    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.))).+)"
     def output = new ByteArrayOutputStream()
     def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
@@ -304,4 +304,33 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
             plusConfigurations.add(configurations.integTestRuntime)
         }
     }
+}
+
+String jdkVarName = 'JAVA_9'
+
+model {
+    tasks {
+        create("java9Test", Test) {
+            doFirst {
+                jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
+            }
+            executable = "${System.getenv(jdkVarName)}/bin/java"
+            include '**/*CommandLineJavaCompilerIntegrationTest*'
+            reports.junitXml.destination = file("${project.testResultsDir}/$name")
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+        }
+    }
+}
+
+if(!gradle.hasProperty("java9Check")){
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name == "java9Test" }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
+        }
+    }
+    gradle.ext.java9Check = true
 }
