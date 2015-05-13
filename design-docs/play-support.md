@@ -413,7 +413,10 @@ model {
     - Changed coffeescript source produces changed minified javascript
     - Removal of javascript source removes minified javascript
     - Removal of coffeescript source removes both minified and non-minified javascript
+    
+### Story: Documentation and release notes for Play support
 
+Before the support for Play framework is fully usable and can be properly 'released' we need to add documentation and release notes.
 
 ## Feature: Developer chooses target Play, Scala and/or Java platform
 
