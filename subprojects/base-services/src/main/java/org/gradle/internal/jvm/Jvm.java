@@ -241,8 +241,9 @@ public class Jvm implements JavaInfo {
     }
 
     /**
-     * Locates the JRE installation for this JVM.
+     * Locates the JRE installation for this JVM. Returns null if no JRE installation is available.
      */
+    @Nullable
     public Jre getJre() {
         File jreDir = new File(javaBase, "jre");
         if (jreDir.isDirectory()) {
