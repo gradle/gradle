@@ -13,6 +13,11 @@ Change the `model` report to show some display value for model elements with no 
 - Tasks, source sets, etc
 - Simple values on `@Managed` types
 
+## Notes
+
+- `ModelReport` is the task that renders the report
+- `ModelNode` represents a model element
+
 # Story: Model report shows type information for model elements
 
 Change the `model` report to show some information about the views that are available for each element.
@@ -31,6 +36,8 @@ Possibly add a 'show details' command-line option to enable this.
 # Story: Model report shows details of rules that affected a model element
 
 Change the `model` report to show the descriptor of those rules that affected each element.
+
+Will need to collect this in the model nodes.
 
 # Story: Model report shows hidden nodes
 
