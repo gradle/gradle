@@ -79,14 +79,17 @@ public class ResolverResults {
         this.fatalFailure = failure;
     }
 
-    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
-        this.resolvedConfiguration = resolvedConfiguration;
-    }
-
     public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
+    }
+
+    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+        this.resolvedConfiguration = resolvedConfiguration;
+        this.graphResults = null;
+        this.transientConfigurationResultsBuilder = null;
+        this.artifactResults = null;
     }
 
     public ResolvedGraphResults getGraphResults() {
