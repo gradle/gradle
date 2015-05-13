@@ -19,8 +19,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
@@ -28,18 +28,20 @@ import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.*;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.util.CollectionUtils;
@@ -96,8 +98,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             throw new IllegalStateException("Must specify component type and artifacts to query.");
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
-        ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
-        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
+        ResolutionStrategyInternal resolutionStrategy = configurationContainer.detachedConfiguration().getResolutionStrategy();
+        final RepositoryChain repositoryChain = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor());
         final ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
 
         return lockingManager.useCache("resolve artifacts", new Factory<ArtifactResolutionResult>() {

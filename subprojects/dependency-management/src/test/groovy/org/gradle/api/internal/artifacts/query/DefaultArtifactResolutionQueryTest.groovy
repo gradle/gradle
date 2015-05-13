@@ -41,7 +41,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultArtifactResolutionQueryTest extends Specification {
-    def configurationContainerInternal = Mock(ConfigurationContainerInternal)
+    def configurationContainerInternal = Stub(ConfigurationContainerInternal)
     def repositoryHandler = Stub(RepositoryHandler)
     def resolveIvyFactory = Mock(ResolveIvyFactory)
     def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)

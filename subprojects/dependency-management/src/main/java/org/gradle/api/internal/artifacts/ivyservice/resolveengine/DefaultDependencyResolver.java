@@ -90,12 +90,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
+                ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
+                RepositoryChain repositoryChain = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
 
-                ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
                 DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencySubstitutionRule());
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);

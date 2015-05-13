@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -73,14 +72,13 @@ public class ResolveIvyFactory {
         this.versionComparator = versionComparator;
     }
 
-    public RepositoryChain create(ConfigurationInternal configuration,
+    public RepositoryChain create(ResolutionStrategyInternal resolutionStrategy,
                                   Collection<? extends ResolutionAwareRepository> repositories,
                                   ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
