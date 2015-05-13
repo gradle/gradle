@@ -106,39 +106,31 @@ project(":") {
     }
 }
 
-def forEachDaemonProcess(Closure action) {
-    def queryString = /GradleDaemon|IsolatedGradleWorkerMain/
+def forEachJavaProcess(Closure action) {
+    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\..+)"
     def output = new ByteArrayOutputStream()
+    def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
         exec {
             commandLine('wmic', 'process' ,'get', 'processid,commandline')
             standardOutput = output
         }
-        def pidPattern = /([0-9]+)\s*$/
-        output.toString().readLines().each { String line ->
-            if (line =~ queryString && (line.contains(rootProject.projectDir.absolutePath)
-                && (line.contains('integ test') || line.contains('intTest')))) {
-                def pidMatcher = line =~pidPattern
-                if (pidMatcher.find()) {
-                    def pid = pidMatcher.group(1)
-                    action.call(pid)
-                }
-            }
-        }
+        pidPattern = /([0-9]+)\s*$/
     } else {
         exec {
             commandLine('ps', 'x')
             standardOutput = output
         }
-        def pidPattern = /([0-9]+)/
-        output.toString().readLines().each { String line ->
-            if (line =~ queryString && (line.contains(rootProject.projectDir.absolutePath)
-                && (line.contains('integ test') || line.contains('intTest')))) {
-                def pidMatcher = line =~pidPattern
-                if (pidMatcher.find()) {
-                    def pid = pidMatcher.group(1)
-                    action.call(pid)
-                }
+        pidPattern = /([0-9]+)/
+    }
+    output.toString().readLines().each { String line ->
+        def processMatcher = line =~ queryString
+        if (processMatcher.find()) {
+            def pidMatcher = line =~pidPattern
+            if (pidMatcher.find()) {
+                def pid = pidMatcher.group(1)
+                def process = processMatcher.group(1)
+                action.call(pid, process)
             }
         }
     }
@@ -172,18 +164,25 @@ project(":") {
     }
     task killExistingDaemons {
         doLast {
-            forEachDaemonProcess { pid ->
-                logger.warn("A daemon wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid")
+            forEachJavaProcess { pid, process ->
+                logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
                 pkill(pid)
             }
         }
     }
 
     task cleanUpDaemons {
+        ext.suspiciousDaemons = [:].withDefault {[]}
+        ext.daemonPids = [] as Set
         doLast {
-            forEachDaemonProcess { pid ->
-                logger.warn("A daemon wasn't shutdown properly. Killing process with PID $pid")
-                pkill(pid)
+            Set alreadyKilled = []
+            forEachJavaProcess { pid, process ->
+                suspiciousDaemons.each { suite, pids ->
+                    if (pids.contains(pid) && !alreadyKilled.contains(pid)) {
+                        logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
+                        pkill(pid)
+                    }
+                }
             }
         }
     }
@@ -226,20 +225,22 @@ integTestTasks.all { Test task ->
     }
 
     ext.daemonListener = null
-    ext.suspiciousDaemons = [:].withDefault {[]}
-    ext.daemonPids = [] as Set
 
     doFirst {
+        def daemonPids = rootProject.cleanUpDaemons.daemonPids
+        def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
         daemonListener = [
             beforeTest : {test -> },
             afterTest  : { test, result ->},
             beforeSuite: { suite ->
-                forEachDaemonProcess {
-                    daemonPids << it
+                forEachJavaProcess { pid, process ->
+                    // processes that exist before the test suite execution should
+                    // not trigger a warning
+                    daemonPids << pid
                 }
             },
             afterSuite : { suite, result ->
-                forEachDaemonProcess { pid ->
+                forEachJavaProcess { pid, process ->
                     if (!daemonPids.contains(pid)) {
                         daemonPids << pid
                         suspiciousDaemons."$suite" << pid
@@ -251,16 +252,6 @@ integTestTasks.all { Test task ->
 
     doLast {
         gradle.removeListener(daemonListener)
-        forEachDaemonProcess { pid ->
-            suspiciousDaemons.each { suite, pids ->
-                if (pids.contains(pid)) {
-                    logger.warn("A test has left a daemon behind: $suite. Killing PID $pid")
-                    pkill(pid)
-                }
-            }
-        }
-        // give some time for processes to disappear so that we don't try to kill'em twice
-        sleep(1000)
     }
 }
 
