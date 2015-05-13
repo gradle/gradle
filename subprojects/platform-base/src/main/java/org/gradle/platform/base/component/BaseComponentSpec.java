@@ -82,8 +82,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 mainSourceSet,
                 new NamedEntityInstantiator<LanguageSourceSet>() {
                     public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
-                        mainSourceSet.create(name, type);
-                        return null;
+                        return mainSourceSet.create(name, type);
                     }
                 }
             )

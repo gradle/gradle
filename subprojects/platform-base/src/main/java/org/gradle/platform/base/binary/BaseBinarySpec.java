@@ -122,8 +122,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
                 sourceSets.getSources(),
                 new NamedEntityInstantiator<LanguageSourceSet>() {
                     public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
-                        sourceSets.getMainSources().create(name, type);
-                        return null;
+                        return sourceSets.getMainSources().create(name, type);
                     }
                 }
             )
