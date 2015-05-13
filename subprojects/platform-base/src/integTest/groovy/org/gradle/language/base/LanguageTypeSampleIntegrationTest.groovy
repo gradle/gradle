@@ -41,7 +41,7 @@ DefaultDocumentationComponent 'docs'
 
 Source sets
     DefaultMarkdownSourceSet 'docs:userguide'
-        src${File.separator}docs${File.separator}userguide
+        srcDir: src${File.separator}docs${File.separator}userguide
 
 Binaries
     DefaultDocumentationBinary 'docsBinary'

@@ -70,9 +70,9 @@ JVM library 'jvmLib'
 
 Source sets
     Java source 'jvmLib:java'
-        src/jvmLib/java
+        srcDir: src/jvmLib/java
     JVM resources 'jvmLib:resources'
-        src/jvmLib/resources
+        srcDir: src/jvmLib/resources
 
 Binaries
     Jar 'jvmLibJar'
@@ -86,9 +86,9 @@ Native library 'nativeLib'
 
 Source sets
     C source 'nativeLib:c'
-        src/nativeLib/c
+        srcDir: src/nativeLib/c
     C++ source 'nativeLib:cpp'
-        src/nativeLib/cpp
+        srcDir: src/nativeLib/cpp
 
 Binaries
     Shared library 'nativeLib:sharedLibrary'

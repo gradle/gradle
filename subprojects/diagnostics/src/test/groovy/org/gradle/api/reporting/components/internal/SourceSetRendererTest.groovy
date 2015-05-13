@@ -48,8 +48,8 @@ class SourceSetRendererTest extends Specification {
         when:
         renderer.render(languageSourceSet, reportBuilder)
         then:
-        1 * reportBuilder.item(srcFolder1)
-        1 * reportBuilder.item(srcFolder2)
+        1 * reportBuilder.item("srcDir", srcFolder1)
+        1 * reportBuilder.item("srcDir", srcFolder2)
 
     }
 

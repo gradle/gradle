@@ -102,7 +102,7 @@ DefaultSampleComponent 'main'
 
 Source sets
     DefaultCustomLanguageSourceSet 'main:custom'
-        src${File.separator}main${File.separator}custom
+        srcDir: src${File.separator}main${File.separator}custom
 """))
     }
 

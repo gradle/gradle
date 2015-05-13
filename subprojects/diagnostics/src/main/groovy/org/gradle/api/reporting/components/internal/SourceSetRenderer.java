@@ -37,7 +37,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
             textOutput.println("    No source directories");
         } else {
             for (File file : srcDirs) {
-                builder.item(file);
+                builder.item("srcDir", file);
             }
             SourceDirectorySet source = sourceSet.getSource();
             Set<String> includes = source.getIncludes();

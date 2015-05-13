@@ -150,22 +150,22 @@ Play Application 'play'
 
 Source sets
     Twirl template source 'play:extraTwirl'
-        extraSources
+        srcDir: extraSources
     Java source 'play:java'
-        app
+        srcDir: app
         includes: **/*.java
     Twirl template source 'play:otherTwirl'
-        otherSources
+        srcDir: otherSources
     JVM resources 'play:resources'
-        conf
+        srcDir: conf
     Routes source 'play:routesSources'
-        conf
+        srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
-        app
+        srcDir: app
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
-        app
+        srcDir: app
         includes: **/*.html
 
 Binaries

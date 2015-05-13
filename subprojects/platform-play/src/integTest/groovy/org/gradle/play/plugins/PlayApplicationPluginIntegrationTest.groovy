@@ -58,18 +58,18 @@ Play Application 'play'
 
 Source sets
     Java source 'play:java'
-        app
+        srcDir: app
         includes: **/*.java
     JVM resources 'play:resources'
-        conf
+        srcDir: conf
     Routes source 'play:routesSources'
-        conf
+        srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
-        app
+        srcDir: app
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
-        app
+        srcDir: app
         includes: **/*.html
 
 Binaries
@@ -149,18 +149,18 @@ Source sets
     ${StringUtils.capitalize(languageName)} source 'play:extra'
         src${File.separator}extra
     Java source 'play:java'
-        app
+        srcDir: app
         includes: **/*.java
     JVM resources 'play:resources'
-        conf
+        srcDir: conf
     Routes source 'play:routesSources'
-        conf
+        srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
-        app
+        srcDir: app
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
-        app
+        srcDir: app
 """))
 
         when:
