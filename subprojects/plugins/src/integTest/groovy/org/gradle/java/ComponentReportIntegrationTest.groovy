@@ -41,10 +41,10 @@ Additional source sets
 ----------------------
 Java source 'main:java'
     srcDir: src/main/java
-JVM resources 'main:resources'
-    srcDir: src/main/resources
 Java source 'test:java'
     srcDir: src/test/java
+JVM resources 'main:resources'
+    srcDir: src/main/resources
 JVM resources 'test:resources'
     srcDir: src/test/resources
 

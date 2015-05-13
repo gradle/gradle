@@ -25,9 +25,17 @@ import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.Set;
 
 class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
+    static final Comparator<LanguageSourceSet> SORT_ORDER = new Comparator<LanguageSourceSet>() {
+        @Override
+        public int compare(LanguageSourceSet o1, LanguageSourceSet o2) {
+            return o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+        }
+    };
+
     @Override
     public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
