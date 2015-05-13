@@ -61,10 +61,12 @@ Add a basic DSL to declare the required libraries of a Java source set:
 Model `JavaSourceSet.dependencies` as a mutable collection of library requirements (that is libraries that are required, not the requirements of a library),
 with conveniences to add items to the collection.
 
+It should be possible to query the set of requirements. For example, model `JavaSourceSet.dependencies` as a `ManagedSet`.
+
 Out of scope:
 
 - Resolving or using the dependencies. This story is simply to get a basic DSL in place.
-- Provide any public API or DSL to query the resolved dependencies. Resolution will be internal at this stage.
+- Provide any public API or DSL to query the resolved dependencies. Resolution will be internal for this feature.
 
 ## Story: Resolve required libraries of Java source set
 
@@ -87,12 +89,29 @@ Out of scope:
 
 The implementation *must* make use of the dependency resolution engine, and refactor the resolution engine where required:
 
-- Entry point should be `ArtifactDependencyResolver`.
-    - Extract a minimal interface out of `ConfigurationInternal` that does not extend `Configuration` and change `ArtifactDependencyResolver` to accept this instead
-      of `ConfigurationInternal`.
-    - Pass in an implementation that represents the consuming Java library. Can start with no dependencies.
-
-- TBD
+- Wire in resolution to Java compilation
+    - Change the `JavaLanguagePlugin.Java` transformation to set the `classpath` to a `FileCollection` implementation that will perform the dependency resolution.
+    - Ignore the existing `JavaSourceSet.classpath` property. It is used by the legacy Java plugin but is empty for the source sets created by rules.
+- Entry point to resolution should be `ArtifactDependencyResolver`.
+    - This is a build scoped service.
+    - Extract some interface out of `ConfigurationInternal` that does not extend `Configuration` and change `ArtifactDependencyResolver` to accept this instead
+      of `ConfigurationInternal`. Change `ConfigurationInternal` to extend this or create an adapter from `ConfigurationInternal` to this new type.
+    - Pass in an implementation that represents the consuming Java source set. Can ignore dependencies at this stage.
+    - Can pass in an empty set of repositories for this feature.
+- Create the resolve meta-data for the consuming library
+    - `DependencyGraphBuilder` currently converts parts of `ConfigurationInternal` into resolve meta-data using a `ModuleToComponentResolver`.
+      Change the signature of this resolver so that it accepts the type introduced above, rather than a `ModuleInternal` and set of `ConfigurationInternal` instances.
+    - Use some composite converter that can build a `ComponentResolveMetaData` for the consuming Java library.
+      Should be able to make use of `DefaultLocalComponentMetaData` to assemble this.
+    - For now, don't attach any dependencies or artifacts to the resolve meta-data. It should be possible at this point to perform the resolve (but receive an empty result).
+- Provide a way to resolve project dependencies
+    - Introduce a new subtype of `ComponentSelector` to represent a library selector.
+    - For each dependency declared by the source set include a library selector in the component resolve meta-data.
+    - Add a library resolver that implements `DependencyToComponentIdResolver` and `ComponentMetaDataResolver`. This would be used where `ProjectDependencyResolver`
+      currently is used (can also use this as an example). Can include both resolvers in the chain created by `DefaultDependencyResolver`, so don't need to make
+      this configurable.
+    - Library resolver should close the `components` for the target project, then select a matching component. Fail as described above if no match.
+      Can return empty meta-data for the matching component for this story.
 
 ## Story: API of required libraries is made available when Java source set is compiled
 
