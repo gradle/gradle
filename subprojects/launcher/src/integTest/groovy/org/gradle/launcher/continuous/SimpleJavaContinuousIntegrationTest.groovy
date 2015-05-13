@@ -255,4 +255,32 @@ public class PersonTest {
         }
         jarOutputStream.close()
     }
+
+    def "Task can specify project directory as a task input; changes are respected"() {
+        given:
+        buildFile << """
+task a {
+    inputs.dir projectDir
+    doLast {}
+}
+"""
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+        when: "new file created"
+        file("A").text = "A"
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+        when: "file is changed"
+        file("A").text = "B"
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+        when: "file is deleted"
+        file("A").delete()
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+    }
 }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.launcher.continuous
+
 import spock.lang.Ignore
 
 class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -29,7 +30,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         when:
         subDir.mkdirs()
         unpackDir.mkdirs()
-        sourceDir.file("README").text = "Read me"
+        sourceDir.file("README").text = "README"
         subDir.file("A").text = "A"
         buildFile << """
     apply plugin: 'base'
@@ -43,8 +44,8 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         executedAndNotSkipped(":zip")
         outputFile.exists()
         outputFile.unzipTo(unpackDir)
-        unpackDir.file("README").exists()
-        unpackDir.file("subdir/A").exists()
+        unpackDir.file("README").text == "README"
+        unpackDir.file("subdir/A").text == "A"
 
         when:
         subDir.file("B").text = "B"
@@ -53,15 +54,15 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         executedAndNotSkipped(":zip")
         outputFile.exists()
         outputFile.unzipTo(unpackDir)
-        unpackDir.file("subdir/B").exists()
+        unpackDir.file("subdir/B").text == "B"
 
+        when:
+        sourceDir.file("newdir").createDir()
+        then:
+        succeeds()
         // TODO: This triggers a build, but we still consider the zip task
-        // up-to-date even though there's a new directory
-//        when:
-//        sourceDir.file("newdir").createDir()
-//        then:
-//        succeeds()
-//        executedAndNotSkipped(":zip")
+        // up-to-date even though there's a new directory.  This is a bug
+        skipped(":zip")
     }
 
     @Ignore("source files for compressed inputs are not considered")
@@ -70,6 +71,8 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
+        // TODO: this fixes the test
+        // inputs.files("${sourceFile.toURI()}")
         buildFile << """
     task unpack(type: Sync) {
         from($type("${sourceFile.toURI()}"))
@@ -91,7 +94,6 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         when:
         packDir.file("A").text = "changed"
         packDir."$packType"(sourceFile)
-        println outputDir.listFiles()
         then:
         succeeds()
         executedAndNotSkipped(":unpack")

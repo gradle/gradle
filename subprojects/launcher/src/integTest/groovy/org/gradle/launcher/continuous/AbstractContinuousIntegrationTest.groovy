@@ -35,7 +35,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
 
-    public void after() {
+    public void turnOnDebug() {
+        executer.withDebug(true)
+        buildTimeout = buildTimeout*100
+    }
+
+    public void cleanup() {
         stopGradle()
     }
 
@@ -111,5 +116,4 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     protected String buildOutputSoFar() {
         gradle.standardOutput.substring(standardOutputBuildMarker)
     }
-
 }

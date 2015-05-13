@@ -413,7 +413,7 @@ model {
     - Changed coffeescript source produces changed minified javascript
     - Removal of javascript source removes minified javascript
     - Removal of coffeescript source removes both minified and non-minified javascript
-    
+
 ### Story: Documentation and release notes for Play support
 
 Before the support for Play framework is fully usable and can be properly 'released' we need to add documentation and release notes.
@@ -658,7 +658,6 @@ For a conventional `apply plugin: 'java'` project:
 
 1. ~~Can successfully build in continuous mode when there is no source (i.e. `src/main/java` does not exist)~~
 1. ~~Can successfully build in continuous after source dir `src/main/java` is removed~~
-1. Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)
 1. ~~Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)~~
 1. ~~After compile failure of Java file, correcting file to be compilable triggers a successful build~~
 1. ~~When running `test` in continuous mode:~~
@@ -667,14 +666,9 @@ For a conventional `apply plugin: 'java'` project:
     1. ~~Change to resource file (`src/main/resources`)~~
 1. ~~Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)~~
 1. ~~Remove of a local filesystem compile dependency triggers rebuild~~
-1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)
-1. In a multi project, changes to Java source of upstream projects trigger the build of downstream projects
+1. ~~In a multi project, changes to Java source of upstream projects trigger the build of downstream projects~~
 1. ~~Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)~~
 1. ~~When main source fails to compile, changes to test source does not trigger build~~
-
-##### Creating archives
-
-1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
 
 ##### Verifying constraints
 
@@ -683,14 +677,20 @@ For a conventional `apply plugin: 'java'` project:
 
 ##### Edge cases
 
+1. ~~Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)~~
+1. ~~Task can specify project directory as a task input; changes are respected~~
+1. ~~Task can specify root directory of multi project build as a task input; changes are respected~~
+1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
+
+#### Broken/@Ignored test cases
+
+1. Can use a symlink as an input file
+1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
+1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
 1. Changes to input zips are respected
 1. Changes to input tars are respected (compressed and uncompressed)
-1. ~~Can use a symlink as an input file~~
-1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
-1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
-1. Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)
-1. Task can specify project directory as a task input; changes are respected
-1. Task can specify root directory of multi project build as a task input; changes are respected
+1. Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)
+1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)
 
 ### Story: Continuous build is executed via the Tooling API
 
