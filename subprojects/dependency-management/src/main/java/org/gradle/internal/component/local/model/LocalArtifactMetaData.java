@@ -19,10 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 import java.io.File;
-import java.util.Set;
 
 public interface LocalArtifactMetaData extends ComponentArtifactMetaData {
     File getFile();
-
-    Set<String> getConfigurations();
 }
