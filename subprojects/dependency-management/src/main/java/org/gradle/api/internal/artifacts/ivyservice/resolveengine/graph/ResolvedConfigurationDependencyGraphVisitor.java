@@ -116,7 +116,10 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
                 configurationArtifactSet = new EagerResolveConfigurationArtifactsSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts, id);
             }
 
-            artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
+            // Only share an ArtifactSet if the artifacts are not filtered by the dependency
+            if (dependency.getSelector().acceptsAllArtifacts()) {
+                artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
+            }
         }
 
         return configurationArtifactSet;
