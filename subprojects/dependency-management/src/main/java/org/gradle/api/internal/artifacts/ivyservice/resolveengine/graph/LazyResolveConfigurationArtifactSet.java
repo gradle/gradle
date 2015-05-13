@@ -43,8 +43,9 @@ class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private final ComponentResolveMetaData component;
 
     public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
-                                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
-        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts);
+                                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
+                                               long id) {
+        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts, id);
         this.component = component;
         this.configurationId = configurationId;
         this.selector = selector;

@@ -38,8 +38,9 @@ class EagerResolveConfigurationArtifactsSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
     public EagerResolveConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
-                                                 ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
-        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts);
+                                                 ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
+                                                 long id) {
+        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts, id);
         this.configurationId = configurationId;
         this.artifacts = doResolve(component, selector);
     }

@@ -30,8 +30,9 @@ class DependencyArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
     public DependencyArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, Set<ComponentArtifactMetaData> artifacts,
-                                 ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
-        super(ownerId, moduleSource, artifactResolver, allResolvedArtifacts);
+                                 ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
+                                 long id) {
+        super(ownerId, moduleSource, artifactResolver, allResolvedArtifacts, id);
         this.artifacts = artifacts;
     }
 

@@ -37,12 +37,19 @@ public abstract class AbstractArtifactSet implements ArtifactSet {
     private final ModuleSource moduleSource;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
+    private final long id;
 
-    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts) {
+    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ArtifactResolver artifactResolver,
+                               Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public Set<ResolvedArtifact> getArtifacts() {

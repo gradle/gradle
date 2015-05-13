@@ -21,5 +21,8 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import java.util.Set;
 
 public interface ArtifactSet {
+
+    long getId();
+
     Set<ResolvedArtifact> getArtifacts();
 }

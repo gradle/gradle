@@ -48,6 +48,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private final ArtifactResolver artifactResolver;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
+    private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private DependencyGraphBuilder.ConfigurationNode root;
 
     ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
@@ -82,10 +83,9 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         ResolvedConfigurationIdentifier child = childConfiguration.id;
         builder.addChild(parent, child);
 
-        long id = idGenerator.generateId();
         ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
-        builder.addArtifacts(child, parent, id);
-        artifactsBuilder.addArtifacts(id, artifacts);
+        builder.addArtifacts(child, parent, artifacts.getId());
+        artifactsBuilder.addArtifacts(artifacts.getId(), artifacts);
 
         if (parent == root.id) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();
@@ -93,26 +93,38 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
+    // TODO:DAZ This is functional, but need to refactor for clarity
     private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+        long id = idGenerator.generateId();
         ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.id;
         ConfigurationMetaData metaData = childConfiguration.getMetaData();
         ComponentResolveMetaData component = metaData.getComponent();
+
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
-            return new DependencyArtifactSet(component.getId(), component.getSource(), artifacts, artifactResolver, allResolvedArtifacts);
+            return new DependencyArtifactSet(component.getId(), component.getSource(), artifacts, artifactResolver, allResolvedArtifacts, id);
         }
 
-        // For project components, use the project id to resolve the set of artifacts on demand.
-        if (component.getComponentId() instanceof ProjectComponentIdentifier) {
-            return new LazyResolveConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts);
+        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);
+        if (configurationArtifactSet == null) {
+
+            // For project components, use the project id to resolve the set of artifacts on demand.
+            if (component.getComponentId() instanceof ProjectComponentIdentifier) {
+                configurationArtifactSet = new LazyResolveConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts, id);
+            } else {
+                // For external components, resolve the set of artifacts now to avoid holding onto state.
+                configurationArtifactSet = new EagerResolveConfigurationArtifactsSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts, id);
+            }
+
+            artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
         }
 
-        // For external components, resolve the set of artifacts now to avoid holding onto state.
-        return new EagerResolveConfigurationArtifactsSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts);
+        return configurationArtifactSet;
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {
         allResolvedArtifacts.clear();
+        artifactSetsByConfiguration.clear();
         attachFailures(builder);
         builder.done(root.id);
     }
