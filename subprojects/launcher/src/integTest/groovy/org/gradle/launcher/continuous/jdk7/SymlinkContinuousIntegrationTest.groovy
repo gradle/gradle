@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.continuous.jdk7
 
-import org.gradle.launcher.continuous.AbstractContinuousModeExecutionIntegrationTest
+import org.gradle.launcher.continuous.AbstractContinuousIntegrationTest
 import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class SymlinkContinuousModeExecutionIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     @Ignore("TODO - check implementation specific behavior of symlinks across mac/linux/win")
     def "can use symlink for input"() {
         given:

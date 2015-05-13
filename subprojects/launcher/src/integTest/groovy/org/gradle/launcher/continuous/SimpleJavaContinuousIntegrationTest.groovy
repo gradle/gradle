@@ -24,7 +24,7 @@ import spock.lang.Ignore
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-class SimpleJavaContinuousModeExecutionIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
     // TODO: Fold test sources into TestJvmComponent?

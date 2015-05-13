@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-class ContinuousModeSmokeIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+class ContinuousModeSmokeIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "basic smoke test"() {
         when:

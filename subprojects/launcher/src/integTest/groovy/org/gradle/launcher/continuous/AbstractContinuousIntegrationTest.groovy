@@ -24,7 +24,7 @@ import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-abstract public class AbstractContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
+abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
 

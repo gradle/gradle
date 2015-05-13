@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
 
 @Requires(TestPrecondition.JDK6)
-class Jdk6EnablingContinuousModeExecutionIntegrationTest extends AbstractIntegrationSpec {
+class Jdk6ContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()

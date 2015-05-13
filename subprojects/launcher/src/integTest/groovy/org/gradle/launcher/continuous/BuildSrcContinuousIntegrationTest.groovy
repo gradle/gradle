@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-class BuildSrcContinuousIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "can build and reload a project with buildSrc"() {
         when:
