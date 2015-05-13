@@ -1,0 +1,47 @@
+/**
+ * Tests tasks to allow the gradual introduction of JDK 9 support
+ */
+String jdkVarName = 'JAVA_9'
+
+def excludedUnitTests = [
+    "JdkToolsTest", "JvmTest", "DefaultIsolatedAntBuilderTest", "DefaultModelSchemaStoreTest",
+    "DefaultJavaToolChainTest", "ModelRuleExtractorTest", "SonarPluginTest"
+]
+
+model {
+    tasks {
+        create("java9IntegTest", Test) {
+            doFirst {
+                jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
+            }
+            executable = "${System.getenv(jdkVarName)}/bin/java"
+            include '**/*CommandLineJavaCompilerIntegrationTest*'
+            reports.junitXml.destination = file("${project.testResultsDir}/$name")
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+        }
+
+        create("java9Test", Test) {
+            doFirst {
+                jvmArgs = []
+            }
+            executable = "${System.getenv('JAVA_9')}/bin/java"
+            excludes = excludedUnitTests.collect { "**/*${it}*" }
+            reports.junitXml.destination = file("${project.testResultsDir}/$name")
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+        }
+    }
+}
+
+
+if (!gradle.hasProperty("java9Check")) {
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name.contains("java9") }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
+        }
+    }
+    gradle.ext.java9Check = true
+}

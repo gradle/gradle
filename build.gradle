@@ -67,7 +67,7 @@ buildTypes {
     promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
 
     //Initial smoke test for java 9
-    java9Build "java9Test", useIncomingDistributions: true
+    java9Build "java9Test", "java9IntegTest", useIncomingDistributions: true
 }
 
 ext {
@@ -142,6 +142,7 @@ subprojects {
     if (project in groovyProjects) {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+        apply from: "$rootDir/gradle/java9.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
