@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -171,7 +170,7 @@ public class ProviderConnection {
             loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
-            executer = new DaemonClientBuildActionExecuter(clientServices.get(DaemonClient.class));
+            executer = clientServices.get(DaemonClient.class);
         }
         Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, params.daemonParams), loggingManagerFactory);

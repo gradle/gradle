@@ -22,8 +22,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -50,7 +49,7 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(BuildActionExecuter<BuildActionParameters> buildActionExecuter, DaemonClientFactory daemonClientFactory,
+    ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
                                                 ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,

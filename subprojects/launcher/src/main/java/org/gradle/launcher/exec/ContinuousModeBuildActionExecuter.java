@@ -34,7 +34,7 @@ import org.gradle.util.SingleMessageLogger;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final Logger logger;

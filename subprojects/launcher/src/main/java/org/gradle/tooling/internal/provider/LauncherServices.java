@@ -43,7 +43,7 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
             return new ContinuousModeBuildActionExecuter(delegate, services);

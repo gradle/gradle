@@ -30,17 +30,13 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.continuous.ContinuousModeParameters;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter;
-import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.*;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 
@@ -93,7 +89,7 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client), continuousModeParameters);
+        return runBuild(startParameter, daemonParameters, client, continuousModeParameters);
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
@@ -109,7 +105,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .provider(new GlobalScopeServices(false))
                 .build();
 
-        BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildActionExecuter.class);
+        BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildExecuter.class);
         StyledTextOutputFactory textOutputFactory = globalServices.get(StyledTextOutputFactory.class);
         DocumentationRegistry documentationRegistry = globalServices.get(DocumentationRegistry.class);
         DaemonUsageSuggestingBuildActionExecuter daemonUsageSuggestingExecuter = new DaemonUsageSuggestingBuildActionExecuter(executer, textOutputFactory, documentationRegistry);
@@ -131,7 +127,7 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client), continuousModeParameters);
+        return runBuild(startParameter, daemonParameters, client, continuousModeParameters);
     }
 
     private ServiceRegistry createGlobalClientServices() {

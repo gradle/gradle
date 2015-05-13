@@ -29,9 +29,10 @@ class DaemonClientBuildActionExecuterTest extends Specification {
         def requestContext = Mock(BuildRequestContext)
         def actionParameters = Mock(BuildActionParameters)
         def client = Mock(DaemonClient)
-        def daemonClientExecuter = new DaemonClientBuildActionExecuter(client)
+
         when:
-        daemonClientExecuter.execute(action, requestContext, actionParameters)
+        client.execute(action, requestContext, actionParameters)
+
         then:
         1 * client.execute(action, requestContext, actionParameters)
     }
