@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import org.gradle.build.Install
+
 import org.gradle.build.BuildTypes
+import org.gradle.build.Install
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'

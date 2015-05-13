@@ -107,7 +107,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.))).+)"
+    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.)|(?:-classpath.+${rootProject.buildDir.absolutePath}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
     def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
@@ -188,8 +188,14 @@ project(":") {
     }
 }
 
+allprojects {
+    tasks.whenTaskAdded {
+        it.dependsOn(':killExistingDaemons')
+    }
+}
+
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', ':cleanUpCaches', ':killExistingDaemons'
+    dependsOn ':intTestImage', ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
