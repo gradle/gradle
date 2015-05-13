@@ -107,7 +107,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.)|(?:org\\.gradle\\.process\\.)).+)"
+    String queryString = "(?i)${File.separator}(java(?:\\.exe)?.+?(?:(?:-cp.+${rootProject.projectDir.absolutePath}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
     def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
