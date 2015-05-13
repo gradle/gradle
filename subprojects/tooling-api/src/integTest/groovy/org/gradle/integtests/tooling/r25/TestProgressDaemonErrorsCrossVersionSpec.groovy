@@ -49,8 +49,8 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         GradleConnectionException ex = thrown()
         ex.cause.message.contains('Gradle build daemon disappeared unexpectedly')
 
-        and: "a single event was received"
-        result.size() == 1
+        and:
+        !result.empty
     }
 
     def goodCode() {
@@ -58,7 +58,6 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
         file("src/test/java/example/MyTest.java") << """
