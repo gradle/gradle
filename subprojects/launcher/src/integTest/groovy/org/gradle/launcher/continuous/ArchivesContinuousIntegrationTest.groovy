@@ -17,7 +17,8 @@
 package org.gradle.launcher.continuous
 import spock.lang.Ignore
 
-class DetailedContinuousModeExecutionIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+class ArchivesContinuousIntegrationTest extends AbstractContinuousModeExecutionIntegrationTest {
+
     def "creating zips in continuous mode"() {
         given:
         def sourceDir = file("src")
@@ -106,17 +107,4 @@ class DetailedContinuousModeExecutionIntegrationTest extends AbstractContinuousM
         "tarTree" | "tgzTo"  | "source.tgz"
     }
 
-    def "failure to determine inputs has a reasonable message"() {
-        given:
-        buildFile << """
-    task a {
-        inputs.files files({ throw new Exception("boom") })
-        doLast {
-        }
-    }
-"""
-        expect:
-        fails("a")
-        errorOutput.contains("Could not determine the dependencies of task ':a'.")
-    }
 }

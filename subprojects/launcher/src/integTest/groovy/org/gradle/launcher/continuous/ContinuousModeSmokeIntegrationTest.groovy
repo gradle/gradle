@@ -164,4 +164,19 @@ class ContinuousModeSmokeIntegrationTest extends AbstractContinuousModeExecution
         output.contains "reuse: true"
 
     }
+
+    def "failure to determine inputs has a reasonable message"() {
+        when:
+        buildScript """
+            task a {
+                inputs.files files({ throw new Exception("boom") })
+                doLast {}
+            }
+        """
+
+        then:
+        fails("a")
+        failureDescriptionContains("Could not determine the dependencies of task ':a'.")
+    }
+
 }

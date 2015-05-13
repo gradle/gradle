@@ -62,7 +62,8 @@ abstract public class AbstractContinuousModeExecutionIntegrationTest extends Abs
         if (!(result instanceof ExecutionFailure)) {
             throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
         }
-        result as ExecutionFailure
+        failure = result as ExecutionFailure
+        failure
     }
 
     private void runBuild(String... tasks) {
