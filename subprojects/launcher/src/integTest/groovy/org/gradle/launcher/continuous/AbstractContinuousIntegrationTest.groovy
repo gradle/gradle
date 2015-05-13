@@ -25,7 +25,6 @@ import spock.util.concurrent.PollingConditions
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
-
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
 
     GradleHandle gradle
@@ -84,7 +83,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             assert gradle.isRunning()
-            assert buildOutputSoFar().endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
+            assert buildOutputSoFar().contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.\n")
         }
 
         def out = buildOutputSoFar()
@@ -109,6 +108,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
             throw new AssertionError("Expected build not to start, but started with output: " + buildOutputSoFar())
         } catch (SpockTimeoutError e) {
             // ok, what we want
+        }
+    }
+
+    void expectOutput(int waitSeconds = 3, Closure<?> checkOutput) {
+        new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
+            assert checkOutput(gradle.standardOutput)
         }
     }
 
