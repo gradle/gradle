@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
+
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def upstreamSource, downstreamSource
 
@@ -127,6 +129,7 @@ allprojects {
 
     }
 
+    @Ignore("flakey")
     def "reasonable sized multi-project with --parallel"() {
         given:
         executer.withArgument("--parallel")
