@@ -22,7 +22,7 @@ dependencies {
     //above can be removed when we implement the auto-apply plugins
 }
 
-ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
+ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
