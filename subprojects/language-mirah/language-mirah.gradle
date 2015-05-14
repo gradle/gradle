@@ -10,7 +10,7 @@ dependencies {
     compile project(":languageJava")
     compile project(":languageJvm")
     // keep in sync with MirahLanguagePlugin code
-    provided("org.mirah:mirah:0.1.5-SNAPSHOT")
+    provided("org.mirah:mirah:0.1.4")
 
     testCompile libraries.groovy
 }

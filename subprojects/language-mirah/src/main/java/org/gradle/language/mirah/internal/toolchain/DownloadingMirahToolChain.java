@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DownloadingMirahToolChain implements MirahToolChainInternal {
-    public static final String DEFAULT_ZINC_VERSION = "0.1.5-SNAPSHOT";
+    public static final String DEFAULT_ZINC_VERSION = "0.1.4";
 
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
