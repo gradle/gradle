@@ -19,7 +19,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
-    private final Map<String, Configuration> allConfigurations = Maps.newHashMap();
+    private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
     private final Map<String, PublishArtifactSet> allArtifacts = Maps.newHashMap();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
@@ -55,8 +55,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         allArtifacts.put(configuration, artifacts);
     }
 
-    public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
-        Configuration conf = new Configuration(name, visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE, description, superConfigs, transitive, null);
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive) {
+        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy);
         allConfigurations.put(name, conf);
     }
 
@@ -74,7 +74,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public BuildableIvyModulePublishMetaData toPublishMetaData() {
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, status);
-        for (Configuration configuration : allConfigurations.values()) {
+        for (DefaultLocalConfigurationMetaData configuration : allConfigurations.values()) {
             publishMetaData.addConfiguration(configuration);
         }
         for (ExcludeRule excludeRule : allExcludeRules) {
@@ -121,11 +121,30 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         public File getFile() {
             return file;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DefaultLocalArtifactMetaData that = (DefaultLocalArtifactMetaData) o;
+            return id.equals(that.id) && ObjectUtils.equals(file, that.file);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id.hashCode();
+            result = 31 * result + ObjectUtils.hashCode(file);
+            return result;
+        }
     }
 
     private class LocalComponentResolveMetaData implements ComponentResolveMetaData {
         private ModuleVersionIdentifier moduleVersionIdentifier;
-        private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
         public LocalComponentResolveMetaData() {
             this.moduleVersionIdentifier = id;
@@ -177,145 +196,141 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             return allConfigurations.keySet();
         }
 
-        public DefaultConfigurationMetaData getConfiguration(final String name) {
-            DefaultConfigurationMetaData configuration = configurations.get(name);
-            if (configuration == null) {
-                configuration = populateConfigurationFromDescriptor(name);
-            }
-            return configuration;
+        public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
+            return allConfigurations.get(name);
+        }
+    }
+
+    private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
+        private final String name;
+        private final String description;
+        private final boolean transitive;
+        private final boolean visible;
+        private final Set<String> hierarchy;
+        private final Set<String> extendsFrom;
+
+        private List<DependencyMetaData> configurationDependencies;
+        private LinkedHashSet<ExcludeRule> configurationExcludeRules;
+
+        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy) {
+            this.name = name;
+            this.description = description;
+            this.transitive = transitive;
+            this.visible = visible;
+            this.hierarchy = hierarchy;
+            this.extendsFrom = extendsFrom;
         }
 
-        private DefaultConfigurationMetaData populateConfigurationFromDescriptor(String name) {
-            Configuration descriptorConfiguration = allConfigurations.get(name);
-            if (descriptorConfiguration == null) {
-                return null;
-            }
-            Set<String> hierarchy = new LinkedHashSet<String>();
-            hierarchy.add(name);
-            for (String parent : descriptorConfiguration.getExtends()) {
-                hierarchy.addAll(getConfiguration(parent).hierarchy);
-            }
-            DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, descriptorConfiguration, hierarchy);
-            configurations.put(name, configuration);
-            return configuration;
+        @Override
+        public String toString() {
+            return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
         }
 
-        private class DefaultConfigurationMetaData implements ConfigurationMetaData {
-            private final String name;
-            private final Configuration descriptor;
-            private final Set<String> hierarchy;
-            private List<DependencyMetaData> configurationDependencies;
-            private LinkedHashSet<ExcludeRule> configurationExcludeRules;
+        public ComponentResolveMetaData getComponent() {
+            return new LocalComponentResolveMetaData();
+        }
 
-            private DefaultConfigurationMetaData(String name, Configuration descriptor, Set<String> hierarchy) {
-                this.name = name;
-                this.descriptor = descriptor;
-                this.hierarchy = hierarchy;
-            }
+        public String getDescription() {
+            return description;
+        }
 
-            @Override
-            public String toString() {
-                return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
-            }
+        public Set<String> getExtendsFrom() {
+            return extendsFrom;
+        }
 
-            public ComponentResolveMetaData getComponent() {
-                return LocalComponentResolveMetaData.this;
-            }
+        public String getName() {
+            return name;
+        }
 
-            public String getName() {
-                return name;
-            }
+        public Set<String> getHierarchy() {
+            return hierarchy;
+        }
 
-            public Set<String> getHierarchy() {
-                return hierarchy;
-            }
+        public boolean isTransitive() {
+            return transitive;
+        }
 
-            public boolean isTransitive() {
-                return descriptor.isTransitive();
-            }
+        public boolean isVisible() {
+            return visible;
+        }
 
-            public boolean isVisible() {
-                return descriptor.getVisibility() == Configuration.Visibility.PUBLIC;
-            }
-
-            public List<DependencyMetaData> getDependencies() {
-                if (configurationDependencies == null) {
-                    configurationDependencies = new ArrayList<DependencyMetaData>();
-                    for (DependencyMetaData dependency : allDependencies) {
-                        if (include(dependency)) {
-                            configurationDependencies.add(dependency);
-                        }
+        public List<DependencyMetaData> getDependencies() {
+            if (configurationDependencies == null) {
+                configurationDependencies = new ArrayList<DependencyMetaData>();
+                for (DependencyMetaData dependency : allDependencies) {
+                    if (include(dependency)) {
+                        configurationDependencies.add(dependency);
                     }
                 }
-                return configurationDependencies;
             }
+            return configurationDependencies;
+        }
 
-            private boolean include(DependencyMetaData dependency) {
-                String[] moduleConfigurations = dependency.getModuleConfigurations();
-                for (int i = 0; i < moduleConfigurations.length; i++) {
-                    String moduleConfiguration = moduleConfigurations[i];
-                    if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+        private boolean include(DependencyMetaData dependency) {
+            String[] moduleConfigurations = dependency.getModuleConfigurations();
+            for (int i = 0; i < moduleConfigurations.length; i++) {
+                String moduleConfiguration = moduleConfigurations[i];
+                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+                    return true;
+                }
+                if (moduleConfiguration.equals("*")) {
+                    boolean include = true;
+                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
+                        if (moduleConfigurations[j].substring(1).equals(getName())) {
+                            include = false;
+                            break;
+                        }
+                    }
+                    if (include) {
                         return true;
                     }
-                    if (moduleConfiguration.equals("*")) {
-                        boolean include = true;
-                        for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
-                            if (moduleConfigurations[j].substring(1).equals(getName())) {
-                                include = false;
-                                break;
-                            }
-                        }
-                        if (include) {
-                            return true;
-                        }
-                    }
                 }
-                return false;
             }
-
-            public Set<ExcludeRule> getExcludeRules() {
-                if (configurationExcludeRules == null) {
-                    configurationExcludeRules = new LinkedHashSet<ExcludeRule>();
-                    for (ExcludeRule excludeRule : allExcludeRules) {
-                        for (String config : excludeRule.getConfigurations()) {
-                            if (hierarchy.contains(config)) {
-                                configurationExcludeRules.add(excludeRule);
-                                break;
-                            }
-                        }
-                    }
-                }
-                return configurationExcludeRules;
-            }
-
-            public Set<ComponentArtifactMetaData> getArtifacts() {
-                Set<IvyArtifactName> seen = Sets.newHashSet();
-                Set<ComponentArtifactMetaData> artifacts = Sets.newHashSet();
-
-                for (String config : getHierarchy()) {
-                    PublishArtifactSet publishArtifacts = allArtifacts.get(config);
-                    if (publishArtifacts != null) {
-                        for (PublishArtifact publishArtifact : publishArtifacts) {
-                            IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
-                            if (seen.add(ivyArtifact)) {
-                                artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
-                            }
-                        }
-                    }
-                }
-                return artifacts;
-            }
-
-            public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
-                for (ComponentArtifactMetaData candidate : getArtifacts()) {
-                    if (candidate.getName().equals(ivyArtifactName)) {
-                        return candidate;
-                    }
-                }
-
-                return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
-            }
-
+            return false;
         }
+
+        public Set<ExcludeRule> getExcludeRules() {
+            if (configurationExcludeRules == null) {
+                configurationExcludeRules = new LinkedHashSet<ExcludeRule>();
+                for (ExcludeRule excludeRule : allExcludeRules) {
+                    for (String config : excludeRule.getConfigurations()) {
+                        if (hierarchy.contains(config)) {
+                            configurationExcludeRules.add(excludeRule);
+                            break;
+                        }
+                    }
+                }
+            }
+            return configurationExcludeRules;
+        }
+
+        public Set<ComponentArtifactMetaData> getArtifacts() {
+            Set<IvyArtifactName> seen = Sets.newHashSet();
+            Set<ComponentArtifactMetaData> artifacts = Sets.newHashSet();
+
+            for (String config : getHierarchy()) {
+                PublishArtifactSet publishArtifacts = allArtifacts.get(config);
+                if (publishArtifacts != null) {
+                    for (PublishArtifact publishArtifact : publishArtifacts) {
+                        IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
+                        if (seen.add(ivyArtifact)) {
+                            artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
+                        }
+                    }
+                }
+            }
+            return artifacts;
+        }
+
+        public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
+            for (ComponentArtifactMetaData candidate : getArtifacts()) {
+                if (candidate.getName().equals(ivyArtifactName)) {
+                    return candidate;
+                }
+            }
+
+            return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
+        }
+
     }
 }

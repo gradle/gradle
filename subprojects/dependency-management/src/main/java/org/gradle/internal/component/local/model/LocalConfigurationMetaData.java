@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,13 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ConfigurationMetaData;
 
 import java.util.Set;
 
-public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
-    void addArtifacts(String configuration, PublishArtifactSet artifacts);
+public interface LocalConfigurationMetaData extends ConfigurationMetaData {
 
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive);
+    String getDescription();
 
-    void addDependency(DependencyMetaData dependency);
-
-    void addExcludeRule(ExcludeRule excludeRule);
+    Set<String> getExtendsFrom();
 }

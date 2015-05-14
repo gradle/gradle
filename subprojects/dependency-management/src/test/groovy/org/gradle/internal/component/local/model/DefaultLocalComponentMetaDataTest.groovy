@@ -34,8 +34,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
     def "can lookup configuration after it has been added"() {
         when:
-        metaData.addConfiguration("super", false, "description", [] as String[], false)
-        metaData.addConfiguration("conf", true, "description", ["super"] as String[], true)
+        metaData.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false)
+        metaData.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true)
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
@@ -67,7 +67,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        metaData.addConfiguration("conf", true, "", [] as String[], true)
+        addConfiguration("conf")
 
         when:
         addArtifact("conf", artifact, file)
@@ -96,6 +96,10 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishMetaDataArtifact.artifactName.extension == artifact.extension
     }
 
+    private addConfiguration(String name) {
+        metaData.addConfiguration(name, "", [] as Set, [name] as Set, true, true)
+    }
+
     def addArtifact(String configuration, IvyArtifactName name, File file) {
         PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
         metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact)))
@@ -106,8 +110,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        metaData.addConfiguration("conf1", true, "", [] as String[], true)
-        metaData.addConfiguration("conf2", true, "", [] as String[], true)
+        addConfiguration("conf1")
+        addConfiguration("conf2")
 
         when:
         addArtifact("conf1", artifact, file)
@@ -124,7 +128,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        metaData.addConfiguration("conf", true, "", [] as String[], true)
+        addConfiguration("conf")
 
         and:
         addArtifact("conf", artifact, file)
@@ -140,7 +144,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     def "can lookup an unknown artifact given an Ivy artifact"() {
         def artifact = artifactName()
         given:
-        metaData.addConfiguration("conf", true, "", [] as String[], true)
+        addConfiguration("conf")
 
         expect:
         def resolveArtifact = metaData.toResolveMetaData().getConfiguration("conf").artifact(artifact)
@@ -155,8 +159,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file2 = new File("artifact-2.zip")
 
         given:
-        metaData.addConfiguration("conf1", true, "conf1", new String[0], true)
-        metaData.addConfiguration("conf2", true, "conf2", new String[0], true)
+        addConfiguration("conf1")
+        addConfiguration("conf2")
         addArtifact("conf1", artifact1, file1)
         addArtifact("conf2", artifact2, file2)
 
