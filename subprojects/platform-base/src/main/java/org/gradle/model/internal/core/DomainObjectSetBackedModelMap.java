@@ -21,12 +21,14 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 
 import java.util.Set;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, DomainObjectSet<T>> {
 
@@ -51,18 +53,11 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
     }
 
     private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
-        DomainObjectSet<T> matching = backingCollection.matching(new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return type.isInstance(element);
-            }
-        });
-
-        return Cast.uncheckedCast(matching);
+        return uncheckedCast(backingCollection.matching(Specs.isInstance(type)));
     }
 
     protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
-        NamedEntityInstantiator<S> instantiator = Cast.uncheckedCast(this.instantiator);
+        NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
         return new DomainObjectSetBackedModelMap<S>(itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer, onCreateAction);
     }
 

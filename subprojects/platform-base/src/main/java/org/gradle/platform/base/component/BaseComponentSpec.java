@@ -17,7 +17,7 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.*;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -33,6 +33,8 @@ import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import java.util.Collections;
 import java.util.Set;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
@@ -175,9 +177,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         }
 
         private <S> NamedDomainObjectSet<S> toNonSubtype(final Class<S> type) {
-            NamedDomainObjectSet<T> matching = backingCollection.matching(new WithType<T>(type));
-
-            return Cast.uncheckedCast(matching);
+            return uncheckedCast(backingCollection.matching(Specs.isInstance(type)));
         }
 
         @Override
@@ -192,7 +192,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         }
 
         protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
-            NamedEntityInstantiator<S> instantiator = Cast.uncheckedCast(this.instantiator);
+            NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
             return new NamedDomainObjectSetBackedModelMap<S>(itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer);
         }
 
@@ -210,19 +210,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         @Override
         public <S> void withType(Class<S> type, Action<? super S> configAction) {
             toNonSubtype(type).all(configAction);
-        }
-
-        private static class WithType<T> implements Spec<T> {
-            private final Class<?> type;
-
-            public WithType(Class<?> type) {
-                this.type = type;
-            }
-
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return type.isInstance(element);
-            }
         }
 
         private static <T> NamedDomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, NamedDomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator) {
