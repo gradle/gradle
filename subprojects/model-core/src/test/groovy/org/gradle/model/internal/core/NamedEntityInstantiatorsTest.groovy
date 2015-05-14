@@ -34,6 +34,6 @@ class NamedEntityInstantiatorsTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot create an item of type ${NonSubtypeChild} as this is not a subtype of ${Base}."
+        e.message == "Cannot create an item of type ${NonSubtypeChild.name} as this is not a subtype of ${Base.name}."
     }
 }
