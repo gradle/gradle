@@ -19,7 +19,6 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -29,7 +28,6 @@ import org.gradle.internal.component.external.model.BuildableIvyModulePublishMet
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.model.*;
 
-import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
@@ -69,7 +67,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public ComponentResolveMetaData toResolveMetaData() {
-        return new LocalComponentResolveMetaData();
+        return new DefaultLocalComponentResolveMetaData();
     }
 
     public BuildableIvyModulePublishMetaData toPublishMetaData() {
@@ -92,61 +90,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return publishMetaData;
     }
 
-    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
-        private final DefaultLocalArtifactIdentifier id;
-        private final File file;
-
-        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, IvyArtifactName artifact, File file) {
-            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact, file);
-            this.file = file;
-        }
-
-        @Override
-        public String toString() {
-            return id.toString();
-        }
-
-        public IvyArtifactName getName() {
-            return id.getName();
-        }
-
-        public ComponentIdentifier getComponentId() {
-            return id.getComponentIdentifier();
-        }
-
-        public ComponentArtifactIdentifier getId() {
-            return id;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DefaultLocalArtifactMetaData that = (DefaultLocalArtifactMetaData) o;
-            return id.equals(that.id) && ObjectUtils.equals(file, that.file);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = id.hashCode();
-            result = 31 * result + ObjectUtils.hashCode(file);
-            return result;
-        }
-    }
-
-    private class LocalComponentResolveMetaData implements ComponentResolveMetaData {
+    private class DefaultLocalComponentResolveMetaData implements LocalComponentResolveMetaData {
         private ModuleVersionIdentifier moduleVersionIdentifier;
 
-        public LocalComponentResolveMetaData() {
+        public DefaultLocalComponentResolveMetaData() {
             this.moduleVersionIdentifier = id;
         }
 
@@ -199,6 +146,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
             return allConfigurations.get(name);
         }
+
+        @Override
+        public ComponentResolveMetaData toArtifactResolveMetaData() {
+            return new ArtifactOnlyComponentResolveMetaData(id, componentIdentifier, status, allArtifacts, allConfigurations.values());
+        }
     }
 
     private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
@@ -227,7 +179,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public ComponentResolveMetaData getComponent() {
-            return new LocalComponentResolveMetaData();
+            return new DefaultLocalComponentResolveMetaData();
         }
 
         public String getDescription() {
@@ -331,6 +283,5 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
             return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
         }
-
     }
 }
