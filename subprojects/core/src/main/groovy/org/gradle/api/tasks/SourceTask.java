@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
@@ -44,7 +45,8 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        FileTree src = getProject().files(Collections.<Object>singletonList(this.source)).getAsFileTree();
+        ArrayList<Object> copy = new ArrayList<Object>(this.source);
+        FileTree src = getProject().files(copy).getAsFileTree();
         return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
     }
 
