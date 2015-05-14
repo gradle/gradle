@@ -15,7 +15,6 @@
  */
 
 package org.gradle.launcher.continuous
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.util.Requires
@@ -83,7 +82,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             assert gradle.isRunning()
-            assert buildOutputSoFar().contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.\n")
+            assert buildOutputSoFar().contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.")
         }
 
         def out = buildOutputSoFar()
