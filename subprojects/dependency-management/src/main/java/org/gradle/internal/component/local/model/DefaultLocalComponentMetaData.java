@@ -257,21 +257,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            Set<IvyArtifactName> seen = Sets.newHashSet();
-            Set<ComponentArtifactMetaData> artifacts = Sets.newHashSet();
-
-            for (String config : getHierarchy()) {
-                PublishArtifactSet publishArtifacts = allArtifacts.get(config);
-                if (publishArtifacts != null) {
-                    for (PublishArtifact publishArtifact : publishArtifacts) {
-                        IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
-                        if (seen.add(ivyArtifact)) {
-                            artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
-                        }
-                    }
-                }
-            }
-            return artifacts;
+            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, getHierarchy(), allArtifacts);
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
@@ -283,5 +269,23 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
             return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
         }
+    }
+
+    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, Set<String> configurationHierarchy, Map<String, PublishArtifactSet> allArtifacts) {
+        Set<IvyArtifactName> seen = Sets.newHashSet();
+        Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
+
+        for (String config : configurationHierarchy) {
+            PublishArtifactSet publishArtifacts = allArtifacts.get(config);
+            if (publishArtifacts != null) {
+                for (PublishArtifact publishArtifact : publishArtifacts) {
+                    IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
+                    if (seen.add(ivyArtifact)) {
+                        artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
+                    }
+                }
+            }
+        }
+        return artifacts;
     }
 }

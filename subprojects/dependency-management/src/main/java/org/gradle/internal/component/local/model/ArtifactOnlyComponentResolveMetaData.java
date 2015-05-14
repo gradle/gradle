@@ -17,10 +17,8 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.*;
@@ -126,21 +124,7 @@ class ArtifactOnlyComponentResolveMetaData implements ComponentResolveMetaData {
 
         @Override
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            Set<IvyArtifactName> seen = Sets.newHashSet();
-            Set<ComponentArtifactMetaData> artifacts = Sets.newHashSet();
-
-            for (String config : hierarchy) {
-                PublishArtifactSet artifactSet = publishArtifacts.get(config);
-                if (artifactSet != null) {
-                    for (PublishArtifact publishArtifact : artifactSet) {
-                        IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
-                        if (seen.add(ivyArtifact)) {
-                            artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
-                        }
-                    }
-                }
-            }
-            return artifacts;
+            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, hierarchy, publishArtifacts);
         }
 
         @Override
