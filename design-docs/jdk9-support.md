@@ -5,8 +5,11 @@ This spec collects issues that prevent Gradle from working well, or at all, with
 This list is in priority order.
 
 - `tools.jar` no longer exists as part of the JDK so `org.gradle.internal.jvm.JdkTools`(and others) need an alternative way to
-get a SystemJavaCompiler which does not includes Gradle's own classes, i.e. without using `ClassLoader.getSystemClassLoader()`
-    - TBD
+get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isolated, non-system `ClassLoader`. One approach would be:
+    - Isolate the Gradle classes from the application `ClassLoader`
+    - Load things, targeted for compilation, into an isolated `ClassLoader` as opposed to the JVM's application application `ClassLoader`.
+    - `org.gradle.internal.jvm.JdkTools` could use `ToolProvider.getSystemJavaCompiler()` to get a java compiler
+
 - JDK 9 is not java 1.5 compatible. `sourceCompatibility = 1.5` and `targetCompatibility = 1.5` will no longer work.
 - Some tests use `tools.jar` as a "big jar", they need to be refactored to use something else.
 - JDK 9 has completely changed the JVM and `org.gradle.internal.jvm.Jvm` is no longer an accurate model:
