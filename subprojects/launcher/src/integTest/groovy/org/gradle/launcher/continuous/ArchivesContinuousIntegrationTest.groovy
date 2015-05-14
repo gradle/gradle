@@ -68,6 +68,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
     @Ignore("source files for compressed inputs are not considered")
     def "using compressed files as inputs"() {
         given:
+        turnOnDebug()
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)

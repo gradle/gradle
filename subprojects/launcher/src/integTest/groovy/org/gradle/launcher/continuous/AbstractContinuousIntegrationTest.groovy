@@ -35,6 +35,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     public void turnOnDebug() {
         executer.withDebug(true)
+        executer.withArgument("--no-daemon")
         buildTimeout = buildTimeout*100
     }
 

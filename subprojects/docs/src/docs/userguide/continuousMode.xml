@@ -46,6 +46,16 @@
             </para>
         </section>
         <section>
+            <title>Changes to symbolic links</title>
+            <para>
+                When in continuous mode, creating or removing symbolic link to files will cause rebuilds.  Modifying the target of a symbolic
+                link will not cause a rebuild.
+
+                When in continuous mode, creating or removing symbolic links to directories will not cause rebuilds.  Creating new files in the target
+                directory of a symbolic link will not cause a rebuild.  Deleting the target directory will not cause a rebuild.
+            </para>
+        </section>
+        <section>
             <title>Performance on Mac OS X</title>
             <para>
                 Despite having the WatchService API since Java 7, there does not exist a native file system event based implementation for Mac OS X.

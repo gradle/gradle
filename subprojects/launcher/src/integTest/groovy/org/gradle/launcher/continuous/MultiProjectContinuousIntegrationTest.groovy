@@ -22,7 +22,13 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
     def setup() {
         settingsFile << "include 'upstream', 'downstream'"
         buildFile << """
-subprojects { apply plugin: 'java' }
+subprojects {
+    apply plugin: 'java'
+    repositories { mavenCentral() }
+    dependencies {
+        testCompile 'junit:junit:4.12'
+    }
+}
 project(':downstream') {
     dependencies {
         compile project(":upstream")
@@ -119,5 +125,61 @@ allprojects {
         executedAndNotSkipped(":upstream:a", ":a")
         notExecuted(":downstream:a")
 
+    }
+
+    def "reasonable sized multi-project with --parallel"() {
+        given:
+        executer.withArgument("--parallel")
+        buildTimeout = buildTimeout * 2
+        def numberOfProjects = 25
+        def numberOfSources = 10
+        (0..numberOfProjects).each { idx ->
+            def projectName = "project$idx"
+            settingsFile << """
+include '$projectName'
+"""
+            (0..numberOfSources).each { sourceIdx ->
+                file("${projectName}/src/main/java/${projectName}/A${sourceIdx}.java").createFile() << """
+package ${projectName};
+class A${sourceIdx} {}
+"""
+                file("${projectName}/src/test/java/${projectName}/A${sourceIdx}Test.java").createFile() << """
+package ${projectName};
+
+import org.junit.Test;
+
+public class A${sourceIdx}Test {
+   @Test public void testMethod() {
+   }
+}
+"""
+            }
+        }
+        buildFile << """
+def generatedProjects() {
+   subprojects.find { it.name.startsWith("project") }
+}
+configure(generatedProjects()) {
+   dependencies {
+       compile project(":upstream")
+   }
+}
+"""
+        expect:
+        succeeds("build")
+
+        when:
+        downstreamSource << """
+class Change {}
+"""
+        then:
+        succeeds()
+
+        when:
+        upstreamSource << """
+class Change2 {}
+"""
+        then:
+        succeeds()
     }
 }

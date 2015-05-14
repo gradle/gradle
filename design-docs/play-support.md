@@ -683,12 +683,12 @@ For a conventional `apply plugin: 'java'` project:
 1. ~~Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)~~
 1. ~~Task can specify project directory as a task input; changes are respected~~
 1. ~~Task can specify root directory of multi project build as a task input; changes are respected~~
-1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
+1. ~~Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel~~
+1. ~~Can use a symlink as an input file~~
+1. ~~Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)~~
 
 #### Broken/@Ignored test cases
 
-1. Can use a symlink as an input file
-1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
 1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
 1. Changes to input zips are respected
 1. Changes to input tars are respected (compressed and uncompressed)
