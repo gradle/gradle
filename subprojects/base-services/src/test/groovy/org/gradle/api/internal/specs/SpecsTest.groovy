@@ -21,11 +21,11 @@ import spock.lang.Specification
 
 class SpecsTest extends Specification {
 
-    class A {}
-    class B extends A {}
-    class C extends B {}
+    static class A {}
+    static class B extends A {}
+    static class C extends B {}
 
-    void "isInstance spec is satisfied for all instances extending from the specified type"() {
+    def "isInstance spec is satisfied for all instances extending from the specified type"() {
         when:
         Spec<Object> spec = Specs.isInstance(B)
 
