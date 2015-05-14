@@ -27,6 +27,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.NamedEntityInstantiators;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
@@ -183,12 +184,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         @Override
         protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
             NamedDomainObjectSet<S> cast = toNonSubtype(type);
-            return new NamedDomainObjectSetBackedModelMap<S>(type, cast, new NamedEntityInstantiator<S>() {
-                @Override
-                public <D extends S> D create(String name, Class<D> type) {
-                    throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementClass.toString()));
-                }
-            }, namer);
+            return new NamedDomainObjectSetBackedModelMap<S>(type, cast, NamedEntityInstantiators.nonSubtype(type, elementClass), namer);
         }
 
         protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {

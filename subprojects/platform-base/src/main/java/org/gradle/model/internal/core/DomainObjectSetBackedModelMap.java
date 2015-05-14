@@ -44,12 +44,7 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
     @Override
     protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
         DomainObjectSet<S> cast = toNonSubtype(type);
-        return new DomainObjectSetBackedModelMap<S>(type, cast, new NamedEntityInstantiator<S>() {
-            @Override
-            public <D extends S> D create(String name, Class<D> type) {
-                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementClass.toString()));
-            }
-        }, namer, Actions.doNothing());
+        return new DomainObjectSetBackedModelMap<S>(type, cast, NamedEntityInstantiators.nonSubtype(type, elementClass), namer, Actions.doNothing());
     }
 
     private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
