@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.execution.internal.TaskInputsListener
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
