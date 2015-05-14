@@ -405,7 +405,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolutionResults = Mock(ResolutionResult)
         def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
 
-        _ * projectConfigurationResults.allProjectConfigurationResults >> Collections.emptySet()
+        _ * projectConfigurationResults.get() >> Collections.emptySet()
         _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
             resolverResults.resolved(resolutionResults, projectConfigurationResults)
             resolverResults.withResolvedConfiguration(resolvedConfiguration)
@@ -778,7 +778,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
         }
-        _ * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
+        _ * projectConfigurationResults.get() >> []
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
@@ -898,13 +898,13 @@ class DefaultConfigurationSpec extends Specification {
 
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
         def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        projectConfigurationResults.get() >> []
         resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(resolutionResult, projectConfigurationResults)
         }
         resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.withResolvedConfiguration(resolvedConfiguration)
         }
-        projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
     }
 
     def "resolving configuration for task dependencies puts it into the right state"() {

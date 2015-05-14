@@ -52,7 +52,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(configuration.getModule());
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
-            ResolvedProjectConfigurationResults emptyProjectResult = new DefaultResolvedProjectConfigurationResultBuilder().complete();
+            ResolvedProjectConfigurationResults emptyProjectResult = new DefaultResolvedProjectConfigurationResultBuilder(false).complete();
             results.resolved(emptyResult, emptyProjectResult);
         } else {
             dependencyResolver.resolve(configuration, repositories, metadataHandler, results);

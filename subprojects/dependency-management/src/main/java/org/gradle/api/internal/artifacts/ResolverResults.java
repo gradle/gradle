@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 
 public class ResolverResults {
@@ -48,11 +50,17 @@ public class ResolverResults {
         return resolutionResult;
     }
 
-    public ResolvedProjectConfigurationResults getResolvedProjectConfigurationResults() {
+    public void eachResolvedProject(Action<ResolvedProjectConfiguration> action) {
         assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
         }
+        for (ResolvedProjectConfiguration resolvedProjectConfiguration : resolvedProjectConfigurationResults.get()) {
+            action.execute(resolvedProjectConfiguration);
+        }
+    }
+
+    public ResolvedProjectConfigurationResults getResolvedProjectConfigurationResults() {
         return resolvedProjectConfigurationResults;
     }
 

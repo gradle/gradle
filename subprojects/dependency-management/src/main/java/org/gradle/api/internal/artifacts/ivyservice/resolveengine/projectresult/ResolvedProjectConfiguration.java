@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-import java.util.Set;
-
-public interface ResolvedProjectConfigurationResult {
+public interface ResolvedProjectConfiguration {
     ProjectComponentIdentifier getId();
 
-    Set<String> getTargetConfigurations();
+    String getTargetConfiguration();
 }

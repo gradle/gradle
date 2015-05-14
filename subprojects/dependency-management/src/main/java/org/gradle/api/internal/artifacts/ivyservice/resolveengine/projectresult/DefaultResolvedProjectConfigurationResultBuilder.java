@@ -19,13 +19,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultResolvedProjectConfigurationResultBuilder implements ResolvedProjectConfigurationResultBuilder {
-    private final Map<ProjectComponentIdentifier, DefaultResolvedProjectConfigurationResult> results = new LinkedHashMap<ProjectComponentIdentifier, DefaultResolvedProjectConfigurationResult>();
+    private final List<ResolvedProjectConfiguration> results = new ArrayList<ResolvedProjectConfiguration>();
+    private final boolean buildProjectDependencies;
     private ComponentIdentifier rootId;
+
+    public DefaultResolvedProjectConfigurationResultBuilder(boolean buildProjectDependencies) {
+        this.buildProjectDependencies = buildProjectDependencies;
+    }
 
     @Override
     public void registerRoot(ComponentIdentifier componentId) {
@@ -34,23 +38,17 @@ public class DefaultResolvedProjectConfigurationResultBuilder implements Resolve
 
     @Override
     public void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName) {
+        if (!buildProjectDependencies) {
+            return;
+        }
         if (rootId.equals(componentId)) {
             return;
         }
-        getOrCreate(componentId).getTargetConfigurations().add(configurationName);
-    }
-
-    private DefaultResolvedProjectConfigurationResult getOrCreate(ProjectComponentIdentifier componentId) {
-        DefaultResolvedProjectConfigurationResult result = results.get(componentId);
-        if (result == null) {
-            result = new DefaultResolvedProjectConfigurationResult(componentId);
-            results.put(componentId, result);
-        }
-        return result;
+        results.add(new DefaultResolvedProjectConfiguration(componentId, configurationName));
     }
 
     @Override
     public ResolvedProjectConfigurationResults complete() {
-        return new DefaultResolvedProjectConfigurationResults(new LinkedHashSet<ResolvedProjectConfigurationResult>(results.values()));
+        return new DefaultResolvedProjectConfigurationResults(results);
     }
 }

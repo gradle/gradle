@@ -29,7 +29,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -352,7 +352,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void resolveGraphIfRequired(InternalState requestedState) {
+    private void resolveGraphIfRequired(final InternalState requestedState) {
         if (state == InternalState.RESULTS_RESOLVED) {
             if (dependenciesModified) {
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
@@ -375,13 +375,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         // Mark all affected configurations as observed
         markAsObserved(requestedState);
-        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
-            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-            for (String targetConfigName : projectResult.getTargetConfigurations()) {
-                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(targetConfigName);
+        cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
+            @Override
+            public void execute(ResolvedProjectConfiguration projectResult) {
+                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
                 targetConfig.markAsObserved(requestedState);
             }
-        }
+        });
 
         markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
         dependenciesModified = false;
@@ -406,18 +407,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
 
         resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
-            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-            for (String targetConfigName : projectResult.getTargetConfigurations()) {
-                Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
-                // TODO:DAZ We should be accessing these from the ConfigurationMetaData in LazyResolveConfigurationArtifactSet
+        cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
+            @Override
+            public void execute(ResolvedProjectConfiguration projectResult) {
+                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+                Configuration targetConfig = project.getConfigurations().getByName(projectResult.getTargetConfiguration());
                 taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
                 taskDependency.add(targetConfig.getAllArtifacts());
             }
-        }
+        });
         taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
         return taskDependency;
     }

@@ -16,17 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-import java.util.Collection;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-public class DefaultResolvedProjectConfigurationResults implements ResolvedProjectConfigurationResults {
-    private final Collection<ResolvedProjectConfiguration> results;
+public class DefaultResolvedProjectConfiguration implements ResolvedProjectConfiguration {
+    private final ProjectComponentIdentifier id;
+    private final String targetConfiguration;
 
-    public DefaultResolvedProjectConfigurationResults(Collection<ResolvedProjectConfiguration> results) {
-        this.results = results;
+    public DefaultResolvedProjectConfiguration(ProjectComponentIdentifier id, String targetConfiguration) {
+        this.id = id;
+        this.targetConfiguration = targetConfiguration;
     }
 
     @Override
-    public Iterable<ResolvedProjectConfiguration> get() {
-        return results;
+    public ProjectComponentIdentifier getId() {
+        return id;
+    }
+
+    @Override
+    public String getTargetConfiguration() {
+        return targetConfiguration;
+    }
+
+    @Override
+    public String toString() {
+        return id + ":" + targetConfiguration;
     }
 }
