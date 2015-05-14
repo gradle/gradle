@@ -21,9 +21,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
+import org.gradle.internal.Namers;
 import org.gradle.internal.Specs;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 
 import java.util.Set;
@@ -105,11 +105,7 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
             elementType,
             domainObjectSet,
             instantiator,
-            new org.gradle.api.Namer<Object>() {
-                public String determineName(Object object) {
-                    return Cast.cast(Named.class, object).getName();
-                }
-            }
+            Namers.assumingNamed()
         );
     }
 }

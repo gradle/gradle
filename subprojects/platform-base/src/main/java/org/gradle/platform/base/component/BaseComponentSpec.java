@@ -17,8 +17,8 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.*;
+import org.gradle.internal.Namers;
 import org.gradle.internal.Specs;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -213,11 +213,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 elementType,
                 domainObjectSet,
                 instantiator,
-                new org.gradle.api.Namer<Object>() {
-                    public String determineName(Object object) {
-                        return Cast.cast(Named.class, object).getName();
-                    }
-                }
+                Namers.assumingNamed()
             );
         }
     }
