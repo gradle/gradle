@@ -16,8 +16,9 @@
 
 package org.gradle.launcher.exec
 
-import org.gradle.api.Action
 import org.gradle.initialization.*
+import org.gradle.internal.BiAction
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.util.Clock
 import spock.lang.Specification
@@ -30,8 +31,9 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
-    def waiter = Mock(Action)
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, waiter)
+    def waiter = Mock(BiAction)
+    def listenerManager = Mock(ListenerManager)
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, listenerManager, waiter)
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
@@ -75,7 +77,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then:
-        1 * waiter.execute(_)
+        1 * waiter.execute(_, _)
         0 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
@@ -90,7 +92,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
         executeBuild()
         then: "hides exceptions"
-        0 * waiter.wait()
+        1 * waiter.execute(_, _)
         underlyingExecuter.executedAllActions()
     }
 
@@ -106,7 +108,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         when:
         executeBuild()
         then:
-        3 * waiter.execute(_)
+        3 * waiter.execute(_, _)
         2 * clock.reset()
         underlyingExecuter.executedAllActions()
     }
@@ -114,22 +116,26 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     private void singleBuildMode() {
         actionParameters.continuousModeEnabled >> false
     }
+
     private void continuousMode() {
         actionParameters.continuousModeEnabled >> true
     }
+
     private void executeBuild() {
         executer.execute(action, requestContext, actionParameters)
     }
 
     private void succeeds() {}
+
     private void fails() {
         throw new RuntimeException("always fails")
     }
+
     private void cancelAfter(int times) {
-        def keepGoing = [ false ]
-        def thenCancel = [ true ]
+        def keepGoing = [false]
+        def thenCancel = [true]
         // cancellation request is checked twice per build
-        cancellationToken.cancellationRequested >>> (keepGoing*times*2) + thenCancel
+        cancellationToken.cancellationRequested >>> (keepGoing * times * 2) + thenCancel
     }
 
     private class UnderlyingExecuter implements BuildActionExecuter<BuildActionParameters> {

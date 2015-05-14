@@ -28,8 +28,6 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
-import org.gradle.api.internal.tasks.DefaultTaskFileSystemInputsAccumulator;
-import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.*;
@@ -91,11 +89,6 @@ public class GlobalScopeServices {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
-    }
-
-    // TODO: This is not right, it's currently at this too high level to allow access in ContinuousModeBuildActionExecuter
-    TaskFileSystemInputsAccumulator createTaskFileSystemInputsAccumulator() {
-        return new DefaultTaskFileSystemInputsAccumulator();
     }
 
     GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {

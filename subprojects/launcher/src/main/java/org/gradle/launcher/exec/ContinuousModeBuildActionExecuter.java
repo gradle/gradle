@@ -18,42 +18,45 @@ package org.gradle.launcher.exec;
 
 import com.google.common.util.concurrent.*;
 import org.gradle.api.Action;
+import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.tasks.TaskFileSystemInputsAccumulator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherListener;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.SingleMessageLogger;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final Logger logger;
-    private final Action<? super Runnable> waiter;
+    private final ListenerManager listenerManager;
+    private final BiAction<? super FileSystemSubset, ? super Runnable> waiter;
     private final AtomicBoolean cancellationRequestedCheck;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, final ServiceRegistry services) {
-        this(delegate, new Waiter(services));
+    private final Logger logger;
+    private final Action<? super Runnable> waiter;
+
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager) {
+        this(delegate, listenerManager, new Waiter(fileWatcherFactory));
     }
 
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, Action<? super Runnable> waiter) {
+    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {
         this.delegate = delegate;
+        this.listenerManager = listenerManager;
         this.waiter = waiter;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
         this.cancellationRequestedCheck = (waiter instanceof Waiter) ? ((Waiter)waiter).getCancellationRequested() : new AtomicBoolean(false);
@@ -77,14 +80,15 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 requestContext.getBuildTimeClock().reset();
             }
 
+            FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
             try {
-                lastResult = executeSingleBuild(action, requestContext, actionParameters);
+                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, fileSystemSubsetBuilder);
             } catch (Throwable t) {
                 // TODO: logged already, are there certain cases we want to escape from this loop?
             }
 
             if (buildNotStopped(requestContext)) {
-                waiter.execute(new Runnable() {
+                waiter.execute(fileSystemSubsetBuilder.build(), new Runnable() {
                     @Override
                     public void run() {
                         logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
@@ -95,6 +99,21 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
         logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
         return lastResult;
+    }
+
+    private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemSubset.Builder fileSystemSubsetBuilder) {
+        TaskInputsListener listener = new TaskInputsListener() {
+            @Override
+            public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
+                fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
+            }
+        };
+        listenerManager.addListener(listener);
+        try {
+            return executeSingleBuild(action, requestContext, actionParameters);
+        } finally {
+            listenerManager.removeListener(listener);
+        }
     }
 
     private Object executeSingleBuild(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
@@ -109,22 +128,15 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         return !requestContext.getCancellationToken().isCancellationRequested();
     }
 
-    private static class Waiter implements Action<Runnable> {
-        private final ServiceRegistry services;
-        private final ListeningExecutorService keyboardHandlerExecutor;
+    private static class Waiter implements BiAction<FileSystemSubset, Runnable> {
+        private final FileWatcherFactory fileWatcherFactory;
 
-        private final AtomicBoolean cancellationRequested = new AtomicBoolean(false);
-
-        public Waiter(ServiceRegistry services) {
-            this.services = services;
-            this.keyboardHandlerExecutor = MoreExecutors.listeningDecorator(services.get(ExecutorFactory.class).create("Continuous mode keyboard handler"));
+        public Waiter(FileWatcherFactory fileWatcherFactory) {
+            this.fileWatcherFactory = fileWatcherFactory;
         }
 
         @Override
-        public void execute(Runnable runnable) {
-            FileSystemSubset taskFileSystemInputs = services.get(TaskFileSystemInputsAccumulator.class).get();
-            FileWatcherFactory fileWatcherFactory = services.get(FileWatcherFactory.class);
-
+        public void execute(FileSystemSubset taskFileSystemInputs, Runnable notifier) {
             final CountDownLatch latch = new CountDownLatch(1);
             final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
 
@@ -147,7 +159,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
             );
 
             try {
-                runnable.run();
+                notifier.run();
             } catch (Exception e) {
                 watcher.stop();
                 throw UncheckedException.throwAsUncheckedException(e);
