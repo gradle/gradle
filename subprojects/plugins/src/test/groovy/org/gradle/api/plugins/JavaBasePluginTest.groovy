@@ -28,6 +28,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -56,6 +57,8 @@ class JavaBasePluginTest extends Specification {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
+        new TestFile(project.file("src/custom/java/File.java")) << "foo"
+        new TestFile(project.file("src/custom/resouces/resource.txt")) << "foo"
 
         then:
         SourceSet set = project.sourceSets.custom
@@ -69,7 +72,7 @@ class JavaBasePluginTest extends Specification {
         TaskDependencyMatchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
         def resources = processResources.source
-        resources sameCollection(project.sourceSets.custom.resources)
+        resources.files == project.sourceSets.custom.resources.files
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.description == "Compiles Java source 'custom:java'."
@@ -79,7 +82,7 @@ class JavaBasePluginTest extends Specification {
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
 
         def sources = compileJava.source
-        sources sameCollection(project.sourceSets.custom.java)
+        sources.files == project.sourceSets.custom.java.files
 
         def classes = project.tasks['customClasses']
         classes.description == "Assembles classes 'custom'."
