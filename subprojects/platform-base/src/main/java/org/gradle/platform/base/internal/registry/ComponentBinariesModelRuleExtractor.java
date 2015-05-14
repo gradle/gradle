@@ -27,7 +27,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -168,11 +167,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
 
         @Override
         public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-            ModelPath childPath = modelNode.getPath().child(name);
-            ModelReference<S> childReference = ModelReference.of(childPath, type);
-            ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
-            modelNode.applyToLink(ModelActionRole.Defaults, ActionBackedModelAction.of(childReference, descriptor, configAction));
-            container.create(name, type);
+            configAction.execute(container.create(name, type));
         }
     }
 }
