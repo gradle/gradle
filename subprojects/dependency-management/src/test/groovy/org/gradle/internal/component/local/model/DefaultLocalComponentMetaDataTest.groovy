@@ -43,12 +43,12 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         def conf = resolveMetaData.getConfiguration('conf')
         conf != null
-        conf.public
+        conf.visible
         conf.transitive
 
         def superConf = resolveMetaData.getConfiguration('super')
         superConf != null
-        !superConf.public
+        !superConf.visible
         !superConf.transitive
 
         and:

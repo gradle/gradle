@@ -234,7 +234,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
                 return descriptor.isTransitive();
             }
 
-            public boolean isPublic() {
+            public boolean isVisible() {
                 return descriptor.getVisibility() == Configuration.Visibility.PUBLIC;
             }
 

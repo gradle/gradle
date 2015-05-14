@@ -62,7 +62,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
             }
             if (candidate.equals("*")) {
                 for (String configName : targetModule.getConfigurationNames()) {
-                    if (targetModule.getConfiguration(configName).isPublic()) {
+                    if (targetModule.getConfiguration(configName).isVisible()) {
                         targetConfigs.add(configName);
                     }
                 }
