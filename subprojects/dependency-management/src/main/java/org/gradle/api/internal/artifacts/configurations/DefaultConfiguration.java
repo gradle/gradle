@@ -33,7 +33,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -405,18 +407,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(allDependencies.getBuildDependencies());
 
         resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
         for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
             ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
             for (String targetConfigName : projectResult.getTargetConfigurations()) {
                 Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
-                taskDependency.add(targetConfig.getAllDependencies());
+                // TODO:DAZ We should be accessing these from the ConfigurationMetaData in LazyResolveConfigurationArtifactSet
+                taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
                 taskDependency.add(targetConfig.getAllArtifacts());
             }
         }
-
+        taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
         return taskDependency;
     }
 
@@ -641,6 +643,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         if (type == MutationType.ARTIFACTS) {
             artifactsModified = true;
+        }
+    }
+
+    private static class SelfResolvingDependenciesWithoutProjectDependencies extends AbstractTaskDependency {
+        private final DependencySet dependencies;
+
+        private SelfResolvingDependenciesWithoutProjectDependencies(DependencySet dependencies) {
+            this.dependencies = dependencies;
+        }
+
+        public void resolve(TaskDependencyResolveContext context) {
+            for (SelfResolvingDependency dependency : dependencies.withType(SelfResolvingDependency.class)) {
+                if (!(dependency instanceof ProjectDependency)) {
+                    context.add(dependency);
+                }
+            }
         }
     }
 
