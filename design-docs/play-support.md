@@ -671,6 +671,7 @@ For a conventional `apply plugin: 'java'` project:
 1. ~~Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)~~
 1. ~~When main source fails to compile, changes to test source does not trigger build~~
 1. ~~Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)~~
+1. ~~Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)~~
 
 ##### Verifying constraints
 
@@ -691,7 +692,6 @@ For a conventional `apply plugin: 'java'` project:
 1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
 1. Changes to input zips are respected
 1. Changes to input tars are respected (compressed and uncompressed)
-1. Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)
 
 ### Story: Continuous build is executed via the Tooling API
 

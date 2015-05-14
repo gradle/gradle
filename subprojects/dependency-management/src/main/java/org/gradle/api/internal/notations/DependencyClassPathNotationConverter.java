@@ -17,10 +17,10 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
@@ -72,7 +72,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
             Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
-            FileCollection files = fileResolver.resolveFiles(classpath);
+            FileCollectionInternal files = fileResolver.resolveFiles(classpath);
             dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
             internCache.put(notation, dependency);
         }

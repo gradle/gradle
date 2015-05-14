@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator.Mutati
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
@@ -204,8 +205,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
-                        "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
-                        configuration, configuration.getHierarchy()));
+                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
+                    configuration, configuration.getHierarchy()));
             }
             if (this.extendsFrom.add(configuration)) {
                 inheritedArtifacts.addCollection(configuration.getAllArtifacts());
@@ -496,7 +497,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -684,6 +685,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 return resolvedConfiguration.getFiles(dependencySpec);
             }
         }
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (Dependency dependency : allDependencies) {
+            if (dependency instanceof FileCollectionDependency) {
+                ((FileCollectionDependency) dependency).registerWatchPoints(builder);
+            }
+        }
+        super.registerWatchPoints(builder);
     }
 
     /**

@@ -15,11 +15,11 @@
  */
 
 package org.gradle.launcher.continuous
+
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -209,7 +209,6 @@ public class PersonTest {
         executedAndNotSkipped ":compileJava"
     }
 
-    @Ignore("dependency file collection is turned into collection of files vs directory")
     def "multiple dependencies as inputs from local filesystem"() {
         when:
         def libDir = file('libs').createDir()
