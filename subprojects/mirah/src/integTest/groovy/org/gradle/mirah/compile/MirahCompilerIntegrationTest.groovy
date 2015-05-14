@@ -32,7 +32,7 @@ compileMirah.mirahCompileOptions.with {
     }
 
     String logStatement() {
-        "Compiling with Zinc Mirah compiler"
+        "Compiling with Mirah compiler"
     }
 
     def compilesMirahCodeIncrementally() {

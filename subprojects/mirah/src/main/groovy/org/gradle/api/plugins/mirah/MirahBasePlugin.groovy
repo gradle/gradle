@@ -29,7 +29,7 @@ import org.gradle.api.tasks.mirah.MirahCompile
 import javax.inject.Inject
 
 class MirahBasePlugin implements Plugin<Project> {
-    static final String ZINC_CONFIGURATION_NAME = "zinc"
+    static final String MIRAHC_CONFIGURATION_NAME = "mirahc"
 
     static final String MIRAH_RUNTIME_EXTENSION_NAME = "mirahRuntime"
 
@@ -55,9 +55,9 @@ class MirahBasePlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(Project project) {
-        project.configurations.create(ZINC_CONFIGURATION_NAME)
+        project.configurations.create(MIRAHC_CONFIGURATION_NAME)
                 .setVisible(false)
-                .setDescription("The Zinc incremental compiler to be used for this Mirah project.")
+                .setDescription("The mirahc compiler to be used for this Mirah project.")
     }
 
     private void configureMirahRuntimeExtension() {

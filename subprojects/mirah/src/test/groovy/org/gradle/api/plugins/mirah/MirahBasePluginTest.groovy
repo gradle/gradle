@@ -45,8 +45,8 @@ public class MirahBasePluginTest {
     }
 
     @Test
-    void addsZincConfigurationToTheProject() {
-        def configuration = project.configurations.getByName(MirahBasePlugin.ZINC_CONFIGURATION_NAME)
+    void addsMirahcConfigurationToTheProject() {
+        def configuration = project.configurations.getByName(MirahBasePlugin.MIRAHC_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)

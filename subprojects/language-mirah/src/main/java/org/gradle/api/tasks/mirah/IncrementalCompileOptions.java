@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.Serializable;
 
 /**
- * Options for incremental compilation of Mirah code. Only used for compilation with Zinc.
+ * Options for incremental compilation of Mirah code.
  */
 @Incubating
 public class IncrementalCompileOptions implements Serializable {

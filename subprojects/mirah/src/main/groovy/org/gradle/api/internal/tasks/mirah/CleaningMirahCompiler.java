@@ -22,7 +22,7 @@ import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 /**
- * Cleaning compiler for mirah. Not required for compiling with Zinc.
+ * Cleaning compiler for mirah.
  */
 public class CleaningMirahCompiler extends CleaningJavaCompilerSupport<MirahCompileSpec> {
     private final Compiler<MirahCompileSpec> compiler;

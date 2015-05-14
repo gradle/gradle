@@ -24,9 +24,8 @@ public class MirahCompileOptions extends BaseMirahCompileOptions {
     private boolean fork;
 
     /**
-     * Whether to run the Mirah compiler in a separate process. Defaults to {@code false}
-     * for the Ant based compiler ({@code useAnt = true}), and to {@code true} for the Zinc
-     * based compiler ({@code useAnt = false}).
+     * Whether to run the Mirah compiler in a separate process. Defaults to {@code true}.
+     * ({@code useAnt = false}).
      */
     public boolean isFork() {
         return fork;

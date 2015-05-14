@@ -41,11 +41,11 @@ public class MirahCompiler implements Compiler<MirahCompileSpec>, Serializable {
         return Compiler.execute(mirahClasspath, spec);
     }
 
-    // need to defer loading of Zinc/sbt/Mirah classes until we are
+    // need to defer loading of Mirah classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
         static WorkResult execute(Iterable<File> mirahClasspath, MirahCompileSpec spec) {
-            LOGGER.info("Compiling with Zinc Mirah compiler.");
+            LOGGER.info("Compiling with Mirah compiler.");
             java.util.logging.Logger.getLogger("org.mirah").setLevel(java.util.logging.Level.OFF); // Logging is disabled by default.
 
             org.mirah.tool.Mirahc compiler = new Mirahc();
