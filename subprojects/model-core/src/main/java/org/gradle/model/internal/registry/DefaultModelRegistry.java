@@ -649,6 +649,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public int getLinkCount() {
+            return 0;
+        }
+
+        @Override
         public boolean hasLink(String name, ModelType<?> type) {
             return false;
         }

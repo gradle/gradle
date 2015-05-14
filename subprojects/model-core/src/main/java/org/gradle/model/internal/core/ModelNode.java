@@ -75,4 +75,9 @@ public interface ModelNode {
      * Should this node be hidden from the model report.
      */
     boolean isHidden();
+
+    /**
+     * The number of link this node has.
+     */
+    int getLinkCount();
 }

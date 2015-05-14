@@ -19,6 +19,8 @@ package org.gradle.api.reporting.model;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.reporting.model.internal.BasicStringNodeDescriptor;
+import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.ModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
@@ -49,7 +51,8 @@ public class ModelReport extends DefaultTask {
         Project project = getProject();
 
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelReportRenderer renderer = new ModelReportRenderer();
+        ModelNodeRenderer modelNodeRenderer = new ModelNodeRenderer(new BasicStringNodeDescriptor());
+        ModelReportRenderer renderer = new ModelReportRenderer(modelNodeRenderer);
         renderer.setOutput(textOutput);
 
         renderer.startProject(project);

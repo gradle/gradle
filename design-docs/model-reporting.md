@@ -10,13 +10,10 @@ This spec defines some work to add some basic reporting on the configuration mod
 Change the `model` report to show some display value for model elements with no children, eg the result of
 `toString()` on its value.
 
-- Tasks, source sets, etc
-- Simple values on `@Managed` types
-
-## Notes
-
-- `ModelReport` is the task that renders the report
-- `ModelNode` represents a model element
+## Test Coverage
+- empty project
+- polyglot project
+- simple project with `@Managed` objects with primitive data types.
 
 # Story: Model report shows type information for model elements
 

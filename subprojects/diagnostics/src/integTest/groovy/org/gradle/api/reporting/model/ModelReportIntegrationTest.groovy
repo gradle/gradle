@@ -54,4 +54,44 @@ model {
         output.contains("components")
         output.contains("tasks")
     }
+
+    def "displays basic of a simple model graph with values"() {
+        given:
+        buildFile << """
+
+@Managed
+public interface PasswordCredentials {
+    String getUsername()
+    String getPassword()
+    void setUsername(String s)
+    void setPassword(String s)
+}
+
+
+@Managed
+public interface Numbers {
+    Integer getValue()
+    void setValue(Integer i)
+}
+
+model {
+    primaryCredentials(PasswordCredentials){
+        username = 'uname'
+        password = 'hunter2'
+    }
+
+    numbers(Numbers){
+        value = 5
+    }
+}
+"""
+
+        when:
+        run "model"
+
+        then:
+        output.contains("value = 5")
+        output.contains("password = hunter2")
+        output.contains("username = uname")
+    }
 }

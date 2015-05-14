@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,10 @@
 
 package org.gradle.api.reporting.model.internal;
 
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import com.google.common.base.Optional;
 import org.gradle.model.internal.core.ModelNode;
 
-public class ModelReportRenderer extends TextReportRenderer {
-    private final ModelNodeRenderer modelNodeRenderer;
-
-    public ModelReportRenderer(ModelNodeRenderer modelNodeRenderer) {
-        this.modelNodeRenderer = modelNodeRenderer;
-    }
-
-    public void render(ModelNode node) {
-        modelNodeRenderer.render(node, getBuilder());
-    }
+public interface ModelNodeDescriptor {
+    String label(ModelNode modelNode);
+    Optional<String> value(ModelNode modelNode);
 }
