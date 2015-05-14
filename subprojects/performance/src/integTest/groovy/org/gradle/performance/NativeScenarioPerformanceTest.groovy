@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildExperimentSpec
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -73,5 +74,32 @@ class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
         "full"   | "small"  | ["clean", "assemble"]
         "full"   | "medium" | ["clean", "assemble"]
         "full"   | "big"    | ["clean", "assemble"]
+    }
+
+    // TODO: Remove
+    @Ignore
+    def "problem" () {
+        when:
+        runner.testGroup = "Native build comparison"
+        runner.testId = "$size native comparison $scenario build"
+        runner.baseline {
+            projectName("${size}ScenarioNative").displayName("with daemon (reuse)").invocation {
+                invocationCount = 1
+                tasksToRun(*tasks).useDaemon().enableModelReuse()
+            }
+        }
+        runner.buildSpec {
+            projectName("${size}ScenarioNative").displayName("with tooling api (reuse)").invocation {
+                invocationCount = 1
+                tasksToRun(*tasks).useToolingApi().enableModelReuse()
+            }
+        }
+
+        then:
+        runner.run()
+
+        where:
+        scenario | size     | tasks
+        "full"   | "small"  | ["clean", "assemble"]
     }
 }
