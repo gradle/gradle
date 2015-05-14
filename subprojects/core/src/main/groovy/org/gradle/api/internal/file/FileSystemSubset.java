@@ -76,7 +76,7 @@ public class FileSystemSubset {
         }
 
         for (DirectoryTree tree : trees) {
-            if (DirectoryTrees.contains(FileSystems.getDefault(), tree, absoluteFile)) {
+            if (tree.getDir().getAbsoluteFile().equals(absoluteFile) || DirectoryTrees.contains(FileSystems.getDefault(), tree, absoluteFile)) {
                 return true;
             }
         }
