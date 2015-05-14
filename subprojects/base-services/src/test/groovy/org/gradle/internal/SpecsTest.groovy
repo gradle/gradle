@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.specs;
+package org.gradle.internal
 
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Spec
+import org.gradle.internal.Specs
+import spock.lang.Specification
 
-public class Specs {
-    public static <T> Spec<T> isInstance(final Class<?> type) {
-        return new Spec<T>() {
-            public boolean isSatisfiedBy(T element) {
-                return type.isInstance(element);
-            }
-        };
+class SpecsTest extends Specification {
+
+    static class A {}
+    static class B extends A {}
+    static class C extends B {}
+
+    def "isInstance spec is satisfied for all instances extending from the specified type"() {
+        when:
+        Spec<Object> spec = Specs.isInstance(B)
+
+        then:
+        !spec.isSatisfiedBy(new Object())
+        !spec.isSatisfiedBy(new A())
+        spec.isSatisfiedBy(new B())
+        spec.isSatisfiedBy(new C())
     }
 }

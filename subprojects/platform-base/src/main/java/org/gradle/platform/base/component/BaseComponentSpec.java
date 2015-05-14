@@ -17,7 +17,7 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.specs.Specs;
+import org.gradle.internal.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;

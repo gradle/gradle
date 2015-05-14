@@ -21,7 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.*;
-import org.gradle.api.internal.specs.Specs;
+import org.gradle.internal.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
