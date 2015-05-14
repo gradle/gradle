@@ -179,4 +179,35 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         failureDescriptionContains("Could not determine the dependencies of task ':a'.")
     }
 
+    def "ignores non source when source is empty"() {
+        when:
+        buildScript """
+            task build {
+              inputs.source fileTree("source")
+              inputs.files fileTree("ancillary")
+              doLast {}
+            }
+        """
+
+        then:
+        succeeds("build")
+
+        when:
+        file("ancillary/test.txt") << "foo"
+
+        then:
+        noBuildTriggered()
+
+        when:
+        file("source/test.txt") << "foo"
+
+        then:
+        succeeds()
+
+        when:
+        file("ancillary/test.txt") << "-bar"
+
+        then:
+        succeeds()
+    }
 }

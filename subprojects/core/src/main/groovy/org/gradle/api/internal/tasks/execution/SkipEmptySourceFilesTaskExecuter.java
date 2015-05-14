@@ -44,6 +44,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
             LOGGER.info("Skipping {} as it has no source files.", task);
             state.upToDate();
+            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return;
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles()));
