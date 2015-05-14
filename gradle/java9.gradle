@@ -15,7 +15,8 @@ model {
                 jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
             }
             executable = "${System.getenv(jdkVarName)}/bin/java"
-            include '**/*CommandLineJavaCompilerIntegrationTest*'
+            include '**/*CompilerIntegrationTest*'
+            excludes = ['**/*InProcessGroovyCompilerIntegrationTest*', '**/*InProcessJavaCompilerIntegrationTest*']
             reports.junitXml.destination = file("${project.testResultsDir}/$name")
             reports.html.destination = file("${project.reporting.baseDir}/$name")
         }
