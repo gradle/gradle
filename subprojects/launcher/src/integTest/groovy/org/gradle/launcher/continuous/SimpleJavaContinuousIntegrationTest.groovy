@@ -230,18 +230,15 @@ public class PersonTest {
         executedAndNotSkipped ":compileJava"
     }
 
-    @Ignore("We skip execution of tasks with no sources")
     def "creation of initial source file triggers build"() {
-        when:
-        // NOTE: We do not watch directories that do not exist
-        sourceDir.createDir()
-        assert sourceDir.exists()
-        then:
+        expect:
         succeeds("build")
         ":compileJava" in skippedTasks
         ":build" in executedTasks
+
         when:
         app.writeSources(sourceDir)
+
         then:
         succeeds()
         executedAndNotSkipped ":compileJava", ":jar", ":build"
