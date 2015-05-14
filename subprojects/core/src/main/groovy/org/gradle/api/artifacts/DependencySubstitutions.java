@@ -19,7 +19,6 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -46,7 +45,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface DependencySubstitutions {
     /**
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution<ComponentSelector>}
+     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      *
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
@@ -55,11 +54,11 @@ public interface DependencySubstitutions {
      * @since 2.4
      */
     // TODO:PREZI Perhaps we should call this eachDependency(), as we do it for example in ResolutionRules?
-    DependencySubstitutions all(Action<? super DependencySubstitution<? super ComponentSelector>> rule);
+    DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution<ComponentSelector>}
+     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      *
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}

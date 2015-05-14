@@ -16,11 +16,9 @@
 
 package org.gradle.launcher.daemon
 
-class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 
-    def setup() {
-        executer.requireIsolatedDaemons()
-    }
+class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
 
     def "health information is present in build log"() {
         file("gradle.properties") << "org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true"

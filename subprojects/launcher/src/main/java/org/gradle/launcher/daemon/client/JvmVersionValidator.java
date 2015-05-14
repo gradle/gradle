@@ -23,13 +23,29 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmVersionValidator {
+    private final Map<File, JavaVersion> cachedResults = new HashMap<File, JavaVersion>();
+
     void validate(DaemonParameters parameters) {
         if (parameters.getEffectiveJavaHome().equals(Jvm.current().getJavaHome())) {
             return;
+        }
+
+        JavaVersion javaVersion = getJavaVersion(parameters);
+        if (!javaVersion.isJava6Compatible()) {
+            throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
+        }
+    }
+
+    private JavaVersion getJavaVersion(DaemonParameters parameters) {
+        JavaVersion version = cachedResults.get(parameters.getEffectiveJavaExecutable());
+        if (version != null) {
+            return version;
         }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -41,10 +57,9 @@ public class JvmVersionValidator {
         builder.setErrorOutput(outputStream);
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        JavaVersion javaVersion = parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
-        if (!javaVersion.isJava6Compatible()) {
-            throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
-        }
+        version = parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+        cachedResults.put(parameters.getEffectiveJavaExecutable(), version);
+        return version;
     }
 
     static JavaVersion parseJavaVersionCommandOutput(BufferedReader reader) {

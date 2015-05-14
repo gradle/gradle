@@ -56,7 +56,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         mainSourceSet.add(lss2)
 
         then:
-        library.getSource() as List == [lss1, lss2]
+        library.getSource().values() as List == [lss1, lss2]
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {

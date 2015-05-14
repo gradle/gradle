@@ -32,7 +32,10 @@ class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
     }
 
     @Override
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgss) {
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Assembler compiler.");
+        }
         // ml/ml64 have position sensitive arguments,
         // e.g., /Fo must appear before /c and /c must appear before the source file.
 

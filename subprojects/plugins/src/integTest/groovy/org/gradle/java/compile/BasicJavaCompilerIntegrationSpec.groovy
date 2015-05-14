@@ -148,7 +148,6 @@ public class FxApp extends Application {
     def buildScript() {
         '''
 apply plugin: "java"
-
 repositories {
     mavenCentral()
 }

@@ -23,10 +23,7 @@ import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
+import org.gradle.launcher.cli.converter.*
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -49,12 +46,13 @@ class BuildActionsFactoryTest extends Specification {
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
     PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
-
-    BuildActionsFactory factory = new BuildActionsFactory(
-            loggingServices, new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
+    ParametersConverter parametersConverter = new ParametersConverter(
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            propertiesToDaemonParametersConverter)
+            new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
+            propertiesToDaemonParametersConverter, Stub(ContinuousModeCommandLineConverter))
+
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter)
 
     def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)

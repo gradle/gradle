@@ -23,14 +23,25 @@ import org.gradle.logging.StyledTextOutput;
 public class LinePrefixingStyledTextOutput extends AbstractLineChoppingStyledTextOutput {
     private final StyledTextOutput output;
     private final CharSequence prefix;
+    private boolean prefixFirstLine;
+    private boolean prefixed;
 
     public LinePrefixingStyledTextOutput(StyledTextOutput output, CharSequence prefix) {
+       this(output, prefix, true);
+    }
+
+    public LinePrefixingStyledTextOutput(StyledTextOutput output, CharSequence prefix, boolean prefixFirstLine) {
         this.output = output;
         this.prefix = prefix;
+        this.prefixFirstLine = prefixFirstLine;
     }
 
     @Override
     protected void doLineText(CharSequence text, boolean terminatesLine) {
+        if (!prefixed && prefixFirstLine) {
+            output.text(prefix);
+            prefixed = true;
+        }
         output.text(text);
     }
 

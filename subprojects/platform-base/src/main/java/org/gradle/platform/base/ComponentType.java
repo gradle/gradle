@@ -31,9 +31,6 @@ import java.lang.annotation.Target;
  * Furthermore the plugin creates an instance of SampleComponent named 'sampleComponent'.
  *
  * <pre autoTested='true'>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface SampleComponent extends ComponentSpec {}
  * class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
  *
@@ -46,7 +43,7 @@ import java.lang.annotation.Target;
  *     }
  *
  *     {@literal @}Mutate
- *     void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+ *     void createSampleLibraryComponents(ModelMap<SampleComponent> componentSpecs) {
  *         componentSpecs.create("sampleComponent")
  *     }
  * }

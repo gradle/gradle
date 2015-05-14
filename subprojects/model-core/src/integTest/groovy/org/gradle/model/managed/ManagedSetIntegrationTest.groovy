@@ -29,9 +29,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -92,9 +89,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule can create a managed collection of abstract class backed managed model elements"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
               abstract String getName()
@@ -133,9 +127,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "managed model type has property of collection of managed types"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -186,9 +177,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "managed model type can reference a collection of managed types"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -247,9 +235,6 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
     def "rule method can apply defaults to a managed set"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -303,9 +288,6 @@ finalize
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
               Person() {
@@ -378,9 +360,6 @@ configure p3
     def "reports failure that occurs in collection item initializer"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
               String getName()
@@ -396,7 +375,7 @@ configure p3
               }
 
               @Mutate
-              void tasks(CollectionBuilder<Task> tasks, ManagedSet<Person> people) { }
+              void tasks(ModelMap<Task> tasks, ManagedSet<Person> people) { }
             }
 
             apply type: Rules
@@ -414,9 +393,6 @@ configure p3
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -428,7 +404,7 @@ configure p3
                 }
 
                 @Mutate
-                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
                 }
             }
 
@@ -446,9 +422,6 @@ configure p3
     def "read methods of ManagedSet throw exceptions when used in a mutation rule"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -464,7 +437,7 @@ configure p3
                 }
 
                 @Mutate
-                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
                 }
             }
 
@@ -482,9 +455,6 @@ configure p3
     def "mutating a managed set that is an input of a rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -494,7 +464,7 @@ configure p3
                 void people(ManagedSet<Person> people) {}
 
                 @Mutate
-                void tryToMutateInputManagedSet(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateInputManagedSet(ModelMap<Task> tasks, ManagedSet<Person> people) {
                     people.create {}
                 }
             }
@@ -507,15 +477,12 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }
@@ -531,7 +498,7 @@ configure p3
                 }
 
                 @Mutate
-                void tryToMutateManagedSetOutsideOfCreationRule(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateManagedSetOutsideOfCreationRule(ModelMap<Task> tasks, ManagedSet<Person> people) {
                     Holder.people.create {}
                 }
             }
@@ -550,9 +517,6 @@ configure p3
     def "mutating managed set which is an input of a DSL rule is not allowed"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
             }

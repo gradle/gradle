@@ -15,17 +15,15 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-
 import spock.lang.Specification
 
 class LazilyInitializedFileCollectionTest extends Specification {
     def createCount = 0
     def fileCollection = new LazilyInitializedFileCollection() {
         @Override
-        FileCollection createDelegate() {
+        FileCollectionInternal createDelegate() {
             createCount++
             new SimpleFileCollection([new File("foo")])
         }

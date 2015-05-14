@@ -215,6 +215,6 @@ public class TaskDetailPrinter {
     }
 
     private LinePrefixingStyledTextOutput createIndentedOutput(StyledTextOutput output, String prefix) {
-        return new LinePrefixingStyledTextOutput(output, prefix);
+        return new LinePrefixingStyledTextOutput(output, prefix, false);
     }
 }

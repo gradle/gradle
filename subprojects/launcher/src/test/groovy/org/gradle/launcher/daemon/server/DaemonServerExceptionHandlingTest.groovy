@@ -31,8 +31,8 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
+import org.gradle.launcher.exec.BuildExecuter
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -48,7 +48,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED)
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter
@@ -80,7 +80,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(get(InProcessBuildActionExecuter),
+                return new DefaultDaemonCommandExecuter(get(BuildExecuter),
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {

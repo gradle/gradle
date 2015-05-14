@@ -35,8 +35,6 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         buildScript """
-            import org.gradle.model.collection.*
-
             @Managed
             interface Item {
                 String getValue()
@@ -67,7 +65,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 void a(A a) { }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("$normalisedPath") Item item) {
+                void addTask(ModelMap<Task> tasks, @Path("$normalisedPath") Item item) {
                     tasks.create("printValue") {
                         it.doLast {
                             println "value: " + item.value

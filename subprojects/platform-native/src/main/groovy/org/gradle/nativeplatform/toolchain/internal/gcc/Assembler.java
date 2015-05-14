@@ -22,10 +22,20 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
+import java.util.List;
+
 class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
 
     Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
         super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), Transformers.<AssembleSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    }
+
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for an Assembler compiler.");
+        }
+        return super.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs);
     }
 
     private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {

@@ -18,7 +18,9 @@ package org.gradle.api.tasks;
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.util.Collections;
@@ -77,7 +79,7 @@ public class MirahRuntime {
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
-            public FileCollection createDelegate() {
+            public FileCollectionInternal createDelegate() {
                 File mirahLibraryJar = findMirahJar(classpath, null);
                 if (mirahLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Mirah class path because no Mirah library Jar was found. "
@@ -89,8 +91,8 @@ public class MirahRuntime {
                     throw new AssertionError(String.format("Unexpectedly failed to parse version of Mirah Jar file: %s in %s", mirahLibraryJar, project));
                 }
 
-                return project.getConfigurations().detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.mirah", "mirah", mirahVersion));
+                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(
+                        new DefaultExternalModuleDependency("org.mirah", "mirah", mirahVersion)));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

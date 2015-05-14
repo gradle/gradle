@@ -146,12 +146,14 @@ assert classesDir.directory
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "java home from gradle properties should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
-        file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
-
+        file('gradle.properties') << """
+org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
+org.gradle.jvmargs=-XX:+IgnoreUnrecognizedVMOptions
+"""
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:

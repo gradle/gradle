@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.util.DisconnectableInputStream;
 
@@ -43,7 +43,7 @@ public class StreamsForwarder implements StreamsHandler {
         this.readErrorStream = readErrorStream;
     }
 
-    public void connectStreams(Process process, String processName) {
+    public void connectStreams(Process process, String processName, ExecutorFactory executorFactory) {
         /*
             There's a potential problem here in that DisconnectableInputStream reads from input in the background.
             This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
@@ -58,7 +58,7 @@ public class StreamsForwarder implements StreamsHandler {
         standardInputRunner = new ExecOutputHandleRunner("write standard input into: " + processName,
                 instr, process.getOutputStream());
 
-        this.executor = new DefaultExecutorFactory().create(String.format("Forward streams with process: %s", processName));
+        this.executor = executorFactory.create(String.format("Forward streams with process: %s", processName));
     }
 
     public void start() {

@@ -15,13 +15,11 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
-
-import java.util.Set;
 
 /**
  * The meta-data for a module version that is required during dependency resolution.
@@ -31,10 +29,13 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
 
     ModuleComponentResolveMetaData withSource(ModuleSource source);
 
-    Set<ModuleComponentArtifactMetaData> getArtifacts();
-
-    ModuleComponentArtifactMetaData artifact(Artifact artifact);
-
     ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 
+    /**
+     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     *
+     * <p>You should avoid using this method.
+     */
+    ModuleDescriptor getDescriptor();
 }

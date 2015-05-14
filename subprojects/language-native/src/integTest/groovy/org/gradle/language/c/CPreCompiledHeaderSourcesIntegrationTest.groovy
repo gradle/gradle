@@ -16,13 +16,13 @@
 
 package org.gradle.language.c
 
-import org.gradle.nativeplatform.fixtures.app.CPCHHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 
 class CPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
-    PCHHelloWorldApp getApp() {
-        return new CPCHHelloWorldApp()
+    IncrementalHelloWorldApp getApp() {
+        return new CHelloWorldApp()
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect
 
 import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.*
-import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
@@ -462,20 +461,20 @@ ${ManagedWithNonManageableParents.name}
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
-    static class HasRuleWithUncheckedCollectionBuilder extends RuleSource {
+    static class HasRuleWithUncheckedModelMap extends RuleSource {
         @Model
-        static ModelThing modelPath(CollectionBuilder foo) {
+        static ModelThing modelPath(ModelMap foo) {
             new ModelThing("foo")
         }
     }
 
-    def "error when trying to use collection builder without specifying type param"() {
+    def "error when trying to use model map without specifying type param"() {
         when:
-        registerRules(HasRuleWithUncheckedCollectionBuilder)
+        registerRules(HasRuleWithUncheckedModelMap)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "$HasRuleWithUncheckedCollectionBuilder.name#modelPath(org.gradle.model.collection.CollectionBuilder) is not a valid model rule method: raw type org.gradle.model.collection.CollectionBuilder used for parameter 1 (all type parameters must be specified of parameterized type)"
+        e.message == "$HasRuleWithUncheckedModelMap.name#modelPath(org.gradle.model.ModelMap) is not a valid model rule method: raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"
     }
 
     def "extracted rules are cached"() {

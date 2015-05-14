@@ -62,7 +62,38 @@ repositories{
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
 
-    def "runs compiler multiple times"(){
+    def "recompiles on changed routes file input"() {
+        given:
+        TestFile templateFile = withRoutesTemplate()
+        succeeds("routesCompileRoutesSourcesPlayBinary")
+
+        and:
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        def routesFirstCompileSnapshot = file(destinationDirPath, "controllers/routes.java").snapshot();
+        def revRoutingFirstCompileSnapshot = file(destinationDirPath, "routes_reverseRouting.scala").snapshot();
+        def routingFirstCompileSnapshot = file(destinationDirPath, "routes_routing.scala").snapshot();
+
+        when:
+        templateFile << "\n\n"
+        and:
+        succeeds "routesCompileRoutesSourcesPlayBinary"
+
+        then:
+        executedAndNotSkipped ":routesCompileRoutesSourcesPlayBinary"
+
+        and:
+        file(destinationDirPath, "controllers/routes.java").assertHasChangedSince(routesFirstCompileSnapshot)
+        file(destinationDirPath, "routes_reverseRouting.scala").assertHasChangedSince(revRoutingFirstCompileSnapshot);
+        file(destinationDirPath, "routes_routing.scala").assertHasChangedSince(routingFirstCompileSnapshot);
+
+        when:
+        succeeds "routesCompileRoutesSourcesPlayBinary"
+
+        then:
+        skipped ":routesCompileRoutesSourcesPlayBinary"
+    }
+
+    def "compiles additional routes file and cleans up output on removal"(){
         when:
         withRoutesTemplate()
         then:
@@ -70,6 +101,7 @@ repositories{
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
 
+        when:
         withRoutesTemplate("foo")
         and:
         succeeds("routesCompileRoutesSourcesPlayBinary")
@@ -83,28 +115,6 @@ repositories{
         succeeds("routesCompileRoutesSourcesPlayBinary")
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-    }
-
-    def "removes stale output files in incremental compile"(){
-        given:
-        TestFile templateFile = withRoutesTemplate()
-        succeeds("routesCompileRoutesSourcesPlayBinary")
-
-        and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        def routesFirstCompileSnapshot = file(destinationDirPath, "controllers/routes.java").snapshot();
-        def revRoutingFirstCompileSnapshot = file(destinationDirPath, "routes_reverseRouting.scala").snapshot();
-        def routingFirstCompileSnapshot = file(destinationDirPath, "routes_routing.scala").snapshot();
-
-        when:
-        templateFile.delete()
-
-        then:
-        succeeds("routesCompileRoutesSourcesPlayBinary")
-        and:
-        file(destinationDirPath, "controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot);
-        file(destinationDirPath, "routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot);
-        file(destinationDirPath, "routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot);
     }
 
     def "compiles multiple Routes source sets as part of play application build" () {
@@ -146,23 +156,23 @@ Play Application 'play'
 -----------------------
 
 Source sets
-    Routes source 'play:extraRoutes'
-        extraRoutes
     Java source 'play:java'
-        app
+        srcDir: app
         includes: **/*.java
-    Routes source 'play:otherRoutes'
-        otherRoutes
     JVM resources 'play:resources'
-        conf
+        srcDir: conf
+    Routes source 'play:extraRoutes'
+        srcDir: extraRoutes
+    Routes source 'play:otherRoutes'
+        srcDir: otherRoutes
     Routes source 'play:routesSources'
-        conf
+        srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
-        app
+        srcDir: app
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
-        app
+        srcDir: app
         includes: **/*.html
 
 Binaries

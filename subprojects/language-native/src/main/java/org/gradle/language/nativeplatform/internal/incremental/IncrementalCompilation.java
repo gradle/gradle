@@ -15,18 +15,13 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
-
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 public interface IncrementalCompilation {
     List<File> getRecompile();
 
     List<File> getRemoved();
-
-    Map<File, SourceIncludes> getSourceFileIncludes();
 
     CompilationState getFinalState();
 }

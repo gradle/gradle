@@ -25,7 +25,8 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.api.specs.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -42,11 +43,12 @@ import java.util.Set;
  */
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
+    private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
+
     private final Set<String> includes = Sets.newLinkedHashSet();
     private final Set<String> excludes = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
-    private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
 
     boolean caseSensitive = true;
 
@@ -83,14 +85,19 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
-        setIncludes(sourcePattern.getIncludes());
-        setExcludes(sourcePattern.getExcludes());
-        PatternSet other = (PatternSet) sourcePattern;
-        includeSpecs.clear();
-        includeSpecs.addAll(other.includeSpecs);
-        excludeSpecs.clear();
-        excludeSpecs.addAll(other.excludeSpecs);
+        return doCopyFrom((PatternSet) sourcePattern);
+    }
 
+    protected PatternSet doCopyFrom(PatternSet from) {
+        includes.clear();
+        includes.addAll(from.includes);
+        excludes.clear();
+        excludes.addAll(from.excludes);
+        includeSpecs.clear();
+        includeSpecs.addAll(from.includeSpecs);
+        excludeSpecs.clear();
+        excludeSpecs.addAll(from.excludeSpecs);
+        caseSensitive = from.caseSensitive;
         return this;
     }
 
@@ -161,6 +168,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         this.includes.clear();
         return include(includes);
     }
+
     public PatternSet include(String... includes) {
         Collections.addAll(this.includes, includes);
         return this;

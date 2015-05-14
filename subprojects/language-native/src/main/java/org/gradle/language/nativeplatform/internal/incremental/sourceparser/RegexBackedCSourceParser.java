@@ -16,11 +16,13 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.language.nativeplatform.internal.Include;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,13 +35,14 @@ public class RegexBackedCSourceParser implements CSourceParser {
         this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
 
-    public SourceDetails parseSource(File sourceFile) {
-        DefaultSourceDetails sourceDetails = new DefaultSourceDetails();
-        parseFile(sourceFile, sourceDetails);
-        return sourceDetails;
+    public SourceIncludes parseSource(File sourceFile) {
+        DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes();
+        sourceIncludes.addAll(parseFile(sourceFile));
+        return sourceIncludes;
     }
 
-    private void parseFile(File file, DefaultSourceDetails sourceDetails) {
+    private List<Include> parseFile(File file) {
+        List<Include> includes = Lists.newArrayList();
         try {
             BufferedReader bf = new BufferedReader(new PreprocessingReader(new BufferedReader(new FileReader(file))));
 
@@ -51,11 +54,8 @@ public class RegexBackedCSourceParser implements CSourceParser {
                     if (m.matches()) {
                         boolean isImport = "import".equals(m.group(1));
                         String value = m.group(2);
-                        if (isImport) {
-                            sourceDetails.getImports().add(value);
-                        } else {
-                            sourceDetails.getIncludes().add(value);
-                        }
+
+                        includes.add(DefaultInclude.parse(value, isImport));
                     }
                 }
             } finally {
@@ -64,18 +64,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
 
-    private static class DefaultSourceDetails implements SourceDetails {
-        private final List<String> includes = new ArrayList<String>();
-        private final List<String> imports = new ArrayList<String>();
-
-        public List<String> getIncludes() {
-            return includes;
-        }
-
-        public List<String> getImports() {
-            return imports;
-        }
+        return includes;
     }
 }

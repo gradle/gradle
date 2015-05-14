@@ -29,12 +29,12 @@ public class ResolvedProjectConfigurationResultGraphVisitor implements Dependenc
 
     @Override
     public void start(DependencyGraphBuilder.ConfigurationNode root) {
-        builder.registerRoot(root.metaData.getComponent().getComponentId());
+        builder.registerRoot(root.getComponentId());
     }
 
     @Override
     public void visitNode(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration) {
-        ComponentIdentifier componentId = resolvedConfiguration.metaData.getComponent().getComponentId();
+        ComponentIdentifier componentId = resolvedConfiguration.getComponentId();
         if (componentId instanceof ProjectComponentIdentifier) {
             builder.addProjectComponentResult((ProjectComponentIdentifier) componentId, resolvedConfiguration.id.getConfiguration());
         }

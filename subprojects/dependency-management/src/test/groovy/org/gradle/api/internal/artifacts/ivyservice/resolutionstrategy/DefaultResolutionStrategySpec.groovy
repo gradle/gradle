@@ -187,7 +187,7 @@ public class DefaultResolutionStrategySpec extends Specification {
 
     def "mutation is checked for public API"() {
         def validator = Mock(MutationValidator)
-        strategy.beforeChange(validator)
+        strategy.setMutationValidator(validator)
 
         when: strategy.failOnVersionConflict()
         then: 1 * validator.validateMutation(STRATEGY)
@@ -219,7 +219,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         cachePolicy.copy() >> Mock(DefaultCachePolicy)
         dependencySubstitutions.copy() >> Mock(DependencySubstitutionsInternal)
         def validator = Mock(MutationValidator)
-        strategy.beforeChange(validator)
+        strategy.setMutationValidator(validator)
         def copy = strategy.copy()
 
         when: copy.failOnVersionConflict()

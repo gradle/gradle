@@ -39,10 +39,11 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
     public PrebuiltLibraryInitializer(Instantiator instantiator,
+                                      NativePlatforms nativePlatforms,
                                       Collection<? extends NativePlatform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.allPlatforms.addAll(allPlatforms);
-        this.allPlatforms.addAll(NativePlatforms.defaultPlatformDefinitions());
+        this.allPlatforms.addAll(nativePlatforms.defaultPlatformDefinitions());
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
     }

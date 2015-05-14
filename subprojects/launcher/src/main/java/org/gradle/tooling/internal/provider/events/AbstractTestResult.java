@@ -18,31 +18,8 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
-public abstract class AbstractTestResult implements Serializable, InternalTestResult {
-    private final long startTime;
-    private final long endTime;
-
-    public AbstractTestResult(long startTime, long endTime) {
-        this.startTime = startTime;
-        this.endTime = endTime;
+public abstract class AbstractTestResult extends AbstractResult implements InternalTestResult {
+    protected AbstractTestResult(long startTime, long endTime, String outcomeDescription) {
+        super(startTime, endTime, outcomeDescription);
     }
-
-    public abstract String getOutcomeDescription();
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public List<DefaultFailure> getFailures() {
-        return Collections.emptyList();
-    }
-
 }

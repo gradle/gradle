@@ -36,10 +36,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.*;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -47,6 +44,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -92,7 +91,7 @@ public class GlobalScopeServices {
         }
     }
 
-    DefaultGradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
+    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
         return new DefaultGradleLauncherFactory(services);
     }
 
@@ -110,9 +109,9 @@ public class GlobalScopeServices {
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         return new DefaultClassPathRegistry(
-                new DefaultClassPathProvider(moduleRegistry),
-                new DynamicModulesClassPathProvider(moduleRegistry,
-                        pluginModuleRegistry));
+            new DefaultClassPathProvider(moduleRegistry),
+            new DynamicModulesClassPathProvider(moduleRegistry,
+                pluginModuleRegistry));
     }
 
     DefaultModuleRegistry createModuleRegistry() {
@@ -165,9 +164,9 @@ public class GlobalScopeServices {
 
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
-                new DefaultProcessMetaDataProvider(
-                        processEnvironment),
-                fileLockContentionHandler);
+            new DefaultProcessMetaDataProvider(
+                processEnvironment),
+            fileLockContentionHandler);
     }
 
     InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
@@ -176,8 +175,8 @@ public class GlobalScopeServices {
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, MessagingServices messagingServices) {
         return new DefaultFileLockContentionHandler(
-                executorFactory,
-                messagingServices.get(InetAddressFactory.class)
+            executorFactory,
+            messagingServices.get(InetAddressFactory.class)
         );
     }
 
@@ -233,5 +232,7 @@ public class GlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-
+    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
+        return new DefaultFileWatcherFactory(executorFactory);
+    }
 }

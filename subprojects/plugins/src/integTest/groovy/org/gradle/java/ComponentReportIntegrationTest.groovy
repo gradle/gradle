@@ -40,13 +40,13 @@ No components defined for this project.
 Additional source sets
 ----------------------
 Java source 'main:java'
-    src/main/java
-JVM resources 'main:resources'
-    src/main/resources
+    srcDir: src/main/java
 Java source 'test:java'
-    src/test/java
+    srcDir: src/test/java
+JVM resources 'main:resources'
+    srcDir: src/main/resources
 JVM resources 'test:resources'
-    src/test/resources
+    srcDir: src/test/resources
 
 Additional binaries
 -------------------

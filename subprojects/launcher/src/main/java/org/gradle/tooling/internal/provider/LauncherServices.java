@@ -19,12 +19,14 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.*;
 
 import java.util.List;
 
@@ -44,9 +46,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
-            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
+            BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
+            return new ContinuousModeBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
@@ -65,17 +68,17 @@ public class LauncherServices implements PluginServiceRegistry {
     static class ToolingBuildScopeServices {
         PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache, CacheRepository cacheRepository) {
             return new DaemonSidePayloadClassLoaderFactory(
-                    new ModelClassLoaderFactory(
-                            classLoaderFactory),
-                    jarCache,
-                    cacheRepository);
+                new ModelClassLoaderFactory(
+                    classLoaderFactory),
+                jarCache,
+                cacheRepository);
         }
 
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
             return new PayloadSerializer(
-                    new DefaultPayloadClassLoaderRegistry(
-                            classLoaderCache,
-                            classLoaderFactory)
+                new DefaultPayloadClassLoaderRegistry(
+                    classLoaderCache,
+                    classLoaderFactory)
             );
         }
     }

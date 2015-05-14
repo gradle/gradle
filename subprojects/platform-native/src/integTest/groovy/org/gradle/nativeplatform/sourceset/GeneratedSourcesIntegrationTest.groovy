@@ -445,7 +445,7 @@ model {
                 "build/src/generated/c/main.c",
                 "build/src/generated/c/sum.c"
         ] as Set
-        projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
+        projectFile.headerFiles.sort() == [ "build/src/generated/headers/common.h", "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
             // TODO - should not include the default location

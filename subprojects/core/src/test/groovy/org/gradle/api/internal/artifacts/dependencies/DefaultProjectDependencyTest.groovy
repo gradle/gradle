@@ -107,7 +107,7 @@ class DefaultProjectDependencyTest extends Specification {
         0 * _
     }
 
-    void "is Buildable"() {
+    void "is buildable"() {
         def context = Mock(TaskDependencyResolveContext)
 
         def conf = project.configurations.create('conf')
@@ -118,22 +118,37 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency.buildDependencies.resolve(context)
 
         then:
-        1 * context.add(conf)
+        1 * context.add(conf.allDependencies)
         1 * context.add({it.is(conf.allArtifacts)})
         1 * listener.beforeResolvingProjectDependency(project)
         0 * _
     }
 
     void "does not build project dependencies if configured so"() {
-        def context = Mock(TaskDependencyResolveContext)
-        project.configurations.create('conf')
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
+         def context = Mock(TaskDependencyResolveContext)
+         project.configurations.create('conf')
+         projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
+
+         when:
+         projectDependency.buildDependencies.resolve(context)
+
+         then:
+         0 * _
+     }
+
+    void "is self resolving dependency"() {
+        def conf = project.configurations.create('conf')
+        def listener = Mock(ProjectAccessListener)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
         when:
-        projectDependency.buildDependencies.resolve(context)
+        def files = projectDependency.resolve()
 
         then:
         0 * _
+
+        and:
+        files == conf.allArtifacts.files as Set
     }
 
     void "knows when content is equal"() {

@@ -20,23 +20,25 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.Set;
 
 public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependency,
-        FileCollectionDependency {
-    private final FileCollection source;
+    FileCollectionDependency {
+    private final FileCollectionInternal source;
 
-    public DefaultSelfResolvingDependency(FileCollection source) {
+    public DefaultSelfResolvingDependency(FileCollectionInternal source) {
         this.source = source;
     }
 
     public FileCollection getSource() {
         return source;
     }
-    
+
     public boolean contentEquals(Dependency dependency) {
         if (!(dependency instanceof DefaultSelfResolvingDependency)) {
             return false;
@@ -76,5 +78,10 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
 
     public TaskDependency getBuildDependencies() {
         return source.getBuildDependencies();
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        source.registerWatchPoints(builder);
     }
 }

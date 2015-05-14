@@ -61,14 +61,14 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Ob
                 modelNode.addLink(creator);
             } else {
                 ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-                ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), BiActions.doNothing())
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                         .withProjection(projection)
                         .descriptor(descriptor).build();
                 modelNode.addReference(creator);
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), BiActions.doNothing())
+            ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                     .withProjection(projection)
                     .descriptor(descriptor).build();
             modelNode.addLink(creator);

@@ -15,9 +15,14 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.internal.file.FileSystemSubset;
+
 /**
  * A {@code FileCollectionDependency} is a {@link Dependency} on a collection of local files which are not stored in a
  * repository.
  */
 public interface FileCollectionDependency extends SelfResolvingDependency {
+
+    void registerWatchPoints(FileSystemSubset.Builder builder);
+
 }

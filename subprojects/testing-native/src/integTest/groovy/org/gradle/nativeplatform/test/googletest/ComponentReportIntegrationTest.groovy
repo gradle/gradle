@@ -15,12 +15,14 @@
  */
 package org.gradle.nativeplatform.test.googletest
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ executable with test suite"() {
         given:
         buildFile << """
@@ -48,7 +50,7 @@ Native executable 'someExe'
 
 Source sets
     C++ source 'someExe:cpp'
-        src/someExe/cpp
+        srcDir: src/someExe/cpp
 
 Binaries
     Executable 'someExe:executable'
@@ -65,7 +67,7 @@ GoogleTest test suite 'someExeTest'
 
 Source sets
     C++ source 'someExeTest:cpp'
-        src/someExeTest/cpp
+        srcDir: src/someExeTest/cpp
 
 Binaries
     Google test exe 'someExeTest:googleTestExe'

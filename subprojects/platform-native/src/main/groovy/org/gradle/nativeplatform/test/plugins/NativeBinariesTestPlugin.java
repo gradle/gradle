@@ -18,12 +18,21 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.*;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelMapSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -32,9 +41,10 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.test.DefaultTestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -42,27 +52,36 @@ import java.io.File;
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
+    private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore schemaStore;
+
+    @Inject
+    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+        this.modelRegistry = modelRegistry;
+        this.schemaStore = schemaStore;
+    }
+
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
+
+        ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
+        ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), descriptor);
+
+        modelRegistry.create(testSuitesCreator);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model
-        TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
-        }
-
         @Finalize
             // Must run after test binaries have been created (currently in CUnit plugin)
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                testSuiteBinary.source(testedBinary.getSource());
+                testSuiteBinary.source(testedBinary.getSource().values());
 
-                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
-                    testSource.lib(testedBinary.getSource());
+                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class).values()) {
+                    testSource.lib(testedBinary.getSource().values());
                 }
             }
         }
@@ -87,7 +106,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToCheckLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+        void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final BinaryContainer binaries) {
             // TODO - binaries aren't an input to this rule, they're an input to the action
             tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
                 @Override
@@ -99,4 +118,5 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             });
         }
     }
+
 }

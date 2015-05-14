@@ -23,19 +23,17 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Provides means to substitute a different dependency during resolution.
  *
- * @param <T> the type of the requested component.
- *
  * @since 2.4
  */
 @Incubating
 @HasInternalProtocol
-public interface DependencySubstitution<T extends ComponentSelector> {
+public interface DependencySubstitution {
     /**
-     * The dependency, before it is resolved.
+     * The requested dependency, before it is resolved.
      * The requested dependency does not change even if there are multiple dependency substitution rules
      * that manipulate the dependency metadata.
      */
-    T getRequested();
+    ComponentSelector getRequested();
 
     /**
      * This method can be used to replace a dependency before it is resolved,

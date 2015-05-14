@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -24,8 +25,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
  * A file tree that delegates each method call to the
  * file tree returned by {@link #getDelegate()}.
  */
-public abstract class DelegatingFileTree extends DelegatingFileCollection implements FileTree {
-    public abstract FileTree getDelegate();
+public abstract class DelegatingFileTree extends DelegatingFileCollection implements FileTreeInternal {
+    public abstract FileTreeInternal getDelegate();
 
     public FileTree matching(Closure filterConfigClosure) {
         return getDelegate().matching(filterConfigClosure);

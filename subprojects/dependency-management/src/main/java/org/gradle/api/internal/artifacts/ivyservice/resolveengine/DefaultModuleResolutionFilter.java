@@ -192,6 +192,11 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        @Override
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
     private static abstract class CompositeSpec extends DefaultModuleResolutionFilter {
@@ -272,16 +277,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
                 if (anyArtifact) {
                     if (!anyOrganisation && !anyModule) {
-                        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
+                        excludeSpecs.add(new ModuleIdExcludeSpec(moduleId.getOrganisation(), moduleId.getName()));
                     } else if (!anyModule) {
-                        excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
+                        excludeSpecs.add(new ModuleNameExcludeSpec(moduleId.getName()));
                     } else if (!anyOrganisation) {
-                        excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
+                        excludeSpecs.add(new GroupNameExcludeSpec(moduleId.getOrganisation()));
                     } else {
                         excludeSpecs.add(new ExcludeAllModulesSpec());
                     }
                 } else {
-                    excludeSpecs.add(new ArtifactSpec(rule));
+                    excludeSpecs.add(new ArtifactExcludeSpec(rule));
                 }
             }
         }
@@ -328,6 +333,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
+        public boolean acceptsAllArtifacts() {
+            for (DefaultModuleResolutionFilter spec : excludeSpecs) {
+                if (!spec.acceptsAllArtifacts()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         @Override
         protected DefaultModuleResolutionFilter doUnion(DefaultModuleResolutionFilter other) {
             if (!(other instanceof ExcludeRuleBackedSpec)) {
@@ -364,62 +379,72 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return new ExcludeRuleBackedSpec(merged);
         }
 
+        // Add filters to the list that will accept modules that are accepted by either of the candidate filters.
         private void intersect(DefaultModuleResolutionFilter spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
-            if (spec1 instanceof ArtifactSpec) {
-                merged.add(spec1);
-            } else if (spec2 instanceof ArtifactSpec) {
+            if (spec1 instanceof ExcludeAllModulesSpec) {
                 merged.add(spec2);
-            } else if (spec1 instanceof GroupNameSpec) {
-                intersect((GroupNameSpec) spec1, spec2, merged);
-            } else if (spec2 instanceof GroupNameSpec) {
-                intersect((GroupNameSpec) spec2, spec1, merged);
-            } else if (spec1 instanceof ModuleNameSpec) {
-                intersect((ModuleNameSpec) spec1, spec2, merged);
-            } else if (spec2 instanceof ModuleNameSpec) {
-                intersect((ModuleNameSpec) spec2, spec1, merged);
-            } else if ((spec1 instanceof ModuleIdSpec) && (spec2 instanceof ModuleIdSpec)) {
-                ModuleIdSpec moduleSpec1 = (ModuleIdSpec) spec1;
-                ModuleIdSpec moduleSpec2 = (ModuleIdSpec) spec2;
+            } else if (spec2 instanceof ExcludeAllModulesSpec) {
+                merged.add(spec1);
+            } else if (spec1 instanceof ArtifactExcludeSpec) {
+                merged.add(spec1);
+            } else if (spec2 instanceof ArtifactExcludeSpec) {
+                merged.add(spec2);
+            } else if (spec1 instanceof GroupNameExcludeSpec) {
+                intersect((GroupNameExcludeSpec) spec1, spec2, merged);
+            } else if (spec2 instanceof GroupNameExcludeSpec) {
+                intersect((GroupNameExcludeSpec) spec2, spec1, merged);
+            } else if (spec1 instanceof ModuleNameExcludeSpec) {
+                intersect((ModuleNameExcludeSpec) spec1, spec2, merged);
+            } else if (spec2 instanceof ModuleNameExcludeSpec) {
+                intersect((ModuleNameExcludeSpec) spec2, spec1, merged);
+            } else if ((spec1 instanceof ModuleIdExcludeSpec) && (spec2 instanceof ModuleIdExcludeSpec)) {
+                ModuleIdExcludeSpec moduleSpec1 = (ModuleIdExcludeSpec) spec1;
+                ModuleIdExcludeSpec moduleSpec2 = (ModuleIdExcludeSpec) spec2;
                 if (moduleSpec1.moduleId.equals(moduleSpec2.moduleId)) {
                     merged.add(moduleSpec1);
                 }
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
             }
         }
 
-        private void intersect(GroupNameSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
-            if (spec2 instanceof GroupNameSpec) {
-                GroupNameSpec groupNameSpec = (GroupNameSpec) spec2;
-                if (spec1.group.equals(groupNameSpec.group)) {
+        private void intersect(GroupNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
+            if (spec2 instanceof GroupNameExcludeSpec) {
+                // Intersection of 2 group excludes does nothing unless excluded groups match
+                GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) spec2;
+                if (spec1.group.equals(groupNameExcludeSpec.group)) {
                     merged.add(spec1);
                 }
-            } else if (spec2 instanceof ModuleNameSpec) {
-                ModuleNameSpec moduleNameSpec = (ModuleNameSpec) spec2;
-                merged.add(new ModuleIdSpec(spec1.group, moduleNameSpec.module));
-            } else if (spec2 instanceof ModuleIdSpec) {
-                ModuleIdSpec moduleIdSpec = (ModuleIdSpec) spec2;
-                if (moduleIdSpec.moduleId.getGroup().equals(spec1.group)) {
+            } else if (spec2 instanceof ModuleNameExcludeSpec) {
+                // Intersection of group & module name exclude only excludes module with matching group + name
+                ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;
+                merged.add(new ModuleIdExcludeSpec(spec1.group, moduleNameExcludeSpec.module));
+            } else if (spec2 instanceof ModuleIdExcludeSpec) {
+                // Intersection of group + module id exclude only excludes the module id if the excluded groups match
+                ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) spec2;
+                if (moduleIdExcludeSpec.moduleId.getGroup().equals(spec1.group)) {
                     merged.add(spec2);
                 }
             } else {
-                throw new UnsupportedOperationException();
-            }
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
+             }
         }
 
-        private void intersect(ModuleNameSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
-            if (spec2 instanceof ModuleNameSpec) {
-                ModuleNameSpec moduleNameSpec = (ModuleNameSpec) spec2;
-                if (spec1.module.equals(moduleNameSpec.module)) {
+        private void intersect(ModuleNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
+            if (spec2 instanceof ModuleNameExcludeSpec) {
+                // Intersection of 2 module name excludes does nothing unless excluded module names match
+                ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;
+                if (spec1.module.equals(moduleNameExcludeSpec.module)) {
                     merged.add(spec1);
                 }
-            } else if (spec2 instanceof ModuleIdSpec) {
-                ModuleIdSpec moduleIdSpec = (ModuleIdSpec) spec2;
-                if (moduleIdSpec.moduleId.getName().equals(spec1.module)) {
+            } else if (spec2 instanceof ModuleIdExcludeSpec) {
+                // Intersection of module name & module id exclude only excludes module if the excluded module names match
+                ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) spec2;
+                if (moduleIdExcludeSpec.moduleId.getName().equals(spec1.module)) {
                     merged.add(spec2);
                 }
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
             }
         }
     }
@@ -470,12 +495,26 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
             return false;
         }
+
+        public boolean acceptsAllArtifacts() {
+            for (DefaultModuleResolutionFilter spec : specs) {
+                if (spec.acceptsAllArtifacts()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
-    private static class ModuleIdSpec extends DefaultModuleResolutionFilter {
+    /**
+     * A ModuleResolutionFilter that accepts any module that has a module id other than the one specified.
+     * Accepts all artifacts.
+     */
+    private static class ModuleIdExcludeSpec extends DefaultModuleResolutionFilter {
         private final ModuleIdentifier moduleId;
 
-        public ModuleIdSpec(String group, String name) {
+        public ModuleIdExcludeSpec(String group, String name) {
             this.moduleId = DefaultModuleIdentifier.newId(group, name);
         }
 
@@ -492,7 +531,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             if (o == null || o.getClass() != getClass()) {
                 return false;
             }
-            ModuleIdSpec other = (ModuleIdSpec) o;
+            ModuleIdExcludeSpec other = (ModuleIdExcludeSpec) o;
             return moduleId.equals(other.moduleId);
         }
 
@@ -503,8 +542,8 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
         @Override
         protected boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            ModuleIdSpec moduleIdSpec = (ModuleIdSpec) other;
-            return moduleId.equals(moduleIdSpec.moduleId);
+            ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) other;
+            return moduleId.equals(moduleIdExcludeSpec.moduleId);
         }
 
         public boolean acceptModule(ModuleIdentifier module) {
@@ -514,12 +553,20 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
-    private static class ModuleNameSpec extends DefaultModuleResolutionFilter {
+    /**
+     * A ModuleResolutionFilter that accepts any module that has a name other than the one specified.
+     * Accepts all artifacts.
+     */
+    private static class ModuleNameExcludeSpec extends DefaultModuleResolutionFilter {
         private final String module;
 
-        private ModuleNameSpec(String module) {
+        private ModuleNameExcludeSpec(String module) {
             this.module = module;
         }
 
@@ -536,7 +583,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             if (o == null || o.getClass() != getClass()) {
                 return false;
             }
-            ModuleNameSpec other = (ModuleNameSpec) o;
+            ModuleNameExcludeSpec other = (ModuleNameExcludeSpec) o;
             return module.equals(other.module);
         }
 
@@ -547,8 +594,8 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
         @Override
         public boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            ModuleNameSpec moduleNameSpec = (ModuleNameSpec) other;
-            return module.equals(moduleNameSpec.module);
+            ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) other;
+            return module.equals(moduleNameExcludeSpec.module);
         }
 
         public boolean acceptModule(ModuleIdentifier element) {
@@ -558,12 +605,20 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
-    private static class GroupNameSpec extends DefaultModuleResolutionFilter {
+    /**
+     * A ModuleResolutionFilter that accepts any module that has a group other than the one specified.
+     * Accepts all artifacts.
+     */
+    private static class GroupNameExcludeSpec extends DefaultModuleResolutionFilter {
         private final String group;
 
-        private GroupNameSpec(String group) {
+        private GroupNameExcludeSpec(String group) {
             this.group = group;
         }
 
@@ -580,7 +635,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             if (o == null || o.getClass() != getClass()) {
                 return false;
             }
-            GroupNameSpec other = (GroupNameSpec) o;
+            GroupNameExcludeSpec other = (GroupNameExcludeSpec) o;
             return group.equals(other.group);
         }
 
@@ -591,8 +646,8 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
         @Override
         public boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            GroupNameSpec groupNameSpec = (GroupNameSpec) other;
-            return group.equals(groupNameSpec.group);
+            GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) other;
+            return group.equals(groupNameExcludeSpec.group);
         }
 
         public boolean acceptModule(ModuleIdentifier element) {
@@ -600,6 +655,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return true;
+        }
+
+        public boolean acceptsAllArtifacts() {
             return true;
         }
     }
@@ -632,8 +691,15 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
+
+        public boolean acceptsAllArtifacts() {
+            return true;
+        }
     }
 
+    /**
+     * A ModuleResolutionFilter that accepts any module/artifact that doesn't match the exclude rule.
+     */
     private static class ExcludeRuleSpec extends DefaultModuleResolutionFilter {
         private final ModuleIdentifier moduleId;
         private final IvyArtifactName ivyArtifactName;
@@ -697,17 +763,25 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
+        public boolean acceptsAllArtifacts() {
+            return !isArtifactExclude;
+        }
+
         private boolean matches(String expression, String input) {
             return matcher.getMatcher(expression).matches(input);
         }
     }
 
-    private static class ArtifactSpec extends DefaultModuleResolutionFilter {
+    /**
+     * A ModuleResolutionFilter that accepts any artifact that doesn't match the exclude rule.
+     * Accepts all modules.
+     */
+    private static class ArtifactExcludeSpec extends DefaultModuleResolutionFilter {
         private final ModuleIdentifier moduleId;
         private final IvyArtifactName ivyArtifactName;
         private final PatternMatcher matcher;
 
-        private ArtifactSpec(ExcludeRule rule) {
+        private ArtifactExcludeSpec(ExcludeRule rule) {
             this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
             this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
             this.matcher = rule.getMatcher();
@@ -726,7 +800,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             if (o == null || o.getClass() != getClass()) {
                 return false;
             }
-            ArtifactSpec other = (ArtifactSpec) o;
+            ArtifactExcludeSpec other = (ArtifactExcludeSpec) o;
             return moduleId.equals(other.moduleId) && ivyArtifactName.equals(other.ivyArtifactName);
         }
 
@@ -755,6 +829,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     && matches(ivyArtifactName.getName(), artifact.getName())
                     && matches(ivyArtifactName.getExtension(), artifact.getExtension())
                     && matches(ivyArtifactName.getType(), artifact.getType()));
+        }
+
+        public boolean acceptsAllArtifacts() {
+            return false;
         }
 
         private boolean matches(String expression, String input) {

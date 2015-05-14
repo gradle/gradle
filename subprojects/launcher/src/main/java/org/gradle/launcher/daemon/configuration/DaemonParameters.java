@@ -40,6 +40,8 @@ public class DaemonParameters {
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private File javaHome;
+    private boolean foreground;
+    private boolean stop;
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -82,6 +84,10 @@ public class DaemonParameters {
         return jvmOptions.getAllImmutableJvmArgs();
     }
 
+    public List<String> getJvmArgs() {
+        return jvmOptions.getJvmArgs();
+    }
+
     public List<String> getAllJvmArgs() {
         return jvmOptions.getAllJvmArgs();
     }
@@ -93,11 +99,11 @@ public class DaemonParameters {
         return javaHome;
     }
 
-    public String getEffectiveJavaExecutable() {
+    public File getEffectiveJavaExecutable() {
         if (javaHome == null) {
-            return Jvm.current().getJavaExecutable().getAbsolutePath();
+            return Jvm.current().getJavaExecutable();
         }
-        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
+        return Jvm.forHome(javaHome).getJavaExecutable();
     }
 
     public DaemonParameters setJavaHome(File javaHome) {
@@ -137,5 +143,21 @@ public class DaemonParameters {
 
     public DaemonUsage getDaemonUsage() {
         return daemonUsage;
+    }
+
+    public boolean isForeground() {
+        return foreground;
+    }
+
+    public void setForeground(boolean foreground) {
+        this.foreground = foreground;
+    }
+
+    public boolean isStop() {
+        return stop;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
     }
 }

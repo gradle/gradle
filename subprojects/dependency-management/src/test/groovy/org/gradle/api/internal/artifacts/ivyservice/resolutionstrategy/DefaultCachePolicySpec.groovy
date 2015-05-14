@@ -216,7 +216,7 @@ public class DefaultCachePolicySpec extends Specification {
     def "mutation is checked"() {
         def validator = Mock(MutationValidator)
         given:
-        cachePolicy.beforeChange(validator)
+        cachePolicy.setMutationValidator(validator)
 
         when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
         then: (1.._) * validator.validateMutation(STRATEGY)
@@ -237,7 +237,7 @@ public class DefaultCachePolicySpec extends Specification {
     def "mutation is not checked for copy"() {
         def validator = Mock(MutationValidator)
         given:
-        cachePolicy.beforeChange(validator)
+        cachePolicy.setMutationValidator(validator)
         def copy = cachePolicy.copy()
 
         when: copy.cacheChangingModulesFor(0, TimeUnit.HOURS)

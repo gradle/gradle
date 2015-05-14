@@ -27,9 +27,19 @@ public interface MutationValidator {
         STRATEGY,
 
         /**
-         * The mutation of the content of the configuration, i.e. dependencies, artifacts, extended configurations etc.
+         * The mutation of anything that will affect the resolved dependency graph of this configuration.
          */
-        CONTENT
+        DEPENDENCIES,
+
+        /**
+         * The mutation of the artifacts of the configuration.
+         */
+        ARTIFACTS;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     /**

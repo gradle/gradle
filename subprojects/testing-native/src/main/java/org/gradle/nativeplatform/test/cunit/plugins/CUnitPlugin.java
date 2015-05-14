@@ -18,9 +18,10 @@ package org.gradle.nativeplatform.test.cunit.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,11 +34,13 @@ import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
@@ -52,6 +55,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
 
@@ -73,22 +77,34 @@ public class CUnitPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, NamedDomainObjectSet<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            for (NativeComponentSpec component : components) {
-                testSuites.add(createCUnitTestSuite(component, instantiator, projectSourceSet, fileResolver));
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
+            for (final NativeComponentSpec component : components.values()) {
+                String suiteName = String.format("%sTest", component.getName());
+                testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
+                    @Override
+                    public void execute(CUnitTestSuiteSpec cUnitTestSuiteSpec) {
+                        cUnitTestSuiteSpec.setTestedComponent(component);
+                    }
+                });
             }
         }
 
-        private CUnitTestSuiteSpec createCUnitTestSuite(final NativeComponentSpec testedComponent, Instantiator instantiator, ProjectSourceSet projectSourceSet, FileResolver fileResolver) {
-            String suiteName = String.format("%sTest", testedComponent.getName());
-            String path = testedComponent.getProjectPath();
-            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
-            FunctionalSourceSet testSuiteSourceSet = createCUnitSources(instantiator, suiteName, projectSourceSet, fileResolver);
-            CUnitTestSuiteSpec testSuiteSpec = BaseComponentSpec.create(DefaultCUnitTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
-            testSuiteSpec.setTestedComponent(testedComponent);
-            return testSuiteSpec;
+        @Mutate
+        public void registerCUnitTestSuiteSpecFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry,
+                                                      final ProjectSourceSet projectSourceSet,
+                                                      final ProjectIdentifier projectIdentifier,
+                                                      ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            factoryRegistry.registerFactory(CUnitTestSuiteSpec.class, new NamedDomainObjectFactory<CUnitTestSuiteSpec>() {
+                @Override
+                public CUnitTestSuiteSpec create(String suiteName) {
+                    String path = projectIdentifier.getPath();
+                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
+                    FunctionalSourceSet testSuiteSourceSet = createCUnitSources(instantiator, suiteName, projectSourceSet, fileResolver);
+                    return BaseComponentSpec.create(DefaultCUnitTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
+                }
+            }, new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerCUnitTestSuiteSpecFactory()"));
         }
 
         private FunctionalSourceSet createCUnitSources(final Instantiator instantiator, final String suiteName, ProjectSourceSet projectSourceSet, final FileResolver fileResolver) {
@@ -104,7 +120,7 @@ public class CUnitPlugin implements Plugin<Project> {
         @Finalize
         public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
-            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
+            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
@@ -114,57 +130,62 @@ public class CUnitPlugin implements Plugin<Project> {
                 CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
                 testSources.getSource().srcDir(String.format("src/%s/%s", suite.getName(), "c"));
                 testSources.getExportedHeaders().srcDir(String.format("src/%s/headers", suite.getName()));
-
                 testSources.lib(launcherSources);
             }
         }
 
         @Mutate
         public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
-            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
+            for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
                 GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
 
-                CSourceSet launcherSources = findLaucherSources(suite);
+                CSourceSet launcherSources = findLauncherSources(suite);
                 skeletonTask.setSourceDir(launcherSources.getSource().getSrcDirs().iterator().next());
                 skeletonTask.setHeaderDir(launcherSources.getExportedHeaders().getSrcDirs().iterator().next());
                 launcherSources.builtBy(skeletonTask);
             }
         }
 
-        private CSourceSet findLaucherSources(CUnitTestSuiteSpec suite) {
-            return suite.getSource().withType(CSourceSet.class).matching(new Spec<CSourceSet>() {
-                public boolean isSatisfiedBy(CSourceSet element) {
-                    return element.getName().equals(CUNIT_LAUNCHER_SOURCE_SET);
-                }
-            }).iterator().next();
+        private CSourceSet findLauncherSources(CUnitTestSuiteSpec suite) {
+            return suite.getSource().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
         }
 
         @Mutate
-        public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
-                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
+        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
+            testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
+                @Override
+                public void execute(CUnitTestSuiteSpec cUnitTestSuite) {
+                    for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
 
-                    if (testedBinary instanceof SharedLibraryBinary) {
-                        // TODO:DAZ For now, we only create test suites for static library variants
-                        continue;
+                        if (testedBinary instanceof SharedLibraryBinary) {
+                            // TODO:DAZ For now, we only create test suites for static library variants
+                            continue;
+                        }
+
+                        DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
+                        configure(testBinary, buildDir);
+                        ComponentSpecInternal cUnitTestSuiteInternal = (ComponentSpecInternal) cUnitTestSuite;
+                        cUnitTestSuiteInternal.getBinariesContainer().add(testBinary);
                     }
+                }
+            });
+        }
 
-                    DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
-
-                    configure(testBinary, buildDir);
-
-                    cUnitTestSuite.getBinaries().add(testBinary);
-                    binaries.add(testBinary);
+        @Mutate
+        public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
+            for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
+                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+                    binaries.addAll(cUnitTestSuite.getBinaries().withType(CUnitTestSuiteBinarySpec.class).values());
                 }
             }
         }
 
         private DefaultCUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuiteSpec cUnitTestSuite, NativeBinarySpec testedBinary, ITaskFactory taskFactory) {
             BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                    .withComponentName(cUnitTestSuite.getBaseName())
-                    .withTypeString("CUnitExe").build();
+                .withComponentName(cUnitTestSuite.getBaseName())
+                .withTypeString("CUnitExe").build();
 
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);

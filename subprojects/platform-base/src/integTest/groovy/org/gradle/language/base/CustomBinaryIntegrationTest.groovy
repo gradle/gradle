@@ -21,9 +21,6 @@ import org.gradle.util.TextUtil
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleBinary extends BinarySpec {
     String getVersion()
     void setVersion(String version)
@@ -129,7 +126,7 @@ model {
 
             static class Rules extends RuleSource {
                 @Mutate
-                void createSampleBinaries(CollectionBuilder<SampleBinary> binaries) {
+                void createSampleBinaries(ModelMap<SampleBinary> binaries) {
                     binaries.create("sampleBinary")
                 }
 
@@ -165,7 +162,7 @@ model {
                 }
 
                 @Mutate
-                void createSampleBinaryInstances(CollectionBuilder<SampleBinary> binaries) {
+                void createSampleBinaryInstances(ModelMap<SampleBinary> binaries) {
                     binaries.create("sampleBinary")
                 }
 
@@ -175,7 +172,7 @@ model {
                 }
 
                 @Mutate
-                void createAnotherSampleBinaryInstances(CollectionBuilder<AnotherSampleBinary> anotherBinaries) {
+                void createAnotherSampleBinaryInstances(ModelMap<AnotherSampleBinary> anotherBinaries) {
                     anotherBinaries.create("anotherSampleBinary")
                 }
             }
@@ -288,7 +285,7 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleBinary(CollectionBuilder<SampleBinary> binarySpecs) {
+                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
                     println "creating binary"
                     binarySpecs.create("sampleBinary")
                 }

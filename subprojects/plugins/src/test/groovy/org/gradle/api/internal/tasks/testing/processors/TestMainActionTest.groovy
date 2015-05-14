@@ -33,7 +33,7 @@ class TestMainActionTest {
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
     private final Runnable detector = context.mock(Runnable.class)
     private final TimeProvider timeProvider = context.mock(TimeProvider.class)
-    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "123", "Test Run")
+    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "taskOperationId123", "rootTestSuiteId456", "Test Run")
 
     @Test
     public void firesStartAndEndEventsAroundDetectorExecution() {
@@ -42,7 +42,7 @@ class TestMainActionTest {
             will(returnValue(100L))
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite, TestStartEvent event ->
-                assertThat(suite.id as String, equalTo("123"))
+                assertThat(suite.id as String, equalTo("rootTestSuiteId456"))
                 assertThat(event.startTime, equalTo(100L))
             }
             one(processor).startProcessing(withParam(notNullValue()))
@@ -50,9 +50,9 @@ class TestMainActionTest {
             one(processor).stop()
             one(timeProvider).getCurrentTime()
             will(returnValue(200L))
-            one(resultProcessor).completed(withParam(equalTo("123")), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(id as String, equalTo("123"))
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { Object id, TestCompleteEvent event ->
+                assertThat(id as String, equalTo("rootTestSuiteId456"))
                 assertThat(event.endTime, equalTo(200L))
                 assertThat(event.resultType, nullValue())
             }

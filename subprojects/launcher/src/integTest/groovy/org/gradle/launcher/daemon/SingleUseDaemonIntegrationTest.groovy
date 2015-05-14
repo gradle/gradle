@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 

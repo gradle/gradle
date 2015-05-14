@@ -230,8 +230,12 @@ public abstract class ModelType<T> {
         }
     }
 
+    public String getSimpleName() {
+        return wrapper.getRepresentation(false);
+    }
+
     public String toString() {
-        return wrapper.getRepresentation();
+        return wrapper.getRepresentation(true);
     }
 
     @Override
@@ -317,16 +321,17 @@ public abstract class ModelType<T> {
     private static final Type[] EMPTY_TYPE_ARRAY = new Type[0];
     private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
 
+    @Nullable
     private static TypeWrapper wrap(Type type) {
         if (type == null) {
-            return NullTypeWrapper.INSTANCE;
+            return null;
         } else if (type instanceof Class) {
             return new ClassTypeWrapper((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
-                    wrap(parameterizedType.getRawType()),
+                    (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
                     wrap(parameterizedType.getOwnerType()),
                     type.hashCode()
             );

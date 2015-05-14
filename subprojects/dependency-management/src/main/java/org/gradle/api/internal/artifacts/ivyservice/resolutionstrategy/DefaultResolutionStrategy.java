@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -56,11 +55,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void beforeChange(MutationValidator validator) {
+    public void setMutationValidator(MutationValidator validator) {
         mutationValidator = validator;
-        cachePolicy.beforeChange(validator);
-        componentSelectionRules.beforeChange(validator);
-        dependencySubstitutions.beforeChange(validator);
+        cachePolicy.setMutationValidator(validator);
+        componentSelectionRules.setMutationValidator(validator);
+        dependencySubstitutions.setMutationValidator(validator);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
@@ -94,8 +93,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule() {
-        Collection<Action<DependencySubstitution<ComponentSelector>>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
+    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+        Collection<Action<DependencySubstitution>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
         return Actions.composite(allRules);
     }
 

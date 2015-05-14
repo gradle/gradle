@@ -18,13 +18,15 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
-
+    
+    @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
         when:
         succeeds "components"
@@ -35,6 +37,7 @@ No components defined for this project.
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of multiple components"() {
         given:
         buildFile << """
@@ -67,9 +70,9 @@ JVM library 'jvmLib'
 
 Source sets
     Java source 'jvmLib:java'
-        src/jvmLib/java
+        srcDir: src/jvmLib/java
     JVM resources 'jvmLib:resources'
-        src/jvmLib/resources
+        srcDir: src/jvmLib/resources
 
 Binaries
     Jar 'jvmLibJar'
@@ -83,9 +86,9 @@ Native library 'nativeLib'
 
 Source sets
     C source 'nativeLib:c'
-        src/nativeLib/c
+        srcDir: src/nativeLib/c
     C++ source 'nativeLib:cpp'
-        src/nativeLib/cpp
+        srcDir: src/nativeLib/cpp
 
 Binaries
     Shared library 'nativeLib:sharedLibrary'

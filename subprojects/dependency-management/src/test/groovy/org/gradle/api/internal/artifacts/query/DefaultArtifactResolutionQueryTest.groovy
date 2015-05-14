@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.query
-
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
@@ -31,17 +31,17 @@ import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.resolver.ArtifactResolver
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultArtifactResolutionQueryTest extends Specification {
-    def configurationContainerInternal = Mock(ConfigurationContainerInternal)
+    def configurationContainerInternal = Stub(ConfigurationContainerInternal)
     def repositoryHandler = Stub(RepositoryHandler)
     def resolveIvyFactory = Mock(ResolveIvyFactory)
     def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)
@@ -49,7 +49,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(RepositoryChain)
-    def dependencyToComponentResolver = Mock(DependencyToComponentResolver)
+    def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
     def componentResolveMetaData = Mock(ComponentResolveMetaData)
 
     @Shared ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
@@ -93,8 +93,8 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         }
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
-        1 * repositoryChain.dependencyResolver >> dependencyToComponentResolver
-        1 * dependencyToComponentResolver.resolve(_, _) >> { DependencyMetaData dependency, BuildableComponentResolveResult resolveResult ->
+        1 * repositoryChain.componentResolver >> componentMetaDataResolver
+        1 * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(componentResolveMetaData)
         }
         result

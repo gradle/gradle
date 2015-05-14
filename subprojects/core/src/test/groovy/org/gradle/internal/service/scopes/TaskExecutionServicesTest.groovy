@@ -25,12 +25,12 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class TaskExecutionServicesTest extends Specification {
@@ -49,6 +49,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * parent.get(Instantiator) >> Mock(Instantiator)
         _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
+        _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder

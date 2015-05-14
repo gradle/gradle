@@ -16,26 +16,15 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
+import java.util.Collection;
 import java.util.Set;
 
 public interface DependencyMetaData {
     ModuleVersionSelector getRequested();
-
-    /**
-     * Returns this dependency as an Ivy DependencyDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    DependencyDescriptor getDescriptor();
-
-    boolean isChanging();
-
-    boolean isTransitive();
 
     /**
      * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
@@ -71,4 +60,20 @@ public interface DependencyMetaData {
      * @return Component selector
      */
     ComponentSelector getSelector();
+
+    // The following methods all wrap an underlying method on DependencyDescriptor that we use, to help migrate away from using Ivy types.
+    String[] getModuleConfigurations();
+
+    String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);
+
+    ExcludeRule[] getExcludeRules(Collection<String> configurations);
+
+    boolean isChanging();
+
+    boolean isTransitive();
+
+    boolean isForce();
+
+    String getDynamicConstraintVersion();
+
 }

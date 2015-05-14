@@ -17,9 +17,9 @@
 package sample.markdown
 
 import org.gradle.model.Defaults
+import org.gradle.model.ModelMap
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
-import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import sample.documentation.DocumentationBinary
@@ -32,7 +32,7 @@ class MarkdownPlugin extends RuleSource {
     }
 
     @Defaults
-    void createMarkdownHtmlCompilerTasks(CollectionBuilder<DocumentationBinary> binaries, @Path("buildDir") File buildDir) {
+    void createMarkdownHtmlCompilerTasks(ModelMap<DocumentationBinary> binaries, @Path("buildDir") File buildDir) {
         binaries.beforeEach { binary ->
             source.withType(MarkdownSourceSet.class) { markdownSourceSet ->
                 taskName = binary.name + name.capitalize() + "HtmlCompile"

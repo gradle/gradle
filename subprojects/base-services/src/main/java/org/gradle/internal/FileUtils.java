@@ -16,16 +16,19 @@
 
 package org.gradle.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
 
     /**
-     * Converts a string into a string that is safe to use as a file name. The result will only include ascii
-     * characters and numbers, and the "-","_", #, $ and "." characters.
+     * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
      */
     public static String toSafeFileName(String name) {
         int size = name.length();
@@ -47,11 +50,49 @@ public class FileUtils {
         return rc.toString();
     }
 
-    public static File assertInWindowsPathLengthLimitation(File file){
-        if(file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT){
+    public static File assertInWindowsPathLengthLimitation(File file) {
+        if (file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT) {
             throw new GradleException(String.format("Cannot create file. '%s' exceeds windows path limitation of %d character.", file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
 
         }
         return file;
     }
+
+    /**
+     * Returns the outer most files that encompass the given files inclusively.
+     * <p>
+     * This method does not access the file system.
+     * It is agnostic to whether a given file object represents a regular file, directory or does not exist.
+     * That is, the term “file” is used in the java.io.File sense, not the regular file sense.
+     *
+     * @param files the site of files to find the encompassing roots of
+     * @return the encompassing roots
+     */
+    public static Collection<? extends File> calculateRoots(Iterable<? extends File> files) {
+        List<File> roots = Lists.newLinkedList();
+
+        files:
+        for (File file : files) {
+            File absoluteFile = file.getAbsoluteFile();
+            String path = absoluteFile + File.separator;
+            Iterator<File> rootsIterator = roots.iterator();
+
+            while (rootsIterator.hasNext()) {
+                File root = rootsIterator.next();
+                String rootPath = root.getPath() + File.separator;
+                if (path.startsWith(rootPath)) { // is lower than root
+                    continue files;
+                }
+
+                if (rootPath.startsWith(path)) { // is higher than root
+                    rootsIterator.remove();
+                }
+            }
+
+            roots.add(absoluteFile);
+        }
+
+        return roots;
+    }
+
 }

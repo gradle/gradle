@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
@@ -44,13 +44,12 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        DslOriginDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
+        DslOriginDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency);
 
-        def dependencyDescriptor = dependencyMetaData.descriptor
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
-        assertFalse(dependencyDescriptor.isChanging());
-        assertFalse(dependencyDescriptor.isForce());
-        assertEquals(IvyUtil.createModuleRevisionId("someGroup", "test", "someVersion"), dependencyDescriptor.getDependencyRevisionId());
+        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
+        assertFalse(dependencyMetaData.isChanging());
+        assertFalse(dependencyMetaData.isForce());
+        assertEquals(DefaultModuleVersionSelector.newSelector("someGroup", "test", "someVersion"), dependencyMetaData.getRequested());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 
@@ -58,6 +57,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         AbstractProject dependencyProject = TestUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
+        dependencyProject.configurations.create(dependencyConfiguration)
         return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true);
     }
 }

@@ -23,9 +23,6 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "managed types can have cyclical managed type references"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Parent {
                 String getName()
@@ -48,7 +45,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+                void addEchoTask(ModelMap<Task> tasks, Parent parent) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $parent.child.parent.name"
@@ -70,9 +67,6 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "managed types can have cyclical managed type references where more than two types constitute the cycle"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface A {
                 String getName()
@@ -100,7 +94,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, A a) {
+                void addEchoTask(ModelMap<Task> tasks, A a) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $a.b.c.a.name"

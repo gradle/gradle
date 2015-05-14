@@ -16,13 +16,13 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.model.ModelMap;
 
 /**
  * A container of software components.
  * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
-public interface ComponentSpecContainer extends ExtensiblePolymorphicDomainObjectContainer<ComponentSpec> {
+public interface ComponentSpecContainer extends ModelMap<ComponentSpec> {
 }

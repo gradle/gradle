@@ -20,15 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 
 public interface DependencySubstitutionsInternal extends DependencySubstitutions {
-    Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule();
+    Action<DependencySubstitution> getDependencySubstitutionRule();
 
     DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule);
 
-    void beforeChange(MutationValidator validator);
+    void setMutationValidator(MutationValidator validator);
 
     DependencySubstitutionsInternal copy();
 }

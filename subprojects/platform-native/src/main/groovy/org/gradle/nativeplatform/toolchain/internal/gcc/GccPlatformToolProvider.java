@@ -132,7 +132,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return baseInvocation;
     }
 
-    @Override
     public String getPCHFileExtension() {
         return ".h.gch";
     }

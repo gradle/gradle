@@ -145,25 +145,6 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         metaData.getConfiguration("conf").dependencies == []
     }
 
-    def "builds and caches artifacts from the module descriptor"() {
-        def artifact1 = artifact("one")
-        def artifact2 = artifact("two")
-
-        given:
-        moduleDescriptor.allArtifacts >> ([artifact1, artifact2] as Artifact[])
-        moduleDescriptor.configurationsNames >> ["conf1"]
-        moduleDescriptor.getArtifacts("conf1") >> ([artifact1, artifact2] as Artifact[])
-
-        when:
-        def artifacts = metaData.artifacts
-
-        then:
-        artifacts*.name.name == ["one", "two"]
-
-        and:
-        metaData.artifacts.is(artifacts)
-    }
-
     Artifact artifact(String name) {
         return Stub(Artifact) {
             getName() >> name
@@ -189,23 +170,9 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
 
         then:
         artifacts*.name.name == ["one", "two"]
-        metaData.artifacts*.name.name == ["one", "two"]
 
         and:
         metaData.getConfiguration("conf").artifacts.is(artifacts)
-    }
-
-    def "can adapt an Ivy artifact to a Gradle artifact"() {
-        def artifact = artifact("one")
-
-        expect:
-        def artifactMetaData = metaData.artifact(artifact)
-        artifactMetaData.componentId == metaData.componentId
-        artifactMetaData.id.componentIdentifier == metaData.componentId
-        artifactMetaData.name.name == "one"
-        artifactMetaData.name.type == "type"
-        artifactMetaData.name.extension == "ext"
-        artifactMetaData.name.classifier == "classifier"
     }
 
     def "artifacts include union of those inherited from other configurations"() {

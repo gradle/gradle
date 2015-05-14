@@ -54,18 +54,18 @@ plugins {
 
 model {
     components {
-        myapp(PlayApplicationSpec) 
+        myapp(PlayApplicationSpec)
     }
 }
 ```
 
 - ~~Running `gradle assemble` builds an empty Jar file.~~
-- ~~Running `gradle components` shows some basic details about the Play application. ~~
+- ~~Running `gradle components` shows some basic details about the Play application.~~
 - In this story, no source files are supported.
 
 #### Test cases
 
-- ~~component report shows PlayApplicationSpec with~~ 
+- ~~component report shows PlayApplicationSpec with~~
 - ~~version info about~~
       - ~~play  (declared in the plugin)~~
       - ~~java  (picked current version for now)~~
@@ -91,7 +91,7 @@ When running `gradle assemble`, a Jar file will be built for the default templat
 - setup RoutesCompiler task type
 - Compile routes to scala and java
 - Compile templates to scala
-- Compile all scala (app/*/*.{scala,java}, output of: conf/routes, output of: app/views/*.scala.html) files
+- Compile all scala (app/\*/\*.{scala,java}, output of: conf/routes, output of: app/views/\*.scala.html) files
 - Output class files are part of assemble jar file
 
 #### Test cases
@@ -108,7 +108,7 @@ Extend the Play support to allow the Play application to be executed.
 - Running `gradle run<ComponentName>` builds and executes the Play application.
 
 At this stage, only the default generated Play application is supported, with a hard-coded version of Scala and Play.
-          
+
 #### Test cases
 
 - verify that play app can be built and executed with play version 2.3.7 and 2.2.3
@@ -188,9 +188,9 @@ model {
 - application script and batch file will successfully run play:
     - can access a public asset
     - can access a custom route
-    
+
 #### Open Issues
-- A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need 
+- A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need
 a scaladoc task wired in to duplicate this functionality.
 
 ## Feature: Developer builds Play application with custom Java, Scala, routes and templates
@@ -361,9 +361,9 @@ model {
 }
 ```
 
-- Default coffeescript sourceset should be "app/assets/**/*.coffee"
+- Default coffeescript sourceset should be "app/assets/\*\*/\*.coffee"
 - Compiled coffeescript files will be added to the jar under "public"
-- Default javascript sourceset should be "app/assets/**/*.js"
+- Default javascript sourceset should be "app/assets/\*\*/\*.js"
 - Processed javascript sourceset should be added to the jar under "public"
 
 #### Test cases
@@ -406,7 +406,7 @@ model {
 #### Test cases
 - Any javascript file in `app/assets` is available in minified form in the app.
 - Any javascript file in a configured JavaScriptSourceSet is available in minified form in the app.
-- Any compiled coffeeScript source file is available in both non-minified and minified javascript forms. 
+- Any compiled coffeeScript source file is available in both non-minified and minified javascript forms.
 - Build is incremental:
     - Minifier is not executed when no source inputs have changed
     - Changed javascript source produces changed minified javasript
@@ -414,6 +414,9 @@ model {
     - Removal of javascript source removes minified javascript
     - Removal of coffeescript source removes both minified and non-minified javascript
 
+### Story: Documentation and release notes for Play support
+
+Before the support for Play framework is fully usable and can be properly 'released' we need to add documentation and release notes.
 
 ## Feature: Developer chooses target Play, Scala and/or Java platform
 
@@ -504,7 +507,234 @@ model {
 
 ### Story: Developer configures dependencies for Play Application
 
+---
+
+---
+
 # Milestone 2
+
+## Feature: Gradle continuous mode
+
+This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change.
+For example, a developer may run `gradle --watch <tasks>`.
+
+When run in continuous mode, Gradle will execute a build and determine any files that are inputs to that build.
+Gradle will then watch for changes to those input files, and re-execute the build when any file changes.
+
+Input files are determined as:
+- Files that are inputs to a task but not outputs of some other task
+- Files that are inputs to the model
+
+So:
+
+- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+  restart the application.
+- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+  Gradle would rerun the tests, rebuild and restart the Play application.
+- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+
+Note that for this feature, the implementation will assume that any source file affects the output of every task listed on the command-line.
+For example, running `gradle --watch test run` would restart the application if a test source file changes.
+
+### ~~Story: Add continuous Gradle mode triggered by timer~~
+
+Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build.
+
+#### Implementation
+
+See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4f386ecc62d75
+
+- Gradle CLI/client process connects to a daemon process as normal.
+- Gradle Daemon knows when we're in "continuous mode" and repeats the last build until cancelled.
+- Gradle CLI waits for the build to finish (as normal).
+- Instead of returning after each build, the daemon goes into a retry loop until cancelled triggered by something.
+- Initial implementation will use a periodic timer to trigger the build.
+- Add new command-line option (`--watch`)
+    - Add a separate Parameters option
+    - Think about how to introduce a new internal replacement for StartParameter
+- Decorator for `InProcessBuildExecutor` changes to understand "continuous mode"
+    - Similar to what the spike did
+    - Build loop delegates to wrapped BuildActionExecuter
+    - After build, executor waits for a trigger from somewhere else
+- On Ctrl+C, Gradle exits and cancels build.
+
+```
+pseudo:
+
+interface TriggerDetails {
+    String reason
+}
+interface TriggerListener {
+    void triggered(TriggerDetails)
+}
+interface Triggerable {
+    TriggerDetails waitForTrigger()
+}
+
+// In run/execute()
+while (not cancelled) {
+    delegateExecuter.execute(...)
+    triggerable.waitForTrigger()
+}
+
+// Triggerable
+def waitForTrigger() {
+    sync(lock) {
+        while(!triggered) {
+            lock.wait()
+        }
+    }
+}
+
+def triggered(TriggerDetails) {
+    sync(lock) {
+        lock.notify()
+    }
+}
+```
+
+#### Test Coverage
+
+- ~~If Gradle build succeeds, we wait for trigger and print some sort of helpful message.~~
+- ~~If Gradle build fails, we still wait for trigger.~~
+- ~~Configuration errors should be treated in the same way as execution failures.~~
+- ~~When "trigger" is tripped, a build runs.~~
+- ~~Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)~~
+- ~~Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.~~
+
+### ~~Story: Continuous Gradle mode triggered by file change~~
+
+Gradle will be able to start, run a set of tasks and then monitor one file for changes without exiting.  When this file is changed, the same set of tasks will be re-run.
+
+#### Implementation
+
+- Watch project directory (`projectDir`) for changes to trigger re-run
+- Add `FileWatchService` that can be given Files to watch
+- When files change, mark the file as out of date
+- Re-run trigger polls the watch service for changes at some default rate ("quiet period")
+- ~~Ignore build/ .gradle/ etc files.~~
+
+#### Test Coverage
+
+- ~~When the project directory files change/are create/are delete, Gradle re-runs using the same set of task selectors.~~
+
+#### Open Issues
+
+N/A
+
+### Story: Continuous Gradle mode triggered by task input changes
+
+After performing a build, Gradle will automatically rerun the same logical build if the file system inputs of any task that was executed change.
+
+#### Implementation
+
+1. A logical description of the input files for each task that is executed is captured during the build
+2. At the end of the build, Gradle will monitor the file system for changes
+3. If any change occurs to a file/directory described by #1, the build will execute again after shutting down all file system listeners
+
+Constraints:
+
+1. There is no way to stop listening for filesystem changes other than use of ctrl-c or similar
+2. Changes that after the task executes, but before the build completes and starts watching the file system, are “ignored” (i.e. do not trigger a rebuild)
+3. Builds are triggered as soon as a change to a relevant file is noticed (i.e. no quiet period)
+4. Continuous mode is not supported by Tooling API (build fails eagerly as unsupported)
+5. Symlinks are treated as regular files and changes “behind” symlinks are not respected
+6. Only explicit file system inputs are respected (i.e. no consideration given to build logic changes)
+7. Changes to `buildSrc` are not respected
+8. Only changes to inputs of task that were executed in the immediately preceding build are respected (`A.dependsOn(B.dependsOn(C))` - if C fails, changes to inputs of `A` and `B` are not respected)
+
+#### Test Coverage
+
+##### General
+
+1. ~~Reasonable feedback when using continuous mode (e.g. incubating message, suitable message at end of build)~~
+1. ~~If build fails before any task executes, build exits and does not enter continuous mode~~
+1. ~~Can trigger rebuild by changing input file to simple task (i.e. basic smoke test)~~
+1. ~~Continuous mode utilises class reuse (e.g. same build script class instance is used for subsequent builds)~~
+1. ~~Change to non source input file of task with empty source does not trigger build~~
+
+##### Simple Java plugin usage scenarios
+
+For a conventional `apply plugin: 'java'` project:
+
+1. ~~Can successfully build in continuous mode when there is no source (i.e. `src/main/java` does not exist)~~
+1. ~~Can successfully build in continuous after source dir `src/main/java` is removed~~
+1. ~~Addition of empty directories to `src/main/java` does not trigger rebuild (i.e. source is defined as `include("**/*.java")`)~~
+1. ~~After compile failure of Java file, correcting file to be compilable triggers a successful build~~
+1. ~~When running `test` in continuous mode:~~
+    1. ~~Change to source file causes execution of tests~~
+    1. ~~Change to test file causes execution of tests~~
+    1. ~~Change to resource file (`src/main/resources`)~~
+1. ~~Change to local filesystem compile dependency triggers rebuild (e.g. `lib/some.jar`, not a repo dependency)~~
+1. ~~Remove of a local filesystem compile dependency triggers rebuild~~
+1. ~~In a multi project, changes to Java source of upstream projects trigger the build of downstream projects~~
+1. ~~Project that utilises external repository dependencies can be built in continuous mode (i.e. exercise dependency management layers)~~
+1. ~~When main source fails to compile, changes to test source does not trigger build~~
+1. ~~Creation of initial source file after initial “empty” build triggers building of jar (i.e. add `/src/main/java/Thing.java`)~~
+1. ~~Addition of a local filesystem compile dependency triggers rebuild (e.g. `dependencies { compile fileTree("lib") }`)~~
+
+##### Verifying constraints
+
+1. ~~Continuous mode can be used successfully on a project with a `buildSrc` directory~~
+2. ~~Attempting to run a continuous mode build from the Tooling API yields an error immediately~~
+
+##### Edge cases
+
+1. ~~Failure to determine file system inputs for tasks yields reasonable error message (e.g. `javaCompile.src(files( { throw new Exception("!") }))`)~~
+1. ~~Task can specify project directory as a task input; changes are respected~~
+1. ~~Task can specify root directory of multi project build as a task input; changes are respected~~
+1. Continuous mode can be used on reasonable size multi project Java build in conjunction with --parallel
+
+#### Broken/@Ignored test cases
+
+1. Can use a symlink as an input file
+1. Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)
+1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
+1. Changes to input zips are respected
+1. Changes to input tars are respected (compressed and uncompressed)
+
+### Story: Continuous build is executed via the Tooling API
+
+This story adds support for executing continuous builds via the Tooling API.
+It does not address continually building/providing tooling models.
+It also does not improve the general capabilities of continuous mode.
+
+#### Test Coverage
+
+- client executes continuous build that succeeds, then responds to input changes and succeeds
+- client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds
+- client executes continuous build that fails, then responds to input changes and succeeds
+- client can cancel during execution of a continuous build
+- client can cancel while a continuous build is waiting for changes
+- client can request continuous mode when building a model, but request is effectively ignored
+- client can receive appropriate logging and progress events for subsequent builds in continuous mode
+- client receives appropriate error if continuous mode attempted on unsupported platform
+- logging does not include message to use `ctrl-c` to exit continuous mode
+
+### Story: Command line user exits continuous build mode without killing the Gradle process
+
+Prior to this story, the only way for a command line user to exit continuous mode is to kill the process.
+This story makes the use of continuous mode more effective by allowing better utilisation of warm Gradle daemons.
+
+`ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
+
+### Backlog & Open Issues
+
+- Performance benchmarking
+- Responding the changes that occur during the build that affect inputs of already executed tasks
+- Responding to changes to build logic implementation:
+    - `buildSrc`
+    - project build scripts
+    - script plugins
+    - dynamic plugin dependencies
+- Responding to changes to “dynamic” dependencies (i.e. in the `dependencies {}` sense)
+- Responding to dynamic inputs to build logic (e.g. properties file read by adhoc user code that externalises build logic)
+- A quiet period should be respected for file system changes (e.g. wait for all copy operations to complete, wait for user to complete source edits)
+- Certain inputs might be known to be immutable (e.g. cached repository dependencies have a checksum in their path and will not change, system header files)
+- Changes to files behind symlinks are not respected
+- Potentially allowing some way to manually trigger a rebuild (e.g. inputs changes before build finished, file system changed was captured - either correctly or incorrectly)
+
+---
 
 ## Feature: Keep running Play application up-to-date when source changes
 
@@ -517,96 +747,224 @@ Note that this story does not address reloading the application when source file
 
 #### Implementation
 
+```gradle
+model {
+    components {
+        play(PlayApplicationSpec) {
+            deployments {
+                dev(PlayDevApplicationDeployment) {
+                    httpPort
+                    forkOptions
+                }
+            }
+        }
+    }
+}
+```
+
+Base deployment plugin:
+
+- Defines the concept of a 'deployable component'
+- Defines the concept of a 'deployment spec' that can be owned by a deployable component
+- Defines the concept of a 'deployable binary' that that represents a binary that can be deployed
+- Defines `run` lifecycle task for a deployment.
+
+
+    interface DeployableComponentSpec extends ComponentSpec {
+        void deployments(Action<? super PolymorphicDomainObjectContainer<DeploymentSpec>)
+    }
+
+    interface DeployableBinary extends BinarySpec
+
+    interface DeploymentSpec extends Named
+
+    interface Executable {
+        void start()
+        void stop()
+    }
+
+    interface DeploymentExecutable extends Executable {
+        void deploy(DeployableBinary binary)
+    }
+
+    interface DeploymentResolver<T extends DeploymentExecutable> {
+        T resolve(DeploymentSpec requirement)
+        Class<T> getType()
+    }
+
+    interface DeploymentResolvers {
+        void register(DeploymentResolver<? extends DeploymentExecutable> resolver)
+        <T extends DeploymentExecutable> T resolve(Class<T> type, DeploymentSpec requirement)
+    }
+
 Web application plugin:
 
-- Defines the concept of a 'web application'.
-- Defines the concept of a 'web server' that can host a web application.
-- Defines the concept of a 'web deployment': a web application hosted by a web server
-- Defines `run` lifecycle task for a deployment
+- Defines the concept of a 'web deployment spec': an application hosted by a web server.
+
+
+    interface WebDeploymentSpec {
+        String getHost()
+        String getPort()
+        String getProtocol()
+    }
 
 Play plugin:
 
-- Defines a Play application as-a web application
-- Provides a Play server implementation that can host a Play application.
+- Defines a Play deployment spec
+- Adds a 'dev' PlayDeploymentSpec automatically for each play component.
+- registers a deployment resolver for a play application runner
+- Defines a ${binary}${deployment}Run task for each deployment/binary.  Each task will get the deployment spec and the associated binary.
+- When a run task is executed, it will resolve the deployment executable via DeploymentResolvers to get a PlayApplicationRunner.  Then it will deploy the binary and start the executable.
+- Configures `run` to depend on ${binary}${deployment}Run and ${binary}${deployment}Run to depend on the play application binary.
 
-When the `run` task is executed for a deployment, Gradle will:
 
-- Build the web application
-- Start the web server
-- Deploy the web application to the web server
+    interface PlayDeploymentSpec extends WebDeploymentSpec {
+        PlayPlatform platform
+    }
+
+    interface PlayApplicationSpec extends PlatformAwareComponentSpec, DeployableComponentSpec
+
+    interface PlayApplicationBinarySpec extends DeployableBinary
+
+    interface PlayApplicationRunner extends DeploymentExecutable
+
+    class PlayDeploymentResolver implements DeploymentResolver<PlayApplicationRunner>
+
+(The following are included for comparison)
+War plugin:
+
+    interface WarDeploymentSpec extends WebDeploymentSpec {
+        String jeeVersion
+    }
+
+    interface WarComponentSpec extends DeployableComponentSpec
+
+    interface WarBinarySpec extends DeployableBinary {
+        File getWarFile()
+    }
+
+    interface JeeWarContainer extends DeploymentExecutable
+
+Jetty plugin:
+- Defines the concept of a JettyDeploymentRequirement that specifies the Jee and Jetty versions
+- Defines the concept of a WarApplicationDeployment that specifies a war file to be deployed.
+- registers a deployment resolver for a JettyContainer
+
+    interface JettyDeploymentSpec extends WarDeploymentSpec {
+        String jettyVersion
+    }
+
+    class JettyContainer implements JeeWarContainer
+
+    class JettyDeploymentResolver implements DeploymentResolver<JeeWarContainer>
+
+Component Model Report might look like this:
+
+    project (aka 'model')
+    +-- components
+    |   +-- <component-name>
+    |       +-- deployments
+    |           +-- <deployment-name>
+    |               +-- configuration (port, etc)
+    |               +-- tasks
+    |                   +-- start
+    |                   +-- run
+    |                   +-- stop
+
+#### Test Coverage
+
+- When play plugin is applied, a deployment is created for each play component (named 'dev').
+- When play plugin is applied, a Run task is created for each deployment
+    - 'run' lifecycle task depends on each Run task
+    - Run task depends on Play application output
+- Component report shows deployments for components and tasks for start/stop/run
+- Jetty plugin should be made to take advantage of this to make the integration tests faster
+- User can configure deployments for each component
+
+#### Open issues
+
+- Modelling for deployment hosts -- this story focuses on getting some concepts in place for recreating the existing PlayRun task.
+- Keeping track of 'long-lived processes' between Gradle builds in 'continuous mode' and at end of builds.
 - Add the running deployment to the container of 'running deployments' for the build
 
-At the end of the build, Gradle will check to see if there are any running deployments. If so, it will wait for Ctrl-C before stopping
-each deployment and exiting. This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
+### Story: Gradle build stops any running deployments on exit
 
-### Story: Developer triggers play application stop/rebuild/start by console input
+At the end of the build, Gradle will check to see if there are any running deployments.
+If so, it will wait for Ctrl+C before stopping each deployment and exiting.
+This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
 
-This story starts to add support for making Play applications reloadable. By adding a simple manual trigger for reloading
-the app, this story concentrates on adding the lifecycle required for rebuilding and restarting a Play application
-within a single Gradle invocation.
+When run in continuous mode, all running deployments should be stopped before re-executing the build.  This is a half-way measure until we can have reloadable applications.
+
+#### Test Coverage
+
+- Print useful messages to the user and that tells them what's running
+    - PID, Component Name/Deployment Name, type-specific description
+    - Tell the user how to stop
+- Tooling API coverage for clean-up of deployments
+- Tooling API coverage for a running deployment (what does this look like, a hung build?)
+
+### Story: Gradle does not restart reloadable deployments when re-executing a build in continuous mode
+
+Integrate deployments with continuous mode, so that if a build completes with a running deployment then that
+deployment is not stopped and restarted when the build re-executes due to input file change.
+
+This should only apply for deployments that indicate that they are 'reloadable'. For now, the Play application
+deployment implementation will not be reloadable.
+
+#### Open Issues
+
+- New reloadable Jetty plugin that will reload changed content when run in continuous mode
+
+### Story: Domain model for web hosts
+
+- For play, this isn’t super important. The host and deployment are bolted pretty tightly together. What we do have is at this point is:
+    - A web application deployment is a running application usable at an endpoint.
+    - For a play application deployment (which is-a web application) the play server is-an executable thing that provides the deployment. See the ‘managed component model’ spec for other kinds of executable things. The play container can be started/stopped/restarted and this implicitly starts/stops/restarts the deployment. This is just one of several patterns, and isn’t true of all deployments or all hosts.
+- For jee + jetty:
+    - Jetty is an executable thing that can host jee web apps. For each such hosted web app, Jetty provides a web app deployment.
+    - A jee web app has a bunch of deployments defined, that define where (the endpoint) but not how (use Jetty).
+    - A resolution process takes the deployment definitions and wires up Jetty appropriately.
+
+### Story: Play application reloads content on browser refresh
+
+Using a BuildLink implementation, allow the Play application deployment to be 'reloadable', and to automatically
+reload the content on browser refresh.
+
+At this stage, the build will be re-executed whenever an input file changes, not only when requested by
+the BuildLink API.
 
 #### Implementation
 
-After the `run` task has been executed for a deployment, Gradle will wait for any input. On input (other than Ctrl-C):
+Look at existing PlayRun.  Should re-use WorkerProcess infrastructure.
 
-- Stop the deployment
-    - Undeploy the web application from the web server
-    - Stop the web server
-- Execute the `run` task again, waiting for user input.
-
-### Story: Developer triggers play application rebuild/reload by console input
-
-To ensure performant reloading of the running Play application, this story retains much of the running Play container infrastructure
-when a Play application is reloaded. Instead of restarting the Play application server, we should only need to replace the
-ClassLoader containing the application classes once the App is rebuilt.
-
-#### Implementation
+- Receive events when the build is re-executed, including build failures
 
 The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
-to supply the modified application ClassLoader to the Play web server. 
-
-- Add an optional `reload` operation to web deployment, in addition to `start` and `stop`
-- When a deployment supports reload, and an application reload is triggered
-    - Execute the `run` task again, leaving the deployment (and web server) running
-    - When the application is rebuilt, the run task will check if the deployment is already running
-        - If yes, and the deployment supports reload, ask the deployment to reload
-- Play app deployment implements reload by providing a `BuildLink` implementation that allows Gradle to replace the
-  Application ClassLoader. 
-    - When the deployment is reloaded, the app is rebuilt and the ClassLoader replaced.
-    - First subsequent response to `BuildLink.reload` should provide the updated ClassLoader. All other responses are `false`.
-
-### Story: Play application reload is skipped when all inputs are up-to-date
-
-This story improves the reload behaviour of a running Play application, by avoiding any sort of rebuild or reload when none of
-the input files have changed for the application. Gradle will track all of the inputs that are used to build the Application,
-and monitor changes to these files for the life of the PlayRun task (or longer).
-
-- When the Play application is built for running, Gradle asks the daemon to watch files that are inputs to a task but not outputs of some other task.
-- When the Play application is reloaded, Gradle asks the daemon if any of those files have changed since the previous build
-    - If not, no reload is required
-    
-- Not included in this story (but to do later):
-    - Monitor files that are inputs to the model for changes too.
-    - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-
-### Story: Developer triggers play application reload by browser refresh
-
-This story finishes the equivalent functionality of the Play `run` command, 
-where a build is triggered by the developer reloading the application in the browser.
-
-#### Implementation
-
-The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
-to inform Gradle when the application needs to be reloaded. 
+to inform Gradle when the application needs to be reloaded.
 See [Play's BuildLink.java](https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/core/BuildLink.java)
-for good documentation about interfacing between Play and the build system. 
-Gradle will implement the `BuildLink` interface and provide it to the application hosting NettyServer. 
+for good documentation about interfacing between Play and the build system.
+Gradle will implement the `BuildLink` interface and provide it to the application hosting NettyServer.
 When a new request comes in, the Play application will call `BuildLink.reload` and Gradle return a new ClassLoader containing the rebuilt application to Play.
 If the application is up-to-date, `BuildLink.reload` can return `false`.
 
-See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
-and [PlayReloader](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayReloader.scala) for
-the SBT implementation of this logic, which may be a helpful guide.
+See the SBT implementation of this logic, which may be a helpful guide:
+
+Play 2.2.x implementation:
+See
+[PlayRun](https://github.com/playframework/playframework/blob/2.2.x/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
+and [PlayReloader](https://github.com/playframework/playframework/blob/2.2.x/framework/src/sbt-plugin/src/main/scala/PlayReloader.scala)
+
+Play master branch implementation:
+See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/play/sbt/run/PlayRun.scala),
+[PlayReload](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/play/sbt/run/PlayReload.scala) and
+[Reloader](https://github.com/playframework/playframework/blob/master/framework/src/run-support/src/main/scala/play/runsupport/Reloader.scala)
+
+### Story: Play application triggers rebuild on browser refresh
+
+Instead of rebuilding the Play application on every source file change, the application should be rebuilt only if
+and input file has changed AND the BuildLink API requests a reload.
+
+??? Not sure if this will be required.
 
 ## Feature: Developer views compile and other build failures in Play application
 
@@ -620,7 +978,7 @@ Adapt compilation failures so that the failure and content of the failing file i
 
 ### Story: Developer views Asset compilation failures in Play application
 
-Failures in CoffeeScript compilation are rendered with content of the failing file. 
+Failures in CoffeeScript compilation are rendered with content of the failing file.
 This mechanism will be generally applicable to custom asset compilation tasks.
 
 ### Story: Developer views build failure stack trace in Play application
@@ -646,35 +1004,6 @@ Reuse the compiler daemon across builds to keep the Scala compiler warmed up. Th
 - Daemons expire some time after build, with much shorter expiry than the build daemon.
 - Reuse infrastructure from build daemon.
 
-## Feature: Gradle watch mode
-
-This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. 
-For example, a developer may run `gradle --watch <tasks>`.
-
-- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
-- Monitor files that are inputs to the model for changes too.
-- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-
-So:
-
-- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
-  restart the application.
-- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
-  Gradle would rerun the tests, rebuild and restart the Play application.
-- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
-
-Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
-For example, running `gradle --watch test run` would restart the application if a test source file changes.
-
-### Implementation
-
-- Uses Gradle daemon to run build.
-- Collect up all input files as build runs.
-- Monitor changes to these input files. On change:
-    - If previous build started any service, stop that service.
-    - Trigger build.
-- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
 # Later milestones
 
@@ -689,7 +1018,7 @@ buildscript {
     }
 }
 ```
- 
+
 This should point to a virtual repository (play-public) at gradle.repo.org that's backed by the default repositories required for play functionality.
 Currently the following repositories would be required:
 - https://repo.typesafe.com/typesafe/maven-releases (play support)

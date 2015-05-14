@@ -73,24 +73,24 @@ public class MavenResolver extends ExternalResourceResolver {
         return root;
     }
 
-    protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
                 MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
-                resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(snapshotIdentifier, prescribedMetaData, result, uniqueSnapshotVersion);
                 return;
             }
         } else {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
             if (uniqueSnapshotVersion != null) {
                 MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
-                resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(snapshotIdentifier, prescribedMetaData, result, uniqueSnapshotVersion);
                 return;
             }
         }
 
-        resolveStaticDependency(dependency, moduleComponentIdentifier, result, super.createArtifactResolver());
+        resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
     }
 
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
@@ -104,8 +104,8 @@ public class MavenResolver extends ExternalResourceResolver {
         return metaData;
     }
 
-    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, MavenUniqueSnapshotComponentIdentifier module, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
-        resolveStaticDependency(dependency, module, result, createArtifactResolver(snapshotSource));
+    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+        resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             result.getMetaData().setSource(snapshotSource);
         }
@@ -191,8 +191,8 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     @Override
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return processMetaData(new DefaultMavenModuleResolveMetaData(dependency));
+    protected MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
+        return processMetaData(new DefaultMavenModuleResolveMetaData(moduleComponentIdentifier, artifacts));
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
@@ -218,7 +218,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleComponentArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
@@ -238,7 +238,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             MavenModuleResolveMetaData mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
                 Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();

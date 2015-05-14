@@ -63,7 +63,7 @@ public class FileSystemServices {
     private Object newInstance(String jdk7Type, Class<?> fallbackType) {
         // Use java 7 APIs, if available
         Class<?> handlerClass = null;
-        if (JavaVersion.current().isJava7()) {
+        if (JavaVersion.current().isJava7Compatible()) {
             try {
                 handlerClass = FileSystemServices.class.getClassLoader().loadClass(jdk7Type);
                 LOGGER.debug("Using JDK 7 file service {}", jdk7Type);

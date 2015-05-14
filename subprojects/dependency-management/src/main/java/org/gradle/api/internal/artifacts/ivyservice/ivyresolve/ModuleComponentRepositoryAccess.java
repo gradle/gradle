@@ -26,6 +26,11 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 /**
  * Provides access to a repository of components that are identified by a ModuleComponentIdentifier.
+ *
+ * The plan is to eventually sync this with
+ * {@link org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver},
+ * {@link org.gradle.internal.resolve.resolver.ComponentMetaDataResolver} and
+ * {@link org.gradle.internal.resolve.resolver.ArtifactResolver}.
  */
 public interface ModuleComponentRepositoryAccess {
     /**
@@ -36,7 +41,7 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves the metadata for a module component.
      */
-    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result);
+    void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.

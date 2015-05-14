@@ -23,9 +23,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a composite managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -70,7 +67,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform"
@@ -98,9 +95,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can apply defaults to a nested managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -133,7 +127,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform.operatingSystem.name"
@@ -155,9 +149,6 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a managed model element that references another managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -203,7 +194,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
                             println "platform: $platform"

@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
-    private ProjectInternal dependencyProject;
+    private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
@@ -154,6 +154,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 + getConfiguration() + '\'' + '}';
     }
 
+    // TODO:DAZ We're now processing task dependencies for Project Dependency in 2 ways: as a SelfResolvingDependency and during resolution
+    // Probably don't need to do anything here...
     private class TaskDependencyImpl extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
             if (!buildProjectDependencies) {
@@ -162,7 +164,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
 
             Configuration configuration = getProjectConfiguration();
-            context.add(configuration);
+            context.add(configuration.getAllDependencies());
             context.add(configuration.getAllArtifacts());
         }
     }

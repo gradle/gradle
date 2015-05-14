@@ -43,4 +43,15 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
             }
         });
     }
+
+    public void resolveArtifacts(final ConfigurationInternal configuration,
+                                   final List<? extends ResolutionAwareRepository> repositories,
+                                   final GlobalDependencyResolutionRules metadataHandler,
+                                   final ResolverResults results) throws ResolveException {
+        lockingManager.useCache(String.format("resolve %s", configuration), new Runnable() {
+            public void run() {
+                resolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
+            }
+        });
+    }
 }

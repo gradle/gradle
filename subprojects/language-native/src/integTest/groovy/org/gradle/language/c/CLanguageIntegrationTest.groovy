@@ -49,7 +49,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     def "can manually define C source sets"() {
         given:
-        helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
+        helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
 
         file("src/main/c/main.c") << helloWorldApp.mainSource.content
         file("src/main/c2/hello.c") << helloWorldApp.librarySources[0].content

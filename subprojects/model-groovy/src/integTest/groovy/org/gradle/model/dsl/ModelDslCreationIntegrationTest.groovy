@@ -30,8 +30,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can create elements"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             @Managed
             interface Thing {
                 String getName()
@@ -63,8 +61,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can create elements without mutating"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             @Managed
             interface Thing {
                 String getName()
@@ -91,8 +87,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     def "cannot create non managed types"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             interface Thing {
                 String getName()
                 void setName(String name)

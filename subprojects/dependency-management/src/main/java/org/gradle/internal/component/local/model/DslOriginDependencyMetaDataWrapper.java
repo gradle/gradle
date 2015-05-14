@@ -16,12 +16,16 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMetaData {
@@ -41,8 +45,22 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
         return delegate.getRequested();
     }
 
-    public DependencyDescriptor getDescriptor() {
-        return delegate.getDescriptor();
+    @Override
+    public String[] getModuleConfigurations() {
+        return delegate.getModuleConfigurations();
+    }
+
+    @Override
+    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
+        return delegate.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
+    }
+
+    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
+        return delegate.getExcludeRules(configurations);
+    }
+
+    public String getDynamicConstraintVersion() {
+        return delegate.getDynamicConstraintVersion();
     }
 
     public boolean isChanging() {
@@ -51,6 +69,10 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
 
     public boolean isTransitive() {
         return delegate.isTransitive();
+    }
+
+    public boolean isForce() {
+        return delegate.isForce();
     }
 
     public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {

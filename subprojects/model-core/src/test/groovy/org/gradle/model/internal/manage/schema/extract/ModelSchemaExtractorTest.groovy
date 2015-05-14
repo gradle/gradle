@@ -18,8 +18,10 @@ package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
+import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
+import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
@@ -784,6 +786,17 @@ $type
         expect:
         fail ProtectedAndPrivateNonAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
         fail ProtectedAndPrivateNonAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+    }
+
+    interface SomeMap extends ModelMap<List<String>> {
+    }
+
+    def "specialized map"() {
+        expect:
+        def schema = extract(SomeMap)
+        schema instanceof ModelMapSchema
+        schema.elementType == new ModelType<List<String>>() {}
+        schema.managedImpl
     }
 
     private void fail(extractType, errorType, String msgPattern) {

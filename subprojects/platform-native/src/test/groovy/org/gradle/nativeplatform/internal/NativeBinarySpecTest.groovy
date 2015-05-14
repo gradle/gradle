@@ -23,6 +23,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
@@ -35,8 +36,6 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
-
-import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
@@ -65,7 +64,7 @@ class NativeBinarySpecTest extends Specification {
         def binary = testBinary(component)
 
         then:
-        binary.source.contains(sourceSet)
+        binary.source.containsValue(sourceSet)
     }
 
     def "binary uses all source sets from a functional source set"() {
@@ -87,8 +86,8 @@ class NativeBinarySpecTest extends Specification {
         binary.source functionalSourceSet
 
         then:
-        binary.source.contains(sourceSet1)
-        binary.source.contains(sourceSet2)
+        binary.source.containsValue(sourceSet1)
+        binary.source.containsValue(sourceSet2)
     }
 
     def "uses resolver to resolve lib to dependency"() {
@@ -187,7 +186,8 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor, Mock(ITaskFactory))
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1,
+                Stub(PlatformToolProvider), platform1, buildType1, flavor)
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {

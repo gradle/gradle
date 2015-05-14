@@ -64,9 +64,6 @@ model {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        import org.gradle.model.*
-        import org.gradle.model.collection.*
-
         interface SampleComponent extends ComponentSpec {}
         class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 
@@ -78,7 +75,7 @@ model {
             }
 
             @Mutate
-            void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+            void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                 componentSpecs.create("main")
             }
         }
@@ -105,7 +102,7 @@ DefaultSampleComponent 'main'
 
 Source sets
     DefaultCustomLanguageSourceSet 'main:custom'
-        src${File.separator}main${File.separator}custom
+        srcDir: src${File.separator}main${File.separator}custom
 """))
     }
 

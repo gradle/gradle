@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ProjectDependencySubstitution;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 
-public interface ProjectDependencySubstitutionInternal extends ProjectDependencySubstitution, DependencySubstitutionInternal<ProjectComponentSelector> {
+public interface ProjectDependencySubstitutionInternal extends ProjectDependencySubstitution, DependencySubstitutionInternal {
 }

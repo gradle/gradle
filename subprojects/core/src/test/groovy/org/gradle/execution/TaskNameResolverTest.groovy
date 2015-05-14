@@ -20,11 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.DefaultCollectionBuilder
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.NamedEntityInstantiator
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
 
@@ -53,7 +49,7 @@ class TaskNameResolverTest extends Specification {
 
     def "eagerly locates task with given name for single project"() {
         when:
-        tasks(registry) { it.create("task")}
+        tasks(registry) { it.create("task") }
         def candidates = resolver.selectWithName('task', project, false)
 
         then:
@@ -263,11 +259,12 @@ class TaskNameResolverTest extends Specification {
         Stub(TaskInternal) { TaskInternal task ->
             _ * task.getName() >> name
             _ * task.getDescription() >> description
+            _ * task.configure(_) >> { task.with(it[0]); task }
         }
     }
 
-    def tasks(ModelRegistryHelper registry, Action<? super CollectionBuilder<TaskInternal>> action) {
-        registry.mutateCollection("tasks", TaskInternal, action)
+    def tasks(ModelRegistryHelper registry, Action<? super ModelMap<TaskInternal>> action) {
+        registry.mutateModelMap("tasks", TaskInternal, action)
     }
 
     Set<Task> asTasks(TaskSelectionResult taskSelectionResult) {
@@ -277,11 +274,10 @@ class TaskNameResolverTest extends Specification {
     }
 
     private ModelRegistryHelper createTasksCollection(ModelRegistryHelper registry, String description) {
-        def iType = DefaultCollectionBuilder.instantiatorTypeOf(TaskInternal)
-        def iRef = ModelReference.of("instantiator", iType)
-
-        registry
-                .create(ModelCreators.bridgedInstance(iRef, { name, type -> task(name, description) } as NamedEntityInstantiator).build())
-                .collection("tasks", TaskInternal, iRef)
+        registry.modelMap("tasks", TaskInternal) {
+            it.registerFactory(TaskInternal) {
+                task(it, description)
+            }
+        }
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.language.base.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -28,7 +28,7 @@ import java.util.Set;
 public class LanguageSourceSetContainer {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private FunctionalSourceSet mainSources;
-    private Set<LanguageSourceSet> additionalSources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private DefaultDomainObjectSet<LanguageSourceSet> additionalSources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     public void setMainSources(FunctionalSourceSet mainSources) {
         this.mainSources = mainSources;
@@ -43,9 +43,8 @@ public class LanguageSourceSetContainer {
     }
 
     public DomainObjectSet<LanguageSourceSet> getSources() {
-        Set<LanguageSourceSet> all = Sets.newLinkedHashSet();
-        all.addAll(mainSources);
-        all.addAll(additionalSources);
-        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, all);
+        @SuppressWarnings("unchecked")
+        DomainObjectSet<LanguageSourceSet> sources = CompositeDomainObjectSet.create(LanguageSourceSet.class, mainSources, additionalSources);
+        return sources;
     }
 }

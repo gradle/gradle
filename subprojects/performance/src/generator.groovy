@@ -229,6 +229,10 @@ class ProjectGeneratorTask extends DefaultTask {
                 }
             }
             if (nativeProject) {
+                args.moduleCount.times { m ->
+                    Map classArgs = args + [componentName: "lib${m + 1}"]
+                    generate("src/${classArgs.componentName}/headers/pch.h", 'pch.h', classArgs)
+                }
                 testProject.sourceFiles.times { s ->
                     args.moduleCount.times { m ->
                         Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]

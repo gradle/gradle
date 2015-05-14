@@ -16,56 +16,57 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 /**
  * A binding of a reference to an actual model element.
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
- * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
-@ThreadSafe
-class ModelBinding<T> {
+abstract class ModelBinding {
 
-    private final ModelNodeInternal node;
-    private final ModelReference<T> reference;
+    final ModelReference<?> reference;
+    final ModelRuleDescriptor referrer;
+    final boolean writable;
+    protected ModelNodeInternal boundTo;
 
-    private ModelBinding(ModelReference<T> reference, ModelNodeInternal node) {
-        this.node = node;
+    protected ModelBinding(ModelRuleDescriptor referrer, ModelReference<?> reference, boolean writable) {
         this.reference = reference;
+        this.referrer = referrer;
+        this.writable = writable;
     }
 
-    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelNodeInternal modelNode) {
-        return new ModelBinding<T>(reference, modelNode);
-    }
-
-    public ModelReference<T> getReference() {
+    public ModelReference<?> getReference() {
         return reference;
     }
 
+    public boolean isBound() {
+        return boundTo != null;
+    }
+
     public ModelNodeInternal getNode() {
-        return node;
+        if (boundTo == null) {
+            throw new IllegalStateException("Target node has not been bound.");
+        }
+        return boundTo;
+    }
+
+    boolean isTypeCompatible(ModelPromise promise) {
+        return promise.canBeViewedAsWritable(reference.getType()) || promise.canBeViewedAsReadOnly(reference.getType());
     }
 
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", node=" + node + '}';
+        return "ModelBinding{reference=" + reference + ", node=" + boundTo + '}';
     }
 
-    public static class GetPath implements Function<ModelBinding<?>, ModelPath> {
+    public abstract void onCreate(ModelNodeInternal node);
 
-        public static final Function<ModelBinding<?>, ModelPath> INSTANCE = new GetPath();
-
-        private GetPath() {
-        }
-
-        @Nullable
-        public ModelPath apply(ModelBinding<?> input) {
-            return input.getNode().getPath();
+    public void onRemove(ModelNodeInternal node) {
+        if (node == boundTo) {
+            boundTo = null;
         }
     }
 }

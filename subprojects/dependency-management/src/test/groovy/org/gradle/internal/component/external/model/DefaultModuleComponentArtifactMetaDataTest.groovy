@@ -15,8 +15,9 @@
  */
 
 package org.gradle.internal.component.external.model
-import org.apache.ivy.core.module.descriptor.Artifact
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 class DefaultModuleComponentArtifactMetaDataTest extends Specification {
@@ -49,23 +50,7 @@ class DefaultModuleComponentArtifactMetaDataTest extends Specification {
         noExtension.name.classifier == null
     }
 
-    def "converts to Ivy artifact"() {
-        expect:
-        def original = ivyArtifact("name", "type", "ext", ['classifier': 'classifier'])
-        def artifact = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), original)
-        def ivyArtifact = artifact.toIvyArtifact()
-        ivyArtifact.name == "name"
-        ivyArtifact.type == "type"
-        ivyArtifact.ext == "ext"
-        ivyArtifact.extraAttributes == [classifier: "classifier"]
-    }
-
     def ivyArtifact(String name, String type, String extension, Map attributes) {
-        def artifact = Mock(Artifact)
-        _ * artifact.name >> name
-        _ * artifact.type >> type
-        _ * artifact.ext >> extension
-        _ * artifact.extraAttributes >> attributes
-        return artifact
+        new DefaultIvyArtifactName(name, type, extension, attributes)
     }
 }

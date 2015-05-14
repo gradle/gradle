@@ -17,9 +17,12 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public interface ClassDirectoryBinarySpecInternal extends ClassDirectoryBinarySpec, BinarySpecInternal {
     BinaryNamingScheme getNamingScheme();
+
+    void addSourceSet(LanguageSourceSet sourceSet);
 }

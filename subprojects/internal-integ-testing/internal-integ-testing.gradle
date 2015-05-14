@@ -37,6 +37,7 @@ task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
     versions = releasedVersions.allVersions
     mostRecent = releasedVersions.mostRecentFinalRelease
+    mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: prepareVersionsInfo
@@ -45,10 +46,12 @@ class PrepareVersionsInfo extends DefaultTask {
     @OutputFile File destFile
     @Input String mostRecent
     @Input List<String> versions
+    @Input String mostRecentSnapshot
 
     @TaskAction void prepareVersions() {
         def properties = new Properties()
         properties.mostRecent = mostRecent
+        properties.mostRecentSnapshot = mostRecentSnapshot
         properties.versions = versions.join(' ')
         destFile.withOutputStream {
             properties.store(it, "")

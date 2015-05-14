@@ -38,8 +38,12 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, ListenerManager listenerManager, DaemonGreeter daemonGreeter) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, listenerManager.getBroadcaster(DaemonStartListener.class));
+    JvmVersionValidator createJvmVersionValidator() {
+        return new JvmVersionValidator();
+    }
+
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, ListenerManager listenerManager, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, listenerManager.getBroadcaster(DaemonStartListener.class), jvmVersionValidator);
     }
 
     DaemonGreeter createDaemonGreeter(DocumentationRegistry documentationRegistry) {

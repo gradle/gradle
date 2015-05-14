@@ -20,9 +20,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
-import org.gradle.model.collection.CollectionBuilder
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
@@ -133,7 +133,7 @@ class PluginBuilder {
 
             class $className extends $RuleSource.name {
                 @$Mutate.name
-                void addTask($CollectionBuilder.name<$Task.name> tasks) {
+                void addTask($ModelMap.name<$Task.name> tasks) {
                     tasks.create("fromModelRule") {
                         it.doLast {
                             println "Model rule provided task executed"

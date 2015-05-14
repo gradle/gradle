@@ -23,8 +23,6 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
     def "invalid model name produces error message"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model(" ")
@@ -49,8 +47,6 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
     def "model name can be at nested path"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Model("foo. bar")

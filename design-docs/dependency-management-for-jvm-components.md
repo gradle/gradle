@@ -1,225 +1,58 @@
-## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
-### Story: Legacy JVM language plugins declare a jvm library
+This spec outlines work required to introduce dependency management for JVM based components.
 
-- Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
-- Expose all native and jvm components through `project.components`.
-- Don't need to support publishing yet. Attaching one of these components to a publication can result in a 'this isn't supported yet' exception.
-- The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
+# Approach
 
-```
-apply plugin: 'java'
+The goal is to support dependency graphs made up of components built from Java source, that depend on other components
+which present some Java API.
 
-// The library is visible
-assert jvm.libraries.main instanceof LegacyJvmLibrary
-assert libraries.size() == 1
-assert components.size() == 1
+Specifically the following components that consume some other library:
 
-// The binary is visible
-assert binaries.withType(ClassDirectoryBinary).size() == 1
-assert binaries.withType(JarBinary).size() == 1
-```
+- Java library
+- Custom library or application built from Java
 
-#### Test cases
+And the following producers:
 
-- JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
-- Web application with name `war` is defined when `war` plugin is applied.
-- Can build legacy jvm library jar using standard lifecycle task
-- Can mix legacy and new jvm libraries in the same project.
+- Java library
+- Custom library that provides a Java API
 
-#### Open issues
+An example:
 
-- Expose through the DSL, or just through the APIs?
-- Change `gradle dependencyInsight` to use the JVM library component to decide the default dependencies to report on.
+<img src="img/jvm_dependency_management.png"/>
 
-### Story: Build author declares a dependency on another Java library
+External components are out of scope for this work.
 
-For example:
+The work can be broken down into:
 
-    apply plugin: 'jvm-component'
+1. An initial DSL to declare the dependencies of a Java source set owned by a Java library.
+2. A basic implementation to honour these dependencies at compile time. Only for local Java libraries that consume other Java libraries.
+3. Allow a custom component to be built from Java source with dependencies. Only consume local Java libraries.
+4. Allow a custom component to provide a Java API. Can consume from Java libraries and custom components.
+5. Support multiple variants of a Java library or custom component.
 
-    jvm {
-        libraries {
-            myLib {
-                dependencies {
-                    project 'other-project' // Infer the target library
-                    project 'other-project' library 'my-lib'
-                }
-            }
-        }
-    }
+Later work:
 
-When the project attribute refers to a project with a component plugin applied:
+1. Declare the API dependencies of a Java library.
+2. Support for runtime dependencies.
+3. TBD - reporting, etc.
 
-- Select the target library from the libraries of the project. Assert that there is exactly one matching JVM library.
-- At compile time, include the library's jar binary only.
-- At runtime time, include the library's jar binary and runtime dependencies.
+# Feature: Build author declares dependencies of Java library
 
-When the project attribute refers to a project without a component plugin applied:
+This feature adds support for compile time dependencies between Java libraries.
 
-- At compile and runtime, include the artifacts and dependencies from the `default` configuration.
+## Story: Build author declares required libraries of Java source set
 
-#### Open issues
+Add a basic DSL to declare the required libraries of a Java source set:
 
-- Should be able to depend on a library in the same project.
-- Need an API to query the various classpaths.
-- Need to be able to configure the resolution strategy for each usage.
-
-## Feature: Build author declares that a Java library depends on an external Java library
-
-For example:
-
-    apply plugin: 'jvm-component'
-
-    jvm {
-        libraries {
-            myLib {
-                dependencies {
-                    library "myorg:mylib:2.3"
-                }
-            }
-        }
-    }
-
-This makes the jar of `myorg:mylib:2.3` and its dependencies available at both compile time and runtime.
-
-### Open issues
-
-- Using `library "some:thing:1.2"` will conflict with a dependency `library "someLib"` on a library declared in the same project.
-Could potentially just assert that component names do not contain ':' (should do this anyway).
-
-## Feature: Build author declares that legacy Java project depends on a Java library produced by another project
-
-For example:
-
-    apply plugin: 'java'
-
-    dependencies {
-        compile project: 'other-project'
-    }
-
-When the project attribute refers to a project with a component plugin applied:
-
-- Select the target library from the libraries of the project. Assert that there is exactly one JVM library.
-- At compile time, include the library's jar binary only.
-- At runtime time, include the library's jar binary and runtime dependencies.
-
-### Open issues
-
-- Allow `library` attribute?
-
-## Feature: Build user views the dependencies for the Java libraries of a project
-
-The dependency reports show the dependencies of the Java libraries of a project:
-
-- `dependencies` task
-- `dependencyInsight` task
-- HTML report
-
-## Feature: Build author declares that a native component depends on a native library
-
-Add the ability to declare dependencies directly on a native component, using a similar DSL as for Java libraries:
-
-    apply plugin: 'cpp'
-
-    libraries {
-        myLib {
-            dependencies {
-                project 'other-project'
-                library 'my-prebuilt'
-                library 'local-lib' linkage 'api'
-            }
-        }
-    }
-
-Also reuse the dependency DSL at the source set level:
-
-    apply plugin: 'cpp'
-
-    libraries {
-        myLib
-    }
-
-    sources {
-        myLib {
-            java {
-                dependencies {
-                    project 'other-project'
-                    library 'my-lib' linkage 'api'
-                }
-            }
-        }
-    }
-
-## Feature: Build author declares that the API of a Java library requires some Java library
-
-For example:
-
-    apply plugin: 'new-java'
-
-    libraries {
-        myLib {
-            dependencies {
-                api {
-                    project 'other-project' library 'other-lib'
-                }
-            }
-        }
-    }
-
-This makes the API of the library 'other-lib' available at compile time, and the runtime artifacts and dependencies of 'other-lib' available at
-runtime.
-
-It also exposes the API of the library 'other-lib' as part of the API for 'myLib', so that it is visible at compile time for any other component that
-depends on 'myLib'.
-
-The default API of a Java library is its Jar file and no dependencies.
-
-### Open issues
-
-- Add this to native libraries
-
-## Feature: Build author declares that a Java library requires some Java library at runtime
-
-For example:
-
-    apply plugin: 'new-java'
-
-    libraries {
-        myLib {
-            dependencies {
-                runtime {
-                    project 'other-project' library 'other-lib'
-                }
-            }
-        }
-    }
-
-### Open issues
-
-- Add this to native libraries
-
-## Feature: JVM platform aware dependency resolution
-
-When a library `a` depends on another library `b`, assert that the target JVM for `b` is compatible with the target JVM for `a` - that is
-JVM for `a` is same or newer than the JVM for `b`, or select the appropriate variant for `b`.
-
-## Feature: Build author declares dependencies for a Java source set
-
-For example:
-
-    apply plugin: 'new-java'
-
-    libraries {
-        myLib {
-            source {
-                java {
-                    runsOn platforms.java7
-                    dependencies {
-                        project 'some-project'
-                        library 'myorg:mylib:1.2'
-                        runtime {
-                            ...
+    model {
+        components {
+            main {
+                sources {
+                    java {
+                        dependencies {
+                            library 'someLib' // Library in same project
+                            project 'otherProject' library 'someLib' // Library in other project
+                            project 'otherProject' // Library in other project, expect exactly one library
                         }
                     }
                 }
@@ -227,85 +60,205 @@ For example:
         }
     }
 
+Model `JavaSourceSet.dependencies` as a mutable collection of library requirements (that is libraries that are required, not the requirements of a library),
+with conveniences to add items to the collection.
 
-## Feature: Build author declares dependencies for custom library
+It should be possible to query the set of requirements. For example, model `JavaSourceSet.dependencies` as a `ManagedSet`.
 
-Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
+Out of scope:
 
-    apply plugin: 'my-sample'
+- Resolving or using the dependencies. This story is simply to get a basic DSL in place.
+- Provide any public API or DSL to query the resolved dependencies. Resolution will be internal for this feature.
 
-    libraries {
-        myCustomLib {
-            dependencies {
-                project 'other-project'
-                customUsage {
-                    project 'other-project' library 'some-lib'
-                }
-            }
-        }
-    }
+### Implementation
 
-Allow a plugin to resolve the dependencies for a custom library, via some API. Target library must produce exactly
-one binary of the target type.
+- New classes should live in `platformBase` or `platformJvm` projects. Avoid adding classes to `core` or `dependencyManagement`
 
-Move the hard-coded Java library model out of the dependency management engine and have the jvm plugins define the
-Java library type.
+## Story: Resolve required libraries of Java source set
 
-Resolve dependencies with inline notation:
+Resolve enough of the compile time dependency graph for a Java source set to validate that the required libraries exist.
 
-    def compileClasspath = dependencies.newDependencySet()
-                .withType(JvmLibrary.class)
-                .withUsage(Usage.COMPILE)
-                .forDependencies("org.group:module:1.0", ...) // Any dependency notation, or dependency instances
-                .create()
+- When a Java library is compiled, fail resolution when that is a dependency declaration for which no matching Java library can be found
+- Error cases:
+    - Not found, error message should include list of available components in target project.
+        - Project dependency, not exactly one Java library in target project.
+        - Project + library dependency, no component with given name.
+    - Unsupported type, error message should include information about supported component types
+- Direct dependencies only.
+- Cycles:
+    - Should be allowed at resolve time. It is entirely possible to handle this case at compile time (using source path, for example). For this feature,
+      the failure can happen later due to the cycle between jar tasks.
+    - Will be required for native support.
 
-    compileTask.classPath = compileClasspath.files
-    assert compileClasspath.files == compileClasspath.artifactResolutionResult.files
+Out of scope:
 
-Resolve dependencies based on a configuration:
+- Building the required library Jars or making the library Jars available at compile time.
+- API or DSL to query the resolved graph.
+- Making any state of `JavaSourceSet` managed.
 
-    def testRuntimeUsage = dependencies.newDependencySet()
-                .withType(JvmLibrary.class)
-                .withUsage(Usage.RUNTIME)
-                .forDependencies(configurations.test.incoming.dependencies)
-                .create()
-    copy {
-        from testRuntimeUsage.artifactResolutionResult.artifactFiles
-        into "libs"
-    }
+### Test cases
 
-    testRuntimeUsage.resolutionResult.allDependencies { dep ->
-        println dep.requested
-    }
+- Can require a library in the same project.
+- Can require multiple different libraries in another project.
+- Can require self.
+- Can have a cycle in the graph.
+- Exercise the error cases above.
 
-Resolve dependencies not added a configuration:
+### Implementation:
 
-    dependencies {
-        def lib1 = create("org.group:mylib:1.+") {
-            transitive false
-        }
-        def projectDep = project(":foo")
-    }
-    def deps = dependencies.newDependencySet()
-                .withType(JvmLibrary)
-                .withUsage(Usage.RUNTIME)
-                .forDependencies(lib1, projectDep)
-                .create()
-    deps.files.each {
-        println it
-    }
+The implementation *must* make use of the dependency resolution engine, and refactor the resolution engine where required:
 
-### Open issues
+- Wire in resolution to Java compilation
+    - Change the `JavaLanguagePlugin.Java` transformation to set the `classpath` to a `FileCollection` implementation that will perform the dependency resolution.
+    - Ignore the existing `JavaSourceSet.classpath` property. It is used by the legacy Java plugin but is empty for the source sets created by rules.
+- Entry point to resolution should be `ArtifactDependencyResolver`.
+    - This is a build scoped service.
+    - Extract some interface out of `ConfigurationInternal` that does not extend `Configuration` and change `ArtifactDependencyResolver` to accept this instead
+      of `ConfigurationInternal`. Change `ConfigurationInternal` to extend this or create an adapter from `ConfigurationInternal` to this new type.
+    - This new type represents a 'resolve context' (for now). There are 2 parts to this:
+        - Some information about the consumer.
+        - Some information about the usage, that is, what is the consumer going to do with the result?
+    - Pass in an implementation that represents the consuming Java source set. Can ignore dependencies at this stage.
+    - Can pass in an empty set of repositories for this feature.
+- Create the resolve meta-data for the consuming library
+    - `DependencyGraphBuilder` currently converts parts of `ConfigurationInternal` into resolve meta-data using a `ModuleToComponentResolver`.
+      Change the signature of this resolver so that it accepts the type introduced above, rather than a `ModuleInternal` and set of `ConfigurationInternal` instances.
+    - Use some composite converter that can build a `ComponentResolveMetaData` for the consuming Java library.
+      Should be able to make use of `DefaultLocalComponentMetaData` to assemble this.
+    - Introduce a new public subtype of `ComponentIdentifier` to represent a library component. Use this as the id in the meta-data.
+    - Currently the meta-data includes a `ModuleVersionIdentifier`, used for conflict resolution. Given that there are currently no external dependencies referenced
+      in the graph, can use something like (project-path, library-name, project-version).
+    - For now, don't attach any dependencies or artifacts to the resolve meta-data. It should be possible at this point to perform the resolve (but receive an empty result).
+- Provide a way to resolve project dependencies
+    - Introduce a new public subtype of `ComponentSelector` to represent a library selector.
+    - For each dependency declared by the source set include a library selector in the component resolve meta-data.
+    - Add a library resolver that implements `DependencyToComponentIdResolver` and `ComponentMetaDataResolver`. This would be used where `ProjectDependencyResolver`
+      currently is used (can also use this as an example). Can include both resolvers in the chain created by `DefaultDependencyResolver`, so don't need to make
+      this configurable.
+    - Library resolver should close the `components` for the target project, then select a matching component. Fail as described above if no match.
+      Can return empty meta-data for the matching component for this story.
 
-- Component type declares usages.
-- Binary declares artifacts and dependencies for a given usage.
+Avoid adding specific knowledge about Java libraries to the `dependencyManagement` project. Instead, the `platformJvm` project should inject this knowledge.
+Can use the service discovery mechanism to do this.
 
-## Feature: Build user views the dependencies for the custom libraries of a project
+## Story: API of required libraries is made available when Java source set is compiled
 
-Change the `dependencies`, `dependencyInsight` and HTML dependencies report so that it can report
-on the dependencies of a custom component, plus whatever binaries the component happens to produce.
+Resolve the task dependencies and artifacts for the compile time dependency graph for a Java source set, and make the result available at compile time.
 
-## Feature: Dependency resolution for native components
+- When a Java library is to be compiled, determine the tasks required to build the API of its required libraries.
+- When a Java library is compiled, provide a classpath that contains the API of its required libraries.
+- API of a Java library is its Jar binary only.
+- Error cases:
+    - Java library does not have exactly one Jar binary. For example, for a library with multiple target platforms.
+        - Error message should include details of which binaries are available.
 
-## Feature: Build user views the dependencies for the native components of a project
+Out of scope:
 
+- Transitive API dependencies.
+- API or DSL to query the resolved classpath.
+- Validation of target platform.
+
+### Test cases
+
+- Given `a` requires `b` requires `c`.
+    - When the source for `a` is compiled, the compile classpath contains the Jar for `b` but not the Jar for `c`.
+- Reasonable error message when building a library with a dependency cycle.
+- Error cases as above.
+
+### Implementation:
+
+The implementation should continue to build on the dependency resolution engine.
+
+- When the meta-data for a Java library is assembled, attach the Jar
+    - Select the `JarBinarySpec` to use from the Java library's set of binaries. Fail if there aren't exactly one.
+    - Add a `PublishArtifact` implementation for this `JarBinarySpec`.
+
+## Story: Compatible variant of Java library is selected
+
+When a Java library has multiple target Java platforms, select a compatible variant of its dependencies, or fail when none available.
+
+- When compiling Java library variant for Java `n`, then from the target library select the Jar binary with the highest target platform that is <= 'n'
+- Fail when there is no such Jar binary. For example, when building for Java 7, fail if a required library has target platform Java 9.
+
+### Test cases
+
+- Consume a Java library that has different required libraries for each target platform. For example, for Java 7 it requires library 'a' and for Java 9 it requires
+library 'b'.
+
+## Feature backlog
+
+- declare transitive API dependencies
+- use component model terminology in error messages
+- reporting
+- make dependency declarations managed and immutable post resolve
+
+# Feature: Custom component built from Java source
+
+This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
+
+## Story: Plugin author defines a Jar binary built from Java source
+
+Define a custom component that produces a Jar binary from Java source. When the jar is built, the compile time
+dependencies of the source are also built and the source compiled.
+
+Default Java platform and toolchains are used to build the binary.
+
+## Story: Plugin author defines target Java platform for Jar binary
+
+Allow the Java platform to be configured for an ad hoc Jar binary, but not for a Jar binary defined implicitly for Java library.
+Java toolchain should be attached to the Jar binary only after the target platform has been configured.
+
+Add infrastructure to model configuration to support this staged configuration, so that it can be applied elsewhere.
+
+## Feature backlog
+
+- Allow plugin to use compiled classes from a Java source set to build a custom binary.
+- Plugin declares Jar as intermediate output rather than final output.
+- Custom component can be consumed as a Java library.
+- Allow plugin to declare variants of custom component, select matching variant.
+- Expose a way to query the resolved compile classpath for a Java source set
+
+# Later work
+
+# Feature: Java library consumes local Java library
+
+- Same project
+- Other project
+- Not external
+- Not legacy plugins
+- Consumes API dependencies at compile time
+- Consumes runtime dependencies at runtime
+- Select jar binary or classes binary with compatible platform, fail if not exactly one
+- Need an API to query the various classpaths.
+- Handle compile time cycles.
+- Need to be able to configure the resolution strategy for each usage.
+- Declare dependencies at component, source set and binary level
+- Reporting
+- Dependency resolution rules
+- Resolution events
+
+# Feature: Custom Java based component local library
+
+- Java source only
+- Custom component consumes Java library
+- Custom component consumes custom library
+- Java library consumes custom library
+- Select correct variant of custom library
+- Reporting
+
+# Feature: Java library consumes external Java library
+
+- Reporting
+- Remove the need for every component to have a module version id.
+
+# Feature: Legacy JVM language plugins declare and consume JVM library
+
+- JVM component can consume legacy JVM project
+- Legacy JVM project can consume JVM library
+- Change dependency reporting to present project as a JVM component
+
+# Feature: Domain specific usages
+
+- Custom component declares additional usages and associated dependencies.
+- Custom binary provides additional usages
+- Reporting

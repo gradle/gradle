@@ -44,6 +44,10 @@ public interface ModelNode {
         State(boolean mutable) {
             this.mutable = mutable;
         }
+
+        public State previous() {
+            return ModelNode.State.values()[ordinal() - 1];
+        }
     }
 
     boolean isEphemeral();

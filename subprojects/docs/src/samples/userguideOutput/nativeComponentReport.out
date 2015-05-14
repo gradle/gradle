@@ -9,7 +9,7 @@ Native library 'hello'
 
 Source sets
     C++ source 'hello:cpp'
-        src/hello/cpp
+        srcDir: src/hello/cpp
 
 Binaries
     Shared library 'hello:sharedLibrary'
@@ -32,7 +32,7 @@ Native executable 'main'
 
 Source sets
     C++ source 'main:cpp'
-        src/main/cpp
+        srcDir: src/main/cpp
 
 Binaries
     Executable 'main:executable'

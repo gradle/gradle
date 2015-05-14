@@ -16,13 +16,14 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.ProgressEventType;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 /**
  * A {@code BuildLauncher} allows you to configure and execute a Gradle build.
@@ -125,13 +126,22 @@ public interface BuildLauncher extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
-     * @since 2.4
+     *
+     * @since 2.5
      */
     @Incubating
-    BuildLauncher addTestProgressListener(TestProgressListener listener);
+    BuildLauncher addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
      * {@inheritDoc}
+     * @since 2.5
+     */
+    @Incubating
+    BuildLauncher addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+
+    /**
+     * {@inheritDoc}
+     *
      * @since 2.3
      */
     @Incubating

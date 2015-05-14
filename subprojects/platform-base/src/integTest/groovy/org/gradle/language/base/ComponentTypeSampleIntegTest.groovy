@@ -16,28 +16,39 @@
 
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
     @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType")
 
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
+
     def "can create custom component with binaries"() {
         given:
         sample componentTypeSample
-        componentTypeSample.dir.file("build.gradle") << """
+        componentTypeSample.dir.file("build.gradle") << '''
 
-task checkModel << {
-    assert project.componentSpecs.size() == 2
-    def titleAImage = project.componentSpecs.imageA
-    assert titleAImage instanceof ImageComponent
-    assert titleAImage.projectPath == project.path
-    assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
-    assert titleAImage.title == 'TitleA'
-    assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
+model {
+    tasks {
+        create("checkModel") {
+            def components = $("components")
+            doLast {
+                assert components.size() == 2
+                def titleAImage = components.imageA
+                assert titleAImage instanceof ImageComponent
+                assert titleAImage.projectPath == project.path
+                assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
+                assert titleAImage.title == 'TitleA\'
+                assert titleAImage.binaries.values()*.name.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
+            }
+        }
+    }
 }
-
-"""
+'''
         expect:
         succeeds "checkModel"
     }

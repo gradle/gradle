@@ -19,23 +19,25 @@ package org.gradle.internal.component.local.model
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class DefaultLocalArtifactIdentifierTest extends Specification {
+    def file = new File(".")
     def "has useful string representation"() {
         def componentId = Stub(ComponentIdentifier)
 
         expect:
-        def noClassifier = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", [:])
+        def noClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", [:])
         noClassifier.displayName == "name.ext (<comp>)"
         noClassifier.toString() == "name.ext (<comp>)"
 
-        def withClassifier = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", ['classifier': 'classifier'])
+        def withClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", ['classifier': 'classifier'])
         withClassifier.displayName == "name-classifier.ext (<comp>)"
         withClassifier.toString() == "name-classifier.ext (<comp>)"
 
-        def noExtension = new DefaultLocalArtifactIdentifier(componentId, "<comp>", "name", "type", null, ['classifier': 'classifier'])
+        def noExtension = localArtifactIdentifier(componentId, "<comp>", "name", "type", null, ['classifier': 'classifier'])
         noExtension.displayName == "name-classifier (<comp>)"
         noExtension.toString() == "name-classifier (<comp>)"
     }
@@ -44,14 +46,15 @@ class DefaultLocalArtifactIdentifierTest extends Specification {
         def moduleVersion = DefaultModuleVersionIdentifier.newId("group", "module", "version")
         def componentId = DefaultModuleComponentIdentifier.newId(moduleVersion)
 
-        def withClassifier = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
-        def same = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
-        def differentName = new DefaultLocalArtifactIdentifier(componentId, "comp", "2", "type", "ext", ['classifier': 'classifier'])
-        def differentType = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "2", "ext", ['classifier': 'classifier'])
-        def differentExt = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", "2", ['classifier': 'classifier'])
-        def differentAttributes = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': '2'])
-        def emptyParts = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
-        def emptyPartsSame = new DefaultLocalArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
+        def withClassifier = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
+        def same = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
+        def differentName = localArtifactIdentifier(componentId, "comp", "2", "type", "ext", ['classifier': 'classifier'])
+        def differentType = localArtifactIdentifier(componentId, "comp", "name", "2", "ext", ['classifier': 'classifier'])
+        def differentExt = localArtifactIdentifier(componentId, "comp", "name", "type", "2", ['classifier': 'classifier'])
+        def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': '2'])
+        def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
+        def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
+        def differentFile = new DefaultLocalArtifactIdentifier(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", ['classifier': '2']), new File("another"))
 
         expect:
         withClassifier Matchers.strictlyEqual(same)
@@ -60,8 +63,13 @@ class DefaultLocalArtifactIdentifierTest extends Specification {
         withClassifier != differentExt
         withClassifier != differentAttributes
         withClassifier != emptyParts
+        withClassifier != differentFile
 
         emptyParts Matchers.strictlyEqual(emptyPartsSame)
         emptyParts != withClassifier
+    }
+
+    def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, Map<String, String> attributes) {
+        return new DefaultLocalArtifactIdentifier(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, attributes), file)
     }
 }

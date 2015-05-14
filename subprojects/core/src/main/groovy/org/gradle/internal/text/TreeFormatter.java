@@ -80,7 +80,7 @@ public class TreeFormatter extends TreeVisitor<String> {
             node.prefix = node.isRoot() ? "" : node.parent.prefix + "    ";
         }
 
-        StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix);
+        StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix, false);
         if (!node.valueWritten) {
             output.append(node.parent.prefix);
             output.append("  - ");

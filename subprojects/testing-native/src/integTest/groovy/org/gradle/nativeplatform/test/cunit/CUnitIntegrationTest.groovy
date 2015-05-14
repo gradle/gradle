@@ -161,6 +161,38 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "testSuite components exposed to modelReport"() {
+        given:
+        buildFile << """
+model {
+    components {
+        nativeComponentOne(NativeLibrarySpec)
+        nativeComponentTwo(NativeLibrarySpec)
+    }
+}
+"""
+        when:
+        succeeds "model"
+
+        then:
+        output.contains """
+    testSuites
+        nativeComponentOneTest
+            binaries
+                nativeComponentOneTestCUnitExe
+                    tasks
+            sources
+                c
+                cunitLauncher
+        nativeComponentTwoTest
+            binaries
+                nativeComponentTwoTestCUnitExe
+                    tasks
+            sources
+                c
+                cunitLauncher"""
+    }
+
     def "can supply cCompiler macro to cunit sources"() {
         given:
         useConventionalSourceLocations()
@@ -192,8 +224,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
+                c {
                     source.srcDir "src/alternateHelloTest/c"
                 }
             }
@@ -218,8 +249,7 @@ model {
     testSuites {
         helloTest {
             sources {
-                // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
+                c {
                     source.srcDir "src/alternateHelloTest/c"
                 }
             }
@@ -394,6 +424,7 @@ There were test failures:
         ] as Set
         projectFile.headerFiles == [
                 "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
+                "src/hello/headers/common.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set

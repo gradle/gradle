@@ -62,7 +62,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     /**
      * Sets the validator to invoke prior to each mutation.
      */
-    public void beforeChange(MutationValidator validator) {
+    public void setMutationValidator(MutationValidator validator) {
         this.mutationValidator = validator;
     }
 

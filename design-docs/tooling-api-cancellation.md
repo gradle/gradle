@@ -1,6 +1,6 @@
 ## Feature: Tooling API client cancels a long running operation
 
-Add possibility to cancell execution of a long running operation using a `CancallableToken`. 
+Add possibility to cancel execution of a long running operation using a `CancallableToken`.
 This `CancallableToken` is produced by `CancellableTokenSource` and can be used with several operations if needed.
 
     interface CancellationToken {
@@ -128,6 +128,6 @@ In this story, a `BuildAction` receives an exception when it is using or uses a 
 
 In this story, the `ModelRegistry` implementation stops executing rules when operation is cancelled.
 
-### Story: Nested operations started using tooling API are cancelled when outer operation is cancelled
+### Story: Nested operations started using tooling API are cancelled when outermost operation is cancelled
 
 When build logic uses the tooling API to start further operations, these nested operations should also be cancelled.

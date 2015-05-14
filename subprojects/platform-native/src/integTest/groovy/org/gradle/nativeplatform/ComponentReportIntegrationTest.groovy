@@ -15,12 +15,14 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ library"() {
         given:
         buildFile << """
@@ -47,7 +49,7 @@ Native library 'someLib'
 
 Source sets
     C++ source 'someLib:cpp'
-        src/someLib/cpp
+        srcDir: src/someLib/cpp
 
 Binaries
     Shared library 'someLib:sharedLibrary'
@@ -67,6 +69,7 @@ Binaries
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of native C++ library that is not buildable"() {
         given:
         buildFile << """
@@ -101,7 +104,7 @@ Native library 'anotherLib'
 
 Source sets
     C++ source 'anotherLib:cpp'
-        src/anotherLib/cpp
+        srcDir: src/anotherLib/cpp
 
 Binaries
     Shared library 'anotherLib:sharedLibrary'
@@ -125,7 +128,7 @@ Native library 'someLib'
 
 Source sets
     C++ source 'someLib:cpp'
-        src/someLib/cpp
+        srcDir: src/someLib/cpp
 
 Binaries
     Shared library 'someLib:sharedLibrary' (not buildable)
@@ -149,6 +152,7 @@ Binaries
 """
     }
 
+    @RequiresInstalledToolChain
     def "shows details of polyglot native library with multiple variants"() {
         given:
         buildFile << """
@@ -188,11 +192,11 @@ Native library 'someLib'
 
 Source sets
     Assembler source 'someLib:asm'
-        src/someLib/asm
+        srcDir: src/someLib/asm
     C source 'someLib:c'
-        src/someLib/c
+        srcDir: src/someLib/c
     C++ source 'someLib:cpp'
-        src/someLib/cpp
+        srcDir: src/someLib/cpp
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'

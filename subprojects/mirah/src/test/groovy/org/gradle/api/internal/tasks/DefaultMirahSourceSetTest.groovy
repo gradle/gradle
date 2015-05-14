@@ -18,13 +18,17 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultMirahSourceSetTest {
-    static {
+
+    @Before
+    void before() {
         NativeServicesTestFixture.initialize()
     }
 

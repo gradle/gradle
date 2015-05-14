@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
@@ -24,6 +25,7 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
@@ -33,6 +35,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Map;
 
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private final Compiler<T> delegateCompiler;
@@ -61,11 +65,11 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
                 DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
                 IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
                 // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
-                IncrementalCompilation incrementalCompilation = processor.processSourceFiles(spec.getSourceFiles());
-                spec.setSourceFileIncludes(incrementalCompilation.getSourceFileIncludes());
-                return incrementalCompilation;
+                return processor.processSourceFiles(spec.getSourceFiles());
             }
         });
+
+        spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
@@ -82,6 +86,15 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         });
 
         return workResult;
+    }
+
+    private Map<File, SourceIncludes> mapIncludes(Collection<File> files, final CompilationState compilationState) {
+        return CollectionUtils.collectMapValues(files, new Transformer<SourceIncludes, File>() {
+            @Override
+            public SourceIncludes transform(File file) {
+                return compilationState.getState(file).getSourceIncludes();
+            }
+        });
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {

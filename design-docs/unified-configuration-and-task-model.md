@@ -7,248 +7,50 @@ Specific sub streams have been broken out into other concurrent specs.
 
 # Stories
 
+## Node ancestry is self closed before node is used as an input
 
-## ~~Build author configures task created by configuration rule supplied by plugin~~
+We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
 
-1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
-1. Configuration does not take any external inputs (i.e. all necessary configuration is the application of constants)
-1. Task is not required by to be accessed outside model rule (e.g. does not needed to be added as dependency of “legacy” task)
-1. Task is not created during “legacy” configuration phase
+## Test Coverage
 
-The majority of what is required for this story is already implemented.
-One thing that will be required is improved diagnostics to help the user debug a mistyped task name (see test coverage).
+- Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
+- Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
+- Cycle is reported when a rule tries to depend on a child of the subject as an input
 
-Also, must verify that runtime failures include enough information for the user to find the faulty code.
-For this story, it is not necessary for the failure message to fully indicate why the particular rule is being executed.
+## Cycle involving multiple rules of same lifecycle phase does not cause rules to be executed twice
 
-### Test cases
+Given the following:
 
-- ~~User successfully configures task~~
-  - ~~Can add dependency on other task using task name~~
-  - ~~Can change configuration property of specific task type (e.g. something not defined by `Task`)~~
-- ~~User receives useful error message when specified task (i.e using name) is not found~~
-  - ~~Error message includes names of X tasks with names closest to given name~~
-- ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
+```
+class Rules extends RuleSource {
+    @Model List<String> m1() { [] }
+    @Model List<String> m2() { [] }
+    @Model List<String> m3() { [] }
 
-## ~~Model DSL rule uses an implicitly typed model element as input via name~~
+    @Mutate void m2ToM1(@Path("m1") m1, @Path("m2") m2) {
+        if (!m1.empty) {
+            throw new IllegalStateException("m2ToM1 has executed twice")
+        }
+        m1 << "executed"
+    }
 
-This story adds the capability for rules declared in scripts to take inputs.
-
-    // note: DSL doesn't support registration at this time, so elements below have been registered by plugin
+    // in cycle…
+    @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
+    @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
     
-    model {
-        theThing { // registered by plugin
-          value = "foo"
-        }
-        otherThing {
-            value = $("theThing").value + "-bar"
-            assert value == "foo-bar"
-        }
-        otherOtherThing {
-            value = $("otherThing").value
-            assert value == "foo-bar"
-        }
-        
-        // Can address nested registered elements, but not arbitrary properties of registered elements
-        tasks.theTask {
-          dependsOn $("tasks.otherTask")
-        }
-    }
+    @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
+}
+```
 
-### Implementation plan
+The build will fail because the `m2ToM1` is indeed executed twice. 
+What should happen is that a cycle should be reported between `m3ToM1` and `m1ToM3`.
 
-- Add a compile time transform to “lift” up `$(String)` method invocations in a manner that can be extracted from the closure object
-- When registering model closure actions, inspect this information in order to register rules with necessary inputs
-- Add notion of 'default' read only type to model registrations (which is what is returned here, given that there is no type information)
-- Transform closure implementation in some way to make model element available as result of $() method call (possibly transform in $() implementation, or rewrite statement)
-
-### Test cases
-
-- ~~Compile time failure~~
-  - ~~Non string literal given to $() method~~
-  - ~~No arguments given to $()~~
-  - ~~More than one argument given~~
-  - ~~`null` given as string argument~~
-  - ~~`""` (empty string) given as argument~~
-  - ~~Invalid model path given as argument (see validation in `ModelPath`)~~
-- ~~Input binding failure~~
-  - ~~Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)~~
-- ~~Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error~~
-- ~~Non “transformed” closure given as model block (i.e. `def c = {}; model(c)`) produces error~~
-- ~~Success~~
-  - ~~Existing inputs can be used~~
-  - ~~Inputs are finalized when used~~
-  - ~~Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)~~
-  - ~~`$(String)` can be used anywhere in code body (e.g. `if` body)~~
-  - ~~Rule defined in script plugin can access inputs with correct context (i.e. inputs are linked to correct project scope)~~
-- ~~Nested `model {}` usage~~
-  - ~~Can use model rules in nested context that don't require inputs~~
-  - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
-- ~~Individual block has some scope/access as regular closure declared in top level of build script~~
-
-## ~~Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule~~
-
-This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().
+The implementation should be done in such a way 
 
 ### Test Coverage
 
-1. ~~Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()~~
-1. ~~Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_~~
-
-## Rules are extracted from plugins once and cached globally
-
-Currently, when applying rule based plugins we go reflecting on the plugin and immediately applying rules that we find.
-This means that in a 1000 project multi project build where every project uses the Java plugin we do the reflection 1000 times unnecessarily.
-Instead, we should separate the reflection/rule extraction and application (i.e. pushing the rules into the model registry) so that we can cache the reflection.
-
-This involves changing `ModelRuleInspector#inspect` to return a data structure that represents the discovered rules, instead of taking a `ModelRegistry`.
-The returned data structure can then contain rules in an applicable fashion that can be reused.
-A (threadsafe) caching layer can be wrapped over this so that we only inspect a plugin class once.
-Care needs to be taken with the caching to facilitate classes being garbage collected.
-
-Invalid plugins do not need to be cached (i.e. it can be assumed that an invalid plugin is a fatal event).
-
-The `ModelRuleInspector` should be available as a globally scoped service.
-
-See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing reclaimability of classes.
-
-
-### Test Coverage
-
-- ~~Rule based plugin can be applied to multiple projects with identical results, and rules are extracted only once~~
-- ~~Cache must not prevent classes from being garbage collected~~
-- ~~Rules extracted from core plugins are reused across builds when using the daemon~~
-- ~~Rules extracted from user plugins are reused across builds when using the daemon and classloader caching~~
-
-## Task selection/listing realises only required tasks from model registry instead of using task container
-
-1. ~~Add get(ModelPath, ModelNode.State) to ModelRegistry~~
-1. ~~Support modelRegistry.get(“tasks”, SelfClosed)~~
-1. ~~Realize the task container as tasks are needed instead of at the end of evaluation (TaskNameResolver, DefaultProjectAccessListener, DefaultProjectLocator) - _interim step_~~
-1. ~~Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism~~
-1. ~~Change task selection to avoid realising all tasks (i.e. self close the task container, realise just the tasks needed)~~
-1. ~~Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.~~
-
-Note: Having `DefaultProjectAccessListener` and `DefaultProjectLocator` require the full closing of the task container is ok for this story.
-
-### Test coverage
-
-1. ~~No error when model node is requested at state it is already at~~
-1. ~~Error when model node is requested at “previous” state~~
-1. ~~Simple task defined via `tasks.named()` is not realised if not requested on command line~~
-1. ~~Task container can be self-closed by task selector/lister and then later graph-closed~~
-1. ~~Tasks defined via rules are present in `gradle tasks` report~~
-1. ~~Tasks defined via rules are present in relevant Tooling API models that request task list, and can be executed by Tooling API~~
-1. ~~Tasks defined via rules are present in Gradle UI and can be executed by Gradle UI~~
-1. ~~Existing coverage for command line tasks selection and Tooling API models continues to function without change~~
-
-## Rule source plugins are instantiated eagerly
-
-Rules in rule source plugins can be instance scoped.
-
-We should instantiate when extracting rules from the plugin as part of the class level validations.
-
-### Test Coverage
-
-- ~~Rule source plugin throwing exception in default constructor fails plugin _application_~~
-
-## Mutation rules are always executed in a reliable order
-
-This story strengthens the ordering semantics of mutation rules.
-
-Currently, mutation rules are executed in the order in which they fully bind.
-This can cause a change in the inputs to a rule to change when the rule is run in surprising ways.
-We should always guarantee that rules are executed in discovery order, not binding order.
-
-Rules are discovered through the application of plugins, and execution of build scripts.
-We can use the order of plugin application, and rules in build scripts.
-Within a plugin, rules can be ordered in some deterministic way (e.g. sort rules by signature).
-
-## Collection mutation rule specifies input taking mutation rule for particular model element
-
-    interface CollectionBuilder<T> {
-      void named(String named, Class<?> ruleSource)
-    }
-
-The rule source class functions the same as a rule source applied to Project except that bindings are relative to the collection item
-(which can be said to be the case already, but until now there has only been one scope).
-
-The rule source must be able to bind to the outer scope. For example…
-
-    @RuleSource
-    class AssembleTaskRules {
-        void dependOnBinaries(Task assemble, BinaryContainer binaries) {…}
-    }
-
-    tasks.named("assemble", AssembleTaskRules)
-
-Here, the subject `assemble` is of the inner scope while the input `binaries` is of the outer scope. 
-All by-path bindings will be interpreted relatively.
-Input by-type bindings are only capable of binding to the outer scope.
-Subject by-type bindings must be of the inner scope (otherwise we are back to anything-can-say-anything-about-anything) and they can only bind to scope element and it's immediate children.
-
-For this story, no lifecycle alignment validation is specifically required beyond ensuring a `@Mutate` rule where the subject is a `ManagedMap` specifying a `@Mutate` rule for an item and that rule being executed when the item is needed.
-That is, robust alignment of lifecycle phases is out of scope.
-
-### Test coverage
-
-1. ~~Rule can successfully bind to inputs, which are only realised if rule is required~~
-1. ~~Rule input binding failure yields useful error message (including information about binding scope, to help debug bindings)~~
-1. ~~Rule execution failure yields useful error message, allowing user to identify failed rule~~
-1. ~~Mutate rule about container item added during container mutate rule executes and realises inputs when container item is needed~~
-1. ~~Rule source is subject to same blanket constraints as rule sources applied at project level, with error message helping user identify the faulty rule~~
-1. ~~Subject by-type and by-path bindings are of inner scope~~
-1. ~~Subject can be bound to a child of the scope in which the rule is applied~~
-1. ~~Input by-path bindings are of inner scope~~
-1. ~~Input by-type bindings are of outer scope~~
-
-## Model infrastructure performance is benchmarked
-
-Benchmarking builds that use the new model infrastructure vs builds doing the same work using legacy configuration mechanisms will allow to verify if the new way of configuring builds is actually faster.
-Access to benchmark result history of builds using the new model infrastructure will also allow to verify if introduced improvements (e.g. caching, short-circuiting configuration) bring the expected performance gains.
-
-Benchmarking the effect of changing inputs, configuration and rules is out of scope of this story.
-
-Each benchmark should be executed for the following scenarios:
-- build everything
-- build a small subset (if it makes sense)
-- build nothing (e.g. `help` or `clean`)
-
-### Comparison of old and new Java plugins
-
-- a single variant, plain java build
-- for 1, 25 and 500 projects
-
-### Android mock-up
-
-- implemented using a plugin
-- creates tasks for combination of flavours and types
-- uses fully managed types
-- single project
-- for small, medium and large model sets (number of flavours and types)
-
-## Model rule bindings are exhaustively validated
-
-Our current model rule validation hinges on detecting rules with “unbound references”.
-That is, we look for rules where at that point in time the rule could not be executed because we are unable to satisfy its dependencies.
-Our current mechanism does not attempt to find out if the rule's dependencies could be satisfied by realising more of the model.
-This story improves validation by doing this.
-That is, validating based on the state of the model registry (a.k.a. meta model), not on the current state of the model.
-
-For each unbound rule reference, we will effectively “force” it to bind. 
-For unbound by-type bindings this will involve “self closing” the root node (or relevant scope), as this will give us knowledge of all the top level elements (based on rules discovered so far).
-For unbound by-path bindings this will involve “self closing” from the root node to the parent of the path.
-
-As validation will now realize elements, preventing future rules from applying, we will have to move validation to occur as late as possible.
-Ideally just before execution begins.
-
-We should not perform validation on a project that is not required for a build.
-
-### Test Coverage
-
-- ~~Existing validation coverage~~
-- ~~Model rule with dependency on non task related collection element that does exist, passes validation~~
-- ~~Model rule that does not bind, specified for project that is not used in build, does not fail the build~~
+- As above, build fails by reporting cycle between `m3ToM1` and `m1ToM3`.
+- As above but including earlier lifecycle rules (e.g. `@Defaults`) as well, verifying they do not execute twice
 
 ## Methods of rule source classes must be private, or be declared as rules
 
@@ -269,6 +71,10 @@ In both cases, exceptions should be thrown similarly to other `RuleSource` const
 
 ## Model is partially reused across daemon builds, ignoring potential configuration changes
 
+> This story was started, and then “cancelled” due to initial performance testing demonstrating that model reuse isn't as necessary as initially thought.
+> The rule based model is “faster” than the imperative model even without reuse, reducing the need for reuse.
+> Reuse will still be necessary later in some form to open up the possibility of “expensive configuration”.
+
 This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
 As this is a large chunk of work, this story covers initial work and does not take the feature to production readiness.
 The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
@@ -278,7 +84,7 @@ Task instances attached to the model cannot be reused, as they retain references
 When “reusing the model”, tasks must be rebuilt.
 Tasks are examples of _ephemeral_ model elements.
 By extension any model element that depends on an ephemeral model element is also implicitly ephemeral.
-Later refinements may make it possible to detect that the dependents of ephemeral elements are not actually ephemeral because they do not transfer ephemeral state. 
+Later refinements may make it possible to detect that the dependents of ephemeral elements are not actually ephemeral because they do not transfer ephemeral state.
 
 Steps/stages:
 
@@ -315,19 +121,6 @@ The feature will depend on the classloader caching feature.
 1. Tasks are rebuilt each time when reusing model registry
 1. Error when model reuse enabled but not classloader caching
 1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
-
-## Rationalize realizing tasks during Gradle lifecycle
-
-Things are a bit tangled right now. There are at least the following aspects:
-
-1. Project.tasks.discoverTasks()
-2. Project.fireDeferredConfiguration()
-3. ProjectAccessListener
-4. TaskNameResolver
-
-This should be simplified.
-
-## Don't 
 
 # Open Questions
 
@@ -400,6 +193,9 @@ These should be rationalised and ideally replaced with model rules.
 
 - Cache/reuse model elements, avoiding need to run configuration on every build
 - Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
+    - should also work with `ClassLoaderScope`, so that a state cache can be associated with a scope.
+    - use for plugin id -> class mappings, plugin class inspection, task annotation inspection.
+    - need to be able to take arbitrary class and map to a scope or state cache for that type.
 - `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
 - DefaultModelRegistry stores RuleBinder implementations twice
 - Rule references are bound eagerly (should be deferred until the rule is needed)

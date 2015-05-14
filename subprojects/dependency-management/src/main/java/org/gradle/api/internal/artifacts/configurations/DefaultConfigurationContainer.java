@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.reflect.Instantiator;
@@ -41,12 +42,13 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final ProjectAccessListener projectAccessListener;
+    private final ProjectFinder projectFinder;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
-                                         DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener) {
+                                         DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener, ProjectFinder projectFinder) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -54,12 +56,13 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         this.listenerManager = listenerManager;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.projectAccessListener = projectAccessListener;
+        this.projectFinder = projectFinder;
     }
 
     @Override
     protected Configuration doCreate(String name) {
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, resolver,
-                listenerManager, dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class), projectAccessListener);
+                listenerManager, dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class), projectAccessListener, projectFinder);
     }
 
     public Set<Configuration> getAll() {
@@ -86,7 +89,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
                 name, name, detachedConfigurationsProvider, resolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(), projectAccessListener);
+                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(), projectAccessListener, projectFinder);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

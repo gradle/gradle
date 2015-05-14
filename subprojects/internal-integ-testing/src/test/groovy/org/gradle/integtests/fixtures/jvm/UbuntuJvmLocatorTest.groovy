@@ -18,13 +18,14 @@ package org.gradle.integtests.fixtures.jvm
 import org.gradle.api.JavaVersion
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class UbuntuJvmLocatorTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -89,7 +90,6 @@ class UbuntuJvmLocatorTest extends Specification {
     def "locates JDK in canonicalized directory"() {
         given:
         jdk("real-install/java-1.7-openjdk-amd64")
-        NativeServicesTestFixture.initialize(tmpDir.testDirectory)
         libDir.file("java-1.7.0-openjdk-amd64").createLink("real-install/java-1.7-openjdk-amd64")
 
         expect:

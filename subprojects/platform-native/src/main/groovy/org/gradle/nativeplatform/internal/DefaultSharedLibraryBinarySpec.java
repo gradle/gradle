@@ -98,7 +98,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasResources() {
-            for (NativeResourceSet windowsResourceSet : getSource().withType(NativeResourceSet.class)) {
+            for (NativeResourceSet windowsResourceSet : getSource().withType(NativeResourceSet.class).values()) {
                 if (!windowsResourceSet.getSource().isEmpty()) {
                     return true;
                 }
@@ -107,7 +107,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasExportedSymbols() {
-            for (LanguageSourceSet languageSourceSet : getSource()) {
+            for (LanguageSourceSet languageSourceSet : getSource().values()) {
                 if (!(languageSourceSet instanceof NativeResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {
                         return true;

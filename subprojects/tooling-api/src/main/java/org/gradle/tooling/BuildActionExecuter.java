@@ -17,11 +17,12 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.test.TestProgressListener;
+import org.gradle.tooling.events.ProgressEventType;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.EnumSet;
 
 /**
  * Used to execute a {@link BuildAction} in the build process.
@@ -34,24 +35,28 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> withArguments(String... arguments);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> setStandardOutput(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> setStandardError(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     @Incubating
@@ -59,37 +64,51 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> setStandardInput(InputStream inputStream);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> setJavaHome(File javaHome);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> setJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     BuildActionExecuter<T> addProgressListener(ProgressListener listener);
 
     /**
      * {@inheritDoc}
-     * @since 2.4
+     *
+     * @since 2.5
      */
     @Incubating
-    BuildActionExecuter<T> addTestProgressListener(TestProgressListener listener);
+    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
      * {@inheritDoc}
+     *
+     * @since 2.5
+     */
+    @Incubating
+    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+
+    /**
+     * {@inheritDoc}
+     *
      * @since 2.3
      */
     @Incubating

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
-public abstract class AbstractDependencySubstitution<T extends ComponentSelector> implements DependencySubstitutionInternal<T> {
+public abstract class AbstractDependencySubstitution<T extends ComponentSelector> implements DependencySubstitutionInternal {
     private final T requested;
     private final ModuleVersionSelector oldRequested;
     private ComponentSelectionReason selectionReason;

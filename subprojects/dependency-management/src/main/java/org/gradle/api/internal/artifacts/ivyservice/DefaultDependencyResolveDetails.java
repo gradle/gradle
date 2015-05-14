@@ -28,15 +28,15 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
 
-    private final DependencySubstitutionInternal<?> delegate;
+    private final DependencySubstitutionInternal delegate;
     private ModuleVersionSelector target;
 
-    public DefaultDependencyResolveDetails(DependencySubstitutionInternal<?> delegate) {
+    public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate) {
         this.delegate = delegate;
         target = determineTarget(delegate);
     }
 
-    private static ModuleVersionSelector determineTarget(DependencySubstitutionInternal<?> delegate) {
+    private static ModuleVersionSelector determineTarget(DependencySubstitutionInternal delegate) {
         // Temporary logic until we add DependencySubstitution back in
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) delegate.getTarget();

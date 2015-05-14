@@ -51,5 +51,4 @@ class JdkToolsTest extends Specification {
         then:
         thrown IllegalStateException
     }
-
 }

@@ -21,6 +21,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
@@ -28,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
@@ -44,6 +48,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineToolContext invocationContext;
     private final String objectFileExtension;
     private final boolean useCommandFile;
+    private final Logger logger = Logging.getLogger(NativeCompiler.class);
 
     private final BuildOperationProcessor buildOperationProcessor;
 
@@ -94,7 +99,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract List<String> getOutputArgs(T spec, File outputFile);
+    protected abstract List<String> getOutputArgs(File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -115,35 +120,44 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
-        if (spec.getPreCompiledHeaders() == null) {
+        if (spec.getPreCompiledHeader() == null) {
             return Lists.newArrayList();
         }
 
         final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
-        boolean usePCH = CollectionUtils.every(spec.getPreCompiledHeaders(), new Spec<String>() {
-            @Override
-            public boolean isSatisfiedBy(String header) {
-                List<String> headerIncludes;
-                if (header.startsWith("<")) {
-                    header = header.substring(1, header.length()-1);
-                    headerIncludes = includes.getSystemIncludes();
-                } else {
-                    headerIncludes = includes.getQuotedIncludes();
-                }
-                return headerIncludes.contains(header);
-            }
-        });
+        final String header = spec.getPreCompiledHeader();
+
+        List<Include> headers = includes.getIncludesAndImports();
+        boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0).getValue());
+
         if (usePCH) {
             return getPCHArgs(spec);
         } else {
+            boolean containsHeader = CollectionUtils.any(headers, new Spec<Include>() {
+                @Override
+                public boolean isSatisfiedBy(Include include) {
+                    return include.getValue().equals(header);
+                }
+            });
+            if (containsHeader) {
+                logger.log(LogLevel.WARN, getCantUsePCHMessage(spec.getPreCompiledHeader(), sourceFile));
+            }
             return Lists.newArrayList();
         }
+    }
+
+    private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
+        return "The source file "
+                .concat(sourceFile.getName())
+                .concat(" includes the header ")
+                .concat(pchHeader)
+                .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
         String objectFileSuffix = objectFileExtension;
         List<String> sourceArgs = getSourceArgs(sourceFile);
-        List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
         return invocationContext.createInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());

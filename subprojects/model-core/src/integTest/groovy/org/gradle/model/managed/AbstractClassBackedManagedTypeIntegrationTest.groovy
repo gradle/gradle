@@ -23,9 +23,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "rule can provide a managed model element backed by an abstract class"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
                 abstract String getName()
@@ -39,7 +36,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -61,9 +58,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "managed type implemented as abstract class can have generative getters"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
                 abstract String getFirstName()
@@ -84,7 +78,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -106,9 +100,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "managed type implemented as abstract class can have a custom toString() implementation"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class CustomToString {
                 abstract String getStringRepresentation()
@@ -126,7 +117,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, CustomToString element) {
+                void addEchoTask(ModelMap<Task> tasks, CustomToString element) {
                     tasks.create("echo") {
                         it.doLast {
                             println "element: ${element.toString()}"
@@ -148,9 +139,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "calling setters from custom toString() implementation is not allowed"() {
         when:
         buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class CustomToStringCallingSetter {
                 abstract String getStringRepresentation()
@@ -167,7 +155,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, CustomToStringCallingSetter element) {
+                void addEchoTask(ModelMap<Task> tasks, CustomToStringCallingSetter element) {
                     tasks.create("echo") {
                         it.doLast {
                             println "element: ${element.toString()}"
@@ -202,10 +190,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "calling setters from non-abstract getters is not allowed"() {
         when:
-        buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-        '''
         defineCallsSetterInNonAbstractGetterClass()
         buildFile << '''
             class RulePlugin extends RuleSource {
@@ -214,7 +198,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSetterInNonAbstractGetter element) {
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSetterInNonAbstractGetter element) {
                     element.invalidGenerativeProperty
                 }
             }
@@ -231,10 +215,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
     def "calling setters of super class from non-abstract getters is not allowed"() {
         when:
-        buildFile << '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-        '''
         defineCallsSetterInNonAbstractGetterClass()
         buildFile << '''
             @Managed
@@ -255,7 +235,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
                     element.invalidGenerativeProperty
                 }
             }
@@ -273,9 +253,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "reports managed abstract type in missing property error message"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
                 abstract String getName()
@@ -288,7 +265,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void tasks(CollectionBuilder<Task> tasks, Person person) {
+                void tasks(ModelMap<Task> tasks, Person person) {
                     println person.unknown
                 }
             }
@@ -301,7 +278,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
 
         and:
         failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(15)
         failure.assertHasCause("No such property: unknown for class: Person")
     }
 

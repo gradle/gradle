@@ -77,7 +77,7 @@ class Ear extends Jar {
         // this allows us to generate the deployment descriptor after recording all modules it contains
         def metaInf = mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
-            MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory, fileSystem)
+            MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory, fileSystem, MapFileTree.FileCreationMode.KEEP_EXISTING)
             final DeploymentDescriptor descriptor = deploymentDescriptor
             if (descriptor) {
                 if (!descriptor.libraryDirectory) {

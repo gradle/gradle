@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.SourceIncludes
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,9 +37,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def setup() {
         includes = Mock(SourceIncludes)
         includesParser.parseIncludes(sourceFile) >> includes
-        includes.getQuotedIncludes() >> quotedIncludes
-        includes.getSystemIncludes() >> systemIncludes
-        includes.getMacroIncludes() >> macroIncludes
+        includes.getQuotedIncludes() >> { quotedIncludes.collect { include(it) } }
+        includes.getSystemIncludes() >> { systemIncludes.collect { include(it) } }
+        includes.getMacroIncludes() >> { macroIncludes.collect { include(it) } }
     }
 
     protected TestFile getSourceFile() {
@@ -145,6 +146,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
         }
     }
 
+    def include(String value) {
+        return DefaultInclude.parse(value, false)
+    }
     def deps(File... files) {
         return files.collect {dep(it)}
     }

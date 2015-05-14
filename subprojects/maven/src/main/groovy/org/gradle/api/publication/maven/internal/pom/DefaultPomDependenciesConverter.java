@@ -34,10 +34,10 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         this.versionRangeMapper = versionRangeMapper;
     }
 
-    public List<org.apache.maven.model.Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
+    public List<Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);
-        List<org.apache.maven.model.Dependency> mavenDependencies = new ArrayList<org.apache.maven.model.Dependency>();
+        List<Dependency> mavenDependencies = new ArrayList<Dependency>();
         for (ModuleDependency dependency : dependenciesMap.keySet()) {
             String scope = dependenciesMap.get(dependency);
             Set<Configuration> dependencyConfigurations = dependencyToConfigurations.get(dependency);
@@ -123,7 +123,6 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
-        mavenDependency.setOptional(false);
         mavenDependency.setClassifier(classifier);
         mavenDependency.setExclusions(getExclusions(dependency, configurations));
         return mavenDependency;

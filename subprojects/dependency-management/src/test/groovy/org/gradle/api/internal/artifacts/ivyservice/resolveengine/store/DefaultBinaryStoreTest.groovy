@@ -19,14 +19,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 import org.gradle.api.internal.cache.BinaryStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class DefaultBinaryStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @AutoCleanup DefaultBinaryStore store
 
     def "stores binary data"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
@@ -48,7 +50,7 @@ class DefaultBinaryStoreTest extends Specification {
     }
 
     def "data can be re-read"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
@@ -72,7 +74,7 @@ class DefaultBinaryStoreTest extends Specification {
     class SomeException extends RuntimeException {}
 
     def "write action exception is propagated to the client"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ throw new SomeException() } as BinaryStore.WriteAction)
@@ -83,7 +85,7 @@ class DefaultBinaryStoreTest extends Specification {
     }
 
     def "read action exception is propagated to the client"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store = new DefaultBinaryStore(temp.file("foo.bin"))
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
         def data = store.done()
 
@@ -96,7 +98,7 @@ class DefaultBinaryStoreTest extends Specification {
     }
 
     def "may be empty"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         def data = store.done()

@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
@@ -27,11 +29,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * A file collection that delegates each method call to the
- * file collection returned by {@link #getDelegate()}.
+ * A file collection that delegates each method call to the file collection returned by {@link #getDelegate()}.
  */
-public abstract class DelegatingFileCollection implements FileCollection, MinimalFileSet {
-    public abstract FileCollection getDelegate();
+public abstract class DelegatingFileCollection implements FileCollectionInternal {
+    public abstract FileCollectionInternal getDelegate();
 
     public File getSingleFile() throws IllegalStateException {
         return getDelegate().getSingleFile();
@@ -102,10 +103,11 @@ public abstract class DelegatingFileCollection implements FileCollection, Minima
     }
 
     public String getDisplayName() {
-        FileCollection delegate = getDelegate();
-        if (delegate instanceof MinimalFileSet) {
-            return ((MinimalFileSet) delegate).getDisplayName();
-        }
-        return getDelegate().toString();
+        return getDelegate().getDisplayName();
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        getDelegate().registerWatchPoints(builder);
     }
 }

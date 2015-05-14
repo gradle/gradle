@@ -44,6 +44,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
 
         when:
         dependencyResolver.resolve(configuration, repositories, metadataHandler, results)
+        dependencyResolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
 
         then:
         def resolvedConfig = results.resolvedConfiguration

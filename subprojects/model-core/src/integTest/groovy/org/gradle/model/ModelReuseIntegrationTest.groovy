@@ -15,29 +15,19 @@
  */
 
 package org.gradle.model
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
-import spock.lang.Ignore
 
-//@IgnoreIf({ GradleContextualExecuter.isDaemon() })
-@Ignore("failing builds randomly on windows: http://builds.gradle.org/viewLog.html?buildId=276330&buildTypeId=Gradle_Master_Coverage_WindowsJava18_2")
-class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
+// Requires daemon because reuse right now doesn't handle the build actually changing
+class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
-        executer = new DaemonGradleExecuter(distribution, testDirectoryProvider)
-        executer.beforeExecute {
-            requireIsolatedDaemons()
-            withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
-            withDaemonIdleTimeoutSecs(5)
-        }
         EnableModelDsl.enable(executer)
-    }
 
-    def cleanup() {
-        executer.withArgument("--stop").run()
+        executer.beforeExecute {
+            withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
+        }
     }
 
     String hashFor(String prefix) {
@@ -109,9 +99,6 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
     def "can enable reuse with the variants benchmark"() {
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Flavour {
                 String getName()
@@ -159,14 +146,14 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addVariantTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addVariantTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
                     variants.each {
                         tasks.create(it.name)
                     }
                 }
 
                 @Mutate
-                void addAllVariantsTasks(CollectionBuilder<Task> tasks, ManagedSet<Variant> variants) {
+                void addAllVariantsTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
                     tasks.create("allVariants") { allVariants ->
                         variants.each {
                             allVariants.dependsOn it.name

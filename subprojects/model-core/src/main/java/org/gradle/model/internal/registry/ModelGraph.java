@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
@@ -25,7 +26,7 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.*;
 
-public class ModelGraph {
+class ModelGraph {
     private final ModelNodeInternal root;
     private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
@@ -96,18 +97,18 @@ public class ModelGraph {
     private void doAddListener(ModelCreationListener listener) {
         notifying = true;
         try {
-            if (listener.matchPath() != null) {
-                ModelNodeInternal node = flattened.get(listener.matchPath());
+            if (listener.getPath() != null) {
+                ModelNodeInternal node = flattened.get(listener.getPath());
                 if (node != null) {
                     if (maybeNotify(node, listener)) {
                         return;
                     }
                 }
-                pathListeners.put(listener.matchPath(), listener);
+                pathListeners.put(listener.getPath(), listener);
                 return;
             }
-            if (listener.matchParent() != null) {
-                ModelNodeInternal parent = flattened.get(listener.matchParent());
+            if (listener.getParent() != null) {
+                ModelNodeInternal parent = flattened.get(listener.getParent());
                 if (parent != null) {
                     for (ModelNodeInternal node : parent.getLinks()) {
                         if (maybeNotify(node, listener)) {
@@ -115,22 +116,16 @@ public class ModelGraph {
                         }
                     }
                 }
-                parentListeners.put(listener.matchParent(), listener);
+                parentListeners.put(listener.getParent(), listener);
                 return;
             }
-            if (listener.matchScope() != null) {
-                ModelNodeInternal scope = flattened.get(listener.matchScope());
-                if (scope != null) {
-                    if (maybeNotify(scope, listener)) {
+            if (listener.getScope() != null) {
+                for (ModelNodeInternal node : findAllInScope(listener.getScope())) {
+                    if (maybeNotify(node, listener)) {
                         return;
                     }
-                    for (ModelNodeInternal node : scope.getLinks()) {
-                        if (maybeNotify(node, listener)) {
-                            return;
-                        }
-                    }
                 }
-                scopeListeners.put(listener.matchScope(), listener);
+                scopeListeners.put(listener.getScope(), listener);
                 return;
             }
             for (ModelNodeInternal node : flattened.values()) {
@@ -154,7 +149,7 @@ public class ModelGraph {
     }
 
     private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
-        if (listener.matchType() != null && !node.getPromise().canBeViewedAsWritable(listener.matchType()) && !node.getPromise().canBeViewedAsReadOnly(listener.matchType())) {
+        if (listener.getType() != null && !node.getPromise().canBeViewedAsWritable(listener.getType()) && !node.getPromise().canBeViewedAsReadOnly(listener.getType())) {
             return false;
         }
         return listener.onCreate(node);
@@ -172,6 +167,14 @@ public class ModelGraph {
         }
 
         return found;
+    }
+
+    public Iterable<ModelNodeInternal> findAllInScope(ModelPath scope) {
+        ModelNodeInternal node = flattened.get(scope);
+        if (node == null) {
+            return Collections.emptyList();
+        }
+        return Iterables.concat(Collections.singleton(node), node.getLinks());
     }
 
     @Nullable

@@ -17,56 +17,31 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
-import org.gradle.model.internal.type.ModelType;
 
-class OneOfTypeBinderCreationListener extends BinderCreationListener {
-    private final Action<? super ModelNodeInternal> bindAction;
-    private ModelPath boundTo;
-    private ModelRuleDescriptor boundToCreator;
-    private final ModelPath scope;
+class OneOfTypeBinderCreationListener extends ModelBinding {
+    private final Action<ModelBinding> bindAction;
 
-    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
+    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<ModelBinding> bindAction) {
         super(descriptor, reference, writable);
         this.bindAction = bindAction;
-        this.scope = scope;
     }
 
-    @Nullable
-    @Override
-    public ModelPath matchParent() {
-        return null;
-    }
-
-    @Override
-    public ModelPath matchScope() {
-        return scope;
-    }
-
-    @Nullable
-    @Override
-    public ModelType<?> matchType() {
-        return reference.getType();
-    }
-
-    public boolean onCreate(ModelNodeInternal node) {
+    public void onCreate(ModelNodeInternal node) {
         ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
         ModelPath path = node.getPath();
         if (boundTo != null) {
-            throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                    new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                    new AmbiguousBindingReporter(reference, boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
             ));
         } else {
-            bindAction.execute(node);
-            boundTo = path;
-            boundToCreator = creatorDescriptor;
-            return false; // don't unregister listener, need to keep listening for other potential bindings
+            boundTo = node;
+            bindAction.execute(this);
         }
     }
 }

@@ -26,11 +26,14 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
+import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
+import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
@@ -60,7 +63,7 @@ public class CLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class C extends NativeLanguageTransform<CSourceSet> {
+    private static class C extends NativeLanguageTransform<CSourceSet> implements PchEnabledLanguageTransform<CSourceSet> {
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;
         }
@@ -72,7 +75,11 @@ public class CLangPlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return new CompileTaskConfig(this, CCompile.class);
+            return new SourceCompileTaskConfig(this, CCompile.class);
+        }
+
+        public SourceTransformTaskConfig getPchTransformTask() {
+            return new PCHCompileTaskConfig(this, CPreCompiledHeaderCompile.class);
         }
     }
 }

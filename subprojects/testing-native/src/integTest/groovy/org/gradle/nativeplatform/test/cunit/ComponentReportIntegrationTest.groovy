@@ -15,12 +15,14 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
-import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    @RequiresInstalledToolChain
     def "shows details of native C executable with test suite"() {
         given:
         buildFile << """
@@ -48,7 +50,7 @@ Native executable 'someExe'
 
 Source sets
     C source 'someExe:c'
-        src/someExe/c
+        srcDir: src/someExe/c
 
 Binaries
     Executable 'someExe:executable'
@@ -65,9 +67,9 @@ Cunit test suite 'someExeTest'
 
 Source sets
     C source 'someExeTest:c'
-        src/someExeTest/c
+        srcDir: src/someExeTest/c
     C source 'someExeTest:cunitLauncher'
-        build/src/someExeTest/cunitLauncher/c
+        srcDir: build/src/someExeTest/cunitLauncher/c
 
 Binaries
     C unit exe 'someExeTest:cUnitExe'

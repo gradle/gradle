@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.mirah.MirahCompileSpec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -100,9 +101,9 @@ public class MirahCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        mirahClasspath = context.mock(FileTree.class);
+        mirahClasspath = context.mock(FileTreeInternal.class);
         compile.setMirahClasspath(mirahClasspath);
-        final FileTree classpath = context.mock(FileTree.class);
+        final FileTree classpath = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations(){{
             allowing(mirahClasspath).getFiles(); will(returnValue(new HashSet<File>()));

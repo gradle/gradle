@@ -19,13 +19,12 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.PreprocessingTool
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
+import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.NativeDependencySet
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -135,10 +134,10 @@ class VisualStudioProjectConfigurationTest extends Specification {
     }
 
     def "include paths include component headers"() {
-        final sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        def sourceSets = []
 
         when:
-        exeBinary.source >> sources
+        exeBinary.source >> headerSourceSetModelMap(sourceSets)
         exeBinary.libs >> []
 
         then:
@@ -148,14 +147,8 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def file1 = Mock(File)
         def file2 = Mock(File)
         def file3 = Mock(File)
-        def sourceSet = Mock(LanguageSourceSet)
-        def sourceSet1 = headerSourceSet(file1, file2)
-        def sourceSet2 = headerSourceSet(file3)
-        sources.addAll(sourceSet, sourceSet1, sourceSet2)
-
-        and:
-        exeBinary.source >> sources
-        exeBinary.libs >> []
+        sourceSets.add(headerSourceSet(file1, file2))
+        sourceSets.add(headerSourceSet(file3))
 
         then:
         configuration.includePaths == [file1, file2, file3]
@@ -170,11 +163,23 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def deps1 = dependencySet(file1, file2)
         def deps2 = dependencySet(file3)
 
-        exeBinary.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        exeBinary.source >> emptyHeaderSourceSetModelMap()
         exeBinary.libs >> [deps1, deps2]
 
         then:
         configuration.includePaths == [file1, file2, file3]
+    }
+
+    private ModelMap emptyHeaderSourceSetModelMap() {
+        headerSourceSetModelMap([])
+    }
+
+    private ModelMap headerSourceSetModelMap(Collection<HeaderExportingSourceSet> sourceSets) {
+        Mock(ModelMap) {
+            withType(HeaderExportingSourceSet) >> Mock(ModelMap) {
+                values() >> (sourceSets as List)
+            }
+        }
     }
 
     private HeaderExportingSourceSet headerSourceSet(File... files) {

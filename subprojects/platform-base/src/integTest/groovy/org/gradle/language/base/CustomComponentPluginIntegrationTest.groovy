@@ -17,14 +17,13 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
+        EnableModelDsl.enable(executer)
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
 interface SampleComponent extends ComponentSpec {
     String getVersion()
     void setVersion(String version)
@@ -41,13 +40,20 @@ class DefaultSampleComponent extends BaseComponentSpec implements SampleComponen
 
         and:
         buildFile << """
-task checkModel << {
-    assert project.componentSpecs.size() == 1
-    def sampleLib = project.componentSpecs.sampleLib
-    assert sampleLib instanceof SampleComponent
-    assert sampleLib.projectPath == project.path
-    assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
-    assert sampleLib.version == null
+model {
+    tasks {
+        create("checkModel") {
+            def components = \$("components")
+            doLast {
+                assert components.size() == 1
+                def sampleLib = components.sampleLib
+                assert sampleLib instanceof SampleComponent
+                assert sampleLib.projectPath == project.path
+                assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                assert sampleLib.version == null
+            }
+        }
+    }
 }
 """
         then:
@@ -66,10 +72,13 @@ model {
             version = '12'
         }
     }
-}
-task checkModel << {
-    def sampleLib = project.componentSpecs.sampleLib
-    assert sampleLib.version == '12'
+    tasks {
+        create("checkModel") {
+            doLast {
+                assert \$("components").sampleLib.version == '12'
+            }
+        }
+    }
 }
 """
 
@@ -87,7 +96,7 @@ task checkModel << {
                 }
 
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.afterEach {
                         version += ".1"
                     }
@@ -102,11 +111,13 @@ task checkModel << {
                         version = '12'
                     }
                 }
-            }
-
-            task checkModel << {
-                def sampleLib = project.componentSpecs.sampleLib
-                assert sampleLib.version == '12.1'
+                tasks {
+                    create("checkModel") {
+                        doLast {
+                            assert \$("components").sampleLib.version == '12.1'
+                        }
+                    }
+                }
             }
 """
 
@@ -126,8 +137,14 @@ task checkModel << {
 
             apply plugin:MySamplePlugin
 
-            task checkModel << {
-                assert project.componentSpecs.size() == 0
+            model {
+                tasks {
+                    create("checkModel") {
+                        doLast {
+                            assert \$("components").size() == 0
+                        }
+                    }
+                }
             }
 """
 
@@ -180,7 +197,7 @@ BUILD SUCCESSFUL"""))
 
                 static class Rules extends RuleSource {
                     @Mutate
-                    void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                    void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                         componentSpecs.create("sampleLib")
                     }
                 }
@@ -188,12 +205,19 @@ BUILD SUCCESSFUL"""))
 
             apply plugin:MyComponentCreationPlugin
 
-            task checkModel << {
-                 assert project.componentSpecs.size() == 1
-                 def sampleLib = project.componentSpecs.sampleLib
-                 assert sampleLib instanceof SampleComponent
-                 assert sampleLib.projectPath == project.path
-                 assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+            model {
+                tasks {
+                    create("checkModel") {
+                        def components = \$("components")
+                        doLast {
+                            assert components.size() == 1
+                            def sampleLib = components.sampleLib
+                            assert sampleLib instanceof SampleComponent
+                            assert sampleLib.projectPath == project.path
+                            assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                        }
+                    }
+                }
             }
 """
 
@@ -219,30 +243,37 @@ BUILD SUCCESSFUL"""))
                 }
 
                 @Mutate
-                void createSampleComponentInstances(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentInstances(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleComponent")
                 }
 
                 @Mutate
-                void createSampleLibraryInstances(CollectionBuilder<SampleLibrary> componentSpecs) {
+                void createSampleLibraryInstances(ModelMap<SampleLibrary> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }
 
             apply plugin:MySamplePlugin
 
-            task checkModel << {
-                 assert project.componentSpecs.size() == 2
+            model {
+                tasks {
+                    create("checkModel") {
+                        def components = \$("components")
+                        doLast {
+                            assert components.size() == 2
 
-                 def sampleComponent = project.componentSpecs.sampleComponent
-                 assert sampleComponent instanceof SampleComponent
-                 assert sampleComponent.projectPath == project.path
-                 assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
+                            def sampleComponent = components.sampleComponent
+                            assert sampleComponent instanceof SampleComponent
+                            assert sampleComponent.projectPath == project.path
+                            assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
 
-                 def sampleLib = project.componentSpecs.sampleLib
-                 assert sampleLib instanceof SampleLibrary
-                 assert sampleLib.projectPath == project.path
-                 assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                            def sampleLib = components.sampleLib
+                            assert sampleLib instanceof SampleLibrary
+                            assert sampleLib.projectPath == project.path
+                            assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                        }
+                    }
+                }
             }
 """
 
@@ -307,7 +338,7 @@ BUILD SUCCESSFUL"""))
                     builder.defaultImplementation(DefaultSampleComponent)
                 }
                 @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {
                     componentSpecs.create("sampleLib")
                 }
             }

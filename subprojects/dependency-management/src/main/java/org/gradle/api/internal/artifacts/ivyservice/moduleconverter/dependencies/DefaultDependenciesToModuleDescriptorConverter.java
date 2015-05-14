@@ -42,7 +42,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addDependencies(MutableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
-                metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), metaData.getModuleDescriptor(), dependency));
+                metaData.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(configuration.getName(), dependency));
             }
         }
     }

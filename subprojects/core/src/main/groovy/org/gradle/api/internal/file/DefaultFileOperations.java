@@ -133,9 +133,14 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {
-        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        CopySpec copySpec = copySpec();
         action.execute(copySpec);
         return copySpec;
+    }
+
+    @Override
+    public CopySpec copySpec() {
+        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
     }
 
     public FileResolver getFileResolver() {

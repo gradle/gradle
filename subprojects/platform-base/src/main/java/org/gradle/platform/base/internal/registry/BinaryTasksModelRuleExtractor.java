@@ -17,19 +17,16 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.*;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
@@ -64,7 +61,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
     private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
+        visitSubject(taskDataCollector, ruleDefinition, Task.class);
         visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
     }
 
@@ -76,35 +73,40 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, T> {
+    private class BinaryTaskRule<R, T extends BinarySpec> extends ModelMapBasedRule<R, Task, T, T> {
 
         public BinaryTaskRule(Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(ModelReference.of(binaryType), binaryType, ruleDefinition);
         }
 
-        public void execute(MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
-            DefaultCollectionBuilder<TaskInternal> collectionBuilder = new DefaultCollectionBuilder<TaskInternal>(
-                    ModelType.of(TaskInternal.class),
-                    getDescriptor(),
-                    modelNode,
-                    DefaultCollectionBuilder.createAndStoreVia(
-                            ModelReference.of(ITaskFactory.class),
-                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task .class))
-                    )
+        public void execute(final MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
 
-            ) {
-                @Override
-                protected <S extends TaskInternal> void onCreate(final String name, ModelType<S> type) {
-                    Task task = get(name);
-                    binary.builtBy(task);
-                }
-            };
-
-            CollectionBuilder<Task> cast = Cast.uncheckedCast(collectionBuilder);
+            ModelMap<Task> cast = new DomainObjectSetBackedModelMap<Task>(
+                Task.class,
+                binary.getTasks(),
+                new NamedEntityInstantiator<Task>() {
+                    @Override
+                    public <S extends Task> S create(String name, Class<S> type) {
+                        modelNode.getPrivateData(ModelType.of(BinarySpec.class)).getTasks().create(name, type, Actions.doNothing());
+                        return null; // we know it's not needed
+                    }
+                },
+                new Namer<Object>() {
+                    @Override
+                    public String determineName(Object object) {
+                        return Cast.cast(Task.class, object).getName();
+                    }
+                },
+                new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        binary.builtBy(task);
+                    }
+                });
 
             List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size() + 1);
             inputsWithBinary.addAll(inputs);
-            inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(), getSubject().getType(), binary));
+            inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(), getSubject().getType(), binary));
 
             invoke(inputsWithBinary, cast, binary, binary);
         }

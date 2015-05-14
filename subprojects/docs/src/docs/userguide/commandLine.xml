@@ -297,6 +297,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--watch</option>
+            </term>
+            <listitem>
+                <para>Enables 'continuous mode'.  Gradle will automatically re-run when changes are detected. See <xref linkend="continuous_mode"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-x</option>, <option>--exclude-task</option>
             </term>
             <listitem>

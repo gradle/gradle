@@ -26,7 +26,7 @@ class ResolutionResultDependencyGraphVisitor implements DependencyGraphVisitor {
     }
 
     public void start(DependencyGraphBuilder.ConfigurationNode root) {
-        newModelBuilder.start(root.toId(), root.metaData.getComponent().getComponentId());
+        newModelBuilder.start(root.toId(), root.getComponentId());
     }
 
     public void visitNode(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration) {

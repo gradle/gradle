@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import org.gradle.build.Install
+
 import org.gradle.build.BuildTypes
+import org.gradle.build.Install
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -31,7 +32,7 @@ buildTypes {
     quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "test"
 
     // For testing pull requests
-    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality"
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
 
     // A full (in-process) test
     developerBuild "check"
@@ -65,6 +66,9 @@ buildTypes {
 
     // Used to build production distros and smoke test them
     promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
+
+    //Initial smoke test for java 9
+    java9Build "java9Test", "java9IntegTest", useIncomingDistributions: true
 }
 
 ext {
@@ -139,6 +143,7 @@ subprojects {
     if (project in groovyProjects) {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+        apply from: "$rootDir/gradle/java9.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }

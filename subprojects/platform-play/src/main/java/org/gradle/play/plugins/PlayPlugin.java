@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 /**
- * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
 @Incubating
 public class PlayPlugin implements Plugin<Project> {

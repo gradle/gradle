@@ -23,9 +23,6 @@ class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec 
     def "managed type implementation class is generated once for each type and reused"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Named {
                 String getName()
@@ -42,7 +39,7 @@ class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void addCompareImplementationClassesTask(CollectionBuilder<Task> tasks, @Path("first") Named first, @Path("second") Named second) {
+                void addCompareImplementationClassesTask(ModelMap<Task> tasks, @Path("first") Named first, @Path("second") Named second) {
                     tasks.create("compareImplementationClasses") {
                         it.doLast {
                             println "implementation class is reused: ${first.getClass().is(second.getClass())}"

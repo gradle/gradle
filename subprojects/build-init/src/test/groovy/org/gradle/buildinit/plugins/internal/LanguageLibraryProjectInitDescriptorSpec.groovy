@@ -16,10 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileTreeInternal
 import spock.lang.Specification
-
 
 class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
@@ -53,8 +52,8 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
     def "whenNoSourcesAvailable creates template operation checking for sources"(){
         setup:
-        def mainSourceDirectory = Mock(FileTree)
-        def testSourceDirectory = Mock(FileTree)
+        def mainSourceDirectory = Mock(FileTreeInternal)
+        def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
 
         descriptor = new LanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver)

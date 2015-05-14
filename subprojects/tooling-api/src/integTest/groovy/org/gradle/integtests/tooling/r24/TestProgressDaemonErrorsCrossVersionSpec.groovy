@@ -26,30 +26,12 @@ import org.gradle.tooling.events.test.TestProgressEvent
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
 
-    def goodCode() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
-        """
-
-        file("src/test/java/example/MyTest.java") << """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
-    }
-
     void setup() {
         toolingApi.requireIsolatedDaemons()
     }
 
     @TargetGradleVersion('>=2.4')
-    @ToolingApiVersion('>=2.4')
+    @ToolingApiVersion('=2.4')
     def "should received failed event when daemon disappears unexpectedly"() {
         given:
         goodCode()
@@ -67,9 +49,25 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         GradleConnectionException ex = thrown()
         ex.cause.message.contains('Gradle build daemon disappeared unexpectedly')
 
-        and: "a single event was received"
-        result.size() == 1
+        and:
+        !result.empty
     }
 
+    def goodCode() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+    }
 
 }

@@ -27,5 +27,10 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface ProjectDependencySubstitution extends DependencySubstitution<ProjectComponentSelector> {
+public interface ProjectDependencySubstitution extends DependencySubstitution {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ProjectComponentSelector getRequested();
 }

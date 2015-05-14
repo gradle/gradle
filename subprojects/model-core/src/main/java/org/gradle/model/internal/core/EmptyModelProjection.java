@@ -53,12 +53,12 @@ public class EmptyModelProjection implements ModelProjection {
     }
 
     @Override
-    public Iterable<String> getWritableTypeDescriptions() {
+    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
         return Collections.emptyList();
     }
 
     @Override
-    public Iterable<String> getReadableTypeDescriptions() {
+    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
         return Collections.emptyList();
     }
 }

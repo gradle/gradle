@@ -33,9 +33,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
@@ -66,12 +64,34 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return requested;
     }
 
+    @Override
+    public String[] getModuleConfigurations() {
+        return dependencyDescriptor.getModuleConfigurations();
+    }
+
+    @Override
+    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
+        return dependencyDescriptor.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
+    }
+
+    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
+        return dependencyDescriptor.getExcludeRules(configurations.toArray(new String[configurations.size()]));
+    }
+
     public boolean isChanging() {
         return dependencyDescriptor.isChanging();
     }
 
     public boolean isTransitive() {
         return dependencyDescriptor.isTransitive();
+    }
+
+    public boolean isForce() {
+        return dependencyDescriptor.isForce();
+    }
+
+    public String getDynamicConstraintVersion() {
+        return dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
     }
 
     public DependencyDescriptor getDescriptor() {
@@ -86,9 +106,8 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         }
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            ModuleRevisionId id = toConfiguration.getComponent().getDescriptor().getModuleRevisionId();
-            Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-            artifacts.add(toConfiguration.getComponent().artifact(artifact));
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+            artifacts.add(toConfiguration.artifact(artifact));
         }
         return artifacts;
     }
@@ -99,8 +118,9 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             return Collections.emptySet();
         }
         Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
-        for (DependencyArtifactDescriptor artifact : dependencyArtifacts) {
-            artifactSet.add(new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+            artifactSet.add(artifact);
         }
         return artifactSet;
     }
@@ -126,7 +146,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         } else if (target instanceof ProjectComponentSelector) {
             // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
+            return new DefaultProjectDependencyMetaData(dependencyDescriptor, projectTarget.getProjectPath());
         } else {
             throw new AssertionError();
         }

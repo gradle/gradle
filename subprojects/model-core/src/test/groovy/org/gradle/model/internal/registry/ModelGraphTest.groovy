@@ -111,7 +111,7 @@ class ModelGraphTest extends Specification {
         def c = node("c")
 
         given:
-        listener.matchPath() >> b.path
+        listener.getPath() >> b.path
         graph.addListener(listener)
 
         when:
@@ -132,7 +132,7 @@ class ModelGraphTest extends Specification {
         def c = node("c")
 
         given:
-        listener.matchPath() >> b.path
+        listener.getPath() >> b.path
         graph.add(a)
         graph.add(b)
         graph.add(c)
@@ -154,7 +154,7 @@ class ModelGraphTest extends Specification {
         def d = node("d")
 
         given:
-        listener.matchParent() >> a.path
+        listener.getParent() >> a.path
         a.links >> [b]
 
         when:
@@ -184,7 +184,7 @@ class ModelGraphTest extends Specification {
         def d = node("d", Long)
 
         given:
-        listener.matchType() >> ModelType.of(String)
+        listener.getType() >> ModelType.of(String)
 
         when:
         graph.add(a)
@@ -208,8 +208,8 @@ class ModelGraphTest extends Specification {
         def d = node("a.d", Long)
 
         given:
-        listener.matchType() >> ModelType.of(String)
-        listener.matchParent() >> a.path
+        listener.getType() >> ModelType.of(String)
+        listener.getParent() >> a.path
         a.links >> [b]
 
         when:
@@ -241,8 +241,8 @@ class ModelGraphTest extends Specification {
         def f = node("a.b.c.f", String)
 
         given:
-        listener.matchType() >> ModelType.of(String)
-        listener.matchScope() >> b.path
+        listener.getType() >> ModelType.of(String)
+        listener.getScope() >> b.path
         b.links >> [c]
 
         when:
@@ -275,8 +275,8 @@ class ModelGraphTest extends Specification {
         def b = node("b")
 
         given:
-        listener2.matchPath() >> b.path
-        listener3.matchPath() >> b.path
+        listener2.getPath() >> b.path
+        listener3.getPath() >> b.path
 
         when:
         graph.add(a)
@@ -304,7 +304,7 @@ class ModelGraphTest extends Specification {
 
         given:
         graph.addListener(listener1)
-        listener2.matchPath() >> b.path
+        listener2.getPath() >> b.path
         graph.addListener(listener2)
 
         when:

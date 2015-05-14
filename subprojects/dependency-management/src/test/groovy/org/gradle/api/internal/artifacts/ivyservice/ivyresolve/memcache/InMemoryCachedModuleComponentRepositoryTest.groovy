@@ -15,23 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.component.ArtifactType
-import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.internal.component.model.ComponentUsage
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
-import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.ComponentUsage
+import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class InMemoryCachedModuleComponentRepositoryTest extends Specification {
+class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def stats = new InMemoryCacheStats()
     def localArtifactsCache = Mock(InMemoryArtifactsCache)
@@ -49,6 +51,8 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", "1.0")
     def dep = Stub(DependencyMetaData) { getRequested() >> selector }
+    def componentRequestMetaData = Mock(ComponentOverrideMetadata)
+
 
     def listingResult = Mock(BuildableModuleVersionListingResolveResult)
     def metaDataResult = Mock(BuildableModuleComponentMetaDataResolveResult)
@@ -103,18 +107,18 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "retrieves and caches local dependencies"() {
         when:
-        repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.localAccess.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
 
         then:
         1 * localMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
-        1 * localDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
+        1 * localDelegate.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
         1 * localMetaDataCache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses local dependencies from cache"() {
         when:
-        repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.localAccess.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
 
         then:
         1 * localMetaDataCache.supplyMetaData(lib, metaDataResult) >> true
@@ -123,18 +127,18 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "retrieves and caches dependencies"() {
         when:
-        repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.remoteAccess.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
 
         then:
         1 * remoteMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
-        1 * remoteDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
+        1 * remoteDelegate.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
         1 * remoteMetaDataCache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses dependencies from cache"() {
         when:
-        repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.remoteAccess.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
 
         then:
         1 * remoteMetaDataCache.supplyMetaData(lib, metaDataResult) >> true

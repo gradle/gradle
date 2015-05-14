@@ -25,9 +25,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "rule method can define a managed model element backed by an interface"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -57,7 +54,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, Person person) {
+                void addEchoTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "person: $person"
@@ -81,9 +78,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "rule method can apply defaults to a managed model element"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -121,7 +115,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void addEchoTask(CollectionBuilder<Task> tasks, Person person) {
+                void addEchoTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -146,7 +140,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -168,7 +161,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo", task -> {
                         task.doLast(unused -> {
                             System.out.println(String.format("name: %s", person.getName()));
@@ -195,7 +188,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -214,7 +206,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("accessGenerativeName", task -> {
                         task.doLast(unused -> {
                             person.getName();
@@ -241,7 +233,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -256,7 +247,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void linkPersonToTasks(CollectionBuilder<Task> tasks, Person person) {
+                void linkPersonToTasks(ModelMap<Task> tasks, Person person) {
                 }
             }
         '''
@@ -278,7 +269,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
-            import org.gradle.model.collection.*;
 
             @Managed
             interface Person {
@@ -292,7 +282,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void linkPersonToTasks(CollectionBuilder<Task> tasks, Person person) {
+                void linkPersonToTasks(ModelMap<Task> tasks, Person person) {
                 }
             }
         '''
@@ -311,9 +301,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     def "reports managed interface type in missing property error message"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Person {
                 String getName()
@@ -326,7 +313,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Mutate
-                void tasks(CollectionBuilder<Task> tasks, Person person) {
+                void tasks(ModelMap<Task> tasks, Person person) {
                     println person.unknown
                 }
             }
@@ -339,7 +326,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(15)
         failure.assertHasCause("No such property: unknown for class: Person")
     }
 

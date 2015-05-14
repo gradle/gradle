@@ -15,14 +15,17 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
@@ -34,9 +37,11 @@ import java.util.List;
 class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
+    private final ConsumerListenerConfiguration listenerConfiguration;
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
         this.eventConsumer = eventConsumer;
+        this.listenerConfiguration = listenerConfiguration;
     }
 
     @Override
@@ -54,11 +59,11 @@ class ClientForwardingTestListener implements TestListenerInternal {
         // Don't forward
     }
 
-    private static DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
+    private DefaultTestDescriptor adapt(TestDescriptorInternal testDescriptor) {
         return testDescriptor.isComposite() ? toTestDescriptorForSuite(testDescriptor) : toTestDescriptorForTest(testDescriptor);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
+    private DefaultTestDescriptor toTestDescriptorForSuite(TestDescriptorInternal suite) {
         Object id = suite.getId();
         String name = suite.getName();
         String displayName = suite.toString();
@@ -66,11 +71,11 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String suiteName = suite.getName();
         String className = suite.getClassName();
         String methodName = null;
-        Object parentId = suite.getParent() != null ? suite.getParent().getId() : null;
+        Object parentId = getParentId(suite);
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
     }
 
-    private static DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
+    private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
         Object id = test.getId();
         String name = test.getName();
         String displayName = test.toString();
@@ -78,8 +83,25 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String suiteName = null;
         String className = test.getClassName();
         String methodName = test.getName();
-        Object parentId = test.getParent() != null ? test.getParent().getId() : null;
+        Object parentId = getParentId(test);
         return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+    }
+
+    private Object getParentId(TestDescriptorInternal descriptor) {
+        TestDescriptorInternal parent = descriptor.getParent();
+        Object parentId = parent != null ? parent.getId() : null;
+        if (parentId == null) {
+            // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+            if (listenerConfiguration.isSendTaskProgressEvents()) {
+                if (descriptor instanceof DecoratingTestDescriptor) {
+                    descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
+                }
+                if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
+                    parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
+                }
+            }
+        }
+        return parentId;
     }
 
     private static AbstractTestResult adapt(TestResult result) {

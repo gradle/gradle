@@ -16,16 +16,16 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * A source set that depends on one or more {@link org.gradle.nativeplatform.NativeDependencySet}s to be built.
  */
 @Incubating
+@HasInternalProtocol
 public interface DependentSourceSet extends LanguageSourceSet {
     /**
      * The libraries that this source set requires.
@@ -52,20 +52,16 @@ public interface DependentSourceSet extends LanguageSourceSet {
     void lib(Object library);
 
     /**
-     * Adds a pre-compiled header to be used when compiling sources in this source set.
+     * Sets the pre-compiled header to be used when compiling sources in this source set.
      *
      * @param header the header to precompile
      */
-    void preCompiledHeader(String header);
+    void setPreCompiledHeader(String header);
 
     /**
-     * Returns any pre-compiled headers configured for this source set.
+     * Returns the pre-compiled header configured for this source set.
      *
-     * @return the pre-compiled headers
+     * @return the pre-compiled header
      */
-    Set<String> getPreCompiledHeaders();
-
-    File getPrefixHeaderFile();
-
-    void setPrefixHeaderFile(File prefixHeaderFile);
+    String getPreCompiledHeader();
 }

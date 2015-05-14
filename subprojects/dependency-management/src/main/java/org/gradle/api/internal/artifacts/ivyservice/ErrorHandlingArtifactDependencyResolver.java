@@ -46,12 +46,24 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         try {
             dependencyResolver.resolve(configuration, repositories, metadataHandler, results);
         } catch (final Throwable e) {
-            results.failed(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
+            results.failed(wrapException(e, configuration));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
             return;
         }
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.resolved(wrappedConfiguration, wrappedResult, results.getResolvedProjectConfigurationResults());
+        results.resolved(wrappedResult, results.getResolvedProjectConfigurationResults());
+    }
+
+    public void resolveArtifacts(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+        try {
+            dependencyResolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
+        } catch (ResolveException e) {
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            return;
+        }
+
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
+        results.withResolvedConfiguration(wrappedConfiguration);
     }
 
     private static ResolveException wrapException(Throwable e, Configuration configuration) {

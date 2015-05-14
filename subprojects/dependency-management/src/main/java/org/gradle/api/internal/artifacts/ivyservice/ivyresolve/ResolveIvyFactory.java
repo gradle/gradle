@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -35,9 +35,9 @@ import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -72,14 +72,13 @@ public class ResolveIvyFactory {
         this.versionComparator = versionComparator;
     }
 
-    public RepositoryChain create(ConfigurationInternal configuration,
+    public RepositoryChain create(ResolutionStrategyInternal resolutionStrategy,
                                   Collection<? extends ResolutionAwareRepository> repositories,
                                   ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
@@ -124,7 +123,7 @@ public class ResolveIvyFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentResolver, ArtifactResolver {
+    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final CacheLockingManager cacheLockingManager;
         private final UserResolverChain delegate;
 
@@ -137,26 +136,32 @@ public class ResolveIvyFactory {
             delegate.add(moduleComponentRepository);
         }
 
-        public ComponentMetaDataResolver getComponentMetaDataResolver() {
-            throw new UnsupportedOperationException();
+        public DependencyToComponentIdResolver getComponentIdResolver() {
+            return this;
         }
 
-        public DependencyToComponentIdResolver getComponentIdResolver() {
-            throw new UnsupportedOperationException();
+        public ComponentMetaDataResolver getComponentResolver() {
+            return this;
         }
 
         public ArtifactResolver getArtifactResolver() {
             return this;
         }
 
-        public DependencyToComponentResolver getDependencyResolver() {
-            return this;
-        }
-
-        public void resolve(final DependencyMetaData dependency, final BuildableComponentResolveResult result) {
+        @Override
+        public void resolve(final DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
                 public void run() {
-                    delegate.getDependencyResolver().resolve(dependency, result);
+                    delegate.getComponentIdResolver().resolve(dependency, result);
+                }
+            });
+        }
+
+        @Override
+        public void resolve(final ComponentIdentifier identifier, final ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s", identifier), new Runnable() {
+                public void run() {
+                    delegate.getComponentResolver().resolve(identifier, componentOverrideMetadata, result);
                 }
             });
         }

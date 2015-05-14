@@ -60,7 +60,7 @@ public class BuildableIvyModuleResolveMetaData extends DefaultIvyModuleResolveMe
     }
 
     private boolean artifactsEqual(Artifact a, Artifact b) {
-        return new DefaultIvyArtifactName(a).equals(new DefaultIvyArtifactName(b));
+        return DefaultIvyArtifactName.forIvyArtifact(a).equals(DefaultIvyArtifactName.forIvyArtifact(b));
     }
 
     private static void attachArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {

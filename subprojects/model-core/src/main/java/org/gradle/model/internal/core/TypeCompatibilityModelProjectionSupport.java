@@ -67,7 +67,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
 
     protected abstract ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
 
-    public Iterable<String> getWritableTypeDescriptions() {
+    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
         if (canBeViewedAsWritable) {
             return Collections.singleton(description(type));
         } else {
@@ -75,7 +75,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         }
     }
 
-    public Iterable<String> getReadableTypeDescriptions() {
+    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
         if (canBeViewedAsReadOnly) {
             return Collections.singleton(description(type));
         } else {

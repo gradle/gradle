@@ -16,20 +16,15 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.PersistentBuildProcessIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
-//classloaders are cached in process so the test only makes sense if gradle invocations share the process
-@IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
-class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
+class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def cacheSizePerRun = []
 
     def setup() {
-        executer.requireIsolatedDaemons()
         file("cacheCheck.gradle") << """
             def cache = gradle.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
             gradle.buildFinished {

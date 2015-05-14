@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.test.TestFailureResult;
 
 import java.util.List;
@@ -24,31 +25,10 @@ import java.util.List;
 /**
  * Implementation of the {@code TestFailureResult} interface.
  */
-public final class DefaultTestFailureResult implements TestFailureResult {
-
-    private final long startTime;
-    private final long endTime;
-    private final List<? extends Failure> failures;
+public final class DefaultTestFailureResult extends DefaultOperationFailureResult implements TestFailureResult {
 
     public DefaultTestFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.failures = failures;
-    }
-
-    @Override
-    public long getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public long getEndTime() {
-        return endTime;
-    }
-
-    @Override
-    public List<? extends Failure> getFailures() {
-        return failures;
+        super(startTime, endTime, failures);
     }
 
 }
