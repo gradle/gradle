@@ -25,6 +25,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +44,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        FileTree src = getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
+        FileTree src = getProject().files(Collections.<Object>singletonList(this.source)).getAsFileTree();
         return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
     }
 
