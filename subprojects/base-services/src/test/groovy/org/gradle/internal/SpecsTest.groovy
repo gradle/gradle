@@ -17,7 +17,6 @@
 package org.gradle.internal
 
 import org.gradle.api.specs.Spec
-import org.gradle.internal.Specs
 import spock.lang.Specification
 
 class SpecsTest extends Specification {
