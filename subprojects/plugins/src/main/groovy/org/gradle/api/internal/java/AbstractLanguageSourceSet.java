@@ -16,18 +16,24 @@
 
 package org.gradle.api.internal.java;
 
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
+import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
     private final String fullName;
     private final String displayName;
     private final SourceDirectorySet source;
+    private final DependencySpecContainer dependencies;
     private boolean generated;
     private Task generatorTask;
 
@@ -36,6 +42,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         this.fullName = parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
+        this.dependencies = new DefaultDependencySpecContainer();
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -82,5 +89,15 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     public SourceDirectorySet getSource() {
         return source;
+    }
+
+    @Override
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
+    }
+
+    public DependencySpecContainer dependencies(@DelegatesTo(value=DependencySpecContainer.class, strategy = Closure.DELEGATE_FIRST) Closure dependenciesSpec) {
+        ConfigureUtil.configure(dependenciesSpec, dependencies);
+        return dependencies;
     }
 }

@@ -26,4 +26,73 @@ class DefaultJavaSourceSetTest extends Specification {
         resourceSet.displayName == "Java source 'mainX:javaX'"
         resourceSet.toString() == "Java source 'mainX:javaX'"
     }
+
+    def "can add a project dependency using dependencies property"() {
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+
+        when:
+        sourceSet.dependencies.project ':foo'
+
+        then:
+        sourceSet.dependencies.size() == 1
+        sourceSet.dependencies[0].projectPath == ':foo'
+    }
+
+    def "can add a project dependency"() {
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+
+        when:
+        sourceSet.dependencies {
+            project ':foo'
+        }
+
+        then:
+        sourceSet.dependencies.size() == 1
+        sourceSet.dependencies[0].projectPath == ':foo'
+    }
+
+    def "can add a library dependency"() {
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+
+        when:
+        sourceSet.dependencies {
+            library 'fooLib'
+        }
+
+        then:
+        sourceSet.dependencies.size() == 1
+        sourceSet.dependencies[0].libraryName == 'fooLib'
+    }
+
+    def "can add a project library dependency"() {
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+
+        when:
+        sourceSet.dependencies {
+            project ':foo' library 'fooLib'
+        }
+
+        then:
+        sourceSet.dependencies.size() == 1
+        sourceSet.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies[0].libraryName == 'fooLib'
+    }
+
+    def "can add a multiple dependencies"() {
+        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+
+        when:
+        sourceSet.dependencies {
+            project ':foo'
+            library 'fooLib'
+            project ':bar' library 'barLib'
+        }
+
+        then:
+        sourceSet.dependencies.size() == 3
+        sourceSet.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies[1].libraryName == 'fooLib'
+        sourceSet.dependencies[2].projectPath == ':bar'
+        sourceSet.dependencies[2].libraryName == 'barLib'
+    }
 }

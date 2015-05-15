@@ -26,7 +26,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 /**
  * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
@@ -39,6 +41,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     private SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
+    private final DependencySpecContainer dependencies;
 
     // TODO:DAZ This is only here as a convenience for subclasses to create additional SourceDirectorySets
     protected FileResolver fileResolver;
@@ -114,6 +117,11 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         this(nextSourceSetInfo.get());
     }
 
+    @Override
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
+    }
+
     private BaseLanguageSourceSet(SourceSetInfo info) {
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a LanguageTypeBuilder instead.");
@@ -124,6 +132,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         this.fullName = info.parentName + StringUtils.capitalize(name);
         this.source = new DefaultSourceDirectorySet("source", info.fileResolver);
         this.fileResolver = info.fileResolver;
+        this.dependencies = new DefaultDependencySpecContainer();
         super.builtBy(source.getBuildDependencies());
     }
 

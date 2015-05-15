@@ -27,6 +27,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -123,6 +124,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @Override
         void generatedBy(Task generatorTask) {
             }
+
+        @Override
+        DependencySpecContainer getDependencies() {
+            return null
+        }
 
         @Override
         String getName() {
