@@ -174,8 +174,8 @@ project(":") {
     }
 
     task cleanUpDaemons {
-        ext.suspiciousDaemons = [:].withDefault {[]}
-        ext.daemonPids = [] as Set
+        ext.suspiciousDaemons = [:].withDefault {[].asSynchronized()}.asSynchronized()
+        ext.daemonPids = ([] as Set).asSynchronized()
         doLast {
             Set alreadyKilled = []
             forEachJavaProcess { pid, process ->
