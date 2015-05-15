@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.language.cpp.plugins.CppPlugin
-import org.gradle.model.internal.core.DefaultModelMap
+import org.gradle.model.internal.core.NodeBackedModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestPlugin
@@ -39,7 +39,7 @@ class GoogleTestTest extends Specification {
         project.evaluate()
 
         when:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries.values()
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), NodeBackedModelMap.modelMapTypeOf(TestSuiteSpec)).get("mainTest").binaries.values()
 
         then:
         binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()

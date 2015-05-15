@@ -744,7 +744,7 @@ class DefaultModelRegistryTest extends Specification {
     def "getting self closed collection defines all links but does not realise them until graph closed"() {
         given:
         def events = []
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
                 .modelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
@@ -936,7 +936,7 @@ class DefaultModelRegistryTest extends Specification {
 
     def "only rules that actually have unbound inputs are reported as unbound"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
                 .createInstance("foo", new Bean())

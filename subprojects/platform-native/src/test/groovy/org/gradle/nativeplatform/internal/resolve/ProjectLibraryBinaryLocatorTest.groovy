@@ -20,7 +20,7 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultModelMap
+import org.gradle.model.internal.core.NodeBackedModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -123,7 +123,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         and:
         projectLocator.locateProject("other") >> project
         project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(NativeLibrarySpec)) >> null
+        modelRegistry.find(ModelPath.path("components"), NodeBackedModelMap.modelMapTypeOf(NativeLibrarySpec)) >> null
         project.path >> "project-path"
 
         and:

@@ -90,7 +90,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             )
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, DefaultModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, NodeBackedModelMap.createUsingParentNode(binarySpecModelType)))
                 .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
                 .build()
         );

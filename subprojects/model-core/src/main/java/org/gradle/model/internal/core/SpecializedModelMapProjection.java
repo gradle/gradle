@@ -41,7 +41,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
-        this.creatorStrategy = DefaultModelMap.createUsingParentNode(elementType);
+        this.creatorStrategy = NodeBackedModelMap.createUsingParentNode(elementType);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        ModelMap<E> rawView = new DefaultModelMap<E>(elementType, ruleDescriptor, modelNode, creatorStrategy);
+        ModelMap<E> rawView = new NodeBackedModelMap<E>(elementType, ruleDescriptor, modelNode, creatorStrategy);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor);
         P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
         return new ModelMapModelView<P>(modelNode.getPath(), publicType, instance, state);

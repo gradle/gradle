@@ -49,7 +49,7 @@ public class ModelMapCreators {
         )
             .descriptor(descriptor)
             .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass))
-            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, DefaultModelMap.createUsingParentNode(modelType)))
+            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, NodeBackedModelMap.createUsingParentNode(modelType)))
             .withProjection(UnmanagedModelProjection.of(instantiatorType))
             .build();
     }
@@ -70,7 +70,7 @@ public class ModelMapCreators {
                 }
             }
         )
-            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, DefaultModelMap.createUsingParentNode(modelType)))
+            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, NodeBackedModelMap.createUsingParentNode(modelType)))
             .withProjection(UnmanagedModelProjection.of(instantiatorType));
     }
 

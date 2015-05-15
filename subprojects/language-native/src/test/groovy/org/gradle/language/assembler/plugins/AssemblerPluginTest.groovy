@@ -22,7 +22,7 @@ import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultModelMap
+import org.gradle.model.internal.core.NodeBackedModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.*
 import org.gradle.platform.base.ComponentSpec
@@ -34,7 +34,7 @@ class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ComponentSpec))
+        project.modelRegistry.realize(ModelPath.path("components"), NodeBackedModelMap.modelMapTypeOf(ComponentSpec))
     }
 
     def "creates asm source set with conventional locations for components"() {

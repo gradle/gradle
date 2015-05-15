@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.plugins
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.internal.core.DefaultModelMap
+import org.gradle.model.internal.core.NodeBackedModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
@@ -115,7 +115,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeExecutableSpec
+        NativeExecutableSpec executable = one(realizeModelElement("components", NodeBackedModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
@@ -149,7 +149,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeLibrarySpec library = one(realizeModelElement("components", DefaultModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeLibrarySpec
+        NativeLibrarySpec library = one(realizeModelElement("components", NodeBackedModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'

@@ -124,10 +124,10 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     private <S extends I> ModelView<ModelMap<S>> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new DefaultModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorStrategy);
+        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorStrategy);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
-        ModelType<ModelMap<S>> viewType = DefaultModelMap.modelMapTypeOf(itemType);
+        ModelType<ModelMap<S>> viewType = NodeBackedModelMap.modelMapTypeOf(itemType);
         DefaultModelViewState state = new DefaultModelViewState(viewType, sourceDescriptor);
         return new ModelMapModelView<ModelMap<S>>(node.getPath(), viewType, new ModelMapGroovyDecorator<S>(subBuilder, state), state);
     }

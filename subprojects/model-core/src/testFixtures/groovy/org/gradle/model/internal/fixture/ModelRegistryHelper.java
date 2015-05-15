@@ -240,7 +240,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return mutate(new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> builder) {
-                return builder.path(path).type(DefaultModelMap.modelMapTypeOf(itemType)).action(action);
+                return builder.path(path).type(NodeBackedModelMap.modelMapTypeOf(itemType)).action(action);
             }
         });
     }

@@ -35,7 +35,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class DefaultModelMapTest extends Specification {
+class NodeBackedModelMapTest extends Specification {
 
     def type = new ModelType<NamedThing>() {}
 
@@ -77,7 +77,7 @@ class DefaultModelMapTest extends Specification {
                 { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
             )
                 .descriptor("container")
-                .withProjection(PolymorphicModelMapProjection.of(itemType, DefaultModelMap.createUsingParentNode(itemType)))
+                .withProjection(PolymorphicModelMapProjection.of(itemType, NodeBackedModelMap.createUsingParentNode(itemType)))
                 .build()
         )
     }
@@ -575,7 +575,7 @@ class DefaultModelMapTest extends Specification {
     }
 
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
-        def mmType = DefaultModelMap.modelMapTypeOf(MutableValue)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(MutableValue)
 
         registry
             .modelMap("values", MutableValue) { it.registerFactory(MutableValue) { new MutableValue() } }
@@ -604,7 +604,7 @@ class DefaultModelMapTest extends Specification {
 
     def "inputs of a rule from an inner source are not realised if the rule is not required"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
         def events = []
         registry
             .create("input", "input") { events << "input created" }
@@ -631,7 +631,7 @@ class DefaultModelMapTest extends Specification {
     }
 
     def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .createInstance("foo", new Bean())
@@ -668,7 +668,7 @@ class DefaultModelMapTest extends Specification {
 
     def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
@@ -693,7 +693,7 @@ class DefaultModelMapTest extends Specification {
 
     def "adding an unbound scoped rule for an element that is never created results in an error upon validation if the scope parent has been self closed"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
@@ -727,7 +727,7 @@ class DefaultModelMapTest extends Specification {
 
     def "can add rule source to all items of type"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
         registry
             .modelMap("beans", Bean) {
             it.registerFactory(Bean) { new Bean(name: it) }
@@ -776,7 +776,7 @@ class DefaultModelMapTest extends Specification {
 
     def "when targeting by type, paths are interpreted relative to item"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .modelMap("beans", Bean) {
@@ -812,7 +812,7 @@ class DefaultModelMapTest extends Specification {
 
     def "when targeting by type, can have rule use more general type than target"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .modelMap("beans", Bean) {
@@ -837,7 +837,7 @@ class DefaultModelMapTest extends Specification {
 
     def "when targeting by type, can have rule use more specific type than target"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = NodeBackedModelMap.modelMapTypeOf(Bean)
 
         registry
             .modelMap("beans", Bean) {
