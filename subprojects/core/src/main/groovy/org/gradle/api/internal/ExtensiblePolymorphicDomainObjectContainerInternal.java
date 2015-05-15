@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.api.internal;
 
-public interface ModelViewState {
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 
-    ModelViewState ALWAYS_MUTABLE = new ModelViewState() {
-        @Override
-        public void assertCanMutate() {
+public interface ExtensiblePolymorphicDomainObjectContainerInternal<T> extends ExtensiblePolymorphicDomainObjectContainer<T>, PolymorphicDomainObjectContainerInternal<T> {
 
-        }
-    };
-
-    void assertCanMutate();
 }

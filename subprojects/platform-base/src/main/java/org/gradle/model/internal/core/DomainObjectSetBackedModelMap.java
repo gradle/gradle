@@ -20,10 +20,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Namer;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Namers;
 import org.gradle.internal.Specs;
-import org.gradle.internal.Actions;
 import org.gradle.model.ModelMap;
 
 import java.util.Set;
@@ -31,10 +34,6 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, DomainObjectSet<T>> {
-
-    public DomainObjectSetBackedModelMap(Class<T> elementClass, DomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer) {
-        this(elementClass, backingSet, instantiator, namer, Actions.doNothing());
-    }
 
     public DomainObjectSetBackedModelMap(Class<T> elementClass, DomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer,
                                          Action<? super T> onCreateAction) {
@@ -44,7 +43,7 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
     @Override
     protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
         DomainObjectSet<S> cast = toNonSubtype(type);
-        return new DomainObjectSetBackedModelMap<S>(type, cast, NamedEntityInstantiators.nonSubtype(type, elementClass), namer, Actions.doNothing());
+        return DomainObjectSetBackedModelMap.wrap(type, cast, NamedEntityInstantiators.nonSubtype(type, elementClass), namer, Actions.doNothing());
     }
 
     private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
@@ -53,7 +52,7 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
 
     protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
         NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
-        return new DomainObjectSetBackedModelMap<S>(itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer, onCreateAction);
+        return DomainObjectSetBackedModelMap.wrap(itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer, onCreateAction);
     }
 
     @Nullable
@@ -100,12 +99,23 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
         }
     }
 
-    public static <T> DomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, DomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator) {
+    public static <T> DomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, DomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreate) {
         return new DomainObjectSetBackedModelMap<T>(
             elementType,
             domainObjectSet,
             instantiator,
-            Namers.assumingNamed()
+            Namers.assumingNamed(),
+            onCreate
+        );
+    }
+
+    public static <T> DomainObjectSetBackedModelMap<T> wrap(Class<T> elementType, DomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreate) {
+        return new DomainObjectSetBackedModelMap<T>(
+            elementType,
+            domainObjectSet,
+            instantiator,
+            namer,
+            onCreate
         );
     }
 }

@@ -255,13 +255,11 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
     }
 
     public static <T> ModelMapGroovyDecorator<T> alwaysMutable(ModelMap<T> delegate) {
-        return new ModelMapGroovyDecorator<T>(
-            delegate,
-            new ModelViewState() {
-                public void assertCanMutate() {
-                }
-            }
-        );
+        return wrap(delegate, ModelViewState.ALWAYS_MUTABLE);
+    }
+
+    public static <T> ModelMapGroovyDecorator<T> wrap(ModelMap<T> delegate, ModelViewState state) {
+        return new ModelMapGroovyDecorator<T>(delegate, state);
     }
 }
 

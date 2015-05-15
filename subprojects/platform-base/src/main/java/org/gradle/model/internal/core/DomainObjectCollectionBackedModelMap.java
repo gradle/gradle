@@ -22,7 +22,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 
@@ -37,10 +36,6 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
     protected final NamedEntityInstantiator<T> instantiator;
     protected final Namer<Object> namer;
     protected final Action<? super T> onCreateAction;
-
-    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, C backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer) {
-        this(elementClass, backingCollection, instantiator, namer, Actions.doNothing());
-    }
 
     protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, C backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreateAction) {
         this.elementClass = elementClass;
@@ -113,10 +108,9 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
 
     @Override
     public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-        instantiator.create(name, type);
-        S task = Cast.uncheckedCast(get(name));
-        configAction.execute(task);
-        onCreateAction.execute(task);
+        S s = instantiator.create(name, type);
+        configAction.execute(s);
+        onCreateAction.execute(s);
     }
 
     @Override

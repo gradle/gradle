@@ -15,9 +15,9 @@
  */
 package org.gradle.language.base;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInternal;
 
 /**
  * A container holding {@link LanguageSourceSet}s with a similar function
@@ -25,6 +25,6 @@ import org.gradle.api.Named;
  */
 @Incubating
 // TODO:DAZ Make this internal
-public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainer<LanguageSourceSet>, Named {
+public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainerInternal<LanguageSourceSet>, Named {
     FunctionalSourceSet copy(String name);
 }

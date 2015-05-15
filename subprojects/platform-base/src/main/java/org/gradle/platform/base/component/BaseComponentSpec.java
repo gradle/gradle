@@ -16,26 +16,23 @@
 
 package org.gradle.platform.base.component;
 
-import org.gradle.api.*;
-import org.gradle.internal.Namers;
-import org.gradle.internal.Specs;
+import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.model.internal.core.NamedEntityInstantiators;
+import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import java.util.Collections;
 import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
@@ -83,11 +80,8 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
             NamedDomainObjectSetBackedModelMap.ofNamed(
                 LanguageSourceSet.class,
                 mainSourceSet,
-                new NamedEntityInstantiator<LanguageSourceSet>() {
-                    public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
-                        return mainSourceSet.create(name, type);
-                    }
-                }
+                mainSourceSet.getEntityInstantiator(),
+                Actions.add(mainSourceSet)
             )
         );
         this.binaries = info.instantiator.newInstance(DefaultBinaryContainer.class, info.instantiator);
@@ -95,7 +89,8 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
             NamedDomainObjectSetBackedModelMap.ofNamed(
                 BinarySpec.class,
                 this.binaries,
-                this.binaries
+                this.binaries.getEntityInstantiator(),
+                Actions.add(binaries)
             )
         );
     }
@@ -170,51 +165,4 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         }
     }
 
-    private static class NamedDomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, NamedDomainObjectSet<T>> {
-
-
-        private NamedDomainObjectSetBackedModelMap(Class<T> elementClass, NamedDomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<Object> namer) {
-            super(elementClass, backingSet, instantiator, namer);
-        }
-
-        private <S> NamedDomainObjectSet<S> toNonSubtype(final Class<S> type) {
-            return uncheckedCast(backingCollection.matching(Specs.isInstance(type)));
-        }
-
-        @Override
-        protected <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
-            NamedDomainObjectSet<S> cast = toNonSubtype(type);
-            return new NamedDomainObjectSetBackedModelMap<S>(type, cast, NamedEntityInstantiators.nonSubtype(type, elementClass), namer);
-        }
-
-        protected <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
-            NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
-            return new NamedDomainObjectSetBackedModelMap<S>(itemSubtype, backingCollection.withType(itemSubtype), instantiator, namer);
-        }
-
-        @Nullable
-        @Override
-        public T get(String name) {
-            return backingCollection.findByName(name);
-        }
-
-        @Override
-        public Set<String> keySet() {
-            return backingCollection.getNames();
-        }
-
-        @Override
-        public <S> void withType(Class<S> type, Action<? super S> configAction) {
-            toNonSubtype(type).all(configAction);
-        }
-
-        private static <T> NamedDomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, NamedDomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator) {
-            return new NamedDomainObjectSetBackedModelMap<T>(
-                elementType,
-                domainObjectSet,
-                instantiator,
-                Namers.assumingNamed()
-            );
-        }
-    }
 }

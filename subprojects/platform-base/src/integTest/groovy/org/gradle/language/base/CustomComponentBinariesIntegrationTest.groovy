@@ -19,6 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -268,6 +269,7 @@ Binaries
 """))
     }
 
+    @Ignore("Not supported due to BinaryTasks rules now operating directly on component.binaries, which is not managed - LD - 15/5/15")
     def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {
         buildFile << """
             class BinariesHolder {

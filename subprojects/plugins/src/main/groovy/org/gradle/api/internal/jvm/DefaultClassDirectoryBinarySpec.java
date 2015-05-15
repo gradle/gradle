@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
@@ -157,7 +158,8 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
                     public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
                         throw new UnsupportedOperationException();
                     }
-                }
+                },
+                Actions.doNothing()
             )
         );
     }
