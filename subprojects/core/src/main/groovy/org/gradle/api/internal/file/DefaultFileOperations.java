@@ -97,9 +97,15 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public FileTree tarTree(Object tarPath) {
-        File tarFile = file(tarPath);
-        ReadableResource res = new MaybeCompressedFileResource(new FileResource(tarFile));
-        TarFileTree tarTree = new TarFileTree(tarFile, res, getExpandDir(), fileSystem);
+        File tarFile = null;
+        ReadableResource resource;
+        if (tarPath instanceof ReadableResource) {
+            resource = (ReadableResource) tarPath;
+        } else {
+            tarFile = file(tarPath);
+            resource = new FileResource(tarFile);
+        }
+        TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem);
         return new FileTreeAdapter(tarTree);
     }
 
