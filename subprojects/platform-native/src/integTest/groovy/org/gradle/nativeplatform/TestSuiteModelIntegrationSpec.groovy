@@ -124,7 +124,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "test suite sources and binaries containers are visible in model report"() {
         when:
-        succeeds "model"
+        run "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -183,7 +183,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "model"
+        run "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -293,7 +293,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         '''
 
         when:
-        succeeds "model"
+        run "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""

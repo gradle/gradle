@@ -172,7 +172,7 @@ model {
 }
 """
         when:
-        succeeds "model"
+        run "model", "--detail", "BARE"
 
         then:
         output.contains """

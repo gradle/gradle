@@ -19,9 +19,8 @@ package org.gradle.api.reporting.model;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.reporting.model.internal.BasicStringNodeDescriptor;
-import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
-import org.gradle.api.reporting.model.internal.ModelReportRenderer;
+import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.reporting.model.internal.*;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
@@ -36,6 +35,13 @@ import javax.inject.Inject;
  */
 @Incubating
 public class ModelReport extends DefaultTask {
+
+    private enum DETAIL {
+        BARE, VERBOSE
+    }
+
+    protected DETAIL detail;
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
@@ -49,9 +55,11 @@ public class ModelReport extends DefaultTask {
     @TaskAction
     public void report() {
         Project project = getProject();
-
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelNodeRenderer modelNodeRenderer = new ModelNodeRenderer(new BasicStringNodeDescriptor());
+
+        ModelNodeDescriptor modelNodeDescriptor = getModelNodeDescriptor();
+
+        ModelNodeRenderer modelNodeRenderer = new ModelNodeRenderer(modelNodeDescriptor);
         ModelReportRenderer renderer = new ModelReportRenderer(modelNodeRenderer);
         renderer.setOutput(textOutput);
 
@@ -63,5 +71,20 @@ public class ModelReport extends DefaultTask {
 
         renderer.completeProject(project);
         renderer.complete();
+    }
+
+    public ModelNodeDescriptor getModelNodeDescriptor() {
+        ModelNodeDescriptor modelNodeDescriptor;
+        if (detail == DETAIL.BARE) {
+            modelNodeDescriptor = new BareStringNodeDescriptor();
+        } else {
+            modelNodeDescriptor = new BasicStringNodeDescriptor();
+        }
+        return modelNodeDescriptor;
+    }
+
+    @Option(option = "detail", description = "The level of detail to include on the model report")
+    public void setType(DETAIL detail) {
+        this.detail = detail;
     }
 }

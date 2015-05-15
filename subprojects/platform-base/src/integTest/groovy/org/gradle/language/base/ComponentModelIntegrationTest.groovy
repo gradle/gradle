@@ -226,7 +226,7 @@ model {
 
     def "component sources and binaries containers are visible in model report"() {
         when:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -285,7 +285,7 @@ model {
         """
 
         when:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -390,7 +390,7 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
@@ -423,7 +423,7 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
@@ -481,7 +481,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
@@ -503,7 +503,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
@@ -530,7 +530,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
@@ -592,7 +592,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
@@ -707,7 +707,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         withBinaries()
 
         when:
-        succeeds "model"
+        succeeds "model", "--detail", "BARE"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
