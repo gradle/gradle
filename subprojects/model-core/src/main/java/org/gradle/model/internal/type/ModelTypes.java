@@ -18,8 +18,6 @@ package org.gradle.model.internal.type;
 
 import org.gradle.model.ModelMap;
 
-import java.util.Collection;
-
 public abstract class ModelTypes {
 
     public static <I> ModelType<ModelMap<I>> modelMap(Class<I> type) {
