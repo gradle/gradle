@@ -58,9 +58,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "compileWithAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "", // no Java
-                "$annotationText class Groovy {}"
+            true, false,
+            "", // no Java
+            "$annotationText class Groovy {}"
         )
 
         then:
@@ -74,9 +74,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "compileBadCodeWithAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "", // no Java
-                "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+            true, false,
+            "", // no Java
+            "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
         )
 
         then:
@@ -93,9 +93,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "compileBadCodeWithoutAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                false,
-                "", // no Java
-                "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+            false, false,
+            "", // no Java
+            "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
         )
 
         then:
@@ -114,9 +114,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "compileBadCodeWithAnnotationProcessorDisabled"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "", // no Java
-                "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+            true, false,
+            "", // no Java
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
         )
 
         buildFile << """
@@ -141,9 +141,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "jointCompileBadCodeWithoutAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                false,
-                "public class Java {}",
-                "class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+            false, false,
+            "public class Java {}",
+            "class Groovy { def m() { $nonCompilableImperativeGroovy } }"
         )
 
         then:
@@ -162,9 +162,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "jointCompileWithAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "$annotationText public class Java {}",
-                "$annotationText class Groovy {}"
+            true, false,
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy {}"
         )
 
         then:
@@ -178,12 +178,31 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         file('build/classes/main/Java$$Generated.class').exists()
     }
 
+    def "jointCompileWithJavaAnnotationProcessorOnly"() {
+        when:
+        writeAnnotationProcessingBuild(
+            false, true,
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy {}"
+        )
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Java.class').exists()
+        file('build/classes/main/Groovy.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Java$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+        file('build/classes/main/Java$$Generated.class').exists()
+    }
+
     def "jointCompileBadCodeWithAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "$annotationText public class Java {}",
-                "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+            true, false,
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
         )
 
         then:
@@ -207,9 +226,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "jointCompileWithAnnotationProcessorDisabled"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "$annotationText public class Java {}",
-                "$annotationText class Groovy { }"
+            true, false,
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { }"
         )
 
         buildFile << """
@@ -232,9 +251,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
         when:
         writeAnnotationProcessingBuild(
-                true,
-                "$annotationText public class Java {}",
-                "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+            true, false,
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
         )
 
         buildFile << """
@@ -522,7 +541,7 @@ ${compilerConfiguration()}
         }
     }
 
-    def writeAnnotationProcessingBuild(boolean useProcessor, String java, String groovy) {
+    def writeAnnotationProcessingBuild(boolean useProcessorOnGroovySources, boolean useProcessorOnJavaSources, String java, String groovy) {
         buildFile << """
             apply plugin: "groovy"
             repositories { mavenCentral() }
@@ -534,13 +553,19 @@ ${compilerConfiguration()}
             }
         """
 
-        if (useProcessor) {
+        if (useProcessorOnGroovySources || useProcessorOnJavaSources) {
             settingsFile << "include 'processor'"
             writeAnnotationProcessorProject()
             buildFile << """
                 dependencies {
                     compile project(":processor")
                 }
+            """
+        }
+
+        if (useProcessorOnGroovySources) {
+            buildFile << """
+                compileGroovy.groovyOptions.javaAnnotationProcessing = true
             """
         }
 

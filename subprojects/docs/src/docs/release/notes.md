@@ -81,7 +81,7 @@ normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_
 ### Continuous Mode (--watch)
 
 As described in the [Gradle Roadmap](https://discuss.gradle.org/t/the-gradle-roadmap/105), we've been working on adding a 'continuous mode' for
-Gradle builds. 
+Gradle builds.
 
 When you run with the `--watch` command line option, Gradle will not exit at the end of a build.  Instead, Gradle will wait for something to
 change.  When changes are detected, Gradle will re-run the previous build with the same task selection.
@@ -193,6 +193,13 @@ The [maven-publish](userguide/publishing_maven.html) and [maven](userguide/maven
 no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts.
 Both plugins now use the newer Maven 3 `org.apache.maven` and Aether libraries.
 Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
+
+### Java stubs annotation processing of Groovy sources
+
+Annotation processing of Java stubs generated from Groovy sources is now disabled by default. If you want Java annotation processors to execute
+on stubs, you need to set the following option in `GroovyCompileOptions`:
+
+    compileGroovy.groovyOptions.javaAnnotationProcessing = true
 
 ## External contributions
 

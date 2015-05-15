@@ -52,6 +52,10 @@
                 <td>keepStubs</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>javaAnnotationProcessing</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

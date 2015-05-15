@@ -58,6 +58,8 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private File configurationScript;
 
+    private boolean javaAnnotationProcessing;
+
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
@@ -181,6 +183,23 @@ public class GroovyCompileOptions extends AbstractOptions {
     @Incubating
     public void setConfigurationScript(@Nullable File configurationFile) {
         this.configurationScript = configurationFile;
+    }
+
+    /**
+     * Tells whether Java annotation processors should process annotations on stubs. Defaults to {@code false}.
+     */
+    @Incubating
+    @Input
+    public boolean isJavaAnnotationProcessing() {
+        return javaAnnotationProcessing;
+    }
+
+    /**
+     * Sets whether Java annotation processors should process annotations on stubs. Defaults to {@code false}.
+     */
+    @Incubating
+    public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
+        this.javaAnnotationProcessing = javaAnnotationProcessing;
     }
 
     /**
