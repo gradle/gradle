@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
@@ -84,7 +85,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             assert gradle.isRunning()
-            assert buildOutputSoFar().endsWith("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n")
+            assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n"))
         }
 
         def out = buildOutputSoFar()
