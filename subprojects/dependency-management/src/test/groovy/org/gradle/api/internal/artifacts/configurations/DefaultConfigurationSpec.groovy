@@ -37,8 +37,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-import static org.gradle.api.artifacts.Configuration.State.RESOLVED
-import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
+import static org.gradle.api.artifacts.Configuration.State.*
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -286,11 +285,36 @@ class DefaultConfigurationSpec extends Specification {
         resolvedConfiguration.rethrowFailure() >> { throw failure }
 
         when:
+        configuration.getResolvedConfiguration()
+
+        then:
+        configuration.getState() == RESOLVED_WITH_FAILURES
+
+        when:
         configuration.resolve()
 
         then:
         def t = thrown(RuntimeException)
         t == failure
+    }
+
+    def "state indicates failure resolving graph"() {
+        given:
+        def configuration = conf()
+        def failure = new ResolveException(configuration, new RuntimeException())
+
+        and:
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+            resolverResults.failed(failure)
+        }
+
+        when:
+        configuration.resolve()
+
+        then:
+        def t = thrown(RuntimeException)
+        t == failure
+        configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
     def fileCollectionWithDependencies() {

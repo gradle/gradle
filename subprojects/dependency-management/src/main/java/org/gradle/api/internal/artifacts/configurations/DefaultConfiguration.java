@@ -159,7 +159,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public State getState() {
         synchronized (lock) {
             if (state == InternalState.RESULTS_RESOLVED || state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-                if (resolvedWithFailures) {
+                if (cachedResolverResults.hasError()) {
                     return State.RESOLVED_WITH_FAILURES;
                 } else {
                     return State.RESOLVED;

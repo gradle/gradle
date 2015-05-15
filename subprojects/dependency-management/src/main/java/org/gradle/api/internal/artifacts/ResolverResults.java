@@ -35,6 +35,19 @@ public class ResolverResults {
     private ResolvedGraphResults graphResults;
     private ResolvedArtifactsBuilder artifactResults;
 
+    public boolean hasError() {
+        if (fatalFailure != null) {
+            return true;
+        }
+        if (graphResults != null && graphResults.hasError()) {
+            return true;
+        }
+        if (resolvedConfiguration != null && resolvedConfiguration.hasError()) {
+            return true;
+        }
+        return false;
+    }
+
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
         assertHasArtifacts();
