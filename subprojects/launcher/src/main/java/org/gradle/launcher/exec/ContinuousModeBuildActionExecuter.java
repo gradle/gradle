@@ -16,9 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import com.google.common.util.concurrent.*;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -28,7 +26,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
@@ -37,11 +34,7 @@ import org.gradle.internal.filewatch.FileWatcherListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.util.SingleMessageLogger;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ContinuousModeBuildActionExecuter implements BuildExecuter {
@@ -49,12 +42,11 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final BiAction<? super FileSystemSubset, ? super Runnable> waiter;
-    private final AtomicBoolean cancellationRequestedCheck;
 
     private final Logger logger;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, new Waiter(fileWatcherFactory, MoreExecutors.listeningDecorator(executorFactory.create("Continuous mode keyboard handler"))));
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager) {
+        this(delegate, listenerManager, new Waiter(fileWatcherFactory));
     }
 
     ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {
@@ -62,7 +54,6 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         this.listenerManager = listenerManager;
         this.waiter = waiter;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
-        this.cancellationRequestedCheck = (waiter instanceof Waiter) ? ((Waiter) waiter).getCancellationRequested() : new AtomicBoolean(false);
     }
 
     @Override
@@ -77,7 +68,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         Object lastResult = null;
         int counter = 0;
-        while (buildNotStopped(requestContext) && !cancellationRequestedCheck.get()) {
+        while (buildNotStopped(requestContext)) {
             if (++counter != 1) {
                 // reset the time the build started so the total time makes sense
                 requestContext.getBuildTimeClock().reset();
@@ -94,7 +85,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 waiter.execute(fileSystemSubsetBuilder.build(), new Runnable() {
                     @Override
                     public void run() {
-                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
+                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
                     }
                 });
             }
@@ -133,12 +124,9 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private static class Waiter implements BiAction<FileSystemSubset, Runnable> {
         private final FileWatcherFactory fileWatcherFactory;
-        private final AtomicBoolean cancellationRequested = new AtomicBoolean(false);
-        private final ListeningExecutorService keyboardHandlerExecutor;
 
-        public Waiter(FileWatcherFactory fileWatcherFactory, ListeningExecutorService keyboardHandlerExecutor) {
+        public Waiter(FileWatcherFactory fileWatcherFactory) {
             this.fileWatcherFactory = fileWatcherFactory;
-            this.keyboardHandlerExecutor = keyboardHandlerExecutor;
         }
 
         @Override
@@ -171,18 +159,10 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            ListenableFuture<Boolean> keyboardHandlerFuture = submitAsyncKeyboardHandler(latch);
-
             try {
                 latch.await();
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
-            } finally {
-                if (!keyboardHandlerFuture.isDone()) {
-                    keyboardHandlerFuture.cancel(true);
-                } else if (Futures.getUnchecked(keyboardHandlerFuture)) {
-                    cancellationRequested.set(true);
-                }
             }
 
             Throwable throwable = error.get();
@@ -190,62 +170,6 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 throw UncheckedException.throwAsUncheckedException(throwable);
             }
 
-        }
-
-        private ListenableFuture<Boolean> submitAsyncKeyboardHandler(final CountDownLatch latch) {
-            ListenableFuture<Boolean> keyboardHandlerFuture = keyboardHandlerExecutor.submit(new KeyboardBreakHandler());
-            Futures.addCallback(keyboardHandlerFuture, new FutureCallback<Boolean>() {
-                @Override
-                public void onSuccess(Boolean result) {
-                    if (result) {
-                        latch.countDown();
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    latch.countDown();
-                }
-            });
-            return keyboardHandlerFuture;
-        }
-
-        public AtomicBoolean getCancellationRequested() {
-            return cancellationRequested;
-        }
-    }
-
-    private static class KeyboardBreakHandler implements Callable<Boolean> {
-        private static final int EOF = -1;
-        private static final int KEY_CODE_CTRL_D = 4;
-
-        @Override
-        public Boolean call() {
-            Boolean shouldTriggerLatch = waitForCtrlD();
-            return shouldTriggerLatch;
-        }
-
-        private boolean waitForCtrlD() {
-            int count = 0;
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    int c = System.in.read();
-                    if (c == KEY_CODE_CTRL_D) {
-                        return true;
-                    }
-                    if (c == EOF) {
-                        return count > 0;
-                    } else {
-                        count++;
-                    }
-                } catch (InterruptedIOException e) {
-                    // expected exception when cancelled, just return
-                    return true;
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-            return true;
         }
     }
 }

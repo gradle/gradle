@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -46,10 +45,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory) {
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-            return new ContinuousModeBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, executorFactory);
+            return new ContinuousModeBuildActionExecuter(delegate, fileWatcherFactory, listenerManager);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
