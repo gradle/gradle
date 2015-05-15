@@ -29,21 +29,21 @@ import java.util.Collection;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainObjectCollection<T>> implements ModelMap<T> {
+abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
 
-    protected final C backingCollection;
     protected final Class<T> elementClass;
     protected final NamedEntityInstantiator<T> instantiator;
     protected final Namer<Object> namer;
     protected final Action<? super T> onCreateAction;
 
-    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, C backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreateAction) {
+    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreateAction) {
         this.elementClass = elementClass;
-        this.backingCollection = backingCollection;
         this.instantiator = instantiator;
         this.namer = namer;
         this.onCreateAction = onCreateAction;
     }
+
+    protected abstract DomainObjectCollection<T> getBackingCollection();
 
     @Override
     public <S> ModelMap<S> withType(final Class<S> type) {
@@ -66,12 +66,12 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
 
     @Override
     public int size() {
-        return backingCollection.size();
+        return getBackingCollection().size();
     }
 
     @Override
     public boolean isEmpty() {
-        return backingCollection.isEmpty();
+        return getBackingCollection().isEmpty();
     }
 
     @Nullable
@@ -88,7 +88,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
     @Override
     public boolean containsValue(Object item) {
         //noinspection SuspiciousMethodCalls
-        return backingCollection.contains(item);
+        return getBackingCollection().contains(item);
     }
 
     @Override
@@ -120,7 +120,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
 
     @Override
     public void all(Action<? super T> configAction) {
-        backingCollection.all(configAction);
+        getBackingCollection().all(configAction);
     }
 
     @Override
@@ -140,7 +140,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
 
     @Override
     public Collection<T> values() {
-        return backingCollection;
+        return getBackingCollection();
     }
 
     @Override
@@ -155,7 +155,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T, C extends DomainOb
 
     @Override
     public void named(String name, Action<? super T> configAction) {
-        backingCollection.matching(new WithName<T>(name, namer)).all(configAction);
+        getBackingCollection().matching(new WithName<T>(name, namer)).all(configAction);
     }
 
     private static class WithName<T> implements Spec<T> {

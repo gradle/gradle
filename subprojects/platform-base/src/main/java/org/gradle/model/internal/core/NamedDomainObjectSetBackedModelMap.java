@@ -16,10 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.Namer;
-import org.gradle.api.Nullable;
+import org.gradle.api.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Namers;
 import org.gradle.internal.Specs;
@@ -29,10 +26,19 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class NamedDomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, NamedDomainObjectSet<T>> {
+public class NamedDomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T> {
 
-    private NamedDomainObjectSetBackedModelMap(Class<T> elementClass, NamedDomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreate) {
-        super(elementClass, backingSet, instantiator, namer, onCreate);
+    private final NamedDomainObjectSet<T> backingCollection;
+
+    private NamedDomainObjectSetBackedModelMap(Class<T> elementClass, NamedDomainObjectSet<T> backingCollection, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreate) {
+        super(elementClass, instantiator, namer, onCreate);
+
+        this.backingCollection = backingCollection;
+    }
+
+    @Override
+    protected DomainObjectCollection<T> getBackingCollection() {
+        return backingCollection;
     }
 
     private <S> NamedDomainObjectSet<S> toNonSubtype(final Class<S> type) {
@@ -67,12 +73,6 @@ public class NamedDomainObjectSetBackedModelMap<T> extends DomainObjectCollectio
     }
 
     public static <T> NamedDomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, NamedDomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreate) {
-        return new NamedDomainObjectSetBackedModelMap<T>(
-            elementType,
-            domainObjectSet,
-            instantiator,
-            Namers.assumingNamed(),
-            onCreate
-        );
+        return new NamedDomainObjectSetBackedModelMap<T>(elementType, domainObjectSet, instantiator, Namers.assumingNamed(), onCreate);
     }
 }

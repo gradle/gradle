@@ -33,11 +33,24 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T, DomainObjectSet<T>> {
+public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBackedModelMap<T> {
 
-    public DomainObjectSetBackedModelMap(Class<T> elementClass, DomainObjectSet<T> backingSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer,
-                                         Action<? super T> onCreateAction) {
-        super(elementClass, backingSet, instantiator, namer, onCreateAction);
+    private final DomainObjectSet<T> backingCollection;
+
+    public DomainObjectSetBackedModelMap(
+        Class<T> elementClass,
+        DomainObjectSet<T> backingSet,
+        NamedEntityInstantiator<T> instantiator,
+        Namer<Object> namer,
+        Action<? super T> onCreateAction
+    ) {
+        super(elementClass, instantiator, namer, onCreateAction);
+        this.backingCollection = backingSet;
+    }
+
+    @Override
+    protected DomainObjectSet<T> getBackingCollection() {
+        return backingCollection;
     }
 
     @Override
@@ -100,22 +113,10 @@ public class DomainObjectSetBackedModelMap<T> extends DomainObjectCollectionBack
     }
 
     public static <T> DomainObjectSetBackedModelMap<T> ofNamed(Class<T> elementType, DomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreate) {
-        return new DomainObjectSetBackedModelMap<T>(
-            elementType,
-            domainObjectSet,
-            instantiator,
-            Namers.assumingNamed(),
-            onCreate
-        );
+        return new DomainObjectSetBackedModelMap<T>(elementType, domainObjectSet, instantiator, Namers.assumingNamed(), onCreate);
     }
 
     public static <T> DomainObjectSetBackedModelMap<T> wrap(Class<T> elementType, DomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreate) {
-        return new DomainObjectSetBackedModelMap<T>(
-            elementType,
-            domainObjectSet,
-            instantiator,
-            namer,
-            onCreate
-        );
+        return new DomainObjectSetBackedModelMap<T>(elementType, domainObjectSet, instantiator, namer, onCreate);
     }
 }
