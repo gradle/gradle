@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
+
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "basic smoke test"() {
@@ -116,6 +118,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         noBuildTriggered()
     }
 
+    @Ignore("Doesn't exit")
     def "exits when build fails before any tasks execute"() {
         when:
 
@@ -130,6 +133,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         then:
         fails("a")
         !(":a" in executedTasks)
+        !output.contains("Waiting for a trigger")
     }
 
     def "reuses build script classes"() {
