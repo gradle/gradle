@@ -18,7 +18,6 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Namer;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
@@ -99,12 +98,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                 Task.class,
                 binary.getTasks(),
                 taskFactory,
-                new Namer<Object>() {
-                    @Override
-                    public String determineName(Object object) {
-                        return Cast.cast(Task.class, object).getName();
-                    }
-                },
+                new Task.Namer(),
                 new Action<Task>() {
                     @Override
                     public void execute(Task task) {

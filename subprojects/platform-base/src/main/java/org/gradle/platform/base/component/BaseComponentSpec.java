@@ -77,7 +77,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
         this.source = ModelMapGroovyDecorator.alwaysMutable(
-            NamedDomainObjectSetBackedModelMap.ofNamed(
+            NamedDomainObjectSetBackedModelMap.wrap(
                 LanguageSourceSet.class,
                 mainSourceSet,
                 mainSourceSet.getEntityInstantiator(),
@@ -86,7 +86,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         );
         this.binaries = info.instantiator.newInstance(DefaultBinaryContainer.class, info.instantiator);
         this.binariesMap = ModelMapGroovyDecorator.alwaysMutable(
-            NamedDomainObjectSetBackedModelMap.ofNamed(
+            NamedDomainObjectSetBackedModelMap.wrap(
                 BinarySpec.class,
                 this.binaries,
                 this.binaries.getEntityInstantiator(),

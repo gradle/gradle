@@ -18,7 +18,6 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Namer;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
@@ -33,13 +32,11 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
 
     protected final Class<T> elementClass;
     protected final NamedEntityInstantiator<T> instantiator;
-    protected final Namer<Object> namer;
     protected final Action<? super T> onCreateAction;
 
-    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, NamedEntityInstantiator<T> instantiator, Namer<Object> namer, Action<? super T> onCreateAction) {
+    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreateAction) {
         this.elementClass = elementClass;
         this.instantiator = instantiator;
-        this.namer = namer;
         this.onCreateAction = onCreateAction;
     }
 
@@ -154,22 +151,13 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
     }
 
     @Override
-    public void named(String name, Action<? super T> configAction) {
-        getBackingCollection().matching(new WithName<T>(name, namer)).all(configAction);
+    public void named(final String name, Action<? super T> configAction) {
+        getBackingCollection().matching(new Spec<T>() {
+            @Override
+            public boolean isSatisfiedBy(T element) {
+                return get(name) == element;
+            }
+        }).all(configAction);
     }
 
-    private static class WithName<T> implements Spec<T> {
-        private final String name;
-        private final org.gradle.api.Namer<? super T> namer;
-
-        public WithName(String name, org.gradle.api.Namer<? super T> namer) {
-            this.name = name;
-            this.namer = namer;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(T element) {
-            return namer.determineName(element).equals(name);
-        }
-    }
 }
