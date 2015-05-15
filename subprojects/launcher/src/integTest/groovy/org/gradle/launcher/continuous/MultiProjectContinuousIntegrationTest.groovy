@@ -52,6 +52,7 @@ class B { }
 """
     }
 
+    @Ignore("flakey")
     def "changes to upstream project triggers build of downstream"() {
         expect:
         succeeds("build")
