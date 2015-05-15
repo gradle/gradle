@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -25,17 +24,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.FileWatcher;
-import org.gradle.internal.filewatch.FileWatcherEvent;
-import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.filewatch.FileWatcherListener;
+import org.gradle.internal.filewatch.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.util.SingleMessageLogger;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
@@ -46,7 +38,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private final Logger logger;
 
     public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager) {
-        this(delegate, listenerManager, new Waiter(fileWatcherFactory));
+        this(delegate, listenerManager, new FileSystemChangeWaiter(fileWatcherFactory));
     }
 
     ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {
@@ -122,54 +114,4 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         return !requestContext.getCancellationToken().isCancellationRequested();
     }
 
-    private static class Waiter implements BiAction<FileSystemSubset, Runnable> {
-        private final FileWatcherFactory fileWatcherFactory;
-
-        public Waiter(FileWatcherFactory fileWatcherFactory) {
-            this.fileWatcherFactory = fileWatcherFactory;
-        }
-
-        @Override
-        public void execute(FileSystemSubset taskFileSystemInputs, Runnable notifier) {
-            final CountDownLatch latch = new CountDownLatch(1);
-            final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
-
-            FileWatcher watcher = fileWatcherFactory.watch(
-                taskFileSystemInputs,
-                new Action<Throwable>() {
-                    @Override
-                    public void execute(Throwable throwable) {
-                        error.set(throwable);
-                        latch.countDown();
-                    }
-                },
-                new FileWatcherListener() {
-                    @Override
-                    public void onChange(FileWatcher watcher, FileWatcherEvent event) {
-                        watcher.stop();
-                        latch.countDown();
-                    }
-                }
-            );
-
-            try {
-                notifier.run();
-            } catch (Exception e) {
-                watcher.stop();
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-
-            Throwable throwable = error.get();
-            if (throwable != null) {
-                throw UncheckedException.throwAsUncheckedException(throwable);
-            }
-
-        }
-    }
 }
