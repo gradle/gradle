@@ -5,7 +5,19 @@ String jdkVarName = 'JAVA_9'
 
 def excludedUnitTests = [
     "JdkToolsTest", "JvmTest", "DefaultIsolatedAntBuilderTest", "DefaultModelSchemaStoreTest",
-    "DefaultJavaToolChainTest", "ModelRuleExtractorTest", "SonarPluginTest"
+    "DefaultJavaToolChainTest", "ModelRuleExtractorTest", "SonarPluginTest", "FunctionalReleaseNotesTest", "StaticReleaseNotesTest",
+    "AssemblerPluginTest", "CPluginTest", "CppPluginTest", "ObjectiveCPluginTest", "ObjectiveCppPluginTest",
+    "ABrokenJunit3TestClass",
+    "ABrokenTestClass", "ATestClassWhichCannotBeLoaded", "ATestClassWithBrokenBeforeAndAfterMethod", "ATestClassWithBrokenBeforeClassMethod",
+    "ATestClassWithBrokenBeforeMethod", "ATestClassWithBrokenConstructor", "ATestClassWithBrokenRunner",
+    "ATestClassWithRunner", "ATestClassWithRunnerThatBreaksAfterRuningSomeTests", "ATestClassWithSeveralMethods",
+    "ATestClassWithUnconstructableRunner"
+]
+
+
+def excludedIntegTests = [
+    'InProcessGroovyCompilerIntegrationTest', 'InProcessJavaCompilerIntegrationTest',
+    'AntForkingScalaCompilerIntegrationTest', 'AntInProcessScalaCompilerIntegrationTest', 'ZincScalaCompilerIntegrationTest'
 ]
 
 model {
@@ -16,7 +28,7 @@ model {
             }
             executable = "${System.getenv(jdkVarName)}/bin/java"
             include '**/*CompilerIntegrationTest*'
-            excludes = ['**/*InProcessGroovyCompilerIntegrationTest*', '**/*InProcessJavaCompilerIntegrationTest*']
+            excludes = excludedIntegTests.collect { "**/*${it}*" }
             reports.junitXml.destination = file("${project.testResultsDir}/$name")
             reports.html.destination = file("${project.reporting.baseDir}/$name")
         }
