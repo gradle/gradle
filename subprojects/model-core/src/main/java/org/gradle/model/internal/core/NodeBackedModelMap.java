@@ -50,18 +50,6 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
         this.sourceDescriptor = sourceDescriptor;
     }
 
-    public static <I> ModelType<ModelMap<I>> modelMapTypeOf(Class<I> type) {
-        return modelMapTypeOf(ModelType.of(type));
-    }
-
-    public static <I> ModelType<ModelMap<I>> modelMapTypeOf(ModelType<I> type) {
-        return new ModelType.Builder<ModelMap<I>>() {
-        }.where(
-            new ModelType.Parameter<I>() {
-            }, type
-        ).build();
-    }
-
     public static <T> ChildNodeCreatorStrategy<T> createUsingParentNode(final ModelType<T> baseItemModelType) {
         return createUsingParentNode(new Transformer<NamedEntityInstantiator<T>, MutableModelNode>() {
             @Override

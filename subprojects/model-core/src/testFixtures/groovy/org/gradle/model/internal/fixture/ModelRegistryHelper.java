@@ -38,6 +38,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.model.internal.registry.UnboundModelRulesException;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -240,7 +241,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return mutate(new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> builder) {
-                return builder.path(path).type(NodeBackedModelMap.modelMapTypeOf(itemType)).action(action);
+                return builder.path(path).type(ModelTypes.modelMap(itemType)).action(action);
             }
         });
     }

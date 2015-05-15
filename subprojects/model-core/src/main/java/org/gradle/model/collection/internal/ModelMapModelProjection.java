@@ -26,6 +26,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -127,7 +128,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorStrategy);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
-        ModelType<ModelMap<S>> viewType = NodeBackedModelMap.modelMapTypeOf(itemType);
+        ModelType<ModelMap<S>> viewType = ModelTypes.modelMap(itemType);
         DefaultModelViewState state = new DefaultModelViewState(viewType, sourceDescriptor);
         return new ModelMapModelView<ModelMap<S>>(node.getPath(), viewType, new ModelMapGroovyDecorator<S>(subBuilder, state), state);
     }
