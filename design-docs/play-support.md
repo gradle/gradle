@@ -687,11 +687,11 @@ For a conventional `apply plugin: 'java'` project:
 1. ~~Can use a symlink as an input file~~
 1. ~~Symlinks are not followed for watching purposes (i.e. contents of symlinked directory are not watched)~~
 
-#### Broken/@Ignored test cases
+#### Archives
 
-1. With zip task whose contents are directory `src`, adding a new empty directory causes rebuild and inclusion of empty directory in zip
-1. Changes to input zips are respected
-1. Changes to input tars are respected (compressed and uncompressed)
+1. ~~With zip task whose contents are directory `src`, adding a new empty directory causes rebuild~~
+1. ~~Changes to input zips are respected~~
+1. ~~Changes to input tars are respected (compressed and uncompressed)~~
 
 ### Story: Continuous build is executed via the Tooling API
 

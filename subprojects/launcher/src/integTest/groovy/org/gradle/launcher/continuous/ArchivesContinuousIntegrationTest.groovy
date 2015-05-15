@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-import spock.lang.Ignore
+import spock.lang.Unroll
 
 class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
@@ -60,31 +60,29 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         sourceDir.file("newdir").createDir()
         then:
         succeeds()
-        // TODO: This triggers a build, but we still consider the zip task
-        // up-to-date even though there's a new directory.  This is a bug
-        skipped(":zip")
+        skipped(":zip") // GRADLE-2827 - current behaviour, not desired
     }
 
-    @Ignore("source files for compressed inputs are not considered")
-    def "using compressed files as inputs"() {
+    @Unroll
+    def "using compressed files as inputs - #source"() {
         given:
-        turnOnDebug()
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
-        // TODO: this fixes the test
-        // inputs.files("${sourceFile.toURI()}")
+
         buildFile << """
-    task unpack(type: Sync) {
-        from($type("${sourceFile.toURI()}"))
-        into("unpack")
-    }
-"""
+            task unpack(type: Sync) {
+                from($type("${sourceFile.toURI()}"))
+                into("unpack")
+            }
+        """
+
         when:
         packDir.file("A").text = "original"
         packDir.file("subdir").createDir().file("B").text = "B"
         packDir.file("subdir2").createDir()
         packDir."$packType"(sourceFile)
+
         then:
         succeeds("unpack")
         executedAndNotSkipped(":unpack")
@@ -95,13 +93,11 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         when:
         packDir.file("A").text = "changed"
         packDir."$packType"(sourceFile)
+
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "changed"
-
-        cleanup:
-        packDir.deleteDir()
 
         where:
         type      | packType | source
