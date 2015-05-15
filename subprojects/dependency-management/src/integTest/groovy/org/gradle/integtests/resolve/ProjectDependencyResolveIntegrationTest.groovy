@@ -522,18 +522,25 @@ project('c') {
                 }
 
                 task check << {
-                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
-                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+                    assert configurations.conf.state == Configuration.State.UNRESOLVED
+                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
                     configurations.conf.resolve()
 
-                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
-                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_OBSERVED
+                    assert configurations.conf.state == Configuration.State.RESOLVED
+                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+
+                    // Attempt to change the configuration, to demonstrate that is has been observed
+                    project(":api").configurations.conf.dependencies.add(null)
                 }
             }
 """
 
-        expect:
+        when:
+        executer.withDeprecationChecksDisabled()
         succeeds("impl:check")
+
+        then:
+        output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
     }
 }

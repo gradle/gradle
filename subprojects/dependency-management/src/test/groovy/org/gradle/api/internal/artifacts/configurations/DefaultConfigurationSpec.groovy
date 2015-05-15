@@ -309,10 +309,10 @@ class DefaultConfigurationSpec extends Specification {
         }
 
         when:
-        configuration.resolve()
+        configuration.getBuildDependencies()
 
         then:
-        def t = thrown(RuntimeException)
+        def t = thrown(ResolveException)
         t == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
@@ -940,7 +940,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
     }
 
@@ -955,7 +955,7 @@ class DefaultConfigurationSpec extends Specification {
         config.resolve()
 
         then:
-        parent.internalState == ConfigurationInternal.InternalState.RESULTS_OBSERVED
+        parent.observedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -978,7 +978,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * listener.afterResolve(config.incoming)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -991,7 +991,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -999,7 +999,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1012,7 +1012,7 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1020,7 +1020,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1039,7 +1039,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1050,7 +1050,7 @@ class DefaultConfigurationSpec extends Specification {
         then:
         0 * resolver.resolve(_)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1080,7 +1080,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
         copy.state == UNRESOLVED
     }
 

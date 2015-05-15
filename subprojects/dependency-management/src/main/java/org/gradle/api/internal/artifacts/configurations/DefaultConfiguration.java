@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -53,16 +53,7 @@ import java.util.*;
 
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 
-public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal {
-
-    private final String path;
-    private final String name;
-
-    private Visibility visibility = Visibility.PUBLIC;
-    private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
-    private String description;
-    private ConfigurationsProvider configurationsProvider;
+public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -74,32 +65,40 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
-    private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
-    private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
+    private final ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final ProjectAccessListener projectAccessListener;
-    private boolean dependenciesModified;
-    private boolean artifactsModified;
-    private boolean resolvedWithFailures;
-
-    // This lock only protects the following fields
-    private final Object lock = new Object();
-    private InternalState state = InternalState.UNOBSERVED;
-    private ResolverResults cachedResolverResults = new ResolverResults();
-    private final ResolutionStrategyInternal resolutionStrategy;
     private final ProjectFinder projectFinder;
-    private final Set<MutationValidator> mutationValidators = new LinkedHashSet<MutationValidator>();
+    private final ResolutionStrategyInternal resolutionStrategy;
+
+    private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
         @Override
         public void validateMutation(MutationType type) {
             DefaultConfiguration.this.validateParentMutation(type);
         }
     };
-    private final MutationValidator configurationMutationValidator = new MutationValidator() {
-        @Override
-        public void validateMutation(MutationType type) {
-            DefaultConfiguration.this.validateMutation(type);
-        }
-    };
+
+    // These fields are not covered by mutation lock
+    private final String path;
+    private final String name;
+
+    private Visibility visibility = Visibility.PUBLIC;
+    private boolean transitive = true;
+    private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
+    private String description;
+    private ConfigurationsProvider configurationsProvider;
+    private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
+
+    private final Object observationLock = new Object();
+    private InternalState observedState = InternalState.UNRESOLVED;
+    private final Object resolutionLock = new Object();
+    private InternalState resolvedState = InternalState.UNRESOLVED;
+
+    private ResolverResults cachedResolverResults = new ResolverResults();
+
+    // TODO:DAZ These should really be protected by the lock as well
+    private boolean dependenciesModified;
+    private boolean artifactsModified;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -117,30 +116,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
 
-        resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.DEPENDENCIES));
+        ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.ARTIFACTS));
+        ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
 
-        resolutionStrategy.setMutationValidator(configurationMutationValidator);
+        resolutionStrategy.setMutationValidator(this);
     }
 
-    private Runnable wrapMutationValidator(final MutationValidator validator, final MutationType type) {
+    private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
         return new Runnable() {
             @Override
             public void run() {
-                validator.validateMutation(type);
+                mutationValidator.validateMutation(type);
             }
         };
     }
@@ -149,16 +148,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return name;
     }
 
-    @Override
-    public InternalState getInternalState() {
-        synchronized (lock) {
-            return state;
-        }
-    }
-
     public State getState() {
-        synchronized (lock) {
-            if (state == InternalState.RESULTS_RESOLVED || state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        synchronized (resolutionLock) {
+            if (resolvedState == InternalState.RESULTS_RESOLVED || resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
                 if (cachedResolverResults.hasError()) {
                     return State.RESOLVED_WITH_FAILURES;
                 } else {
@@ -318,22 +310,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void markAsObserved(InternalState requestedState) {
-        InternalState newState = observedState(requestedState);
-        synchronized (lock) {
-            if (state.compareTo(newState) < 0) {
-                state = newState;
+        markThisObserved(requestedState);
+        markParentsObserved(requestedState);
+    }
+
+    private void markThisObserved(InternalState requestedState) {
+        synchronized (observationLock) {
+            if (observedState.compareTo(requestedState) < 0) {
+                observedState = requestedState;
             }
-        }
-        for (Configuration configuration : extendsFrom) {
-            ((ConfigurationInternal) configuration).markAsObserved(requestedState);
         }
     }
 
-    private InternalState observedState(InternalState requestedState) {
-        if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-            return InternalState.TASK_DEPENDENCIES_OBSERVED;
+    private void markParentsObserved(InternalState requestedState) {
+        for (Configuration configuration : extendsFrom) {
+            ((ConfigurationInternal) configuration).markAsObserved(requestedState);
         }
-        return InternalState.RESULTS_OBSERVED;
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
@@ -342,7 +334,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveNow(InternalState requestedState) {
-        synchronized (lock) {
+        synchronized (resolutionLock) {
             if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
                 resolveGraphIfRequired(requestedState);
             }
@@ -353,28 +345,38 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (state == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == InternalState.RESULTS_RESOLVED) {
             if (dependenciesModified) {
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
             }
             return;
         }
-        if (state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+        if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
             if (!dependenciesModified) {
                 return;
             }
             DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification", getDisplayName()));
         }
 
-        DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
+        DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         ResolvableDependencies incoming = getIncoming();
-        broadcast.beforeResolve(incoming);
+        dependencyResolutionListener.beforeResolve(incoming);
         triggerWhenEmptyActionsIfNecessary();
 
         resolver.resolve(this, cachedResolverResults);
+        dependenciesModified = false;
+        if (resolvedState != InternalState.RESULTS_RESOLVED) {
+            resolvedState = InternalState.TASK_DEPENDENCIES_RESOLVED;
+        }
 
         // Mark all affected configurations as observed
-        markAsObserved(requestedState);
+        markParentsObserved(requestedState);
+        markReferencedProjectConfigurationsObserved(requestedState);
+
+        dependencyResolutionListener.afterResolve(incoming);
+    }
+
+    private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
         cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
             @Override
             public void execute(ResolvedProjectConfiguration projectResult) {
@@ -383,27 +385,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 targetConfig.markAsObserved(requestedState);
             }
         });
-
-        markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
-        dependenciesModified = false;
-        broadcast.afterResolve(incoming);
     }
 
     private void resolveArtifactsIfRequired() {
-        if (state == InternalState.RESULTS_RESOLVED) {
+        if (resolvedState == InternalState.RESULTS_RESOLVED) {
             return;
         }
         resolver.resolveArtifacts(this, cachedResolverResults);
-        resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
-        markAsResolved(InternalState.RESULTS_RESOLVED);
+        resolvedState = InternalState.RESULTS_RESOLVED;
         artifactsModified = false;
-    }
-
-    private void markAsResolved(InternalState requestedState) {
-        // We can't move back from resolved for results state
-        if (state != InternalState.RESULTS_RESOLVED) {
-            state = requestedState;
-        }
     }
 
     public TaskDependency getBuildDependencies() {
@@ -558,12 +548,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void addMutationValidator(MutationValidator validator) {
-        mutationValidators.add(validator);
+        childMutationValidators.add(validator);
     }
 
     @Override
     public void removeMutationValidator(MutationValidator validator) {
-        mutationValidators.remove(validator);
+        childMutationValidators.remove(validator);
     }
 
     private void validateParentMutation(MutationType type) {
@@ -572,63 +562,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
-        switch (state) {
-            case UNOBSERVED:
-                // Nothing from the configuration has been observed yet, can change anything.
-                break;
-            case TASK_DEPENDENCIES_OBSERVED:
-            case RESULTS_OBSERVED:
-                // The configuration has been observed, but we'll be notifying the observers later anyway
-                break;
-            case TASK_DEPENDENCIES_RESOLVED:
-                if (type == MutationType.DEPENDENCIES) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
-                }
-                break;
-            case RESULTS_RESOLVED:
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after it has been resolved", type, getDisplayName()));
-                break;
+        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after it has been resolved", type, getDisplayName()));
+        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            if (type == MutationType.DEPENDENCIES) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
+            }
         }
 
         markAsModifiedAndNotifyChildren(type);
     }
 
-    private void validateMutation(MutationType type) {
-        switch (state) {
-            case UNOBSERVED:
-                // Nothing from the configuration has been observed yet, can change anything.
-                break;
-            case TASK_DEPENDENCIES_OBSERVED:
-                if (type == MutationType.DEPENDENCIES) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
-                }
-                break;
-            case RESULTS_OBSERVED:
-                // The configuration has been used in a resolution, and it is deprecated for
-                // build logic to change any dependencies, exclude rules or parent
-                // configurations (values that will affect the resolved graph).
-                if (type != MutationType.STRATEGY) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
-                }
-                break;
-            case TASK_DEPENDENCIES_RESOLVED:
-                // The task dependencies for the configuration have been calculated using
-                // Configuration.getBuildDependencies(). It is deprecated for build logic to
-                // change anything about the configuration except the artifacts.
-                if (type != MutationType.ARTIFACTS) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
-                }
-                break;
-            case RESULTS_RESOLVED:
-                // The public result for the configuration has been calculated.
-                // It is an error to change anything that would change the dependencies or artifacts,
-                // and deprecated to change the resolution strategy.
-                if (type != MutationType.STRATEGY) {
-                    throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
-                } else {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been resolved", type, getDisplayName()));
-                }
-                break;
+    public void validateMutation(MutationType type) {
+        if (resolvedState == InternalState.RESULTS_RESOLVED) {
+            // The public result for the configuration has been calculated.
+            // It is an error to change anything that would change the dependencies or artifacts,
+            // and deprecated to change the resolution strategy.
+            if (type != MutationType.STRATEGY) {
+                throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
+            } else {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been resolved", type, getDisplayName()));
+            }
+        } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            // The task dependencies for the configuration have been calculated using
+            // Configuration.getBuildDependencies(). It is deprecated for build logic to
+            // change anything about the configuration except the artifacts.
+            if (type != MutationType.ARTIFACTS) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
+            }
+        } else if (observedState == InternalState.RESULTS_RESOLVED) {
+            // The configuration has been used in a resolution, and it is deprecated for
+            // build logic to change any dependencies, exclude rules or parent
+            // configurations (values that will affect the resolved graph).
+            if (type != MutationType.STRATEGY) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
+            }
+        } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            if (type == MutationType.DEPENDENCIES) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
+            }
         }
 
         markAsModifiedAndNotifyChildren(type);
@@ -636,7 +608,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void markAsModifiedAndNotifyChildren(MutationType type) {
         // Notify child configurations
-        for (MutationValidator validator : mutationValidators) {
+        for (MutationValidator validator : childMutationValidators) {
             validator.validateMutation(type);
         }
         if (type == MutationType.DEPENDENCIES) {
@@ -696,7 +668,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            synchronized (lock) {
+            synchronized (resolutionLock) {
                 ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
                 if (getState() == State.RESOLVED_WITH_FAILURES) {
                     resolvedConfiguration.rethrowFailure();
@@ -790,19 +762,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            resolutionListenerBroadcast.add("beforeResolve", action);
+            dependencyResolutionListeners.add("beforeResolve", action);
         }
 
         public void beforeResolve(Closure action) {
-            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
+            dependencyResolutionListeners.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            resolutionListenerBroadcast.add("afterResolve", action);
+            dependencyResolutionListeners.add("afterResolve", action);
         }
 
         public void afterResolve(Closure action) {
-            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
+            dependencyResolutionListeners.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
         }
 
         public ResolutionResult getResolutionResult() {
