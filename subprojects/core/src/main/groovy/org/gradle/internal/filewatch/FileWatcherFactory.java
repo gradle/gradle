@@ -20,5 +20,21 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 
 public interface FileWatcherFactory {
+
+    /**
+     * Starts watching for changes to the given subset of the file system.
+     * <p>
+     * Listeners should not rely on the events being an entirely accurate journal of file system events.
+     * Implementations may emit duplicate events and chronological ordering is not guaranteed.
+     * <p>
+     * It can be assumed that all changes to the file system subset that occur <b>after</b> the return of this method will produce events.
+     * <p>
+     * No events will be emitted after that watcher has been stopped.
+     *
+     * @param systemSubset the parts of the file system to watch
+     * @param onError what to do if an error occurs while watching
+     * @param listener the receiver of events
+     * @return a, stoppable, handle to the watcher
+     */
     FileWatcher watch(FileSystemSubset systemSubset, Action<? super Throwable> onError, FileWatcherListener listener);
 }
