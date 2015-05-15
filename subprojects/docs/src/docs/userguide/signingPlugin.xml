@@ -24,7 +24,7 @@
     </para>
     <para>
         The signing plugin currently only provides support for generating <ulink url='http://www.pgpi.org/'>PGP signatures</ulink> 
-        (which is the signature format <ulink url="https://docs.sonatype.org/display/Repository/Central+Sync+Requirements">required for 
+        (which is the signature format <ulink url="http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp">required for 
         publication to the Maven Central Repository</ulink>).
     </para>
 
