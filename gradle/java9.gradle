@@ -20,29 +20,26 @@ def excludedIntegTests = [
     'AntForkingScalaCompilerIntegrationTest', 'AntInProcessScalaCompilerIntegrationTest', 'ZincScalaCompilerIntegrationTest'
 ]
 
-model {
-    tasks {
-        create("java9IntegTest", Test) {
-            doFirst {
-                jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
-            }
-            executable = "${System.getenv(jdkVarName)}/bin/java"
-            include '**/*CompilerIntegrationTest*'
-            excludes = excludedIntegTests.collect { "**/*${it}*" }
-            reports.junitXml.destination = file("${project.testResultsDir}/$name")
-            reports.html.destination = file("${project.reporting.baseDir}/$name")
-        }
 
-        create("java9Test", Test) {
-            doFirst {
-                jvmArgs = []
-            }
-            executable = "${System.getenv('JAVA_9')}/bin/java"
-            excludes = excludedUnitTests.collect { "**/*${it}*" }
-            reports.junitXml.destination = file("${project.testResultsDir}/$name")
-            reports.html.destination = file("${project.reporting.baseDir}/$name")
-        }
+task java9IntegTest(type: Test) {
+    doFirst {
+        jvmArgs = [] //Clears JVM args (maxPerm..) to work with JDK 9
     }
+    executable = "${System.getenv(jdkVarName)}/bin/java"
+    include '**/*CompilerIntegrationTest*'
+    excludes = excludedIntegTests.collect { "**/*${it}*" }
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
+}
+
+task java9Test(type: Test) {
+    doFirst {
+        jvmArgs = []
+    }
+    executable = "${System.getenv('JAVA_9')}/bin/java"
+    excludes = excludedUnitTests.collect { "**/*${it}*" }
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
 }
 
 
