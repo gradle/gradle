@@ -46,7 +46,8 @@ import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestS
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinaryType;
+import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -90,10 +91,10 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void registerCUnitTestSuiteSpecFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry,
-                                                      final ProjectSourceSet projectSourceSet,
-                                                      final ProjectIdentifier projectIdentifier,
-                                                      ServiceRegistry serviceRegistry) {
+        public void registerGoogleTestSuiteSpecFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry,
+                                                       final ProjectSourceSet projectSourceSet,
+                                                       final ProjectIdentifier projectIdentifier,
+                                                       ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             factoryRegistry.registerFactory(GoogleTestTestSuiteSpec.class, new NamedDomainObjectFactory<GoogleTestTestSuiteSpec>() {
@@ -104,7 +105,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
                     FunctionalSourceSet testSuiteSourceSet = createGoogleTestSources(instantiator, suiteName, projectSourceSet, fileResolver);
                     return BaseComponentSpec.create(DefaultGoogleTestTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
                 }
-            }, new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerCUnitTestSuiteSpecFactory()"));
+            }, new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerGoogleTestSuiteSpecFactory()"));
         }
 
         private FunctionalSourceSet createGoogleTestSources(final Instantiator instantiator, final String suiteName, ProjectSourceSet projectSourceSet, final FileResolver fileResolver) {
@@ -129,43 +130,42 @@ public class GoogleTestPlugin implements Plugin<Project> {
             }
         }
 
+        @BinaryType
+        public void registerGoogleTestSuiteBinaryType(BinaryTypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
+            builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
+        }
+
         @Mutate
         public void createGoogleTestTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
             testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>() {
                 @Override
-                public void execute(GoogleTestTestSuiteSpec testSuiteSpec) {
-                    for (NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+                public void execute(final GoogleTestTestSuiteSpec testSuiteSpec) {
+                    for (final NativeBinarySpec testedBinary : testSuiteSpec.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
                         if (testedBinary instanceof SharedLibraryBinary) {
                             // TODO:DAZ For now, we only create test suites for static library variants
                             continue;
                         }
 
-                        DefaultGoogleTestTestSuiteBinary testBinary = createTestBinary(serviceRegistry, testSuiteSpec, testedBinary, taskFactory);
-                        configure(testBinary, buildDir);
-                        ComponentSpecInternal testSuiteSpecInternal = (ComponentSpecInternal) testSuiteSpec;
-                        testSuiteSpecInternal.getBinariesContainer().add(testBinary);
+                        final BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
+                            .withComponentName(testSuiteSpec.getBaseName())
+                            .withTypeString("GoogleTestExe").build();
+                        final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
+
+                        testSuiteSpec.getBinaries().create(namingScheme.getLifecycleTaskName(), GoogleTestTestSuiteBinarySpec.class, new Action<GoogleTestTestSuiteBinarySpec>() {
+                            @Override
+                            public void execute(GoogleTestTestSuiteBinarySpec binary) {
+                                DefaultGoogleTestTestSuiteBinary testBinary = (DefaultGoogleTestTestSuiteBinary) binary;
+                                testBinary.setComponent(testSuiteSpec);
+                                testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
+                                testBinary.setNamingScheme(namingScheme);
+                                testBinary.setResolver(resolver);
+
+                                configure(testBinary, buildDir);
+                            }
+                        });
                     }
                 }
             });
-        }
-
-        @Mutate
-        public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
-            for (GoogleTestTestSuiteSpec testSuite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
-                for (NativeBinarySpec testedBinary : testSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
-                    binaries.addAll(testSuite.getBinaries().withType(GoogleTestTestSuiteBinarySpec.class).values());
-                }
-            }
-        }
-
-        private DefaultGoogleTestTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, GoogleTestTestSuiteSpec googleTestTestSuite, NativeBinarySpec testedBinary, ITaskFactory taskFactory) {
-            BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                .withComponentName(googleTestTestSuite.getBaseName())
-                .withTypeString("GoogleTestExe").build();
-
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            return DefaultGoogleTestTestSuiteBinary.create(googleTestTestSuite, (NativeBinarySpecInternal) testedBinary, namingScheme, resolver, instantiator, taskFactory);
         }
 
         private void configure(DefaultGoogleTestTestSuiteBinary testBinary, File buildDir) {

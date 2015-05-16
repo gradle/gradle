@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
@@ -102,6 +102,13 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
 
                 testBinary.getTasks().add(runTask);
+            }
+        }
+
+        @Mutate
+        public void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
+            for (final TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
+                binaries.addAll(testSuite.getBinaries().values());
             }
         }
 

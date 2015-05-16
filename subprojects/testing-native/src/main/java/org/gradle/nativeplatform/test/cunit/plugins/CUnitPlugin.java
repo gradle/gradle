@@ -47,7 +47,8 @@ import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinaryType;
+import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -152,44 +153,42 @@ public class CUnitPlugin implements Plugin<Project> {
             return suite.getSource().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
         }
 
+        @BinaryType
+        public void registerCUnitTestBinaryType(BinaryTypeBuilder<CUnitTestSuiteBinarySpec> builder) {
+            builder.defaultImplementation(DefaultCUnitTestSuiteBinary.class);
+        }
+
         @Mutate
         public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
             testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
                 @Override
-                public void execute(CUnitTestSuiteSpec cUnitTestSuite) {
-                    for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
+                public void execute(final CUnitTestSuiteSpec cUnitTestSuite) {
+                    for (final NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
 
                         if (testedBinary instanceof SharedLibraryBinary) {
                             // TODO:DAZ For now, we only create test suites for static library variants
                             continue;
                         }
 
-                        DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary, taskFactory);
-                        configure(testBinary, buildDir);
-                        ComponentSpecInternal cUnitTestSuiteInternal = (ComponentSpecInternal) cUnitTestSuite;
-                        cUnitTestSuiteInternal.getBinariesContainer().add(testBinary);
+                        final BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
+                            .withComponentName(cUnitTestSuite.getBaseName())
+                            .withTypeString("CUnitExe").build();
+                        final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
+
+                        cUnitTestSuite.getBinaries().create(namingScheme.getLifecycleTaskName(), CUnitTestSuiteBinarySpec.class, new Action<CUnitTestSuiteBinarySpec>() {
+                            @Override
+                            public void execute(CUnitTestSuiteBinarySpec binary) {
+                                DefaultCUnitTestSuiteBinary testBinary = (DefaultCUnitTestSuiteBinary) binary;
+                                testBinary.setComponent(cUnitTestSuite);
+                                testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
+                                testBinary.setNamingScheme(namingScheme);
+                                testBinary.setResolver(resolver);
+                                configure(testBinary, buildDir);
+                            }
+                        });
                     }
                 }
             });
-        }
-
-        @Mutate
-        public void copyCUnitTestBinariesToGlobalContainer(final BinaryContainer binaries, TestSuiteContainer testSuites) {
-            for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
-                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class).values()) {
-                    binaries.addAll(cUnitTestSuite.getBinaries().withType(CUnitTestSuiteBinarySpec.class).values());
-                }
-            }
-        }
-
-        private DefaultCUnitTestSuiteBinary createTestBinary(ServiceRegistry serviceRegistry, CUnitTestSuiteSpec cUnitTestSuite, NativeBinarySpec testedBinary, ITaskFactory taskFactory) {
-            BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(((NativeBinarySpecInternal) testedBinary).getNamingScheme())
-                .withComponentName(cUnitTestSuite.getBaseName())
-                .withTypeString("CUnitExe").build();
-
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            return DefaultCUnitTestSuiteBinary.create(cUnitTestSuite, (NativeBinarySpecInternal) testedBinary, namingScheme, resolver, instantiator, taskFactory);
         }
 
         private void configure(DefaultCUnitTestSuiteBinary testBinary, File buildDir) {
