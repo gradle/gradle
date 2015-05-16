@@ -19,10 +19,10 @@ package org.gradle.api.reporting.model.internal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.model.internal.core.ModelNode;
 
-public class ModelReportRenderer extends TextReportRenderer {
+public class TextModelReportRenderer extends TextReportRenderer {
     private final ModelNodeRenderer modelNodeRenderer;
 
-    public ModelReportRenderer(ModelNodeRenderer modelNodeRenderer) {
+    public TextModelReportRenderer(ModelNodeRenderer modelNodeRenderer) {
         this.modelNodeRenderer = modelNodeRenderer;
     }
 

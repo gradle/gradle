@@ -24,11 +24,13 @@ import org.gradle.api.reporting.model.internal.*;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import javax.inject.Inject;
+
+import static org.gradle.api.reporting.model.internal.ReportDetail.BARE;
+import static org.gradle.api.reporting.model.internal.ReportFormat.TEXT;
 
 /**
  * Displays some details about the configuration model of the project.
@@ -36,11 +38,11 @@ import javax.inject.Inject;
 @Incubating
 public class ModelReport extends DefaultTask {
 
-    private enum DETAIL {
-        BARE, VERBOSE
-    }
+    @Option(description = "The level of detail to include on the model report")
+    protected ReportDetail detail = ReportDetail.VERBOSE;
 
-    protected DETAIL detail;
+    @Option(description = "The format of the model report")
+    protected ReportFormat format = TEXT;
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -56,26 +58,19 @@ public class ModelReport extends DefaultTask {
     public void report() {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-
         ModelNodeDescriptor modelNodeDescriptor = getModelNodeDescriptor();
-
-        ModelNodeRenderer modelNodeRenderer = new ModelNodeRenderer(modelNodeDescriptor);
-        ModelReportRenderer renderer = new ModelReportRenderer(modelNodeRenderer);
-        renderer.setOutput(textOutput);
-
-        renderer.startProject(project);
-
-        // Configure the world
-        ModelNode rootNode = getModelRegistry().realizeNode(ModelPath.ROOT);
-        renderer.render(rootNode);
-
-        renderer.completeProject(project);
-        renderer.complete();
+        ModelNodeRenderer renderer = new ModelNodeRenderer(modelNodeDescriptor);
+        TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
+        textModelReportRenderer.setOutput(textOutput);
+        textModelReportRenderer.startProject(project);
+        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+        textModelReportRenderer.completeProject(project);
+        textModelReportRenderer.complete();
     }
 
     public ModelNodeDescriptor getModelNodeDescriptor() {
         ModelNodeDescriptor modelNodeDescriptor;
-        if (detail == DETAIL.BARE) {
+        if (detail == BARE) {
             modelNodeDescriptor = new BareStringNodeDescriptor();
         } else {
             modelNodeDescriptor = new BasicStringNodeDescriptor();
@@ -83,8 +78,11 @@ public class ModelReport extends DefaultTask {
         return modelNodeDescriptor;
     }
 
-    @Option(option = "detail", description = "The level of detail to include on the model report")
-    public void setType(DETAIL detail) {
+    public void setDetail(ReportDetail detail) {
         this.detail = detail;
+    }
+
+    public void setFormat(ReportFormat format) {
+        this.format = format;
     }
 }
