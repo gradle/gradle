@@ -36,7 +36,7 @@
     <section>
         <title>Background</title>
         <para>
-            Gradle embraces domain modelling as core tenet.
+            Gradle embraces domain modelling as a core tenet.
             Focusing on the domain model as opposed to the execution model (like prior generation build tools such as Apache Ant) has many advantages.
             A strong domain model communicates the intent (i.e. the what) over the mechanics (i.e. the how).
             This allows humans to understand builds at a level that is meaningful to them.
@@ -69,7 +69,7 @@
             By defining build tasks as effectively a graph of dependent functions with explicit inputs and outputs,
             Gradle is able to order, cache, parallelize and apply other optimizations to the work.
             Using a “graph of tasks” for the production of software is a long established idea, and necessary given the complexity of software production.
-            The task graph effectively defines the <emphasis>rules</emphasis> of execution the Gradle must follow.
+            The task graph effectively defines the <emphasis>rules</emphasis> of execution that Gradle must follow.
             The term “Rule based model configuration” refers to applying the same concepts to building the model that builds the task graph.
         </para>
         <para>
