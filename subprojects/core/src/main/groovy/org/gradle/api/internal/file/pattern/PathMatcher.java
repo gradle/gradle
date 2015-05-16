@@ -30,10 +30,10 @@ public interface PathMatcher {
     /**
      * Returns true if the path starting at the given offset satisfies this pattern.
      */
-    boolean matches(String[] segments, int startIndex);
+    boolean matches(String[] segments, int startIndex, boolean isFile);
 
     /**
      * Returns true if the path starting at the given offset could be satisfy this pattern if it contained additional segments at the end.
      */
-    boolean isPrefix(String[] segments, int startIndex);
+    boolean isPrefix(String[] segments, int startIndex, boolean isFile);
 }

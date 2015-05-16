@@ -16,5 +16,5 @@
 package org.gradle.api.internal.file.pattern;
 
 public interface PatternStep {
-    public boolean matches(String candidate);
+    boolean matches(String candidate, boolean isFile);
 }

@@ -135,7 +135,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         0 * _
     }
 
-    def "include directory non-recursively"() {
+    def "include directory non-recursively files only"() {
         fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/*")
 
         when:
@@ -146,8 +146,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/file2") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/file3") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir2") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir1") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir2") })
         0 * _
     }
 
