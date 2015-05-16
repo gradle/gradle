@@ -29,8 +29,8 @@ public class BasicStringNodeDescriptor implements ModelNodeDescriptor {
     @Override
     public Optional<String> value(ModelNode modelNode) {
         if (modelNode.getLinkCount() == 0) {
-            MutableModelNode modelElementNode = (MutableModelNode) modelNode;
-            Object privateData = modelElementNode.getPrivateData();
+            MutableModelNode mutableNode = (MutableModelNode) modelNode;
+            Object privateData = mutableNode.getPrivateData();
             return Optional.of(privateData.toString());
         }
         return Optional.absent();
