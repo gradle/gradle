@@ -23,7 +23,7 @@ import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -76,11 +76,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(ModelPath.path("componentTypeRegistry"), new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
         modelRegistry.create(ModelCreators.unmanagedInstance(
             componentTypeRegistryType,
-            Factories.constant(new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(
-                new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection")
-            )))
+            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() {
+                @Override
+                public RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec> create() {
+                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection"));
+                }
+            })
             .descriptor(descriptor)
-            .ephemeral(true)
             .build());
 
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
