@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
+import org.gradle.language.c.CSourceSet
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -26,7 +27,7 @@ import spock.lang.Specification
 class CUnitTest extends Specification {
     final def project = TestUtil.createRootProject();
 
-    def "creates a test suite binary for each binary of library under test"() {
+    def "creates a test suite for each library under test"() {
         given:
         project.pluginManager.apply(CUnitPlugin)
         project.model {
@@ -37,9 +38,15 @@ class CUnitTest extends Specification {
         project.evaluate()
 
         when:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).get("mainTest").binaries.values()
+        CUnitTestSuiteSpec testSuite = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).mainTest
+        def sources = testSuite.source.values()
+        def binaries = testSuite.binaries.values()
 
         then:
+        sources.size() == 2
+        sources.every { it instanceof CSourceSet }
+
+        and:
         binaries.size() == 1
         binaries.every { it instanceof CUnitTestSuiteBinarySpec }
     }

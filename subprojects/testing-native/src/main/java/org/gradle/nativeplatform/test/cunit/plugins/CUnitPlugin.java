@@ -16,18 +16,16 @@
 
 package org.gradle.nativeplatform.test.cunit.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.c.CSourceSet;
-import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
@@ -72,9 +70,7 @@ public class CUnitPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             for (final NativeComponentSpec component : components.values()) {
                 final String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
@@ -82,12 +78,6 @@ public class CUnitPlugin implements Plugin<Project> {
                     public void execute(CUnitTestSuiteSpec testSuite) {
                         DefaultCUnitTestSuiteSpec cunitTestSuite = (DefaultCUnitTestSuiteSpec) testSuite;
                         cunitTestSuite.setTestedComponent(component);
-                        cunitTestSuite.getSources().registerFactory(CSourceSet.class, new NamedDomainObjectFactory<CSourceSet>() {
-                            public CSourceSet create(String name) {
-                                return BaseLanguageSourceSet.create(DefaultCSourceSet.class, name, suiteName, fileResolver, instantiator);
-                            }
-                        });
-
                     }
                 });
             }

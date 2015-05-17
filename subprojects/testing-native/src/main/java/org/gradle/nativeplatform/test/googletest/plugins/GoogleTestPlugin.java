@@ -16,17 +16,15 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.cpp.CppSourceSet;
-import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
@@ -69,10 +67,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-
+        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             for (final NativeComponentSpec component : components.values()) {
                 final String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
@@ -80,11 +75,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
                     public void execute(GoogleTestTestSuiteSpec testSuite) {
                         DefaultGoogleTestTestSuiteSpec googleTestSuite = (DefaultGoogleTestTestSuiteSpec) testSuite;
                         googleTestSuite.setTestedComponent(component);
-                        googleTestSuite.getSources().registerFactory(CppSourceSet.class, new NamedDomainObjectFactory<CppSourceSet>() {
-                            public CppSourceSet create(String name) {
-                                return BaseLanguageSourceSet.create(DefaultCppSourceSet.class, name, suiteName, fileResolver, instantiator);
-                            }
-                        });
                     }
                 });
             }
