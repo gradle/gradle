@@ -265,7 +265,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
-        modelNode.applyToLinks(type, rules);
+        modelNode.applyToLinks(ModelType.of(type), rules);
     }
 
     @Override

@@ -96,7 +96,12 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
+        void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
+
+        }
+
+        @Override
+        void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
 
         }
 

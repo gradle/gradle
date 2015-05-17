@@ -82,11 +82,25 @@ public interface MutableModelNode extends ModelNode {
      */
     <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
 
+    /**
+     * Applies the given rules to a node linked from this node.
+     */
     void applyToLink(String name, Class<? extends RuleSource> rules);
 
+    /**
+     * Applies the given rules to this node.
+     */
     void applyToSelf(Class<? extends RuleSource> rules);
 
-    <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules);
+    /**
+     * Applies the given rules to all nodes of the given type linked from this node.
+     */
+    void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules);
+
+    /**
+     * Applies the given rules to all nodes of the given type transitively linked from this node.
+     */
+    void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules);
 
     @Nullable
     MutableModelNode getLink(String name);

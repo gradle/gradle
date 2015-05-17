@@ -51,7 +51,7 @@ public abstract class ModelPredicate {
      * <p>A node will be selected if its path or its parent's path equals the specified path.</p>
      */
     @Nullable
-    public ModelPath getScope() {
+    public ModelPath getAncestor() {
         return null;
     }
 

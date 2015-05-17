@@ -136,7 +136,7 @@ class RuleBindings {
         void put(ModelBinding binding, RuleBinder rule) {
             ModelReference<?> reference = binding.getReference();
             if (reference.getPath() != null) {
-                if (reference.getParent() != null || reference.getScope() != null) {
+                if (reference.getScope() != null) {
                     throw new UnsupportedOperationException("Currently not implemented");
                 }
                 ModelNodeInternal node = modelGraph.find(reference.getPath());
@@ -147,9 +147,6 @@ class RuleBindings {
                 // Need to continue to watch to deal with node removal
                 rulesByPath.put(reference.getPath(), new Reference(rule, binding));
             } else if (reference.getScope() != null) {
-                if (reference.getParent() != null) {
-                    throw new UnsupportedOperationException("Currently not implemented");
-                }
                 for (ModelNodeInternal node : modelGraph.findAllInScope(reference.getScope())) {
                     if (binding.isTypeCompatible(node.getPromise())) {
                         binding.onCreate(node);

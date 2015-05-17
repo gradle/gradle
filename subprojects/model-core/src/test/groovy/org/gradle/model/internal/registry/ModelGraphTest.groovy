@@ -230,19 +230,19 @@ class ModelGraphTest extends Specification {
         0 * listener.onCreate(_)
     }
 
-    def "notifies listener about a node with matching scope and its children"() {
+    def "notifies listener of node with matching ancestor"() {
         def listener = Mock(ModelCreationListener)
 
-        def a = node("a", String)
-        def b = node("a.b", String)
-        def c = node("a.b.c", String)
-        def d = node("a.b.d", String)
-        def e = node("a.b.e", Integer)
-        def f = node("a.b.c.f", String)
+        def a = node("a")
+        def b = node("a.b")
+        def c = node("a.b.c")
+        def d = node("a.b.d")
+        def e = node("a.b.c.e")
+        def f = node("d")
 
         given:
-        listener.getType() >> ModelType.of(String)
-        listener.getScope() >> b.path
+        listener.ancestor >> a.path
+        a.links >> [b]
         b.links >> [c]
 
         when:
@@ -263,7 +263,7 @@ class ModelGraphTest extends Specification {
 
         then:
         1 * listener.onCreate(d)
-        0 * listener.onCreate(_)
+        1 * listener.onCreate(e)
         0 * listener.onCreate(_)
     }
 

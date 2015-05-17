@@ -613,7 +613,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
+        public void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
             throw new UnsupportedOperationException();
         }
 
@@ -812,8 +817,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToLinks(Class<T> type, final Class<? extends RuleSource> rules) {
-            final ModelType<T> modelType = ModelType.of(type);
+        public void applyToLinks(final ModelType<?> type, final Class<? extends RuleSource> rules) {
             registerListener(new ModelCreationListener() {
                 @Nullable
                 @Override
@@ -824,7 +828,29 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Nullable
                 @Override
                 public ModelType<?> getType() {
-                    return modelType;
+                    return type;
+                }
+
+                @Override
+                public boolean onCreate(ModelNodeInternal node) {
+                    node.applyToSelf(rules);
+                    return false;
+                }
+            });
+        }
+
+        @Override
+        public void applyToAllLinksTransitive(final ModelType<?> type, final Class<? extends RuleSource> rules) {
+            registerListener(new ModelCreationListener() {
+                @Override
+                public ModelPath getAncestor() {
+                    return ModelElementNode.this.getPath();
+                }
+
+                @Nullable
+                @Override
+                public ModelType<?> getType() {
+                    return type;
                 }
 
                 @Override
@@ -892,15 +918,19 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(new ModelCreationListener() {
                 @Nullable
                 @Override
+                public ModelPath getAncestor() {
+                    return ModelElementNode.this.getPath();
+                }
+
+                @Nullable
+                @Override
                 public ModelType<?> getType() {
                     return action.getSubject().getType();
                 }
 
                 @Override
                 public boolean onCreate(ModelNodeInternal node) {
-                    if (ModelElementNode.this.getPath().isDescendant(node.getPath())) {
-                        bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
-                    }
+                    bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
                     return false;
                 }
             });
