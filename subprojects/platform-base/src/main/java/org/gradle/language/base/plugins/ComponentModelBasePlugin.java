@@ -23,7 +23,6 @@ import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -70,21 +69,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        final SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
+        SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
 
-        // The registry of all component types
-        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(ModelPath.path("componentTypeRegistry"), new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
-        modelRegistry.create(ModelCreators.unmanagedInstance(
-            componentTypeRegistryType,
-            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() {
-                @Override
-                public RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec> create() {
-                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection"));
-                }
-            })
-            .descriptor(descriptor)
-            .build());
-
+        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
         ModelPath components = ModelPath.path("components");
         ModelCreator componentsCreator = ModelMapCreators.specialized(components, ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), componentTypeRegistryType, descriptor);
@@ -99,6 +86,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+        @Model
+        RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec> componentTypeRegistry() {
+            return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection"));
+        }
+
         @Model
         LanguageRegistry languages(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);
