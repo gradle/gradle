@@ -50,23 +50,24 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestSuiteTypeRules extends RuleSource {
-                @Mutate
-                public void registerCustomTestSuiteFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry, ServiceRegistry serviceRegistry,
-                                                            final ProjectSourceSet projectSourceSet, final ProjectIdentifier projectIdentifier) {
+                @ComponentType
+                public void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+                    builder.defaultImplementation(DefaultCustomTestSuite)
+                }
+
+                @Defaults
+                public void registerLanguageForTestSuite(TestSuiteContainer testSuites, ServiceRegistry serviceRegistry,
+                                                         ProjectSourceSet projectSourceSet, ProjectIdentifier projectIdentifier) {
                     final Instantiator instantiator = serviceRegistry.get(Instantiator.class)
                     final FileResolver fileResolver = serviceRegistry.get(FileResolver.class)
-                    factoryRegistry.registerFactory(CustomTestSuite, new NamedDomainObjectFactory<CustomTestSuite>() {
-                        public CustomTestSuite create(String suiteName) {
-                            FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet, suiteName, instantiator, projectSourceSet)
-                            functionalSourceSet.registerFactory(CustomLanguageSourceSet.class, new NamedDomainObjectFactory<CustomLanguageSourceSet>() {
-                                public CustomLanguageSourceSet create(String name) {
-                                    return BaseLanguageSourceSet.create(DefaultCustomLanguageSourceSet.class, name, suiteName, fileResolver, instantiator);
-                                }
-                            });
-                            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), suiteName)
-                            return BaseComponentSpec.create(DefaultCustomTestSuite, id, functionalSourceSet, instantiator)
-                        }
-                    }, new SimpleModelRuleDescriptor("TestSuiteTypeRules.registerCustomTestSuiteFactory()"))
+                    testSuites.withType(CustomTestSuite).beforeEach { it ->
+                        def suiteName = it.name
+                        it.sources.registerFactory(CustomLanguageSourceSet.class, new NamedDomainObjectFactory<CustomLanguageSourceSet>() {
+                            public CustomLanguageSourceSet create(String name) {
+                                return BaseLanguageSourceSet.create(DefaultCustomLanguageSourceSet.class, name, suiteName, fileResolver, instantiator);
+                            }
+                        })
+                    }
                 }
             }
 
@@ -108,13 +109,9 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestBinaryTypeRules extends RuleSource {
-                @Defaults
-                public void registerCustomTestBinaryFactory(TestSuiteContainer testSuites, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-                    testSuites.beforeEach { testSuite ->
-                        testSuite.binariesContainer.registerFactory(CustomTestBinary) { name ->
-                            BaseBinarySpec.create(DefaultCustomTestBinary, name, serviceRegistry.get(Instantiator), taskFactory)
-                        }
-                    }
+                @BinaryType
+                public void registerCustomTestBinaryFactory(BinaryTypeBuilder<CustomTestBinary> builder) {
+                    builder.defaultImplementation(DefaultCustomTestBinary)
                 }
             }
 

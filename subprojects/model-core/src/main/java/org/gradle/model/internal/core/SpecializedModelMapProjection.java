@@ -37,11 +37,11 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final Class<? extends P> viewImpl;
     private final ChildNodeCreatorStrategy<E> creatorStrategy;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeCreatorStrategy<E> creatorStrategy) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
-        this.creatorStrategy = NodeBackedModelMap.createUsingParentNode(elementType);
+        this.creatorStrategy = creatorStrategy;
     }
 
     @Override

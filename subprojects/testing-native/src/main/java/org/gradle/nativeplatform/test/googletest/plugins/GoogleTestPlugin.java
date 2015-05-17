@@ -18,22 +18,18 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
@@ -48,14 +44,12 @@ import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
 
@@ -76,46 +70,29 @@ public class GoogleTestPlugin implements Plugin<Project> {
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
         public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
             for (final NativeComponentSpec component : components.values()) {
-                String suiteName = String.format("%sTest", component.getName());
+                final String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
                     @Override
-                    public void execute(GoogleTestTestSuiteSpec googleTestTestSuiteSpec) {
-                        googleTestTestSuiteSpec.setTestedComponent(component);
+                    public void execute(GoogleTestTestSuiteSpec testSuite) {
+                        DefaultGoogleTestTestSuiteSpec googleTestSuite = (DefaultGoogleTestTestSuiteSpec) testSuite;
+                        googleTestSuite.setTestedComponent(component);
+                        googleTestSuite.getSources().registerFactory(CppSourceSet.class, new NamedDomainObjectFactory<CppSourceSet>() {
+                            public CppSourceSet create(String name) {
+                                return BaseLanguageSourceSet.create(DefaultCppSourceSet.class, name, suiteName, fileResolver, instantiator);
+                            }
+                        });
                     }
                 });
             }
         }
 
-        @Mutate
-        public void registerGoogleTestSuiteSpecFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry,
-                                                       final ProjectSourceSet projectSourceSet,
-                                                       final ProjectIdentifier projectIdentifier,
-                                                       ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            factoryRegistry.registerFactory(GoogleTestTestSuiteSpec.class, new NamedDomainObjectFactory<GoogleTestTestSuiteSpec>() {
-                @Override
-                public GoogleTestTestSuiteSpec create(String suiteName) {
-                    String path = projectIdentifier.getPath();
-                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
-                    FunctionalSourceSet testSuiteSourceSet = createGoogleTestSources(instantiator, suiteName, projectSourceSet, fileResolver);
-                    return BaseComponentSpec.create(DefaultGoogleTestTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
-                }
-            }, new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerGoogleTestSuiteSpecFactory()"));
-        }
-
-        private FunctionalSourceSet createGoogleTestSources(final Instantiator instantiator, final String suiteName, ProjectSourceSet projectSourceSet, final FileResolver fileResolver) {
-            final FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, suiteName, instantiator, projectSourceSet);
-            functionalSourceSet.registerFactory(CppSourceSet.class, new NamedDomainObjectFactory<CppSourceSet>() {
-                public CppSourceSet create(String name) {
-                    return BaseLanguageSourceSet.create(DefaultCppSourceSet.class, name, suiteName, fileResolver, instantiator);
-                }
-            });
-            return functionalSourceSet;
+        @ComponentType
+        public void registerGoogleTestSuiteSpecTest(ComponentTypeBuilder<GoogleTestTestSuiteSpec> builder) {
+            builder.defaultImplementation(DefaultGoogleTestTestSuiteSpec.class);
         }
 
         @Finalize

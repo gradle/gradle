@@ -27,7 +27,7 @@ import spock.lang.Specification
 class GoogleTestTest extends Specification {
     final def project = TestUtil.createRootProject();
 
-    def "check the correct binary type are created for the test suite"() {
+    def "creates a test suite binary for each binary of library under test"() {
         given:
         project.apply(plugin: CppPlugin)
         project.apply(plugin: GoogleTestPlugin)
@@ -42,6 +42,7 @@ class GoogleTestTest extends Specification {
         def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).get("mainTest").binaries.values()
 
         then:
-        binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()
+        binaries.size() == 1
+        binaries.every { it instanceof GoogleTestTestSuiteBinarySpec }
     }
 }

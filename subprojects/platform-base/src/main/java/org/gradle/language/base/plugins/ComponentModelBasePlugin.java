@@ -16,10 +16,14 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.rules.DefaultRuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Factories;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -68,9 +72,20 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         final SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
 
+        // The registry of all component types
+        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(ModelPath.path("componentTypeRegistry"), new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
+        modelRegistry.create(ModelCreators.unmanagedInstance(
+            componentTypeRegistryType,
+            Factories.constant(new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(
+                new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection")
+            )))
+            .descriptor(descriptor)
+            .ephemeral(true)
+            .build());
+
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
-        final ModelPath components = ModelPath.path("components");
-        ModelCreator componentsCreator = ModelMapCreators.specialized(components, ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), descriptor);
+        ModelPath components = ModelPath.path("components");
+        ModelCreator componentsCreator = ModelMapCreators.specialized(components, ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), componentTypeRegistryType, descriptor);
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,

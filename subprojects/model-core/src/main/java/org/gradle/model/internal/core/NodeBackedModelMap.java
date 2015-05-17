@@ -24,6 +24,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -71,6 +72,26 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
                         modelNode.setPrivateData(type, item);
                     }
                 })
+                    .withProjection(UnmanagedModelProjection.of(type))
+                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
+                    .build();
+            }
+        };
+    }
+
+    public static <T> ChildNodeCreatorStrategy<T> createUsingFactory(final ModelReference<? extends NamedEntityInstantiator<? super T>> factoryReference) {
+        return new ChildNodeCreatorStrategy<T>() {
+            @Override
+            public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
+                return ModelCreators.of(parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                        NamedEntityInstantiator<? super T> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
+                        S item = instantiator.create(name, type.getConcreteClass());
+                        modelNode.setPrivateData(type, item);
+                    }
+                })
+                    .inputs(factoryReference)
                     .withProjection(UnmanagedModelProjection.of(type))
                     .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
                     .build();

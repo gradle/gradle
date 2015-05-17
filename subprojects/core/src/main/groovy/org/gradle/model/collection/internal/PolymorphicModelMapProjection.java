@@ -27,11 +27,11 @@ import java.util.Collection;
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
 
     // Node type param is just for type safety, as getCreatableTypes() requires the backing node to be of this type
-    public static <T> ModelProjection of(ModelType<T> itemType, @SuppressWarnings("UnusedParameters") ModelType<? extends PolymorphicNamedEntityInstantiator<T>> nodeType, ChildNodeCreatorStrategy creatorStrategy) {
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
         return new PolymorphicModelMapProjection<T>(itemType, creatorStrategy);
     }
 
-    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy creatorStrategy) {
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
         super(baseItemType, creatorStrategy);
     }
 
