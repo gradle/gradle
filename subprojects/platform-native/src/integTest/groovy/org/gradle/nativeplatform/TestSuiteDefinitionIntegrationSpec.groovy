@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
 class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {
-    def "plugin can define custom test suite type"() {
+    def setup() {
         buildFile << """
 interface CustomTestSuite extends TestSuiteSpec {
 }
@@ -38,6 +38,12 @@ class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary
     String data
 }
 
+interface CustomTestSourceSet extends LanguageSourceSet {
+}
+
+class DefaultCustomTestSourceSet extends BaseLanguageSourceSet implements CustomTestSourceSet {
+}
+
 class TestSuitePlugin extends RuleSource {
     @ComponentType
     void registerTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
@@ -48,7 +54,25 @@ class TestSuitePlugin extends RuleSource {
     void registerBinaryType(BinaryTypeBuilder<CustomTestBinary> builder) {
         builder.defaultImplementation(DefaultCustomTestBinary)
     }
+
+    @LanguageType
+    void registerLanguageType(LanguageTypeBuilder<CustomTestSourceSet> builder) {
+        builder.defaultImplementation(DefaultCustomTestSourceSet)
+    }
+
+    @Mutate
+    void testSuiteDefaults(TestSuiteContainer testSuites) {
+        testSuites.withType(CustomTestSuite).beforeEach { suite ->
+//            suite.sources.create('tests', CustomTestSourceSet)
+//            suite.binaries.create('tests', CustomTestBinary)
+        }
+    }
 }
+"""
+    }
+
+    def "plugin can define custom test suite and attach source sets and binaries"() {
+        buildFile << """
 
 apply plugin: NativeBinariesTestPlugin
 apply plugin: TestSuitePlugin
@@ -69,5 +93,41 @@ model {
         unitTests
             binaries
             sources"""))
+
+        when:
+        run "check"
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "plugin can define a test suite as an output of the project"() {
+        buildFile << """
+
+apply plugin: NativeBinariesTestPlugin
+apply plugin: TestSuitePlugin
+
+model {
+    components {
+        unitTests(CustomTestSuite)
+    }
+}
+"""
+
+        when:
+        run "model", "--detail", "BARE"
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    components
+        unitTests
+            binaries
+            sources"""))
+
+        when:
+        run "assemble"
+
+        then:
+        noExceptionThrown()
     }
 }
