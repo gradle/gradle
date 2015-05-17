@@ -16,8 +16,6 @@
 
 package org.gradle.platform.base.internal.registry
 
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -35,10 +33,7 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
-
-    Instantiator instantiator = DirectInstantiator.INSTANCE
-
-    BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(instantiator)
+    BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor()
 
     @Override
     Class<? extends Annotation> getAnnotation() {

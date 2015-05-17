@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -58,12 +57,12 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new LanguageTypeModelRuleExtractor();
         }
 
-        MethodModelRuleExtractor createComponentModelPluginInspector(Instantiator instantiator) {
-            return new ComponentTypeModelRuleExtractor(instantiator);
+        MethodModelRuleExtractor createComponentModelPluginInspector() {
+            return new ComponentTypeModelRuleExtractor();
         }
 
-        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(Instantiator instantiator) {
-            return new BinaryTypeModelRuleExtractor(instantiator);
+        MethodModelRuleExtractor createBinaryTypeModelPluginInspector() {
+            return new BinaryTypeModelRuleExtractor();
         }
 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {

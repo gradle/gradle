@@ -17,8 +17,6 @@
 package org.gradle.language.base.internal
 
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
@@ -36,9 +34,7 @@ import java.lang.annotation.Annotation
 class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
     final static ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> FACTORY_REGISTRY_TYPE = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
     };
-    Instantiator instantiator = DirectInstantiator.INSTANCE
-
-    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(instantiator)
+    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor()
 
     @Override
     Class<? extends Annotation> getAnnotation() { return ComponentType }
