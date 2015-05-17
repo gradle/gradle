@@ -41,19 +41,19 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     @SuppressWarnings("deprecation")
     private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
 
-    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         return new ModelMapModelProjection<T>(itemType, creatorStrategy);
     }
 
-    public static <T> ModelProjection of(Class<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    public static <T> ModelProjection of(Class<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         return of(ModelType.of(itemType), creatorStrategy);
     }
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
-    private final ChildNodeCreatorStrategy<I> creatorStrategy;
+    private final ChildNodeCreatorStrategy<? super I> creatorStrategy;
 
-    public ModelMapModelProjection(ModelType<I> baseItemModelType, ChildNodeCreatorStrategy<I> creatorStrategy) {
+    public ModelMapModelProjection(ModelType<I> baseItemModelType, ChildNodeCreatorStrategy<? super I> creatorStrategy) {
         this.baseItemModelType = baseItemModelType;
         this.baseItemType = baseItemModelType.getConcreteClass();
         this.creatorStrategy = creatorStrategy;

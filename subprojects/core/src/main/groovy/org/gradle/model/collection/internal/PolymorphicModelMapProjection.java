@@ -25,13 +25,11 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
-
-    // Node type param is just for type safety, as getCreatableTypes() requires the backing node to be of this type
-    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         return new PolymorphicModelMapProjection<T>(itemType, creatorStrategy);
     }
 
-    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         super(baseItemType, creatorStrategy);
     }
 

@@ -42,9 +42,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
-    private final ChildNodeCreatorStrategy<T> creatorStrategy;
+    private final ChildNodeCreatorStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
         this.modelNode = modelNode;
