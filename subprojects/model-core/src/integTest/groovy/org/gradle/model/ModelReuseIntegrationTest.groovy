@@ -76,26 +76,6 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
         taskHash != hashFor("task")
     }
 
-    def "can enable reuse with the component model"() {
-        when:
-        buildScript """
-            plugins {
-              id "org.gradle.jvm-component"
-              id "org.gradle.java-lang"
-            }
-
-            model {
-                components {
-                    create("main", JvmLibrarySpec)
-                }
-            }
-        """
-
-        then:
-        succeeds "build"
-        succeeds "build"
-    }
-
     def "can enable reuse with the variants benchmark"() {
         when:
         buildScript """
