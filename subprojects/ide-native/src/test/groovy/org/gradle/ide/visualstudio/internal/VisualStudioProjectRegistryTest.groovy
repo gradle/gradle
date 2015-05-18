@@ -15,19 +15,16 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
     private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
-    def sourceMap = Mock(ModelMap)
     def fileResolver = Mock(FileResolver)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
     def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
@@ -39,8 +36,7 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
         executableBinary.component >> executable
-        executableBinary.source >> sourceMap
-        sourceMap.values() >> []
+        executableBinary.source >> sources
 
         and:
         registry.addProjectConfiguration(executableBinary)
@@ -61,9 +57,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
         visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-        executableBinary1.source >> sourceMap
-        executableBinary2.source >> sourceMap
-        sourceMap.values() >> []
+        executableBinary1.source >> sources
+        executableBinary2.source >> sources
 
         and:
         registry.addProjectConfiguration(executableBinary1)
@@ -97,12 +92,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
         visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-        executableBinary1.source >> Mock(ModelMap) {
-            values() >> [sourceCommon, source1]
-        }
-        executableBinary2.source >> Mock(ModelMap) {
-            values() >> [sourceCommon, source2]
-        }
+        executableBinary1.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source1])
+        executableBinary2.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source2])
 
         and:
         registry.addProjectConfiguration(executableBinary1)
