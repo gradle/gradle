@@ -43,7 +43,7 @@ task java9Test(type: Test) {
 }
 
 
-if (!gradle.hasProperty("java9Check")) {
+if (!gradle.hasProperty("haveInstalledJava9Guard")) {
     gradle.taskGraph.whenReady { graph ->
         if (gradle.taskGraph.allTasks.any { it.name.contains("java9") }) {
             // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
@@ -53,5 +53,5 @@ if (!gradle.hasProperty("java9Check")) {
             }
         }
     }
-    gradle.ext.java9Check = true
+    gradle.ext.haveInstalledJava9Guard = true
 }
