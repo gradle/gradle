@@ -91,4 +91,8 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
         return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
     }
 
+    @Override
+    public String toString() {
+        return "[" + getSupportedTypeNames() + "]";
+    }
 }
