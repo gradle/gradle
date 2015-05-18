@@ -186,7 +186,14 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Tells whether Java annotation processors should process annotations on stubs. Defaults to {@code false}.
+     * Tells whether Java annotation processors should process annotations on stubs. When set to <code>true</code>, stubs will be unconditionnaly generated
+     * for all Groovy sources, and Java annotations processors will be executed on those stubs. This allow some annotation processors normally designed to
+     * work on Java sources to be able to process Groovy sources too.
+     *
+     * When this option is set to <code>false</code>, the annotation processors found on classpath are only going to process Java sources of the Groovy source set.
+     * It is different from using the compiler option <code>-proc:none</code> that will disable annotation processing altogether, be it on Java sources or Groovy stubs.
+     *
+     * Defaults to {@code false}.
      */
     @Incubating
     @Input

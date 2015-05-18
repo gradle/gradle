@@ -194,12 +194,18 @@ no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-t
 Both plugins now use the newer Maven 3 `org.apache.maven` and Aether libraries.
 Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
 
-### Java stubs annotation processing of Groovy sources
+### Annotation processing of Java stubs generated from Groovy sources
 
-Annotation processing of Java stubs generated from Groovy sources is now disabled by default. If you want Java annotation processors to execute
+Annotation processing of Java stubs generated from Groovy sources is now disabled by default. Gradle 2.4 introduced the ability to use Java annotation
+processors on Groovy sources, but it could break tools that relied on Java annotation processing on Java classes and Groovy AST transformations on Groovy
+classes to perform code generation using the same annotations (see GRADLE-3300).
+
+If you want Java annotation processors to execute
 on stubs, you need to set the following option in `GroovyCompileOptions`:
 
     compileGroovy.groovyOptions.javaAnnotationProcessing = true
+
+See the [DSL reference for javaAnnotationProcessing](dsl/org.gradle.api.tasks.compile.GroovyCompileOptions.html#org.gradle.api.tasks.compile.GroovyCompileOptions:javaAnnotationProcessing) for more details.
 
 ## External contributions
 
