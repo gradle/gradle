@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
+import org.gradle.api.reporting.model.ConsoleReportOutput
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -172,11 +173,11 @@ model {
 }
 """
         when:
-        run "model", "--detail", "BARE"
+        run "model"
 
         then:
-        output.contains """
-    testSuites
+        ConsoleReportOutput consoleReportOutput = new ConsoleReportOutput(output)
+        consoleReportOutput.hasNodeStructure("""    testSuites
         nativeComponentOneTest
             binaries
                 nativeComponentOneTestCUnitExe
@@ -190,7 +191,7 @@ model {
                     tasks
             sources
                 c
-                cunitLauncher"""
+                cunitLauncher""", 81)
     }
 
     def "can supply cCompiler macro to cunit sources"() {

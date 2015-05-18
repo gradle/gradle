@@ -39,8 +39,8 @@ class ConsoleReportOutput {
         lineIs(HEADING_LINE_NUMBER + 2, '------------------------------------------------------------')
     }
 
-    void hasNodeStructure(String text) {
-        List<String> nodeLines = lines[FIRST_NODE_LINE_NUMBER..-1]
+    void hasNodeStructure(String text, beginningAt = FIRST_NODE_LINE_NUMBER) {
+        List<String> nodeLines = lines[beginningAt..-1]
         def subject = toPlatformLineSeparators(text).split(LINE_SEPARATOR)
         subject.eachWithIndex { String line, i ->
             assert nodeLines[i].startsWith(line)
