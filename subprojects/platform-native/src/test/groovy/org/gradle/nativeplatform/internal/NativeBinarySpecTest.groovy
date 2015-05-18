@@ -22,6 +22,8 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
@@ -41,8 +43,12 @@ class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
+    def componentModelNode = Mock(MutableModelNode) {
+        getPath() >> ModelPath.path("component")
+        getLink("binaries") >> Mock(MutableModelNode)
+    }
     def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
-    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, sourceSet, instantiator)
+    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, componentModelNode, sourceSet, instantiator)
 
     def toolChain1 = Stub(NativeToolChainInternal) {
         getName() >> "ToolChain1"

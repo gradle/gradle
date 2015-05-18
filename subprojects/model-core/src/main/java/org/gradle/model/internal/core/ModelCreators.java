@@ -21,6 +21,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.ArrayList;
@@ -96,6 +97,16 @@ abstract public class ModelCreators {
 
         public Builder descriptor(ModelRuleDescriptor descriptor) {
             this.modelRuleDescriptor = descriptor;
+            return this;
+        }
+
+        public Builder descriptor(ModelRuleDescriptor parent, ModelRuleDescriptor child) {
+            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, child);
+            return this;
+        }
+
+        public Builder descriptor(ModelRuleDescriptor parent, String child) {
+            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(child));
             return this;
         }
 

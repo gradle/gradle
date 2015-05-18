@@ -20,6 +20,8 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
@@ -27,6 +29,10 @@ import spock.lang.Specification
 class BaseComponentSpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def componentId = Mock(ComponentSpecIdentifier)
+    def modelNode = Mock(MutableModelNode) {
+        getPath() >> ModelPath.path("component")
+        getLink("binaries") >> Mock(MutableModelNode)
+    }
     FunctionalSourceSet functionalSourceSet;
 
     def setup() {
@@ -44,7 +50,7 @@ class BaseComponentSpecTest extends Specification {
 
     def "cannot create instance of base class"() {
         when:
-        BaseComponentSpec.create(BaseComponentSpec, componentId, functionalSourceSet, instantiator)
+        BaseComponentSpec.create(BaseComponentSpec, componentId, modelNode, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException
@@ -52,7 +58,7 @@ class BaseComponentSpecTest extends Specification {
     }
 
     def "library has name, path and sensible display name"() {
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
+        def component = BaseComponentSpec.create(MySampleComponent, componentId, modelNode, functionalSourceSet, instantiator)
 
         when:
         _ * componentId.name >> "jvm-lib"
@@ -68,7 +74,7 @@ class BaseComponentSpecTest extends Specification {
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        BaseComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
+        BaseComponentSpec.create(MyConstructedComponent, componentId, modelNode, functionalSourceSet, instantiator)
 
         then:
         def e = thrown ModelInstantiationException
@@ -82,7 +88,7 @@ class BaseComponentSpecTest extends Specification {
         def lss1 = languageSourceSet("lss1")
         functionalSourceSet.add(lss1)
 
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
+        def component = BaseComponentSpec.create(MySampleComponent, componentId, modelNode, functionalSourceSet, instantiator)
 
         and:
         def lss2 = languageSourceSet("lss2")

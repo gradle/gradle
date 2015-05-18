@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.TransformationFileType;
+import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.platform.base.BinarySpec;
 
-import java.util.Set;
-
-public interface ComponentSpecInternal extends ComponentSpec {
-
-    FunctionalSourceSet getSources();
-
-    Set<Class<? extends TransformationFileType>> getInputTypes();
-
+public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, String> {
+    public BinarySpecFactory(String displayName) {
+        super(displayName);
+    }
 }

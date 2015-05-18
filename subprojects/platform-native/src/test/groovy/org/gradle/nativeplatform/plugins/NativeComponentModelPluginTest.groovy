@@ -127,7 +127,7 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        executable.binaries.values() == [executableBinary] as Set
+        executable.binaries.values() == [executableBinary]
     }
 
     def "creates binaries for library"() {
@@ -174,8 +174,8 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        library.binaries.containsValue(sharedLibraryBinary)
-        library.binaries.containsValue(staticLibraryBinary)
+        library.binaries.values().contains(sharedLibraryBinary)
+        library.binaries.values().contains(staticLibraryBinary)
     }
 
     def "creates lifecycle task for each binary"() {

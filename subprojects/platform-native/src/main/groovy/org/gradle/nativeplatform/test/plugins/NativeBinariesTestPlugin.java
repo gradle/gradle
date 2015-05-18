@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.rules.ModelMapCreators;
-import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -42,8 +41,8 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecFactory;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
@@ -69,9 +68,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() {
-        });
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), componentTypeRegistryType, descriptor);
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), ModelReference.of(ComponentSpecFactory.class), descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }

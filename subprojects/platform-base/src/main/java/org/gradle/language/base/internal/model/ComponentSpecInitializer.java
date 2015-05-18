@@ -30,10 +30,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ComponentSpecInitializer {
 
@@ -74,25 +71,9 @@ public class ComponentSpecInitializer {
                 return componentSpec.getSources();
             }
         };
-        BiAction<MutableModelNode, ComponentSpec> sourcePropertyRegistrar = domainObjectCollectionModelRegistrar("sources", namedDomainObjectCollectionOf(LanguageSourceSet.class),
-                sourcesPropertyTransformer);
 
-        Transformer<NamedDomainObjectCollection<BinarySpec>, ComponentSpecInternal> binariesPropertyTransformer = new Transformer<NamedDomainObjectCollection<BinarySpec>, ComponentSpecInternal>() {
-            public NamedDomainObjectCollection<BinarySpec> transform(ComponentSpecInternal componentSpec) {
-                return componentSpec.getBinariesContainer();
-            }
-        };
-        ModelType<NamedDomainObjectCollection<BinarySpec>> binariesType = namedDomainObjectCollectionOf(BinarySpec.class);
-        BiAction<BinarySpec, ComponentSpecInternal> binaryInitializationAction = new BiAction<BinarySpec, ComponentSpecInternal>() {
-            public void execute(BinarySpec binary, ComponentSpecInternal component) {
-                BinarySpecInternal binaryInternal = uncheckedCast(binary);
-                binaryInternal.setBinarySources(component.getSources().copy(binary.getName()));
-            }
-        };
-        BiAction<MutableModelNode, ComponentSpec> binariesPropertyRegistrar = domainObjectCollectionModelRegistrar("binaries", binariesType, binariesPropertyTransformer, binaryInitializationAction);
-        @SuppressWarnings("unchecked")
-        BiAction<MutableModelNode, ComponentSpec> initializer = BiActions.composite(sourcePropertyRegistrar, binariesPropertyRegistrar);
-        return initializer;
+        return domainObjectCollectionModelRegistrar("sources", namedDomainObjectCollectionOf(LanguageSourceSet.class),
+            sourcesPropertyTransformer);
     }
 
     private static <T> ModelType<NamedDomainObjectCollection<T>> namedDomainObjectCollectionOf(Class<T> type) {

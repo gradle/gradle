@@ -79,15 +79,15 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
         };
     }
 
-    public static <T> ChildNodeCreatorStrategy<T> createUsingFactory(final ModelReference<? extends NamedEntityInstantiator<? super T>> factoryReference) {
+    public static <T> ChildNodeCreatorStrategy<T> createUsingFactory(final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
         return new ChildNodeCreatorStrategy<T>() {
             @Override
             public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
                 return ModelCreators.of(parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        NamedEntityInstantiator<? super T> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
-                        S item = instantiator.create(name, type.getConcreteClass());
+                        InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
+                        S item = instantiator.create(type.getConcreteClass(), modelNode, name);
                         modelNode.setPrivateData(type, item);
                     }
                 })

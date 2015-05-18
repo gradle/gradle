@@ -31,7 +31,7 @@ public class ModelMapCreators {
                                                                       Class<T> typeClass,
                                                                       Class<C> containerClass,
                                                                       Class<? extends C> viewClass,
-                                                                      ModelReference<? extends RuleAwarePolymorphicNamedEntityInstantiator<? super T>> factoryReference,
+                                                                      ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
                                                                       ModelRuleDescriptor descriptor) {
 
         ChildNodeCreatorStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);

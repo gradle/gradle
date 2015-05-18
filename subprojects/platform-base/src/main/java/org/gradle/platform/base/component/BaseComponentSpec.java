@@ -17,19 +17,25 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.Action;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.internal.Actions;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
+import org.gradle.model.collection.internal.ModelMapModelProjection;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.BinarySpecFactory;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import java.util.Collections;
 import java.util.Set;
@@ -39,20 +45,32 @@ import java.util.Set;
  */
 @Incubating
 public abstract class BaseComponentSpec implements ComponentSpecInternal {
+
+    public static final BiAction<MutableModelNode, BinarySpec> CREATE_BINARY_SOURCE_SET = new BiAction<MutableModelNode, BinarySpec>() {
+        @Override
+        public void execute(MutableModelNode modelNode, BinarySpec binarySpec) {
+            BinarySpecInternal binarySpecInternal = Cast.uncheckedCast(binarySpec);
+            ComponentSpec componentSpec = modelNode.getParent().getParent().getPrivateData(ModelType.of(ComponentSpec.class));
+            ComponentSpecInternal componentSpecInternal = Cast.uncheckedCast(componentSpec);
+            FunctionalSourceSet componentSources = componentSpecInternal.getSources();
+            FunctionalSourceSet binarySources = componentSources.copy(binarySpec.getName());
+            binarySpecInternal.setBinarySources(binarySources);
+        }
+    };
+
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
     private final ModelMap<LanguageSourceSet> source;
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
-    private final DefaultBinaryContainer binaries;
-    private final ModelMap<BinarySpec> binariesMap;
+    private final MutableModelNode binaries;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
+    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, FunctionalSourceSet mainSourceSet, Instantiator instantiator) {
         if (type.equals(BaseComponentSpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
         }
-        nextComponentInfo.set(new ComponentInfo(identifier, type.getSimpleName(), mainSourceSet, instantiator));
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -84,15 +102,27 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 Actions.add(mainSourceSet)
             )
         );
-        this.binaries = info.instantiator.newInstance(DefaultBinaryContainer.class, info.instantiator);
-        this.binariesMap = ModelMapGroovyDecorator.alwaysMutable(
-            NamedDomainObjectSetBackedModelMap.wrap(
-                BinarySpec.class,
-                this.binaries,
-                this.binaries.getEntityInstantiator(),
-                Actions.add(binaries)
-            )
+
+        MutableModelNode modelNode = info.modelNode;
+        modelNode.addLink(
+            ModelCreators.of(
+                modelNode.getPath().child("binaries"), Actions.doNothing())
+                .descriptor(modelNode.getDescriptor(), ".binaries")
+                .withProjection(
+                    ModelMapModelProjection.of(
+                        BinarySpec.class,
+                        NodeBackedModelMap.createUsingFactory(ModelReference.of(BinarySpecFactory.class))
+                    )
+                )
+                .build()
         );
+        binaries = modelNode.getLink("binaries");
+        assert binaries != null;
+        binaries.applyToAllLinks(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(
+            ModelReference.of(BinarySpec.class),
+            new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".binaries"),
+            CREATE_BINARY_SOURCE_SET
+        ));
     }
 
     public String getName() {
@@ -128,17 +158,16 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<BinarySpec> getBinaries() {
-        return binariesMap;
-    }
-
-    @Override
-    public ExtensiblePolymorphicDomainObjectContainer<BinarySpec> getBinariesContainer() {
-        return binaries;
+        return binaries.asWritable(
+            ModelTypes.modelMap(BinarySpec.class),
+            new SimpleModelRuleDescriptor(identifier.toString() + ".getBinaries()"),
+            Collections.<ModelView<?>>emptyList()
+        ).getInstance();
     }
 
     @Override
     public void binaries(Action<? super ModelMap<BinarySpec>> action) {
-        action.execute(binariesMap);
+        action.execute(getBinaries());
     }
 
     public FunctionalSourceSet getSources() {
@@ -151,14 +180,20 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     private static class ComponentInfo {
         final ComponentSpecIdentifier componentIdentifier;
+        private final MutableModelNode modelNode;
         final String typeName;
         final FunctionalSourceSet sourceSets;
         final Instantiator instantiator;
 
-        private ComponentInfo(ComponentSpecIdentifier componentIdentifier,
-                              String typeName,
-                              FunctionalSourceSet sourceSets, Instantiator instantiator) {
+        private ComponentInfo(
+            ComponentSpecIdentifier componentIdentifier,
+            MutableModelNode modelNode,
+            String typeName,
+            FunctionalSourceSet sourceSets,
+            Instantiator instantiator
+        ) {
             this.componentIdentifier = componentIdentifier;
+            this.modelNode = modelNode;
             this.typeName = typeName;
             this.sourceSets = sourceSets;
             this.instantiator = instantiator;

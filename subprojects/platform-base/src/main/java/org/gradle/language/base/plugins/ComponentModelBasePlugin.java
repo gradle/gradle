@@ -15,19 +15,15 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Task;
-import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.rules.DefaultRuleAwarePolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.rules.ModelMapCreators;
-import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator;
+import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -49,7 +45,6 @@ import org.gradle.platform.base.internal.*;
 import javax.inject.Inject;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Base plugin for language support.
@@ -74,25 +69,33 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getName() + ".apply()");
 
-        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
         ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
         ModelPath components = ModelPath.path("components");
-        ModelCreator componentsCreator = ModelMapCreators.specialized(components, ComponentSpec.class, ComponentSpecContainer.class, schema.getManagedImpl().asSubclass(ComponentSpecContainer.class), componentTypeRegistryType, descriptor);
+        ModelCreator componentsCreator = ModelMapCreators.specialized(
+            components,
+            ComponentSpec.class,
+            ComponentSpecContainer.class,
+            schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),
+            ModelReference.of(ComponentSpecFactory.class),
+            descriptor
+        );
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(ComponentSpec.class),
                 descriptor,
-                ComponentSpecInitializer.action()));
+                ComponentSpecInitializer.action()
+            )
+        );
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Model
-        RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec> componentTypeRegistry() {
-            return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>(new DefaultPolymorphicNamedEntityInstantiator<ComponentSpec>(ComponentSpec.class, "this collection"));
+        ComponentSpecFactory componentSpecFactory() {
+            return new ComponentSpecFactory("this collection");
         }
 
         @Model
@@ -176,17 +179,24 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-        static class RegisterBinaryFactories extends RuleSource {
-            @Defaults
-            void apply(ComponentSpec componentSpec, BinarySpecFactoryRegistry binaryFactoryRegistry) {
-                ComponentSpecInternal componentSpecInternal = uncheckedCast(componentSpec);
-                binaryFactoryRegistry.copyInto(componentSpecInternal.getBinariesContainer());
-            }
-        }
+        @Model
+        BinarySpecFactory binarySpecFactory(final BinarySpecFactoryRegistry binaryFactoryRegistry) {
+            // BinarySpecFactoryRegistry is used by the BinaryContainer API, which we still need for the time being.
+            // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
 
-        @Defaults
-        void registerBinaryFactories(ComponentSpecContainer componentSpecs, final BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            componentSpecs.withType(ComponentSpec.class, RegisterBinaryFactories.class);
+            final BinarySpecFactory binarySpecFactory = new BinarySpecFactory("this collection");
+            binaryFactoryRegistry.copyInto(new NamedDomainObjectFactoryRegistry<BinarySpec>() {
+                @Override
+                public <U extends BinarySpec> void registerFactory(Class<U> type, final NamedDomainObjectFactory<? extends U> factory) {
+                    binarySpecFactory.register(type, null, new BiFunction<U, String, MutableModelNode>() {
+                        @Override
+                        public U apply(String s, MutableModelNode modelNode) {
+                            return factory.create(s);
+                        }
+                    });
+                }
+            });
+            return binarySpecFactory;
         }
 
         @Defaults

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.model.internal.core;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.TransformationFileType;
+import org.gradle.api.Nullable;
+import org.gradle.internal.util.BiFunction;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Set;
+public interface InstanceFactory<T, P> {
+    <S extends T> S create(Class<S> type, MutableModelNode modelNode, P payload);
 
-public interface ComponentSpecInternal extends ComponentSpec {
+    String getSupportedTypeNames();
 
-    FunctionalSourceSet getSources();
-
-    Set<Class<? extends TransformationFileType>> getInputTypes();
-
+    <S extends T> void register(Class<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
 }

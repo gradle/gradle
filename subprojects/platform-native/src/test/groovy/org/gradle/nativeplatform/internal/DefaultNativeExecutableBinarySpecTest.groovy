@@ -20,6 +20,8 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -43,8 +45,12 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "has useful string representation"() {
         given:
+        def componentModelNode = Mock(MutableModelNode) {
+            getPath() >> ModelPath.path("component")
+            getLink("binaries") >> Mock(MutableModelNode)
+        }
         def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"),
-                new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
+                componentModelNode, new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
 
         when:
         def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getLifecycleTaskName(), instantiator, taskFactory, executable, namingScheme,

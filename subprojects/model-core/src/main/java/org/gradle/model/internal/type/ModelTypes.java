@@ -31,4 +31,5 @@ public abstract class ModelTypes {
             }, type
         ).build();
     }
+
 }

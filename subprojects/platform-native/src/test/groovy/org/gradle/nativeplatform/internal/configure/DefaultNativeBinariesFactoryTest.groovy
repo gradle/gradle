@@ -22,6 +22,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.*
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -55,7 +57,11 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for executable"() {
         given:
-        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
+        def componentModelNode = Mock(MutableModelNode) {
+            getPath() >> ModelPath.path("component")
+            getLink("binaries") >> Mock(MutableModelNode)
+        }
+        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, componentModelNode, mainSourceSet, instantiator)
         def binary = BaseBinarySpec.create(DefaultNativeExecutableBinarySpec, "testExecutable", instantiator, taskFactory)
 
         when:
@@ -76,7 +82,11 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, mainSourceSet, DirectInstantiator.INSTANCE)
+        def componentModelNode = Mock(MutableModelNode) {
+            getPath() >> ModelPath.path("component")
+            getLink("binaries") >> Mock(MutableModelNode)
+        }
+        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, componentModelNode, mainSourceSet, DirectInstantiator.INSTANCE)
         def staticLibrary = BaseBinarySpec.create(DefaultStaticLibraryBinarySpec, "testStaticLibrary", instantiator, taskFactory)
         def sharedLibrary = BaseBinarySpec.create(DefaultSharedLibraryBinarySpec, "testSharedLibrary", instantiator, taskFactory)
 

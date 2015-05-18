@@ -32,6 +32,8 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
@@ -51,6 +53,13 @@ class CreateJvmBinariesTest extends Specification {
     def mainSourceSet = new DefaultFunctionalSourceSet("ss", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
     def toolChainRegistry = Mock(JavaToolChainRegistry)
     def toolResolver = Mock(ToolResolver)
+    def binariesNode = Mock(MutableModelNode) {
+
+    }
+    def componentNode = Mock(MutableModelNode) {
+        getPath() >> ModelPath.path("components")
+        getLink("binaries") >> binariesNode
+    }
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
         Instantiator createInstantiator() {
@@ -62,7 +71,7 @@ class CreateJvmBinariesTest extends Specification {
     }).build()
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, DirectInstantiator.INSTANCE)
+        def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), componentNode, mainSourceSet, DirectInstantiator.INSTANCE)
         def namingScheme = Mock(BinaryNamingScheme)
         def jvmExtension = Mock(JvmComponentExtension)
         def platform = new DefaultJavaPlatform("test")

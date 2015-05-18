@@ -20,6 +20,8 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.component.BaseComponentSpec
 import spock.lang.Specification
@@ -60,7 +62,11 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, mainSourceSet, DirectInstantiator.INSTANCE)
+        def componentModelNode = Mock(MutableModelNode) {
+            getPath() >> ModelPath.path("component")
+            getLink("binaries") >> Mock(MutableModelNode)
+        }
+        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, componentModelNode, mainSourceSet, DirectInstantiator.INSTANCE)
     }
 
     def languageSourceSet(String name) {

@@ -232,7 +232,7 @@ model {
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         main
-            binaries = []
+            binaries
             sources = source set 'main'"""))
     }
 
@@ -291,16 +291,16 @@ model {
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         foo
-            binaries = []
+            binaries
             sources
                 bar = DefaultCustomLanguageSourceSet 'foo:bar'
         main
-            binaries = []
+            binaries
             sources
                 main = DefaultCustomLanguageSourceSet 'main:main'
                 test = DefaultCustomLanguageSourceSet 'main:test'
         test
-            binaries = []
+            binaries
             sources
                 test = DefaultCustomLanguageSourceSet 'test:test'"""))
     }
@@ -395,10 +395,10 @@ model {
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries = []
+            binaries
             sources = source set 'main'
         someCustomComponent
-            binaries = []
+            binaries
             sources = source set 'someCustomComponent'
 """))
 
@@ -428,7 +428,7 @@ model {
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries = []
+            binaries
             sources
                 bar = DefaultCustomLanguageSourceSet 'main:bar'
                 main = DefaultCustomLanguageSourceSet 'main:main'"""))
@@ -486,7 +486,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries = []
+            binaries
             sources
                 bar = DefaultCustomLanguageSourceSet 'main:bar'
                 main = DefaultCustomLanguageSourceSet 'main:main'"""))
@@ -508,7 +508,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""
         someCustomComponent
-            binaries = []
+            binaries
             sources = source set 'someCustomComponent'"""))
 
     }
@@ -536,12 +536,12 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries = []
+            binaries
             sources
                 bar = DefaultCustomLanguageSourceSet 'main:bar'
                 main = DefaultCustomLanguageSourceSet 'main:main'
         test
-            binaries = []
+            binaries
             sources = source set 'test'
 """))
 
@@ -598,7 +598,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries = []
+            binaries
             sources
                 bar = DefaultCustomLanguageSourceSet 'main:bar'
                 main = DefaultCustomLanguageSourceSet 'main:main'"""))
@@ -738,7 +738,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                     create("printBinaryNames") {
                         def binaries = $("components.main.binaries")
                         doLast {
-                            println "names: ${binaries*.name}"
+                            println "names: ${binaries.keySet().toList()}"
                         }
                     }
                 }
@@ -758,7 +758,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -775,31 +775,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         then:
         output.contains "binary data: bar"
-    }
-
-    def "cannot remove binaries"() {
-        given:
-        withBinaries()
-        buildFile << '''
-            class BinariesRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                    binaries.clear()
-                }
-
-                @Mutate
-                void closeMainComponentBinariesForTasks(ModelMap<Task> tasks, @Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                }
-            }
-
-            apply type: BinariesRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
     }
 
     def "can reference task container of a binary in a rule"() {

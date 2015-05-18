@@ -24,6 +24,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -45,7 +47,11 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
     def instantiator = DirectInstantiator.INSTANCE
-    final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
+    def componentModelNode = Mock(MutableModelNode) {
+        getPath() >> ModelPath.path("component")
+        getLink("binaries") >> Mock(MutableModelNode)
+    }
+    final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), componentModelNode, new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)
@@ -61,7 +67,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
 
     def getStaticLibrary() {
         TestNativeBinariesFactory.create(DefaultStaticLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform,
-                buildType, new DefaultFlavor("flavorOne"))
+            buildType, new DefaultFlavor("flavorOne"))
     }
 
     def "can set output file"() {
