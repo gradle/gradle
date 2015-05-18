@@ -54,4 +54,15 @@ class BasicStringNodeDescriptorTest extends Specification {
         expect:
         descriptor.value(modelNode).get() == 'a value'
     }
+
+    def "should allow for leaf nodes with null data"() {
+        ModelNode modelNode = Mock(MutableModelNode) {
+            getLinkCount() >> 0
+            getPrivateData() >> null
+        }
+        def descriptor = new BasicStringNodeDescriptor()
+
+        expect:
+        descriptor.value(modelNode).isPresent() == false
+    }
 }
