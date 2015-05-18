@@ -107,4 +107,13 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         result = 31 * result + (canBeViewedAsWritable ? 1 : 0);
         return result;
     }
+
+    @Override
+    public String getValueDescription(MutableModelNode modelNodeInternal) {
+        Object privateData = modelNodeInternal.getPrivateData();
+        if (null != privateData) {
+            return privateData.toString();
+        }
+        return null;
+    }
 }

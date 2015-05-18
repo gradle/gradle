@@ -31,11 +31,6 @@ import static org.gradle.logging.StyledTextOutput.Style.Description;
 import static org.gradle.logging.StyledTextOutput.Style.Identifier;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
-    final ModelNodeDescriptor modelNodeDescriptor;
-
-    public ModelNodeRenderer(ModelNodeDescriptor modelNodeDescriptor) {
-        this.modelNodeDescriptor = modelNodeDescriptor;
-    }
 
     @Override
     public void render(ModelNode model, TextReportBuilder output) {
@@ -47,10 +42,12 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         if (model.getPath().equals(ModelPath.ROOT)) {
             styledTextoutput.println("model");
         } else {
-            styledTextoutput.withStyle(Identifier).format("%s", modelNodeDescriptor.label(model));
-            Optional<String> value = modelNodeDescriptor.value(model);
-            if (value.isPresent()) {
-                styledTextoutput.withStyle(Description).format(" = %s", value.get());
+            styledTextoutput.withStyle(Identifier).format("%s", model.getPath().getName());
+            if (model.getLinkCount() == 0) {
+                Optional<String> value = Optional.fromNullable(model.getValueDescription());
+                if (value.isPresent()) {
+                    styledTextoutput.withStyle(Description).format(" = %s", value.get());
+                }
             }
             styledTextoutput.println();
         }

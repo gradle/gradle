@@ -61,4 +61,9 @@ public class EmptyModelProjection implements ModelProjection {
     public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
         return Collections.emptyList();
     }
+
+    @Override
+    public String getValueDescription(MutableModelNode modelNodeInternal) {
+        return null;
+    }
 }

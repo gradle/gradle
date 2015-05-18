@@ -201,4 +201,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public int getLinkCount() {
         return Iterables.size(getLinks());
     }
+
+    @Nullable
+    @Override
+    public String getValueDescription() {
+        this.ensureUsable();
+        return this.getAdapter().getValueDescription(this);
+    }
 }

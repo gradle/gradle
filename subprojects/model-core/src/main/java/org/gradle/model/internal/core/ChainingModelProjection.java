@@ -115,4 +115,13 @@ public class ChainingModelProjection implements ModelProjection {
     public String toString() {
         return "ChainingModelProjection{projections=" + projections + '}';
     }
+
+    @Override
+    public String getValueDescription(MutableModelNode modelNodeInternal) {
+        Object privateData = modelNodeInternal.getPrivateData();
+        if (null != privateData) {
+            return privateData.toString();
+        }
+        return null;
+    }
 }

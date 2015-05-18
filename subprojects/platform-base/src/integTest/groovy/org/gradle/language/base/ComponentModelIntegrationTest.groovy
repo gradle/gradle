@@ -226,14 +226,14 @@ model {
 
     def "component sources and binaries containers are visible in model report"() {
         when:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         main
-            binaries
-            sources"""))
+            binaries = []
+            sources = source set 'main'"""))
     }
 
     def "can reference sources container for a component in a rule"() {
@@ -285,24 +285,24 @@ model {
         """
 
         when:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
         foo
-            binaries
+            binaries = []
             sources
-                bar
+                bar = DefaultCustomLanguageSourceSet 'foo:bar'
         main
-            binaries
+            binaries = []
             sources
-                main
-                test
+                main = DefaultCustomLanguageSourceSet 'main:main'
+                test = DefaultCustomLanguageSourceSet 'main:test'
         test
-            binaries
+            binaries = []
             sources
-                test"""))
+                test = DefaultCustomLanguageSourceSet 'test:test'"""))
     }
 
     def "can reference sources container elements in a rule"() {
@@ -390,16 +390,16 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
-            sources
+            binaries = []
+            sources = source set 'main'
         someCustomComponent
-            binaries
-            sources
+            binaries = []
+            sources = source set 'someCustomComponent'
 """))
 
     }
@@ -423,15 +423,15 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
+            binaries = []
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
     }
 
     def "plugin can apply component beforeEach / afterEach"() {
@@ -481,15 +481,15 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         apply plugin: SomeComponentPlugin
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
+            binaries = []
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
 
     }
 
@@ -503,12 +503,13 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
-            binaries
-            sources"""))
+        output.contains(TextUtil.toPlatformLineSeparators("""
+        someCustomComponent
+            binaries = []
+            sources = source set 'someCustomComponent'"""))
 
     }
 
@@ -530,18 +531,18 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
+            binaries = []
             sources
-                bar
-                main
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'
         test
-            binaries
-            sources
+            binaries = []
+            sources = source set 'test'
 """))
 
     }
@@ -592,15 +593,15 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         }
         """
         then:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
-            binaries
+            binaries = []
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
 
     }
 
@@ -707,7 +708,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         withBinaries()
 
         when:
-        succeeds "model", "--detail", "BARE"
+        succeeds "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -715,17 +716,17 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
                 main
-                    tasks
+                    tasks = []
                 test
-                    tasks
-            sources
+                    tasks = []
+            sources = source set 'main'
         test
             binaries
                 main
-                    tasks
+                    tasks = []
                 test
-                    tasks
-            sources"""))
+                    tasks = []
+            sources = source set 'test'"""))
     }
 
     def "can reference binaries container for a component in a rule"() {

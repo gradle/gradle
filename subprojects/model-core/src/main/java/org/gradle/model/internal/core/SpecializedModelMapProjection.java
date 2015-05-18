@@ -114,4 +114,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
         return canBeViewedAsWritable(targetType);
     }
+
+    @Override
+    public String getValueDescription(MutableModelNode modelNodeInternal) {
+        Object privateData = modelNodeInternal.getPrivateData();
+        if (null != privateData) {
+            return privateData.toString();
+        }
+        return null;
+    }
 }

@@ -7,4 +7,5 @@ useClassycle()
 strictCompile()
 useTestFixtures()
 useTestFixtures(sourceSet: 'testFixtures')
+useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
 

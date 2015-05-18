@@ -33,4 +33,6 @@ public interface ModelAdapter {
     @Override
         // must implement logical equality
     boolean equals(Object other);
+
+    String getValueDescription(MutableModelNode modelNodeInternal);
 }

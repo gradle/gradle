@@ -80,4 +80,7 @@ public interface ModelNode {
      * The number of link this node has.
      */
     int getLinkCount();
+
+    @Nullable
+    String getValueDescription();
 }

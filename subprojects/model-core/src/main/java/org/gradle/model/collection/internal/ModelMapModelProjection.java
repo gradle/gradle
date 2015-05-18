@@ -163,4 +163,13 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         result = 31 * result + baseItemModelType.hashCode();
         return result;
     }
+
+    @Override
+    public String getValueDescription(MutableModelNode modelNodeInternal) {
+        Object privateData = modelNodeInternal.getPrivateData();
+        if (null != privateData) {
+            return privateData.toString();
+        }
+        return null;
+    }
 }
