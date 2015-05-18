@@ -162,6 +162,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
+    public InternalState getResolvedState() {
+        return resolvedState;
+    }
+
     public ModuleInternal getModule() {
         return metaDataProvider.getModule();
     }

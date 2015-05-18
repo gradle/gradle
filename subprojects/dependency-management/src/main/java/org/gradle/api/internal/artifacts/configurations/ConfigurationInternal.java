@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Configuration;
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
     enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
 
+    InternalState getResolvedState();
+
     ResolutionStrategyInternal getResolutionStrategy();
 
     String getPath();
