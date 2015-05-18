@@ -51,7 +51,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             return new ExtractedModelAction(
                 ModelActionRole.Defaults,
                 ImmutableList.of(ComponentModelBasePlugin.class),
-                DirectNodeModelAction.of(
+                DirectNodeNoInputsModelAction.of(
                     ModelReference.of("binaries"),
                     new SimpleModelRuleDescriptor("binaries*.create()"),
                     new Action<MutableModelNode>() {

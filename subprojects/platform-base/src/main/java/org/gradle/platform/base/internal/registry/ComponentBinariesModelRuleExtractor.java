@@ -68,7 +68,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
 
         public void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
-            modelNode.applyToAllLinks(ModelActionRole.Mutate, TriActionBackedModelAction.of(
+            modelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeInputUsingModelAction.of(
                 ModelReference.of(ModelType.of(componentType)),
                 getDescriptor(),
                 getInputs(),

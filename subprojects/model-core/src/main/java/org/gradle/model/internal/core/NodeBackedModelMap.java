@@ -120,7 +120,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public void all(final Action<? super T> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, new NoInputsModelAction<T>(subject, descriptor, configAction));
     }
 
     @Override
@@ -166,7 +166,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, new ActionBackedModelAction<S>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, new NoInputsModelAction<S>(subject, descriptor, configAction));
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type) {
@@ -177,7 +177,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
         ModelCreator creator = creatorStrategy.creator(modelNode, sourceDescriptor, type, name);
         modelNode.addLink(creator);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "%s.<init>", name);
-        modelNode.applyToLink(ModelActionRole.Initialize, new ActionBackedModelAction<S>(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
+        modelNode.applyToLink(ModelActionRole.Initialize, new NoInputsModelAction<S>(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
             @Override
             public void execute(S s) {
                 initAction.execute(s);
@@ -188,7 +188,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<S>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Finalize, new NoInputsModelAction<S>(subject, descriptor, configAction));
     }
 
     @Nullable
@@ -223,7 +223,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public void named(final String name, Action<? super T> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
+        modelNode.applyToLink(ModelActionRole.Mutate, new NoInputsModelAction<T>(subject, descriptor, configAction));
     }
 
     @Override
@@ -260,7 +260,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<S>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, new NoInputsModelAction<S>(subject, descriptor, configAction));
     }
 
     @Override

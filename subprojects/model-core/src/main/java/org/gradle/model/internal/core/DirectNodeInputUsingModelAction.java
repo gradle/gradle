@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,28 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
+import org.gradle.internal.TriAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Collections;
 import java.util.List;
 
-public class ActionBackedModelAction<T> implements ModelAction<T> {
+public class DirectNodeInputUsingModelAction<T> implements ModelAction<T> {
     private final ModelReference<T> subject;
-    private final Action<? super T> configAction;
     private final ModelRuleDescriptor descriptor;
+    private final List<ModelReference<?>> inputs;
+    private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    public ActionBackedModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+                                           TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         this.subject = subject;
-        this.configAction = configAction;
         this.descriptor = descriptor;
+        this.inputs = inputs;
+        this.action = action;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
-        return new ActionBackedModelAction<T>(reference, descriptor, configAction);
+    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+                                                      TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+        return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
     }
 
     @Override
@@ -44,12 +47,12 @@ public class ActionBackedModelAction<T> implements ModelAction<T> {
 
     @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        configAction.execute(object);
+        action.execute(modelNode, object, inputs);
     }
 
     @Override
     public List<ModelReference<?>> getInputs() {
-        return Collections.emptyList();
+        return inputs;
     }
 
     @Override

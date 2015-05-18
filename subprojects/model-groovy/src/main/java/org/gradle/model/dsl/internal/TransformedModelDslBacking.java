@@ -83,7 +83,7 @@ public class TransformedModelDslBacking {
         List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
         SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        ModelAction<Object> action = BiActionBackedModelAction.of(ModelReference.of(modelPath), toDescriptor(sourceLocation, modelPath), inputs, new ExecuteClosure<Object>(closure));
+        ModelAction<Object> action = InputUsingModelAction.of(ModelReference.of(modelPath), toDescriptor(sourceLocation, modelPath), inputs, new ExecuteClosure<Object>(closure));
         modelRegistry.configure(ModelActionRole.Mutate, action);
     }
 

@@ -23,20 +23,20 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 
-public class DirectNodeModelAction<T> implements ModelAction<T> {
+public class DirectNodeNoInputsModelAction<T> implements ModelAction<T> {
 
     private final ModelReference<T> subjectReference;
     private final BiAction<? super MutableModelNode, ? super T> action;
     private final ModelRuleDescriptor descriptor;
 
-    private DirectNodeModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
+    private DirectNodeNoInputsModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
         this.subjectReference = subjectReference;
         this.action = action;
         this.descriptor = descriptor;
     }
 
     public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
-        return new DirectNodeModelAction<T>(reference, descriptor, new BiAction<MutableModelNode, T>() {
+        return new DirectNodeNoInputsModelAction<T>(reference, descriptor, new BiAction<MutableModelNode, T>() {
             @Override
             public void execute(MutableModelNode modelNode, T t) {
                 action.execute(modelNode);
@@ -45,7 +45,7 @@ public class DirectNodeModelAction<T> implements ModelAction<T> {
     }
 
     public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
-        return new DirectNodeModelAction<T>(reference, descriptor, action);
+        return new DirectNodeNoInputsModelAction<T>(reference, descriptor, action);
     }
 
     @Override

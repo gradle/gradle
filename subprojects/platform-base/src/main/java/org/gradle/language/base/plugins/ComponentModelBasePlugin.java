@@ -81,7 +81,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         modelRegistry.create(componentsCreator);
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
-            DirectNodeModelAction.of(
+            DirectNodeNoInputsModelAction.of(
                 ModelReference.of(ComponentSpec.class),
                 descriptor,
                 ComponentSpecInitializer.action()));

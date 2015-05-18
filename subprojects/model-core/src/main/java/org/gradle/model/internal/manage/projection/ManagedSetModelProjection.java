@@ -144,13 +144,13 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
             @Override
             public void afterEach(Action<? super I> configAction) {
                 assertMutable();
-                modelNode.applyToAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<I>(elementReference, NestedModelRuleDescriptor.append(ruleDescriptor, "afterEach()"), configAction));
+                modelNode.applyToAllLinks(ModelActionRole.Finalize, new NoInputsModelAction<I>(elementReference, NestedModelRuleDescriptor.append(ruleDescriptor, "afterEach()"), configAction));
             }
 
             @Override
             public void beforeEach(Action<? super I> configAction) {
                 assertMutable();
-                modelNode.applyToAllLinks(ModelActionRole.Defaults, new ActionBackedModelAction<I>(elementReference, NestedModelRuleDescriptor.append(ruleDescriptor, "beforeEach()"), configAction));
+                modelNode.applyToAllLinks(ModelActionRole.Defaults, new NoInputsModelAction<I>(elementReference, NestedModelRuleDescriptor.append(ruleDescriptor, "beforeEach()"), configAction));
             }
 
             @Override

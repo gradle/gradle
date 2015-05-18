@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,25 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.internal.TriAction;
+import org.gradle.api.Action;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.Collections;
 import java.util.List;
 
-public class TriActionBackedModelAction<T> implements ModelAction<T> {
+public class NoInputsModelAction<T> implements ModelAction<T> {
     private final ModelReference<T> subject;
+    private final Action<? super T> configAction;
     private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputs;
-    private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    public TriActionBackedModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
-                                      TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+    public NoInputsModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
         this.subject = subject;
+        this.configAction = configAction;
         this.descriptor = descriptor;
-        this.inputs = inputs;
-        this.action = action;
     }
 
-    public static <T> TriActionBackedModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
-                                                      TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
-        return new TriActionBackedModelAction<T>(modelReference, descriptor, inputs, action);
+    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+        return new NoInputsModelAction<T>(reference, descriptor, configAction);
     }
 
     @Override
@@ -47,12 +44,12 @@ public class TriActionBackedModelAction<T> implements ModelAction<T> {
 
     @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        action.execute(modelNode, object, inputs);
+        configAction.execute(object);
     }
 
     @Override
     public List<ModelReference<?>> getInputs() {
-        return inputs;
+        return Collections.emptyList();
     }
 
     @Override

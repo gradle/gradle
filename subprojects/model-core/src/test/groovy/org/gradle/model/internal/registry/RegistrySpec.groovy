@@ -239,7 +239,7 @@ class RegistrySpec extends Specification {
                 def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
                 binder = new CreatorRuleBinder(action, inputReferences, [])
             } else {
-                def action = ActionBackedModelAction.of(subjectReference, descriptor, {})
+                def action = NoInputsModelAction.of(subjectReference, descriptor, {})
                 binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
             }
             if (subjectReferenceBindingPath) {
