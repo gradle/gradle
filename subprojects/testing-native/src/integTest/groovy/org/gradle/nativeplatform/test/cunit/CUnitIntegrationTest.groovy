@@ -171,6 +171,9 @@ model {
         nativeComponentTwo(NativeLibrarySpec)
     }
 }
+//Needed
+task wrapper << {}
+task init << {}
 """
         when:
         run "model"
@@ -191,7 +194,7 @@ model {
                     tasks
             sources
                 c
-                cunitLauncher""", 81)
+                cunitLauncher""", 82)
     }
 
     def "can supply cCompiler macro to cunit sources"() {
