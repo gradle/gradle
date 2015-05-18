@@ -81,8 +81,9 @@ model {
         nativeLibStaticLibrary
             tasks
     binaryNamingSchemeBuilder
+    binarySpecFactory
     buildTypes
-    componentTypeRegistry
+    componentSpecFactory
     components
         jvmLib
             binaries
