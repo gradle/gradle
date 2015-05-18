@@ -18,7 +18,6 @@ package org.gradle.language.base;
 import org.gradle.api.*;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.DependencySpecContainer;
 
 /**
  * A set of sources for a programming language.
@@ -43,6 +42,4 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
     void source(Action<? super SourceDirectorySet> config);
 
     void generatedBy(Task generatorTask);
-
-    DependencySpecContainer getDependencies();
 }

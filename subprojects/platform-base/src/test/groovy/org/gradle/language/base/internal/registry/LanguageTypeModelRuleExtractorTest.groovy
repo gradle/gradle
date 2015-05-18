@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.base.internal.registry
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
@@ -27,7 +26,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -123,11 +121,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @Override
         void generatedBy(Task generatorTask) {
-            }
-
-        @Override
-        DependencySpecContainer getDependencies() {
-            return null
         }
 
         @Override
