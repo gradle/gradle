@@ -65,7 +65,7 @@ class TestSuitePlugin extends RuleSource {
 //        testSuites.withType(CustomTestSuite).beforeEach { suite ->
         testSuites.withType(CustomTestSuite) { suite ->
             suite.sources.create('tests', CustomTestSourceSet)
-//            suite.binaries.create('tests', CustomTestBinary)
+            suite.binaries.create('tests', CustomTestBinary)
         }
     }
 }
@@ -93,7 +93,11 @@ model {
     testSuites
         unitTests
             binaries
-            sources"""))
+                tests
+                    tasks
+            sources
+                tests
+"""))
 
         when:
         run "check"

@@ -26,15 +26,6 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
 
         buildScript """
-            import org.gradle.api.internal.rules.*
-            import org.gradle.internal.service.*
-            import org.gradle.api.internal.project.*
-            import org.gradle.internal.reflect.*
-            import org.gradle.model.internal.core.rule.describe.*
-            import org.gradle.platform.base.internal.*
-            import org.gradle.language.base.internal.*
-            import org.gradle.api.internal.file.*
-
             apply type: NativeBinariesTestPlugin
 
             interface CustomTestSuite extends TestSuiteSpec {}
@@ -51,23 +42,13 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TestSuiteTypeRules extends RuleSource {
                 @ComponentType
-                public void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+                void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
                     builder.defaultImplementation(DefaultCustomTestSuite)
                 }
 
-                @Defaults
-                public void registerLanguageForTestSuite(TestSuiteContainer testSuites, ServiceRegistry serviceRegistry,
-                                                         ProjectSourceSet projectSourceSet, ProjectIdentifier projectIdentifier) {
-                    final Instantiator instantiator = serviceRegistry.get(Instantiator.class)
-                    final FileResolver fileResolver = serviceRegistry.get(FileResolver.class)
-                    testSuites.withType(CustomTestSuite).beforeEach { it ->
-                        def suiteName = it.name
-                        it.sources.registerFactory(CustomLanguageSourceSet.class, new NamedDomainObjectFactory<CustomLanguageSourceSet>() {
-                            public CustomLanguageSourceSet create(String name) {
-                                return BaseLanguageSourceSet.create(DefaultCustomLanguageSourceSet.class, name, suiteName, fileResolver, instantiator);
-                            }
-                        })
-                    }
+                @LanguageType
+                void registerCustomLanguageType(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                    builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }
 
