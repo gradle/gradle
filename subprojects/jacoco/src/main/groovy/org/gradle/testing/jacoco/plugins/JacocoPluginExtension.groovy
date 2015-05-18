@@ -21,6 +21,10 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
+import org.gradle.testing.jacoco.tasks.coverage.CoverageType
+import org.gradle.testing.jacoco.tasks.coverage.JacocoCheckCoverage
+
+import java.util.regex.Pattern
 
 import static org.gradle.api.logging.Logging.getLogger
 
@@ -31,7 +35,18 @@ import static org.gradle.api.logging.Logging.getLogger
 class JacocoPluginExtension {
     static final String TASK_EXTENSION_NAME = 'jacoco'
 
+    // For convenience in build scripts.
+    public static final CoverageType BRANCH = CoverageType.BRANCH
+    public static final CoverageType CLASS = CoverageType.CLASS
+    public static final CoverageType COMPLEXITY = CoverageType.COMPLEXITY
+    public static final CoverageType INSTRUCTION = CoverageType.INSTRUCTION
+    public static final CoverageType LINE = CoverageType.LINE
+    public static final CoverageType METHOD = CoverageType.METHOD
+
     Logger logger = getLogger(getClass())
+
+    /** The coverage threshold rules to be enforced by {@link JacocoCheckCoverage}. */
+    public final List<Closure<Double>> coverageRules = new ArrayList<>()
 
     /**
      * Version of Jacoco JARs to use.
@@ -84,5 +99,54 @@ class JacocoPluginExtension {
         tasks.withType(JavaForkOptions) {
             applyTo(it)
         }
+    }
+
+    /**
+     * Adds a minimum coverage threshold for all files and coverage types.
+     * @param value The minimum required threshold, a number in [0,1].
+     */
+    void threshold(double value) {
+        coverageRules.add({
+            CoverageType ct, String str -> value
+        })
+    }
+
+    /**
+     * Adds a minimum coverage threshold for the given coverage type and for all files.
+     * @param value The minimum required threshold, a number in [0,1].
+     * @param coverageType The type of JaCoCo coverage this threshold applies to.
+     */
+    void threshold(double value, CoverageType coverageType) {
+        threshold(value, coverageType, ~/.*/)
+    }
+
+    /**
+     * Adds a minimum coverage threshold for the given coverage type and files with the given filename (in any directory).
+     * @param value The minimum required threshold, a number in [0,1].
+     * @param coverageType The type of JaCoCo coverage this rule applies to.
+     * @param filename The name of the file(s) that this threshold applies to.
+     */
+    void threshold(double value, CoverageType coverageType, String filename) {
+        coverageRules.add({ CoverageType ct, String str ->
+            if (coverageType == ct && str.equals(filename)) {
+                return value
+            }
+            return 2.0 // Threshold >1.0 are filtered out before determining violation; thus, returning 2.0 results in this check being ignored.
+        })
+    }
+
+    /**
+     * Adds a minimum coverage threshold for the given coverage type and files (in any directory) matching the given pattern.
+     * @param value The minimum required threshold, a number in [0,1].
+     * @param coverageType The type of JaCoCo coverage this rule applies to.
+     * @param fileNamePattern A regular expression specifying the name of the file(s) that this threshold applies to.
+     */
+    void threshold(double value, CoverageType coverageType, Pattern fileNamePattern) {
+        coverageRules.add({ CoverageType ct, String str ->
+            if (coverageType == ct && str =~ fileNamePattern) {
+                return value
+            }
+            return 2.0 // Threshold >1.0 are filtered out before determining violation; thus, returning 2.0 results in this check being ignored.
+        })
     }
 }

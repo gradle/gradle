@@ -45,6 +45,9 @@
             <tr>
                 <td>applyTo</td>
             </tr>
+            <tr>
+                <td>threshold</td>
+            </tr>
         </table>
     </section>
 </section>
