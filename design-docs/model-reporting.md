@@ -50,3 +50,61 @@ Improve the display value for rules defined in plugins, to show the plugin id in
 method descriptor.
 
 Perhaps use a 'show details' command-line option to enable display of the method descriptor.
+
+## Potential Layouts
+
+```bash
+    component(type: org.gradle.api.reporting.components.ComponentReport, readonly:true, value: task ':components')
+        child(type: org.gradle.api.reporting.components.ComponentReport, readonly:true, value: task ':components')
+            grandchild(type: org.gradle.api.reporting.components.ComponentReport, readonly:true, value: task ':components')
+        child2(type: org.gradle.api.reporting.components.ComponentReport, readonly:true, value: task ':components')
+```
+
+```bash
+   + component
+          | type:       org.gradle.api.reporting.components.ComponentReport |
+          | readonly:   true |
+          | value:      task ':components'|
+          | creator:    the model machine |
+        + child
+              | type:       org.gradle.api.reporting.components.ComponentReport |
+              | readonly:   true |
+              | value:      task ':components'|
+              | creator:    the model machine |
+            + grandChild
+                  | type:       org.gradle.api.reporting.components.ComponentReport |
+                  | readonly:   true |
+                  | value:      task ':components'|
+                  | creator:    the model machine |
+        + child2
+               | type:       org.gradle.api.reporting.components.ComponentReport |
+               | readonly:   true |
+               | value:      task ':components'|
+               | creator:    the model machine |
+```
+
+
+
+```bash
+   + component
+          { type: org.gradle.api.reporting.components.ComponentReport }
+          { type: org.gradle.api.reporting.components.ComponentReport }
+          { readonly: true }
+          { value: task ':components' }
+          { creator: the model machine }
+        + child
+              { type: org.gradle.api.reporting.components.ComponentReport }
+              { type: org.gradle.api.reporting.components.ComponentReport }
+              { readonly: true }
+              { value: task ':components' }
+            + grandChild
+                  { type: org.gradle.api.reporting.components.ComponentReport }
+                  { type: org.gradle.api.reporting.components.ComponentReport }
+                  { readonly: true }
+                  { value: task ':components' }
+        + child2
+               { type: org.gradle.api.reporting.components.ComponentReport }
+               { type: org.gradle.api.reporting.components.ComponentReport }
+               { readonly: true }
+               { value: task ':components' }
+```
