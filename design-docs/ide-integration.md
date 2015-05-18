@@ -370,7 +370,9 @@ The other use case to consider is the generation of project files directly via t
 the product.
 
 - IntelliJ: To our knowledge depends on classes from Gradle's internal API to generate classpath (`org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver`).
-- Eclipse: STS uses a custom model for the tooling API to generate the classpath. The Gradle IDE plugins can be activated optionally to derive additional customizations of the project files.
+- Eclipse: STS uses a custom model for the tooling API to generate the classpath. On top of the project/external classpath provided by the tooling API, the solution uses so called classpath containers
+which are built using [Eclipse APIs](https://github.com/spring-projects/eclipse-integration-gradle/blob/f40acf8033db935270225e6ff4b5989f2f45abb4/org.springsource.ide.eclipse.gradle.core/src/org/springsource/ide/eclipse/gradle/core/classpathcontainer/GradleDependencyComputer.java#L116).
+A classpath container is reflect in a single classpath entry in the generated `.classpath` file. The Gradle IDE plugins can be invoked optionally to derive additional customizations for the project files.
 - Buildship: See Eclipse. Is there any difference in behavior? How is the classpath generated right now?
 
 #### Implementation
@@ -388,6 +390,9 @@ We'll go with option 1 which includes the following concrete work items:
 generated Eclipse config files or using the tooling API.
 - Change the mapping for IDEA.
 
+A change to the existing behavior of the Gradle Eclipse plugin will have to take into consideration the property [EclipseClasspath#noExportConfigurations](https://gradle.org/docs/current/groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseClasspath.html).
+By default all configurations are exported. With this story the default would have to be inverted. All configurations need to be added to this property. This would be a breaking change.
+
 #### Test cases
 
 - Existing test cases for the Idea and Eclipse plugins need to be modified to reflect changed export behavior.
@@ -403,6 +408,10 @@ generated Eclipse config files or using the tooling API.
 - Potential backward compatibility issues for existing projects.
 - Should the exported flag become configurable? Especially in larger organizations allowing this behavior might lead to confusion. Users are usually not aware of the implications; they
 "just want it to work".
+- Should we consider the use a classpath container solution? Given that some users check in the project files into VCS (for good or bad - it does exist in reality), every regenerated project file
+ would need to be checked back into version control. With frequent changes that could get cumbersome. The benefit of using a classpath container is that the `.classpath` file doesn't change over
+ time. The downside of using a classpath container is that it requires the use of Eclipse APIs and additional dependencies to Gradle core. As a side note: This model is used for other Eclipse IDE
+  integrations like M2Eclipse and IvyDE so it's not uncommon. My guess is that it would require almost a rewrite of the existing code in the Gradle Eclipse plugin.
 
 ### Story - IntelliJ directory-based project metadata generation
 
