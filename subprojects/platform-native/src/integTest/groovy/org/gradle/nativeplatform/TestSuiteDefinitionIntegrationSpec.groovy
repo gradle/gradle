@@ -86,7 +86,7 @@ model {
 """
 
         when:
-        run "model", "--detail", "BARE"
+        run "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -116,7 +116,7 @@ model {
 """
 
         when:
-        run "model", "--detail", "BARE"
+        run "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
