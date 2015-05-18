@@ -17,18 +17,18 @@
 package org.gradle.platform.base.binary;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.DomainObjectSetBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
+import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -115,19 +115,14 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     @Override
-    public ModelMap<LanguageSourceSet> getSource() {
-        return ModelMapGroovyDecorator.alwaysMutable(
-            DomainObjectSetBackedModelMap.ofNamed(
-                LanguageSourceSet.class,
-                sourceSets.getSources(),
-                sourceSets.getMainSources().getEntityInstantiator(),
-                Actions.add(sourceSets.getMainSources())
-            )
-        );
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets.getSources();
     }
 
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(getSource());
+        action.execute(ModelMapGroovyDecorator.alwaysMutable(
+            NamedDomainObjectSetBackedModelMap.wrap(LanguageSourceSet.class, sourceSets.getMainSources())
+        ));
     }
 
     // TODO:DAZ Remove this

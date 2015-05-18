@@ -53,7 +53,7 @@ public interface BinarySpec extends BuildableModelElement, Named {
     /**
      * The source sets used to compile this binary.
      */
-    ModelMap<LanguageSourceSet> getSource();
+    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
      * Configures the source sets used to build this binary.

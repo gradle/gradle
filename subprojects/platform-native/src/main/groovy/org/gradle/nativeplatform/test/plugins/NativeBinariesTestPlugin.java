@@ -69,7 +69,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() { });
+        ModelReference<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>> componentTypeRegistryType = ModelReference.of(new ModelType<RuleAwarePolymorphicNamedEntityInstantiator<ComponentSpec>>() {
+        });
         ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), componentTypeRegistryType, descriptor);
 
         modelRegistry.create(testSuitesCreator);
@@ -82,10 +83,10 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                testSuiteBinary.source(testedBinary.getSource().values());
+                testSuiteBinary.source(testedBinary.getSource());
 
-                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class).values()) {
-                    testSource.lib(testedBinary.getSource().values());
+                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
+                    testSource.lib(testedBinary.getSource());
                 }
             }
         }

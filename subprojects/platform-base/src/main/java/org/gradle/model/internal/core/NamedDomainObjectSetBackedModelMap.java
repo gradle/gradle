@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Specs;
 import org.gradle.model.ModelMap;
@@ -75,6 +76,10 @@ public class NamedDomainObjectSetBackedModelMap<T> extends DomainObjectCollectio
 
     public static <T> NamedDomainObjectSetBackedModelMap<T> wrap(Class<T> elementType, NamedDomainObjectSet<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreate) {
         return new NamedDomainObjectSetBackedModelMap<T>(elementType, domainObjectSet, instantiator, onCreate);
+    }
+
+    public static <T> NamedDomainObjectSetBackedModelMap<T> wrap(Class<T> elementType, ExtensiblePolymorphicDomainObjectContainerInternal<T> container) {
+        return wrap(elementType, container, container.getEntityInstantiator(), Actions.add(container));
     }
 
 }

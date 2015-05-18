@@ -93,7 +93,7 @@ class VisualStudioProjectConfiguration {
 
     List<File> getIncludePaths() {
         def includes = [] as Set
-        binary.source.withType(HeaderExportingSourceSet).values().each { HeaderExportingSourceSet sourceSet ->
+        binary.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
             includes.addAll sourceSet.exportedHeaders.srcDirs
         }
         binary.libs*.includeRoots.each {
