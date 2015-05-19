@@ -17,8 +17,6 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.internal.DefaultDependencySpec;
-import org.gradle.platform.base.internal.DependencySpecInternal;
 
 import java.util.Set;
 
@@ -26,8 +24,8 @@ import java.util.Set;
  * A container for dependency specifications.
  */
 @Incubating
-public interface DependencySpecContainer extends Set<DependencySpec>, DependencySpecInternal {
-    DefaultDependencySpec project(String path);
+public interface DependencySpecContainer extends Set<DependencySpec> {
+    DependencySpec project(String path);
 
-    DefaultDependencySpec library(String name);
+    DependencySpec library(String name);
 }
