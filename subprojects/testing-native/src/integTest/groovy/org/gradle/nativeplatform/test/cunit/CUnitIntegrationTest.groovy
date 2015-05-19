@@ -180,6 +180,7 @@ task init << {}
 
         then:
         ConsoleReportOutput consoleReportOutput = new ConsoleReportOutput(output)
+        consoleReportOutput.debug()
         consoleReportOutput.hasNodeStructure("""    testSuites
         nativeComponentOneTest
             binaries

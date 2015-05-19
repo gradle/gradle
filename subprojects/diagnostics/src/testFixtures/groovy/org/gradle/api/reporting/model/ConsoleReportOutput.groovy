@@ -59,4 +59,14 @@ class ConsoleReportOutput {
         String paddedNode = ((" " * PADDING_SIZE) * (depth - 1)) + node
         assert lines.findAll { it.startsWith(paddedNode) }
     }
+
+    void debug() {
+        println("Total report linrd: ${lines.size()}")
+        println("Original output: ${consoleOutput}")
+        println("Numbered Lines: ")
+        lines.eachWithIndex { l, i ->
+            println "$i. $l"
+        }
+
+    }
 }
