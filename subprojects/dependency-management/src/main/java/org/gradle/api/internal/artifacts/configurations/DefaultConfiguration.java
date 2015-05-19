@@ -92,6 +92,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private InternalState observedState = InternalState.UNRESOLVED;
     private final Object resolutionLock = new Object();
     private InternalState resolvedState = InternalState.UNRESOLVED;
+    private boolean insideBeforeResolve;
 
     private ResolverResults cachedResolverResults = new ResolverResults();
 
@@ -357,10 +358,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification", getDisplayName()));
         }
 
-        DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         ResolvableDependencies incoming = getIncoming();
-        dependencyResolutionListener.beforeResolve(incoming);
-        triggerWhenEmptyActionsIfNecessary();
+        performPreResolveActions(incoming);
 
         resolver.resolve(this, cachedResolverResults);
         dependenciesModified = false;
@@ -372,7 +371,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         markParentsObserved(requestedState);
         markReferencedProjectConfigurationsObserved(requestedState);
 
-        dependencyResolutionListener.afterResolve(incoming);
+        dependencyResolutionListeners.getSource().afterResolve(incoming);
+    }
+
+    private void performPreResolveActions(ResolvableDependencies incoming) {
+        DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
+        insideBeforeResolve = true;
+        try {
+            dependencyResolutionListener.beforeResolve(incoming);
+        } finally {
+            insideBeforeResolve = false;
+        }
+        triggerWhenEmptyActionsIfNecessary();
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
@@ -590,7 +600,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // The configuration has been used in a resolution, and it is deprecated for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
+                String extraMessage = insideBeforeResolve ? " Use 'whenEmpty' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
+                DeprecationLogger.nagUserWith(String.format("Changed %s of %s after it has been included in dependency resolution. This behaviour %s.%s", type, getDisplayName(), DeprecationLogger.getDeprecationMessage(), extraMessage));
             }
         }
 

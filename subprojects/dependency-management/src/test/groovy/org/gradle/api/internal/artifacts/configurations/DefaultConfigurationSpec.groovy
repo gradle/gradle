@@ -975,7 +975,7 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        1 * listenerBroadcaster.getSource() >> listener
+        _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * listener.afterResolve(config.incoming)
         config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
