@@ -19,6 +19,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.test.fixtures.file.WorkspaceTest
+import spock.lang.AutoCleanup
 
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
@@ -26,6 +27,8 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 class TestOutputStoreSpec extends WorkspaceTest {
 
     private output = new TestOutputStore(testDirectory)
+
+    @AutoCleanup TestOutputStore.Reader reader
 
     TestDescriptorInternal descriptor(String className, Object testId) {
         Stub(TestDescriptorInternal) {
@@ -44,7 +47,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 1, output(StdOut, "[out-5]"))
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.close()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         collectAllOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
@@ -62,7 +65,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 1, output(StdOut, "[out-5]"))
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.close()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         collectOutput(reader, 1, 1, StdOut) == "[out-2][out-5]"
@@ -81,7 +84,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.onOutput(2, output(StdOut, "[out-6]"))
         writer.close()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         collectOutput(reader, 1, StdOut) == "[out-1][out-5]"
@@ -97,9 +100,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         when:
         def writer = output.writer()
         writer.close()
+        reader = output.reader()
 
         then:
-        def reader = output.reader()
         collectAllOutput(reader, 20, StdErr) == ""
     }
 
@@ -108,9 +111,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
         writer.close()
+        reader = output.reader()
 
         then:
-        def reader = output.reader()
         collectOutput(reader, 1, 10, StdOut) == ""
     }
 
@@ -119,15 +122,12 @@ class TestOutputStoreSpec extends WorkspaceTest {
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
         writer.close()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         reader.hasOutput(1, StdOut)
         !reader.hasOutput(1, StdErr)
         !reader.hasOutput(2, StdErr)
-
-        cleanup:
-        reader.close()
     }
 
     def "can open empty reader"() {
@@ -139,25 +139,19 @@ class TestOutputStoreSpec extends WorkspaceTest {
     def "exception if no output file"() {
         when:
         output.indexFile.createNewFile()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         thrown(IllegalStateException)
-
-        cleanup:
-        reader?.close()
     }
 
     def "exception if no index file, but index"() {
         when:
         output.outputsFile.createNewFile()
-        def reader = output.reader()
+        reader = output.reader()
 
         then:
         thrown(IllegalStateException)
-
-        cleanup:
-        reader?.close()
     }
 
     String collectAllOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {

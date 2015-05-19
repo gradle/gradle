@@ -19,6 +19,7 @@ import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.test.fixtures.file.LeaksFileHandles;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+@LeaksFileHandles
 public class BTreePersistentIndexedCacheTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -79,7 +81,7 @@ public class BTreePersistentIndexedCacheTest {
         checkAdds(5, 6, 7, 8);
         cache.verify();
     }
-    
+
     @Test
     public void persistsReplacedEntries() {
 
@@ -136,7 +138,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.put("key_1", "1234");
         assertThat(cacheFile.length(), equalTo(len));
     }
-    
+
     @Test
     public void canHandleLargeNumberOfEntries() {
 
@@ -156,7 +158,7 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cacheFile.length(), lessThan((long)(1.4 * len)));
 
         checkAdds(values);
-        
+
         // need to make this better
         assertThat(cacheFile.length(), lessThan((long) (1.4 * 1.4 * len)));
     }

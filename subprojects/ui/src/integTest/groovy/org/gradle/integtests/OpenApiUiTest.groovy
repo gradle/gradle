@@ -27,6 +27,7 @@ import org.gradle.openapi.external.ui.*
 import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -48,6 +49,7 @@ import static org.hamcrest.Matchers.*
  * gradually be replaced by other GUI tests.
  */
 @Requires(TestPrecondition.SWING)
+@LeaksFileHandles
 class OpenApiUiTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()

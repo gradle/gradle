@@ -70,7 +70,9 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             def operations = []
 
-            def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
+            ext {
+                loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
+            }
             def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
             def ruleSourceClass = loader.loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
@@ -94,6 +96,10 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             operations << "applied"
 
             task verify << { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] }
+
+            gradle.buildFinished {
+                loader.close()
+            }
         """
 
         expect:

@@ -24,8 +24,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @ToolingApiVersion(">=1.8")
+@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {

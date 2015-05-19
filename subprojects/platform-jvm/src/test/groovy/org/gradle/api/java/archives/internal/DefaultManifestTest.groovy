@@ -163,10 +163,10 @@ class DefaultManifestTest extends Specification {
         TestFile manifestFile = tmpDir.file('someNonexistingDir').file('someFile')
         DefaultManifest manifest = new DefaultManifest(fileResolver).attributes(key1: 'value1')
         fileResolver.resolve('file') >> manifestFile
-        
+
         when:
         manifest.writeTo('file')
-        Manifest fileManifest = new Manifest(new FileReader(manifestFile))
+        Manifest fileManifest = manifestFile.withReader { new Manifest(it) }
         Manifest expectedManifest = new Manifest()
         expectedManifest.addConfiguredAttribute(new Attribute('key1', 'value1'))
         expectedManifest.addConfiguredAttribute(new Attribute('Manifest-Version', '1.0'))

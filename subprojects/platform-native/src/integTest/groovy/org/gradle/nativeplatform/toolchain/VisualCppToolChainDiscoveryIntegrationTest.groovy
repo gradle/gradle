@@ -20,9 +20,11 @@ import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.VisualCpp)
+@LeaksFileHandles
 class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 

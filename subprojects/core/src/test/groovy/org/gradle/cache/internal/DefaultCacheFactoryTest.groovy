@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -26,6 +27,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
+@LeaksFileHandles
 class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

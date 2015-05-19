@@ -18,6 +18,8 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
+@LeaksFileHandles
 class AntInProcessScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}

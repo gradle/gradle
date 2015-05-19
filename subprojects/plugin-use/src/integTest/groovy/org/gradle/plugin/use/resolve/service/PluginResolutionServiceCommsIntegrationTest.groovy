@@ -22,6 +22,7 @@ import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
@@ -31,6 +32,7 @@ import static org.gradle.util.Matchers.containsText
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
+@LeaksFileHandles
 public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_ID = "org.my.myplugin"
     public static final String PLUGIN_VERSION = "1.0"

@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 public class CommonToolchainCustomizationIntegTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new CppHelloWorldApp()

@@ -23,9 +23,11 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 // TODO:DAZ Test incremental
+@LeaksFileHandles
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {

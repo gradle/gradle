@@ -21,10 +21,12 @@ import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 
+@LeaksFileHandles
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 

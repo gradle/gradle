@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
@@ -29,6 +30,7 @@ import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
+@LeaksFileHandles
 public class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final String BAD_CREDENTIALS = '''
 credentials {

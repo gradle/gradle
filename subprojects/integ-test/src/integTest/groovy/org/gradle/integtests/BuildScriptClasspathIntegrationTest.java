@@ -18,11 +18,13 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
+import org.gradle.test.fixtures.file.LeaksFileHandles;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
 
+@LeaksFileHandles
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void providesADefaultBuildForBuildSrcProject() {
@@ -207,7 +209,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     public void canInjectClassPathIntoSubProjects() {
         fail("implement me");
     }
-    
+
     @Test @Ignore
     public void canReuseClassPathRepositories() {
         fail("implement me");

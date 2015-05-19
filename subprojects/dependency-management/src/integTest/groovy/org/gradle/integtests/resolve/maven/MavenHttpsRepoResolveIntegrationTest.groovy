@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class MavenHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
     protected String setupRepo() {
         def module = mavenRepo().module('my-group', 'my-module').publish()

@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -41,7 +42,7 @@ class ProjectCopySpecTest extends Specification {
         testDirectoryProvider.testDirectory.createDir("dest")
     }
 
-
+    @LeaksFileHandles
     def "copy spec is enhanced"() {
         given:
         def copySpecRootCalled = false

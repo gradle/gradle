@@ -111,7 +111,11 @@ class UserGuideSamplesRunner extends Runner {
             }
             notifier.fireTestFinished(childDescription)
         }
-        temporaryFolder.testDirectory.deleteDir()
+        try {
+            temporaryFolder.testDirectory.deleteDir()
+        } catch (IOException e) {
+            //ignore
+        }
     }
 
     private void cleanup(SampleRun run) {

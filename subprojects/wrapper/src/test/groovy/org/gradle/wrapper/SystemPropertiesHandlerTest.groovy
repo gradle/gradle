@@ -16,6 +16,7 @@
 package org.gradle.wrapper
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -23,12 +24,13 @@ class SystemPropertiesHandlerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    @LeaksFileHandles
     def parsesPropertiesFile() {
         File propFile = tmpDir.file('props')
         Properties props = new Properties()
         props.putAll a: 'b', 'systemProp.c': 'd', 'systemProp.': 'e'
         props.store(new FileOutputStream(propFile), "")
-        
+
         expect:
         [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
     }

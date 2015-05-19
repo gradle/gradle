@@ -19,6 +19,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,6 +35,7 @@ class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
     private List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
     @Test
+    @LeaksFileHandles
     public void groovyProjectSamples() {
         String packagePrefix = 'build/classes/main/org/gradle'
         String testPackagePrefix = 'build/classes/test/org/gradle'

@@ -248,8 +248,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings) 
-    // We saw this behaviour only on linux so far. 
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
                 OperatingSystem.current().isLinux() &&

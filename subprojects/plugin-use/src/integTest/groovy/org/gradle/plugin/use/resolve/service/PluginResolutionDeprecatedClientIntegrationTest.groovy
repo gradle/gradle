@@ -23,10 +23,12 @@ import org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
 import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
 
+@LeaksFileHandles
 class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID_1 = "org.my.myplugin_1"

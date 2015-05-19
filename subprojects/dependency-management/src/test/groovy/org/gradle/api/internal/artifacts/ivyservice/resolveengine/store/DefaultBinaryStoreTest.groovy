@@ -44,9 +44,6 @@ class DefaultBinaryStoreTest extends Specification {
 
         data2.read({ it.readString() } as BinaryStore.ReadAction) == "y"
         data2.close()
-
-        cleanup:
-        store.close()
     }
 
     def "data can be re-read"() {
@@ -66,9 +63,6 @@ class DefaultBinaryStoreTest extends Specification {
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
         data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
         data.close()
-
-        cleanup:
-        store.close()
     }
 
     class SomeException extends RuntimeException {}

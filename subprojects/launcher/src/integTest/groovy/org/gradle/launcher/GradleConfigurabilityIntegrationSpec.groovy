@@ -21,11 +21,13 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
+@LeaksFileHandles
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {

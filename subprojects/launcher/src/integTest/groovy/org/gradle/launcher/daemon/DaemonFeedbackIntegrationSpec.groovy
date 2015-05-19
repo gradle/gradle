@@ -19,10 +19,12 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
+@LeaksFileHandles
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
     def "daemon keeps logging to the file even if the build is stopped"() {
         given:

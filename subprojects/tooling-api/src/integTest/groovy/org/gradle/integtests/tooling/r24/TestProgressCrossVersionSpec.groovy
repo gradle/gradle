@@ -23,6 +23,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -87,6 +88,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion("=2.4")
     @TargetGradleVersion(">=2.4")
+    @LeaksFileHandles
     def "build aborts if a test listener throws an exception"() {
         given:
         goodCode()
@@ -105,6 +107,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion("=2.4")
     @TargetGradleVersion(">=2.4")
+    @LeaksFileHandles
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
         goodCode()
