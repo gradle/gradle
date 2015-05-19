@@ -136,6 +136,11 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        int getLinkCount() {
+            return 0
+        }
+
+        @Override
         boolean hasLink(String name) {
             return false
         }

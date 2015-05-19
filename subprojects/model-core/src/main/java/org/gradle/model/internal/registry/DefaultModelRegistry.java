@@ -785,6 +785,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public int getLinkCount() {
+            return links.size();
+        }
+
+        @Override
         public boolean hasLink(String name, ModelType<?> type) {
             ModelNodeInternal linked = getLink(name);
             return linked != null && linked.getPromise().canBeViewedAsWritable(type);
@@ -1013,8 +1018,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         public State state = State.NotSeen;
 
         /**
-         * Determines whether the goal has already been achieved. Invoked prior to traversing any dependencies of this goal, and if true is returned the
-         * dependencies of this goal are not traversed and the action not applied.
+         * Determines whether the goal has already been achieved. Invoked prior to traversing any dependencies of this goal, and if true is returned the dependencies of this goal are not traversed and
+         * the action not applied.
          */
         public boolean isAchieved() {
             return false;
@@ -1031,8 +1036,8 @@ public class DefaultModelRegistry implements ModelRegistry {
          *
          * <p>The dependencies returned by this method are all traversed before this method is called another time.</p>
          *
-         * @return true if this goal will be ready to apply once the returned dependencies have been achieved. False if additional dependencies for this goal may be
-         * discovered during the execution of the known dependencies.
+         * @return true if this goal will be ready to apply once the returned dependencies have been achieved. False if additional dependencies for this goal may be discovered during the execution of
+         * the known dependencies.
          */
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             return true;

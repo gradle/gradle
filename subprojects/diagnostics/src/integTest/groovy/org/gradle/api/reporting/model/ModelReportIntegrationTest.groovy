@@ -160,6 +160,7 @@ model {
         password = 'hunter2'
     }
 
+    nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
     }
@@ -174,6 +175,9 @@ model {
 
         output.contains(toPlatformLineSeparators(
             """model
+    nullCredentials
+        password
+        username
     numbers
         value = 5
     primaryCredentials
