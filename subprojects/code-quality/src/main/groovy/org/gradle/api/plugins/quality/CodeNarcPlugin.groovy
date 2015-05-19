@@ -56,7 +56,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
         def codenarcConfiguration = project.configurations['codenarc']
         codenarcConfiguration.whenEmpty { deps ->
-            deps.add(project.dependencies.create("org.codenarc:CodeNarc:$extension.toolVersion"))
+            deps.add(owner.project.dependencies.create("org.codenarc:CodeNarc:${owner.extension.toolVersion}"))
         }
         task.conventionMapping.with {
             codenarcClasspath = { codenarcConfiguration }
