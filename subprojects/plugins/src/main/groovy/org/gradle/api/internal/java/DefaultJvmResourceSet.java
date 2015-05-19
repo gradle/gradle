@@ -17,9 +17,10 @@ package org.gradle.api.internal.java;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.platform.base.DependencySpecContainer;
 
 public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements JvmResourceSet {
-    public DefaultJvmResourceSet(String name, String parent, SourceDirectorySet source) {
-        super(name, parent, "JVM resources", source);
+    public DefaultJvmResourceSet(String name, String parent, SourceDirectorySet source, DependencySpecContainer dependencies) {
+        super(name, parent, "JVM resources", source, dependencies);
     }
 }

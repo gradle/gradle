@@ -46,10 +46,7 @@ import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultPlatformRequirement;
-import org.gradle.platform.base.internal.PlatformRequirement;
-import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
@@ -153,7 +150,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     sources.add(javaSources);
 
                     DefaultSourceDirectorySet resourcesDirectorySet = new DefaultSourceDirectorySet("resources", fileResolver);
-                    JvmResourceSet appResources = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", playComponent.getName(), resourcesDirectorySet);
+                    JvmResourceSet appResources = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", playComponent.getName(), resourcesDirectorySet, instantiator.newInstance(DefaultDependencySpecContainer.class));
                     appResources.getSource().srcDirs("conf");
                     sources.add(appResources);
                 }

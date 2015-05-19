@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.java
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.jvm.Classpath
+import org.gradle.platform.base.DependencySpecContainer
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import spock.lang.Specification
 
 class DefaultJavaSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         expect:
         sourceSet.displayName == "Java source 'mainX:javaX'"
@@ -28,7 +31,7 @@ class DefaultJavaSourceSetTest extends Specification {
     }
 
     def "can add a project dependency using dependencies property"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         when:
         sourceSet.dependencies.project ':foo'
@@ -39,7 +42,7 @@ class DefaultJavaSourceSetTest extends Specification {
     }
 
     def "can add a project dependency"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         when:
         sourceSet.dependencies {
@@ -52,7 +55,7 @@ class DefaultJavaSourceSetTest extends Specification {
     }
 
     def "can add a library dependency"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         when:
         sourceSet.dependencies {
@@ -65,7 +68,7 @@ class DefaultJavaSourceSetTest extends Specification {
     }
 
     def "can add a project library dependency"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         when:
         sourceSet.dependencies {
@@ -79,7 +82,7 @@ class DefaultJavaSourceSetTest extends Specification {
     }
 
     def "can add a multiple dependencies"() {
-        def sourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
+        def sourceSet = newJavaSourceSet()
 
         when:
         sourceSet.dependencies {
@@ -94,5 +97,13 @@ class DefaultJavaSourceSetTest extends Specification {
         sourceSet.dependencies[1].libraryName == 'fooLib'
         sourceSet.dependencies[2].projectPath == ':bar'
         sourceSet.dependencies[2].libraryName == 'barLib'
+    }
+
+    private DefaultJavaSourceSet newJavaSourceSet() {
+        new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath), new DefaultDependencySpecContainer()) {
+            DependencySpecContainer dependencies(Closure config) {
+                dependencies(new ClosureBackedAction<DependencySpecContainer>(config))
+            }
+        }
     }
 }

@@ -16,17 +16,13 @@
 
 package org.gradle.api.internal.java;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.DependencySpecContainer;
-import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
@@ -37,12 +33,12 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source) {
+    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source, DependencySpecContainer dependencies) {
         this.name = name;
         this.fullName = parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
-        this.dependencies = new DefaultDependencySpecContainer();
+        this.dependencies = dependencies;
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -100,10 +96,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
         configureAction.execute(getDependencies());
         return getDependencies();
-    }
-
-    public DependencySpecContainer dependencies(@DelegatesTo(value = DependencySpecContainer.class, strategy = Closure.DELEGATE_FIRST) Closure dependenciesSpec) {
-        return dependencies(new ClosureBackedAction<DependencySpecContainer>(dependenciesSpec));
     }
 
 }
