@@ -196,12 +196,12 @@ Whilst the API's exposed by both plugins remain unchanged, the underlying publis
 
 ### Java annotation processing of Groovy code is now disabled by default
 
-[Gradle 2.4 introduced the ability to use Java annotation processors on Groovy sources](https://docs.gradle.org/2.4/release-notes#support-for-“annotation-processing”-of-groovy-code). 
+[Gradle 2.4 introduced the ability to use Java annotation processors on Groovy sources](https://docs.gradle.org/2.4/release-notes#support-for-“annotation-processing”-of-groovy-code).
 If annotation processors were present on the classpath, they were implicitly applied to Groovy source.
 This caused problems in situations where a separate “processing” strategy was required for joint compiled Groovy source (GRADLE-3300).
 
 Java annotation processing of Groovy source is now disabled by default.
-It can be enabled by setting the 
+It can be enabled by setting the
 [`javaAnnotationProcessing` property of `GroovyCompileOptions`](dsl/org.gradle.api.tasks.compile.GroovyCompileOptions.html#org.gradle.api.tasks.compile.GroovyCompileOptions:javaAnnotationProcessing)
 
     compileGroovy {
@@ -218,6 +218,7 @@ We would like to thank the following community members for making contributions 
 * [Tobias Schulte](https://github.com/tschulte) - Documentation improvements.
 * [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`.
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the Maven publishing mechanisms to use Aether libraries.
+* [Lorin Hochstein](https://github.com/lorin) - Improvements to the ANTLR plugin documentation.
 
 ## Known issues
 

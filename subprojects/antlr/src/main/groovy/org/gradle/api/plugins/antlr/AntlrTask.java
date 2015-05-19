@@ -111,8 +111,10 @@ public class AntlrTask extends SourceTask {
         }
     }
 
+
     /**
      * List of command-line arguments passed to the antlr process
+     * @return The antlr command-line arguments
      */
     @Input
     public List<String> getArguments() {
