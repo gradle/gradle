@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
 // TODO - report on the configuration that was actually changed
 // TODO - warn about configurations resolved via a project dependency
@@ -368,5 +369,38 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: succeeds()
         then: output.contains("Changed dependencies of configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    @Issue("GRADLE-3297")
+    def "using offline flag does not emit deprecation warning when child configuration is explicitly resolved"() {
+        def repo = new MavenFileRepository(file("repo"))
+        repo.module('org.test', 'moduleA', '1.0').publish()
+
+        buildFile << """
+configurations {
+    parentConfig
+    childConfig.extendsFrom parentConfig
+}
+dependencies {
+  // Parent must have at least 1 dependency to force resolution
+  parentConfig "org.test:moduleA:1.0"
+}
+repositories {
+    maven { url '$repo.uri' }
+}
+
+task resolveChildFirst {
+    doLast {
+        configurations.childConfig.resolve()
+        configurations.parentConfig.resolve()
+    }
+}
+        """
+
+        when:
+        executer.withArguments("--offline")
+
+        then:
+        succeeds("resolveChildFirst")
     }
 }
