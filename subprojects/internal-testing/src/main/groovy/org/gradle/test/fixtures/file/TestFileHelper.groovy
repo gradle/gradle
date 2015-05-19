@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.file
 
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
@@ -158,67 +159,7 @@ class TestFileHelper {
                 throw new RuntimeException("Could not delete '$file': $error")
             }
         } else {
-            if (file.exists()) {
-                try {
-                    forceDelete(file)
-                } catch (FileNotFoundException exception) {
-                    exception.printStackTrace()
-                }
-            }
-        }
-    }
-
-    private static void forceDelete(File file) throws IOException {
-        if (file.isDirectory()) {
-            deleteDirectory(file)
-        } else {
-            boolean filePresent = file.exists()
-            if (!file.delete()) {
-                if (!filePresent) {
-                    throw new FileNotFoundException("File does not exist: " + file)
-                }
-                throw new IOException("Unable to delete file: " + file)
-            }
-        }
-    }
-
-    private static void deleteDirectory(File directory) throws IOException {
-        if (!directory.exists()) {
-            return
-        }
-
-        cleanDirectory(directory)
-        if (!directory.delete()) {
-            throw new IOException("Unable to delete directory " + directory + ".")
-        }
-    }
-
-    private static void cleanDirectory(File directory) throws IOException {
-        if (!directory.exists()) {
-            throw new IllegalArgumentException(directory + " does not exist")
-        }
-
-        if (!directory.isDirectory()) {
-            throw new IllegalArgumentException(directory + " is not a directory")
-        }
-
-        String[] fileNames = directory.list()
-        if (fileNames == null) {  // null if security restricted
-            throw new IOException("Failed to list contents of " + directory)
-        }
-
-        IOException exception = null
-        for (int i = 0; i < fileNames.length; i++) {
-            String fileName = fileNames[i]
-            try {
-                forceDelete(new File(directory, fileName))
-            } catch (IOException ioe) {
-                exception = ioe
-            }
-        }
-
-        if (exception != null) {
-            throw exception
+            FileUtils.deleteQuietly(file)
         }
     }
 
