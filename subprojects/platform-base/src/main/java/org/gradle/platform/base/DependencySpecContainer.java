@@ -17,14 +17,15 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.internal.DefaultDependencySpec;
+
+import java.util.Set;
 
 /**
  * A container for dependency specifications.
  */
 @Incubating
-public interface DependencySpecContainer extends ManagedSet<DependencySpec> {
+public interface DependencySpecContainer extends Set<DependencySpec> {
     DefaultDependencySpec project(String path);
 
     DefaultDependencySpec library(String name);
