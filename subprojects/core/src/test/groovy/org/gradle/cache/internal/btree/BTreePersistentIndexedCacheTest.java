@@ -19,7 +19,6 @@ import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.test.fixtures.file.LeaksFileHandles;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +32,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-@LeaksFileHandles
 public class BTreePersistentIndexedCacheTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -52,24 +50,28 @@ public class BTreePersistentIndexedCacheTest {
     public void getReturnsNullWhenEntryDoesNotExist() {
         assertNull(cache.get("unknown"));
         cache.verify();
+        cache.close();
     }
 
     @Test
     public void persistsAddedEntries() {
         checkAdds(1, 2, 3, 4, 5);
         cache.verify();
+        cache.close();
     }
 
     @Test
     public void persistsAddedEntriesInReverseOrder() {
         checkAdds(5, 4, 3, 2, 1);
         cache.verify();
+        cache.close();
     }
 
     @Test
     public void persistsAddedEntriesOverMultipleIndexBlocks() {
         checkAdds(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -80,6 +82,7 @@ public class BTreePersistentIndexedCacheTest {
 
         checkAdds(5, 6, 7, 8);
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -109,6 +112,7 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cache.get("key_5"), equalTo(5));
 
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -137,6 +141,8 @@ public class BTreePersistentIndexedCacheTest {
 
         cache.put("key_1", "1234");
         assertThat(cacheFile.length(), equalTo(len));
+
+        cache.close();
     }
 
     @Test
@@ -161,24 +167,29 @@ public class BTreePersistentIndexedCacheTest {
 
         // need to make this better
         assertThat(cacheFile.length(), lessThan((long) (1.4 * 1.4 * len)));
+
+        cache.close();
     }
 
     @Test
     public void persistsRemovalOfEntries() {
         checkAddsAndRemoves(1, 2, 3, 4, 5);
         cache.verify();
+        cache.close();
     }
 
     @Test
     public void persistsRemovalOfEntriesInReverse() {
         checkAddsAndRemoves(Collections.<Integer>reverseOrder(), 1, 2, 3, 4, 5);
         cache.verify();
+        cache.close();
     }
 
     @Test
     public void persistsRemovalOfEntriesOverMultipleIndexBlocks() {
         checkAddsAndRemoves(4, 12, 9, 1, 3, 10, 11, 7, 8, 2, 5, 6);
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -188,6 +199,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.verify();
         cache.remove("key_5");
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -197,6 +209,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.verify();
         cache.remove("key_4");
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -206,6 +219,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.verify();
         cache.remove("key_2");
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -215,6 +229,7 @@ public class BTreePersistentIndexedCacheTest {
         cache.verify();
         cache.remove("key_2");
         cache.verify();
+        cache.close();
     }
 
     @Test
@@ -234,6 +249,8 @@ public class BTreePersistentIndexedCacheTest {
 
         assertNull(cache.get("key_1"));
         cache.verify();
+
+        cache.close();
     }
 
     @Test
@@ -247,6 +264,8 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cache.get(new File("file")), equalTo(1));
         assertThat(cache.get(new File("dir/file")), equalTo(2));
         assertThat(cache.get(new File("File")), equalTo(3));
+
+        cache.close();
     }
 
     @Test
@@ -258,6 +277,8 @@ public class BTreePersistentIndexedCacheTest {
 
         assertThat(cache.get(key1), equalTo(1));
         assertThat(cache.get(key2), equalTo(2));
+
+        cache.close();
     }
 
     private void checkAdds(Integer... values) {
