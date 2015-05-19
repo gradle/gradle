@@ -377,7 +377,7 @@ A classpath container is reflect in a single classpath entry in the generated `.
 
 #### Implementation
 
-Expose the `exported` flag for `EclipseProjectDependency`. This is already present on `ExternalDependency`.
+Expose the `exported` flag for `EclipseProjectDependency` and `ExternalDependency`.
 
 - Buildship should honor this flag when available, as later Gradle versions may use a different mapping and Buildship should not make assumptions regarding how the mapping works.
 
