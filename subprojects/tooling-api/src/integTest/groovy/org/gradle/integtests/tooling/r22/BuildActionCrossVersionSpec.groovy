@@ -68,8 +68,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         when:
         // Discard the impl jar from the jvm's jar file cache
         forceJarClose(implJar)
-        workDir.deleteDir()
-        builder.sourceFile('ActionImpl.java') << """
+        builder.sourceFile('ActionImpl.java').text = """
 public class ActionImpl implements ${BuildAction.name}<String> {
     public String execute(${BuildController.name} controller) {
         return getClass().getProtectionDomain().getCodeSource().getLocation().toString();

@@ -26,6 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
+@LeaksFileHandles
 abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     abstract HelloWorldApp getHelloWorldApp()
@@ -83,7 +84,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
-    @LeaksFileHandles
     def "build executable with macro defined"() {
         given:
         buildFile << """
