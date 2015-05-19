@@ -24,7 +24,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
@@ -256,11 +255,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.DEPENDENCIES);
         this.whenEmptyActions.add(action);
         return this;
-    }
-
-    @Override
-    public Configuration whenEmpty(Closure action) {
-        return whenEmpty(new ClosureBackedAction(action, Closure.OWNER_FIRST));
     }
 
     @Override

@@ -17,14 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.base.Objects;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -78,18 +76,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public DependencySubstitutions all(Closure<?> action) {
-        return all(ClosureBackedAction.of(action));
-    }
-
-    @Override
     public DependencySubstitutions eachModule(Action<? super ModuleDependencySubstitution> rule) {
         return all(new TypeFilteringDependencySubstitutionAction<ModuleDependencySubstitution>(ModuleDependencySubstitution.class, rule));
-    }
-
-    @Override
-    public DependencySubstitutions eachModule(Closure<?> rule) {
-        return eachModule(ClosureBackedAction.of(rule));
     }
 
     @Override
@@ -99,29 +87,14 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public DependencySubstitutions withModule(Object id, Closure<?> action) {
-        return withModule(id, ClosureBackedAction.of(action));
-    }
-
-    @Override
     public DependencySubstitutions eachProject(Action<? super ProjectDependencySubstitution> rule) {
         return all(new TypeFilteringDependencySubstitutionAction<ProjectDependencySubstitution>(ProjectDependencySubstitution.class, rule));
-    }
-
-    @Override
-    public DependencySubstitutions eachProject(Closure<?> rule) {
-        return eachProject(ClosureBackedAction.of(rule));
     }
 
     @Override
     public DependencySubstitutions withProject(Object id, Action<? super ProjectDependencySubstitution> rule) {
         ProjectComponentIdentifier componentId = projectIdentifierNotationParser.parseNotation(id);
         return all(new ProjectIdFilteringDependencySubstitutionAction(componentId, rule));
-    }
-
-    @Override
-    public DependencySubstitutions withProject(Object id, Closure<?> rule) {
-        return withProject(id, ClosureBackedAction.of(rule));
     }
 
     @Override

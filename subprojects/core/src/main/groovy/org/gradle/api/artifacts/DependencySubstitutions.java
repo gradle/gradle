@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
@@ -57,18 +56,6 @@ public interface DependencySubstitutions {
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
-     * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions all(Closure<?> rule);
-
-    /**
      * Adds a dependency substitution rule that is triggered for every module dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
@@ -79,18 +66,6 @@ public interface DependencySubstitutions {
      * @since 2.4
      */
     DependencySubstitutions eachModule(Action<? super ModuleDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for every module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachModule(Closure<?> rule);
 
     /**
      * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
@@ -105,18 +80,6 @@ public interface DependencySubstitutions {
     DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule);
 
     /**
-     * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions withModule(Object id, Closure<?> rule);
-
-    /**
      * Adds a dependency substitution rule that is triggered for every project dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
@@ -129,18 +92,6 @@ public interface DependencySubstitutions {
     DependencySubstitutions eachProject(Action<? super ProjectDependencySubstitution> rule);
 
     /**
-     * Adds a dependency substitution rule that is triggered for every project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachProject(Closure<?> rule);
-
-    /**
      * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
@@ -151,16 +102,4 @@ public interface DependencySubstitutions {
      * @since 2.4
      */
     DependencySubstitutions withProject(Object id, Action<? super ProjectDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions withProject(Object id, Closure<?> rule);
 }

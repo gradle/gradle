@@ -91,7 +91,7 @@ public interface Configuration extends FileCollection {
             return c.getName();
         }
     }
-    
+
     /**
      * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
      * to. The default value is true.
@@ -296,14 +296,14 @@ public interface Configuration extends FileCollection {
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
-     * 
+     *
      * @return The set.
      */
     PublishArtifactSet getArtifacts();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
-     * 
+     *
      * @return The (read-only) set.
      */
     PublishArtifactSet getAllArtifacts();
@@ -337,19 +337,6 @@ public interface Configuration extends FileCollection {
      */
     @Incubating
     Configuration whenEmpty(Action<? super DependencySet> action);
-
-    /**
-     * Execute the given action if the configuration is empty when it first participates in
-     * dependency resolution. A {@code Configuration} can participate in dependency resolution
-     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
-     * The {@code Configuration} is considered empty even if it extends another, non-empty
-     * {@code Configuration}.
-     *
-     * @param action the action to execute when the configuration is empty.
-     * @return this
-     */
-    @Incubating
-    Configuration whenEmpty(Closure action);
 
     /**
      * Returns all the configurations belonging to the same configuration container as this
