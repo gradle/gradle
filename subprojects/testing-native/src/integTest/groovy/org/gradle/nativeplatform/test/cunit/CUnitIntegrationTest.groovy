@@ -27,7 +27,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -114,7 +114,7 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
 
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+            ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
 
         def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
@@ -151,7 +151,7 @@ model {
 
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+            ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
 
         def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
@@ -180,7 +180,6 @@ task init << {}
 
         then:
         ConsoleReportOutput consoleReportOutput = new ConsoleReportOutput(output)
-        consoleReportOutput.debug()
         consoleReportOutput.hasNodeStructure("""    testSuites
         nativeComponentOneTest
             binaries
@@ -356,8 +355,8 @@ model {
 
         and:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        output.contains """
+            ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+        contains """
 There were test failures:
 """
         and:
@@ -382,10 +381,10 @@ tasks.withType(RunTestExecutable) {
         succeeds "runHelloTestCUnitExe"
 
         then:
-        output.contains """
+        contains """
 There were test failures:
 """
-        output.contains "There were failing tests. See the results at: "
+        contains "There were failing tests. See the results at: "
 
         and:
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
@@ -421,19 +420,19 @@ There were test failures:
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                "build.gradle",
-                "build/src/helloTest/cunitLauncher/c/gradle_cunit_main.c",
-                "src/helloTest/c/test.c",
-                "src/hello/c/hello.c",
-                "src/hello/c/sum.c"
+            "build.gradle",
+            "build/src/helloTest/cunitLauncher/c/gradle_cunit_main.c",
+            "src/helloTest/c/test.c",
+            "src/hello/c/hello.c",
+            "src/hello/c/sum.c"
         ] as Set
         projectFile.headerFiles == [
-                "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
-                "src/hello/headers/common.h",
-                "src/hello/headers/hello.h"
+            "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
+            "src/hello/headers/common.h",
+            "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
-        with (projectFile.projectConfigurations['debug']) {
+        with(projectFile.projectConfigurations['debug']) {
             includePath == "src/helloTest/headers;build/src/helloTest/cunitLauncher/headers;src/hello/headers;${prebuiltPath}/cunit/2.1-2/include"
         }
     }
@@ -448,8 +447,7 @@ There were test failures:
         file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
     }
 
-    @Override
-    String getOutput() {
-        return normaliseLineSeparators(super.getOutput())
+    boolean contains(String content) {
+        return getOutput().contains(toPlatformLineSeparators(content))
     }
 }
