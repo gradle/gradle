@@ -19,7 +19,6 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,7 +30,6 @@ class DefaultPersistentDirectoryCacheSpec extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp
 
-    @LeaksFileHandles
     def "will rebuild cache if not unlocked cleanly"() {
         given:
         def dir = tmp.createDir("cache")
@@ -47,5 +45,8 @@ class DefaultPersistentDirectoryCacheSpec extends Specification {
 
         then:
         initd
+
+        cleanup:
+        cache.close()
     }
 }
