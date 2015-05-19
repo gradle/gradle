@@ -19,16 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 import org.gradle.api.internal.cache.BinaryStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class DefaultBinaryStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @AutoCleanup DefaultBinaryStore store
 
     def "stores binary data"() {
-        store = new DefaultBinaryStore(temp.file("foo.bin"))
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
@@ -44,10 +42,13 @@ class DefaultBinaryStoreTest extends Specification {
 
         data2.read({ it.readString() } as BinaryStore.ReadAction) == "y"
         data2.close()
+
+        cleanup:
+        store.close()
     }
 
     def "data can be re-read"() {
-        store = new DefaultBinaryStore(temp.file("foo.bin"))
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
@@ -63,12 +64,16 @@ class DefaultBinaryStoreTest extends Specification {
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
         data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
         data.close()
+
+        cleanup:
+        store.close()
+
     }
 
     class SomeException extends RuntimeException {}
 
     def "write action exception is propagated to the client"() {
-        store = new DefaultBinaryStore(temp.file("foo.bin"))
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         store.write({ throw new SomeException() } as BinaryStore.WriteAction)
@@ -76,10 +81,13 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         def e = thrown(Exception)
         e.cause.class == SomeException
+
+        cleanup:
+        store.close()
     }
 
     def "read action exception is propagated to the client"() {
-        store = new DefaultBinaryStore(temp.file("foo.bin"))
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
         def data = store.done()
 
@@ -89,10 +97,14 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         def e = thrown(Exception)
         e.cause.class == SomeException
+
+        cleanup:
+        data.close()
+        store.close()
     }
 
     def "may be empty"() {
-        store = new DefaultBinaryStore(temp.file("foo.bin"))
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
         when:
         def data = store.done()
