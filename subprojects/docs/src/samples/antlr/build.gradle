@@ -20,6 +20,6 @@ dependencies {
 // START SNIPPET generate-grammar-settings
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-package", "org.gradle", "-visitor"]
+    arguments += ["-visitor", "-long-messages"]
 }
 // END SNIPPET generate-grammar-settings
