@@ -28,8 +28,6 @@ class TestOutputStoreSpec extends WorkspaceTest {
 
     private output = new TestOutputStore(testDirectory)
 
-    @AutoCleanup TestOutputStore.Reader reader
-
     TestDescriptorInternal descriptor(String className, Object testId) {
         Stub(TestDescriptorInternal) {
             getClassName() >> className
@@ -47,12 +45,15 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 1, output(StdOut, "[out-5]"))
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         collectAllOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
         collectAllOutput(reader, 1, StdErr) == "[out-4]"
         collectAllOutput(reader, 2, StdErr) == "[out-3]"
+
+        cleanup:
+        reader.close()
     }
 
     def "output for test includes all events with the given class and method ids"() {
@@ -65,12 +66,15 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 1, output(StdOut, "[out-5]"))
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         collectOutput(reader, 1, 1, StdOut) == "[out-2][out-5]"
         collectOutput(reader, 1, 1, StdErr) == "[out-4]"
         collectOutput(reader, 1, 2, StdOut) == "[out-6]"
+
+        cleanup:
+        reader.close()
     }
 
     def "non-test output includes all events with the given class id and no method id"() {
@@ -84,12 +88,15 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.onOutput(2, output(StdOut, "[out-6]"))
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         collectOutput(reader, 1, StdOut) == "[out-1][out-5]"
         collectOutput(reader, 1, StdErr) == "[out-3][out-4]"
         collectOutput(reader, 2, StdOut) == "[out-6]"
+
+        cleanup:
+        reader.close()
     }
 
     def DefaultTestOutputEvent output(TestOutputEvent.Destination destination, String msg) {
@@ -100,10 +107,13 @@ class TestOutputStoreSpec extends WorkspaceTest {
         when:
         def writer = output.writer()
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         collectAllOutput(reader, 20, StdErr) == ""
+
+        cleanup:
+        reader.close()
     }
 
     def "writes nothing for unknown test method"() {
@@ -111,10 +121,13 @@ class TestOutputStoreSpec extends WorkspaceTest {
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         collectOutput(reader, 1, 10, StdOut) == ""
+
+        cleanup:
+        reader.close()
     }
 
     def "can query whether output is available for a test class"() {
@@ -122,12 +135,15 @@ class TestOutputStoreSpec extends WorkspaceTest {
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
         writer.close()
-        reader = output.reader()
+        def reader = output.reader()
 
         then:
         reader.hasOutput(1, StdOut)
         !reader.hasOutput(1, StdErr)
         !reader.hasOutput(2, StdErr)
+
+        cleanup:
+        reader.close()
     }
 
     def "can open empty reader"() {
@@ -139,7 +155,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
     def "exception if no output file"() {
         when:
         output.indexFile.createNewFile()
-        reader = output.reader()
+        output.reader()
 
         then:
         thrown(IllegalStateException)
@@ -148,7 +164,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
     def "exception if no index file, but index"() {
         when:
         output.outputsFile.createNewFile()
-        reader = output.reader()
+        output.reader()
 
         then:
         thrown(IllegalStateException)
