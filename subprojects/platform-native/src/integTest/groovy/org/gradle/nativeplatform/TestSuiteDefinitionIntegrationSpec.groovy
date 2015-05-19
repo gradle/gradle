@@ -94,9 +94,9 @@ model {
         unitTests
             binaries
                 tests
-                    tasks
+                    tasks = []
             sources
-                tests
+                tests = DefaultCustomTestSourceSet 'unitTests:tests'
 """))
 
         when:
