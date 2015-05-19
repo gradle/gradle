@@ -18,12 +18,13 @@ package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.platform.base.internal.DependencySpecInternal;
 
 /**
  * A dependency onto a Gradle component.
  */
 @Incubating
-public interface DependencySpec {
+public interface DependencySpec extends DependencySpecInternal {
     /**
      * Narrows this dependency specification down to a specific project.
      *

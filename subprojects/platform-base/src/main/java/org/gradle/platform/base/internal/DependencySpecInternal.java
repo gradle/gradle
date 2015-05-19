@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.platform.base.internal;
 
-package org.gradle.platform.base;
+public interface DependencySpecInternal {
+    DependencySpecInternal project(String path);
 
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.internal.DefaultDependencySpec;
-import org.gradle.platform.base.internal.DependencySpecInternal;
-
-import java.util.Set;
-
-/**
- * A container for dependency specifications.
- */
-@Incubating
-public interface DependencySpecContainer extends Set<DependencySpec>, DependencySpecInternal {
-    DefaultDependencySpec project(String path);
-
-    DefaultDependencySpec library(String name);
+    DependencySpecInternal library(String name);
 }
