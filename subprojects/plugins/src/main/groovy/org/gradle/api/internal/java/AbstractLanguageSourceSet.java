@@ -23,10 +23,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
-import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
@@ -96,8 +96,14 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return dependencies;
     }
 
-    public DependencySpecContainer dependencies(@DelegatesTo(value=DependencySpecContainer.class, strategy = Closure.DELEGATE_FIRST) Closure dependenciesSpec) {
-        ConfigureUtil.configure(dependenciesSpec, dependencies);
-        return dependencies;
+    @Override
+    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
+        configureAction.execute(getDependencies());
+        return getDependencies();
     }
+
+    public DependencySpecContainer dependencies(@DelegatesTo(value = DependencySpecContainer.class, strategy = Closure.DELEGATE_FIRST) Closure dependenciesSpec) {
+        return dependencies(new ClosureBackedAction<DependencySpecContainer>(dependenciesSpec));
+    }
+
 }

@@ -122,6 +122,12 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         return dependencies;
     }
 
+    @Override
+    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
+        configureAction.execute(getDependencies());
+        return getDependencies();
+    }
+
     private BaseLanguageSourceSet(SourceSetInfo info) {
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a LanguageTypeBuilder instead.");
