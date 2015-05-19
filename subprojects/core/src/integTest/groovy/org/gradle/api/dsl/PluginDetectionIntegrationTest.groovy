@@ -18,6 +18,7 @@ package org.gradle.api.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -61,6 +62,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
+    @LeaksFileHandles
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
@@ -70,9 +72,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             def operations = []
 
-            ext {
-                loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
-            }
+            def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
             def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
             def ruleSourceClass = loader.loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
@@ -96,10 +96,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             operations << "applied"
 
             task verify << { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] }
-
-            gradle.buildFinished {
-                loader.close()
-            }
         """
 
         expect:
