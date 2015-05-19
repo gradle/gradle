@@ -71,7 +71,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         def javaHome = Jvm.current().javaHome
         def javaLink = file("javaLink")
         javaLink.createLink(javaHome)
-        file("tmp").deleteDir().createDir()
+        file("tmp").createDir().deleteDir()
 
         String linkPath = TextUtil.escapeString(javaLink.absolutePath)
         file("gradle.properties") << "org.gradle.java.home=$linkPath"
