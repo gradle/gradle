@@ -583,21 +583,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been resolved", type, getDisplayName()));
             }
         } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-            // The task dependencies for the configuration have been calculated using
-            // Configuration.getBuildDependencies(). It is deprecated for build logic to
-            // change anything about the configuration except the artifacts.
-            if (type != MutationType.ARTIFACTS) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
-            }
-        } else if (observedState == InternalState.RESULTS_RESOLVED) {
-            // The configuration has been used in a resolution, and it is deprecated for
-            // build logic to change any dependencies, exclude rules or parent
-            // configurations (values that will affect the resolved graph).
+            // The task dependencies for the configuration have been calculated using Configuration.getBuildDependencies().
+            // It is deprecated for build logic to change anything about the configuration.
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
+        } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED || observedState == InternalState.RESULTS_RESOLVED) {
+            // The configuration has been used in a resolution, and it is deprecated for build logic to change any dependencies,
+            // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
-            }
-        } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-            if (type == MutationType.DEPENDENCIES) {
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
             }
         }

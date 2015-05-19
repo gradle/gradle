@@ -298,11 +298,16 @@ project(':b') {
             }
 '''
 
-        expect:
+        when:
+        executer.withDeprecationChecksDisabled()
         succeeds ":test"
 
+        then:
         // Demonstrates incorrect task dependencies for project artifacts
         executedAndNotSkipped ":a:jar1" // Should be ":a:jar2"
+
+        and:
+        output.contains "Changed artifacts of configuration ':a:compile' after it has been included in dependency resolution"
     }
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
