@@ -431,7 +431,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget project(":api")
                 }
 
-                task check << {
+                task check(dependsOn: configurations.conf) << {
+                    assert configurations.conf.collect { it.name } == ['api.jar']
+
                     def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -447,6 +449,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("impl:check")
+        executedAndNotSkipped ":api:jar"
     }
 
     void "can access built artifacts from substituted project dependency"()
@@ -480,14 +483,15 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
                 task check(dependsOn: configurations.conf) << {
                     def files = configurations.conf.files
-                    assert files*.name.sort() == ["artifact.txt"]
-                    assert files*.text.sort() == ["Lajos"]
+                    assert files*.name.sort() == ["api.jar", "artifact.txt"]
+                    assert files[1].text == "Lajos"
                 }
             }
 """
 
         expect:
         succeeds("impl:check")
+        executedAndNotSkipped ":api:build"
     }
 
     void "can replace project dependency with external dependency"()
@@ -508,7 +512,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget group: "org.utils", name: "api", version: "1.5"
                 }
 
-                task check << {
+                task check(dependsOn: configurations.conf) << {
                     def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -524,6 +528,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("impl:check")
+
+        !executedTasks.contains(":api:jar")
     }
 
     void "can replace transitive external dependency with project dependency"()
@@ -543,7 +549,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget project(":api")
                 }
 
-                task check << {
+                task check(dependsOn: configurations.conf) << {
+                    assert configurations.conf.collect { it.name } == ['impl-1.5.jar', 'api.jar']
+
                     def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 2
                     assert deps.find {
@@ -565,6 +573,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("test:check")
+
+        executedAndNotSkipped ":api:jar"
     }
 
     void "can replace client module dependency with project dependency"()
@@ -767,15 +777,17 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget project(":api")
                 }
 
-                task check << {
+                task check(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
-                    assert files*.name.sort() == ["conf.txt"]
+                    assert files*.name.sort() == ["api.jar", "conf.txt"]
                 }
             }
 """
 
         expect:
         succeeds("impl:check")
+
+        executedAndNotSkipped ":api:jar"
     }
 
     void "replacing external module dependency with project dependency keeps the original transitivity"()
@@ -795,7 +807,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget project(":impl")
                 }
 
-                task check << {
+                task check(dependsOn: configurations.conf) << {
                     def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps.find {
@@ -811,6 +823,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds("test:check")
+
+        !executedTasks.contains(":api:jar")
     }
 
     void "external dependency substituted for a project dependency participates in conflict resolution"()
@@ -1360,7 +1374,10 @@ conf
                 maven { url "${mavenRepo.uri}" }
             }
 
-            task resolveConf << { configurations.conf.files }
+            task jar(type: Jar) { baseName = project.name }
+            artifacts { conf jar }
+
+            task resolveConf(dependsOn: configurations.conf) << { configurations.conf.files }
         }
 
         //resolving the configuration at the end:

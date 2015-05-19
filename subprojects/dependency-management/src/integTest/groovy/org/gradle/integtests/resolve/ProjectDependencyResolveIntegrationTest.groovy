@@ -107,7 +107,8 @@ project(":b") {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:jar"
     }
 
     public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
@@ -147,7 +148,8 @@ project(":b") {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:jar"
     }
 
     @Issue("GRADLE-2899")
@@ -183,7 +185,7 @@ project(':b') {
         configB1 project(path:':a', configuration:'configA1')
         configB2 project(path:':a', configuration:'configA2')
     }
-    task check << {
+    task check(dependsOn: [configurations.configB1, configurations.configB2]) << {
         assert configurations.configB1.collect { it.name } == ['A1.jar']
         assert configurations.configB2.collect { it.name } == ['A2.jar']
     }
@@ -191,7 +193,8 @@ project(':b') {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:A1jar", ":a:A2jar"
     }
 
     public void "resolved project artifacts reflect project properties changed after task graph is built"() {
@@ -228,7 +231,8 @@ project(':b') {
 '''
 
         expect:
-        succeeds "test"
+        succeeds ":test"
+        executedAndNotSkipped ":a:aJar", ":b:bJar"
     }
 
     public void "resolved project artifact can be changed by configuration task"() {
@@ -261,7 +265,8 @@ project(':b') {
 '''
 
         expect:
-        succeeds "test"
+        succeeds ":test"
+        executedAndNotSkipped ":a:configureJar", ":a:aJar"
     }
 
 
@@ -294,7 +299,10 @@ project(':b') {
 '''
 
         expect:
-        succeeds "test"
+        succeeds ":test"
+
+        // Demonstrates incorrect task dependencies for project artifacts
+        executedAndNotSkipped ":a:jar1" // Should be ":a:jar2"
     }
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
@@ -332,7 +340,10 @@ project(":b") {
 """
 
         expect:
-        succeeds 'test'
+        succeeds 'b:test'
+
+        // Demonstrates superfluous task dependencies for project artifacts
+        executedAndNotSkipped ":a:aJar", ":a:bJar" // Should be only the ":a:aJar"
     }
 
     public void "reports project dependency that refers to an unknown artifact"() {
@@ -361,7 +372,7 @@ project(":b") {
 """
 
         expect:
-        fails 'test'
+        fails ':b:test'
 
         and:
         failure.assertResolutionFailure(":b:compile").assertHasCause("Could not find b.jar (test:a:unspecified).")
@@ -390,14 +401,15 @@ project(':b') {
     dependencies {
         compile project(':a'), { transitive = false }
     }
-    task listJars << {
+    task listJars(dependsOn: configurations.compile) << {
         assert configurations.compile.collect { it.name } == ['a.jar']
     }
 }
 '''
 
         expect:
-        succeeds "listJars"
+        succeeds ":b:listJars"
+        executedAndNotSkipped ":a:jar"
     }
 
     public void "can have cycle in project dependencies"() {
@@ -460,7 +472,8 @@ project('c') {
 """
 
         expect:
-        succeeds "listJars"
+        succeeds ":a:listJars"
+        executedAndNotSkipped ":b:jar", ":c:jar"
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -499,8 +512,8 @@ project('c') {
         succeeds ":b:copyZip"
         
         then:
-        ":b:copyZip" in nonSkippedTasks
-        
+        executedAndNotSkipped ":a:zip", ":b:copyZip"
+
         and:
         file("b/build/copied/a-1.0.zip").exists()
     }
