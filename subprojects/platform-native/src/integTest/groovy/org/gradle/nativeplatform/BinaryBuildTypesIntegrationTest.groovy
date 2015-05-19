@@ -18,6 +18,7 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -86,6 +87,7 @@ model {
         }
     }
 
+    @LeaksFileHandles
     def "configure component for a single build type"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -119,6 +121,7 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "executable with build type depends on library with matching build type"() {
         when:
         helloWorldApp.executable.writeSources(file("src/main"))

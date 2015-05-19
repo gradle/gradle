@@ -20,6 +20,7 @@ import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.serialize.NullSafeStringSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
@@ -38,6 +39,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
 
     @Issue("GRADLE-3206")
+    @LeaksFileHandles
     def "can create new caches and access them in parallel"() {
         def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager)
         store.open()

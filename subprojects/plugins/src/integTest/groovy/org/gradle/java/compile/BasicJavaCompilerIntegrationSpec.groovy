@@ -234,6 +234,7 @@ class Main {
         return new ClassFile(file(path))
     }
 
+    @LeaksFileHandles
     def "can use annotation processor"() {
         when:
         buildFile << """

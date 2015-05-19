@@ -19,7 +19,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.test.fixtures.file.WorkspaceTest
-import spock.lang.AutoCleanup
 
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
