@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,7 +26,6 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-@LeaksFileHandles
 class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -51,10 +49,6 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    def cleanup() {
-        factory.close()
-    }
-
     public void "creates directory backed store instance"() {
         when:
         def cache = factory.openStore(tmpDir.testDirectory, "<display>", mode(Shared), null)
@@ -63,6 +57,9 @@ class DefaultCacheFactoryTest extends Specification {
         cache.reference.cache instanceof DefaultPersistentDirectoryStore
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
+
+        cleanup:
+        factory.close()
     }
 
     public void "creates directory backed cache instance"() {
@@ -73,6 +70,9 @@ class DefaultCacheFactoryTest extends Specification {
         cache.reference.cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
+
+        cleanup:
+        factory.close()
     }
 
     public void "reuses directory backed cache instances"() {
@@ -86,6 +86,9 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         1 * opened.execute(_)
         0 * opened._
+
+        cleanup:
+        factory.close()
     }
 
     public void "reuses directory backed store instances"() {
@@ -99,6 +102,9 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         1 * opened.execute(_)
         0 * opened._
+
+        cleanup:
+        factory.close()
     }
 
     public void "closes cache instance when factory is closed"() {
@@ -192,6 +198,9 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different state."
+
+        cleanup:
+        factory.close()
     }
 
     public void "fails when directory cache when cache is already open with different lock mode"() {
@@ -204,6 +213,9 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different options."
+
+        cleanup:
+        factory.close()
     }
 
     public void "can pass CacheValidator to Cache"() {
@@ -216,5 +228,8 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         validator.isValid() >>> [false, true]
         cache != null
+
+        cleanup:
+        factory.close()
     }
 }
