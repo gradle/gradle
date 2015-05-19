@@ -253,6 +253,7 @@ public class BTreePersistentIndexedCacheTest {
 
         RandomAccessFile file = new RandomAccessFile(cacheFile, "rw");
         file.setLength(file.length() - 10);
+        file.close();
 
         cache.reset();
 
