@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -58,6 +60,7 @@ public class PersonTest {
         ":build" in executedTasks
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can build in continuous mode when source dir is removed"() {
         when:
         app.writeSources(sourceDir)
