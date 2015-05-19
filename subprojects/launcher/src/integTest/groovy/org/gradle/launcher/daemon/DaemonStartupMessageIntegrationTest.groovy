@@ -18,11 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
 
-@LeaksFileHandles
 class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
