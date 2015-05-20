@@ -27,7 +27,7 @@
         <section>
             <title>How do I enable the Gradle Continuous mode?</title>
             <para>
-                The <literal>--watch</literal> command line switches enables continuous mode.
+                The <literal>--continuous</literal> command line switches enables continuous mode.
 
                 TODO: Explain typical scenarios
             </para>

@@ -36,15 +36,15 @@ class ContinuousModeCommandLineConverterTest extends Specification {
         where:
         options     | enabled
         []          | false
-        ['--watch'] | true
+        ['--continuous'] | true
     }
 
     def "fails on Java 6 with reasonable message"() {
         when:
-        convert(["--watch"], JavaVersion.VERSION_1_6)
+        convert(["--continuous"], JavaVersion.VERSION_1_6)
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Continuous mode (--watch) is not supported on versions of Java older than 1.7."
+        e.message == "Continuous mode (--continuous) is not supported on versions of Java older than 1.7."
     }
 
     private ContinuousModeParameters convert(Iterable args, JavaVersion javaVersion) {

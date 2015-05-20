@@ -516,7 +516,7 @@ model {
 ## Feature: Gradle continuous mode
 
 This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change.
-For example, a developer may run `gradle --watch <tasks>`.
+For example, a developer may run `gradle --continuous <tasks>`.
 
 When run in continuous mode, Gradle will execute a build and determine any files that are inputs to that build.
 Gradle will then watch for changes to those input files, and re-execute the build when any file changes.
@@ -527,14 +527,14 @@ Input files are determined as:
 
 So:
 
-- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+- `gradle --continuous run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
   restart the application.
-- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+- `gradle --continuous test run` would build and run the tests and then the Play application. When a change to the source files is detected,
   Gradle would rerun the tests, rebuild and restart the Play application.
-- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+- `gradle --continuous test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
 
 Note that for this feature, the implementation will assume that any source file affects the output of every task listed on the command-line.
-For example, running `gradle --watch test run` would restart the application if a test source file changes.
+For example, running `gradle --continuous test run` would restart the application if a test source file changes.
 
 ### ~~Story: Add continuous Gradle mode triggered by timer~~
 
@@ -549,7 +549,7 @@ See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4
 - Gradle CLI waits for the build to finish (as normal).
 - Instead of returning after each build, the daemon goes into a retry loop until cancelled triggered by something.
 - Initial implementation will use a periodic timer to trigger the build.
-- Add new command-line option (`--watch`)
+- Add new command-line option (`--continuous`)
     - Add a separate Parameters option
     - Think about how to introduce a new internal replacement for StartParameter
 - Decorator for `InProcessBuildExecutor` changes to understand "continuous mode"

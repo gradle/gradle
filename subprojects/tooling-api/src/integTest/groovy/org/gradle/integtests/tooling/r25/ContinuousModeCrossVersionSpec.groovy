@@ -30,11 +30,11 @@ class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.withArguments("--watch").forTasks("tasks").run()
+            build.withArguments("--continuous").forTasks("tasks").run()
         }
 
         then:
         UnsupportedBuildArgumentException e = thrown()
-        e.message.contains("Unknown command-line option '--watch'.")
+        e.message.contains("Unknown command-line option '--continuous'.")
     }
 }

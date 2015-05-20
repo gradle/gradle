@@ -25,7 +25,7 @@ import org.gradle.launcher.continuous.ContinuousModeParameters;
 
 public class ContinuousModeCommandLineConverter extends AbstractCommandLineConverter<ContinuousModeParameters> {
 
-    private static final String WATCH = "watch";
+    private static final String CONTINUOUS = "continuous";
     private final JavaVersion currentVersion;
 
     ContinuousModeCommandLineConverter(JavaVersion currentVersion) {
@@ -37,7 +37,7 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
     }
 
     public ContinuousModeParameters convert(ParsedCommandLine args, ContinuousModeParameters target) throws CommandLineArgumentException {
-        if (args.hasOption(WATCH)) {
+        if (args.hasOption(CONTINUOUS)) {
             assertJava7OrBetter();
             return target.setEnabled(true);
         }
@@ -46,11 +46,11 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
 
     private void assertJava7OrBetter() {
         if (!currentVersion.isJava7Compatible()) {
-            throw new CommandLineArgumentException(String.format("Continuous mode (--%s) is not supported on versions of Java older than %s.", WATCH, JavaVersion.VERSION_1_7));
+            throw new CommandLineArgumentException(String.format("Continuous mode (--%s) is not supported on versions of Java older than %s.", CONTINUOUS, JavaVersion.VERSION_1_7));
         }
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(WATCH).hasDescription("Enables 'continuous mode'. Gradle does not exit and will re-execute tasks based on a trigger.").incubating();
+        parser.option(CONTINUOUS).hasDescription("Enables 'continuous mode'. Gradle does not exit and will re-execute tasks based on a trigger.").incubating();
     }
 }

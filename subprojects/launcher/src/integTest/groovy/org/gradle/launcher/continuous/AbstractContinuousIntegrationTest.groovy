@@ -99,7 +99,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         executer.withStdIn(emulatedSystemIn)
         stdinPipe = new PrintStream(new PipedOutputStream(emulatedSystemIn), true)
 
-        gradle = executer.withTasks(tasks).withArgument("--watch").start()
+        gradle = executer.withTasks(tasks).withArgument("--continuous").start()
     }
 
     private void waitForBuild() {

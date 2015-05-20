@@ -31,11 +31,11 @@ class Jdk6ContinuousIntegrationTest extends AbstractIntegrationSpec {
     @Timeout(60)
     def "can NOT enable continuous mode"() {
         when:
-        executer.withArgument("--watch")
+        executer.withArgument("--continuous")
 
         then:
         fails "tasks"
-        errorOutput.contains "Continuous mode (--watch) is not supported on versions of Java older than 1.7."
+        errorOutput.contains "Continuous mode (--continuous) is not supported on versions of Java older than 1.7."
     }
 
 }
