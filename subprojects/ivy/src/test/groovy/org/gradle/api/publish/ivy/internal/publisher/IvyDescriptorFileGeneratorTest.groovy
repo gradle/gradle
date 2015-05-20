@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
+
 import javax.xml.namespace.QName
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
@@ -220,6 +222,22 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                     it.@ext.isEmpty()
                     it."@m:classifier" == "classy"
                 }
+            }
+        }
+    }
+
+    def "writes dependency with exclusion"() {
+        def excludeRule = new DefaultExcludeRule("excludeGroup", "excludeModule");
+
+        when:
+        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject", [], [excludeRule]))
+
+        then:
+        with (ivyXml) {
+            dependencies[0].dependency[0].exclude.size() == 1
+            with (dependencies[0].dependency[0].exclude[0]) {
+                it.@org == "excludeGroup"
+                it.@module == "excludeModule"
             }
         }
     }

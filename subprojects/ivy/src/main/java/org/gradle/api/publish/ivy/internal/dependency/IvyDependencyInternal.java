@@ -17,8 +17,11 @@
 package org.gradle.api.publish.ivy.internal.dependency;
 
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.ivy.IvyDependency;
 
 public interface IvyDependencyInternal extends IvyDependency {
     Iterable<DependencyArtifact> getArtifacts();
+
+    Iterable<ExcludeRule> getExcludeRules();
 }

@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import javax.xml.namespace.QName;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -192,9 +193,19 @@ public class IvyDescriptorFileGenerator {
             for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
                 printDependencyArtifact(dependencyArtifact, xmlWriter);
             }
+            for(ExcludeRule excludeRule : dependency.getExcludeRules()) {
+                writeDependencyExclude(excludeRule, xmlWriter);
+            }
             xmlWriter.endElement();
         }
         xmlWriter.endElement();
+    }
+
+    private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+        xmlWriter.startElement("exclude")
+            .attribute("org", excludeRule.getGroup())
+            .attribute("module", excludeRule.getModule())
+            .endElement();
     }
 
     private void printDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
