@@ -141,18 +141,37 @@ public class PersonTest {
 
     def "failing main source build ignores changes to test source"() {
         when:
-        def testSourceFiles = testSources*.writeToDir(testSourceDir)
-        def sourceFiles = app.writeSources(sourceDir)
-        def sourceFile = sourceFiles.get(0)
-        def testSourceFile = testSourceFiles.get(0)
-        sourceFile << "/* Broken build"
-        then:
-        fails("test")
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
+        def testSourceFile = file("src/test/java/ThingTest.java") << "class ThingTest {}"
 
-        when: "Change to test source file does not cause rebuild"
-        testSourceFile << "// some change"
+        then:
+        succeeds("test")
+
+        when:
+        testSourceFile << " broken "
+
+        then:
+        fails()
+        failureDescriptionStartsWith("Execution failed for task ':compileTestJava'.")
+
+        when:
+        sourceFile << " broken "
+
+        then:
+        fails()
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+
+        when:
+        testSourceFile.text = "class ThingTest {}"
+
         then:
         noBuildTriggered()
+
+        when:
+        sourceFile.text = "class Thing {}"
+
+        then:
+        succeeds()
     }
 
     def "can resolve dependencies from remote repository in continuous mode"() {
