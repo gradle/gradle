@@ -16,20 +16,26 @@
 
 package org.gradle.launcher.continuous
 
+import com.google.common.util.concurrent.SimpleTimeLimiter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
+
 // TODO: Enable for windows again.
 @Requires([TestPrecondition.JDK7_OR_LATER, TestPrecondition.NOT_WINDOWS])
 abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
-
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
+    private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
+    private static final byte[] KEY_CODE_CTRL_D_BYTE_ARRAY = [(byte) 4] as byte[]
 
     GradleHandle gradle
 
@@ -37,11 +43,16 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
+    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
+    boolean expectBuildFailure = false
+
+    PrintStream stdinPipe
 
     public void turnOnDebug() {
         executer.withDebug(true)
         executer.withArgument("--no-daemon")
-        buildTimeout = buildTimeout * 100
+        buildTimeout *= 100
+        shutdownTimeout *= 100
     }
 
     public void cleanupWhileTestFilesExist() {
@@ -83,8 +94,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
-        gradle = executer.withTasks(tasks).withArgument("--watch").start()
 
+        PipedInputStream emulatedSystemIn = new PipedInputStream()
+        executer.withStdIn(emulatedSystemIn)
+        stdinPipe = new PrintStream(new PipedOutputStream(emulatedSystemIn), true)
+
+        gradle = executer.withTasks(tasks).withArgument("--watch").start()
     }
 
     private void waitForBuild() {
@@ -92,7 +107,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             if (gradle.isRunning()) {
-                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n"))
+                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.\n"))
             }
         }
 
@@ -106,7 +121,32 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     }
 
     void stopGradle() {
-        gradle?.abort()
+        if (gradle && gradle.isRunning()) {
+            emulateCtrlD()
+            assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
+                @Override
+                Boolean call() throws Exception {
+                    try {
+                        if (expectBuildFailure) {
+                            gradle.waitForFailure()
+                        } else {
+                            gradle.waitForFinish()
+                        }
+                    } finally {
+                        stdinPipe?.close()
+                        stdinPipe = null
+                        executer.withStdIn(SafeStreams.emptyInput())
+                    }
+                    return Boolean.TRUE
+                }
+            }, shutdownTimeout, TimeUnit.SECONDS, false)
+        }
+    }
+
+    void emulateCtrlD() {
+        if (stdinPipe) {
+            stdinPipe << KEY_CODE_CTRL_D_BYTE_ARRAY
+        }
     }
 
     void noBuildTriggered(int waitSeconds = 3) {
@@ -118,6 +158,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
             throw new AssertionError("Expected build not to start, but started with output: " + buildOutputSoFar())
         } catch (SpockTimeoutError e) {
             // ok, what we want
+        }
+    }
+
+    void expectOutput(double waitSeconds = 3.0, Closure<?> checkOutput) {
+        new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
+            assert checkOutput(buildOutputSoFar())
         }
     }
 

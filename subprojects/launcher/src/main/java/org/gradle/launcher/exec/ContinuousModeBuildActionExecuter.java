@@ -31,11 +31,14 @@ import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.util.SingleMessageLogger;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final BiAction<? super FileSystemSubset, ? super Runnable> waiter;
+    private final AtomicBoolean keyboardCancellationRequested;
 
     private final Logger logger;
 
@@ -47,6 +50,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.waiter = waiter;
+        this.keyboardCancellationRequested = (waiter instanceof FileSystemChangeWaiter) ? ((FileSystemChangeWaiter) waiter).getCancellationRequested() : new AtomicBoolean(false);
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
     }
 
@@ -83,7 +87,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 waiter.execute(toWatch, new Runnable() {
                     @Override
                     public void run() {
-                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
+                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
                     }
                 });
             }
@@ -117,7 +121,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     }
 
     private boolean buildNotStopped(BuildRequestContext requestContext) {
-        return !requestContext.getCancellationToken().isCancellationRequested();
+        return !requestContext.getCancellationToken().isCancellationRequested() && !keyboardCancellationRequested.get();
     }
 
 }
