@@ -30,9 +30,9 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-// TODO: Enable for windows again.
-@Requires([TestPrecondition.JDK7_OR_LATER, TestPrecondition.NOT_WINDOWS])
+@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
+
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
     private static final byte[] KEY_CODE_CTRL_D_BYTE_ARRAY = [(byte) 4] as byte[]
