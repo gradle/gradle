@@ -22,15 +22,16 @@ allprojects {
         ivy { url repoUrl }
     }
 
+    //START SNIPPET project_substitution
     configurations.all {
-        resolutionStrategy.dependencySubstitution.eachModule {
-            def targetProject = findProject(":${it.requested.module}")
-            if (it.requested.group == "org.example"
-                    && targetProject != null) {
-                it.useTarget targetProject
+        resolutionStrategy.dependencySubstitution.eachModule { ModuleDependencySubstitution details ->
+            def targetProject = findProject(":${details.requested.module}")
+            if (details.requested.group == "org.example" && targetProject != null) {
+                details.useTarget targetProject
             }
         }
     }
+    //END SNIPPET project_substitution
 }
 
 dependencies {
