@@ -45,14 +45,14 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
     }
 
-    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
-        assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
+    public MutableLocalComponentMetaData convert(Set<? extends Configuration> contexts, ModuleInternal module) {
+        assert contexts.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
-        configurationsToArtifactsConverter.addArtifacts(metaData, configurations);
+        configurationsToModuleDescriptorConverter.addConfigurations(metaData, contexts);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, contexts);
+        configurationsToArtifactsConverter.addArtifacts(metaData, contexts);
         return metaData;
     }
 }

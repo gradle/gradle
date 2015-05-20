@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
     private final LocalComponentFactory localComponentFactory;

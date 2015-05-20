@@ -17,12 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -83,14 +84,14 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
-    public void resolve(final ConfigurationInternal configuration,
+    public void resolve(final ResolveContextInternal resolveContext,
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
                         final ResolverResults results) throws ResolveException {
-        LOGGER.debug("Resolving {}", configuration);
+        LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
+                ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
                 RepositoryChain repositoryChain = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory);
@@ -125,7 +126,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 ResolvedProjectConfigurationResultBuilder projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder(buildProjectDependencies);
 
                 // Resolve the dependency graph
-                builder.resolve(configuration, newModelBuilder, oldModelBuilder, artifactsBuilder, projectModelBuilder);
+                builder.resolve(resolveContext, newModelBuilder, oldModelBuilder, artifactsBuilder, projectModelBuilder);
                 results.resolved(newModelBuilder.complete(), projectModelBuilder.complete());
 
                 ResolvedGraphResults graphResults = oldModelBuilder.complete();
@@ -134,7 +135,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         });
     }
 
-    public void resolveArtifacts(final ConfigurationInternal configuration,
+    public void resolveArtifacts(final ResolveContextInternal resolveContext,
                                  final List<? extends ResolutionAwareRepository> repositories,
                                  final GlobalDependencyResolutionRules metadataHandler,
                                  final ResolverResults results) throws ResolveException {
@@ -145,7 +146,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(
+            (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
         results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 

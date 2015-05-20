@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 
@@ -39,30 +39,30 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public void resolve(ConfigurationInternal configuration,
+    public void resolve(ResolveContextInternal resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
         try {
-            dependencyResolver.resolve(configuration, repositories, metadataHandler, results);
+            dependencyResolver.resolve(resolveContext, repositories, metadataHandler, results);
         } catch (final Throwable e) {
-            results.failed(wrapException(e, configuration));
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            results.failed(wrapException(e, (Configuration) resolveContext));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, (Configuration) resolveContext));
             return;
         }
-        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
+        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), (Configuration) resolveContext);
         results.resolved(wrappedResult, results.getResolvedProjectConfigurationResults());
     }
 
-    public void resolveArtifacts(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContextInternal resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
         try {
-            dependencyResolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
+            dependencyResolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);
         } catch (ResolveException e) {
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, (Configuration) resolveContext));
             return;
         }
 
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), (Configuration) resolveContext);
         results.withResolvedConfiguration(wrappedConfiguration);
     }
 
@@ -164,7 +164,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             resolutionResult.allComponents(closure);
         }
     }
-    
+
     private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
         private final ResolvedConfiguration resolvedConfiguration;
         private final Configuration configuration;

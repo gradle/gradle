@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
-public interface ConfigurationInternal extends ResolveContextInternal, Configuration {
+public interface ResolveContextInternal extends DependencyMetaDataProvider {
+    enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
 
-    String getPath();
+    InternalState getResolvedState();
 
-    void triggerWhenEmptyActionsIfNecessary();
+    ResolutionStrategyInternal getResolutionStrategy();
 
-    void addMutationValidator(MutationValidator validator);
+    void markAsObserved(InternalState requestedState);
 
-    void removeMutationValidator(MutationValidator validator);
 }

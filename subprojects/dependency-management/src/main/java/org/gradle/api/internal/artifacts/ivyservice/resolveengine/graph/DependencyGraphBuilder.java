@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
@@ -72,7 +72,7 @@ public class DependencyGraphBuilder {
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
-    public void resolve(ConfigurationInternal configuration,
+    public void resolve(ResolveContextInternal resolveContext,
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder,
                         ResolvedArtifactsBuilder artifactsBuilder,
@@ -82,14 +82,15 @@ public class DependencyGraphBuilder {
         DependencyGraphVisitor projectModelVisitor = new ResolvedProjectConfigurationResultGraphVisitor(projectModelBuilder);
         DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
 
-        resolveDependencyGraph(configuration, modelVisitor);
+        resolveDependencyGraph(resolveContext, modelVisitor);
     }
 
-    private void resolveDependencyGraph(ConfigurationInternal configuration, DependencyGraphVisitor modelVisitor) {
+    private void resolveDependencyGraph(ResolveContextInternal resolveContext, DependencyGraphVisitor modelVisitor) {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
-        moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
+        Configuration configuration = (Configuration)resolveContext;
+        moduleResolver.resolve(resolveContext.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
+        ResolveState resolveState = new ResolveState(rootModule, ((Configuration)resolveContext).getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
