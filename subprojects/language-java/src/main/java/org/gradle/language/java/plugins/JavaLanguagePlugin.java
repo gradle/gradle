@@ -20,6 +20,9 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
@@ -40,7 +43,9 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -94,13 +99,15 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+                    GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
+                    ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+                    compile.setClasspath(new DependencyResolvingClasspath(javaSourceSet, dependencyResolver));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -113,6 +120,28 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof JvmBinarySpec;
+        }
+    }
+
+    private static class DependencyResolvingClasspath extends AbstractFileCollection {
+        private final JavaSourceSet sourceSet;
+        private final ArtifactDependencyResolver dependencyResolver;
+
+        private DependencyResolvingClasspath(JavaSourceSet sourceSet, ArtifactDependencyResolver dependencyResolver) {
+            this.sourceSet = sourceSet;
+            this.dependencyResolver = dependencyResolver;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Classpath for "+sourceSet.getDisplayName();
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
+            return classpath;
         }
     }
 }
