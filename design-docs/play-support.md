@@ -729,7 +729,6 @@ This story makes the use of continuous mode more effective by allowing better ut
     - dynamic plugin dependencies
 - Responding to changes to “dynamic” dependencies (i.e. in the `dependencies {}` sense)
 - Responding to dynamic inputs to build logic (e.g. properties file read by adhoc user code that externalises build logic)
-- A quiet period should be respected for file system changes (e.g. wait for all copy operations to complete, wait for user to complete source edits)
 - Certain inputs might be known to be immutable (e.g. cached repository dependencies have a checksum in their path and will not change, system header files)
 - Changes to files behind symlinks are not respected
 - Potentially allowing some way to manually trigger a rebuild (e.g. inputs changes before build finished, file system changed was captured - either correctly or incorrectly)
