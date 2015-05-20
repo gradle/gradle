@@ -42,6 +42,7 @@ class IdleTimeoutTest extends Specification {
         and:
         1 * control.await(_) >> {
             lastTimestamp = it[0]
+            sleep 1
             t.tick()
             false
         }
