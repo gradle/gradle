@@ -74,7 +74,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         }
         def config = project.configurations['findbugs']
         config.defaultDependencies { dependencies ->
-            dependencies.add(owner.project.dependencies.create("com.google.code.findbugs:findbugs:${owner.extension.toolVersion}"))
+            dependencies.add(this.project.dependencies.create("com.google.code.findbugs:findbugs:${this.extension.toolVersion}"))
         }
         task.conventionMapping.with {
             findbugsClasspath = { config }

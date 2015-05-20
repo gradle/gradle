@@ -77,9 +77,9 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected void configureTaskDefaults(Pmd task, String baseName) {
         def config = project.configurations['pmd']
         config.defaultDependencies { dependencies ->
-            VersionNumber version = VersionNumber.parse(owner.extension.toolVersion)
+            VersionNumber version = VersionNumber.parse(this.extension.toolVersion)
             String dependency = calculateDefaultDependencyNotation(version)
-            dependencies.add(owner.project.dependencies.create(dependency))
+            dependencies.add(this.project.dependencies.create(dependency))
         }
         task.conventionMapping.with {
             pmdClasspath = { config }
