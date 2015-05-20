@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.internal.environment.GradleBuildEnvironment
-import spock.lang.Ignore
 
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
