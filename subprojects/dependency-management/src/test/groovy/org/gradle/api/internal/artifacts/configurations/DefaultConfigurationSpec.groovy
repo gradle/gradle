@@ -1122,10 +1122,10 @@ class DefaultConfigurationSpec extends Specification {
         exArtifact.message == "Cannot change artifacts of configuration ':conf' after it has been resolved."
     }
 
-    def "whenEmpty action does not trigger when config has dependencies"() {
+    def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
-        conf.whenEmpty whenEmptyAction
+        def defaultDependencyAction = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction
         conf.dependencies.add(Mock(Dependency))
 
         when:
@@ -1135,55 +1135,55 @@ class DefaultConfigurationSpec extends Specification {
         0 * _
     }
 
-    def "second whenEmpty action does not trigger if first one already added dependencies"() {
+    def "second defaultDependencies action does not trigger if first one already added dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction1 = Mock(Action)
-        def whenEmptyAction2 = Mock(Action)
-        conf.whenEmpty whenEmptyAction1
-        conf.whenEmpty whenEmptyAction2
+        def defaultDependencyAction1 = Mock(Action)
+        def defaultDependencyAction2 = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction1
+        conf.defaultDependencies defaultDependencyAction2
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction1.execute(conf.dependencies) >> {
+        1 * defaultDependencyAction1.execute(conf.dependencies) >> {
             conf.dependencies.add(Mock(Dependency))
         }
         0 * _
     }
 
-    def "whenEmpty action is called even if parent config has dependencies"() {
+    def "defaultDependencies action is called even if parent config has dependencies"() {
         def parent = conf("parent", ":parent")
         parent.dependencies.add(Mock(Dependency))
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
         0 * _
     }
 
-    def "whenEmpty action is called on self first, then on parent"() {
+    def "defaultDependencies action is called on self first, then on parent"() {
         def parentWhenEmptyAction = Mock(Action)
         def parent = conf("parent", ":parent")
-        parent.whenEmpty parentWhenEmptyAction
+        parent.defaultDependencies parentWhenEmptyAction
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
 
         then:
         1 * parentWhenEmptyAction.execute(parent.dependencies)

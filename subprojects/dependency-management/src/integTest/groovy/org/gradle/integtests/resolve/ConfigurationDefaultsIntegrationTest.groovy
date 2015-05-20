@@ -57,10 +57,10 @@ task checkExplicit << {
 """
     }
 
-    def "can use whenEmpty to specify default dependencies"() {
+    def "can use defaultDependencies to specify default dependencies"() {
         buildFile << """
 def fooDep = project.dependencies.create("org:foo:1.0")
-configurations.conf.whenEmpty { deps ->
+configurations.conf.defaultDependencies { deps ->
     deps.add(fooDep)
 }
 """
@@ -101,7 +101,7 @@ configurations.conf.incoming.beforeResolve {
         succeeds "checkExplicit"
     }
 
-    def "deprecation warning informs about whenEmpty if beforeResolve used to add dependencies to observed configuration"() {
+    def "deprecation warning informs about defaultDependencies if beforeResolve used to add dependencies to observed configuration"() {
         buildFile << """
 def fooDep = project.dependencies.create("org:foo:1.0")
 configurations.conf.incoming.beforeResolve {
@@ -121,7 +121,7 @@ configurations.conf.incoming.beforeResolve {
 
         and:
         output.contains "Changed dependencies of configuration ':conf' after it has been included in dependency resolution."
-        output.contains "Use 'whenEmpty' instead of 'beforeResolve' to specify default dependencies for a configuration."
+        output.contains "Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration."
         output.contains "Changed dependencies of parent of configuration ':child' after it has been resolved."
     }
 }

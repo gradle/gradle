@@ -50,13 +50,13 @@ It is also possible to replace one project dependency with another, or one exter
 as `eachDependency`).
 Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
 
-### Specify default dependencies with `Configuration.whenEmpty`
+### Specify default dependencies for a Configuration
 
 Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is
 provided by the user. A common mechanism to do this involves using a `beforeResolve` hook to check if the configuration has any
 dependencies, adding the appropriate dependency if not.
 
-This mechanism does not work well with inherited or referenced configurations, so a new `Configuration.whenEmpty` method
+This mechanism does not work well with inherited or referenced configurations, so a new `defaultDependencies` method
 has been introduced for supplying default dependencies for a configuration. The use of `beforeResolve` to specify default dependencies
 will continue to work, but will emit a deprecation warning if the configuration has already participated in dependency resolution
 when it is first resolved (see below).
@@ -70,14 +70,14 @@ Specify default dependency with `beforeResolve` (deprecated):
         }
     }
 
-Specify default dependency with `whenEmpty` (recommended):
+Specify default dependency with `defaultDependencies` (recommended):
 
     def util = dependencies.create("org.gradle:my-util:1.0")
-    conf.whenEmpty { dependencies ->
+    conf.defaultDependencies { dependencies ->
         dependencies.add(util)
     }
 
-See the <a href="dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:whenEmpty(org.gradle.api.Action)">DSL reference</a> for more details.
+See the <a href="dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:defaultDependencies(org.gradle.api.Action)">DSL reference</a> for more details.
 
 ### Support for Precompiled Headers (i)
 

@@ -47,7 +47,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     @Override
     protected void configureTaskDefaults(Checkstyle task, String baseName) {
         def conf = project.configurations['checkstyle']
-        conf.whenEmpty { deps ->
+        conf.defaultDependencies { deps ->
             deps.add(owner.project.dependencies.create("com.puppycrawl.tools:checkstyle:${owner.extension.toolVersion}"))
         }
 

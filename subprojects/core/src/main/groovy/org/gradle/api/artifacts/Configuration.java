@@ -338,7 +338,7 @@ public interface Configuration extends FileCollection {
      *
      * This method is useful for specifying default dependencies for a configuration:
      * <pre autoTested='true'>
-     * configurations['conf'].whenEmpty { dependencies ->
+     * configurations['conf'].defaultDependencies { dependencies ->
      *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
      * }
      * </pre>
@@ -352,7 +352,7 @@ public interface Configuration extends FileCollection {
      * @return this
      */
     @Incubating
-    Configuration whenEmpty(Action<? super DependencySet> action);
+    Configuration defaultDependencies(Action<? super DependencySet> action);
 
     /**
      * Returns all the configurations belonging to the same configuration container as this

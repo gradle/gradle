@@ -59,7 +59,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private final List<Action<? super DependencySet>> whenEmptyActions = new ArrayList<Action<? super DependencySet>>();
+    private final List<Action<? super DependencySet>> defaultDependencyActions = new ArrayList<Action<? super DependencySet>>();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -252,16 +252,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration whenEmpty(Action<? super DependencySet> action) {
+    public Configuration defaultDependencies(Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.whenEmptyActions.add(action);
+        this.defaultDependencyActions.add(action);
         return this;
     }
 
     @Override
     public void triggerWhenEmptyActionsIfNecessary() {
-        if (!whenEmptyActions.isEmpty()) {
-            for (Action<? super DependencySet> action : whenEmptyActions) {
+        if (!defaultDependencyActions.isEmpty()) {
+            for (Action<? super DependencySet> action : defaultDependencyActions) {
                 if (!dependencies.isEmpty()) {
                     break;
                 }
@@ -508,7 +508,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
-        copiedConfiguration.whenEmptyActions.addAll(whenEmptyActions);
+        copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -600,7 +600,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // The configuration has been used in a resolution, and it is deprecated for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
-                String extraMessage = insideBeforeResolve ? " Use 'whenEmpty' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
+                String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
                 DeprecationLogger.nagUserWith(String.format("Changed %s of %s after it has been included in dependency resolution. This behaviour %s.%s", type, getDisplayName(), DeprecationLogger.getDeprecationMessage(), extraMessage));
             }
         }

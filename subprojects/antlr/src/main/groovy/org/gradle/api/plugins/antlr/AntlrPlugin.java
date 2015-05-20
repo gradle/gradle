@@ -56,7 +56,7 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        antlrConfiguration.whenEmpty(new Action<DependencySet>() {
+        antlrConfiguration.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
