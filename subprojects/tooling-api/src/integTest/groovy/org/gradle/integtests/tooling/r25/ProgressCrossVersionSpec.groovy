@@ -128,19 +128,4 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
             }
         """
     }
-
-//    static displayOperationsTree(List<ProgressEvent> events) {
-//        traverse(null, events, 0)
-//    }
-//
-//    static def traverse(ProgressEvent parentEvent, List<ProgressEvent> events, int depth) {
-//        def spacing = Strings.repeat(' ', depth * 4)
-//        println(spacing + (parentEvent == null ? 'Root' : "$parentEvent.displayName ($parentEvent.descriptor.name - $parentEvent.descriptor.displayName)"))
-//
-//        def directChildren = events.findAll { it.descriptor.parent == parentEvent?.descriptor }
-//
-//        events.removeAll(directChildren)
-//        directChildren.each { traverse(it, events, depth + 1) }
-//    }
-
 }
