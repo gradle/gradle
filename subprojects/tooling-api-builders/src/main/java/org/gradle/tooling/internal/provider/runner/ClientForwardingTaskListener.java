@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.Task;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -67,8 +66,8 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         return listenerConfiguration.isSendBuildProgressEvents() ? taskOperation.getParentId() : null;
     }
 
-    private static AbstractTaskResult toTaskResult(Task task) {
-        TaskStateInternal state = (TaskStateInternal) task.getState();
+    private static AbstractTaskResult toTaskResult(TaskInternal task) {
+        TaskStateInternal state = task.getState();
         long startTime = state.getStartTime();
         long endTime = state.getEndTime();
 

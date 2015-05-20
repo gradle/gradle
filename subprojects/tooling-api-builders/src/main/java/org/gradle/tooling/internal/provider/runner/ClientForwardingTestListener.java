@@ -15,11 +15,9 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -89,19 +87,14 @@ class ClientForwardingTestListener implements TestListenerInternal {
 
     private Object getParentId(TestDescriptorInternal descriptor) {
         TestDescriptorInternal parent = descriptor.getParent();
-        Object parentId = parent != null ? parent.getId() : null;
-        if (parentId == null) {
-            // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
-            if (listenerConfiguration.isSendTaskProgressEvents()) {
-                if (descriptor instanceof DecoratingTestDescriptor) {
-                    descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
-                }
-                if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
-                    parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
-                }
-            }
+        if (parent != null) {
+            return parent.getId();
         }
-        return parentId;
+        // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+        if (listenerConfiguration.isSendTaskProgressEvents()) {
+            return descriptor.getOwnerBuildOperationId();
+        }
+        return null;
     }
 
     private static AbstractTestResult adapt(TestResult result) {
