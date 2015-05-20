@@ -28,7 +28,10 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -41,10 +44,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
-    BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {
-        this.testProgressListeners.addAll(configuration.getTestProgressListeners());
-        this.taskProgressListeners.addAll(configuration.getTaskProgressListeners());
-        this.buildOperationProgressListeners.addAll(configuration.getBuildOperationProgressListeners());
+    BuildProgressListenerAdapter(List<ProgressListener> testProgressListeners,
+            List<ProgressListener> taskProgressListeners,
+            List<ProgressListener> buildOperationProgressListeners) {
+        this.testProgressListeners.addAll(testProgressListeners);
+        this.taskProgressListeners.addAll(taskProgressListeners);
+        this.buildOperationProgressListeners.addAll(buildOperationProgressListeners);
     }
 
     @Override

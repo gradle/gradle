@@ -347,11 +347,11 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
     }
 
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], []))
+        new BuildProgressListenerAdapter([], [], [])
     }
 
     private static BuildProgressListenerAdapter createAdapter(ProgressListener buildListener) {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], [buildListener]))
+        new BuildProgressListenerAdapter([], [], [buildListener])
     }
 
 }

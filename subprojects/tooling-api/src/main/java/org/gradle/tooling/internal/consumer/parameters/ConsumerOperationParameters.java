@@ -155,13 +155,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
-            BuildProgressListenerConfiguration buildProgressListenerConfiguration = new BuildProgressListenerConfiguration(
-                this.testProgressListeners,
-                this.taskProgressListeners,
-                this.buildOperationProgressListeners
-            );
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
-                new BuildProgressListenerAdapter(buildProgressListenerConfiguration));
+                new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }

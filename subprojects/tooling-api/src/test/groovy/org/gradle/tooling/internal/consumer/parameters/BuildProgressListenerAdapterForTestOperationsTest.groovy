@@ -523,11 +523,11 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
     }
 
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], []))
+        new BuildProgressListenerAdapter([], [], [])
     }
 
     private static BuildProgressListenerAdapter createAdapter(ProgressListener testListener) {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([testListener], [], []))
+        new BuildProgressListenerAdapter([testListener], [], [])
     }
 
 }

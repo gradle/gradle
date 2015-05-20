@@ -103,7 +103,7 @@ class BuildProgressListenerAdapterTest extends Specification {
     }
 
     BuildProgressListenerAdapter createAdapter(ProgressListener testListener, ProgressListener taskListener, ProgressListener buildListener) {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration(testListener ? [testListener] : [], taskListener ? [taskListener] : [], buildListener ? [buildListener] : []))
+        new BuildProgressListenerAdapter(testListener ? [testListener] : [], taskListener ? [taskListener] : [], buildListener ? [buildListener] : [])
     }
 
 }
