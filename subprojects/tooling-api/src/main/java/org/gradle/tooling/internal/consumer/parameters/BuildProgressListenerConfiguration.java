@@ -16,36 +16,34 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
-import org.gradle.tooling.events.internal.BuildOperationProgressListener;
-import org.gradle.tooling.events.task.internal.TaskProgressListener;
-import org.gradle.tooling.events.test.internal.TestProgressListener;
+import org.gradle.tooling.events.ProgressListener;
 
 import java.util.List;
 
 public class BuildProgressListenerConfiguration {
 
-    private final List<TestProgressListener> testProgressListeners;
-    private final List<TaskProgressListener> taskProgressListeners;
-    private final List<BuildOperationProgressListener> buildOperationProgressListeners;
+    private final List<ProgressListener> testProgressListeners;
+    private final List<ProgressListener> taskProgressListeners;
+    private final List<ProgressListener> buildOperationProgressListeners;
 
     public BuildProgressListenerConfiguration(
-        List<TestProgressListener> testProgressListeners,
-        List<TaskProgressListener> taskProgressListeners,
-        List<BuildOperationProgressListener> buildOperationProgressListeners) {
+        List<ProgressListener> testProgressListeners,
+        List<ProgressListener> taskProgressListeners,
+        List<ProgressListener> buildOperationProgressListeners) {
         this.testProgressListeners = testProgressListeners;
         this.taskProgressListeners = taskProgressListeners;
         this.buildOperationProgressListeners = buildOperationProgressListeners;
     }
 
-    public List<TestProgressListener> getTestProgressListeners() {
+    public List<ProgressListener> getTestProgressListeners() {
         return testProgressListeners;
     }
 
-    public List<TaskProgressListener> getTaskProgressListeners() {
+    public List<ProgressListener> getTaskProgressListeners() {
         return taskProgressListeners;
     }
 
-    public List<BuildOperationProgressListener> getBuildOperationProgressListeners() {
+    public List<ProgressListener> getBuildOperationProgressListeners() {
         return buildOperationProgressListeners;
     }
 

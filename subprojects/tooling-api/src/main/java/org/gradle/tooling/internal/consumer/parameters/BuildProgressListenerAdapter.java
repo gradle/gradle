@@ -36,9 +36,9 @@ import java.util.*;
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
-    private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
-    private final ListenerBroadcast<TaskProgressListener> taskProgressListeners = new ListenerBroadcast<TaskProgressListener>(TaskProgressListener.class);
-    private final ListenerBroadcast<BuildOperationProgressListener> buildOperationProgressListeners = new ListenerBroadcast<BuildOperationProgressListener>(BuildOperationProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(BuildProgressListenerConfiguration configuration) {

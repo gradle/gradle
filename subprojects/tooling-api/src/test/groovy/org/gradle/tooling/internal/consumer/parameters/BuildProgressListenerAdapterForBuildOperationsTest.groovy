@@ -17,8 +17,12 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.internal.*
+import org.gradle.tooling.events.internal.DefaultFinishEvent
+import org.gradle.tooling.events.internal.DefaultOperationFailureResult
+import org.gradle.tooling.events.internal.DefaultOperationSuccessResult
+import org.gradle.tooling.events.internal.DefaultStartEvent
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.events.*
@@ -34,7 +38,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         adapter.subscribedOperations == []
 
         when:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         adapter = createAdapter(listener)
 
         then:
@@ -43,7 +47,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "only BuildProgressEventX instances are processed if a build listener is added"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -55,7 +59,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "only BuildProgressEventX instances of known type are processed"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -68,7 +72,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "conversion of start events throws exception if previous start event with same build descriptor exists"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -85,7 +89,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "conversion of non-start events throws exception if no previous start event with same build descriptor exists"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -101,7 +105,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "looking up parent operation throws exception if no previous event for parent operation exists"() {
         given:
-        final BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -123,7 +127,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "conversion of child events expects parent event exists"() {
         given:
-        final BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -154,7 +158,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "convert all InternalBuildDescriptor attributes"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -175,7 +179,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "convert to BuildStartEvent"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -195,7 +199,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "convert to BuildSucceededEvent"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -222,7 +226,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "convert to BuildSucceededEvent when settings evaluated"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -261,7 +265,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
 
     def "convert to BuildFailedEvent"() {
         given:
-        BuildOperationProgressListener listener = Mock(BuildOperationProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -346,7 +350,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], []))
     }
 
-    private static BuildProgressListenerAdapter createAdapter(BuildOperationProgressListener buildListener) {
+    private static BuildProgressListenerAdapter createAdapter(ProgressListener buildListener) {
         new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], [buildListener]))
     }
 
