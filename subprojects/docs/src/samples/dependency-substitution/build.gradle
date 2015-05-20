@@ -1,37 +1,44 @@
+/*
+ * This sample demonstrates the ability to selectively include projects
+ * from the local directory rather than using an external dependency.
+ *
+ * By default all projects are considered external and are picked up
+ * from the "repo" ivy repository.  To include local projects in a build,
+ * set the "useLocal" system property on the gradle command line:
+ *
+ *   gradle -DuseLocal=project1,project2 :showJarFiles
+ *
+ */
+
 allprojects {
     apply plugin: 'java'
-    apply plugin: 'maven'
-    
+
     group "org.example"
     version "1.0"
-    
+
     def repoUrl = "file://${rootProject.projectDir}/repo"
-    
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                repository(url: repoUrl)
-            }
-        }
-    }
-    
+
     repositories {
-        maven { url repoUrl}
+        ivy { url repoUrl }
     }
-   
+
     configurations.all {
         resolutionStrategy.dependencySubstitution.eachModule {
-            if (it.requested.group != "org.example") { return }
-        
-            def targetProjectPath = ":" + it.requested.module
             def targetProject = findProject(":${it.requested.module}")
-            if (targetProject != null) {
-                it.useTarget(targetProject)
+            if (it.requested.group == "org.example"
+                    && targetProject != null) {
+                it.useTarget targetProject
             }
         }
     }
 }
 
 dependencies {
-   compile "org.example:sub1:1.0"
+   compile "org.example:project1:1.0"
+}
+
+task showJarFiles {
+    doLast {
+        configurations.compile.files.each { println it.path - rootDir.path }
+    }
 }

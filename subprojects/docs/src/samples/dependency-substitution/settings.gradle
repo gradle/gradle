@@ -1,10 +1,18 @@
-ext.projectNames = ["sub1", "sub2", "sub3"]
+ext.projectNames = ["project1", "project2", "project3"]
 
 projectNames.each { name ->
-  if (new File("$rootDir/$name/").exists()) {
-    println "project $name is internal to this build"
-    include name
-  } else {
-    println "project $name is external to this build"
-  }
+    if (isIncluded(name)) {
+        println "project $name is INTERNAL to this build"
+        include name
+    } else {
+        println "project $name is external to this build"
+    }
+}
+
+def isIncluded(String projectName) {
+    if (System.getProperty("useLocal") != null) {
+        def localProjects = System.getProperty("useLocal").split(",")
+        return (projectName in localProjects)
+    }
+    return false
 }

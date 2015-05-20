@@ -1,3 +1,0 @@
-dependencies {
-    compile "org.example:sub3:1.0"
-}
