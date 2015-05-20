@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
-
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
@@ -89,15 +88,15 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void sourceEntriesInClasspathFileAreSortedAsPerUsualConvention() {
         def expectedOrder = [
-                "src/main/java",
-                "src/main/groovy",
-                "src/main/resources",
-                "src/test/java",
-                "src/test/groovy",
-                "src/test/resources",
-                "src/integTest/java",
-                "src/integTest/groovy",
-                "src/integTest/resources"
+            "src/main/java",
+            "src/main/groovy",
+            "src/main/resources",
+            "src/test/java",
+            "src/test/groovy",
+            "src/test/resources",
+            "src/integTest/java",
+            "src/integTest/groovy",
+            "src/integTest/resources"
         ]
 
         expectedOrder.each { testFile(it).mkdirs() }
@@ -421,6 +420,7 @@ dependencies {
         String expectedXml = expectedFile.text
         String actualXml = getActualXml(actualFile)
         Diff diff = new Diff(expectedXml, actualXml)
+
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
             XMLAssert.assertXMLEqual(diff, true)

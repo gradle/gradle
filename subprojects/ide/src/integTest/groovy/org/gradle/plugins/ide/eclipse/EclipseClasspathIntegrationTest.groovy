@@ -107,6 +107,82 @@ dependencies {
         libraries[3].assertHasJar(anotherJar)
     }
 
+    @Test void includesTransitiveDependenciesFromProjectDependencies() {
+        given:
+        mavenRepo.module('someGroup', 'someArtifact', '1.0').publish()
+        mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish()
+
+        //when
+        runEclipseTask """include 'a', 'b', 'c'""", """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+configure(project(":a")){
+    dependencies {
+        compile 'someGroup:someOtherArtifact:1.0'
+
+        compile project(':b')
+    }
+}
+
+configure(project(":b")){
+    dependencies {
+        compile project(':c')
+    }
+}
+
+configure(project(":c")){
+    dependencies {
+        compile 'someGroup:someArtifact:1.0'
+    }
+}
+"""
+
+        then:
+        def aLibraries = classpath("a")
+        aLibraries.projects == ["/b", "/c"]
+        aLibraries.libs.size() == 1
+    }
+
+    @Test void includesTransitiveProjectDependencies() {
+        given:
+        runEclipseTask """include 'a', 'b', 'c'""", """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+configure(project(":a")){
+    dependencies {
+        compile project(':b')
+    }
+}
+
+configure(project(":b")){
+    dependencies {
+        compile project(':c')
+    }
+}
+"""
+
+        then:
+        def aLibraries = classpath("a")
+        aLibraries.projects.size() == 2
+        aLibraries.projects == ['b', 'c']
+        aLibraries.libs.size() == 1
+    }
+
+
     @Test
     void substituesPathVariablesIntoLibraryPathsExceptForJavadoc() {
         //given
@@ -425,10 +501,10 @@ eclipse.classpath {
         getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
-	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
-	<classpathentry kind="src" path="/someProject" exported="true"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
+	<classpathentry kind="src" path="/someProject"/>
 </classpath>
 '''
 
@@ -481,9 +557,9 @@ apply plugin: 'eclipse'
         classpath << '''<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
-	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
 </classpath>
 '''
 
@@ -604,10 +680,10 @@ task generateForTest << {}
     }
 
     @Test
-    @Issue("GRADLE-1613")
-    void shouldAllowSettingNonExportedConfigurations() {
+    void configuringNonExportedConfigurationsIsDeprecated() {
         //when
-        runEclipseTask """
+        executer.withDeprecationChecksDisabled()
+        def result = runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -632,9 +708,10 @@ eclipse {
         def libraries = classpath.libs
         assert libraries.size() == 2
         libraries[0].assertHasJar(file('compileDependency.jar'))
-        libraries[0].assertExported()
+        libraries[0].assertNotExported() // we changed the behaviour to default to false
         libraries[1].assertHasJar(file('providedDependency.jar'))
         libraries[1].assertNotExported()
+        result.output.contains("EclipseClasspath.noExportConfigurations has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Test

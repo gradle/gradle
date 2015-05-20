@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
-import org.gradle.plugins.ide.eclipse.model.internal.ExportedEntriesUpdater
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.ConfigureUtil
-
 /**
  * The build path settings for the generated Eclipse project. Used by the
  * {@link org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath} task to generate an Eclipse .classpath file.
@@ -132,7 +129,7 @@ class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    Collection<Configuration> noExportConfigurations = []
+    Collection<Configuration> noExportConfigurations = new DeprecatedNoExportConfigurationsCollection([])
 
     /**
      * The classpath containers to be added.
@@ -206,9 +203,7 @@ class EclipseClasspath {
      * Calculates, resolves and returns dependency entries of this classpath.
      */
     public List<ClasspathEntry> resolveDependencies() {
-        def entries = new ClasspathFactory().createEntries(this)
-        new ExportedEntriesUpdater().updateExported(entries, this.noExportConfigurations*.name)
-        return entries
+        return new ClasspathFactory().createEntries(this)
     }
 
     void mergeXmlClasspath(Classpath xmlClasspath) {

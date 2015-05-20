@@ -1,12 +1,11 @@
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/groovy"/>
-	<classpathentry kind="src" path="src/test/resources"/>
+	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2-sources.jar" kind="lib"
-					path="@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2.jar" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar" exported="true"/>
+	<classpathentry kind="src" path="src/test/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2.jar"/>
+	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar"/>
 </classpath>

@@ -45,7 +45,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedComponentResult> projectComponents = findAllResolvedDependencyResults(result.getRoot().getDependencies(), ProjectComponentIdentifier.class);
+
+        List<ResolvedComponentResult> projectComponents = new ArrayList<ResolvedComponentResult>();
+        findAllResolvedDependencyResultsAndTheirDependencies(projectComponents, new ArrayList<ResolvedComponentResult>(), result.getRoot().getDependencies(), ProjectComponentIdentifier.class);
 
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
@@ -55,27 +57,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         }
 
         return ideProjectDependencies;
-    }
-
-    /**
-     * Finds all resolved components of the given type from the given set of dependency edges.
-     *
-     * @param dependencies Dependencies
-     * @return Resolved dependency results
-     */
-    private List<ResolvedComponentResult> findAllResolvedDependencyResults(Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
-        List<ResolvedComponentResult> matches = new ArrayList<ResolvedComponentResult>();
-
-        for (DependencyResult dependencyResult : dependencies) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
-                if (type.isInstance(resolvedResult.getSelected().getId())) {
-                    matches.add(resolvedResult.getSelected());
-                }
-            }
-        }
-
-        return matches;
     }
 
     /**
@@ -107,15 +88,15 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     }
 
     /**
-     * Gets IDE local file dependencies.
+     * Gets IDE repository file dependencies.
      *
      * @param configuration Configuration
-     * @return IDE local file dependencies
+     * @return IDE repository file dependencies
      */
     public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
         List<ResolvedComponentResult> resolvedDependencies = new ArrayList<ResolvedComponentResult>();
-        findAllResolvedDependencyResultsAndTheirDependencies(resolvedDependencies, result.getRoot().getDependencies(), ModuleComponentIdentifier.class);
+        findAllResolvedDependencyResultsAndTheirDependencies(resolvedDependencies, new ArrayList<ResolvedComponentResult>(), result.getRoot().getDependencies(), ModuleComponentIdentifier.class);
         Set<ModuleVersionIdentifier> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
@@ -139,16 +120,17 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @param dependencies Dependencies
      * @return Resolved dependency results
      */
-    private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
+    private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, List<ResolvedComponentResult> visited, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
         for (DependencyResult dependencyResult : dependencies) {
             if (dependencyResult instanceof ResolvedDependencyResult) {
                 ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
-                if (type.isInstance(resolvedResult.getSelected().getId())) {
+                if (!visited.contains(resolvedResult.getSelected())) {
+                    if (type.isInstance(resolvedResult.getSelected().getId())) {
                     // avoid circular dependencies by checking whether component result is already added
-                    if (!matches.contains(resolvedResult.getSelected())) {
                         matches.add(resolvedResult.getSelected());
-                        findAllResolvedDependencyResultsAndTheirDependencies(matches, resolvedResult.getSelected().getDependencies(), type);
                     }
+                    visited.add(resolvedResult.getSelected());
+                    findAllResolvedDependencyResultsAndTheirDependencies(matches, visited, resolvedResult.getSelected().getDependencies(), type);
                 }
             }
         }

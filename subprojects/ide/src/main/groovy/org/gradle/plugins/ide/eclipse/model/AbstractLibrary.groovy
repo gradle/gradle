@@ -18,12 +18,16 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.Nullable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.util.DeprecationLogger
 
 abstract class AbstractLibrary extends AbstractClasspathEntry {
     FileReference sourcePath
     FileReference javadocPath
     FileReference library
+
+    @Deprecated
     String declaredConfigurationName
+
     @Nullable
     ModuleVersionIdentifier moduleVersion
 
@@ -40,6 +44,11 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
     void setLibrary(FileReference library) {
         this.library = library
         path = library.path
+    }
+
+    void setDeclaredConfigurationName(String declaredConfigurationName) {
+        DeprecationLogger.nagUserOfDeprecated("AbstractLibrary.declaredConfigurationName")
+        this.declaredConfigurationName = declaredConfigurationName
     }
 
     void setJavadocPath(FileReference path) {

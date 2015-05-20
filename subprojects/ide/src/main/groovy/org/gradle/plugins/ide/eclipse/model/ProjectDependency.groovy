@@ -15,9 +15,13 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.util.DeprecationLogger
+
 class ProjectDependency extends AbstractClasspathEntry {
 
     String gradlePath
+
+    @Deprecated
     String declaredConfigurationName
 
     ProjectDependency(Node node) {
@@ -29,6 +33,11 @@ class ProjectDependency extends AbstractClasspathEntry {
         super(path)
         assertPathIsValid()
         this.gradlePath = gradlePath
+    }
+
+    void setDeclaredConfigurationName(String declaredConfigurationName) {
+        DeprecationLogger.nagUserOfDeprecated("ProjectDependency.declaredConfigurationName")
+        this.declaredConfigurationName = declaredConfigurationName
     }
 
     private void assertPathIsValid() {
