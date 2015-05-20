@@ -26,6 +26,7 @@ import org.gradle.launcher.continuous.ContinuousModeParameters;
 public class ContinuousModeCommandLineConverter extends AbstractCommandLineConverter<ContinuousModeParameters> {
 
     private static final String CONTINUOUS = "continuous";
+    private static final String CONTINUOUS_SHORT = "T";
     private final JavaVersion currentVersion;
 
     ContinuousModeCommandLineConverter(JavaVersion currentVersion) {
@@ -37,7 +38,7 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
     }
 
     public ContinuousModeParameters convert(ParsedCommandLine args, ContinuousModeParameters target) throws CommandLineArgumentException {
-        if (args.hasOption(CONTINUOUS)) {
+        if (args.hasOption(CONTINUOUS_SHORT)) {
             assertJava7OrBetter();
             return target.setEnabled(true);
         }
@@ -51,6 +52,6 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(CONTINUOUS).hasDescription("Enables 'continuous mode'. Gradle does not exit and will re-execute tasks based on a trigger.").incubating();
+        parser.option(CONTINUOUS_SHORT, CONTINUOUS).hasDescription("Enables 'continuous mode'. Gradle does not exit and will re-execute tasks based on a trigger.").incubating();
     }
 }

@@ -37,6 +37,7 @@ class ContinuousModeCommandLineConverterTest extends Specification {
         options     | enabled
         []          | false
         ['--continuous'] | true
+        ['-T'] | true
     }
 
     def "fails on Java 6 with reasonable message"() {

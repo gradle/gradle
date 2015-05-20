@@ -279,6 +279,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>-T</option>, <option>--continuous</option>
+            </term>
+            <listitem>
+                <para>Enables 'continuous mode'.  Gradle will automatically re-run when changes are detected. See <xref linkend="continuous_mode"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-u</option>, <option>--no-search-upwards</option>
             </term>
             <listitem>
@@ -293,14 +301,6 @@
             </term>
             <listitem>
                 <para>Prints version info.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>--continuous</option>
-            </term>
-            <listitem>
-                <para>Enables 'continuous mode'.  Gradle will automatically re-run when changes are detected. See <xref linkend="continuous_mode"/>.
                 </para>
             </listitem>
         </varlistentry>
