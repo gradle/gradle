@@ -50,6 +50,35 @@ It is also possible to replace one project dependency with another, or one exter
 as `eachDependency`).
 Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
 
+### Specify default dependencies with `Configuration.whenEmpty`
+
+Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is
+provided by the user. A common mechanism to do this involves using a `beforeResolve` hook to check if the configuration has any
+dependencies, adding the appropriate dependency if not.
+
+This mechanism does not work well with inherited or referenced configurations, so a new `Configuration.whenEmpty` method
+has been introduced for supplying default dependencies for a configuration. The use of `beforeResolve` to specify default dependencies
+will continue to work, but will emit a deprecation warning if the configuration has already participated in dependency resolution
+when it is first resolved (see below).
+
+Specify default dependency with `beforeResolve` (deprecated):
+
+    def util = dependencies.create("org.gradle:my-util:1.0")
+    conf.incoming.beforeResolve {
+        if (conf.dependencies.empty) {
+            conf.dependencies.add(util)
+        }
+    }
+
+Specify default dependency with `whenEmpty` (recommended):
+
+    def util = dependencies.create("org.gradle:my-util:1.0")
+    conf.whenEmpty { dependencies ->
+        dependencies.add(util)
+    }
+
+See the <a href="dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:whenEmpty(org.gradle.api.Action)">DSL reference</a> for more details.
+
 ### Support for Precompiled Headers (i)
 
 Precompiled headers are a performance optimization for native builds that allows commonly used headers to be compiled only once rather than for
@@ -137,9 +166,23 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-### Changing a configuration after it has been resolved
+### Changing a configuration after it has participated in dependency resolution
 
-TODO
+Unexpected behaviour can result from changing a configuration after it has participated in dependency resolution. Examples include:
+
+* Change the dependencies of a parent of a configuration: the child configuration will get different dependencies depending on when
+  it is resolved.
+* Changing the artifacts of a configuration referenced as a project dependency: whether the referencing project gets those artifacts
+  depends on the order that configurations are resolved.
+
+Previous versions of Gradle prevented the resolved configuration itself from being modified, but did nothing to 
+prevent modifications to related configurations after they have participated in dependency resolution. This version of Gradle extends
+the checks, emitting a deprecation warning when a modification is made to a configuration that has been referenced in dependency
+resolution.
+
+One exception is that changes to the `ResolutionStrategy` of a configuration can be made at any time until that configuration is 
+itself resolved. Changes to the strategy do not impact the resolution of child configurations, or configurations referenced as
+project dependencies. Thus, these changes are safe to make.
 
 ### Distribution Plugin changes
 

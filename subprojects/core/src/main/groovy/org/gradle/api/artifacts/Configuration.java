@@ -326,13 +326,29 @@ public interface Configuration extends FileCollection {
     Configuration exclude(Map<String, String> excludeProperties);
 
     /**
-     * Execute the given action if the configuration is empty when it first participates in
-     * dependency resolution. A {@code Configuration} can participate in dependency resolution
-     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
-     * The {@code Configuration} is considered empty even if it extends another, non-empty
-     * {@code Configuration}.
+     * Execute the given action if the configuration has no defined dependencies when it first participates in
+     * dependency resolution. A {@code Configuration} will participate in dependency resolution
+     * when:
+     * <ul>
+     *     <li>The {@link Configuration} itself is resolved</li>
+     *     <li>Another {@link Configuration} that extends this one is resolved</li>
+     *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
+     * </ul>
      *
-     * @param action the action to execute when the configuration is empty.
+     *
+     * This method is useful for specifying default dependencies for a configuration:
+     * <pre autoTested='true'>
+     * configurations['conf'].whenEmpty { dependencies ->
+     *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
+     * }
+     * </pre>
+     *
+     * A {@code Configuration} is considered empty even if it extends another, non-empty {@code Configuration}.
+     *
+     * If multiple actions are supplied, each action will be executed until the set of dependencies is no longer empty.
+     * Remaining actions will be ignored.
+     *
+     * @param action the action to execute when the configuration has no defined dependencies.
      * @return this
      */
     @Incubating
