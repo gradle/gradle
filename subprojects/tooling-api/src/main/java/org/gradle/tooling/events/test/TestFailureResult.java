@@ -17,10 +17,7 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
-
-import java.util.List;
 
 /**
  * Describes how a test operation finished with failures.
@@ -29,13 +26,4 @@ import java.util.List;
  */
 @Incubating
 public interface TestFailureResult extends TestOperationResult, FailureResult {
-
-    /**
-     * Returns the exceptions that occurred while running the test operation, if any.
-     *
-     * @return the exceptions, empty if the test operation failed without any exceptions
-     */
-    @Override
-    List<? extends Failure> getFailures();
-
 }
