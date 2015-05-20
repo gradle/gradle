@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnable> {
-
+    private static final long FIRING_DELAY_TIMEMILLIS = 250L;
     private final FileWatcherFactory fileWatcherFactory;
 
     public FileSystemChangeWaiter(FileWatcherFactory fileWatcherFactory) {
@@ -73,5 +73,10 @@ public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnab
             throw UncheckedException.throwAsUncheckedException(throwable);
         }
 
+        try {
+            Thread.sleep(FIRING_DELAY_TIMEMILLIS);
+        } catch (InterruptedException e) {
+            // ignore
+        }
     }
 }
