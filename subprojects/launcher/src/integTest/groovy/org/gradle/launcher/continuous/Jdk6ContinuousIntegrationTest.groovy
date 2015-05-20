@@ -35,7 +35,7 @@ class Jdk6ContinuousIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        errorOutput.contains "Continuous mode (--continuous) is not supported on versions of Java older than 1.7."
+        errorOutput.contains "Continuous building (--continuous) is not supported on versions of Java older than 1.7."
     }
 
 }

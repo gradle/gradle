@@ -20,8 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -29,6 +28,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,24 +41,24 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private final BiAction<? super FileSystemSubset, ? super Runnable> waiter;
     private final AtomicBoolean keyboardCancellationRequested;
 
-    private final Logger logger;
+    private final StyledTextOutput logger;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, new FileSystemChangeWaiter(executorFactory, fileWatcherFactory));
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+        this(delegate, listenerManager, styledTextOutputFactory, new FileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {
+    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.waiter = waiter;
         this.keyboardCancellationRequested = (waiter instanceof FileSystemChangeWaiter) ? ((FileSystemChangeWaiter) waiter).getCancellationRequested() : new AtomicBoolean(false);
-        this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
+        this.logger = styledTextOutputFactory.create(ContinuousModeBuildActionExecuter.class, LogLevel.LIFECYCLE);
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
-            SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
+            SingleMessageLogger.incubatingFeatureUsed("Continuous building");
             return executeMultipleBuilds(action, requestContext, actionParameters);
         }
         return executeSingleBuild(action, requestContext, actionParameters);
@@ -70,6 +71,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
             if (++counter != 1) {
                 // reset the time the build started so the total time makes sense
                 requestContext.getBuildTimeClock().reset();
+                logger.println("Change detected, executing build...").println();
             }
 
             FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
@@ -81,19 +83,19 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
             FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
             if (toWatch.isEmpty()) {
-                logger.lifecycle("Exiting continuous mode as no executed tasks declared file system inputs.");
+                logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
                 return lastResult;
             } else if (buildNotStopped(requestContext)) {
                 waiter.execute(toWatch, new Runnable() {
                     @Override
                     public void run() {
-                        logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.");
+                        logger.println().println("Waiting for changes to input files of tasks... (ctrl+c to exit)");
                     }
                 });
             }
         }
 
-        logger.lifecycle("Build cancelled, exiting 'continuous mode'.");
+        logger.println("Build cancelled.");
         return lastResult;
     }
 

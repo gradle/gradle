@@ -85,7 +85,7 @@ public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnab
             }
         );
 
-        final StoppableExecutor keyboardHandlerExecutor = executorFactory.create("Continuous mode keyboard handler");
+        final StoppableExecutor keyboardHandlerExecutor = executorFactory.create("Continuous building keyboard handler");
         ListenableFuture<Boolean> keyboardHandlerFuture = submitAsyncKeyboardHandler(MoreExecutors.listeningDecorator(keyboardHandlerExecutor), latch);
 
         try {

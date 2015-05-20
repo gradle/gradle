@@ -23,6 +23,7 @@ import org.gradle.initialization.*
 import org.gradle.internal.BiAction
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import spock.lang.Specification
 
@@ -36,7 +37,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiter = Mock(BiAction)
     def listenerManager = new DefaultListenerManager()
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, listenerManager, waiter)
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, listenerManager, new TestStyledTextOutputFactory(), waiter)
     private File file = new File('file')
 
     def setup() {

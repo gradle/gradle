@@ -34,10 +34,10 @@ class ContinuousModeCommandLineConverterTest extends Specification {
         converted.enabled == enabled
 
         where:
-        options     | enabled
-        []          | false
+        options          | enabled
+        []               | false
         ['--continuous'] | true
-        ['-T'] | true
+        ['-t']           | true
     }
 
     def "fails on Java 6 with reasonable message"() {
@@ -45,7 +45,7 @@ class ContinuousModeCommandLineConverterTest extends Specification {
         convert(["--continuous"], JavaVersion.VERSION_1_6)
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Continuous mode (--continuous) is not supported on versions of Java older than 1.7."
+        e.message == "Continuous building (--continuous) is not supported on versions of Java older than 1.7."
     }
 
     private ContinuousModeParameters convert(Iterable args, JavaVersion javaVersion) {

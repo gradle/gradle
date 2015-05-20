@@ -26,7 +26,7 @@ import org.gradle.launcher.continuous.ContinuousModeParameters;
 public class ContinuousModeCommandLineConverter extends AbstractCommandLineConverter<ContinuousModeParameters> {
 
     private static final String CONTINUOUS = "continuous";
-    private static final String CONTINUOUS_SHORT = "T";
+    private static final String CONTINUOUS_SHORT_FLAG = "t";
     private final JavaVersion currentVersion;
 
     ContinuousModeCommandLineConverter(JavaVersion currentVersion) {
@@ -38,7 +38,7 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
     }
 
     public ContinuousModeParameters convert(ParsedCommandLine args, ContinuousModeParameters target) throws CommandLineArgumentException {
-        if (args.hasOption(CONTINUOUS_SHORT)) {
+        if (args.hasOption(CONTINUOUS)) {
             assertJava7OrBetter();
             return target.setEnabled(true);
         }
@@ -47,11 +47,11 @@ public class ContinuousModeCommandLineConverter extends AbstractCommandLineConve
 
     private void assertJava7OrBetter() {
         if (!currentVersion.isJava7Compatible()) {
-            throw new CommandLineArgumentException(String.format("Continuous mode (--%s) is not supported on versions of Java older than %s.", CONTINUOUS, JavaVersion.VERSION_1_7));
+            throw new CommandLineArgumentException(String.format("Continuous building (--%s) is not supported on versions of Java older than %s.", CONTINUOUS, JavaVersion.VERSION_1_7));
         }
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(CONTINUOUS_SHORT, CONTINUOUS).hasDescription("Enables 'continuous mode'. Gradle does not exit and will re-execute tasks based on a trigger.").incubating();
+        parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous building. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
     }
 }

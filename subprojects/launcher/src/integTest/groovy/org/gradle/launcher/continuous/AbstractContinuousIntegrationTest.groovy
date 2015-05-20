@@ -107,7 +107,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             if (gradle.isRunning()) {
-                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.\n"))
+                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks... (ctrl+c to exit)\n"))
             }
         }
 
@@ -161,14 +161,14 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         }
     }
 
+    // should be private, but is accessed by closures in this class
+    protected String buildOutputSoFar() {
+        gradle.standardOutput.substring(standardOutputBuildMarker)
+    }
+
     void expectOutput(double waitSeconds = 3.0, Closure<?> checkOutput) {
         new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
             assert checkOutput(buildOutputSoFar())
         }
-    }
-
-    // should be private, but is accessed by closures in this class
-    protected String buildOutputSoFar() {
-        gradle.standardOutput.substring(standardOutputBuildMarker)
     }
 }
