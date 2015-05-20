@@ -41,12 +41,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     public void turnOnDebug() {
         executer.withDebug(true)
         executer.withArgument("--no-daemon")
-        buildTimeout = buildTimeout*100
+        buildTimeout = buildTimeout * 100
     }
 
     public void cleanupWhileTestFilesExist() {
         stopGradle()
-        if(OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows()) {
             // needs delay to release file handles
             sleep(500L)
         }
@@ -57,7 +57,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         if (tasks) {
             runBuild(tasks)
         }
-        if (gradle==null) {
+        if (gradle == null) {
             throw new UnexpectedBuildFailure("Gradle never started")
         }
         waitForBuild()
@@ -91,8 +91,9 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         // TODO: change this to 'tick' on any output change rather than waiting for the hold build to complete
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert gradle.isRunning()
-            assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n"))
+            if (gradle.isRunning()) {
+                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.\n"))
+            }
         }
 
         def out = buildOutputSoFar()

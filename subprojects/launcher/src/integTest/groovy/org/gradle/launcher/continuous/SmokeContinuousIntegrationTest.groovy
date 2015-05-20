@@ -119,22 +119,40 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         noBuildTriggered()
     }
 
-    @Ignore("Doesn't exit")
-    def "exits when build fails before any tasks execute"() {
+    def "exits when build fails with compile error"() {
         when:
-
         buildFile << """
-            task a {
-              doLast { }
-            }
-
             'script error
         """
 
         then:
         fails("a")
-        !(":a" in executedTasks)
-        !output.contains("Waiting for a trigger")
+        !gradle.running
+        output.contains("Exiting continuous mode as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when build fails with configuration error"() {
+        when:
+        buildFile << """
+            throw new Exception("!")
+        """
+
+        then:
+        fails("a")
+        !gradle.running
+        output.contains("Exiting continuous mode as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when no executed tasks have file system inputs"() {
+        when:
+        buildFile << """
+            task a
+        """
+
+        then:
+        succeeds("a")
+        !gradle.running
+        output.contains("Exiting continuous mode as no executed tasks declared file system inputs.")
     }
 
     def "reuses build script classes"() {

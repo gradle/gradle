@@ -16,9 +16,12 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.initialization.*
 import org.gradle.internal.BiAction
-import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.util.Clock
 import spock.lang.Specification
@@ -32,8 +35,9 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
     def waiter = Mock(BiAction)
-    def listenerManager = Mock(ListenerManager)
+    def listenerManager = new DefaultListenerManager()
     def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, listenerManager, waiter)
+    private File file = new File('file')
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
@@ -72,7 +76,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         continuousMode()
         when:
         underlyingExecuter.with {
-            first { succeeds() }
+            first { declareInput(file); succeeds() }
             thenStops()
         }
         executeBuild()
@@ -82,12 +86,27 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         underlyingExecuter.executedAllActions()
     }
 
+    def "exits if there are no file system inputs"() {
+        given:
+        continuousMode()
+        when:
+        underlyingExecuter.with {
+            first { succeeds() }
+            thenStops()
+        }
+        executeBuild()
+        then:
+        0 * waiter.execute(_, _)
+        0 * clock.reset()
+        underlyingExecuter.executedAllActions()
+    }
+
     def "waits for trigger in continuous mode when build fails"() {
         given:
         continuousMode()
         when:
         underlyingExecuter.with {
-            first { fails() }
+            first { declareInput(file); fails() }
             thenStops()
         }
         executeBuild()
@@ -100,9 +119,9 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         given:
         continuousMode()
         underlyingExecuter.with {
-            first { succeeds() }
-            then { fails() }
-            then { succeeds() }
+            first { declareInput(file); succeeds() }
+            then { declareInput(file); fails() }
+            then { declareInput(file); succeeds() }
             thenStops()
         }
         when:
@@ -129,6 +148,10 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     private void fails() {
         throw new RuntimeException("always fails")
+    }
+
+    private void declareInput(File file) {
+        listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
     private void cancelAfter(int times) {

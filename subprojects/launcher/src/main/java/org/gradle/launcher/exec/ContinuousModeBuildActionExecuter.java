@@ -26,7 +26,8 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.*;
+import org.gradle.internal.filewatch.FileSystemChangeWaiter;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.util.SingleMessageLogger;
 
@@ -74,8 +75,12 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 // TODO: logged already, are there certain cases we want to escape from this loop?
             }
 
-            if (buildNotStopped(requestContext)) {
-                waiter.execute(fileSystemSubsetBuilder.build(), new Runnable() {
+            FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
+            if (toWatch.isEmpty()) {
+                logger.lifecycle("Exiting continuous mode as no executed tasks declared file system inputs.");
+                return lastResult;
+            } else if (buildNotStopped(requestContext)) {
+                waiter.execute(toWatch, new Runnable() {
                     @Override
                     public void run() {
                         logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");

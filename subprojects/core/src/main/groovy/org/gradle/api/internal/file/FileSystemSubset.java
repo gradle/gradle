@@ -65,6 +65,10 @@ public class FileSystemSubset {
         return new FileSystemSubset(ImmutableList.copyOf(getRoots()), ImmutableList.<ImmutableDirectoryTree>of());
     }
 
+    public boolean isEmpty() {
+        return files.isEmpty() && trees.isEmpty();
+    }
+
     public boolean contains(File file) {
         File absoluteFile = file.getAbsoluteFile();
         String pathWithSeparator = file.getAbsolutePath() + File.separator;
