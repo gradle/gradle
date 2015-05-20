@@ -338,6 +338,7 @@ public interface Configuration extends FileCollection {
      *
      * This method is useful for specifying default dependencies for a configuration:
      * <pre autoTested='true'>
+     * configurations { conf }
      * configurations['conf'].defaultDependencies { dependencies ->
      *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
      * }
