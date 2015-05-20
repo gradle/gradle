@@ -50,8 +50,8 @@ public interface ExternalDependency extends Dependency {
     /**
      * marks a dependency as exported.
      * @return whether a external dependency is exported.
+     * @since 2.5
      */
-    @Nullable
     boolean isExported();
 
     /**
