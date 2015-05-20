@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.internal.environment.GradleBuildEnvironment
 import spock.lang.Ignore
 
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -167,6 +168,21 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "value: changed"
         output.contains "reuse: true"
 
+    }
+
+    def "considered to be long lived process"() {
+        when:
+        buildFile << """
+            task echo {
+              doLast {
+                println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
+              }
+            }
+        """
+
+        then:
+        succeeds("echo")
+        output.contains "isLongLivingProcess: true"
     }
 
     def "failure to determine inputs has a reasonable message"() {

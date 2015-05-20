@@ -102,7 +102,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .displayName("Global services")
                 .parent(loggingServices)
                 .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices(false))
+                .provider(new GlobalScopeServices(startParameter.isContinuousModeEnabled()))
                 .build();
 
         BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildExecuter.class);
