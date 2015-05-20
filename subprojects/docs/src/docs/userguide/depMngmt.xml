@@ -1182,6 +1182,21 @@ someroot/[artifact]-[revision].[ext]
                     </sample>
                 </para>
             </section>
+            <section id='sec:project_substitution'>
+                <title>Substituting a dependency module with a project replacement</title>
+                <para>
+                    Another use case for module substitution is to replace an external module dependency with a project in a multi-project build.
+                    This can be useful for testing a local, patched version of a dependency or for building only selected projects from a large build where
+                    some projects are local while the rest come from external modules.
+                </para>
+                <sample id="project_substitution" dir="dependency-substitution" title="Substituting a project for a module">
+                    <sourcefile file="build.gradle" snippet="project_substitution"/>
+                </sample>
+                <para>
+                    Note that any project that is substituted must first be included in the multi-project build (via settings.gradle).  The substitution
+                    rule only replaces the module dependency with the project dependency - it does not implicitly include the project in the build.
+                </para>
+            </section>
             <section id='sec:module_replacement'>
                 <title>Declaring that a legacy library is replaced by a new one</title>
                 <para>

@@ -39,6 +39,9 @@
                 <td>eachDependency</td>
             </tr>
             <tr>
+                <td>dependencySubstitution</td>
+            </tr>
+            <tr>
                 <td>componentSelection</td>
             </tr>
         </table>
