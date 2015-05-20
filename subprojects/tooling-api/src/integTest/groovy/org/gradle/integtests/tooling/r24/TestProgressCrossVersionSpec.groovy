@@ -18,38 +18,18 @@ package org.gradle.integtests.tooling.r24
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
-import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
+@ToolingApiVersion("=2.4")
+@TargetGradleVersion(">=2.4")
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=1.0-milestone-8 <2.4")
-    def "ignores listeners when Gradle version does not generate test events"() {
-        given:
-        goodCode()
-
-        when:
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener {
-                    throw new RuntimeException()
-                }.run()
-        }
-
-        then:
-        noExceptionThrown()
-    }
-
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events when requesting a model"() {
         given:
         goodCode()
@@ -67,8 +47,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events when launching a build"() {
         given:
         goodCode()
@@ -86,8 +64,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     @LeaksFileHandles
     def "build aborts if a test listener throws an exception"() {
         given:
@@ -105,8 +81,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         thrown(GradleConnectionException)
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     @LeaksFileHandles
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
@@ -132,8 +106,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         resultsOfLastListener.size() == 1
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
@@ -252,8 +224,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
@@ -379,8 +349,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootFailedEvent.result.failures.size() == 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
@@ -495,8 +463,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test workers"() {
         given:
         buildFile << """
@@ -570,9 +536,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
         projectDir.createFile('settings.gradle') << """
