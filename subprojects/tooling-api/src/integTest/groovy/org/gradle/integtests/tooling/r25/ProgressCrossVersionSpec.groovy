@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.internal.DefaultFinishEvent
 import org.gradle.tooling.events.internal.DefaultStartEvent
@@ -49,7 +49,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << event
                     }
-                }, EnumSet.allOf(ProgressEventType)).run()
+                }, EnumSet.allOf(OperationType)).run()
         }
 
         then: "all progress events must be forwarded to the attached listener"
@@ -76,7 +76,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << event
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: "only the matching progress events must be forwarded to the attached listener"
@@ -101,7 +101,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << event
                     }
-                }, EnumSet.allOf(ProgressEventType.class)).run()
+                }, EnumSet.allOf(OperationType.class)).run()
         }
 
         then: 'all events are in a hierarchy with a single root node'

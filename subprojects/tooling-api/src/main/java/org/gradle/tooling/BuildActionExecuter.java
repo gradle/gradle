@@ -17,12 +17,12 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.OperationType;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Used to execute a {@link BuildAction} in the build process.
@@ -38,6 +38,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> withArguments(String... arguments);
 
     /**
@@ -45,6 +46,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> setStandardOutput(OutputStream outputStream);
 
     /**
@@ -52,6 +54,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> setStandardError(OutputStream outputStream);
 
     /**
@@ -60,6 +63,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * @since 2.3
      */
     @Incubating
+    @Override
     BuildActionExecuter<T> setColorOutput(boolean colorOutput);
 
     /**
@@ -67,6 +71,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> setStandardInput(InputStream inputStream);
 
     /**
@@ -74,6 +79,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> setJavaHome(File javaHome);
 
     /**
@@ -81,6 +87,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> setJvmArguments(String... jvmArguments);
 
     /**
@@ -88,6 +95,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *
      * @since 2.3
      */
+    @Override
     BuildActionExecuter<T> addProgressListener(ProgressListener listener);
 
     /**
@@ -96,6 +104,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * @since 2.5
      */
     @Incubating
+    @Override
     BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
@@ -104,7 +113,8 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * @since 2.5
      */
     @Incubating
-    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+    @Override
+    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes);
 
     /**
      * {@inheritDoc}
@@ -112,6 +122,7 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * @since 2.3
      */
     @Incubating
+    @Override
     BuildActionExecuter<T> withCancellationToken(CancellationToken cancellationToken);
 
     /**

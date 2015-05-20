@@ -19,13 +19,14 @@ import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumSet;
+import java.util.Set;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
@@ -44,64 +45,74 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
+    @Override
     public T withArguments(String... arguments) {
         operationParamsBuilder.setArguments(arguments);
         return getThis();
     }
 
+    @Override
     public T setStandardOutput(OutputStream outputStream) {
         operationParamsBuilder.setStdout(outputStream);
         return getThis();
     }
 
+    @Override
     public T setStandardError(OutputStream outputStream) {
         operationParamsBuilder.setStderr(outputStream);
         return getThis();
     }
 
+    @Override
     public T setStandardInput(InputStream inputStream) {
         operationParamsBuilder.setStdin(inputStream);
         return getThis();
     }
 
+    @Override
     public T setColorOutput(boolean colorOutput) {
         operationParamsBuilder.setColorOutput(colorOutput);
         return getThis();
     }
 
+    @Override
     public T setJavaHome(File javaHome) {
         operationParamsBuilder.setJavaHome(javaHome);
         return getThis();
     }
 
+    @Override
     public T setJvmArguments(String... jvmArguments) {
         operationParamsBuilder.setJvmArguments(jvmArguments);
         return getThis();
     }
 
+    @Override
     public T addProgressListener(ProgressListener listener) {
         operationParamsBuilder.addProgressListener(listener);
         return getThis();
     }
 
+    @Override
     public T addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
-        return addProgressListener(listener, EnumSet.allOf(ProgressEventType.class));
+        return addProgressListener(listener, EnumSet.allOf(OperationType.class));
     }
 
     @Override
-    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes) {
-        if (eventTypes.contains(ProgressEventType.TEST)) {
+    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
+        if (eventTypes.contains(OperationType.TEST)) {
             operationParamsBuilder.addTestProgressListener(listener);
         }
-        if (eventTypes.contains(ProgressEventType.TASK)) {
+        if (eventTypes.contains(OperationType.TASK)) {
             operationParamsBuilder.addTaskProgressListener(listener);
         }
-        if (eventTypes.contains(ProgressEventType.GENERIC)) {
+        if (eventTypes.contains(OperationType.GENERIC)) {
             operationParamsBuilder.addBuildOperationProgressListeners(listener);
         }
         return getThis();
     }
 
+    @Override
     public T withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();

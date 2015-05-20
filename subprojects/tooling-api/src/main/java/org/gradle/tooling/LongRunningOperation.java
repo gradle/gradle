@@ -16,12 +16,12 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.ProgressEventType;
+import org.gradle.tooling.events.OperationType;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Offers ways to communicate both ways with a Gradle operation, be it building a model or running tasks.
@@ -171,15 +171,15 @@ public interface LongRunningOperation {
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
-     * Adds a progress listener which will receive progress events of the requested types as the operation runs.
+     * Adds a progress listener which will receive progress events as the operations of the requested type run.
      *
      * @param listener The listener
-     * @param eventTypes The types of progress events to receive
+     * @param operationTypes The types of operations to receive progress events for.
      * @return this
      * @since 2.5
      */
     @Incubating
-    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, EnumSet<ProgressEventType> eventTypes);
+    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.

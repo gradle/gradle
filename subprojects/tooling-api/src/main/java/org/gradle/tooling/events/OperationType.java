@@ -17,11 +17,11 @@
 package org.gradle.tooling.events;
 
 /**
- * Enumerates the different types of progress events that can be received.
+ * Enumerates the different types of operations for which progress events can be received.
  *
- * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.EnumSet)
+ * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.Set)
  */
-public enum ProgressEventType {
+public enum OperationType {
 
     /**
      * Flag for test operation progress events.
@@ -34,7 +34,7 @@ public enum ProgressEventType {
     TASK,
 
     /**
-     * Flag for progress events for which there is no specific operation type.
+     * Flag for operations with no specific type.
      */
     GENERIC
 
