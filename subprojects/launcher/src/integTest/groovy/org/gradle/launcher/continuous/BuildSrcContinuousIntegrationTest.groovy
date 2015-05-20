@@ -54,7 +54,7 @@ class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         then:
         succeeds()
-        output.contains "value: original"
+        output.contains "value: changed"
     }
 
 }
