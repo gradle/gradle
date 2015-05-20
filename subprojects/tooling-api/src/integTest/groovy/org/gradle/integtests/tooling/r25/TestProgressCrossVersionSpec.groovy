@@ -24,15 +24,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -607,7 +605,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
