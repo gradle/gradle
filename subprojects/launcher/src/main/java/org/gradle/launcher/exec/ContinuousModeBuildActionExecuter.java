@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.*;
 import org.gradle.internal.invocation.BuildAction;
@@ -37,8 +38,8 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private final Logger logger;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager) {
-        this(delegate, listenerManager, new FileSystemChangeWaiter(fileWatcherFactory));
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        this(delegate, listenerManager, new FileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
     ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BiAction<? super FileSystemSubset, ? super Runnable> waiter) {

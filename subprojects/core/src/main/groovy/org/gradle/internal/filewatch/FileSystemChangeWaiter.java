@@ -20,15 +20,22 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnable> {
-    private static final long FIRING_DELAY_TIMEMILLIS = 250L;
+
+    private static final long QUIET_PERIOD = 250L;
+
+    private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
 
-    public FileSystemChangeWaiter(FileWatcherFactory fileWatcherFactory) {
+    public FileSystemChangeWaiter(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
+        this.executorFactory = executorFactory;
         this.fileWatcherFactory = fileWatcherFactory;
     }
 
@@ -36,6 +43,7 @@ public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnab
     public void execute(FileSystemSubset taskFileSystemInputs, Runnable notifier) {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
+        final StoppableExecutor executorService = executorFactory.create("quiet period waiter");
 
         FileWatcher watcher = fileWatcherFactory.watch(
             taskFileSystemInputs,
@@ -47,36 +55,41 @@ public class FileSystemChangeWaiter implements BiAction<FileSystemSubset, Runnab
                 }
             },
             new FileWatcherListener() {
+                private IdleTimeout timeout;
+
                 @Override
-                public void onChange(FileWatcher watcher, FileWatcherEvent event) {
-                    watcher.stop();
-                    latch.countDown();
+                public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
+                    if (timeout == null) {
+                        timeout = new IdleTimeout(QUIET_PERIOD, new Runnable() {
+                            @Override
+                            public void run() {
+                                watcher.stop();
+                                latch.countDown();
+                            }
+                        });
+                        executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                timeout.await();
+                            }
+                        });
+                    }
+                    timeout.tick();
                 }
             }
         );
 
         try {
             notifier.run();
-        } catch (Exception e) {
-            watcher.stop();
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        try {
             latch.await();
-        } catch (InterruptedException e) {
+            Throwable throwable = error.get();
+            if (throwable != null) {
+                throw UncheckedException.throwAsUncheckedException(throwable);
+            }
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        Throwable throwable = error.get();
-        if (throwable != null) {
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        }
-
-        try {
-            Thread.sleep(FIRING_DELAY_TIMEMILLIS);
-        } catch (InterruptedException e) {
-            // ignore
+        } finally {
+            CompositeStoppable.stoppable(watcher, executorService).stop();
         }
     }
 }
