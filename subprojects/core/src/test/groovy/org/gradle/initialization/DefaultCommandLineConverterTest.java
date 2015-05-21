@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,101 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.initialization;
 
-import org.gradle.StartParameter
-import org.gradle.api.logging.LogLevel
-import org.gradle.cli.CommandLineArgumentException
-import org.gradle.logging.ConsoleOutput
-import org.gradle.logging.ShowStacktrace
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import org.junit.Test
-import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.logging.ConsoleOutput;
+import org.gradle.logging.ShowStacktrace;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
 
-import static java.util.Arrays.asList
-import static org.gradle.util.WrapUtil.*
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertThat
+import java.io.File;
+import java.io.IOException;
 
-public class DefaultCommandLineConverterTest extends Specification {
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toMap;
+
+public class DefaultCommandLineConverterTest extends CommandLineConverterTestSupport {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
-    private TestFile currentDir = testDir.file("current-dir");
-    private File expectedBuildFile;
-    private File expectedGradleUserHome = new BuildLayoutParameters().getGradleUserHomeDir();
-    private File expectedCurrentDir = currentDir;
-    private File expectedProjectDir;
-    private List<String> expectedTaskNames = toList();
-    private Set<String> expectedExcludedTasks = toSet();
-    private boolean buildProjectDependencies = true;
-    private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
-    private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
-    private List<File> expectedInitScripts = new ArrayList<File>();
-    private boolean expectedSearchUpwards = true;
-    private boolean expectedDryRun;
-    private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
-    private boolean expectedColorOutput = true;
-    private ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
-    private StartParameter actualStartParameter;
-    private boolean expectedProfile;
-    private File expectedProjectCacheDir;
-    private boolean expectedRefreshDependencies;
-    private boolean expectedRerunTasks;
-    private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
-    private boolean expectedContinue;
-    private boolean expectedOffline;
-    private boolean expectedRecompileScripts;
-    private boolean expectedParallelProjectExecution;
-    private int expectedParallelExecutorCount;
-    private int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
-    private boolean expectedConfigureOnDemand;
+    public DefaultCommandLineConverterTest() {
+        super();
+        currentDir = testDir.file("current-dir");
+        expectedCurrentDir = currentDir;
+    }
 
     @Test
     public void withoutAnyOptions() {
         checkConversion();
-    }
-
-    private void checkConversion(String... args) {
-        actualStartParameter = new StartParameter();
-        actualStartParameter.setCurrentDir(currentDir);
-        commandLineConverter.convert(asList(args), actualStartParameter);
-        // We check the params passed to the build factory
-        checkStartParameter(actualStartParameter);
-    }
-
-    private void checkStartParameter(StartParameter startParameter) {
-        assertEquals(expectedBuildFile, startParameter.getBuildFile());
-        assertEquals(expectedTaskNames, startParameter.getTaskNames());
-        assertEquals(buildProjectDependencies, startParameter.isBuildProjectDependencies());
-        assertEquals(expectedCurrentDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
-        assertEquals(expectedProjectDir, startParameter.getProjectDir());
-        assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
-        assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
-        assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
-        assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedLogLevel, startParameter.getLogLevel());
-        assertEquals(expectedColorOutput, startParameter.isColorOutput());
-        assertEquals(expectedConsoleOutput, startParameter.getConsoleOutput());
-        assertEquals(expectedDryRun, startParameter.isDryRun());
-        assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
-        assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
-        assertEquals(expectedInitScripts, startParameter.getInitScripts());
-        assertEquals(expectedProfile, startParameter.isProfile());
-        assertEquals(expectedContinue, startParameter.isContinueOnFailure());
-        assertEquals(expectedOffline, startParameter.isOffline());
-        assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
-        assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
-        assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
-        assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
-        assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
-        assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
-        assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
     }
 
     @Test
@@ -157,7 +93,7 @@ public class DefaultCommandLineConverterTest extends Specification {
 
         checkConversion("-c", "somesettings");
 
-        assertThat(actualStartParameter.getSettingsFile(), equalTo(expectedSettingsFile));
+        Assert.assertThat(actualStartParameter.getSettingsFile(), Matchers.equalTo((File) expectedSettingsFile));
     }
 
     @Test
@@ -394,7 +330,6 @@ public class DefaultCommandLineConverterTest extends Specification {
         checkConversion("--parallel-threads", "foo");
     }
 
-
     @Test
     public void withMaxWorkers() {
         expectedMaxWorkersCount = 5;
@@ -406,40 +341,10 @@ public class DefaultCommandLineConverterTest extends Specification {
         checkConversion("--max-workers", "foo");
     }
 
-
     @Test
     public void withConfigureOnDemand() {
         expectedConfigureOnDemand = true;
         checkConversion("--configure-on-demand");
     }
 
-    final static int NUM_OF_PROCS = Runtime.getRuntime().availableProcessors()
-    final static int N = 3
-    final static int M = 5
-
-    @Test
-    @Unroll("check combinations using #args")
-    public void checkCombinationsOfWorkersAndParallelOptions(List args, int maxWorkers, int parallelThreads, boolean isParallel) {
-        given:
-        expectedMaxWorkersCount = maxWorkers
-        expectedParallelExecutorCount = parallelThreads
-        expectedParallelProjectExecution = isParallel
-
-        expect:
-        checkConversion(*args)
-
-        where:
-        args                                          | maxWorkers   | parallelThreads | isParallel
-        []                                            | NUM_OF_PROCS | 0               | false
-        ["--parallel"]                                | NUM_OF_PROCS | NUM_OF_PROCS    | true
-        ["--parallel-threads=$N"]                     | N            | N               | true
-        ["--max-workers=$N"]                          | N            | 0               | false
-        ["--parallel", "--max-workers=$N"]            | N            | N               | true
-        ["--parallel-threads=$N", "--max-workers=$M"] | M            | M               | true
-        ["--max-workers=$N", "--parallel-threads=$M"] | M            | M               | true
-        ["--parallel-threads=-1"]                     | NUM_OF_PROCS | NUM_OF_PROCS    | true
-        ["--parallel-threads=0"]                      | NUM_OF_PROCS | 0               | false
-        ["--parallel-threads=1"]                      | 1            | 1               | true
-        ["--parallel", "--max-workers=1"]             | 1            | 1               | true
-    }
 }
