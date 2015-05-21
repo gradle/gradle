@@ -264,6 +264,36 @@ project(':api') {
         run("impl:build")
 
         then:
+        fixture.assertProjectsConfigured(":", ":impl", ":api")
+
+        when:
+        run("impl:build", "--no-rebuild") // impl -> api
+
+        then:
+        //api tasks are not executed and api is not configured
+        !result.executedTasks.find { it.startsWith ":api" }
+        fixture.assertProjectsConfigured(":", ":impl")
+    }
+
+    def "respects buildProjectDependencies setting with early resolution"() {
+        settingsFile << "include 'api', 'impl', 'other'"
+        buildFile << """
+            allprojects {
+                configurations.all {
+                    resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
+                }
+            }
+        """
+        file("impl/build.gradle") << """
+            apply plugin: 'java'
+            dependencies { compile project(":api") }
+        """
+        file("api/build.gradle") << "apply plugin: 'java'"
+
+        when:
+        run("impl:build")
+
+        then:
         // :api tasks are executed, and :other is not configured
         result.executedTasks.find { it.startsWith ":api" }
         fixture.assertProjectsConfigured(":", ":impl", ":api")
