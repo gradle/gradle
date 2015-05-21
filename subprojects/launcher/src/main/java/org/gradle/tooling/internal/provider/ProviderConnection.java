@@ -106,10 +106,10 @@ public class ProviderConnection {
         boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
         boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
         boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-        ConsumerListenerConfiguration listenerConfiguration = new ConsumerListenerConfiguration(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
-        BuildEventConsumer buildEventConsumer = listenerConfiguration.isSendAnyProgressEvents()
+        BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+        BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents()
             ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, clientSubscriptions);
         return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
     }
 

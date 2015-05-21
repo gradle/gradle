@@ -19,15 +19,15 @@ package org.gradle.tooling.internal.provider;
 import java.io.Serializable;
 
 /**
- * Provides information about what listeners the consumer has configured.
+ * Provides information about what events the build client is interested in.
  */
-public final class ConsumerListenerConfiguration implements Serializable {
+public final class BuildClientSubscriptions implements Serializable {
 
     private final boolean sendTestProgressEvents;
     private final boolean sendTaskProgressEvents;
     private final boolean sendBuildProgressEvents;
 
-    public ConsumerListenerConfiguration(boolean sendTestProgressEvents, boolean sendTaskProgressEvents, boolean sendBuildProgressEvents) {
+    public BuildClientSubscriptions(boolean sendTestProgressEvents, boolean sendTaskProgressEvents, boolean sendBuildProgressEvents) {
         this.sendTestProgressEvents = sendTestProgressEvents;
         this.sendTaskProgressEvents = sendTaskProgressEvents;
         this.sendBuildProgressEvents = sendBuildProgressEvents;

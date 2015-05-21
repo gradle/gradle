@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
@@ -35,11 +35,11 @@ import java.util.List;
 class ClientForwardingTestListener implements TestListenerInternal {
 
     private final BuildEventConsumer eventConsumer;
-    private final ConsumerListenerConfiguration listenerConfiguration;
+    private final BuildClientSubscriptions clientSubscriptions;
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
-        this.listenerConfiguration = listenerConfiguration;
+        this.clientSubscriptions = clientSubscriptions;
     }
 
     @Override
@@ -91,7 +91,7 @@ class ClientForwardingTestListener implements TestListenerInternal {
             return parent.getId();
         }
         // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
-        if (listenerConfiguration.isSendTaskProgressEvents()) {
+        if (clientSubscriptions.isSendTaskProgressEvents()) {
             return descriptor.getOwnerBuildOperationId();
         }
         return null;
