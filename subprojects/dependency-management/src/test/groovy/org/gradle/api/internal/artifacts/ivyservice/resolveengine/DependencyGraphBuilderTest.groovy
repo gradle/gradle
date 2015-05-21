@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -29,7 +30,10 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedArtifactsBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
@@ -73,7 +77,7 @@ class DependencyGraphBuilderTest extends Specification {
         config(root, 'root', 'default')
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
-        _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
+        _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
         _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ComponentResolveMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.getConfiguration(context.configurationName).artifacts)

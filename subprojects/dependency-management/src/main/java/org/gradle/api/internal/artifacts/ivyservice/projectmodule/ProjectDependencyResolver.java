@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -29,8 +29,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-
-import java.util.Set;
 
 public class ProjectDependencyResolver implements DependencyToComponentIdResolver, ModuleToComponentResolver, ComponentMetaDataResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
@@ -64,8 +62,10 @@ public class ProjectDependencyResolver implements DependencyToComponentIdResolve
         }
     }
 
-    public void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result) {
-        LocalComponentMetaData componentMetaData = localComponentFactory.convert(configurations, module);
-        result.resolved(componentMetaData.toResolveMetaData());
+    public void resolve(ResolveContextInternal resolveContext, BuildableComponentResolveResult result) {
+        if (resolveContext instanceof Configuration) {
+            LocalComponentMetaData componentMetaData = localComponentFactory.convert(((Configuration) resolveContext).getAll(), resolveContext.getModule());
+            result.resolved(componentMetaData.toResolveMetaData());
+        }
     }
 }
