@@ -15,10 +15,8 @@
  */
 package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.DependencySpecContainer;
 
 public interface LanguageSourceSetInternal extends LanguageSourceSet {
 
@@ -34,7 +32,4 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
 
     Task getGeneratorTask();
 
-    DependencySpecContainer getDependencies();
-
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
 }

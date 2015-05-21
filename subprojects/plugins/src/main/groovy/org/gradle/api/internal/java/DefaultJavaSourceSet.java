@@ -20,7 +20,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,8 +27,8 @@ import java.util.Set;
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
     private final Classpath compileClasspath;
 
-    public DefaultJavaSourceSet(String name, String parent, SourceDirectorySet source, Classpath compileClasspath, DependencySpecContainer dependencies) {
-        super(name, parent, "Java source", source, dependencies);
+    public DefaultJavaSourceSet(String name, String parent, SourceDirectorySet source, Classpath compileClasspath) {
+        super(name, parent, "Java source", source);
         this.compileClasspath = compileClasspath;
     }
 

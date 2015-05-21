@@ -22,23 +22,20 @@ import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.platform.base.DependencySpecContainer;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
     private final String fullName;
     private final String displayName;
     private final SourceDirectorySet source;
-    private final DependencySpecContainer dependencies;
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source, DependencySpecContainer dependencies) {
+    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source) {
         this.name = name;
         this.fullName = parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
-        this.dependencies = dependencies;
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -85,17 +82,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     public SourceDirectorySet getSource() {
         return source;
-    }
-
-    @Override
-    public DependencySpecContainer getDependencies() {
-        return dependencies;
-    }
-
-    @Override
-    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
-        configureAction.execute(getDependencies());
-        return getDependencies();
     }
 
 }

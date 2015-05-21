@@ -54,7 +54,7 @@ model {
                 assert deps.size() == 3
                 assert deps[0].libraryName == 'someLib'
                 assert deps[1].projectPath == 'otherProject'
-                assert deps[1].libraryName == 'fooLib'
+                assert deps[1].libraryName == 'someLib'
                 assert deps[2].projectPath == 'otherProject'
                 assert deps[2].libraryName == null
             }
