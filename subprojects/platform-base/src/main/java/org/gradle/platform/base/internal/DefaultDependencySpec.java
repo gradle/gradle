@@ -76,4 +76,28 @@ public class DefaultDependencySpec implements DependencySpec {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultDependencySpec that = (DefaultDependencySpec) o;
+
+        if (projectPath != null ? !projectPath.equals(that.projectPath) : that.projectPath != null) {
+            return false;
+        }
+        return !(libraryName != null ? !libraryName.equals(that.libraryName) : that.libraryName != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = projectPath != null ? projectPath.hashCode() : 0;
+        result = 31 * result + (libraryName != null ? libraryName.hashCode() : 0);
+        return result;
+    }
 }

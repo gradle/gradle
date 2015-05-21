@@ -188,4 +188,54 @@ model {
         failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
     }
 
+    def "filters duplicate dependencies"() {
+        given:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'someLib' // Library in same project
+                        project 'otherProject' library 'someLib' // Library in other project
+                        project 'otherProject' // Library in other project, expect exactly one library
+
+                        // explicitly create duplicates
+                        library 'someLib' // Library in same project
+                        project 'otherProject' library 'someLib' // Library in other project
+                        project 'otherProject' // Library in other project, expect exactly one library
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        create('checkDependencies') {
+            doLast {
+                def deps = $('components.main.sources.java').dependencies
+                assert deps.size() == 3
+                assert deps[0].libraryName == 'someLib'
+                assert deps[1].projectPath == 'otherProject'
+                assert deps[1].libraryName == 'someLib'
+                assert deps[2].projectPath == 'otherProject'
+                assert deps[2].libraryName == null
+            }
+        }
+    }
+}
+'''
+        when:
+        succeeds "checkDependencies"
+
+        then:
+        noExceptionThrown()
+    }
+
 }

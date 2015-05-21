@@ -73,7 +73,7 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
     @Override
     public int size() {
-        return builders.size();
+        return getDependencies().size();
     }
 
     @Override
