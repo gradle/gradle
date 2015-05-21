@@ -347,4 +347,16 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         checkConversion("--configure-on-demand");
     }
 
+    @Test
+    public void withContinuousModeEnabled() {
+        expectedContinuousModeEnabled = true;
+        checkConversion("--continuous");
+    }
+
+    @Test
+    public void withContinuousModeEnabledShortFlag() {
+        expectedContinuousModeEnabled = true;
+        checkConversion("-t");
+    }
+
 }

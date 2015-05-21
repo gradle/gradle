@@ -19,28 +19,21 @@ package org.gradle.launcher.cli;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.continuous.ContinuousModeParameters;
 
 public class Parameters {
     private BuildLayoutParameters layout;
     private StartParameter startParameter;
     private DaemonParameters daemonParameters;
-    private ContinuousModeParameters continuousModeParameters;
 
     public Parameters() {
         this.layout = new BuildLayoutParameters();
         this.startParameter = new StartParameter();
         this.daemonParameters = new DaemonParameters(layout);
-        this.continuousModeParameters = new ContinuousModeParameters();
     }
 
     public Parameters(StartParameter startParameter) {
         this();
         this.startParameter = startParameter;
-    }
-
-    public ContinuousModeParameters getContinuousModeParameters() {
-        return continuousModeParameters;
     }
 
     public DaemonParameters getDaemonParameters() {

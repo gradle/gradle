@@ -59,6 +59,7 @@ public class CommandLineConverterTestSupport {
     protected int expectedParallelExecutorCount;
     protected int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
     protected boolean expectedConfigureOnDemand;
+    protected boolean expectedContinuousModeEnabled;
 
     protected void checkConversion(String... args) {
         actualStartParameter = new StartParameter();
@@ -97,5 +98,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
         assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
         assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
+        assertEquals(expectedContinuousModeEnabled, startParameter.isContinuousModeEnabled());
     }
 }
