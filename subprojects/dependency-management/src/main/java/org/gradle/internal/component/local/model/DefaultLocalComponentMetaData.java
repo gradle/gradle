@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
@@ -32,7 +31,7 @@ import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
-    private final Map<String, PublishArtifactSet> allArtifacts = Maps.newHashMap();
+    private final Map<String, Iterable<? extends PublishArtifact>> allArtifacts = Maps.newHashMap();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -49,7 +48,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return id;
     }
 
-    public void addArtifacts(String configuration, PublishArtifactSet artifacts) {
+    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         allArtifacts.put(configuration, artifacts);
     }
 
@@ -82,7 +81,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             publishMetaData.addDependency(dependency);
         }
         for (String configuration : allArtifacts.keySet()) {
-            PublishArtifactSet publishArtifacts = allArtifacts.get(configuration);
+            Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(configuration);
             for (PublishArtifact publishArtifact : publishArtifacts) {
                 publishMetaData.addArtifact(configuration, publishArtifact);
             }
@@ -271,12 +270,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, Set<String> configurationHierarchy, Map<String, PublishArtifactSet> allArtifacts) {
+    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
         Set<IvyArtifactName> seen = Sets.newHashSet();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
 
         for (String config : configurationHierarchy) {
-            PublishArtifactSet publishArtifacts = allArtifacts.get(config);
+            Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(config);
             if (publishArtifacts != null) {
                 for (PublishArtifact publishArtifact : publishArtifacts) {
                     IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());

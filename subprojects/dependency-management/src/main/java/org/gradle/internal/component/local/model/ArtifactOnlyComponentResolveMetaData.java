@@ -19,7 +19,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.Maps;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.*;
 
@@ -40,10 +40,10 @@ class ArtifactOnlyComponentResolveMetaData implements ComponentResolveMetaData {
     private final ComponentIdentifier componentIdentifier;
     private final String status;
     private final Map<String, ConfigurationMetaData> configurations = Maps.newHashMap();
-    private final Map<String, PublishArtifactSet> publishArtifacts;
+    private final Map<String, Iterable<? extends PublishArtifact>> publishArtifacts;
 
     ArtifactOnlyComponentResolveMetaData(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status,
-                                         Map<String, PublishArtifactSet> publishArtifacts, Collection<? extends ConfigurationMetaData> configurations) {
+                                         Map<String, Iterable<? extends PublishArtifact>> publishArtifacts, Collection<? extends ConfigurationMetaData> configurations) {
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.status = status;
