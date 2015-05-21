@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
@@ -44,9 +45,10 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
-        if (((Configuration)resolveContext).getAllDependencies().isEmpty()) {
-            ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveContext.getModule());
-            ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(resolveContext.getModule());
+        if (resolveContext.getAllDependencies().isEmpty()) {
+            ModuleInternal module = ((DependencyMetaDataProvider) resolveContext).getModule();
+            ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
+            ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             ResolvedProjectConfigurationResults emptyProjectResult = new DefaultResolvedProjectConfigurationResultBuilder(false).complete();
             results.resolved(emptyResult, emptyProjectResult);

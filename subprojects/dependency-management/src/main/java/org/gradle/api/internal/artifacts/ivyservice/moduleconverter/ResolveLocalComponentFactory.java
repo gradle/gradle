@@ -18,11 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -60,12 +61,9 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
     @Override
     public MutableLocalComponentMetaData convert(ResolveContext resolveContext) {
         if (resolveContext instanceof Configuration) {
-            return convert(((Configuration) resolveContext).getAll(), resolveContext.getModule());
+            return convert(((Configuration) resolveContext).getAll(), ((DependencyMetaDataProvider)resolveContext).getModule());
         }
-        ModuleInternal module = resolveContext.getModule();
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        return metaData;
+
+        return null;
     }
 }

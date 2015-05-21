@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 

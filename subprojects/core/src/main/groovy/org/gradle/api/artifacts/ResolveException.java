@@ -16,23 +16,23 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
  * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
  */
 @Contextual
 public class ResolveException extends DefaultMultiCauseException {
-    public ResolveException(Configuration configuration, Throwable cause) {
+    public ResolveException(ResolveContext configuration, Throwable cause) {
         super(buildMessage(configuration), cause);
     }
 
-    public ResolveException(Configuration configuration, Iterable<? extends Throwable> causes) {
+    public ResolveException(ResolveContext configuration, Iterable<? extends Throwable> causes) {
         super(buildMessage(configuration), causes);
     }
 
-    private static String buildMessage(Configuration configuration) {
+    private static String buildMessage(ResolveContext configuration) {
         return String.format("Could not resolve all dependencies for %s.", configuration);
     }
 }

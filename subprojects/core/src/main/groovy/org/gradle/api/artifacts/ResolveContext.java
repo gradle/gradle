@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-
-public interface ResolveContext extends DependencyMetaDataProvider {
-
-    ResolutionStrategyInternal getResolutionStrategy();
+/**
+ * Represents something that can be resolved.
+ */
+public interface ResolveContext {
 
     DependencySet getDependencies();
 
