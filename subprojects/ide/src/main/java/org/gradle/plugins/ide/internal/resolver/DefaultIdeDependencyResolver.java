@@ -53,7 +53,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
 
         for (ResolvedComponentResult projectComponent : projectComponents) {
             Project resolvedProject = project.project(((ProjectComponentIdentifier) projectComponent.getId()).getProjectPath());
-            ideProjectDependencies.add(new IdeProjectDependency(configuration, resolvedProject));
+            if(!resolvedProject.equals(project)) {
+                ideProjectDependencies.add(new IdeProjectDependency(configuration, resolvedProject));
+            }
         }
 
         return ideProjectDependencies;
@@ -158,7 +160,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeLocalFileDependency> getIdeLocalFileDependencies(Configuration configuration) {
         List<SelfResolvingDependency> externalDependencies = new ArrayList<SelfResolvingDependency>();
-        findAllExternalDependencies(externalDependencies, configuration);
+        findAllExternalDependencies(externalDependencies, new ArrayList<Dependency>(), configuration);
         List<IdeLocalFileDependency> ideLocalFileDependencies = new ArrayList<IdeLocalFileDependency>();
 
         for (SelfResolvingDependency externalDependency : externalDependencies) {
@@ -179,16 +181,18 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @param configuration Configuration
      * @return External dependencies
      */
-    private List<SelfResolvingDependency> findAllExternalDependencies(List<SelfResolvingDependency> externalDependencies, Configuration configuration) {
+    private List<SelfResolvingDependency> findAllExternalDependencies(List<SelfResolvingDependency> externalDependencies, List<Dependency> visited, Configuration configuration) {
 
         for (Dependency dependency : configuration.getAllDependencies()) {
-            if(dependency instanceof ProjectDependency) {
-                 findAllExternalDependencies(externalDependencies, ((ProjectDependency) dependency).getProjectConfiguration());
-            } else if (dependency instanceof SelfResolvingDependency) {
-                externalDependencies.add((SelfResolvingDependency) dependency);
+            if(!visited.contains(dependency)){
+                visited.add(dependency);
+                if(dependency instanceof ProjectDependency) {
+                    findAllExternalDependencies(externalDependencies, visited, ((ProjectDependency) dependency).getProjectConfiguration());
+                } else if (dependency instanceof SelfResolvingDependency) {
+                    externalDependencies.add((SelfResolvingDependency) dependency);
+                }
             }
         }
-
         return externalDependencies;
     }
 
