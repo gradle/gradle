@@ -16,6 +16,7 @@
 
 package org.gradle.internal.filewatch;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -24,13 +25,14 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
+public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter, Stoppable {
 
     private static final long QUIET_PERIOD = 250L;
     private static final int EOF = -1;
@@ -38,10 +40,17 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
+    private final InputStream systemInProxy;
 
     public DefaultFileSystemChangeWaiter(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
         this.executorFactory = executorFactory;
         this.fileWatcherFactory = fileWatcherFactory;
+        if(!(System.in instanceof DisconnectableInputStream)) {
+            this.systemInProxy = new DisconnectableInputStream(System.in);
+            System.setIn(systemInProxy);
+        } else {
+            this.systemInProxy = System.in;
+        }
     }
 
     @Override
@@ -88,7 +97,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             @Override
             public void run() {
                 try {
-                    final InputStream inputStream = System.in;
+                    final InputStream inputStream = systemInProxy;
                     while (!Thread.currentThread().isInterrupted()) {
                         int c = inputStream.read();
                         if (c == KEY_CODE_CTRL_D || c == EOF) {
@@ -136,4 +145,8 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
         }
     }
 
+    @Override
+    public void stop() {
+        IOUtils.closeQuietly(systemInProxy);
+    }
 }

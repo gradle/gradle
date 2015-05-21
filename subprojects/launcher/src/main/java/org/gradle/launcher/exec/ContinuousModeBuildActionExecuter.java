@@ -24,6 +24,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
@@ -33,7 +34,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.SingleMessageLogger;
 
-public class ContinuousModeBuildActionExecuter implements BuildExecuter {
+public class ContinuousModeBuildActionExecuter implements BuildExecuter, Stoppable {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
@@ -124,4 +125,10 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         return actionParameters.isContinuousModeEnabled();
     }
 
+    @Override
+    public void stop() {
+        if(waiter instanceof Stoppable) {
+            ((Stoppable)waiter).stop();
+        }
+    }
 }
