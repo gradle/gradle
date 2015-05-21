@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
@@ -252,59 +253,46 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
-    def "respects buildProjectDependencies setting"() {
+    @Unroll
+    def "respects buildProjectDependencies setting with configuration resolved #whenResolved"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
             apply plugin: 'java'
             dependencies { compile project(":api") }
         """
         file("api/build.gradle") << "apply plugin: 'java'"
-
-        when:
-        run("impl:build")
-
-        then:
-        fixture.assertProjectsConfigured(":", ":impl", ":api")
-
-        when:
-        run("impl:build", "--no-rebuild") // impl -> api
-
-        then:
-        //api tasks are not executed and api is not configured
-        !result.executedTasks.find { it.startsWith ":api" }
-        fixture.assertProjectsConfigured(":", ":impl")
-    }
-
-    def "respects buildProjectDependencies setting with early resolution"() {
-        settingsFile << "include 'api', 'impl', 'other'"
-        buildFile << """
-            allprojects {
-                configurations.all {
-                    resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
+        // Provide a source file so that the compile task doesn't skip resolving inputs
+        file("impl/src/main/java/Foo.java") << "public class Foo {}"
+        if (resolveDepsToBuildTaskGraph) {
+            buildFile << """
+                allprojects {
+                    configurations.all {
+                        resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
+                    }
                 }
-            }
-        """
-        file("impl/build.gradle") << """
-            apply plugin: 'java'
-            dependencies { compile project(":api") }
-        """
-        file("api/build.gradle") << "apply plugin: 'java'"
+            """
+        }
 
         when:
         run("impl:build")
 
         then:
-        // :api tasks are executed, and :other is not configured
-        result.executedTasks.find { it.startsWith ":api" }
+        executed ":api:jar", ":impl:jar"
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
-        // :api tasks are not executed, and :other is not configured
-        !result.executedTasks.find { it.startsWith ":api" }
+        executed ":impl:jar"
+        notExecuted ":api:jar"
+        // :api is configured to resolve impl.compile configuration
         fixture.assertProjectsConfigured(":", ":impl", ":api")
+
+        where:
+        whenResolved               | resolveDepsToBuildTaskGraph
+        "on first use"             | false
+        "when building task graph" | true
     }
 
     def "respects external task dependencies"() {
