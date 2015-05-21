@@ -19,10 +19,13 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
+import org.gradle.integtests.resolve.fixture.EarlyDependencyGraphResolveRunner
 import org.junit.Rule
+import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@RunWith(EarlyDependencyGraphResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)

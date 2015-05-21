@@ -17,11 +17,13 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.resolve.fixture.EarlyDependencyGraphResolveRunner
+import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@RunWith(EarlyDependencyGraphResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
         mavenRepo.module("org.other", "externalA", 1.2).publish()

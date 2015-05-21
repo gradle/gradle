@@ -44,7 +44,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
+
     private boolean forceResolveGraphToDetermineTaskDependencies;
+    private static final String FORCE_RESOLVE_GRAPH_SYSTEM_PROP = "org.gradle.forceEarlyDependencyResolve";
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
@@ -53,6 +55,12 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
+
+        // This is only used for testing purposes so we can test both early dependency resolution
+        // and "normal" lazy resolution
+        if (System.getProperty(FORCE_RESOLVE_GRAPH_SYSTEM_PROP) != null) {
+            forceResolveGraphToDetermineTaskDependencies = Boolean.valueOf(System.getProperty(FORCE_RESOLVE_GRAPH_SYSTEM_PROP));
+        }
     }
 
     @Override
