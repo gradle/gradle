@@ -80,15 +80,13 @@ public class TransformedModelDslBacking {
     }
 
     public void configure(String modelPathString, Closure<?> closure) {
-        List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
         SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        ModelAction<Object> action = InputUsingModelAction.of(ModelReference.of(modelPath), toDescriptor(sourceLocation, modelPath), inputs, new ExecuteClosure<Object>(closure));
-        modelRegistry.configure(ModelActionRole.Mutate, action);
+        ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
+        registerAction(modelPath, Object.class, descriptor, ModelActionRole.Mutate, closure);
     }
 
     public <T> void create(String modelPathString, @DelegatesTo.Target Class<T> type, @DelegatesTo(genericTypeIndex = 0) Closure<?> closure) {
-        List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
         SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
         ModelSchema<T> schema = schemaStore.getSchema(ModelType.of(type));
@@ -96,8 +94,16 @@ public class TransformedModelDslBacking {
         if (!schema.getKind().isManaged()) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
-        ModelCreator creator = modelCreatorFactory.creator(descriptor, modelPath, schema, inputs, new ExecuteClosure<T>(closure));
+        ModelCreator creator = modelCreatorFactory.creator(descriptor, modelPath, schema);
         modelRegistry.create(creator);
+        registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
+    }
+
+    private <T> void registerAction(final ModelPath modelPath, Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
+        ModelReference<T> reference = ModelReference.of(modelPath, viewType);
+        List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
+        ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, inputs, new ExecuteClosure<T>(closure));
+        modelRegistry.configure(role, runClosureAction);
     }
 
     public ModelRuleDescriptor toDescriptor(SourceLocation sourceLocation, ModelPath modelPath) {

@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.transform.RulesVisitor
@@ -33,11 +34,11 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
-    def "rule inputs can be referenced in closures that are not executed during rule execution"() {
+    @NotYetImplemented
+    def "can reference rule inputs using relative property reference"() {
         when:
         buildScript """
-            class MyPlugin {
-              static class Rules extends RuleSource {
+            class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -47,7 +48,42 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 List<String> strings() {
                   []
                 }
-              }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    printStrings(Task) {
+                        doLast {
+                            println strings
+                        }
+                    }
+                }
+                strings {
+                    add(foo)
+                }
+            }
+"""
+
+        then:
+        succeeds "printStrings"
+        output.contains "strings: [foo]"
+    }
+
+    def "rule inputs can be referenced in closures that are not executed during rule execution"() {
+        when:
+        buildScript """
+            class MyPlugin extends RuleSource {
+                @Model
+                String foo() {
+                  "foo"
+                }
+
+                @Model
+                List<String> strings() {
+                  []
+                }
             }
 
             apply type: MyPlugin
@@ -76,13 +112,11 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "inputs are fully configured when used in rules"() {
         when:
         buildScript """
-            class MyPlugin {
-              static class Rules extends RuleSource {
+            class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             apply type: MyPlugin
@@ -112,13 +146,11 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "the same input can be referenced more than once, and refers to the same object"() {
         when:
         buildScript """
-            class MyPlugin {
-              static class Rules extends RuleSource {
+            class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             apply type: MyPlugin
@@ -144,8 +176,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         when:
 
         buildScript """
-            class MyPlugin {
-              static class Rules extends RuleSource {
+            class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -155,7 +186,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 List<String> strings() {
                   []
                 }
-              }
             }
 
             subprojects {
@@ -197,13 +227,11 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
     def "only closure literals can be used as rules"() {
         when:
         buildScript """
-            class MyPlugin {
-              static class Rules extends RuleSource {
+            class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
                 }
-              }
             }
 
             apply type: MyPlugin
@@ -216,7 +244,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 15
+        failure.assertHasLineNumber 13
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
     }
