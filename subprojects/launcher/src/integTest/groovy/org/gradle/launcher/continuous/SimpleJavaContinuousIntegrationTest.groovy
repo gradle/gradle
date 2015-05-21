@@ -78,6 +78,24 @@ public class PersonTest {
         ":build" in executedTasks
     }
 
+    def "can build in continuous mode when sub dir is removed"() {
+        when:
+        app.writeSources(sourceDir)
+        then:
+        sourceDir.exists()
+        succeeds("build")
+        executedAndNotSkipped ":compileJava", ":build"
+        when:
+        def subDir = sourceDir.file("java/compile")
+        assert subDir.exists()
+        subDir.deleteDir()
+        assert !subDir.exists()
+        then:
+        succeeds()
+        ":compileJava" in skippedTasks
+        ":build" in executedTasks
+    }
+
     def "build is not triggered when a new directory is created in the source inputs"() {
         when:
         app.writeSources(sourceDir)
