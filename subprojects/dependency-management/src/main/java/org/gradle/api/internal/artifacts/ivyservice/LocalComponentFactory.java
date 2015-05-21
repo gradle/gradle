@@ -17,10 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.util.Set;
 
 public interface LocalComponentFactory {
     MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module);
+
+    MutableLocalComponentMetaData convert(ResolveContextInternal resolveContext);
 }
