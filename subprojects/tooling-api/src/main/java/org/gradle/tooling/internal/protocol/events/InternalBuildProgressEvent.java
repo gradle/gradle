@@ -37,7 +37,7 @@ public interface InternalBuildProgressEvent extends InternalProtocolInterface {
     String getDisplayName();
 
     /**
-     * Returns the description of the build for which progress is reported.
+     * Returns the description of the operation for which progress is reported.
      *
      * @return The build description
      */

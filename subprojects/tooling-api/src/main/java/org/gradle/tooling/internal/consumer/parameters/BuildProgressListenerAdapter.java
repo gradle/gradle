@@ -78,6 +78,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (event instanceof InternalTaskProgressEvent) {
             broadcastTaskProgressEvent((InternalTaskProgressEvent) event);
         } else if (event instanceof InternalBuildProgressEvent) {
+            // Everything else treat as a generic operation
             broadcastProgressEvent((InternalBuildProgressEvent) event);
         }
     }

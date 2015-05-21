@@ -26,31 +26,26 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 public interface InternalBuildDescriptor extends InternalProtocolInterface {
 
     /**
-     * Returns the id that uniquely identifies the build.
-     *
-     * @return The unique id of the build, never null
+     * Returns an id that uniquely identifies the operation.
      */
     Object getId();
 
     /**
-     * Returns the name of the build.
-     *
-     * @return The name of the build, never null
+     * Returns the name of the operation, relative to its parent.
      */
     String getName();
 
     /**
-     * Returns a human consumable display name for the build.
+     * Returns a human consumable display name for the operation.
      *
-     * @return The display name of the build
+     * @return The display name of the operation
      */
     String getDisplayName();
 
     /**
-     * Returns the id of the parent of the build, if any.
+     * Returns the id of the parent of the operation, if any.
      *
-     * @return The id of the parent of the build, can be null
+     * @return The id of the parent of the operation, can be null
      */
     Object getParentId();
-
 }
