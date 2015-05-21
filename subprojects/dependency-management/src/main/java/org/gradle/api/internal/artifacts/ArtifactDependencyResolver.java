@@ -21,12 +21,12 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import java.util.List;
 
 public interface ArtifactDependencyResolver {
-    void resolve(ResolveContextInternal resolveContext,
+    void resolve(ResolveContext resolveContext,
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,
                  ResolverResults results) throws ResolveException;
 
-    void resolveArtifacts(ResolveContextInternal resolveContext,
+    void resolveArtifacts(ResolveContext resolveContext,
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,
                  ResolverResults results) throws ResolveException;

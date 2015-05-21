@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
@@ -39,7 +39,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public void resolve(ResolveContextInternal resolveContext,
+    public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
@@ -54,7 +54,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         results.resolved(wrappedResult, results.getResolvedProjectConfigurationResults());
     }
 
-    public void resolveArtifacts(ResolveContextInternal resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
         try {
             dependencyResolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);
         } catch (ResolveException e) {

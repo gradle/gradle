@@ -34,14 +34,14 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public void resolve(ResolveContextInternal resolveContext,
+    public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
         resolver.resolve(resolveContext, repositories, metadataHandler, results);
     }
 
-    public void resolveArtifacts(ResolveContextInternal contextInternal,
+    public void resolveArtifacts(ResolveContext contextInternal,
                                  List<? extends ResolutionAwareRepository> repositories,
                                  GlobalDependencyResolutionRules metadataHandler,
                                  ResolverResults results) throws ResolveException {

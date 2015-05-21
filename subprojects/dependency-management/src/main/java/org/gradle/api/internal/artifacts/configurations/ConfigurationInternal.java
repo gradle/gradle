@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 
-public interface ConfigurationInternal extends ResolveContextInternal, Configuration {
+public interface ConfigurationInternal extends ResolveContext, Configuration {
     enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
 
     InternalState getResolvedState();

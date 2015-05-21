@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -61,7 +61,7 @@ public class ProjectDependencyResolver implements DependencyToComponentIdResolve
         }
     }
 
-    public void resolve(ResolveContextInternal resolveContext, BuildableComponentResolveResult result) {
+    public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
         LocalComponentMetaData componentMetaData = localComponentFactory.convert(resolveContext);
         result.resolved(componentMetaData.toResolveMetaData());
     }

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
@@ -72,7 +72,7 @@ public class DependencyGraphBuilder {
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
-    public void resolve(ResolveContextInternal resolveContext,
+    public void resolve(ResolveContext resolveContext,
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder,
                         ResolvedArtifactsBuilder artifactsBuilder,
@@ -85,7 +85,7 @@ public class DependencyGraphBuilder {
         resolveDependencyGraph(resolveContext, modelVisitor);
     }
 
-    private void resolveDependencyGraph(ResolveContextInternal resolveContext, DependencyGraphVisitor modelVisitor) {
+    private void resolveDependencyGraph(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 

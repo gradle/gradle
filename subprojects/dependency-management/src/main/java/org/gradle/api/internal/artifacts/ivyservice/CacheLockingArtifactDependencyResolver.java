@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
@@ -33,7 +33,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         this.resolver = resolver;
     }
 
-    public void resolve(final ResolveContextInternal resolveContext,
+    public void resolve(final ResolveContext resolveContext,
                                    final List<? extends ResolutionAwareRepository> repositories,
                                    final GlobalDependencyResolutionRules metadataHandler,
                                    final ResolverResults results) throws ResolveException {
@@ -44,7 +44,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         });
     }
 
-    public void resolveArtifacts(final ResolveContextInternal resolveContext,
+    public void resolveArtifacts(final ResolveContext resolveContext,
                                    final List<? extends ResolutionAwareRepository> repositories,
                                    final GlobalDependencyResolutionRules metadataHandler,
                                    final ResolverResults results) throws ResolveException {

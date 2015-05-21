@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
-public interface ResolveContextInternal extends DependencyMetaDataProvider {
+public interface ResolveContext extends DependencyMetaDataProvider {
 
     ResolutionStrategyInternal getResolutionStrategy();
 

@@ -40,7 +40,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
         this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
-    public void resolve(ResolveContextInternal resolveContext,
+    public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
@@ -56,7 +56,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     }
 
     @Override
-    public void resolveArtifacts(ResolveContextInternal resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
         if (resolveContext.getAllDependencies().isEmpty()) {
             results.withResolvedConfiguration(new EmptyResolvedConfiguration());
         } else {

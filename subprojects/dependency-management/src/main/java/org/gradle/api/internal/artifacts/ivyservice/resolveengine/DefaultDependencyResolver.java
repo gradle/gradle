@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -84,7 +84,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
-    public void resolve(final ResolveContextInternal resolveContext,
+    public void resolve(final ResolveContext resolveContext,
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
                         final ResolverResults results) throws ResolveException {
@@ -135,7 +135,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         });
     }
 
-    public void resolveArtifacts(final ResolveContextInternal resolveContext,
+    public void resolveArtifacts(final ResolveContext resolveContext,
                                  final List<? extends ResolutionAwareRepository> repositories,
                                  final GlobalDependencyResolutionRules metadataHandler,
                                  final ResolverResults results) throws ResolveException {

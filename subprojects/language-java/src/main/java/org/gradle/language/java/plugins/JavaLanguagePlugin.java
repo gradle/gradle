@@ -167,7 +167,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 }
             }
             DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
-            ResolveContextInternal context = new ResolveContextInternal() {
+            ResolveContext context = new ResolveContext() {
                 @Override
                 public ResolutionStrategyInternal getResolutionStrategy() {
                     return null;

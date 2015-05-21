@@ -16,12 +16,12 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 /**
  * Resolves a module to the meta-data for a module.
  */
 public interface ModuleToComponentResolver {
-    void resolve(ResolveContextInternal resolveContext, BuildableComponentResolveResult result);
+    void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result);
 }
