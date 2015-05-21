@@ -358,9 +358,8 @@ model {
         and:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
             ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        contains """
-There were test failures:
-"""
+        contains "There were test failures:"
+
         and:
         def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
         testResults.suiteNames == ['hello test']
@@ -383,9 +382,7 @@ tasks.withType(RunTestExecutable) {
         succeeds "runHelloTestCUnitExe"
 
         then:
-        contains """
-There were test failures:
-"""
+        contains "There were test failures:"
         contains "There were failing tests. See the results at: "
 
         and:
