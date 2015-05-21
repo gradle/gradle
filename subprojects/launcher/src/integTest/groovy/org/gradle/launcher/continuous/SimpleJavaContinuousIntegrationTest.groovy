@@ -47,8 +47,9 @@ public class PersonTest {
 
     def setup() {
         buildFile << """
-    apply plugin: 'java'
-"""
+            apply plugin: 'java'
+        """
+        executer.withStackTraceChecksDisabled() // some tests fail compilation
     }
 
     def "can build in continuous mode when no source dir present"() {
