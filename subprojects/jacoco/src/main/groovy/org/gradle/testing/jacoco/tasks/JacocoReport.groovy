@@ -67,6 +67,8 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Nested
     private final JacocoReportsContainerImpl reports
 
+    private Closure checkClosure
+
     JacocoReport() {
         reports = instantiator.newInstance(JacocoReportsContainerImpl, this)
         onlyIf { getExecutionData().every { it.exists() } } //TODO SF it should be 'any' instead of 'every'
@@ -80,6 +82,10 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Inject
     protected IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
+    }
+
+    public void setCheck(Closure checkClosure) {
+        this.checkClosure = checkClosure
     }
 
     @TaskAction
@@ -106,6 +112,9 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
                 }
                 if(reports.csv.isEnabled()) {
                     csv(destfile: reports.csv.destination)
+                }
+                if(checkClosure!=null) {
+                    delegate.check checkClosure
                 }
             }
         }
