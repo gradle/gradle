@@ -16,17 +16,25 @@
 
 package org.gradle.language.java.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -42,10 +50,7 @@ import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -101,13 +106,16 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
                     GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
                     ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
+                    ProjectInternal project = (ProjectInternal) task.getProject();
+                    RepositoryHandler repositories = project.getRepositories();
+                    GlobalDependencyResolutionRules globalDependencyResolutionRules = project.getServices().get(GlobalDependencyResolutionRules.class);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(javaSourceSet, dependencyResolver));
+                    compile.setClasspath(new DependencyResolvingClasspath(javaSourceSet, dependencyResolver, repositories, globalDependencyResolutionRules));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -126,10 +134,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     private static class DependencyResolvingClasspath extends AbstractFileCollection {
         private final JavaSourceSet sourceSet;
         private final ArtifactDependencyResolver dependencyResolver;
+        private final GlobalDependencyResolutionRules globalDependencyResolutionRules;
+        private final RepositoryHandler repositories;
 
-        private DependencyResolvingClasspath(JavaSourceSet sourceSet, ArtifactDependencyResolver dependencyResolver) {
+        private DependencyResolvingClasspath(
+            JavaSourceSet sourceSet,
+            ArtifactDependencyResolver dependencyResolver,
+            RepositoryHandler repositories,
+            GlobalDependencyResolutionRules globalDependencyResolutionRules) {
             this.sourceSet = sourceSet;
             this.dependencyResolver = dependencyResolver;
+            this.repositories = repositories;
+            this.globalDependencyResolutionRules = globalDependencyResolutionRules;
         }
 
         @Override
@@ -141,6 +157,16 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         public Set<File> getFiles() {
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
+            ResolverResults results = new ResolverResults();
+            ImmutableList<ArtifactRepository> artifactRepositories = ImmutableList.copyOf(repositories.iterator());
+            List<ResolutionAwareRepository> resolutionRepositories = new LinkedList<ResolutionAwareRepository>();
+            for (ArtifactRepository artifactRepository : artifactRepositories) {
+                if (artifactRepository instanceof ResolutionAwareRepository) {
+                    resolutionRepositories.add((ResolutionAwareRepository)artifactRepository);
+                }
+            }
+            DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
+            //dependencyResolver.resolveArtifacts(dss, resolutionRepositories, globalDependencyResolutionRules, results);
             return classpath;
         }
     }
