@@ -39,7 +39,7 @@ Or an external dependency can be replaced with a project dependency like this:
     }
 
 It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).  See the documentation for [DependencySubstitutions](groovydoc/org/gradle/api/artifacts/DependencySubstitutions.html) to browse the
+as `eachDependency`).  See the javadoc for [DependencySubstitutions](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) to browse the
 various types of rules that can be configured.
 
 ### Specify default dependencies for a Configuration (i)

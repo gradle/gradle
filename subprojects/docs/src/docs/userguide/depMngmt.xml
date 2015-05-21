@@ -1273,6 +1273,17 @@ someroot/[artifact]-[revision].[ext]
                 </sample>
             </section>
         </section>
+        <section id="sec:configuration_defaults">
+            <title>Default dependencies for a configuration</title>
+            <para>
+                A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration.
+                A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override.  By specifying
+                default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+            </para>
+            <sample id="configuration_default_dependencies" dir="userguide/artifacts/defineConfiguration" title="Specifying default dependencies on a configuration">
+                <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
+            </sample>
+        </section>
         <section id="ivy_dynamic_resolve_mode">
             <title>Enabling Ivy dynamic resolve mode</title>
             <para>
