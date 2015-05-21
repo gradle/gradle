@@ -33,6 +33,49 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     }
 
     @Unroll
+    def "can reference input - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks {
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + $syntax
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$("thing.value")',
+            '$("thing").value',
+            "thing.value",
+            "(thing).value",
+            "(thing).(value)",
+            "thing.\"\${'value'}\"",
+            "thing.'value'",
+            "thing.value.toUpperCase().toLowerCase()",
+            "thing.value[0] + 'oo'",
+            "(true ? thing.value : 'bar')",
+            "new String(thing.value)"
+        ]
+    }
+
+    @Unroll
     def "only literal strings can be given to dollar - #code"() {
         when:
         buildScript """
