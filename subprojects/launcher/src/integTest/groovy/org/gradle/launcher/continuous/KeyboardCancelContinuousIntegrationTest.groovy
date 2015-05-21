@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
+
 class KeyboardCancelContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
-        buildFile << """
-    apply plugin: 'java'
-"""
+        buildFile << "apply plugin: 'java'"
     }
 
+    @Ignore("implementation doesn't actually test what it says it does")
     def "should not cancel build when System.in immediately returns EOF"() {
         when:
         succeeds("build")
@@ -37,6 +38,18 @@ class KeyboardCancelContinuousIntegrationTest extends AbstractContinuousIntegrat
         succeeds("build")
         when:
         emulateCtrlD()
+        then:
+        expectOutput {
+            it.contains("Build cancelled")
+        }
+    }
+
+    def "should cancel build when System.in is closed"() {
+        given:
+        succeeds("build")
+        when:
+        stdinPipe.close()
+        stdinPipe = null
         then:
         expectOutput {
             it.contains("Build cancelled")

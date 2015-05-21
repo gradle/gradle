@@ -19,6 +19,7 @@ package org.gradle.launcher.continuous
 import com.google.common.util.concurrent.SimpleTimeLimiter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.util.Requires
@@ -35,7 +36,6 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
-    private static final byte[] KEY_CODE_CTRL_D_BYTE_ARRAY = [(byte) 4] as byte[]
 
     GradleHandle gradle
 
@@ -46,7 +46,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean expectBuildFailure = false
 
-    PrintStream stdinPipe
+    OutputStream stdinPipe
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -97,7 +97,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
         PipedInputStream emulatedSystemIn = new PipedInputStream()
         executer.withStdIn(emulatedSystemIn)
-        stdinPipe = new PrintStream(new PipedOutputStream(emulatedSystemIn), true)
+        stdinPipe = new PipedOutputStream(emulatedSystemIn)
 
         gradle = executer.withTasks(tasks).withArgument("--continuous").start()
     }
@@ -107,7 +107,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             if (gradle.isRunning()) {
-                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks... (ctrl+c to exit)\n"))
+                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks... (ctrl+d to exit)\n"))
             }
         }
 
@@ -144,9 +144,12 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     }
 
     void emulateCtrlD() {
-        if (stdinPipe) {
-            stdinPipe << KEY_CODE_CTRL_D_BYTE_ARRAY
-        }
+        stdinPipe?.write(4)
+
+        // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
+        // Possibly, the daemon should be EOT aware and close the stream.
+        // Or, when the client is doing a blocking read of the input we shouldn't buffer.
+        stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
     }
 
     void noBuildTriggered(int waitSeconds = 3) {

@@ -19,125 +19,125 @@ package org.gradle.launcher.exec
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.initialization.*
-import org.gradle.internal.BiAction
+import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.initialization.DefaultBuildRequestContext
+import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
-    def underlyingExecuter = new UnderlyingExecuter()
+    def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
-    def cancellationToken = Stub(BuildCancellationToken)
+    def cancellationToken = new DefaultBuildCancellationToken()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
-    def waiter = Mock(BiAction)
+    def waiter = Mock(FileSystemChangeWaiter)
     def listenerManager = new DefaultListenerManager()
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, listenerManager, new TestStyledTextOutputFactory(), waiter)
+    def executer = new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), waiter)
     private File file = new File('file')
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
     }
 
-    def "uses underlying executer when continuous mode is not enabled"() {
-        given:
-        singleBuildMode()
-        underlyingExecuter.with {
-            first { succeeds() }
-            thenStops()
-        }
+    def "uses underlying executer when continuous building is not enabled"() {
         when:
+        singleBuild()
         executeBuild()
+
         then:
-        underlyingExecuter.executedAllActions()
-        noExceptionThrown()
+        1 * delegate.execute(action, requestContext, actionParameters)
+        0 * waiter._
     }
 
     def "allows exceptions to propagate for single builds"() {
-        given:
-        singleBuildMode()
-        underlyingExecuter.with {
-            first { fails() }
-            thenStops()
-        }
         when:
+        singleBuild()
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            throw new RuntimeException("!")
+        }
         executeBuild()
+
         then:
-        underlyingExecuter.executedAllActions()
         thrown(RuntimeException)
     }
 
     def "waits for trigger in continuous mode when build works"() {
-        given:
-        continuousMode()
         when:
-        underlyingExecuter.with {
-            first { declareInput(file); succeeds() }
-            thenStops()
+        continuousBuilding()
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            declareInput(file)
         }
         executeBuild()
+
         then:
-        1 * waiter.execute(_, _)
-        0 * clock.reset()
-        underlyingExecuter.executedAllActions()
+        1 * waiter.wait(_, _, _) >> {
+            cancellationToken.doCancel()
+        }
     }
 
     def "exits if there are no file system inputs"() {
-        given:
-        continuousMode()
         when:
-        underlyingExecuter.with {
-            first { succeeds() }
-            thenStops()
-        }
+        continuousBuilding()
+        1 * delegate.execute(action, requestContext, actionParameters)
         executeBuild()
+
         then:
-        0 * waiter.execute(_, _)
-        0 * clock.reset()
-        underlyingExecuter.executedAllActions()
+        0 * waiter.wait(_, _, _)
     }
 
     def "waits for trigger in continuous mode when build fails"() {
-        given:
-        continuousMode()
         when:
-        underlyingExecuter.with {
-            first { declareInput(file); fails() }
-            thenStops()
+        continuousBuilding()
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            declareInput(file)
+            throw new Exception("!")
         }
         executeBuild()
-        then: "hides exceptions"
-        1 * waiter.execute(_, _)
-        underlyingExecuter.executedAllActions()
+
+        then:
+        1 * waiter.wait(_, _, _) >> {
+            cancellationToken.doCancel()
+        }
     }
 
     def "keeps running after failures in continuous mode"() {
-        given:
-        continuousMode()
-        underlyingExecuter.with {
-            first { declareInput(file); succeeds() }
-            then { declareInput(file); fails() }
-            then { declareInput(file); succeeds() }
-            thenStops()
-        }
         when:
+        continuousBuilding()
         executeBuild()
+
         then:
-        3 * waiter.execute(_, _)
-        2 * clock.reset()
-        underlyingExecuter.executedAllActions()
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            declareInput(file)
+        }
+
+        and:
+        1 * waiter.wait(_, _, _)
+
+        and:
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            declareInput(file)
+            throw new Exception("!")
+        }
+
+        and:
+        1 * waiter.wait(_, _, _) >> {
+            cancellationToken.doCancel()
+        }
     }
 
-    private void singleBuildMode() {
+    private void singleBuild() {
         actionParameters.continuousModeEnabled >> false
     }
 
-    private void continuousMode() {
+    private void continuousBuilding() {
         actionParameters.continuousModeEnabled >> true
     }
 
@@ -145,51 +145,8 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         executer.execute(action, requestContext, actionParameters)
     }
 
-    private void succeeds() {}
-
-    private void fails() {
-        throw new RuntimeException("always fails")
-    }
-
     private void declareInput(File file) {
         listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
-    private void cancelAfter(int times) {
-        def keepGoing = [false]
-        def thenCancel = [true]
-        // cancellation request is checked twice per build
-        cancellationToken.cancellationRequested >>> (keepGoing * times * 2) + thenCancel
-    }
-
-    private class UnderlyingExecuter implements BuildActionExecuter<BuildActionParameters> {
-        private final List<Closure> actions = []
-
-        UnderlyingExecuter first(Closure c) {
-            actions.add(0, c)
-            return this
-        }
-
-        UnderlyingExecuter then(Closure c) {
-            actions.add(c)
-            return this
-        }
-
-        void thenStops() {
-            cancelAfter(actions.size())
-        }
-
-        boolean executedAllActions() {
-            actions.empty
-        }
-
-        @Override
-        Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-            if (actions.empty) {
-                throw new IllegalArgumentException("Not enough actions for underlying executer")
-            }
-            actions.remove(0).call()
-            return null
-        }
-    }
 }
