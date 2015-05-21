@@ -21,15 +21,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -46,6 +41,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
+import org.gradle.language.java.internal.DefaultJavaSourceSetResolveContext;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
@@ -162,6 +158,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
             ResolverResults results = new ResolverResults();
+            List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
+            DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
+            dependencyResolver.resolveArtifacts(new DefaultJavaSourceSetResolveContext(dss), resolutionRepositories, globalDependencyResolutionRules, results);
+            return classpath;
+        }
+
+        private List<ResolutionAwareRepository> getResolutionAwareRepositories() {
             ImmutableList<ArtifactRepository> artifactRepositories = ImmutableList.copyOf(repositories.iterator());
             List<ResolutionAwareRepository> resolutionRepositories = new LinkedList<ResolutionAwareRepository>();
             for (ArtifactRepository artifactRepository : artifactRepositories) {
@@ -169,21 +172,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     resolutionRepositories.add((ResolutionAwareRepository)artifactRepository);
                 }
             }
-            DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
-            ResolveContext context = new ResolveContext() {
-               @Override
-                public DependencySet getDependencies() {
-                    return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
-                }
-
-                @Override
-                public DependencySet getAllDependencies() {
-                    return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
-                }
-
-            };
-            //dependencyResolver.resolveArtifacts(context, resolutionRepositories, globalDependencyResolutionRules, results);
-            return classpath;
+            return resolutionRepositories;
         }
     }
 }
