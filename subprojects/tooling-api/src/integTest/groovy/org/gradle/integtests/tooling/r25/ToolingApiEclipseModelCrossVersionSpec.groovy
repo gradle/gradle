@@ -52,7 +52,6 @@ dependencies {
 eclipse {
     classpath {
         plusConfigurations += [ configurations.provided ]
-        noExportConfigurations += [ configurations.provided ]
     }
 }
 '''
@@ -61,7 +60,7 @@ eclipse {
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        rootProject.classpath.find { it.file.name.contains("guava") }.exported
+        rootProject.classpath.find { it.file.name.contains("guava") }.exported == false
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
     }
 }
