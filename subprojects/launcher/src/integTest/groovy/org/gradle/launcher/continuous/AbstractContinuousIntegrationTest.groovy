@@ -149,7 +149,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
         // Possibly, the daemon should be EOT aware and close the stream.
         // Or, when the client is doing a blocking read of the input we shouldn't buffer.
-        stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
+        stdinPipe?.write(SystemProperties.instance.lineSeparator.bytes)
     }
 
     void noBuildTriggered(int waitSeconds = 3) {
