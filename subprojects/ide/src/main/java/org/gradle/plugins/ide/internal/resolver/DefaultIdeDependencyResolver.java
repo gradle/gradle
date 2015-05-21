@@ -157,7 +157,8 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return IDE local file dependencies
      */
     public List<IdeLocalFileDependency> getIdeLocalFileDependencies(Configuration configuration) {
-        List<SelfResolvingDependency> externalDependencies = findAllExternalDependencies(configuration);
+        List<SelfResolvingDependency> externalDependencies = new ArrayList<SelfResolvingDependency>();
+        findAllExternalDependencies(externalDependencies, configuration);
         List<IdeLocalFileDependency> ideLocalFileDependencies = new ArrayList<IdeLocalFileDependency>();
 
         for (SelfResolvingDependency externalDependency : externalDependencies) {
@@ -178,11 +179,12 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @param configuration Configuration
      * @return External dependencies
      */
-    private List<SelfResolvingDependency> findAllExternalDependencies(Configuration configuration) {
-        List<SelfResolvingDependency> externalDependencies = new ArrayList<SelfResolvingDependency>();
+    private List<SelfResolvingDependency> findAllExternalDependencies(List<SelfResolvingDependency> externalDependencies, Configuration configuration) {
 
         for (Dependency dependency : configuration.getAllDependencies()) {
-            if (dependency instanceof SelfResolvingDependency && !(dependency instanceof ProjectDependency)) {
+            if(dependency instanceof ProjectDependency) {
+                 findAllExternalDependencies(externalDependencies, ((ProjectDependency) dependency).getProjectConfiguration());
+            } else if (dependency instanceof SelfResolvingDependency) {
                 externalDependencies.add((SelfResolvingDependency) dependency);
             }
         }

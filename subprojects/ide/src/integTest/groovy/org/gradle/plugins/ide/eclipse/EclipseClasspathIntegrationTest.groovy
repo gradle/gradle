@@ -107,7 +107,7 @@ dependencies {
         libraries[3].assertHasJar(anotherJar)
     }
 
-    @Test void includesTransitiveDependenciesFromProjectDependencies() {
+    @Test void includesTransitiveRepoFileDependencies() {
         given:
         mavenRepo.module('someGroup', 'someArtifact', '1.0').publish()
         mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish()
@@ -173,6 +173,7 @@ configure(project(":b")){
         compile project(':c')
     }
 }
+
 """
 
         then:
@@ -180,6 +181,49 @@ configure(project(":b")){
         aLibraries.projects.size() == 2
         aLibraries.projects == ['b', 'c']
         aLibraries.libs.size() == 1
+    }
+
+    @Test void includesTransitiveFileDependencies() {
+        given:
+        runEclipseTask """include 'a', 'b', 'c'""", """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+configure(project(":a")){
+    dependencies {
+        compile files("bar.txt")
+        compile project(':b')
+    }
+}
+
+configure(project(":b")){
+    dependencies {
+        compile project(':c')
+        compile files("baz.txt")
+
+    }
+}
+
+configure(project(":c")){
+    dependencies {
+        compile files("foo.txt")
+    }
+}
+"""
+
+        then:
+        def aLibraries = classpath("a")
+        aLibraries.projects.size() == 2
+        aLibraries.projects == ['b', 'c']
+        aLibraries.libs.any {it.jarName == "foo.txt"}
+        aLibraries.libs.any {it.jarName == "bar.txt"}
+        aLibraries.libs.any {it.jarName == "baz.txt"}
     }
 
 
