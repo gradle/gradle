@@ -19,10 +19,15 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ResolveContextInternal;
 
 public interface ConfigurationInternal extends ResolveContextInternal, Configuration {
+    enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
+
+    InternalState getResolvedState();
 
     String getPath();
 
     void triggerWhenEmptyActionsIfNecessary();
+
+    void markAsObserved(InternalState requestedState);
 
     void addMutationValidator(MutationValidator validator);
 

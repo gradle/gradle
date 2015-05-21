@@ -21,12 +21,14 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -109,7 +111,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     ProjectInternal project = (ProjectInternal) task.getProject();
                     RepositoryHandler repositories = project.getRepositories();
                     GlobalDependencyResolutionRules globalDependencyResolutionRules = project.getServices().get(GlobalDependencyResolutionRules.class);
-
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
                     compile.setPlatform(binary.getTargetPlatform());
@@ -166,7 +167,28 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 }
             }
             DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
-            //dependencyResolver.resolveArtifacts(dss, resolutionRepositories, globalDependencyResolutionRules, results);
+            ResolveContextInternal context = new ResolveContextInternal() {
+                @Override
+                public ResolutionStrategyInternal getResolutionStrategy() {
+                    return null;
+                }
+
+                @Override
+                public DependencySet getDependencies() {
+                    return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
+                }
+
+                @Override
+                public DependencySet getAllDependencies() {
+                    return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
+                }
+
+                @Override
+                public ModuleInternal getModule() {
+                    return new DefaultModule("foo","bar","baz");
+                }
+            };
+            //dependencyResolver.resolveArtifacts(context, resolutionRepositories, globalDependencyResolutionRules, results);
             return classpath;
         }
     }

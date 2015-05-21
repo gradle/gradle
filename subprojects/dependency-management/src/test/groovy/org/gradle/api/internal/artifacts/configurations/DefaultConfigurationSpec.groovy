@@ -21,7 +21,10 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.internal.artifacts.*
+import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
@@ -940,7 +943,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies()
 
         then:
-        config.resolvedState == ResolveContextInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
     }
 
@@ -970,7 +973,7 @@ class DefaultConfigurationSpec extends Specification {
         config.resolve()
 
         then:
-        parent.observedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        parent.observedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -993,7 +996,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * listener.afterResolve(config.incoming)
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1009,7 +1012,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies()
 
         then:
-        config.resolvedState == ResolveContextInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1017,7 +1020,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1033,7 +1036,7 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1041,7 +1044,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1060,7 +1063,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1071,7 +1074,7 @@ class DefaultConfigurationSpec extends Specification {
         then:
         0 * resolver.resolve(_)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.resolvedState == ResolveContextInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1101,7 +1104,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.resolvedState == ResolveContextInternal.InternalState.UNRESOLVED
+        copy.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
         copy.state == UNRESOLVED
     }
 

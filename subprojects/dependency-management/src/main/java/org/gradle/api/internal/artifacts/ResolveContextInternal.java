@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
 public interface ResolveContextInternal extends DependencyMetaDataProvider {
-    enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
-
-    InternalState getResolvedState();
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    void markAsObserved(InternalState requestedState);
+    DependencySet getDependencies();
+
+    DependencySet getAllDependencies();
 
 }
