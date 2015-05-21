@@ -133,6 +133,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
+                configurations.all {
+                    resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
+                }
             }
 
             project(":api") {
@@ -206,6 +209,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 apply plugin: "java"
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                }
+                configurations.all {
+                    resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
                 }
             }
 

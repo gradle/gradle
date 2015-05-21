@@ -44,6 +44,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
+    private boolean forceResolveGraphToDetermineTaskDependencies;
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
@@ -97,6 +98,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         Collection<Action<DependencySubstitution>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
         return Actions.composite(allRules);
     }
+
+    public void forceResolveGraphToDetermineTaskDependencies() {
+        forceResolveGraphToDetermineTaskDependencies = true;
+    }
+
+    public boolean resolveGraphToDetermineTaskDependencies() {
+        return forceResolveGraphToDetermineTaskDependencies || dependencySubstitutions.hasDependencySubstitutionRules();
+    }
+
 
     public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
         mutationValidator.validateMutation(STRATEGY);

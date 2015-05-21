@@ -197,7 +197,7 @@ project(':b') {
         executedAndNotSkipped ":a:A1jar", ":a:A2jar"
     }
 
-    public void "resolved project artifacts reflect project properties changed after task graph is built"() {
+    public void "resolved project artifacts reflect project properties changed after task graph is resolved"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -292,6 +292,7 @@ project(':b') {
 '''
         file('build.gradle') << '''
             configurations { compile }
+            configurations.compile.resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
                 assert configurations.compile.collect { it.name } == ['a-2.jar']
@@ -491,7 +492,7 @@ project('c') {
         file("a/build.gradle") << """
             group = "g"
             version = 1.0
-            
+
             apply plugin: 'base'
             task zip(type: Zip) {
                 from "some.txt"
@@ -506,16 +507,16 @@ project('c') {
             dependencies {
                 conf project(":a")
             }
-            
+
             task copyZip(type: Copy) {
                 from configurations.conf
                 into "\$buildDir/copied"
             }
         """
-        
+
         when:
         succeeds ":b:copyZip"
-        
+
         then:
         executedAndNotSkipped ":a:zip", ":b:copyZip"
 

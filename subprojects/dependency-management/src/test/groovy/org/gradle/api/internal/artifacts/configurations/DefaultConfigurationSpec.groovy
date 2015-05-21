@@ -307,6 +307,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
             resolverResults.failed(failure)
         }
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
         configuration.getBuildDependencies()
@@ -798,6 +799,7 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         _ * resolvedConfiguration.hasError() >> false
         _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
@@ -937,11 +939,27 @@ class DefaultConfigurationSpec extends Specification {
         resolves(config, result, Mock(ResolvedConfiguration))
 
         when:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
         config.getBuildDependencies()
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
+    }
+
+    def "can determine task dependencies without resolution"() {
+        def config = conf("conf")
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.state == UNRESOLVED
+
+        and:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
+        0 * _._
     }
 
     def "resolving configuration marks parent configuration as observed"() {
@@ -987,6 +1005,9 @@ class DefaultConfigurationSpec extends Specification {
         def result = Mock(ResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
 
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
         when:
         config.getBuildDependencies()
 
@@ -1006,6 +1027,9 @@ class DefaultConfigurationSpec extends Specification {
     def "resolving configuration for results, and then resolving it for task dependencies does not re-resolve configuration"() {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
+
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
         resolves(config, result, Mock(ResolvedConfiguration))

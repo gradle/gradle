@@ -406,20 +406,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-
-        resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-        cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
-            @Override
-            public void execute(ResolvedProjectConfiguration projectResult) {
-                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                Configuration targetConfig = project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
-                taskDependency.add(targetConfig.getAllArtifacts());
-            }
-        });
-        taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
-        return taskDependency;
+        if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+            final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+            resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
+            cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
+                @Override
+                public void execute(ResolvedProjectConfiguration projectResult) {
+                    ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+                    Configuration targetConfig = project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+                    taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
+                    taskDependency.add(targetConfig.getAllArtifacts());
+                }
+            });
+            taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
+            return taskDependency;
+        } else {
+            return allDependencies.getBuildDependencies();
+        }
     }
 
     /**

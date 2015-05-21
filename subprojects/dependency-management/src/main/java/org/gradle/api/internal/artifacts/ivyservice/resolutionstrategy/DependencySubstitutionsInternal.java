@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 
 public interface DependencySubstitutionsInternal extends DependencySubstitutions {
+    boolean hasDependencySubstitutionRules();
+
     Action<DependencySubstitution> getDependencySubstitutionRule();
 
     DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule);

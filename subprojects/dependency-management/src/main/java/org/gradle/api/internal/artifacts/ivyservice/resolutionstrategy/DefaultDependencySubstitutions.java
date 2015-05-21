@@ -42,6 +42,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final NotationParser<Object, ProjectComponentIdentifier> projectIdentifierNotationParser;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
+    private boolean hasDependencySubstitutionRule;
 
     public DefaultDependencySubstitutions() {
         this(new LinkedHashSet<Action<? super DependencySubstitution>>());
@@ -51,6 +52,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         this.substitutionRules = substitutionRules;
         this.moduleIdentifierNotationParser = createModuleIdentifierNotationParser();
         this.projectIdentifierNotationParser = createProjectIdentifierNotationParser();
+    }
+
+    @Override
+    public boolean hasDependencySubstitutionRules() {
+        return hasDependencySubstitutionRule;
     }
 
     @Override
@@ -66,6 +72,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public DependencySubstitutions all(Action<? super DependencySubstitution> rule) {
         addRule(rule);
+        hasDependencySubstitutionRule = true;
         return this;
     }
 
