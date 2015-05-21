@@ -2,7 +2,7 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Dependency substitution rules
+### Dependency substitution rules (i)
 
 In previous Gradle versions you could use a 'Dependency resolve rule' to replace an external dependency with another:
 
@@ -17,7 +17,7 @@ In previous Gradle versions you could use a 'Dependency resolve rule' to replace
 This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
 These rules allow an external dependency to be replaced with a project dependency, and vice-versa.
 
-You replace a project dependency with an external dependency like this:
+A project dependency can be replaced with an external dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
@@ -27,7 +27,7 @@ You replace a project dependency with an external dependency like this:
         }
     }
 
-And replace an external dependency with an project dependency like this:
+Or an external dependency can be replaced with a project dependency like this:
 
 
     resolutionStrategy {
@@ -38,19 +38,11 @@ And replace an external dependency with an project dependency like this:
         }
     }
 
-There are other options available to match module and project dependencies:
-
-    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
-    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
-    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
-    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(":api")) { ProjectDependencySubstitution details -> /* ... */ }
-
 It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).
-Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
+as `eachDependency`).  See the documentation for [DependencySubstitutions](groovydoc/org/gradle/api/artifacts/DependencySubstitutions.html) to browse the
+various types of rules that can be configured.
 
-### Specify default dependencies for a Configuration
+### Specify default dependencies for a Configuration (i)
 
 Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is
 provided by the user. A common mechanism to do this involves using a `beforeResolve` hook to check if the configuration has any
@@ -175,12 +167,12 @@ Unexpected behaviour can result from changing a configuration after it has parti
 * Changing the artifacts of a configuration referenced as a project dependency: whether the referencing project gets those artifacts
   depends on the order that configurations are resolved.
 
-Previous versions of Gradle prevented the resolved configuration itself from being modified, but did nothing to 
+Previous versions of Gradle prevented the resolved configuration itself from being modified, but did nothing to
 prevent modifications to related configurations after they have participated in dependency resolution. This version of Gradle extends
 the checks, emitting a deprecation warning when a modification is made to a configuration that has been referenced in dependency
 resolution.
 
-One exception is that changes to the `ResolutionStrategy` of a configuration can be made at any time until that configuration is 
+One exception is that changes to the `ResolutionStrategy` of a configuration can be made at any time until that configuration is
 itself resolved. Changes to the strategy do not impact the resolution of child configurations, or configurations referenced as
 project dependencies. Thus, these changes are safe to make.
 

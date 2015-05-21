@@ -1,0 +1,8 @@
+
+//START SNIPPET module_substitution
+configurations.all {
+    resolutionStrategy.dependencySubstitution.withProject(":api") { ProjectDependencySubstitution details ->
+        details.useTarget group: "org.utils", name: "api", version: "1.3"
+    }
+}
+//END SNIPPET module_substitution

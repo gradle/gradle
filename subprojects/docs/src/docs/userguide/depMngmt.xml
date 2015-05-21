@@ -1182,21 +1182,6 @@ someroot/[artifact]-[revision].[ext]
                     </sample>
                 </para>
             </section>
-            <section id='sec:project_substitution'>
-                <title>Substituting a dependency module with a project replacement</title>
-                <para>
-                    Another use case for module substitution is to replace an external module dependency with a project in a multi-project build.
-                    This can be useful for testing a local, patched version of a dependency or for building only selected projects from a large build where
-                    some projects are local while the rest come from external modules.
-                </para>
-                <sample id="project_substitution" dir="dependency-substitution" title="Substituting a project for a module">
-                    <sourcefile file="build.gradle" snippet="project_substitution"/>
-                </sample>
-                <para>
-                    Note that any project that is substituted must first be included in the multi-project build (via settings.gradle).  The substitution
-                    rule only replaces the module dependency with the project dependency - it does not implicitly include the project in the build.
-                </para>
-            </section>
             <section id='sec:module_replacement'>
                 <title>Declaring that a legacy library is replaced by a new one</title>
                 <para>
@@ -1247,6 +1232,46 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </section>
 
+        </section>
+        <section id="dependency_substitution_rules">
+            <title>Dependency Substitution Rules</title>
+            <para>
+                Dependency substitution rules work similarly to dependency resolve rules.  In fact, many capabilities of dependency resolve rules
+                can be implemented with dependency substitution rules.  They allow project and module dependencies to be transparently substituted with
+                specified replacements.  Unlike dependency resolve rules, however, they allow project and module dependencies to be substituted
+                interchangeably.
+            </para>
+            <note>
+                <emphasis>NOTE:</emphasis> There are performance implications to using dependency substitution rules.  Because project dependencies impact the
+                task graph (i.e. they imply task dependencies between projects), any project dependencies must be known at configuration time.  This means
+                that dependency substitution rules require dependencies to be eagerly resolved during configuration rather than execution time.  For large
+                dependency graphs, this can have a noticeable impact.
+            </note>
+            <section id='sec:project_to_module_substitution'>
+                <title>Substituting a dependency module with a project replacement</title>
+                <para>
+                    A common use case for module substitution is to replace an external module dependency with a project in a multi-project build.
+                    This can be useful for testing a local, patched version of a dependency or for building only selected projects from a large build where
+                    some projects are local while the rest come from external modules.
+                </para>
+                <sample id="project_substitution" dir="dependency-substitution" title="Substituting a project for a module">
+                    <sourcefile file="build.gradle" snippet="project_substitution"/>
+                </sample>
+                <para>
+                    Note that any project that is substituted must first be included in the multi-project build (via settings.gradle).  The substitution
+                    rule only replaces the module dependency with the project dependency - it does not implicitly include the project in the build.
+                </para>
+            </section>
+            <section id='sec:module_to_project_substitution'>
+                <title>Substituting a project dependency with a module replacement</title>
+                <para>
+                    Another way to use substitution rules is to replace a project dependency with a module in a multi-project build.  This can be useful when
+                    testing against a published version of a locally available project.
+                </para>
+                <sample id="module_to_project_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a module for a project">
+                    <sourcefile file="build.gradle" snippet="module_substitution"/>
+                </sample>
+            </section>
         </section>
         <section id="ivy_dynamic_resolve_mode">
             <title>Enabling Ivy dynamic resolve mode</title>
