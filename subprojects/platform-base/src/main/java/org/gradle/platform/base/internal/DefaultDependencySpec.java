@@ -24,6 +24,9 @@ public class DefaultDependencySpec implements DependencySpec {
     private final String libraryName;
 
     public DefaultDependencySpec(String libraryName, String projectPath) {
+        if (libraryName==null && projectPath==null) {
+            throw new IllegalArgumentException("A dependency spec must have at least one of project or library name not null");
+        }
         this.libraryName = libraryName;
         this.projectPath = projectPath;
     }

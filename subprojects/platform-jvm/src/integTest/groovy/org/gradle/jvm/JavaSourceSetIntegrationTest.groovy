@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.jvm
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
@@ -113,6 +112,80 @@ model {
 
         then:
         noExceptionThrown()
+    }
+
+    def "cannot create a dependency with all null values with library"() {
+        given:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library(null)
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        create('checkDependencies') {
+            doLast {
+                def libraries = $('components.main.sources.java').dependencies*.libraryName
+            }
+        }
+    }
+}
+'''
+        when:
+        def failure = fails "checkDependencies"
+
+        then:
+        failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
+    }
+
+    def "cannot create a dependency with all null values with project"() {
+        given:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project(null)
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        create('checkDependencies') {
+            doLast {
+                def libraries = $('components.main.sources.java').dependencies*.libraryName
+            }
+        }
+    }
+}
+'''
+        when:
+        def failure = fails "checkDependencies"
+
+        then:
+        failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
     }
 
 }
