@@ -13,34 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
-import java.util.Set;
-
 /**
- * A container for dependency specifications.
+ * Interface for a dependency spec builder. Implementations are required to return
+ * immutable dependency specs.
  */
-@Incubating
-public interface DependencySpecContainer extends Set<DependencySpec> {
+public interface DependencySpecBuilder extends DependencySpec {
     /**
-     * Defines a new dependency, based on a project path. The returned dependency can be mutated.
+     * Narrows this dependency specification down to a specific project.
      *
      * @param path the project path
      *
-     * @return a mutable dependency, added to this container
+     * @return this instance
      */
-    DependencySpec project(String path);
+    DependencySpecBuilder project(String path);
 
     /**
-     * Defines a new dependency, based on a library name. The returned dependency can be mutated.
+     * Narrows this dependency specification down to a specific library.
      *
-     * @param name of the library
+     * @param name the library name
      *
-     * @return a mutable dependency, added to this container
+     * @return this instance
      */
-    DependencySpec library(String name);
+    DependencySpecBuilder library(String name);
 
+    /**
+     * Builds a concrete immutable {@link DependencySpec} instance.
+     *
+     * @return an immutable dependency specification
+     */
+    DependencySpec build();
 }

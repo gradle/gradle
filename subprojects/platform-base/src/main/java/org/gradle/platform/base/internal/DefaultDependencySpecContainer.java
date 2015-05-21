@@ -16,39 +16,119 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecBuilder;
 import org.gradle.platform.base.DependencySpecContainer;
 
-import java.util.LinkedHashSet;
+import java.util.*;
 
-public class DefaultDependencySpecContainer extends LinkedHashSet<DependencySpec> implements DependencySpecContainer {
+public class DefaultDependencySpecContainer implements DependencySpecContainer {
+
+    private final List<DefaultDependencySpec.Builder> builders = new LinkedList<DefaultDependencySpec.Builder>();
 
     @Override
-    public DefaultDependencySpec project(final String path) {
-        return doCreate(new Action<DependencySpec>() {
+    public DependencySpecBuilder project(final String path) {
+        return doCreate(new Action<DefaultDependencySpec.Builder>() {
             @Override
-            public void execute(DependencySpec dependencySpec) {
-                dependencySpec.project(path);
+            public void execute(DefaultDependencySpec.Builder builder) {
+                builder.project(path);
             }
         });
     }
 
     @Override
-    public DefaultDependencySpec library(final String name) {
-        return doCreate(new Action<DependencySpec>() {
+    public DependencySpecBuilder library(final String name) {
+        return doCreate(new Action<DefaultDependencySpec.Builder>() {
             @Override
-            public void execute(DependencySpec dependencySpec) {
-                dependencySpec.library(name);
+            public void execute(DefaultDependencySpec.Builder builder) {
+                builder.library(name);
             }
         });
     }
 
-    private DefaultDependencySpec doCreate(Action<? super DependencySpec> action) {
-        DefaultDependencySpec spec = new DefaultDependencySpec();
-        add(spec);
-        action.execute(spec);
-        return spec;
+    private Collection<DependencySpec> getDependencies() {
+        if (builders.isEmpty()) {
+            return Collections.emptySet();
+        }
+        ArrayList<DependencySpec> specs = new ArrayList<DependencySpec>(builders.size());
+        for (DefaultDependencySpec.Builder builder : builders) {
+            specs.add(builder.build());
+        }
+        return ImmutableSet.copyOf(specs);
     }
 
+    private DefaultDependencySpec.Builder doCreate(Action<? super DefaultDependencySpec.Builder> action) {
+        DefaultDependencySpec.Builder builder = new DefaultDependencySpec.Builder();
+        action.execute(builder);
+        builders.add(builder);
+        return builder;
+    }
+
+    @Override
+    public boolean add(DependencySpec dependencySpec) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
+        return builders.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return builders.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterator<DependencySpec> iterator() {
+        return getDependencies().iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return getDependencies().toArray();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] a) {
+        return (T[]) getDependencies().toArray((DefaultDependencySpec[])a);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends DependencySpec> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
 }

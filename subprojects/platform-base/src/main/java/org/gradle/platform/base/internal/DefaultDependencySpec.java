@@ -17,21 +17,15 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecBuilder;
 
 public class DefaultDependencySpec implements DependencySpec {
-    private String projectPath;
-    private String libraryName;
+    private final String projectPath;
+    private final String libraryName;
 
-    @Override
-    public DependencySpec project(String path) {
-        projectPath = path;
-        return this;
-    }
-
-    @Override
-    public DependencySpec library(String name) {
-        libraryName = name;
-        return this;
+    public DefaultDependencySpec(String libraryName, String projectPath) {
+        this.libraryName = libraryName;
+        this.projectPath = projectPath;
     }
 
     @Override
@@ -44,4 +38,39 @@ public class DefaultDependencySpec implements DependencySpec {
     public String getLibraryName() {
         return libraryName;
     }
+
+    public static class Builder implements DependencySpecBuilder {
+        private String projectPath;
+        private String libraryName;
+
+        @Override
+        public DependencySpecBuilder project(String path) {
+            projectPath = path;
+            return this;
+        }
+
+        @Override
+        public DependencySpecBuilder library(String name) {
+            libraryName = name;
+            return this;
+        }
+
+        @Override
+        public DependencySpec build() {
+            return new DefaultDependencySpec(libraryName, projectPath);
+        }
+
+        @Override
+        @Nullable
+        public String getProjectPath() {
+            return projectPath;
+        }
+
+        @Nullable
+        @Override
+        public String getLibraryName() {
+            return libraryName;
+        }
+    }
+
 }

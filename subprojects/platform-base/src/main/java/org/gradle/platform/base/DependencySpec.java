@@ -24,29 +24,13 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface DependencySpec {
-    /**
-     * Narrows this dependency specification down to a specific project.
-     *
-     * @param path the project path
-     *
-     * @return this instance
-     */
-    DependencySpec project(String path);
-
-    /**
-     * Narrows this dependency specification down to a specific library.
-     *
-     * @param name the library name
-     *
-     * @return this instance
-     */
-    DependencySpec library(String name);
 
     /**
      * Returns the project path of the project this dependency refers to.
      *
      * @return the project path
      */
+    @Nullable
     String getProjectPath();
 
     /**
