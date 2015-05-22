@@ -1,5 +1,5 @@
-package org.gradle.integtests.IdeaIntegrationTest.webservice.src.main.java.org.gradle.webservice;
+package org.gradle.webservice;
 
 public class TestTest {
-    
+
 }
