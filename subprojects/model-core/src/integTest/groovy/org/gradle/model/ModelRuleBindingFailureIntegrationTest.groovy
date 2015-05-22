@@ -57,8 +57,12 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        // TODO - should report 2 unbound rules here
         failure.assertHasCause("""The following model rules are unbound:
+  MyPlugin\$Rules#mutateThing2(MyPlugin\$MyThing2, MyPlugin\$MyThing3)
+    Mutable:
+      - <unspecified> (MyPlugin\$MyThing2) parameter 1
+    Immutable:
+      - <unspecified> (MyPlugin\$MyThing3) parameter 2
   MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)
     Immutable:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1""")

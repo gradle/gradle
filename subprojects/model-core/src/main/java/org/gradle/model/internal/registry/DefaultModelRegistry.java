@@ -49,9 +49,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
-
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
-    private final LinkedList<ModelNodeInternal> nodesToBeValidated = new LinkedList<ModelNodeInternal>();
 
     boolean reset;
 
@@ -81,8 +79,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private CreatorRuleBinder toCreatorBinder(ModelCreator creator, ModelPath scope) {
-        List<ModelReference<?>> inputs = mapInputs(creator.getInputs(), scope);
-        return new CreatorRuleBinder(creator, inputs, unboundRules);
+        BindingPredicate subject = new BindingPredicate(ModelReference.of(creator.getPath(), ModelType.untyped(), ModelNode.State.Created));
+        List<BindingPredicate> inputs = mapInputs(creator.getInputs(), scope);
+        return new CreatorRuleBinder(creator, subject, inputs, unboundRules);
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
@@ -132,7 +131,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         node = parent.addLink(child);
         ruleBindings.add(node);
         modelGraph.add(node);
-        nodesToBeValidated.add(node);
         ruleBindings.add(node.getCreatorBinder());
         return node;
     }
@@ -157,8 +155,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (reset) {
             return;
         }
-        ModelReference<T> mappedSubject = mapSubject(subject, role, scope);
-        List<ModelReference<?>> mappedInputs = mapInputs(mutator.getInputs(), scope);
+        BindingPredicate mappedSubject = mapSubject(subject, role, scope);
+        List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
         MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
     }
@@ -218,7 +216,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             modelGraph.remove(node);
             ruleBindings.remove(node);
             unboundRules.remove(node.getCreatorBinder());
-            nodesToBeValidated.remove(node);
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }
@@ -256,19 +253,13 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void bindAllReferences() throws UnboundModelRulesException {
+        if (unboundRules.isEmpty()) {
+            return;
+        }
+
         GoalGraph graph = new GoalGraph();
-
         boolean newInputsBound = true;
-        while (newInputsBound || !nodesToBeValidated.isEmpty()) {
-            while (!nodesToBeValidated.isEmpty()) {
-                ModelNodeInternal node = nodesToBeValidated.removeFirst();
-                transitionTo(graph, graph.nodeAtState(new NodeAtState(node.getPath(), RulesDefined)));
-            }
-
-            if (unboundRules.isEmpty()) {
-                return;
-            }
-
+        while (!unboundRules.isEmpty() && newInputsBound) {
             newInputsBound = false;
             RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[unboundRules.size()]);
             for (RuleBinder binder : unboundBinders) {
@@ -475,7 +466,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
 
-        ModelView<? extends T> view = assertView(node, boundMutator.getSubjectReference(), descriptor, inputs);
+        ModelReference<T> reference = Cast.uncheckedCast(boundMutator.getSubjectReference().getReference());
+        ModelView<? extends T> view = assertView(node, reference, descriptor, inputs);
         try {
             mutator.execute(node, view.getInstance(), inputs);
         } catch (Exception e) {
@@ -492,7 +484,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
-            ModelView<?> view = assertView(element, binding.getReference().getType(), modelRule.getDescriptor(), "toViews");
+            ModelView<?> view = assertView(element, binding.getPredicate().getType(), modelRule.getDescriptor(), "toViews");
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
@@ -537,23 +529,30 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelReference<T> mapSubject(ModelReference<T> subjectReference, ModelActionRole role, ModelPath scope) {
+    private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role, ModelPath scope) {
+        ModelReference<?> mappedReference;
         if (subjectReference.getPath() == null) {
-            return subjectReference.atState(role.getTargetState()).inScope(scope);
+            mappedReference = subjectReference.inScope(scope);
+        } else {
+            mappedReference = subjectReference.withPath(scope.descendant(subjectReference.getPath()));
         }
-        return subjectReference.atState(role.getTargetState()).withPath(scope.descendant(subjectReference.getPath()));
+        if (role.getTargetState() != null) {
+            return new BindingPredicate(mappedReference.atState(role.getTargetState()));
+        } else {
+            return new AnyStateBindingPredicate(mappedReference);
+        }
     }
 
-    private List<ModelReference<?>> mapInputs(List<ModelReference<?>> inputs, ModelPath scope) {
+    private List<BindingPredicate> mapInputs(List<ModelReference<?>> inputs, ModelPath scope) {
         if (inputs.isEmpty()) {
-            return inputs;
+            return Collections.emptyList();
         }
-        ArrayList<ModelReference<?>> result = new ArrayList<ModelReference<?>>(inputs.size());
+        ArrayList<BindingPredicate> result = new ArrayList<BindingPredicate>(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() != null) {
-                result.add(input.withPath(scope.descendant(input.getPath())));
+                result.add(new BindingPredicate(input.withPath(scope.descendant(input.getPath()))));
             } else {
-                result.add(input.inScope(ModelPath.ROOT));
+                result.add(new BindingPredicate(input.inScope(ModelPath.ROOT)));
             }
         }
         return result;
@@ -1217,7 +1216,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             for (RuleBinder rule : ruleBindings.getRulesWithInput(input)) {
-                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound()) {
+                if (rule.getSubjectBinding() == null || !rule.getSubjectBinding().isBound() || rule.getSubjectReference().getState() == null) {
                     // TODO - implement these cases
                     continue;
                 }
@@ -1240,6 +1239,15 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (seenRules.isEmpty() && getTargetState().equals(DefaultsApplied)) {
+                for (RuleBinder binder : ruleBindings.getRulesWithSubject(getPath())) {
+                    if (seenRules.add(binder)) {
+                        MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
+                        dependencies.add(new RunModelAction(getPath(), mutator));
+                    }
+                }
+            }
+
             // Must run each action
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
@@ -1340,10 +1348,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
-                if (binding.getReference().getPath() != null) {
-                    dependencies.add(new TryDefineChildren(binding.getReference().getPath().getParent()));
+                if (binding.getPredicate().getPath() != null) {
+                    dependencies.add(new TryDefineChildren(binding.getPredicate().getPath().getParent()));
                 } else {
-                    dependencies.add(new TryDefineChildren(binding.getReference().getScope()));
+                    dependencies.add(new TryDefineChildren(binding.getPredicate().getScope()));
                 }
             }
         }
@@ -1376,7 +1384,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw unbound(Collections.singleton(binder));
             }
             for (ModelBinding binding : binder.getInputBindings()) {
-                dependencies.add(graph.nodeAtState(new NodeAtState(binding.boundTo.getPath(), binding.getReference().getState())));
+                dependencies.add(graph.nodeAtState(new NodeAtState(binding.getNode().getPath(), binding.getPredicate().getState())));
             }
             return true;
         }
@@ -1416,5 +1424,4 @@ public class DefaultModelRegistry implements ModelRegistry {
             node.notifyFired(binder);
         }
     }
-
 }

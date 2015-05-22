@@ -35,7 +35,8 @@ class RegistrySpec extends Specification {
 
         private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
             def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
-            def binder = new CreatorRuleBinder(creator, [], [])
+            def subject = new BindingPredicate()
+            def binder = new CreatorRuleBinder(creator, subject, [], [])
             binder
         }
 
@@ -189,21 +190,21 @@ class RegistrySpec extends Specification {
     protected static class RuleBinderTestBuilder {
 
         private ModelRuleDescriptor descriptor
-        private ModelReference<?> subjectReference
+        private BindingPredicate subjectReference
         private String subjectReferenceBindingPath
-        private List<ModelReference<?>> inputReferences = []
+        private List<BindingPredicate> inputReferences = []
         private Map<Integer, String> boundInputReferencePaths = [:]
 
         void subjectReference(ModelReference<?> reference) {
-            subjectReference = reference
+            subjectReference = new BindingPredicate(reference)
         }
 
         void subjectReference(Class type) {
-            subjectReference = ModelReference.of(ModelType.of(type))
+            subjectReference(ModelReference.of(ModelType.of(type)))
         }
 
         void subjectReference(String path, Class type) {
-            subjectReference = ModelReference.of(new ModelPath(path), ModelType.of(type))
+            subjectReference(ModelReference.of(new ModelPath(path), ModelType.of(type)))
         }
 
         void bindSubjectReference(String path) {
@@ -211,23 +212,23 @@ class RegistrySpec extends Specification {
         }
 
         void inputReference(ModelReference<?> reference) {
-            inputReferences.add(reference)
+            inputReferences.add(new BindingPredicate(reference))
         }
 
         void inputReference(Class type) {
-            inputReferences.add(ModelReference.of(ModelType.of(type)).inScope(ModelPath.ROOT))
+            inputReference(ModelReference.of(ModelType.of(type)).inScope(ModelPath.ROOT))
         }
 
         void inputReference(Class type, ModelNode.State state) {
-            inputReferences.add(ModelReference.of(null, ModelType.of(type), state).inScope(ModelPath.ROOT))
+            inputReference(ModelReference.of(null, ModelType.of(type), state).inScope(ModelPath.ROOT))
         }
 
         void inputReference(String path, ModelNode.State state) {
-            inputReferences.add(ModelReference.of(ModelPath.path(path), ModelType.untyped(), state))
+            inputReference(ModelReference.of(ModelPath.path(path), ModelType.untyped(), state))
         }
 
         void inputReference(String path, Class type) {
-            inputReferences.add(ModelReference.of(new ModelPath(path), ModelType.of(type)))
+            inputReference(ModelReference.of(new ModelPath(path), ModelType.of(type)))
         }
 
         void bindInputReference(int index, String path) {
@@ -242,9 +243,9 @@ class RegistrySpec extends Specification {
             def binder
             if (subjectReference == null) {
                 def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
-                binder = new CreatorRuleBinder(action, inputReferences, [])
+                binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
-                def action = NoInputsModelAction.of(subjectReference, descriptor, {})
+                def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
                 binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
             }
             if (subjectReferenceBindingPath) {

@@ -16,13 +16,15 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Nullable;
+
 /**
  * A hard-coded sequence of model actions that can be applied to a model element.
  *
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum ModelActionRole {
-    DefineRules(ModelNode.State.RulesDefined), // Allows initial rules to be defined for an element
+    DefineRules(null), // Defines rules for an element. Does not use the subject as input and may run at any time after the element is known
     Defaults(ModelNode.State.DefaultsApplied), // Allows a mutation to setup default values for an element
     Initialize(ModelNode.State.Initialized), // Mutation action provided when an element is defined
     Mutate(ModelNode.State.Mutated), // Customisations
@@ -35,6 +37,7 @@ public enum ModelActionRole {
         this.target = target;
     }
 
+    @Nullable
     public ModelNode.State getTargetState() {
         return target;
     }

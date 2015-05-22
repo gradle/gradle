@@ -20,21 +20,20 @@ import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
 class PathBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
 
-    public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<ModelBinding> bindAction) {
-        super(descriptor, reference, writable);
+    public PathBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
+        super(descriptor, predicate, writable);
         this.bindAction = bindAction;
     }
 
     public void onCreate(ModelNodeInternal node) {
         if (boundTo != null) {
-            throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", reference, referrer, boundTo));
+            throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", predicate.getReference(), referrer, boundTo));
         }
         ModelPromise promise = node.getPromise();
         if (isTypeCompatible(promise)) {
@@ -42,7 +41,7 @@ class PathBinderCreationListener extends ModelBinding {
             bindAction.execute(this);
         } else {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
+                IncompatibleTypeReferenceReporter.of(node, promise, predicate.getReference(), writable).asString()
             ));
         }
     }

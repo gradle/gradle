@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelReference;
 
-import java.util.Collection;
-import java.util.List;
-
-class CreatorRuleBinder extends RuleBinder {
-    private final ModelCreator creator;
-
-    public CreatorRuleBinder(ModelCreator creator, BindingPredicate subject, List<BindingPredicate> inputs, Collection<RuleBinder> binders) {
-        super(subject, inputs, creator.getDescriptor(), binders);
-        this.creator = creator;
+public class AnyStateBindingPredicate extends BindingPredicate {
+    public AnyStateBindingPredicate(ModelReference<?> reference) {
+        super(reference);
     }
 
-    public ModelCreator getCreator() {
-        return creator;
+    @Nullable
+    @Override
+    public ModelNode.State getState() {
+        return null;
     }
 }
