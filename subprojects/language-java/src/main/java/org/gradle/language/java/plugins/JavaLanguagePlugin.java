@@ -27,6 +27,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.CompositeResolveLocalComponentFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -41,6 +42,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
+import org.gradle.language.java.internal.DefaultJavaLocalComponentFactory;
 import org.gradle.language.java.internal.DefaultJavaSourceSetResolveContext;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
@@ -62,6 +64,14 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
+        GradleInternal gradle = (GradleInternal) project.getGradle();
+        registerLocalComponentFactory(gradle);
+    }
+
+    private void registerLocalComponentFactory(GradleInternal gradle) {
+        ServiceRegistry services = gradle.getServices();
+        CompositeResolveLocalComponentFactory componentFactory = services.get(CompositeResolveLocalComponentFactory.class);
+        componentFactory.addFactory(new DefaultJavaLocalComponentFactory());
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -160,7 +170,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             ResolverResults results = new ResolverResults();
             List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
             DependentSourceSetInternal dss = (DependentSourceSetInternal) sourceSet;
-            dependencyResolver.resolveArtifacts(new DefaultJavaSourceSetResolveContext(dss), resolutionRepositories, globalDependencyResolutionRules, results);
+            DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext(dss);
+            dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
             return classpath;
         }
 

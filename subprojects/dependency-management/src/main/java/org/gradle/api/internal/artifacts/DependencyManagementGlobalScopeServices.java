@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 
@@ -52,17 +51,17 @@ class DependencyManagementGlobalScopeServices {
                 descriptorFactory);
     }
 
-    LocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+    CompositeResolveLocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                              DependencyDescriptorFactory dependencyDescriptorFactory,
                                                              ExcludeRuleConverter excludeRuleConverter,
                                                              ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ResolveLocalComponentFactory(
+        return new CompositeResolveLocalComponentFactory(new ResolveLocalComponentFactory(
                 configurationsToModuleDescriptorConverter,
                 new DefaultDependenciesToModuleDescriptorConverter(
                         dependencyDescriptorFactory,
                         excludeRuleConverter),
                 componentIdentifierFactory,
-                new DefaultConfigurationsToArtifactsConverter());
+                new DefaultConfigurationsToArtifactsConverter()));
 
     }
 }

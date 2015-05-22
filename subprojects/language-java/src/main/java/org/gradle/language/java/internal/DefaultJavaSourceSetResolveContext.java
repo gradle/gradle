@@ -20,7 +20,10 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
+import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecContainer;
 
 public class DefaultJavaSourceSetResolveContext implements ResolveContext {
     private final DependentSourceSetInternal sourceSet;
@@ -31,12 +34,47 @@ public class DefaultJavaSourceSetResolveContext implements ResolveContext {
 
     @Override
     public DependencySet getDependencies() {
-        return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
+        DefaultDomainObjectSet<Dependency> backingSet = convertDependencies();
+        return new DefaultDependencySet("foo", backingSet);
+    }
+
+    private DefaultDomainObjectSet<Dependency> convertDependencies() {
+        DefaultDomainObjectSet<Dependency> backingSet = new DefaultDomainObjectSet<Dependency>(Dependency.class);
+        DependencySpecContainer dependencies = sourceSet.getDependencies();
+        for (DependencySpec dependency : dependencies) {
+            backingSet.add(new AbstractDependency() {
+                @Override
+                public String getGroup() {
+                    return "foo";
+                }
+
+                @Override
+                public String getName() {
+                    return "bar";
+                }
+
+                @Override
+                public String getVersion() {
+                    return "baz";
+                }
+
+                @Override
+                public boolean contentEquals(Dependency dependency) {
+                    return false;
+                }
+
+                @Override
+                public Dependency copy() {
+                    return this;
+                }
+            });
+        }
+        return backingSet;
     }
 
     @Override
     public DependencySet getAllDependencies() {
-        return new DefaultDependencySet("foo", new DefaultDomainObjectSet<Dependency>(Dependency.class));
+        return new DefaultDependencySet("foo", convertDependencies());
     }
 
 }
