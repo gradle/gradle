@@ -46,7 +46,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean expectBuildFailure = false
 
-    OutputStream stdinPipe
+    PipedOutputStream stdinPipe
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -67,6 +67,8 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     protected ExecutionResult succeeds(String... tasks) {
         if (tasks) {
             runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
         }
         if (gradle == null) {
             throw new UnexpectedBuildFailure("Gradle never started")
@@ -81,6 +83,8 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     ExecutionFailure fails(String... tasks) {
         if (tasks) {
             runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
         }
         waitForBuild()
         if (!(result instanceof ExecutionFailure)) {
@@ -122,7 +126,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     void stopGradle() {
         if (gradle && gradle.isRunning()) {
-            emulateCtrlD()
+            closeStdIn()
             assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
                 @Override
                 Boolean call() throws Exception {
@@ -143,13 +147,8 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         }
     }
 
-    void emulateCtrlD() {
-        stdinPipe?.write(4)
-
-        // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
-        // Possibly, the daemon should be EOT aware and close the stream.
-        // Or, when the client is doing a blocking read of the input we shouldn't buffer.
-        stdinPipe?.write(SystemProperties.instance.lineSeparator.bytes)
+    void closeStdIn() {
+        stdinPipe.close()
     }
 
     void noBuildTriggered(int waitSeconds = 3) {

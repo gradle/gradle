@@ -16,26 +16,5 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.Timeout
-
-@Requires(TestPrecondition.JDK6)
-class Jdk6ContinuousIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.requireGradleHome()
-    }
-
-    @Timeout(60)
-    def "can NOT enable continuous mode"() {
-        when:
-        executer.withArgument("--continuous")
-
-        then:
-        fails "tasks"
-        errorOutput.contains "Continuous building (--continuous) is not supported on versions of Java older than 1.7."
-    }
-
+abstract class Java7RequiringContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 }

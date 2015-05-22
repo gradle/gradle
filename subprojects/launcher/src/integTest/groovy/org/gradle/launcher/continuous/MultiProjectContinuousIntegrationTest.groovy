@@ -18,7 +18,7 @@ package org.gradle.launcher.continuous
 
 import spock.lang.Ignore
 
-class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def upstreamSource, downstreamSource
 
     def setup() {

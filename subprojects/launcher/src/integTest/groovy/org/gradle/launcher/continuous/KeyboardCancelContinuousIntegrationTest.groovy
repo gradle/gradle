@@ -16,16 +16,26 @@
 
 package org.gradle.launcher.continuous
 
-class KeyboardCancelContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+import org.gradle.internal.SystemProperties
+
+class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+
     def setup() {
         buildFile << "apply plugin: 'java'"
     }
 
-    def "should cancel build when System.in contains CTRL+D"() {
+    def "should cancel build when System.in contains EOT"() {
         given:
         succeeds("build")
+
         when:
-        emulateCtrlD()
+        stdinPipe.write(4) // EOT / CTRL-D
+
+        // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
+        // Possibly, the daemon should be EOT aware and close the stream.
+        // Or, when the client is doing a blocking read of the input we shouldn't buffer.
+        stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
+
         then:
         expectOutput {
             it.contains("Build cancelled")
@@ -35,28 +45,26 @@ class KeyboardCancelContinuousIntegrationTest extends AbstractContinuousIntegrat
     def "should cancel build when System.in is closed"() {
         given:
         succeeds("build")
+
         when:
-        stdinPipe.close()
-        stdinPipe = null
+        closeStdIn()
+
         then:
-        expectOutput {
-            it.contains("Build cancelled")
-        }
+        expectOutput { it.contains("Build cancelled") }
     }
 
-    def "should cancel build when System.in contains some other characters, then CTRL+D"() {
+    def "should cancel build when System.in contains some other characters, then closes"() {
         when:
         succeeds("build")
         stdinPipe << 'abc'
+
         then:
-        expectOutput(0.5) {
-            !it.contains("Build cancelled")
-        }
+        expectOutput { !it.contains("Build cancelled") }
+
         when:
-        emulateCtrlD()
+        stdinPipe.close()
+
         then:
-        expectOutput {
-            it.contains("Build cancelled")
-        }
+        expectOutput { it.contains("Build cancelled") }
     }
 }

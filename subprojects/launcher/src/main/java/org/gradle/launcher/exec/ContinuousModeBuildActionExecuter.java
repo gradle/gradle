@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -24,7 +25,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
@@ -34,21 +34,22 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.SingleMessageLogger;
 
-public class ContinuousModeBuildActionExecuter implements BuildExecuter, Stoppable {
+public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final FileSystemChangeWaiter waiter;
-
+    private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
     public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
+        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, FileSystemChangeWaiter waiter) {
+    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, FileSystemChangeWaiter waiter) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
+        this.javaVersion = javaVersion;
         this.waiter = waiter;
         this.logger = styledTextOutputFactory.create(ContinuousModeBuildActionExecuter.class, LogLevel.LIFECYCLE);
     }
@@ -56,6 +57,9 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter, Stoppab
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (continuousModeEnabled(actionParameters)) {
+            if (!javaVersion.isJava7Compatible()) {
+                throw new IllegalStateException(String.format("Continuous building requires Java %s or later.", JavaVersion.VERSION_1_7));
+            }
             SingleMessageLogger.incubatingFeatureUsed("Continuous building");
             return executeMultipleBuilds(action, requestContext, actionParameters);
         }
@@ -125,10 +129,4 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter, Stoppab
         return actionParameters.isContinuousModeEnabled();
     }
 
-    @Override
-    public void stop() {
-        if(waiter instanceof Stoppable) {
-            ((Stoppable)waiter).stop();
-        }
-    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -40,9 +41,9 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiter = Mock(FileSystemChangeWaiter)
     def listenerManager = new DefaultListenerManager()
-    def executer = new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), waiter)
-    private File file = new File('file')
+    def executer = executer()
 
+    private File file = new File('file')
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
     }
@@ -133,6 +134,52 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         }
     }
 
+    def "doesn't prevent use on java 6 when not using continuous"() {
+        given:
+        executer = executer(JavaVersion.VERSION_1_6)
+
+        when:
+        singleBuild()
+
+        and:
+        executeBuild()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "prevents use on java 6 when using continuous"() {
+        given:
+        executer = executer(JavaVersion.VERSION_1_6)
+
+        when:
+        continuousBuilding()
+
+        and:
+        executeBuild()
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == "Continuous building requires Java 1.7 or later."
+    }
+
+    def "can use on all versions later than 7"() {
+        given:
+        executer = executer(javaVersion)
+
+        when:
+        continuousBuilding()
+
+        and:
+        executeBuild()
+
+        then:
+        noExceptionThrown()
+
+        where:
+        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_7}
+    }
+
     private void singleBuild() {
         actionParameters.continuousModeEnabled >> false
     }
@@ -147,6 +194,10 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     private void declareInput(File file) {
         listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+    }
+
+    private ContinuousModeBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
+        new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, waiter)
     }
 
 }

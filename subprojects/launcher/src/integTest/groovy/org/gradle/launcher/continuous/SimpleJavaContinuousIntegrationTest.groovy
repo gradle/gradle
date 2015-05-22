@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
     // TODO: Fold test sources into TestJvmComponent?

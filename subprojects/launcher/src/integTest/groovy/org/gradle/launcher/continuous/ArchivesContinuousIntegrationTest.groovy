@@ -18,7 +18,7 @@ package org.gradle.launcher.continuous
 
 import spock.lang.Unroll
 
-class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def "creating zips in continuous mode"() {
         given:
