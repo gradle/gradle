@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.resolve.fixture.EarlyDependencyGraphResolveRunner
+import org.gradle.integtests.fixtures.EarlyDependencyGraphResolveRunner
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue

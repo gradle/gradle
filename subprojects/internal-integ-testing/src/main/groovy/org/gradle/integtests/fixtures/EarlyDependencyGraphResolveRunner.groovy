@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.fixture;
-
-import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
+package org.gradle.integtests.fixtures;
 
 /**
  * This runner runs tests with early dependency graph resolution run both
