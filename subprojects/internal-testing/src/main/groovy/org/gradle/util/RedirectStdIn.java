@@ -16,8 +16,8 @@
 
 package org.gradle.util;
 
-import org.junit.rules.MethodRule;
-import org.junit.runners.model.FrameworkMethod;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.io.InputStream;
@@ -25,19 +25,18 @@ import java.io.InputStream;
 /**
  * A Junit rule which restores System.in at the end of the test.
  */
-public class RedirectStdIn implements MethodRule {
-    private InputStream originalStdIn;
+public class RedirectStdIn implements TestRule {
 
-    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
+    @Override
+    public Statement apply(final Statement base, Description description) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                originalStdIn = System.in;
+                final InputStream originalStdIn = System.in;
                 try {
                     base.evaluate();
                 } finally {
                     System.setIn(originalStdIn);
-                    originalStdIn = null;
                 }
             }
         };
