@@ -16,9 +16,7 @@
 
 
 package org.gradle.integtests.resolve
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -58,11 +56,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("resolveConf")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "resolveConf"
     }
 
     void "module forced by rule has correct selection reason"()
@@ -101,39 +96,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
-    }
-
-    @Ignore("Deprecation not yet added")
-    void "warns about using deprecated resolution rules"()
-    {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
-        buildFile << """
-            $common
-
-            dependencies {
-                conf 'org.utils:api:1.3'
-            }
-
-            configurations.conf.resolutionStrategy {
-                eachDependency {
-                    it.useVersion "1.5"
-                }
-            }
-"""
-
-        executer.withDeprecationChecksDisabled()
-
-        when:
-        succeeds()
-
-        then:
-        output.contains("The ResolutionStrategy.eachDependency() method has been deprecated and is scheduled to be removed in Gradle 3.0. Please use the DependencySubstitution.eachModule() method instead.")
+        expect:
+        succeeds "check"
     }
 
     void "all rules are executed in order and last one wins"()
@@ -181,11 +145,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "all rules are executed in order and last one wins, including resolution rules"()
@@ -235,11 +196,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "can unforce the version"()
@@ -279,11 +237,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "rule are applied after forced modules"()
@@ -324,11 +279,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "forced modules and rules coexist"()
@@ -375,11 +327,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "rule selects a dynamic version"()
@@ -409,11 +358,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "can replace external dependency with project dependency"()
@@ -447,8 +393,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("impl:check")
+        when:
+        succeeds "impl:check"
+
+        then:
         executedAndNotSkipped ":api:jar"
     }
 
@@ -489,8 +437,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("impl:check")
+        when:
+        succeeds ":impl:check"
+
+        then:
         executedAndNotSkipped ":api:build"
     }
 
@@ -526,10 +476,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("impl:check")
+        when:
+        succeeds "impl:check"
 
-        !executedTasks.contains(":api:jar")
+        then:
+        notExecuted ":api:jar"
     }
 
     void "can replace transitive external dependency with project dependency"()
@@ -571,9 +522,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("test:check")
+        when:
+        succeeds "test:check"
 
+        then:
         executedAndNotSkipped ":api:jar"
     }
 
@@ -608,7 +560,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
     }
 
     void "can replace client module's transitive dependency with project dependency"()
@@ -651,7 +603,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
     }
 
     void "can replace external dependency declared in extended configuration with project dependency"()
@@ -705,7 +657,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
     }
 
     void "can replace forced external dependency with project dependency"()
@@ -743,7 +695,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"()
@@ -784,9 +736,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("impl:check")
+        when:
+        succeeds "impl:check"
 
+        then:
         executedAndNotSkipped ":api:jar"
     }
 
@@ -821,10 +774,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        expect:
-        succeeds("test:check")
+        when:
+        succeeds "test:check"
 
-        !executedTasks.contains(":api:jar")
+        then:
+        notExecuted ":api:jar"
     }
 
     void "external dependency substituted for a project dependency participates in conflict resolution"()
@@ -874,7 +828,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
     }
 
     @Unroll
@@ -927,7 +881,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         expect:
-        succeeds("impl:check")
+        succeeds "impl:check"
 
         where:
         apiProjectVersion | winner                                | selectedByRule
@@ -967,11 +921,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "can blacklist a version that is not used"()
@@ -1004,11 +955,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     def "can use custom versioning scheme"()
@@ -1037,11 +985,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     def "can use custom versioning scheme for transitive dependencies"()
@@ -1072,11 +1017,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "rule selects unavailable version"()
@@ -1107,7 +1049,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        def failure = runAndFail("check", "resolveConf")
+        fails "check", "resolveConf"
 
         then:
         failure.assertResolutionFailure(":conf")
@@ -1158,11 +1100,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds "check"
     }
 
     void "runtime exception when evaluating rule yields decent exception"()
@@ -1193,7 +1132,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        def failure = runAndFail("resolveConf")
+        fails "resolveConf"
 
         then:
         failure.assertResolutionFailure(":conf")
@@ -1232,7 +1171,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        run("check", "dependencies")
+        succeeds "check", "dependencies"
 
         then:
         output.contains(toPlatformLineSeparators("""conf
@@ -1264,7 +1203,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        run("dependencies")
+        succeeds "dependencies"
 
         then:
         output.contains(toPlatformLineSeparators("""
@@ -1298,7 +1237,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        run("dependencies")
+        succeeds "dependencies"
 
         then:
         output.contains(toPlatformLineSeparators("""
@@ -1323,7 +1262,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        runAndFail("dependencies")
+        fails "dependencies"
 
         then:
         failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
@@ -1350,7 +1289,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        run("dependencies")
+        succeeds "dependencies"
 
         then:
         output.contains(toPlatformLineSeparators("""
