@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.platform.base.internal.toolchain.ResolvedTool
 import org.gradle.play.internal.run.PlayApplicationRunner
@@ -22,7 +23,8 @@ import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
-import org.junit.Rule
+import org.junit.ClassRule
+import spock.lang.Shared
 import spock.lang.Specification
 
 class PlayRunTest extends Specification {
@@ -34,8 +36,8 @@ class PlayRunTest extends Specification {
     }
     InputStream systemInputStream = Mock()
 
-    @Rule
-    RedirectStdIn redirectStdIn;
+    @Shared @ClassRule
+    RedirectStdIn redirectStdIn
 
     PlayRun playRun
 
