@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
@@ -25,7 +24,6 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,34 +32,16 @@ import java.util.Set;
  * This is presently used to resolve artifacts for external modules, as we transition toward full separation of graph and artifact resolution.
  */
 class EagerResolveConfigurationArtifactsSet extends AbstractArtifactSet {
-    private final ResolvedConfigurationIdentifier configurationId;
     private final Set<ComponentArtifactMetaData> artifacts;
 
     public EagerResolveConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
                                                  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
                                                  long id) {
-        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts, id);
-        this.configurationId = configurationId;
-        this.artifacts = doResolve(component, selector);
+        super(component.getId(), component.getSource(), selector, artifactResolver, allResolvedArtifacts, id);
+        this.artifacts = doResolve(component, configurationId);
     }
 
-    private Set<ComponentArtifactMetaData> doResolve(ComponentResolveMetaData component, ModuleResolutionFilter selector) {
-        Set<ComponentArtifactMetaData> allArtifacts = resolveAllArtifacts(component);
-        Set<ComponentArtifactMetaData> filteredArtifacts = new LinkedHashSet<ComponentArtifactMetaData>();
-
-        ModuleIdentifier moduleId = configurationId.getId().getModule();
-        for (ComponentArtifactMetaData artifact : allArtifacts) {
-            IvyArtifactName artifactName = artifact.getName();
-            if (!selector.acceptArtifact(moduleId, artifactName)) {
-                continue;
-            }
-            filteredArtifacts.add(artifact);
-        }
-
-        return filteredArtifacts;
-    }
-
-    private Set<ComponentArtifactMetaData> resolveAllArtifacts(ComponentResolveMetaData component) {
+    private Set<ComponentArtifactMetaData> doResolve(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId) {
         BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
         getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
         return result.getArtifacts();

@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
@@ -35,14 +37,16 @@ import java.util.Set;
 public abstract class AbstractArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleSource moduleSource;
+    private final ModuleResolutionFilter selector;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
 
-    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ArtifactResolver artifactResolver,
+    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, ArtifactResolver artifactResolver,
                                Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
+        this.selector = selector;
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
@@ -56,6 +60,11 @@ public abstract class AbstractArtifactSet implements ArtifactSet {
         Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts();
         Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
         for (ComponentArtifactMetaData artifact : componentArtifacts) {
+            IvyArtifactName artifactName = artifact.getName();
+            if (!selector.acceptArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
+                continue;
+            }
+
             ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
             if (resolvedArtifact == null) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);

@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.DefaultComponentUsage;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,38 +36,24 @@ import java.util.Set;
  * resolve artifacts for external components. Thus it is currently only used to resolve artifacts for project components.
  */
 class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
-    private final ResolvedConfigurationIdentifier configurationId;
-    private final ModuleResolutionFilter selector;
     // TODO:DAZ We are holding onto the resolved component metadata, rather than re-resolving
     // While this means we're holding more in memory, the overhead of re-resolving is too great, at present
     // For now we'll just minimise the size of the metadata, and perhaps later cut down on the work required to perform a component resolve
     private final ComponentResolveMetaData component;
+    private final ResolvedConfigurationIdentifier configurationId;
 
     public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
                                                ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
                                                long id) {
-        super(component.getId(), component.getSource(), artifactResolver, allResolvedArtifacts, id);
+        super(component.getId(), component.getSource(), selector, artifactResolver, allResolvedArtifacts, id);
         this.component = component;
         this.configurationId = configurationId;
-        this.selector = selector;
     }
 
     @Override
     protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), artifactSetResolveResult);
-
-        Set<ComponentArtifactMetaData> artifacts = artifactSetResolveResult.getArtifacts();
-        Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
-        ModuleIdentifier moduleId = configurationId.getId().getModule();
-        for (ComponentArtifactMetaData artifact : artifacts) {
-            IvyArtifactName artifactName = artifact.getName();
-            if (!selector.acceptArtifact(moduleId, artifactName)) {
-                continue;
-            }
-            result.add(artifact);
-        }
-
-        return result;
+        return artifactSetResolveResult.getArtifacts();
     }
 }

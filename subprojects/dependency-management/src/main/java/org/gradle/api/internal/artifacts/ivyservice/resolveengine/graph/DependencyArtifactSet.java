@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultModuleResolutionFilter;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ModuleSource;
@@ -32,7 +33,7 @@ class DependencyArtifactSet extends AbstractArtifactSet {
     public DependencyArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, Set<ComponentArtifactMetaData> artifacts,
                                  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
                                  long id) {
-        super(ownerId, moduleSource, artifactResolver, allResolvedArtifacts, id);
+        super(ownerId, moduleSource, DefaultModuleResolutionFilter.all(), artifactResolver, allResolvedArtifacts, id);
         this.artifacts = artifacts;
     }
 
