@@ -38,7 +38,7 @@ public class DefaultJavaLocalComponentFactory implements LocalComponentFactory {
             context.getProject().getGroup().toString(), context.getProject().getName(), context.getProject().getVersion().toString()
         );
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(context.getProject().getPath(), context.getSourceSet().getName());
-        return new DefaultLocalComponentMetaData(id,component, Project.DEFAULT_STATUS);
+        return new DefaultLocalComponentMetaData(id, component, Project.DEFAULT_STATUS);
     }
 
 }
