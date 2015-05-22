@@ -145,7 +145,7 @@ model {
 }
 '''
         when:
-        def failure = fails "checkDependencies"
+        fails "checkDependencies"
 
         then:
         failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
@@ -182,7 +182,7 @@ model {
 }
 '''
         when:
-        def failure = fails "checkDependencies"
+        fails "checkDependencies"
 
         then:
         failure.assertHasCause('A dependency spec must have at least one of project or library name not null')
