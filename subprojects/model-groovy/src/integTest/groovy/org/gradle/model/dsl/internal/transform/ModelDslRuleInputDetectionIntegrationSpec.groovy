@@ -18,11 +18,8 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.model.internal.report.unbound.UnboundRule
-import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import spock.lang.Unroll
 
-import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
@@ -224,6 +221,48 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
     }
 
+    def "location and suggestions are provided for unbound rule subject specified using a name"() {
+        given:
+        buildScript '''
+            class MyPlugin extends RuleSource {
+                @Model
+                String foobar() {
+                    return "value"
+                }
+                @Model
+                String raboof() {
+                    return "value"
+                }
+            }
+
+            apply type: MyPlugin
+
+            model {
+                foonar {
+                }
+                foobah {
+                }
+                fooar {
+                }
+            }
+        '''
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("""The following model rules are unbound:
+  model.fooar @ build file '${buildFile}' line 20, column 17
+    Mutable:
+      - fooar (java.lang.Object) - suggestions: foobar
+  model.foobah @ build file '${buildFile}' line 18, column 17
+    Mutable:
+      - foobah (java.lang.Object) - suggestions: foobar
+  model.foonar @ build file '${buildFile}' line 16, column 17
+    Mutable:
+      - foonar (java.lang.Object) - suggestions: foobar""")
+    }
+
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
         buildScript '''
@@ -240,10 +279,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             apply type: MyPlugin
 
             model {
-                foo {
+                tasks.raboof {
                     $('tasks.foonar')
                     $('tasks.fooar')
-                    $('tasks.foonar')
+                    $('tasks.foobarr')
                 }
             }
         '''
@@ -252,12 +291,14 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.foo", buildFile, 15, 17)
-                        .mutableInput(UnboundRuleInput.type(Object).path("foo"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 16"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 17"))
-        ))
+        failure.assertHasCause("""The following model rules are unbound:
+  model.tasks.raboof @ build file '${buildFile}' line 15, column 17
+    Mutable:
+      + tasks.raboof (java.lang.Object)
+    Immutable:
+      - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
+      - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
+      - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar""")
     }
 
     def "can not access project or script from rule"() {

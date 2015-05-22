@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
@@ -100,10 +101,16 @@ public class TransformedModelDslBacking {
     }
 
     private <T> void registerAction(final ModelPath modelPath, Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
-        ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
-        ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, inputs, new ExecuteClosure<T>(closure));
-        modelRegistry.configure(role, runClosureAction);
+        final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
+        ModelAction<T> action = DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode modelNode) {
+                List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
+                ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, inputs, new ExecuteClosure<T>(closure));
+                modelRegistry.configure(role, runClosureAction);
+            }
+        });
+        modelRegistry.configure(ModelActionRole.DefineRules, action);
     }
 
     public ModelRuleDescriptor toDescriptor(SourceLocation sourceLocation, ModelPath modelPath) {

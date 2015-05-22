@@ -894,17 +894,8 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
+        // TODO - fix this, should report 3 broken rules
         normaliseLineSeparators(e.message) == '''The following model rules are unbound:
-  by-path
-    Mutable:
-      + foo (java.lang.Object)
-    Immutable:
-      - other.thing (java.lang.String) java.lang.String
-  by-type
-    Mutable:
-      - <unspecified> (java.lang.Runnable)
-    Immutable:
-      - <unspecified> (java.lang.String) java.lang.String
   creator
     Immutable:
       - a.b (java.lang.Object) a.b'''

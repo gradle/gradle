@@ -51,6 +51,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelRuleExtractor ruleExtractor;
 
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
+    private final LinkedList<ModelNodeInternal> nodesToBeValidated = new LinkedList<ModelNodeInternal>();
 
     boolean reset;
 
@@ -131,6 +132,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         node = parent.addLink(child);
         ruleBindings.add(node);
         modelGraph.add(node);
+        nodesToBeValidated.add(node);
         ruleBindings.add(node.getCreatorBinder());
         return node;
     }
@@ -216,6 +218,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             modelGraph.remove(node);
             ruleBindings.remove(node);
             unboundRules.remove(node.getCreatorBinder());
+            nodesToBeValidated.remove(node);
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }
@@ -253,13 +256,19 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void bindAllReferences() throws UnboundModelRulesException {
-        if (unboundRules.isEmpty()) {
-            return;
-        }
-
         GoalGraph graph = new GoalGraph();
+
         boolean newInputsBound = true;
-        while (!unboundRules.isEmpty() && newInputsBound) {
+        while (newInputsBound || !nodesToBeValidated.isEmpty()) {
+            while (!nodesToBeValidated.isEmpty()) {
+                ModelNodeInternal node = nodesToBeValidated.removeFirst();
+                transitionTo(graph, graph.nodeAtState(new NodeAtState(node.getPath(), RulesDefined)));
+            }
+
+            if (unboundRules.isEmpty()) {
+                return;
+            }
+
             newInputsBound = false;
             RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[unboundRules.size()]);
             for (RuleBinder binder : unboundBinders) {

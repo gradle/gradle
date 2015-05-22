@@ -33,11 +33,7 @@ import java.util.List;
 abstract public class ModelCreators {
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
-        return bridgedInstance(modelReference, instance, Actions.doNothing());
-    }
-
-    public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance, Action<? super MutableModelNode> initializer) {
-        return unmanagedInstance(modelReference, Factories.constant(instance), initializer);
+        return unmanagedInstance(modelReference, Factories.constant(instance), Actions.doNothing());
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {

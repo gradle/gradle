@@ -22,8 +22,9 @@ package org.gradle.model.internal.core;
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum ModelActionRole {
+    DefineRules(ModelNode.State.RulesDefined), // Allows initial rules to be defined for an element
     Defaults(ModelNode.State.DefaultsApplied), // Allows a mutation to setup default values for an element
-    Initialize(ModelNode.State.Initialized), // Mutation provided when an element is defined
+    Initialize(ModelNode.State.Initialized), // Mutation action provided when an element is defined
     Mutate(ModelNode.State.Mutated), // Customisations
     Finalize(ModelNode.State.Finalized), // Post customisation default values
     Validate(ModelNode.State.SelfClosed); // Post mutation validations
