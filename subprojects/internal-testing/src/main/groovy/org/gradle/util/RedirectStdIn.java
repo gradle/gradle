@@ -33,7 +33,7 @@ import java.io.PipedOutputStream;
  * Provides a pipe for providing input to System.in in the tests
  */
 public class RedirectStdIn implements TestRule {
-    private final PipedInputStream emulatedSystemIn = new PipedInputStream();
+    private PipedInputStream emulatedSystemIn = new PipedInputStream();
     private PipedOutputStream stdinPipe;
 
     @Override
@@ -48,7 +48,7 @@ public class RedirectStdIn implements TestRule {
                     base.evaluate();
                 } finally {
                     System.setIn(originalStdIn);
-                    CompositeStoppable.stoppable(stdinPipe, emulatedSystemIn).stop();
+                    closePipe();
                 }
             }
         };
@@ -61,11 +61,24 @@ public class RedirectStdIn implements TestRule {
 
     private void initPipe() {
         if (stdinPipe == null) {
+            emulatedSystemIn = new PipedInputStream();
             try {
                 stdinPipe = new PipedOutputStream(emulatedSystemIn);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    public void resetStdinPipe() {
+        closePipe();
+        initPipe();
+        System.setIn(emulatedSystemIn);
+    }
+
+    private void closePipe() {
+        CompositeStoppable.stoppable(stdinPipe, emulatedSystemIn).stop();
+        stdinPipe = null;
+        emulatedSystemIn = null;
     }
 }
