@@ -92,7 +92,7 @@ abstract public class AvailableJavaHomes {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return element.getJavaHome().equals(Jvm.current().getJavaHome());
+                return !element.getJavaHome().equals(Jvm.current().getJavaHome());
             }
         });
     }
@@ -102,7 +102,7 @@ abstract public class AvailableJavaHomes {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return element.getJavaVersion().equals(Jvm.current().getJavaVersion());
+                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion());
             }
         });
     }
