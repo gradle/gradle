@@ -78,10 +78,10 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
             InputReferences inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
             if (!inputs.isEmpty()) {
-                metadataAnnotation.addMember("absoluteInputPaths", new ListExpression(constants(inputs.absolutePaths)));
-                metadataAnnotation.addMember("absoluteInputLineNumbers", new ListExpression(constants(inputs.absolutePathLineNumbers)));
-                metadataAnnotation.addMember("relativeInputPaths", new ListExpression(constants(inputs.relativePaths)));
-                metadataAnnotation.addMember("relativeInputLineNumbers", new ListExpression(constants(inputs.relativePathLineNumbers)));
+                metadataAnnotation.addMember("absoluteInputPaths", new ListExpression(constants(inputs.getAbsolutePaths())));
+                metadataAnnotation.addMember("absoluteInputLineNumbers", new ListExpression(constants(inputs.getAbsolutePathLineNumbers())));
+                metadataAnnotation.addMember("relativeInputPaths", new ListExpression(constants(inputs.getRelativePaths())));
+                metadataAnnotation.addMember("relativeInputLineNumbers", new ListExpression(constants(inputs.getRelativePathLineNumbers())));
             }
 
             node.addAnnotation(metadataAnnotation);
@@ -248,24 +248,4 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
     }
 
-    private static class InputReferences {
-        private final List<String> relativePaths = Lists.newArrayList();
-        private final List<Integer> relativePathLineNumbers = Lists.newArrayList();
-        private final List<String> absolutePaths = Lists.newArrayList();
-        private final List<Integer> absolutePathLineNumbers = Lists.newArrayList();
-
-        public void relativePath(String path, int lineNumber) {
-            relativePaths.add(path);
-            relativePathLineNumbers.add(lineNumber);
-        }
-
-        public void absolutePath(String path, int lineNumber) {
-            absolutePaths.add(path);
-            absolutePathLineNumbers.add(lineNumber);
-        }
-
-        public boolean isEmpty() {
-            return relativePaths.isEmpty() && absolutePaths.isEmpty();
-        }
-    }
 }

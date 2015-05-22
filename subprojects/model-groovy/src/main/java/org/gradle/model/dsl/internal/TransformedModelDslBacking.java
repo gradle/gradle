@@ -26,6 +26,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
+import org.gradle.model.dsl.internal.transform.InputReferences;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
@@ -41,21 +42,13 @@ import java.util.List;
 @ThreadSafe
 public class TransformedModelDslBacking {
 
-    private static final Transformer<List<ModelReference<?>>, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<List<ModelReference<?>>, Closure<?>>() {
-        public List<ModelReference<?>> transform(Closure<?> closure) {
+    private static final Transformer<InputReferences, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<InputReferences, Closure<?>>() {
+        public InputReferences transform(Closure<?> closure) {
+            InputReferences inputs = new InputReferences();
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            String[] absolutePaths = ruleMetadata.absoluteInputPaths();
-            String[] relativePaths = ruleMetadata.relativeInputPaths();
-            List<ModelReference<?>> references = Lists.newArrayListWithCapacity(absolutePaths.length + relativePaths.length);
-            for (int i = 0; i < absolutePaths.length; i++) {
-                String description = String.format("@ line %d", ruleMetadata.absoluteInputLineNumbers()[i]);
-                references.add(ModelReference.untyped(ModelPath.path(absolutePaths[i]), description));
-            }
-            for (int i = 0; i < relativePaths.length; i++) {
-                String description = String.format("@ line %d", ruleMetadata.relativeInputLineNumbers()[i]);
-                references.add(ModelReference.untyped(ModelPath.path(relativePaths[i]), description));
-            }
-            return references;
+            inputs.absolutePaths(ruleMetadata.absoluteInputPaths(), ruleMetadata.absoluteInputLineNumbers());
+            inputs.relativePaths(ruleMetadata.relativeInputPaths(), ruleMetadata.relativeInputLineNumbers());
+            return inputs;
         }
     };
 
@@ -67,7 +60,7 @@ public class TransformedModelDslBacking {
     };
 
     private final ModelRegistry modelRegistry;
-    private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
+    private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
     private final ModelCreatorFactory modelCreatorFactory;
@@ -76,7 +69,7 @@ public class TransformedModelDslBacking {
         this(modelRegistry, schemaStore, modelCreatorFactory, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
+    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor,
                                Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
@@ -110,8 +103,22 @@ public class TransformedModelDslBacking {
         ModelAction<T> action = DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode modelNode) {
-                List<ModelReference<?>> inputs = inputPathsExtractor.transform(closure);
-                ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, inputs, new ExecuteClosure<T>(closure));
+                InputReferences inputs = inputPathsExtractor.transform(closure);
+                List<String> absolutePaths = inputs.getAbsolutePaths();
+                List<Integer> absolutePathLineNumbers = inputs.getAbsolutePathLineNumbers();
+                List<String> relativePaths = inputs.getRelativePaths();
+                List<Integer> relativePathLineNumbers = inputs.getRelativePathLineNumbers();
+                List<ModelReference<?>> references = Lists.newArrayListWithCapacity(absolutePaths.size() + inputs.getRelativePaths().size());
+                for (int i = 0; i < absolutePaths.size(); i++) {
+                    String description = String.format("@ line %d", absolutePathLineNumbers.get(i));
+                    references.add(ModelReference.untyped(ModelPath.path(absolutePaths.get(i)), description));
+                }
+                for (int i = 0; i < relativePaths.size(); i++) {
+                    String description = String.format("@ line %d", relativePathLineNumbers.get(i));
+                    references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)), description));
+                }
+
+                ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, references, new ExecuteClosure<T>(closure));
                 modelRegistry.configure(role, runClosureAction);
             }
         });
