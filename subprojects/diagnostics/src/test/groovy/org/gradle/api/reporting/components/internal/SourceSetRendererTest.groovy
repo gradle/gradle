@@ -17,63 +17,96 @@
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.logging.StyledTextOutput
+import org.gradle.language.base.internal.DependentSourceSetInternal
+import org.gradle.logging.TestStyledTextOutput
+import org.gradle.platform.base.DependencySpecContainer
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import spock.lang.Specification
 
 class SourceSetRendererTest extends Specification {
 
     SourceSetRenderer renderer = new SourceSetRenderer()
-    LanguageSourceSet languageSourceSet = Mock()
-    TextReportBuilder reportBuilder = Mock()
-    StyledTextOutput styledTextOutput = Mock()
-    SourceDirectorySet sourceDirectorySet = Mock()
+    LanguageSourceSet languageSourceSet = Mock(LanguageSourceSet)
+    SourceDirectorySet sourceDirectorySet = Mock(SourceDirectorySet)
 
-    File srcFolder1
-    File srcFolder2
+    def resolver = Stub(FileResolver) {
+        resolveAsRelativePath(_) >> { return it[0].toString() }
+    }
+    def output = new TestStyledTextOutput()
+    def builder = new DefaultTextReportBuilder(output, resolver)
+
+    File srcFolder1 = new File("src/folder1")
+    File srcFolder2 = new File("src/folder2")
 
     def setup() {
         _ * languageSourceSet.displayName >> "acme:sample"
         _ * languageSourceSet.source >> sourceDirectorySet
-        _ * reportBuilder.getOutput() >> styledTextOutput
-        1 * styledTextOutput.println("Acme:sample")
+        _ * sourceDirectorySet.srcDirs >> [srcFolder1, srcFolder2]
     }
 
     def "shows sourceSet folders"() {
         given:
-        withTwoSourceFolders()
-        1 * sourceDirectorySet.getIncludes() >> []
-        1 * sourceDirectorySet.getExcludes() >> []
+        _ * sourceDirectorySet.getIncludes() >> []
+        _ * sourceDirectorySet.getExcludes() >> []
+
         when:
-        renderer.render(languageSourceSet, reportBuilder)
+        renderer.render(languageSourceSet, builder)
+
         then:
-        1 * reportBuilder.item("srcDir", srcFolder1)
-        1 * reportBuilder.item("srcDir", srcFolder2)
+        output.value.startsWith("Acme:sample")
+        output.value.contains("srcDir: " + srcFolder1)
+        output.value.contains("srcDir: " + srcFolder2)
 
     }
 
     def "shows includes / excludes"() {
         given:
-        withTwoSourceFolders()
         1 * sourceDirectorySet.getIncludes() >> includes
         1 * sourceDirectorySet.getExcludes() >> excludes
+
         when:
-        renderer.render(languageSourceSet, reportBuilder)
+        renderer.render(languageSourceSet, builder)
+
         then:
-        expectedOutputs.each { key, value ->
-            1 * reportBuilder.item(key, value)
+        expectedOutputs.each {
+            output.value.contains it
         }
         where:
         includes                    | excludes                   | expectedOutputs
-        ["**/*.java"]               | ["**/gen/**"]              | [includes: "**/*.java", excludes: "**/gen/**"]
-        ["**/*.java", "**/*.scala"] | ["**/gen/**"]              | [includes: "**/*.java, **/*.scala", excludes: "**/gen/**"]
-        ["**/*.scala"]              | ["**/gen/**", "**/*.java"] | [includes: "**/*.scala", excludes: "**/gen/**, **/*.java"]
+        ["**/*.java"]               | ["**/gen/**"]              | ["includes: **/*.java", "excludes: **/gen/**"]
+        ["**/*.java", "**/*.scala"] | ["**/gen/**"]              | ["includes: **/*.java, **/*.scala", "excludes: **/gen/**"]
+        ["**/*.scala"]              | ["**/gen/**", "**/*.java"] | ["includes: **/*.scala", "excludes: **/gen/**, **/*.java"]
     }
 
-    def withTwoSourceFolders() {
-        srcFolder1 = new File("src/folder1")
-        srcFolder2 = new File("src/folder2")
-        1 * sourceDirectorySet.srcDirs >> [srcFolder1, srcFolder2]
+    def "shows dependencies"() {
+        DependencySpecContainer dsc = new DefaultDependencySpecContainer()
+        dsc.project("a-project")
+        dsc.library("a-library")
+        dsc.project("some-project").library("some-library")
+
+        given:
+        def dependentSourceSet = Mock(DependentLanguageSourceSet)
+        dependentSourceSet.dependencies >> dsc
+
+        _ * dependentSourceSet.displayName >> "acme:sample"
+        _ * dependentSourceSet.source >> sourceDirectorySet
+        _ * sourceDirectorySet.getIncludes() >> []
+        _ * sourceDirectorySet.getExcludes() >> []
+
+        when:
+        renderer.render(dependentSourceSet, builder)
+
+        then:
+        output.value.contains("""
+    dependencies
+        project 'a-project'
+        library 'a-library'
+        project 'some-project' library 'some-library'
+""")
     }
+
+    interface DependentLanguageSourceSet extends LanguageSourceSet, DependentSourceSetInternal {}
 }
