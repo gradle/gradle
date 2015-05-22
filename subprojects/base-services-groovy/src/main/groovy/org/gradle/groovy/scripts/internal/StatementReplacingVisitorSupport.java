@@ -25,8 +25,6 @@ import org.codehaus.groovy.control.SourceUnit;
 
 /**
  * Adds the ability to replace statements.
- *
- * @author Peter Niederwieser
  */
 // Implementation note: It is only necessary to override visit methods
 // for AST nodes that reference statements. For ClosureExpression we rely on
@@ -55,8 +53,9 @@ public abstract class StatementReplacingVisitorSupport extends ClassCodeVisitorS
   @SuppressWarnings("unchecked")
   protected <T extends Statement> void replaceAll(List<T> stats) {
     ListIterator<T> iter = stats.listIterator();
-    while (iter.hasNext())
-      iter.set((T) replace(iter.next()));
+      while (iter.hasNext()) {
+          iter.set((T) replace(iter.next()));
+      }
   }
 
   /**

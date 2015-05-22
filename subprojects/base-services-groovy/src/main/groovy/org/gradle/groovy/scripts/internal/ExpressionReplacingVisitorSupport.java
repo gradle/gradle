@@ -25,8 +25,6 @@ import java.util.ListIterator;
 
 /**
  * Groovy AST visitor that allows to replace both statements and expressions.
- *
- * @author Peter Niederwieser
  */
 public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitorSupport {
     private Expression replacementExpr;
