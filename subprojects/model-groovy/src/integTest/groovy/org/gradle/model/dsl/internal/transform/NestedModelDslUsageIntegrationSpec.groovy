@@ -166,9 +166,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         return """
             class TestPlugin {
                 static class Rules extends org.gradle.model.RuleSource {
-                    @org.gradle.model.Model String foo() { "foo" }
-                    @org.gradle.model.Model List<String> strings() { [] }
-                    @org.gradle.model.Mutate void addTask(org.gradle.model.ModelMap<Task> tasks, List<String> strings) {
+                    @Model String foo() { "foo" }
+                    @Model List<String> strings() { [] }
+                    @Mutate void addTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printStrings") { it.doLast { println "strings: " + strings } }
                     }
                 }
