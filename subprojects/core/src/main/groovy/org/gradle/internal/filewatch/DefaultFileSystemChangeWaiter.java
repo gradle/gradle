@@ -16,7 +16,6 @@
 
 package org.gradle.internal.filewatch;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -32,7 +31,7 @@ import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter, Stoppable {
+public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     private static final long QUIET_PERIOD = 250L;
     private static final int EOF = -1;
@@ -40,21 +39,22 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter, St
 
     private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
-    private final InputStream systemInProxy;
 
     public DefaultFileSystemChangeWaiter(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
         this.executorFactory = executorFactory;
         this.fileWatcherFactory = fileWatcherFactory;
-        if(!(System.in instanceof DisconnectableInputStream)) {
-            this.systemInProxy = new DisconnectableInputStream(System.in);
-            System.setIn(systemInProxy);
-        } else {
-            this.systemInProxy = System.in;
-        }
     }
 
     @Override
     public void wait(FileSystemSubset taskFileSystemInputs, final DefaultBuildCancellationToken cancellationToken, Runnable notifier) {
+        final InputStream systemInProxy;
+
+        if (System.in instanceof DisconnectableInputStream) {
+            systemInProxy = System.in;
+        } else {
+            systemInProxy = new DisconnectableInputStream(System.in);
+        }
+
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
         final StoppableExecutor executorService = executorFactory.create("continuous building - wait");
@@ -97,9 +97,8 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter, St
             @Override
             public void run() {
                 try {
-                    final InputStream inputStream = systemInProxy;
                     while (!Thread.currentThread().isInterrupted()) {
-                        int c = inputStream.read();
+                        int c = systemInProxy.read();
                         if (c == KEY_CODE_CTRL_D || c == EOF) {
                             cancellationToken.doCancel();
                             break;
@@ -145,8 +144,4 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter, St
         }
     }
 
-    @Override
-    public void stop() {
-        IOUtils.closeQuietly(systemInProxy);
-    }
 }
