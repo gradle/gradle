@@ -145,21 +145,15 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public void visitPropertyExpression(PropertyExpression expression) {
         ArrayList<String> names = Lists.newArrayList();
         boolean propertyNameIsPart = extractPropertyPath(expression, names);
-        if (!names.isEmpty()) {
-            if (names.get(0).equals("thing")) {
-                String modelPath = ModelPath.pathString(names);
-                inputs.relativePath(modelPath, expression.getLineNumber());
-                if (propertyNameIsPart) {
-                    replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
-                } else {
-                    expression.setObjectExpression(conditionalInputGet(modelPath, expression.getObjectExpression()));
-                }
+        if (names.isEmpty() || !names.get(0).equals("thing")) {
+            super.visitPropertyExpression(expression);
+        } else {
+            String modelPath = ModelPath.pathString(names);
+            inputs.relativePath(modelPath, expression.getLineNumber());
+            if (propertyNameIsPart) {
+                replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
             } else {
-                expression.setObjectExpression(new TernaryExpression(
-                    new BooleanExpression(ConstantExpression.TRUE),
-                    expression.getObjectExpression(),
-                    ConstantExpression.FALSE
-                ));
+                expression.setObjectExpression(conditionalInputGet(modelPath, expression.getObjectExpression()));
             }
         }
     }
@@ -177,8 +171,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             PropertyExpression propertyExpression = (PropertyExpression) expression;
             if (extractPropertyPath(propertyExpression.getObjectExpression(), names)) {
                 return extractPropertyPath(propertyExpression.getProperty(), names);
-            } else {
-                super.visitPropertyExpression(propertyExpression);
             }
         } else if (expression instanceof VariableExpression) {
             names.add(((VariableExpression) expression).getName());
