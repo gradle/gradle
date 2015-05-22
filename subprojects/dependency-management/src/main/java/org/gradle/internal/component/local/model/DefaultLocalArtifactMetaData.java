@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -63,13 +62,12 @@ class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         }
 
         DefaultLocalArtifactMetaData that = (DefaultLocalArtifactMetaData) o;
-        return id.equals(that.id) && ObjectUtils.equals(file, that.file);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + ObjectUtils.hashCode(file);
-        return result;
+        return id.hashCode();
+
     }
 }
