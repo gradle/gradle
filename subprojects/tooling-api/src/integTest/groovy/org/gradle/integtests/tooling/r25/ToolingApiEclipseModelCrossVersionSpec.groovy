@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -62,5 +63,60 @@ eclipse {
         then:
         rootProject.classpath.find { it.file.name.contains("guava") }.exported == false
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
+    }
+
+    @TargetGradleVersion(">=2.5")
+    def "transitive dependencies are listed as direct dependencies in the eclipse model"() {
+        def mavenRepo = new MavenFileRepository(file("maven-repo"));
+        mavenRepo.module('someGroup', 'someArtifact', '17.0').publish()
+        mavenRepo.module('someGroup', 'someArtifact', '16.0.1').publish()
+
+        projectDir.file('settings.gradle').text = '''
+include 'a', 'b', 'c'
+rootProject.name = 'root'
+'''
+
+        projectDir.file('build.gradle').text = """
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+
+configure(project(':a')) {
+    dependencies {
+        compile 'someGroup:someArtifact:17.0'
+        compile project(':b')
+    }
+}
+
+
+configure(project(':b')) {
+    dependencies {
+        compile project(':c')
+    }
+}
+
+configure(project(':c')) {
+    dependencies {
+        compile 'someGroup:someArtifact:16.0.1'
+    }
+}
+"""
+
+        when:
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject aProject = rootProject.children.find { it.name == 'a'}
+        EclipseProject bProject = rootProject.children.find { it.name == 'b'}
+        EclipseProject cProject = rootProject.children.find { it.name == 'c'}
+        then:
+        aProject.classpath.find { it.file.name == "someArtifact-17.0.jar" }
+        bProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
+        cProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
     }
 }
