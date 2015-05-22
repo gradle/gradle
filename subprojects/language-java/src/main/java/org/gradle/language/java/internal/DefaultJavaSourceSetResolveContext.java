@@ -15,47 +15,49 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 
 public class DefaultJavaSourceSetResolveContext implements ResolveContext {
-    private final DependentSourceSetInternal sourceSet;
+    private final Project project;
+    private final DefaultJavaLanguageSourceSet sourceSet;
 
-    public DefaultJavaSourceSetResolveContext(DependentSourceSetInternal sourceSet) {
+    public DefaultJavaSourceSetResolveContext(Project project, DefaultJavaLanguageSourceSet sourceSet) {
+        this.project = project;
         this.sourceSet = sourceSet;
     }
 
     @Override
     public DependencySet getDependencies() {
         DefaultDomainObjectSet<Dependency> backingSet = convertDependencies();
-        return new DefaultDependencySet("foo", backingSet);
+        return new DefaultDependencySet(sourceSet.getName(), backingSet);
     }
 
     private DefaultDomainObjectSet<Dependency> convertDependencies() {
         DefaultDomainObjectSet<Dependency> backingSet = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        DependencySpecContainer dependencies = sourceSet.getDependencies();
-        for (DependencySpec dependency : dependencies) {
+        final DependencySpecContainer dependencies = sourceSet.getDependencies();
+        for (final DependencySpec dependency : dependencies) {
             backingSet.add(new AbstractDependency() {
                 @Override
                 public String getGroup() {
-                    return "foo";
+                    return project.getGroup().toString();
                 }
 
                 @Override
                 public String getName() {
-                    return "bar";
+                    return dependency.getProjectPath()==null?project.getPath():dependency.getProjectPath();
                 }
 
                 @Override
                 public String getVersion() {
-                    return "baz";
+                    return project.getVersion().toString();
                 }
 
                 @Override
@@ -74,7 +76,14 @@ public class DefaultJavaSourceSetResolveContext implements ResolveContext {
 
     @Override
     public DependencySet getAllDependencies() {
-        return new DefaultDependencySet("foo", convertDependencies());
+        return new DefaultDependencySet(sourceSet.getName(), convertDependencies());
     }
 
+    public DefaultJavaLanguageSourceSet getSourceSet() {
+        return sourceSet;
+    }
+
+    public Project getProject() {
+        return project;
+    }
 }

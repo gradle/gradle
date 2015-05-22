@@ -15,7 +15,11 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
@@ -29,7 +33,11 @@ public class DefaultJavaLocalComponentFactory implements LocalComponentFactory {
     @Override
     public MutableLocalComponentMetaData convert(Object source) {
         DefaultJavaSourceSetResolveContext context = (DefaultJavaSourceSetResolveContext) source;
-        return new DefaultLocalComponentMetaData(null,null,null);
+        ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
+            context.getProject().getGroup().toString(), context.getProject().getName(), context.getProject().getVersion().toString()
+        );
+        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(context.getProject().getPath(), context.getSourceSet().getName());
+        return new DefaultLocalComponentMetaData(id,component,"");
     }
 
 }
