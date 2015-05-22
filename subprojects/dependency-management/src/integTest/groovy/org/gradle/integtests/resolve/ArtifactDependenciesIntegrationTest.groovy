@@ -16,15 +16,18 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
+@RunWith(FluidDependenciesResolveRunner)
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
