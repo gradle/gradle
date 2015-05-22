@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
+import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
@@ -29,7 +31,6 @@ import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
-
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
 
@@ -42,7 +43,9 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean expectBuildFailure = false
 
-    PipedOutputStream stdinPipe
+    @Rule
+    RedirectStdIn redirectStdIn = new RedirectStdIn()
+    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -95,10 +98,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
 
-        PipedInputStream emulatedSystemIn = new PipedInputStream()
-        executer.withStdIn(emulatedSystemIn)
-        stdinPipe = new PipedOutputStream(emulatedSystemIn)
-
+        executer.withStdIn(System.in)
         gradle = executer.withTasks(tasks).withArgument("--continuous").start()
     }
 
@@ -126,16 +126,10 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
             assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
                 @Override
                 Boolean call() throws Exception {
-                    try {
-                        if (expectBuildFailure) {
-                            gradle.waitForFailure()
-                        } else {
-                            gradle.waitForFinish()
-                        }
-                    } finally {
-                        stdinPipe?.close()
-                        stdinPipe = null
-                        executer.withStdIn(SafeStreams.emptyInput())
+                    if (expectBuildFailure) {
+                        gradle.waitForFailure()
+                    } else {
+                        gradle.waitForFinish()
                     }
                     return Boolean.TRUE
                 }
@@ -145,6 +139,9 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     void closeStdIn() {
         stdinPipe.close()
+        executer.withStdIn(SafeStreams.emptyInput())
+        redirectStdIn.resetStdinPipe()
+        stdinPipe = redirectStdIn.getStdinPipe()
     }
 
     void noBuildTriggered(int waitSeconds = 3) {
