@@ -128,7 +128,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
     }
 
     def versionIsCopiedAndExists(lib, version, root="") {
-        output.contains("ivy-repo/org.gradle.test/${lib}/${version}/${lib}-${version}.jar")
+        assert output.contains("ivy-repo/org.gradle.test/${lib}/${version}/${lib}-${version}.jar")
         testDirectory.assertContainsDescendants("${root}build/copies/${lib}-${version}.jar")
         true
     }
