@@ -19,11 +19,8 @@ package org.gradle.launcher.continuous
 import com.google.common.util.concurrent.SimpleTimeLimiter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
@@ -31,7 +28,6 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
