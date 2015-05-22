@@ -39,11 +39,15 @@ class ConsoleReportOutput {
         lineIs(HEADING_LINE_NUMBER + 2, '------------------------------------------------------------')
     }
 
-    void hasNodeStructure(String text, beginningAt = FIRST_NODE_LINE_NUMBER) {
-        List<String> nodeLines = lines[beginningAt..-1]
+    void hasNodeStructure(String text) {
+        List<String> nodeLines = lines[FIRST_NODE_LINE_NUMBER..-1]
         def subject = toPlatformLineSeparators(text).split(LINE_SEPARATOR)
-        subject.eachWithIndex { String line, i ->
-            assert nodeLines[i].startsWith(line)
+        String firstToken = subject[0]
+        int startPosition = nodeLines.findIndexOf { name -> name == firstToken }
+        assert startPosition >= 0: "Failed to find the first node:$firstToken"
+        int endPosition = startPosition + (subject.size() - 1)
+        nodeLines[startPosition..endPosition].eachWithIndex { String line, i ->
+            assert line.startsWith(subject[i]): "\n\n Expected Line:|${line}| to start with:|${subject[i]}| \n\n"
         }
     }
 
@@ -61,7 +65,7 @@ class ConsoleReportOutput {
     }
 
     void debug() {
-        println("Total report linrd: ${lines.size()}")
+        println("Total report lines: ${lines.size()}")
         println("Original output: ${consoleOutput}")
         println("Numbered Lines: ")
         lines.eachWithIndex { l, i ->

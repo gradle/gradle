@@ -24,7 +24,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
         given:
-        buildFile << initTasks()
+        buildFile
 
         when:
         run "model"
@@ -42,7 +42,6 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         projects = task ':projects'
         properties = task ':properties'
         tasks = task ':tasks'
-        wrapper = task ':wrapper'
 """))
     }
 
@@ -63,7 +62,7 @@ model {
     }
 }
 """
-        buildFile << initTasks()
+        buildFile
         when:
         run "model"
 
@@ -167,7 +166,7 @@ model {
 }
 
 """
-        buildFile << initTasks()
+        buildFile
         when:
         run "model"
 
@@ -193,17 +192,7 @@ model {
         projects = task ':projects'
         properties = task ':properties'
         tasks = task ':tasks'
-        wrapper = task ':wrapper'
 """))
 
     }
-
-    private String initTasks() {
-        //These are not on the model when run via ./gradlew diagnostics:integTest
-        return """
-            task wrapper << {}
-            task init << {}
-        """
-    }
-
 }

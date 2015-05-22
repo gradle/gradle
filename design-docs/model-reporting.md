@@ -17,10 +17,13 @@ Change the `model` report to show some display value for model elements with no 
 
 # Story: Model report shows type information for model elements
 
+
 Change the `model` report to show some information about the views that are available for each element.
 
 - Component model
 - `@Managed` types
+
+> get the 1st projection of the nodes model adapter
 
 # Story: Model report shows details of rule that created a model element
 
@@ -30,15 +33,28 @@ Possibly don't show this when same as the parent element (see how it looks)
 
 Possibly add a 'show details' command-line option to enable this.
 
+
+`org.gradle.model.internal.core.ModelCreator.getDescriptor()`
+
+
 # Story: Model report shows details of rules that affected a model element
 
 Change the `model` report to show the descriptor of those rules that affected each element.
 
 Will need to collect this in the model nodes.
 
+Biggest one so far
+- Investigate `org.gradle.model.internal.registry.RuleBindings`
+- Order is important
+- some of them are internal/mechanical?
+
+
 # Story: Model report shows hidden nodes
 
 Add a 'show hidden elements' command-line option to show hidden nodes.
+
+`--all`
+
 
 # Story: Add report that shows dependencies between model elements
 
@@ -66,6 +82,17 @@ Perhaps use a 'show details' command-line option to enable display of the method
           | readonly:   true |
           | value:      task ':components'|
           | creator:    the model machine |
+          | rules:
+             + rule1 //pluginid/script id - we don't have this yet
+                    |dependencies:  |
+                        - input1
+                        - input2
+                        - input3
+             + rule2
+             + rule3
+
+          [rule1, rule2, rule3]|
+          |dependencies |
         + child
               | type:       org.gradle.api.reporting.components.ComponentReport |
               | readonly:   true |

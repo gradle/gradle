@@ -19,6 +19,9 @@ dependencies {
 
     //so that implicit help tasks are available:
     integTestRuntime project(':diagnostics')
+
+    //So that the wrapper and init task are added when integTests are run via commandline
+    integTestRuntime project(':buildInit')
     //above can be removed when we implement the auto-apply plugins
 }
 
