@@ -24,8 +24,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RuleMetadata {
-    String[] inputPaths() default {};
-    int[] inputLineNumbers() default {};
+    String[] absoluteInputPaths() default {};
+    int[] absoluteInputLineNumbers() default {};
+    String[] relativeInputPaths() default {};
+    int[] relativeInputLineNumbers() default {};
     String scriptSourceDescription();
     int lineNumber();
     int columnNumber();

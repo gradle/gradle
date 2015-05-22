@@ -44,11 +44,16 @@ public class TransformedModelDslBacking {
     private static final Transformer<List<ModelReference<?>>, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<List<ModelReference<?>>, Closure<?>>() {
         public List<ModelReference<?>> transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            String[] paths = ruleMetadata.inputPaths();
-            List<ModelReference<?>> references = Lists.newArrayListWithCapacity(paths.length);
-            for (int i = 0; i < paths.length; i++) {
-                String description = String.format("@ line %d", ruleMetadata.inputLineNumbers()[i]);
-                references.add(ModelReference.untyped(ModelPath.path(paths[i]), description));
+            String[] absolutePaths = ruleMetadata.absoluteInputPaths();
+            String[] relativePaths = ruleMetadata.relativeInputPaths();
+            List<ModelReference<?>> references = Lists.newArrayListWithCapacity(absolutePaths.length + relativePaths.length);
+            for (int i = 0; i < absolutePaths.length; i++) {
+                String description = String.format("@ line %d", ruleMetadata.absoluteInputLineNumbers()[i]);
+                references.add(ModelReference.untyped(ModelPath.path(absolutePaths[i]), description));
+            }
+            for (int i = 0; i < relativePaths.length; i++) {
+                String description = String.format("@ line %d", ruleMetadata.relativeInputLineNumbers()[i]);
+                references.add(ModelReference.untyped(ModelPath.path(relativePaths[i]), description));
             }
             return references;
         }
