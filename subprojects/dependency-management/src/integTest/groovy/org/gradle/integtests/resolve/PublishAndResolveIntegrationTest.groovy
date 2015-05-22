@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.util.TextUtil
 
 class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
@@ -115,8 +116,8 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         given:
         buildFile << """
             task customPublish(type: Copy) {
-                from "${tmpRepo.moduleDir('org.gradle.test', 'api')}/1.1"
-                into "${ivyRepo.moduleDir('org.gradle.test', 'api')}/1.1"
+                from "${safePath(tmpRepo.moduleDir('org.gradle.test', 'api'), '1.1')}"
+                into "${safePath(ivyRepo.moduleDir('org.gradle.test', 'api'), '1.1')}"
             }
             ${taskWhichResolves('api', '1.1')}
             ${resolveTask}.dependsOn customPublish
@@ -127,8 +128,12 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         versionIsCopiedAndExists("api", "1.1")
     }
 
+    def safePath(Object... paths) {
+        return TextUtil.escapeString(paths.join(File.separator))
+    }
+
     def versionIsCopiedAndExists(lib, version, root="") {
-        assert output.contains("ivy-repo/org.gradle.test/${lib}/${version}/${lib}-${version}.jar")
+        assert TextUtil.normaliseFileSeparators(output).contains("ivy-repo/org.gradle.test/${lib}/${version}/${lib}-${version}.jar")
         testDirectory.assertContainsDescendants("${root}build/copies/${lib}-${version}.jar")
         true
     }
