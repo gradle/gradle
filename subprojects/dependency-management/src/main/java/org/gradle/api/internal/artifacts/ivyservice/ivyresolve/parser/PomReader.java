@@ -145,6 +145,7 @@ public class PomReader implements PomParent {
     private void setDefaultParentGavProperties() {
         setGavPropertyValueWithoutReplacement(GavProperty.PARENT_GROUP_ID, getParentGroupId());
         setGavPropertyValueWithoutReplacement(GavProperty.PARENT_VERSION, getParentVersion());
+        setGavPropertyValueWithoutReplacement(GavProperty.PARENT_ARTIFACT_ID, getParentArtifactId());
     }
 
     private void setGavPropertyValueWithoutReplacement(GavProperty gavProperty, String propertyValue) {
@@ -156,6 +157,7 @@ public class PomReader implements PomParent {
     private enum GavProperty {
         PARENT_VERSION("parent.version", "project.parent.version"),
         PARENT_GROUP_ID("parent.groupId", "project.parent.groupId"),
+        PARENT_ARTIFACT_ID("parent.artifactId", "project.parent.artifactId"),
         GROUP_ID("project.groupId", "pom.groupId", "groupId"),
         ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
         VERSION("project.version", "pom.version", "version");
