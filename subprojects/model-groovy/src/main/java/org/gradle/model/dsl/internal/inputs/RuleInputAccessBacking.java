@@ -17,7 +17,6 @@
 package org.gradle.model.dsl.internal.inputs;
 
 import com.google.common.collect.Maps;
-import groovy.lang.MetaClass;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelView;
 
@@ -58,36 +57,6 @@ public abstract class RuleInputAccessBacking {
 
             public Object input(String modelPath) {
                 return inputs.get(modelPath);
-            }
-
-            @Override
-            public PropertyWrapper property(final String modelPath) {
-                return new PropertyWrapper() {
-                    @Override
-                    public Object getProperty(String name) {
-                        return input(modelPath);
-                    }
-
-                    @Override
-                    public Object invokeMethod(String name, Object args) {
-                        return null;
-                    }
-
-                    @Override
-                    public void setProperty(String propertyName, Object newValue) {
-
-                    }
-
-                    @Override
-                    public MetaClass getMetaClass() {
-                        return null;
-                    }
-
-                    @Override
-                    public void setMetaClass(MetaClass metaClass) {
-
-                    }
-                };
             }
         };
     }

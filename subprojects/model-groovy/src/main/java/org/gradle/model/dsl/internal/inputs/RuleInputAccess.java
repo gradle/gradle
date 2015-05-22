@@ -16,17 +16,9 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import groovy.lang.GroovyObject;
-
 public interface RuleInputAccess {
 
     Object input(String modelPath);
-
-    PropertyWrapper property(String modelPath);
-
-    interface PropertyWrapper extends GroovyObject {
-        Object getProperty(String name);
-    }
 
     boolean has(String modelPath);
 

@@ -68,10 +68,40 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             "thing.value.toUpperCase().toLowerCase()",
             "thing.value[0] + 'oo'",
             "(true ? thing.value : 'bar')",
-            "new String(thing.value)"
+            "new String(thing.value)",
+            "thing.getValue()"
         ]
     }
 
+    def "can reference property of subject"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+              value = "foo"
+              value = value + "-bar"
+            }
+            tasks {
+              create("echo") {
+                doLast {
+                  println "thing.value: " + thing.value
+                }
+              }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "thing.value: foo-bar"
+    }
     @Unroll
     def "only literal strings can be given to dollar - #code"() {
         when:
