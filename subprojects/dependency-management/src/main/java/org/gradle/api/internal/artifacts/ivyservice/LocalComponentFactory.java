@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 public interface LocalComponentFactory {
     boolean canConvert(Object source);
 
-    MutableLocalComponentMetaData convert(Object source);
+    LocalComponentMetaData convert(Object source);
 }

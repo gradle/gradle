@@ -19,6 +19,7 @@ package org.gradle.api.artifacts;
  * Represents something that can be resolved.
  */
 public interface ResolveContext {
+    String getName();
 
     DependencySet getDependencies();
 

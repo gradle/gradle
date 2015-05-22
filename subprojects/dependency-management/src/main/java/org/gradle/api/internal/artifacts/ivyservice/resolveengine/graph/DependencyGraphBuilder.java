@@ -88,7 +88,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, ((Configuration)resolveContext).getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
+        ResolveState resolveState = new ResolveState(rootModule, resolveContext.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);

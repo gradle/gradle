@@ -15,6 +15,7 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -37,7 +38,7 @@ public class DefaultJavaLocalComponentFactory implements LocalComponentFactory {
             context.getProject().getGroup().toString(), context.getProject().getName(), context.getProject().getVersion().toString()
         );
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(context.getProject().getPath(), context.getSourceSet().getName());
-        return new DefaultLocalComponentMetaData(id,component,"");
+        return new DefaultLocalComponentMetaData(id,component, Project.DEFAULT_STATUS);
     }
 
 }

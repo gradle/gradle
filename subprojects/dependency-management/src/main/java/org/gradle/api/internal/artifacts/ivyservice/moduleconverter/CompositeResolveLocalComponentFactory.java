@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 import java.util.Set;
 
@@ -39,7 +39,7 @@ public class CompositeResolveLocalComponentFactory implements LocalComponentFact
 
     @Override
     @SuppressWarnings("unchecked")
-    public MutableLocalComponentMetaData convert(Object context) {
+    public LocalComponentMetaData convert(Object context) {
         for (LocalComponentFactory factory : factories) {
             if (factory.canConvert(context)) {
                 return factory.convert(context);

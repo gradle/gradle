@@ -35,6 +35,11 @@ public class DefaultJavaSourceSetResolveContext implements ResolveContext {
     }
 
     @Override
+    public String getName() {
+        return String.format("project %s library %s", project.getPath(), sourceSet.getName());
+    }
+
+    @Override
     public DependencySet getDependencies() {
         DefaultDomainObjectSet<Dependency> backingSet = convertDependencies();
         return new DefaultDependencySet(sourceSet.getName(), backingSet);
