@@ -54,7 +54,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * Used by tests to validate behaviour of the 'task graph modified' state
      */
-    void forceResolveGraphToDetermineTaskDependencies();
+    void assumeFluidDependencies();
 
     /**
      * Should the configuration be fully resolved to determine the task dependencies?

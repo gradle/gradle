@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures;
 
 /**
- * This runner runs tests with early dependency graph resolution run both
- * forced and not.  Any test classes that use this runner will have tests
- * run twice.
+ * Runs tests with fluid dependencies enabled and disabled: when fluid dependencies are enabled, any configuration that
+ * is a task input is resolved when constructing the task graph.
+ * Test classes that use this runner will have tests run twice, with and without fluid dependencies enabled.
  */
-public class EarlyDependencyGraphResolveRunner extends AbstractMultiTestRunner {
-    public EarlyDependencyGraphResolveRunner(Class<?> target) {
+public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
+    public FluidDependenciesResolveRunner(Class<?> target) {
         super(target)
     }
 
@@ -34,26 +34,26 @@ public class EarlyDependencyGraphResolveRunner extends AbstractMultiTestRunner {
     }
 
     private class ResolveDependencyGraphExecution extends AbstractMultiTestRunner.Execution {
-        final static String FORCE_DEPENDENCY_RESOLVE_PROP = "org.gradle.forceEarlyDependencyResolve"
-        final boolean forceEarlyDependencyResolve
+        final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
+        final boolean assumeFluidDependencies
 
-        public ResolveDependencyGraphExecution(boolean forceEarlyDependencyResolve) {
-            this.forceEarlyDependencyResolve = forceEarlyDependencyResolve
+        public ResolveDependencyGraphExecution(boolean assumeFluidDependencies) {
+            this.assumeFluidDependencies = assumeFluidDependencies
         }
 
         @Override
         protected String getDisplayName() {
-            return forceEarlyDependencyResolve ? "force early dependency graph resolve" : "normal dependency graph resolve"
+            return assumeFluidDependencies ? "with fluid dependencies" : "without fluid dependencies"
         }
 
         @Override
         protected void before() {
-            System.setProperty(FORCE_DEPENDENCY_RESOLVE_PROP, forceEarlyDependencyResolve.toString())
+            System.setProperty(ASSUME_FLUID_DEPENDENCIES, String.valueOf(assumeFluidDependencies))
         }
 
         @Override
         protected void after() {
-            System.properties.remove(FORCE_DEPENDENCY_RESOLVE_PROP)
+            System.properties.remove(ASSUME_FLUID_DEPENDENCIES)
         }
     }
 }

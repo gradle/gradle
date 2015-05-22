@@ -15,17 +15,15 @@
  */
 
 package org.gradle.api
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
-import org.gradle.integtests.fixtures.EarlyDependencyGraphResolveRunner
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
-@RunWith(EarlyDependencyGraphResolveRunner)
+@RunWith(FluidDependenciesResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
@@ -256,8 +254,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
-    @Unroll
-    def "respects buildProjectDependencies setting with configuration resolved #whenResolved"() {
+    def "respects buildProjectDependencies setting"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
             apply plugin: 'java'
@@ -266,15 +263,6 @@ project(':api') {
         file("api/build.gradle") << "apply plugin: 'java'"
         // Provide a source file so that the compile task doesn't skip resolving inputs
         file("impl/src/main/java/Foo.java") << "public class Foo {}"
-        if (resolveDepsToBuildTaskGraph) {
-            buildFile << """
-                allprojects {
-                    configurations.all {
-                        resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
-                    }
-                }
-            """
-        }
 
         when:
         run("impl:build")
@@ -291,11 +279,6 @@ project(':api') {
         notExecuted ":api:jar"
         // :api is configured to resolve impl.compile configuration
         fixture.assertProjectsConfigured(":", ":impl", ":api")
-
-        where:
-        whenResolved               | resolveDepsToBuildTaskGraph
-        "on first use"             | false
-        "when building task graph" | true
     }
 
     def "respects external task dependencies"() {

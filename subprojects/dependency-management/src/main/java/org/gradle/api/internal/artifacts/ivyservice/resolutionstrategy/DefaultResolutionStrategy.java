@@ -45,8 +45,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
-    private boolean forceResolveGraphToDetermineTaskDependencies;
-    private static final String FORCE_RESOLVE_GRAPH_SYSTEM_PROP = "org.gradle.forceEarlyDependencyResolve";
+    private boolean assumeFluidDependencies;
+    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
@@ -56,11 +56,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
 
-        // This is only used for testing purposes so we can test both early dependency resolution
-        // and "normal" lazy resolution
-        if (System.getProperty(FORCE_RESOLVE_GRAPH_SYSTEM_PROP) != null) {
-            forceResolveGraphToDetermineTaskDependencies = Boolean.valueOf(System.getProperty(FORCE_RESOLVE_GRAPH_SYSTEM_PROP));
-        }
+        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
+        assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
 
     @Override
@@ -107,12 +104,12 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return Actions.composite(allRules);
     }
 
-    public void forceResolveGraphToDetermineTaskDependencies() {
-        forceResolveGraphToDetermineTaskDependencies = true;
+    public void assumeFluidDependencies() {
+        assumeFluidDependencies = true;
     }
 
     public boolean resolveGraphToDetermineTaskDependencies() {
-        return forceResolveGraphToDetermineTaskDependencies || dependencySubstitutions.hasDependencySubstitutionRules();
+        return assumeFluidDependencies || dependencySubstitutions.hasDependencySubstitutionRules();
     }
 
 

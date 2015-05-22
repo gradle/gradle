@@ -17,12 +17,12 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.EarlyDependencyGraphResolveRunner
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@RunWith(EarlyDependencyGraphResolveRunner)
+@RunWith(FluidDependenciesResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
@@ -294,7 +294,7 @@ project(':b') {
 '''
         file('build.gradle') << '''
             configurations { compile }
-            configurations.compile.resolutionStrategy.forceResolveGraphToDetermineTaskDependencies()
+            configurations.compile.resolutionStrategy.assumeFluidDependencies()
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
                 assert configurations.compile.collect { it.name } == ['a-2.jar']
