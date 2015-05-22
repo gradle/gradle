@@ -114,11 +114,15 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+
+                    // TODO: Probably need to extract this in a utility class for language plugins,
+                    // or a language plugin superclass in order to avoid the use of internal APIs
                     GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
                     ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
                     ProjectInternal project = (ProjectInternal) task.getProject();
                     RepositoryHandler repositories = project.getRepositories();
                     GlobalDependencyResolutionRules globalDependencyResolutionRules = project.getServices().get(GlobalDependencyResolutionRules.class);
+
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
                     compile.setPlatform(binary.getTargetPlatform());
