@@ -16,16 +16,25 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 /**
  * A Junit rule which restores System.in at the end of the test.
+ *
+ * Provides a pipe for providing input to System.in in the tests
  */
 public class RedirectStdIn implements TestRule {
+    private final PipedInputStream emulatedSystemIn = new PipedInputStream();
+    private PipedOutputStream stdinPipe;
 
     @Override
     public Statement apply(final Statement base, Description description) {
@@ -33,12 +42,30 @@ public class RedirectStdIn implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 final InputStream originalStdIn = System.in;
+                initPipe();
+                System.setIn(emulatedSystemIn);
                 try {
                     base.evaluate();
                 } finally {
                     System.setIn(originalStdIn);
+                    CompositeStoppable.stoppable(stdinPipe, emulatedSystemIn).stop();
                 }
             }
         };
+    }
+
+    public PipedOutputStream getStdinPipe() {
+        initPipe();
+        return stdinPipe;
+    }
+
+    private void initPipe() {
+        if (stdinPipe == null) {
+            try {
+                stdinPipe = new PipedOutputStream(emulatedSystemIn);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
     }
 }
