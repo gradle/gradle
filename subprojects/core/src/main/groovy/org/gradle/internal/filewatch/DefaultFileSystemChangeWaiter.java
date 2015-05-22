@@ -53,6 +53,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             systemInProxy = System.in;
         } else {
             systemInProxy = new DisconnectableInputStream(System.in);
+            System.setIn(systemInProxy);
         }
 
         final CountDownLatch latch = new CountDownLatch(1);
