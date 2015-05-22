@@ -68,7 +68,7 @@ public abstract class AbstractArtifactSet implements ArtifactSet {
             ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
             if (resolvedArtifact == null) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource);
+                resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifactName, artifactSource);
                 allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
             }
             resolvedArtifacts.add(resolvedArtifact);

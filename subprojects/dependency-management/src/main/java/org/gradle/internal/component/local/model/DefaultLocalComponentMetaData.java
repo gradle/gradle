@@ -266,21 +266,21 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
                 }
             }
 
-            return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
+            return new MissingLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName);
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
-        Set<IvyArtifactName> seen = Sets.newHashSet();
+    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier,
+                                                       Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
+        Set<PublishArtifact> seen = Sets.newHashSet();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
 
         for (String config : configurationHierarchy) {
             Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(config);
             if (publishArtifacts != null) {
                 for (PublishArtifact publishArtifact : publishArtifacts) {
-                    IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
-                    if (seen.add(ivyArtifact)) {
-                        artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
+                    if (seen.add(publishArtifact)) {
+                        artifacts.add(new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), moduleVersionIdentifier.getName(), publishArtifact));
                     }
                 }
             }

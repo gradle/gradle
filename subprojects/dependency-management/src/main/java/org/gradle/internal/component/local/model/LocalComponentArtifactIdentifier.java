@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 
 import java.io.File;
 
-public interface LocalArtifactMetaData extends ComponentArtifactMetaData {
+public interface LocalComponentArtifactIdentifier extends ComponentArtifactIdentifier {
     File getFile();
 }

@@ -16,29 +16,30 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifier {
+public class MissingLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData {
     private final ComponentIdentifier componentIdentifier;
     private final String componentDisplayName;
     private final IvyArtifactName name;
-    private final File file; // Local artifacts can differ only on file
 
-    // The componentDisplayName parameter is temporary
-    public DefaultLocalArtifactIdentifier(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName, File file) {
+    public MissingLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName) {
         this.componentIdentifier = componentIdentifier;
         this.componentDisplayName = componentDisplayName;
         this.name = artifactName;
-        this.file = file;
     }
 
     public String getDisplayName() {
         return String.format("%s (%s)", name, componentDisplayName);
+    }
+
+    @Override
+    public File getFile() {
+        return null;
     }
 
     public IvyArtifactName getName() {
@@ -46,6 +47,16 @@ public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifi
     }
 
     public ComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
+    }
+
+    @Override
+    public LocalComponentArtifactIdentifier getId() {
+        return this;
+    }
+
+    @Override
+    public ComponentIdentifier getComponentId() {
         return componentIdentifier;
     }
 
@@ -67,7 +78,7 @@ public class DefaultLocalArtifactIdentifier implements ComponentArtifactIdentifi
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultLocalArtifactIdentifier other = (DefaultLocalArtifactIdentifier) obj;
-        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name) && ObjectUtils.equals(other.file, file);
+        MissingLocalArtifactMetaData other = (MissingLocalArtifactMetaData) obj;
+        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
     }
 }

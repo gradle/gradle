@@ -102,6 +102,10 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
     def addArtifact(String configuration, IvyArtifactName name, File file) {
         PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
+        addArtifact(configuration, publishArtifact)
+    }
+
+    def addArtifact(String configuration, PublishArtifact publishArtifact) {
         metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact)))
     }
 
@@ -114,8 +118,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addConfiguration("conf2")
 
         when:
-        addArtifact("conf1", artifact, file)
-        addArtifact("conf2", artifact, file)
+        def publishArtifact = new DefaultPublishArtifact(artifact.name, artifact.extension, artifact.type, artifact.classifier, new Date(), file)
+        addArtifact("conf1", publishArtifact)
+        addArtifact("conf2", publishArtifact)
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
