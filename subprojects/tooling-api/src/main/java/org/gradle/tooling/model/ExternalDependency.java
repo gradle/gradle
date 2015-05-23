@@ -48,8 +48,9 @@ public interface ExternalDependency extends Dependency {
     File getJavadoc();
 
     /**
-     * marks a dependency as exported.
-     * @return whether a external dependency is exported.
+     * Marks this dependency as exported.
+     *
+     * @return whether this dependency needs to be exported.
      * @since 2.5
      */
     boolean isExported();
