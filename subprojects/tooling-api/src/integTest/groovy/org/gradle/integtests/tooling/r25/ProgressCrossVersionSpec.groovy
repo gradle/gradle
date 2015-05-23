@@ -31,10 +31,77 @@ import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.events.test.TestStartEvent
+import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=2.5")
 class ProgressCrossVersionSpec extends ToolingApiSpecification {
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "receive progress events when requesting a model"() {
+        given:
+        goodCode()
+
+        when: "asking for a model and specifying some task(s) to run first"
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.model(BuildInvocations).forTasks('assemble').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }).get()
+        }
+
+        then: "progress events must be forwarded to the attached listeners"
+        result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "receive progress events when launching a build"() {
+        given:
+        goodCode()
+
+        when: "launching a build"
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('assemble').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }).run()
+        }
+
+        then: "progress events must be forwarded to the attached listeners"
+        result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=2.5")
+    def "receive progress events when running a build action"() {
+        given:
+        goodCode()
+
+        when: "running a build action"
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.action(new NullAction()).addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }).run()
+        }
+
+        then: "progress events must be forwarded to the attached listeners"
+        result.size() > 0
+    }
 
     def "register for all progress events at once"() {
         given:

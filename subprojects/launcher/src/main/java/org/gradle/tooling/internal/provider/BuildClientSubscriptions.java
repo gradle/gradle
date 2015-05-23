@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * Provides information about what events the build client is interested in.
  */
-public final class BuildClientSubscriptions implements Serializable {
+public class BuildClientSubscriptions implements Serializable {
 
     private final boolean sendTestProgressEvents;
     private final boolean sendTaskProgressEvents;

@@ -102,15 +102,9 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
-        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-        boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
-        boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-        BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
-        BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents()
-            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, clientSubscriptions);
-        return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
     private List<String> createRequestedJvmArgsList(ProviderOperationParameters providerParameters) {
@@ -145,9 +139,9 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        NoOpBuildEventConsumer buildEventConsumer = new NoOpBuildEventConsumer();
-        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction);
-        return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, listenerConfig.clientSubscriptions);
+        return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer, ProviderOperationParameters providerParameters, Parameters parameters) {
@@ -220,7 +214,6 @@ public class ProviderConnection {
     }
 
     private static final class BuildProgressListenerInvokingBuildEventConsumer implements BuildEventConsumer {
-
         private final InternalBuildProgressListener buildProgressListener;
 
         private BuildProgressListenerInvokingBuildEventConsumer(InternalBuildProgressListener buildProgressListener) {
@@ -235,4 +228,25 @@ public class ProviderConnection {
         }
     }
 
+
+    private static final class ProgressListenerConfiguration {
+        private final BuildClientSubscriptions clientSubscriptions;
+        private final BuildEventConsumer buildEventConsumer;
+
+        private ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer) {
+            this.clientSubscriptions = clientSubscriptions;
+            this.buildEventConsumer = buildEventConsumer;
+        }
+
+        private static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
+            InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
+            boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
+            boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
+            boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
+            BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+            BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents()
+                ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+            return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer);
+        }
+    }
 }
