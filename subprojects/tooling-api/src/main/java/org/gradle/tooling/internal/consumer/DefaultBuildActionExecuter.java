@@ -54,7 +54,9 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
                            }
 
                            public T run(ConsumerConnection connection) {
-                               return connection.run(buildAction, operationParameters);
+                               T result = connection.run(buildAction, operationParameters);
+                               operationParameters.getBuildProgressListener().rethrowErrors();
+                               return result;
                            }
                        }, new ResultHandlerAdapter<T>(handler) {
                            @Override
