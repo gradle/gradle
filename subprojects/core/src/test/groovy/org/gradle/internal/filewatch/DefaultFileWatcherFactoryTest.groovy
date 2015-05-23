@@ -17,16 +17,16 @@
 package org.gradle.internal.filewatch
 
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.spockframework.lang.ConditionBlock
 import spock.lang.AutoCleanup
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
@@ -34,8 +34,9 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@IgnoreIf({ !JavaVersion.current().java7Compatible })
-class WatchServiceFileWatcherTest extends Specification {
+@Requires(TestPrecondition.JDK7_OR_LATER)
+class DefaultFileWatcherFactoryTest extends Specification {
+
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     FileWatcherFactory fileWatcherFactory
@@ -61,7 +62,7 @@ class WatchServiceFileWatcherTest extends Specification {
     void cleanup() {
         //println "stopping file watcher"
         fileWatcher?.stop()
-        fileWatcherFactory.stop()
+        fileWatcherFactory?.stop()
         //println "file watcher stopped"
 
         assert thrown == null
@@ -194,7 +195,6 @@ class WatchServiceFileWatcherTest extends Specification {
         def totalLatch = new CountDownLatch(10)
 
         fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
-            println event
             eventReceivedLatch.countDown()
             filesAddedLatch.await()
             totalLatch.countDown()
