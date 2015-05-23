@@ -34,18 +34,6 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
     def cancellationToken = new DefaultBuildCancellationToken()
     def monitor = new DefaultCancellableOperationManager(executorService, new DisconnectableInputStream(new PipedInputStream(writeEnd)), cancellationToken)
 
-    def "can close stream to cancel"() {
-        when:
-        monitor.monitorInputExecute {
-            assert !it.isCancellationRequested()
-            writeEnd.close()
-        }
-
-        then:
-        cancellationToken.isCancellationRequested()
-        executorService.shutdownNow().empty
-    }
-
     def "can exit without cancel"() {
         when:
         monitor.monitorInputExecute {}
