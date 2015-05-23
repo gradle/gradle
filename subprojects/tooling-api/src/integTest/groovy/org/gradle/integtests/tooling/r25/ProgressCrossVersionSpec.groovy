@@ -20,8 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.internal.DefaultFinishEvent
 import org.gradle.tooling.events.internal.DefaultStartEvent
@@ -37,8 +37,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 @TargetGradleVersion(">=2.5")
 class ProgressCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive progress events when requesting a model"() {
         given:
         goodCode()
@@ -59,8 +57,6 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive progress events when launching a build"() {
         given:
         goodCode()
@@ -81,8 +77,6 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive progress events when running a build action"() {
         given:
         goodCode()
@@ -154,7 +148,30 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
+    @TargetGradleVersion("=2.4")
+    def "register for all progress events when provider version only knows how to send test progress events"() {
+        given:
+        goodCode()
+
+        when: "registering for all progress event types but provider only knows how to send test progress events"
+        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        result << event
+                    }
+                }, EnumSet.allOf(OperationType)).run()
+        }
+
+        then: "only test progress events must be forwarded to the attached listener"
+        result.size() > 0
+        result.findAll { it instanceof TestProgressEvent }.size() > 0
+        result.findAll { it instanceof TaskProgressEvent }.isEmpty()
+        result.findAll { it.class == DefaultStartEvent || it.class == DefaultFinishEvent }.isEmpty()
+    }
+
     def "when listening to all progress events they are all in a hierarchy with a single root node"() {
         given:
         goodCode()
