@@ -185,7 +185,7 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
         executorService.shutdownNow().empty
     }
 
-    def "throws interrupted exception if note"() {
+    def "swallows interrupted exception if interrupted"() {
         given:
         Thread workThread
         def var = new BlockingVariable()
