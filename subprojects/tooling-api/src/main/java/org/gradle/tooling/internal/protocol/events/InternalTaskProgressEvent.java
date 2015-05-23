@@ -22,5 +22,10 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.5
  */
 public interface InternalTaskProgressEvent extends InternalBuildProgressEvent {
+    /**
+     * Returns the description of the task for which progress is reported.
+     *
+     * @return The task description
+     */
     InternalTaskDescriptor getDescriptor();
 }
