@@ -29,7 +29,6 @@ A project dependency can be replaced with an external dependency like this:
 
 Or an external dependency can be replaced with a project dependency like this:
 
-
     resolutionStrategy {
         dependencySubstitution {
             withModule("com.example:my-module") {
@@ -129,7 +128,7 @@ are executed, etc. All operations are part of a single-root hierarchy that can b
 and `org.gradle.tooling.events.OperationDescriptor#getParent`.
 
 If you are only interested in the progress events for a sub-set of all available operations, you can use
-`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.EnumSet<org.gradle.tooling.events.ProgressEventType>)`. For example, you
+`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.Set<org.gradle.tooling.events.OperationType>)`. For example, you
 can configure to only receive events for the execution of task operations.
 
 Progress events for more fine-grained operations will be added in future releases of Gradle.
@@ -242,6 +241,13 @@ It can be enabled by setting the
     compileGroovy {
         groovyOptions.javaAnnotationProcessing = true
     }
+
+### Registering test progress listeners through the Tooling API
+
+The incubating API `org.gradle.tooling.LongRunningOperation.addTestProgressListener(org.gradle.tooling.events.test.TestProgressListener)` and the associated listener type
+`org.gradle.tooling.events.test.TestProgressListener` have been removed. If you still want to listen exclusively to test progress events, you can use the new API
+`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.Set<org.gradle.tooling.events.OperationType>)` and pass in
+`java.util.Collections.singleton(OperationType.TEST)` for the set of operations.
 
 ### Changes in IDE classpath generation
 
