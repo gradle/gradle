@@ -24,8 +24,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor
 import org.gradle.tooling.events.task.*
@@ -84,7 +84,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 }, EnumSet.of(OperationType.TASK)).run()
         }
 
-        then: "test progress events must be forwarded to the attached listeners"
+        then: "task progress events must be forwarded to the attached listeners"
         result.size() > 0
     }
 
