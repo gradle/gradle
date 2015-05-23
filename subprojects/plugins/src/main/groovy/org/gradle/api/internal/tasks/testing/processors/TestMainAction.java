@@ -69,10 +69,6 @@ public class TestMainAction implements Runnable {
             return testTaskOperationId;
         }
 
-        public Object getTestTaskOperationId() {
-            return testTaskOperationId;
-        }
-
         @Override
         public String toString() {
             return getName();
