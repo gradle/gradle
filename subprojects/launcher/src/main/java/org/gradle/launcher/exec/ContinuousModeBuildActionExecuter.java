@@ -16,12 +16,14 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -32,6 +34,7 @@ import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousModeBuildActionExecuter implements BuildExecuter {
@@ -39,39 +42,48 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final FileSystemChangeWaiter waiter;
+    private final ExecutorFactory executorFactory;
     private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
     public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
+        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), executorFactory, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, FileSystemChangeWaiter waiter) {
+    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, ExecutorFactory executorFactory, FileSystemChangeWaiter waiter) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.javaVersion = javaVersion;
         this.waiter = waiter;
+        this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousModeBuildActionExecuter.class, LogLevel.LIFECYCLE);
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        if (continuousModeEnabled(actionParameters)) {
-            if (!javaVersion.isJava7Compatible()) {
-                throw new IllegalStateException(String.format("Continuous building requires Java %s or later.", JavaVersion.VERSION_1_7));
-            }
-            SingleMessageLogger.incubatingFeatureUsed("Continuous building");
+        if (actionParameters.isContinuousModeEnabled()) {
             return executeMultipleBuilds(action, requestContext, actionParameters);
+        } else {
+            return delegate.execute(action, requestContext, actionParameters);
         }
-        return executeSingleBuild(action, requestContext, actionParameters);
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        Object lastResult = null;
-        int counter = 0;
+        if (!javaVersion.isJava7Compatible()) {
+            throw new IllegalStateException(String.format("Continuous building requires Java %s or later.", JavaVersion.VERSION_1_7));
+        }
+        SingleMessageLogger.incubatingFeatureUsed("Continuous building");
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
+        if (!(System.in instanceof DisconnectableInputStream)) {
+            System.setIn(new DisconnectableInputStream(System.in));
+        }
+        DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
+        final DefaultCancellableOperationManager cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"), inputStream, cancellationToken);
+
+        Object lastResult = null;
+        int counter = 0;
         while (!cancellationToken.isCancellationRequested()) {
             if (++counter != 1) {
                 // reset the time the build started so the total time makes sense
@@ -86,15 +98,20 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                 // TODO: logged already, are there certain cases we want to escape from this loop?
             }
 
-            FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
+            final FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
             if (toWatch.isEmpty()) {
                 logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
                 return lastResult;
             } else {
-                waiter.wait(toWatch, cancellationToken, new Runnable() {
+                cancellableOperationManager.monitorInputExecute(new Action<BuildCancellationToken>() {
                     @Override
-                    public void run() {
-                        logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+                    public void execute(BuildCancellationToken cancellationToken) {
+                        waiter.wait(toWatch, cancellationToken, new Runnable() {
+                            @Override
+                            public void run() {
+                                logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+                            }
+                        });
                     }
                 });
             }
@@ -113,18 +130,10 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         };
         listenerManager.addListener(listener);
         try {
-            return executeSingleBuild(action, requestContext, actionParameters);
+            return delegate.execute(action, requestContext, actionParameters);
         } finally {
             listenerManager.removeListener(listener);
         }
-    }
-
-    private Object executeSingleBuild(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        return delegate.execute(action, requestContext, actionParameters);
-    }
-
-    private boolean continuousModeEnabled(BuildActionParameters actionParameters) {
-        return actionParameters.isContinuousModeEnabled();
     }
 
 }

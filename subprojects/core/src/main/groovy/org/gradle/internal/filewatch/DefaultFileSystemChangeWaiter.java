@@ -24,18 +24,14 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.util.DisconnectableInputStream;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     private static final long QUIET_PERIOD = 250L;
-    private static final int EOF = -1;
-    private static final int KEY_CODE_CTRL_D = 4;
+
 
     private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
@@ -47,15 +43,6 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     @Override
     public void wait(FileSystemSubset taskFileSystemInputs, final BuildCancellationToken cancellationToken, Runnable notifier) {
-        final InputStream systemInProxy;
-
-        if (System.in instanceof DisconnectableInputStream) {
-            systemInProxy = System.in;
-        } else {
-            systemInProxy = new DisconnectableInputStream(System.in);
-            System.setIn(systemInProxy);
-        }
-
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
         final StoppableExecutor executorService = executorFactory.create("continuous building - wait");
@@ -93,38 +80,6 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
                 }
             }
         );
-
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (!Thread.currentThread().isInterrupted()) {
-                        int c = systemInProxy.read();
-                        if (c == KEY_CODE_CTRL_D || c == EOF) {
-                            cancellationToken.cancel();
-                            break;
-                        }
-                    }
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        });
-
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                while (!cancellationToken.isCancellationRequested()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-                latch.countDown();
-            }
-        });
 
         try {
             notifier.run();

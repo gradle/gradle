@@ -24,11 +24,13 @@ import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
@@ -41,9 +43,12 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiter = Mock(FileSystemChangeWaiter)
     def listenerManager = new DefaultListenerManager()
+    @AutoCleanup("stop")
+    def executorFactory = new DefaultExecutorFactory()
     def executer = executer()
 
     private File file = new File('file')
+
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
     }
@@ -177,7 +182,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         noExceptionThrown()
 
         where:
-        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_7}
+        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_7 }
     }
 
     private void singleBuild() {
@@ -197,7 +202,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousModeBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, waiter)
+        new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, waiter)
     }
 
 }
