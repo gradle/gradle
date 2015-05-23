@@ -37,4 +37,9 @@ public class InternalCancellationTokenAdapter implements BuildCancellationToken 
     public void removeCallback(Runnable cancellationHandler) {
         cancellationToken.removeCallback(cancellationHandler);
     }
+
+    @Override
+    public void cancel() {
+        throw new UnsupportedOperationException();
+    }
 }

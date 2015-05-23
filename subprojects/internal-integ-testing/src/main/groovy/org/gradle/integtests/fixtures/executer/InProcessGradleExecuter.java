@@ -193,7 +193,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                     new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
                             ManagementFactory.getRuntimeMXBean().getStartTime()),
-                    new FixedBuildCancellationToken(),
+                    new DefaultBuildCancellationToken(),
                     new NoOpBuildEventConsumer(),
                     outputListener, errorListener);
             actionExecuter.execute(action, buildRequestContext, buildActionParameters);

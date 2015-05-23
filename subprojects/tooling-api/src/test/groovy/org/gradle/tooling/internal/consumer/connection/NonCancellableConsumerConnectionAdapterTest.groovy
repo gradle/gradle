@@ -53,7 +53,7 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
         given:
         _ * target.run(action, parameters) >> {
-            cancellation.doCancel()
+            cancellation.cancel()
             'result'
         }
 
@@ -77,7 +77,7 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
         when:
         def result = connection.run(action, parameters)
-        cancellation.doCancel()
+        cancellation.cancel()
 
         then:
         result == 'result'

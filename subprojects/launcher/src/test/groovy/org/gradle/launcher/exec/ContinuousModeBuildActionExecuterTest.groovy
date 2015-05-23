@@ -80,7 +80,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
         then:
         1 * waiter.wait(_, _, _) >> {
-            cancellationToken.doCancel()
+            cancellationToken.cancel()
         }
     }
 
@@ -105,7 +105,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
         then:
         1 * waiter.wait(_, _, _) >> {
-            cancellationToken.doCancel()
+            cancellationToken.cancel()
         }
     }
 
@@ -130,7 +130,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
         and:
         1 * waiter.wait(_, _, _) >> {
-            cancellationToken.doCancel()
+            cancellationToken.cancel()
         }
     }
 

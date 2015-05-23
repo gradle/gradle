@@ -18,7 +18,7 @@ package org.gradle.internal.filewatch;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -46,7 +46,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
     }
 
     @Override
-    public void wait(FileSystemSubset taskFileSystemInputs, final DefaultBuildCancellationToken cancellationToken, Runnable notifier) {
+    public void wait(FileSystemSubset taskFileSystemInputs, final BuildCancellationToken cancellationToken, Runnable notifier) {
         final InputStream systemInProxy;
 
         if (System.in instanceof DisconnectableInputStream) {
@@ -101,7 +101,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
                     while (!Thread.currentThread().isInterrupted()) {
                         int c = systemInProxy.read();
                         if (c == KEY_CODE_CTRL_D || c == EOF) {
-                            cancellationToken.doCancel();
+                            cancellationToken.cancel();
                             break;
                         }
                     }

@@ -34,7 +34,7 @@ class DefaultFileSystemChangeWaiterTest extends Specification {
         def waiter = new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory)
         def taskFileSystemInputs = Mock(FileSystemSubset)
         def cancellationToken = new DefaultBuildCancellationToken()
-        cancellationToken.doCancel()
+        cancellationToken.cancel()
         def notifier = Mock(Runnable)
         when:
         for (int i = 0; i < 100; i++) {

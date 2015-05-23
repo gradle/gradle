@@ -22,8 +22,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiter;
@@ -70,9 +70,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         Object lastResult = null;
         int counter = 0;
 
-        DefaultBuildCancellationToken cancellationToken = requestContext.getCancellationToken() instanceof DefaultBuildCancellationToken
-            ? (DefaultBuildCancellationToken) requestContext.getCancellationToken()
-            : new DefaultBuildCancellationToken();
+        BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         while (!cancellationToken.isCancellationRequested()) {
             if (++counter != 1) {

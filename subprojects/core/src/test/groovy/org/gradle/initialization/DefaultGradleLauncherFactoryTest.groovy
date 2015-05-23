@@ -52,7 +52,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         def launcher = factory.newInstance(startParameter)
         launcher.gradle.parent == null
         launcher.gradle.services.get(BuildRequestMetaData) instanceof DefaultBuildRequestMetaData
-        launcher.gradle.services.get(BuildCancellationToken) instanceof FixedBuildCancellationToken
+        launcher.gradle.services.get(BuildCancellationToken) instanceof DefaultBuildCancellationToken
         launcher.gradle.services.get(BuildEventConsumer) instanceof NoOpBuildEventConsumer
     }
 

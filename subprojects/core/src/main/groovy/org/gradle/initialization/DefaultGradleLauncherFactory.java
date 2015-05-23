@@ -81,7 +81,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             buildEventConsumer = services.get(BuildEventConsumer.class);
         } else {
             requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
-            cancellationToken = new FixedBuildCancellationToken();
+            cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer);
