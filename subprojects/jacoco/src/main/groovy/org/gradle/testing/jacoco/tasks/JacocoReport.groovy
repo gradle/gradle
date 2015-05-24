@@ -71,8 +71,10 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Nested
     private final JacocoReportsContainerImpl reports
 
+    protected final PatternFilterable patternSet = new PatternSet()
+
     boolean ignoreFailure = false
-    protected final PatternFilterable patternSet = new PatternSet();
+
     private Closure checkClosure
 
     JacocoReport() {
@@ -94,14 +96,37 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
         this.checkClosure = checkClosure
     }
 
-    public void include(String... includes) { patternSet.include(includes); }
-    public void include(Iterable<String> includes) { patternSet.include(includes); }
-    public void include(Spec<FileTreeElement> includeSpec) { patternSet.include(includeSpec); }
-    public void include(Closure includeSpec) { patternSet.include(includeSpec); }
-    public void exclude(String... excludes) { patternSet.exclude(excludes); }
-    public void exclude(Iterable<String> excludes) { patternSet.exclude(excludes); }
-    public void exclude(Spec<FileTreeElement> excludeSpec) { patternSet.exclude(excludeSpec); }
-    public void exclude(Closure excludeSpec) { patternSet.exclude(excludeSpec); }
+    public void include(String... includes) {
+        patternSet.include(includes)
+    }
+
+    public void include(Iterable<String> includes) {
+        patternSet.include(includes)
+    }
+
+    public void include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec)
+    }
+
+    public void include(Closure includeSpec) {
+        patternSet.include(includeSpec)
+    }
+
+    public void exclude(String... excludes) {
+        patternSet.exclude(excludes)
+    }
+
+    public void exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes)
+    }
+
+    public void exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec)
+    }
+
+    public void exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec)
+    }
 
     @TaskAction
     void generate() {
