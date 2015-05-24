@@ -31,12 +31,12 @@ import java.util.Set;
  * An ArtifactSet that resolves the sets of artifacts on construction.
  * This is presently used to resolve artifacts for external modules, as we transition toward full separation of graph and artifact resolution.
  */
-class ConfigurationArtifactsSet extends AbstractArtifactSet {
+class ConfigurationArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
-    public ConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
-                                     ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
-                                     long id) {
+    public ConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
+                                    ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts,
+                                    long id) {
         super(component.getId(), component.getSource(), selector, artifactResolver, allResolvedArtifacts, id);
         this.artifacts = doResolve(component, configurationId);
     }

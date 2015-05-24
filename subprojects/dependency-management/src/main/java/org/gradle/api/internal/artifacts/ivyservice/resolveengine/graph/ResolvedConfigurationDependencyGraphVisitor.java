@@ -107,7 +107,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);
         if (configurationArtifactSet == null) {
 
-            configurationArtifactSet = new ConfigurationArtifactsSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts, id);
+            configurationArtifactSet = new ConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver, allResolvedArtifacts, id);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (dependency.getSelector().acceptsAllArtifacts()) {
