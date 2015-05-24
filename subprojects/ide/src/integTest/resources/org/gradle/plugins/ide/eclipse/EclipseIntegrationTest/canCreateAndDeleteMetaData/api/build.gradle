@@ -6,7 +6,5 @@ dependencies {
 }
 
 sourceSets {
-    integTest {
-        java.srcDirs = ['src/integTest/java']
-    }
+    integTest
 }
