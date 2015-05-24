@@ -30,10 +30,16 @@ import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
+import org.gradle.util.RedirectStdIn
+import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
+
+    @Rule
+    RedirectStdIn redirectStdIn = new RedirectStdIn()
+
     def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
