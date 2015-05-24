@@ -10,14 +10,5 @@
 		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">
-			<dependency-type>uses</dependency-type>
-		</dependent-module>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5.jar">
-			<dependency-type>uses</dependency-type>
-		</dependent-module>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2.jar">
-			<dependency-type>uses</dependency-type>
-		</dependent-module>
 	</wb-module>
 </project-modules>
