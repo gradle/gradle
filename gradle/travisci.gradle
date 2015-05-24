@@ -1,0 +1,34 @@
+
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+
+ExecutorService executor = Executors.newFixedThreadPool(1);
+
+task heartBeat << {
+ executor.execute(new Heartbeat(logger));
+}
+
+task stopHeartBeat << {
+ logger.lifecycle(" Shutting down heartbeat.")
+ executor.shutdown();
+}
+
+travisBuild.dependsOn heartBeat
+travisBuild.finalizedBy stopHeartBeat
+
+class Heartbeat implements Runnable {
+  int frequency = 8 * 60 * 10000
+  def logger
+  public Heartbeat(logger){
+    this.logger = logger
+  }
+
+  @Override
+  public void run(){
+    while(true) {
+      Thread.sleep(frequency)
+      logger.lifecycle(" [heartbeat] ")
+    }
+  }
+}

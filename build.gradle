@@ -69,6 +69,8 @@ buildTypes {
 
     //Initial smoke test for java 9
     java9Build "java9Test", "java9IntegTest", useIncomingDistributions: true
+
+    travisBuild "check"
 }
 
 ext {
@@ -220,3 +222,4 @@ task installAll(type: Install) {
 
 
 apply from: "gradle/intTestImage.gradle"
+apply from: 'gradle/travisci.gradle'
