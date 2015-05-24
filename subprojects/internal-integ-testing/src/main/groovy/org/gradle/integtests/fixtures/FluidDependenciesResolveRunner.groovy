@@ -22,6 +22,7 @@ package org.gradle.integtests.fixtures;
  * Test classes that use this runner will have tests run twice, with and without fluid dependencies enabled.
  */
 public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
+    final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
     public FluidDependenciesResolveRunner(Class<?> target) {
         super(target)
     }
@@ -34,7 +35,6 @@ public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
     }
 
     private class ResolveDependencyGraphExecution extends AbstractMultiTestRunner.Execution {
-        final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
         final boolean assumeFluidDependencies
 
         public ResolveDependencyGraphExecution(boolean assumeFluidDependencies) {

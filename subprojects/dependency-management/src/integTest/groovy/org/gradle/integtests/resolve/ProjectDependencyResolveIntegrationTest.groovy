@@ -271,9 +271,15 @@ project(':b') {
         executedAndNotSkipped ":a:configureJar", ":a:aJar"
     }
 
-
+    /**
+     * When the set of artifacts for a project is changed during task execution, then a project dependency will not be resolved
+     * fully and/or correctly.
+     * - Without fluid dependencies, the artifacts are included in the resolution result, but the tasks to build them are not executed
+     * - With fluid dependencies, the changed artifacts are _not_ included in the resolution result, nor are the tasks.
+     */
     public void "set of resolved project artifacts can be changed after task graph is resolved"() {
         given:
+        def fluidDependencies = Boolean.getBoolean(FluidDependenciesResolveRunner.ASSUME_FLUID_DEPENDENCIES)
         file('settings.gradle') << "include 'a'"
 
         and:
@@ -288,29 +294,31 @@ project(':b') {
             }
             artifacts { compile tasks.jar1 }
             gradle.taskGraph.whenReady {
-                configurations.compile.artifacts.clear()
                 artifacts { compile tasks.jar2 }
             }
 '''
-        file('build.gradle') << '''
+        file('build.gradle') << """
             configurations { compile }
-            configurations.compile.resolutionStrategy.assumeFluidDependencies()
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
-                assert configurations.compile.collect { it.name } == ['a-2.jar']
+                assert configurations.compile.collect { it.name } == ${fluidDependencies ? "['a-1.jar']" : "['a-1.jar', 'a-2.jar']"}
             }
-'''
+"""
 
         when:
-        executer.withDeprecationChecksDisabled()
+        if (fluidDependencies) {
+            executer.withDeprecationChecksDisabled()
+        }
         succeeds ":test"
 
         then:
-        // Demonstrates incorrect task dependencies for project artifacts
-        executedAndNotSkipped ":a:jar1" // Should be ":a:jar2"
+        // The added artifact is never added as a task
+        executedAndNotSkipped ":a:jar1" // Should include ":a:jar2" when no fluidDependencies
 
         and:
-        output.contains "Changed artifacts of configuration ':a:compile' after it has been included in dependency resolution"
+        if (fluidDependencies) {
+            output.contains "Changed artifacts of configuration ':a:compile' after it has been included in dependency resolution"
+        }
     }
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {

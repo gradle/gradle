@@ -98,7 +98,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     // TODO:DAZ These should really be protected by the lock as well
     private boolean dependenciesModified;
-    private boolean artifactsModified;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -402,7 +401,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         resolver.resolveArtifacts(this, cachedResolverResults);
         resolvedState = InternalState.RESULTS_RESOLVED;
-        artifactsModified = false;
     }
 
     public TaskDependency getBuildDependencies() {
@@ -616,11 +614,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (MutationValidator validator : childMutationValidators) {
             validator.validateMutation(type);
         }
-        if (type == MutationType.DEPENDENCIES) {
+        if (type != MutationType.STRATEGY) {
             dependenciesModified = true;
-        }
-        if (type == MutationType.ARTIFACTS) {
-            artifactsModified = true;
         }
     }
 

@@ -89,7 +89,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return publishMetaData;
     }
 
-    private class DefaultLocalComponentResolveMetaData implements LocalComponentResolveMetaData {
+    private class DefaultLocalComponentResolveMetaData implements ComponentResolveMetaData {
         private ModuleVersionIdentifier moduleVersionIdentifier;
 
         public DefaultLocalComponentResolveMetaData() {
@@ -146,10 +146,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             return allConfigurations.get(name);
         }
 
-        @Override
-        public ComponentResolveMetaData toArtifactResolveMetaData() {
-            return new ArtifactOnlyComponentResolveMetaData(id, componentIdentifier, status, allArtifacts, allConfigurations.values());
-        }
     }
 
     private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
