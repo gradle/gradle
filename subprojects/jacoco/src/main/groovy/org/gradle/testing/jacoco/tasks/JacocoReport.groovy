@@ -18,9 +18,13 @@ package org.gradle.testing.jacoco.tasks
 import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
@@ -67,6 +71,8 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Nested
     private final JacocoReportsContainerImpl reports
 
+    boolean ignoreFailure = false
+    protected final PatternFilterable patternSet = new PatternSet();
     private Closure checkClosure
 
     JacocoReport() {
@@ -87,6 +93,15 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     public void setCheck(Closure checkClosure) {
         this.checkClosure = checkClosure
     }
+
+    public void include(String... includes) { patternSet.include(includes); }
+    public void include(Iterable<String> includes) { patternSet.include(includes); }
+    public void include(Spec<FileTreeElement> includeSpec) { patternSet.include(includeSpec); }
+    public void include(Closure includeSpec) { patternSet.include(includeSpec); }
+    public void exclude(String... excludes) { patternSet.exclude(excludes); }
+    public void exclude(Iterable<String> excludes) { patternSet.exclude(excludes); }
+    public void exclude(Spec<FileTreeElement> excludeSpec) { patternSet.exclude(excludeSpec); }
+    public void exclude(Closure excludeSpec) { patternSet.exclude(excludeSpec); }
 
     @TaskAction
     void generate() {
@@ -114,7 +129,19 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
                     csv(destfile: reports.csv.destination)
                 }
                 if(checkClosure!=null) {
-                    delegate.check checkClosure
+                    def ch = delegate.check(checkClosure).getWrapper()
+                    ch.setAttribute('failonviolation',!ignoreFailure)
+
+                    String includes = patternSet.includes.join(',')
+                    String excludes = patternSet.excludes.join(',')
+                    if (includes!='' || excludes!='') {
+                        ch.children.each {
+                            if (it.elementTag == 'rule') {
+                                if (includes!='') it.setAttribute('includes',includes)
+                                if (excludes!='') it.setAttribute('excludes',excludes)
+                            }
+                        }
+                    }
                 }
             }
         }
