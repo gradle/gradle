@@ -28,8 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An ArtifactSet that resolves the sets of artifacts on construction.
- * This is presently used to resolve artifacts for external modules, as we transition toward full separation of graph and artifact resolution.
+ * An ArtifactSet that resolves the artifacts for a configuration.
  */
 class ConfigurationArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;

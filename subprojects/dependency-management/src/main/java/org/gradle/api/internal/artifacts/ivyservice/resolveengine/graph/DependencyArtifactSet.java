@@ -27,6 +27,9 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A set of artifacts that is defined by a dependency declaration.
+ */
 class DependencyArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
