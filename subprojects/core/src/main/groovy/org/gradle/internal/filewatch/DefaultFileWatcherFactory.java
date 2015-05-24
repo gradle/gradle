@@ -42,7 +42,6 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
         this.javaVersion = javaVersion;
         this.classLoader = classLoader;
         this.executor = executorFactory.create("filewatcher");
-        this.fileWatcherFactory = createFileWatcherFactory();
     }
 
     protected FileWatcherFactory createFileWatcherFactory() {
