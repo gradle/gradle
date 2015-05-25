@@ -90,14 +90,27 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     protected PatternSet doCopyFrom(PatternSet from) {
         includes.clear();
-        includes.addAll(from.includes);
         excludes.clear();
-        excludes.addAll(from.excludes);
         includeSpecs.clear();
-        includeSpecs.addAll(from.includeSpecs);
         excludeSpecs.clear();
-        excludeSpecs.addAll(from.excludeSpecs);
         caseSensitive = from.caseSensitive;
+
+        if (from instanceof IntersectionPatternSet) {
+            PatternSet other = ((IntersectionPatternSet) from).other;
+            PatternSet otherCopy = new PatternSet().copyFrom(other);
+            PatternSet intersectCopy = new IntersectionPatternSet(otherCopy);
+            intersectCopy.includes.addAll(from.includes);
+            intersectCopy.excludes.addAll(from.excludes);
+            intersectCopy.includeSpecs.addAll(from.includeSpecs);
+            intersectCopy.excludeSpecs.addAll(from.excludeSpecs);
+            includeSpecs.add(intersectCopy.getAsSpec());
+        } else {
+            includes.addAll(from.includes);
+            excludes.addAll(from.excludes);
+            includeSpecs.addAll(from.includeSpecs);
+            excludeSpecs.addAll(from.excludeSpecs);
+        }
+
         return this;
     }
 
