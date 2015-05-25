@@ -331,6 +331,14 @@ public class JavaReflectionUtil {
         return new InstantiatingFactory<T>(instantiator, type, args);
     }
 
+    public static boolean hasDefaultToString(Object object) {
+        try {
+            return object.getClass().getMethod("toString").getDeclaringClass() == Object.class;
+        } catch (java.lang.NoSuchMethodException e) {
+            throw new UncheckedException(e);
+        }
+    }
+
     private static class GetterMethodBackedPropertyAccessor<T, F> implements PropertyAccessor<T, F> {
         private final String property;
         private final Method method;

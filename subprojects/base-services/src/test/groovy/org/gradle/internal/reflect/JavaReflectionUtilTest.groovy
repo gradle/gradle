@@ -281,6 +281,18 @@ class JavaReflectionUtilTest extends Specification {
         !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
     }
 
+    def "default toString methods"() {
+        expect:
+        hasDefaultToString(clazz)
+
+        where:
+        clazz << [new Object(), new Root()]
+    }
+
+    def "should not have a default toString"() {
+        expect:
+        !hasDefaultToString([toString: {println "hello"}] as Root)
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)

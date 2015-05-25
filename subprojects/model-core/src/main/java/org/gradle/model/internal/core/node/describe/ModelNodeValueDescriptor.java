@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core.node.describe;
 
 import com.google.common.base.Optional;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.MutableModelNode;
 
 public class ModelNodeValueDescriptor implements ModelPropertyDescriptor {
@@ -35,12 +35,8 @@ public class ModelNodeValueDescriptor implements ModelPropertyDescriptor {
 
     private String toStringOrNull() {
         Object privateData = mutableModelNode.getPrivateData();
-        try {
-            if (null != privateData && (privateData.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-                return privateData.toString();
-            }
-        } catch (NoSuchMethodException e) {
-            UncheckedException.throwAsUncheckedException(e);
+        if (null != privateData && !JavaReflectionUtil.hasDefaultToString(privateData.getClass())) {
+            return privateData.toString();
         }
         return null;
     }
