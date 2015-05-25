@@ -70,7 +70,7 @@ buildTypes {
     //Initial smoke test for java 9
     java9Build "java9Test", "java9IntegTest", useIncomingDistributions: true
 
-    travisBuild "check"
+    travisBuild "startHeartBeat", "check", "stopHeartBeat"
 }
 
 ext {
