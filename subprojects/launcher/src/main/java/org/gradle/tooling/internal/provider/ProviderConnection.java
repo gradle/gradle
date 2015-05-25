@@ -35,6 +35,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.tooling.ListenerFailedException;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
@@ -144,14 +145,18 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
-    private Object run(BuildAction action, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer, ProviderOperationParameters providerParameters, Parameters parameters) {
-        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
-        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, buildEventConsumer);
-        BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters);
-        if (result.failure != null) {
-            throw (RuntimeException) payloadSerializer.deserialize(result.failure);
+    private Object run(BuildAction action, BuildCancellationToken cancellationToken, FailsafeBuildEventConsumerAdapter buildEventConsumer, ProviderOperationParameters providerParameters, Parameters parameters) {
+        try {
+            BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, buildEventConsumer);
+            BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters);
+            if (result.failure != null) {
+                throw (RuntimeException) payloadSerializer.deserialize(result.failure);
+            }
+            return payloadSerializer.deserialize(result.result);
+        } finally {
+            buildEventConsumer.rethrowErrors();
         }
-        return payloadSerializer.deserialize(result.result);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
@@ -213,6 +218,30 @@ public class ProviderConnection {
         }
     }
 
+    private static class FailsafeBuildEventConsumerAdapter implements BuildEventConsumer {
+        private final List<Throwable> errors = new LinkedList<Throwable>();
+        private final BuildEventConsumer delegate;
+
+        protected FailsafeBuildEventConsumerAdapter(BuildEventConsumer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void dispatch(Object message) {
+            try {
+                delegate.dispatch(message);
+            } catch (Throwable e) {
+                errors.add(e);
+            }
+        }
+
+        public void rethrowErrors() {
+            if (!errors.isEmpty()) {
+                throw new ListenerFailedException(errors);
+            }
+        }
+    }
+
     private static final class BuildProgressListenerInvokingBuildEventConsumer implements BuildEventConsumer {
         private final InternalBuildProgressListener buildProgressListener;
 
@@ -228,12 +257,11 @@ public class ProviderConnection {
         }
     }
 
-
     private static final class ProgressListenerConfiguration {
         private final BuildClientSubscriptions clientSubscriptions;
-        private final BuildEventConsumer buildEventConsumer;
+        private final FailsafeBuildEventConsumerAdapter buildEventConsumer;
 
-        private ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer buildEventConsumer) {
+        private ProgressListenerConfiguration(BuildClientSubscriptions clientSubscriptions, FailsafeBuildEventConsumerAdapter buildEventConsumer) {
             this.clientSubscriptions = clientSubscriptions;
             this.buildEventConsumer = buildEventConsumer;
         }
@@ -246,7 +274,7 @@ public class ProviderConnection {
             BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
             BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents()
                 ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-            return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer);
+            return new ProgressListenerConfiguration(clientSubscriptions, new FailsafeBuildEventConsumerAdapter(buildEventConsumer));
         }
     }
 }
