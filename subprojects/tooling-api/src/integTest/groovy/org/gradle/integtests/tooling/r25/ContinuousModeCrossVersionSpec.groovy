@@ -19,25 +19,87 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
+import org.gradle.tooling.events.*
+import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
+import spock.lang.AutoCleanup
 import spock.lang.Ignore
 
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+
+@ToolingApiVersion("current")
+@TargetGradleVersion("current")
 class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
+    @AutoCleanup("shutdown")
+    ScheduledExecutorService scheduledExecutorService =  Executors.newSingleThreadScheduledExecutor()
 
-    @Ignore("Work in progress")
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
-    def "continuous mode is not supported yet"() {
-        when:
+    def setupJavaProject() {
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+'''
+        def javaSrcDir = projectDir.createDir('src/main/java')
+        javaSrcDir
+    }
+
+    def runContinuousBuild(DefaultCancellationTokenSource cancellationTokenSource, ProgressListener progressListener, String task = "classes") {
         withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.withArguments("--continuous").forTasks("tasks").run()
+            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(task)
+            launcher.withCancellationToken(cancellationTokenSource.token())
+            launcher.addProgressListener(progressListener, [OperationType.GENERIC] as Set)
+            launcher.run()
         }
+    }
 
+    def "client can cancel while a continuous build is waiting for changes - after #delayms ms delay"(long delayms) {
+        given:
+        setupJavaProject()
+        when:
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        Runnable cancelTask = new Runnable() {
+            @Override
+            void run() {
+                cancellationTokenSource.cancel()
+            }
+        }
+        ProgressListener progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
+                    if(delayms > 0) {
+                        scheduledExecutorService.schedule(cancelTask, delayms, TimeUnit.MILLISECONDS)
+                    } else {
+                        cancelTask.run()
+                    }
+                }
+            }
+        }
+        runContinuousBuild(cancellationTokenSource, progressListener)
         then:
-        UnsupportedBuildArgumentException e = thrown()
-        e.message.contains("Unknown command-line option '--continuous'.")
+        noExceptionThrown()
+        where:
+        delayms << [0L, 50L, 1500L, 5000L]
+    }
+
+    def "client can cancel during execution of a continuous build - before task execution has started"() {
+        given:
+        setupJavaProject()
+        when:
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        ProgressListener progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if(event instanceof StartEvent && event.descriptor.name == 'Running build') {
+                    cancellationTokenSource.cancel()
+                }
+            }
+        }
+        runContinuousBuild(cancellationTokenSource, progressListener)
+        then:
+        thrown BuildCancelledException
     }
 
     @Ignore
@@ -51,9 +113,6 @@ class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
 
     @Ignore
     def "client can cancel during execution of a continuous build"() {}
-
-    @Ignore
-    def "client can cancel while a continuous build is waiting for changes"() {}
 
     @Ignore
     def "client can request continuous mode when building a model, but request is effectively ignored"() {}
