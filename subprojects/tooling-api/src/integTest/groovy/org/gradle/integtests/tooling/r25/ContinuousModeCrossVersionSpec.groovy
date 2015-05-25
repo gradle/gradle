@@ -39,4 +39,31 @@ class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
         UnsupportedBuildArgumentException e = thrown()
         e.message.contains("Unknown command-line option '--continuous'.")
     }
+
+    @Ignore
+    def "client executes continuous build that succeeds, then responds to input changes and succeeds"() {}
+
+    @Ignore
+    def "client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds"() {}
+
+    @Ignore
+    def "client executes continuous build that fails, then responds to input changes and succeeds"() {}
+
+    @Ignore
+    def "client can cancel during execution of a continuous build"() {}
+
+    @Ignore
+    def "client can cancel while a continuous build is waiting for changes"() {}
+
+    @Ignore
+    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
+
+    @Ignore
+    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {}
+
+    @Ignore
+    def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
+
+    @Ignore
+    def "logging does not include message to use ctrl-c to exit continuous mode"() {}
 }
