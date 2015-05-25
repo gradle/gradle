@@ -21,7 +21,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
-public interface ModelRegistry extends ModelRegistrar {
+public interface ModelRegistry {
 
     /**
      * Get the fully defined model element at the given path as the given type.
@@ -33,7 +33,7 @@ public interface ModelRegistry extends ModelRegistrar {
      * @param <T> the type to project the node as
      * @return the node as the given type
      */
-    public <T> T realize(ModelPath path, ModelType<T> type);
+    <T> T realize(ModelPath path, ModelType<T> type);
 
     /**
      * Get the fully defined model element at the given path.
@@ -73,7 +73,7 @@ public interface ModelRegistry extends ModelRegistrar {
      * @return the node at the desired state, or null if node is unknown
      */
     @Nullable
-    public ModelNode atState(ModelPath path, ModelNode.State state);
+    ModelNode atState(ModelPath path, ModelNode.State state);
 
     /**
      * Returns the node at the given path at the desired state or later, if it exists.
@@ -88,16 +88,14 @@ public interface ModelRegistry extends ModelRegistrar {
      * @return the node at the desired state, or null if node is unknown
      */
     @Nullable
-    public ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
+    ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
 
-    public ModelNode.State state(ModelPath path);
+    ModelNode.State state(ModelPath path);
 
     void remove(ModelPath path);
 
-    @Override
     ModelRegistry replace(ModelCreator newCreator);
 
-    @Override
     ModelRegistry createOrReplace(ModelCreator newCreator);
 
     /**
@@ -118,10 +116,8 @@ public interface ModelRegistry extends ModelRegistrar {
      */
     void bindAllReferences() throws UnboundModelRulesException;
 
-    @Override
     ModelRegistry create(ModelCreator creator);
 
-    @Override
     <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
