@@ -6,11 +6,12 @@ import java.util.concurrent.Executors
 ExecutorService executor = Executors.newFixedThreadPool(1);
 
 task heartBeat << {
+ logger.lifecycle("Starting heartbeat.")
  executor.execute(new Heartbeat(logger));
 }
 
 task stopHeartBeat << {
- logger.lifecycle(" Shutting down heartbeat.")
+ logger.lifecycle("Shutting down heartbeat.")
  executor.shutdown();
 }
 
