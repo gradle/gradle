@@ -1,0 +1,225 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.tooling.r25
+
+import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.AutoCleanup
+import spock.lang.Ignore
+import spock.lang.Timeout
+import spock.util.concurrent.PollingConditions
+
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+
+@Timeout(60)
+@Requires(TestPrecondition.JDK7_OR_LATER)
+@ToolingApiVersion("current")
+@TargetGradleVersion("current")
+class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
+    @AutoCleanup("shutdown")
+    ExecutorService executorService =  Executors.newCachedThreadPool()
+    ByteArrayOutputStream stderr
+    ByteArrayOutputStream stdout
+    Runnable cancelTask
+    Future<?> buildExecutionFuture
+    ExecutionResult result
+    ExecutionFailure failure
+    int buildTimeout = 10
+
+    def setupJavaProject() {
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+'''
+        def javaSrcDir = projectDir.createDir('src/main/java')
+        javaSrcDir
+    }
+
+    def cleanup() {
+        cancelTask?.run()
+    }
+
+    def runContinuousBuild(DefaultCancellationTokenSource cancellationTokenSource, String... tasks) {
+        stderr = new ByteArrayOutputStream(512)
+        stdout = new ByteArrayOutputStream(512)
+        withConnection { ProjectConnection connection ->
+            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
+            launcher.withCancellationToken(cancellationTokenSource.token())
+            launcher.setStandardOutput(stdout)
+            launcher.setStandardError(stderr)
+            launcher.run()
+        }
+    }
+
+    void runBuild(String... tasks) {
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        cancelTask = new Runnable() {
+            @Override
+            void run() {
+                cancellationTokenSource.cancel()
+            }
+        }
+        buildExecutionFuture = executorService.submit(new Runnable() {
+            @Override
+            void run() {
+                runContinuousBuild(cancellationTokenSource, tasks)
+            }
+        })
+    }
+
+    ExecutionResult succeeds(String... tasks) {
+        executeBuild(tasks)
+        if (result instanceof ExecutionFailure) {
+            throw new UnexpectedBuildFailure("build was expected to succeed but failed")
+        }
+        result
+    }
+
+    ExecutionFailure fails(String... tasks) {
+        executeBuild(tasks)
+        if (!(result instanceof ExecutionFailure)) {
+            throw new UnexpectedBuildFailure("build was expected to succeed but failed")
+        }
+        if (!(result instanceof ExecutionFailure)) {
+            throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
+        }
+        failure = result as ExecutionFailure
+        failure
+    }
+
+    private void executeBuild(String... tasks) {
+        if (tasks) {
+            runBuild(tasks)
+        } else if (buildExecutionFuture.isDone()) {
+            throw new UnexpectedBuildFailure("Tooling API build connection has exited")
+        }
+        if (buildExecutionFuture == null) {
+            throw new UnexpectedBuildFailure("Tooling API build connection never started")
+        }
+        waitForBuild()
+    }
+
+    private void waitForBuild() {
+        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
+            assert stdout.toString().contains("Waiting for changes to input files of tasks...")
+        }
+
+        def out = stdout.toString()
+        stdout.reset()
+        def err = stderr.toString()
+        stderr.reset()
+
+        result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+    }
+
+    protected List<String> getExecutedTasks() {
+        assertHasResult()
+        result.executedTasks
+    }
+
+    private assertHasResult() {
+        assert result != null : "result is null, you haven't run succeeds()"
+    }
+
+    protected Set<String> getSkippedTasks() {
+        assertHasResult()
+        result.skippedTasks
+    }
+
+    protected List<String> getNonSkippedTasks() {
+        executedTasks - skippedTasks
+    }
+
+    protected void executedAndNotSkipped(String... tasks) {
+        tasks.each {
+            assert it in executedTasks
+            assert !skippedTasks.contains(it)
+        }
+    }
+
+    def "client executes continuous build that succeeds, then responds to input changes and succeeds"() {
+        given:
+        def javaSrcDir = setupJavaProject()
+        def javaSrcFile = javaSrcDir.file("Thing.java")
+        javaSrcFile << 'public class Thing {}'
+        when:
+        succeeds('build')
+        then:
+        executedAndNotSkipped ":compileJava", ":build"
+        when:
+        javaSrcFile.text = 'public class Thing { public static final int FOO=1; }'
+        then:
+        succeeds()
+        and:
+        executedAndNotSkipped ":compileJava", ":build"
+    }
+
+    def "client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds"() {
+        given:
+        def javaSrcDir = setupJavaProject()
+        def javaSrcFile = javaSrcDir.file("Thing.java")
+        javaSrcFile << 'public class Thing {}'
+        when:
+        succeeds('build')
+        then:
+        executedAndNotSkipped ":compileJava", ":build"
+        when:
+        javaSrcFile.text = 'public class Thing { '
+        then:
+        fails()
+        when:
+        javaSrcFile.text = 'public class Thing {} '
+        then:
+        succeeds()
+        and:
+        executedAndNotSkipped ":compileJava"
+    }
+
+    def "client executes continuous build that fails, then responds to input changes and succeeds"() {
+        given:
+        def javaSrcDir = setupJavaProject()
+        def javaSrcFile = javaSrcDir.file("Thing.java")
+        javaSrcFile << 'public class Thing {'
+        when:
+        fails('build')
+        then:
+        noExceptionThrown()
+        when:
+        javaSrcFile.text = 'public class Thing {} '
+        then:
+        succeeds()
+        and:
+        executedAndNotSkipped ":compileJava"
+    }
+
+    @Ignore
+    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
+
+    @Ignore
+    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {}
+
+    @Ignore
+    def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
+}
