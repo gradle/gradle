@@ -20,16 +20,9 @@ This is similar to the current situation when a project dependency is added to a
 ### User visible changes
 
 ```
-interface DependencySubstitution<T extends ComponentSelector> {
-    T getRequested()
+interface DependencySubstitution {
+    ComponentSelector getRequested()
     void useTarget(Object notation)
-}
-
-interface ModuleDependencySubstitution extendsDependencySubstitution<ModuleComponentSelector> {
-    void useVersion(String version)
-}
-    
-interface ProjectDependencySubstitution extendsDependencySubstitution<ProjectComponentSelector> {
 }
 
 configurations.all {

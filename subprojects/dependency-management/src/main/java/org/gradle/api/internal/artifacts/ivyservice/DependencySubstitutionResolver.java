@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -38,16 +35,7 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector selector = dependency.getSelector();
-        DependencySubstitutionInternal details;
-        if (selector instanceof ModuleComponentSelector) {
-            details = new DefaultModuleDependencySubstitution((ModuleComponentSelector) selector, dependency.getRequested());
-        } else if (selector instanceof ProjectComponentSelector) {
-            details = new DefaultProjectDependencySubstitution((ProjectComponentSelector) selector, dependency.getRequested());
-        } else if (selector instanceof LibraryComponentSelector) {
-            details = new DefaultLibraryDependencySubstitution((LibraryComponentSelector) selector, dependency.getRequested());
-        } else {
-            throw new IllegalStateException("Unknown type of component selector: " + selector);
-        }
+        DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
         try {
             rule.execute(details);
         } catch (Throwable e) {

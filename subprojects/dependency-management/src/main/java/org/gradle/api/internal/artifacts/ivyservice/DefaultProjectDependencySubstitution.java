@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ProjectDependencySubstitution;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 
-public class DefaultProjectDependencySubstitution extends AbstractDependencySubstitution<ProjectComponentSelector> implements ProjectDependencySubstitution {
+public class DefaultProjectDependencySubstitution extends DelegatingDependencySubstitution implements ProjectDependencySubstitution {
 
-    public DefaultProjectDependencySubstitution(ProjectComponentSelector requested, ModuleVersionSelector oldRequested) {
-        super(requested, oldRequested);
+    public DefaultProjectDependencySubstitution(DependencySubstitution delegate) {
+        super(delegate);
+    }
+
+    @Override
+    public ProjectComponentSelector getRequested() {
+        return (ProjectComponentSelector) super.getRequested();
     }
 }

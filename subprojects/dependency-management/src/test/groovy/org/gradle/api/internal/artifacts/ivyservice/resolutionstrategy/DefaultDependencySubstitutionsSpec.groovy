@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
-
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependencySubstitution
@@ -80,7 +79,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
         def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
-        def moduleDetails = Mock(ModuleDependencySubstitutionInternal)
+        def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(moduleDetails)
@@ -95,7 +94,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
         def projectTarget = DefaultProjectComponentSelector.newSelector(":api")
-        def projectDetails = Mock(ProjectDependencySubstitutionInternal)
+        def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(projectDetails)
@@ -118,14 +117,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.withModule(matchingModule, matchingModuleVersionAction)
         substitutions.withModule(nonMatchingModule, nonMatchingModuleVersionAction)
 
-        def moduleDetails = Mock(ModuleDependencySubstitution)
+        def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        1 * matchingModuleVersionAction.execute(moduleDetails)
+        1 * matchingModuleVersionAction.execute(_)
         0 * nonMatchingModuleVersionAction.execute(_)
         0 * _
 
@@ -169,14 +168,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.withProject(matchingProject, matchingProjectAction)
         substitutions.withProject(nonMatchingProject, nonMatchingProjectAction)
 
-        def projectDetails = Mock(ProjectDependencySubstitution)
+        def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        1 * matchingProjectAction.execute(projectDetails)
+        1 * matchingProjectAction.execute(_)
         0 * nonMatchingProjectAction.execute(_)
         0 * _
 
@@ -201,20 +200,20 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
     def "provides dependency substitution rule that orderly aggregates user specified rules"() {
         given:
-        substitutions.all({ it.useVersion("1.0") } as Action)
-        substitutions.all({ it.useVersion("2.0") } as Action)
-        substitutions.all({ it.useVersion("3.0") } as Action)
-        def details = Mock(ModuleDependencySubstitutionInternal)
+        substitutions.all({ it.useTarget("1.0") } as Action)
+        substitutions.all({ it.useTarget("2.0") } as Action)
+        substitutions.all({ it.useTarget("3.0") } as Action)
+        def details = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(details)
 
         then:
-        1 * details.useVersion("1.0")
+        1 * details.useTarget("1.0")
         then:
-        1 * details.useVersion("2.0")
+        1 * details.useTarget("2.0")
         then:
-        1 * details.useVersion("3.0")
+        1 * details.useTarget("3.0")
         0 * details._
     }
     

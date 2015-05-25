@@ -16,58 +16,51 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
-public abstract class DelegatingDependencySubstitution<T extends ComponentSelector> implements DependencySubstitutionInternal {
-    private final T requested;
-    private final ModuleVersionSelector oldRequested;
-    private ComponentSelectionReason selectionReason;
-    private ComponentSelector target;
+public class DelegatingDependencySubstitution implements DependencySubstitutionInternal {
+    private final DependencySubstitutionInternal delegate;
 
-    public DelegatingDependencySubstitution(T requested, ModuleVersionSelector oldRequested) {
-        this.requested = requested;
-        this.target = requested;
-        this.oldRequested = oldRequested;
+    public DelegatingDependencySubstitution(DependencySubstitution delegate) {
+        this.delegate = (DependencySubstitutionInternal) delegate;
     }
 
     @Override
-    public T getRequested() {
-        return requested;
+    public ComponentSelector getRequested() {
+        return delegate.getRequested();
     }
 
     @Override
     public ModuleVersionSelector getOldRequested() {
-        return oldRequested;
+        return delegate.getOldRequested();
     }
 
     @Override
     public void useTarget(Object notation) {
-        useTarget(notation, VersionSelectionReasons.SELECTED_BY_RULE);
+        delegate.useTarget(notation);
     }
 
     @Override
     public void useTarget(Object notation, ComponentSelectionReason selectionReason) {
-        this.target = ComponentSelectorParsers.parser().parseNotation(notation);
-        this.selectionReason = selectionReason;
-    }
-
-    @Override
-    public ComponentSelectionReason getSelectionReason() {
-        return selectionReason;
+        delegate.useTarget(notation, selectionReason);
     }
 
     @Override
     public ComponentSelector getTarget() {
-        return target;
+        return delegate.getTarget();
+    }
+
+    @Override
+    public ComponentSelectionReason getSelectionReason() {
+        return delegate.getSelectionReason();
     }
 
     @Override
     public boolean isUpdated() {
-        return selectionReason != null;
+        return delegate.isUpdated();
     }
 }

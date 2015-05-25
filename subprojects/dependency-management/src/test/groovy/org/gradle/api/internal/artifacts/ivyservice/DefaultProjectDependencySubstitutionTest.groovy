@@ -89,7 +89,8 @@ class DefaultProjectDependencySubstitutionTest extends Specification {
     }
 
     private static def newProjectDependencySubstitution(String name) {
-        return new DefaultProjectDependencySubstitution(newComponentSelector(":" + name), DefaultModuleVersionSelector.newSelector("com.test", name, "1.0"))
+        def substitution = new DefaultDependencySubstitution(newComponentSelector(":" + name), DefaultModuleVersionSelector.newSelector("com.test", name, "1.0"))
+        return new DefaultProjectDependencySubstitution(substitution)
     }
 
     private static ProjectComponentSelector newComponentSelector(String projectPath) {

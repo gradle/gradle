@@ -23,20 +23,20 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
-public abstract class DefaultDependencySubstitution<T extends ComponentSelector> implements DependencySubstitutionInternal {
-    private final T requested;
+public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
+    private final ComponentSelector requested;
     private final ModuleVersionSelector oldRequested;
     private ComponentSelectionReason selectionReason;
     private ComponentSelector target;
 
-    public DefaultDependencySubstitution(T requested, ModuleVersionSelector oldRequested) {
+    public DefaultDependencySubstitution(ComponentSelector requested, ModuleVersionSelector oldRequested) {
         this.requested = requested;
         this.target = requested;
         this.oldRequested = oldRequested;
     }
 
     @Override
-    public T getRequested() {
+    public ComponentSelector getRequested() {
         return requested;
     }
 

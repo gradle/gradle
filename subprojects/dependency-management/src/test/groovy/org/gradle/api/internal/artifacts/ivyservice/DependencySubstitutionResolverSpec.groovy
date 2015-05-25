@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
-import org.gradle.api.artifacts.ModuleDependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -54,8 +53,8 @@ class DependencySubstitutionResolverSpec extends Specification {
         def substitutedDependency = Stub(DependencyMetaData)
 
         given:
-        rule.execute(_) >> { ModuleDependencySubstitution details ->
-            details.useVersion("new")
+        rule.execute(_) >> { DependencySubstitutionInternal details ->
+            details.useTarget("group:module:new")
         }
 
         when:

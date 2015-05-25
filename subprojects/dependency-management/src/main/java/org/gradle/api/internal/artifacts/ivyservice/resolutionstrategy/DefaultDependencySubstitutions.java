@@ -27,6 +27,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyResolveDetails;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultModuleDependencySubstitution;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultProjectDependencySubstitution;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -179,7 +181,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
                 if (Objects.equal(requestedModule.getGroup(), id.getGroup())
                         && Objects.equal(requestedModule.getModule(), id.getName())) {
-                    delegate.execute((ModuleDependencySubstitution) substitution);
+                    delegate.execute(new DefaultModuleDependencySubstitution(substitution));
                 }
             }
         }
@@ -198,7 +200,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         public void execute(DependencySubstitution substitution) {
             ComponentSelector requested = substitution.getRequested();
             if (requested.matchesStrictly(id)) {
-                delegate.execute((ProjectDependencySubstitution) substitution);
+                delegate.execute(new DefaultProjectDependencySubstitution(substitution));
             }
         }
     }

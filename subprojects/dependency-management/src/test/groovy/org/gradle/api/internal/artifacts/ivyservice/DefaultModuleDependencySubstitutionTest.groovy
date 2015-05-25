@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
@@ -26,7 +25,6 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultModuleDependencySubstitutionTest extends Specification {
-
     def "can specify version to use"() {
         when:
         def details = newModuleDependencySubstitution("org", "foo", "1.0")
@@ -183,7 +181,8 @@ class DefaultModuleDependencySubstitutionTest extends Specification {
     }
 
     private static def newModuleDependencySubstitution(String group, String name, String version) {
-        return new DefaultModuleDependencySubstitution(newComponentSelector(group, name, version), DefaultModuleVersionSelector.newSelector(group, name, version))
+        def dependencySubstitution = new DefaultDependencySubstitution(newComponentSelector(group, name, version), DefaultModuleVersionSelector.newSelector(group, name, version))
+        return new DefaultModuleDependencySubstitution(dependencySubstitution)
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.artifacts.ModuleDependencySubstitution;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ModuleDependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
-public class DefaultModuleDependencySubstitution extends AbstractDependencySubstitution<ModuleComponentSelector> implements ModuleDependencySubstitutionInternal {
+public class DefaultModuleDependencySubstitution extends DelegatingDependencySubstitution implements ModuleDependencySubstitution {
 
-    public DefaultModuleDependencySubstitution(ModuleComponentSelector requested, ModuleVersionSelector oldRequested) {
-        super(requested, oldRequested);
+    public DefaultModuleDependencySubstitution(DependencySubstitution delegate) {
+        super(delegate);
+    }
+
+    @Override
+    public ModuleComponentSelector getRequested() {
+        return (ModuleComponentSelector) super.getRequested();
     }
 
     @Override
@@ -34,7 +39,6 @@ public class DefaultModuleDependencySubstitution extends AbstractDependencySubst
         useVersion(version, VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
-    @Override
     public void useVersion(String version, ComponentSelectionReason selectionReason) {
         assert selectionReason != null;
         if (version == null) {
