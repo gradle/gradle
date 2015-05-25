@@ -23,6 +23,7 @@ import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.*
+import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
@@ -49,7 +50,7 @@ apply plugin: 'java'
         withConnection { ProjectConnection connection ->
             BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(task)
             launcher.withCancellationToken(cancellationTokenSource.token())
-            launcher.addProgressListener(progressListener, [OperationType.GENERIC] as Set)
+            launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
             launcher.run()
         }
     }
@@ -102,6 +103,43 @@ apply plugin: 'java'
         thrown BuildCancelledException
     }
 
+    def "client can cancel during execution of a continuous build - just before the last task execution has started"() {
+        given:
+        setupJavaProject()
+        when:
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        ProgressListener progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if(event instanceof TaskStartEvent && event.descriptor.taskPath==":classes") {
+                    cancellationTokenSource.cancel()
+                }
+            }
+        }
+        runContinuousBuild(cancellationTokenSource, progressListener)
+        then:
+        noExceptionThrown()
+    }
+
+
+    def "client can cancel during execution of a continuous build - before a task which isn't the last task"() {
+        given:
+        setupJavaProject()
+        when:
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        ProgressListener progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if(event instanceof TaskStartEvent && event.descriptor.taskPath==":compileJava") {
+                    cancellationTokenSource.cancel()
+                }
+            }
+        }
+        runContinuousBuild(cancellationTokenSource, progressListener)
+        then:
+        thrown(BuildCancelledException)
+    }
+
     @Ignore
     def "client executes continuous build that succeeds, then responds to input changes and succeeds"() {}
 
@@ -110,9 +148,6 @@ apply plugin: 'java'
 
     @Ignore
     def "client executes continuous build that fails, then responds to input changes and succeeds"() {}
-
-    @Ignore
-    def "client can cancel during execution of a continuous build"() {}
 
     @Ignore
     def "client can request continuous mode when building a model, but request is effectively ignored"() {}
