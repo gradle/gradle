@@ -23,6 +23,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.execution.BasicCancellableOperationManager;
+import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
@@ -68,7 +70,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         }
     }
 
-    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
+    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters) {
         if (!javaVersion.isJava7Compatible()) {
             throw new IllegalStateException(String.format("Continuous building requires Java %s or later.", JavaVersion.VERSION_1_7));
         }
@@ -76,11 +78,16 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
-        if (!(System.in instanceof DisconnectableInputStream)) {
-            System.setIn(new DisconnectableInputStream(System.in));
+        final CancellableOperationManager cancellableOperationManager;
+        if (actionParameters.isInteractive()) {
+            if (!(System.in instanceof DisconnectableInputStream)) {
+                System.setIn(new DisconnectableInputStream(System.in));
+            }
+            DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
+            cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"), inputStream, cancellationToken);
+        } else {
+            cancellableOperationManager = new BasicCancellableOperationManager(cancellationToken);
         }
-        DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
-        final DefaultCancellableOperationManager cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"), inputStream, cancellationToken);
 
         Object lastResult = null;
         int counter = 0;
@@ -112,7 +119,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
                         waiter.wait(toWatch, cancellationToken, new Runnable() {
                             @Override
                             public void run() {
-                                logger.println().println("Waiting for changes to input files of tasks... (ctrl+d to exit)");
+                                logger.println().println("Waiting for changes to input files of tasks..." + (actionParameters.isInteractive() ? " (ctrl+d to exit)" : ""));
                             }
                         });
                     }

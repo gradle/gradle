@@ -16,9 +16,6 @@
 
 package org.gradle.execution;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.initialization.BuildCancellationToken;
@@ -29,19 +26,18 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-public class DefaultCancellableOperationManager implements CancellableOperationManager {
+public class DefaultCancellableOperationManager extends BasicCancellableOperationManager {
 
     private static final int EOF = -1;
     private static final int KEY_CODE_CTRL_D = 4;
 
-    private final DisconnectableInputStream input;
-    private final BuildCancellationToken cancellationToken;
     private final ExecutorService executorService;
+    private final DisconnectableInputStream input;
 
     public DefaultCancellableOperationManager(ExecutorService executorService, DisconnectableInputStream input, BuildCancellationToken cancellationToken) {
+        super(cancellationToken);
         this.executorService = executorService;
         this.input = input;
-        this.cancellationToken = cancellationToken;
     }
 
     @Override
@@ -55,7 +51,7 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
                         while (!Thread.currentThread().isInterrupted()) {
                             int c = input.read();
                             if (c == KEY_CODE_CTRL_D || c == EOF) {
-                                cancellationToken.cancel();
+                                getCancellationToken().cancel();
                                 break;
                             }
                         }
@@ -75,50 +71,6 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
     @Override
     public void monitorInputExecute(final Action<? super BuildCancellationToken> operation) {
         monitorInputYield(new Transformer<Void, BuildCancellationToken>() {
-            @Override
-            public Void transform(BuildCancellationToken cancellationToken) {
-                operation.execute(cancellationToken);
-                return null;
-            }
-        });
-    }
-
-    @Override
-    public <T> T interruptYield(final Transformer<? extends T, ? super BuildCancellationToken> operation) {
-        final Thread callingThread = Thread.currentThread();
-        Runnable cancellationHandler = new Runnable() {
-            @Override
-            public void run() {
-                callingThread.interrupt();
-            }
-        };
-        if (cancellationToken.isCancellationRequested()) {
-            cancellationHandler.run();
-        }
-        cancellationToken.addCallback(cancellationHandler);
-        try {
-            return operation.transform(cancellationToken);
-        } catch (RuntimeException e) {
-            boolean causedByInterruptedException = Iterables.any(Throwables.getCausalChain(e), new Predicate<Throwable>() {
-                @Override
-                public boolean apply(Throwable input) {
-                    return input instanceof InterruptedException;
-                }
-            });
-            if (causedByInterruptedException) {
-                return null;
-            } else {
-                throw e;
-            }
-        } finally {
-            cancellationToken.removeCallback(cancellationHandler);
-            Thread.interrupted();
-        }
-    }
-
-    @Override
-    public void interruptExecute(final Action<? super BuildCancellationToken> operation) {
-        interruptYield(new Transformer<Void, BuildCancellationToken>() {
             @Override
             public Void transform(BuildCancellationToken cancellationToken) {
                 operation.execute(cancellationToken);

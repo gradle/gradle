@@ -31,8 +31,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final Map<String, String> envVariables;
     private final DaemonUsage daemonUsage;
     private final boolean continuousModeEnabled;
+    private final boolean interactive;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuousModeEnabled) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuousModeEnabled, boolean interactive) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.continuousModeEnabled = continuousModeEnabled;
@@ -42,6 +43,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
         this.daemonUsage = daemonUsage;
+        this.interactive = interactive;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -69,6 +71,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", logLevel=" + logLevel
                 + ", daemonUsage=" + daemonUsage
                 + ", continuousModeEnabled=" + continuousModeEnabled
+                + ", interactive=" + interactive
                 + '}';
     }
 
@@ -79,5 +82,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public boolean isContinuousModeEnabled() {
         return continuousModeEnabled;
+    }
+
+    public boolean isInteractive() {
+        return interactive;
     }
 }
