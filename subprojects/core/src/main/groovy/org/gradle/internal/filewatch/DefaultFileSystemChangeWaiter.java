@@ -43,6 +43,10 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     @Override
     public void wait(FileSystemSubset taskFileSystemInputs, final BuildCancellationToken cancellationToken, Runnable notifier) {
+        if (cancellationToken.isCancellationRequested()) {
+            return;
+        }
+
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
         final StoppableExecutor executorService = executorFactory.create("continuous building - wait");

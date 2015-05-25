@@ -92,6 +92,9 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
                 callingThread.interrupt();
             }
         };
+        if (cancellationToken.isCancellationRequested()) {
+            cancellationHandler.run();
+        }
         cancellationToken.addCallback(cancellationHandler);
         try {
             return operation.transform(cancellationToken);

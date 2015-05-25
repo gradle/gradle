@@ -105,12 +105,12 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         0 * waiter.wait(_, _, _)
     }
 
-    def "waits for trigger in continuous mode when build fails"() {
+    def "throws exception if last build fails in continous mode"() {
         when:
         continuousBuilding()
         1 * delegate.execute(action, requestContext, actionParameters) >> {
             declareInput(file)
-            throw new Exception("!")
+            throw new ReportedException(new Exception("!"))
         }
         executeBuild()
 
@@ -118,6 +118,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _, _) >> {
             cancellationToken.cancel()
         }
+        thrown(ReportedException)
     }
 
     def "keeps running after failures in continuous mode"() {
@@ -136,7 +137,15 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         and:
         1 * delegate.execute(action, requestContext, actionParameters) >> {
             declareInput(file)
-            throw new Exception("!")
+            throw new ReportedException(new Exception("!"))
+        }
+
+        and:
+        1 * waiter.wait(_, _, _)
+
+        and:
+        1 * delegate.execute(action, requestContext, actionParameters) >> {
+            declareInput(file)
         }
 
         and:

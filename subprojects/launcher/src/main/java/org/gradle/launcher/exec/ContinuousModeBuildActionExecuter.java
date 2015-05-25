@@ -94,13 +94,16 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
             FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
             try {
                 lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, fileSystemSubsetBuilder);
-            } catch (Throwable t) {
-                // TODO: logged already, are there certain cases we want to escape from this loop?
+            } catch (ReportedException t) {
+                lastResult = t;
             }
 
             final FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
             if (toWatch.isEmpty()) {
                 logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
+                if (lastResult instanceof ReportedException) {
+                    throw (ReportedException) lastResult;
+                }
                 return lastResult;
             } else {
                 cancellableOperationManager.monitorInputExecute(new Action<BuildCancellationToken>() {
@@ -118,6 +121,9 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
         }
 
         logger.println("Build cancelled.");
+        if (lastResult instanceof ReportedException) {
+            throw (ReportedException) lastResult;
+        }
         return lastResult;
     }
 
