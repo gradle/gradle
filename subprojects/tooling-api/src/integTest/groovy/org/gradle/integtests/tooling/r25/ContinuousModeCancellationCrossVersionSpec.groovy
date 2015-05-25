@@ -28,7 +28,6 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion("current")
 @TargetGradleVersion("current")
-class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
+class ContinuousModeCancellationCrossVersionSpec extends ToolingApiSpecification {
     @AutoCleanup("shutdown")
     ScheduledExecutorService scheduledExecutorService =  Executors.newSingleThreadScheduledExecutor()
     ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
@@ -172,23 +171,5 @@ apply plugin: 'java'
         !stdoutContent.contains("ctrl+d to exit")
         stdoutContent.contains("Waiting for changes to input files of tasks...")
     }
-
-    @Ignore
-    def "client executes continuous build that succeeds, then responds to input changes and succeeds"() {}
-
-    @Ignore
-    def "client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds"() {}
-
-    @Ignore
-    def "client executes continuous build that fails, then responds to input changes and succeeds"() {}
-
-    @Ignore
-    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
-
-    @Ignore
-    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {}
-
-    @Ignore
-    def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
 
 }
