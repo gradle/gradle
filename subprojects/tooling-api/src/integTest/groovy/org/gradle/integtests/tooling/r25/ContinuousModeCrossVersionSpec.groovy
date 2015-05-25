@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit
 class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
     @AutoCleanup("shutdown")
     ScheduledExecutorService scheduledExecutorService =  Executors.newSingleThreadScheduledExecutor()
+    ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream(512)
 
     def setupJavaProject() {
         projectDir.file('build.gradle').text = '''
@@ -51,6 +53,8 @@ apply plugin: 'java'
             BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(task)
             launcher.withCancellationToken(cancellationTokenSource.token())
             launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
+            launcher.setStandardOutput(stdout)
+            launcher.setStandardError(stderr)
             launcher.run()
         }
     }
@@ -140,6 +144,32 @@ apply plugin: 'java'
         thrown(BuildCancelledException)
     }
 
+    def "logging does not include message to use ctrl-d to exit continuous mode"() {
+        given:
+        setupJavaProject()
+        when:
+        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
+        Runnable cancelTask = new Runnable() {
+            @Override
+            void run() {
+                cancellationTokenSource.cancel()
+            }
+        }
+        ProgressListener progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
+                    scheduledExecutorService.schedule(cancelTask, 2000L, TimeUnit.MILLISECONDS)
+                }
+            }
+        }
+        runContinuousBuild(cancellationTokenSource, progressListener)
+        def stdoutContent = stdout.toString()
+        then:
+        !stdoutContent.contains("ctrl+d to exit")
+        stdoutContent.contains("Waiting for changes to input files of tasks...")
+    }
+
     @Ignore
     def "client executes continuous build that succeeds, then responds to input changes and succeeds"() {}
 
@@ -158,6 +188,4 @@ apply plugin: 'java'
     @Ignore
     def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
 
-    @Ignore
-    def "logging does not include message to use ctrl-c to exit continuous mode"() {}
 }
