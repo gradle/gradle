@@ -35,7 +35,7 @@ public class ModelNodeValueDescriptor implements ModelPropertyDescriptor {
 
     private String toStringOrNull() {
         Object privateData = mutableModelNode.getPrivateData();
-        if (null != privateData && !JavaReflectionUtil.hasDefaultToString(privateData.getClass())) {
+        if (null != privateData && !JavaReflectionUtil.hasDefaultToString(privateData)) {
             return privateData.toString();
         }
         return null;
