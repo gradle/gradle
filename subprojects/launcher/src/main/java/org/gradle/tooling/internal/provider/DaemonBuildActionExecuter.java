@@ -16,9 +16,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -40,7 +40,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
         // TODO: Support tooling API
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), false);
+                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), action.getStartParameter().isContinuousModeEnabled());
         try {
             return executer.execute(action, buildRequestContext, actionParameters);
         } catch (ReportedException e) {
