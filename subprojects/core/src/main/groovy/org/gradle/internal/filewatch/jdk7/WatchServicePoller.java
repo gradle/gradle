@@ -60,21 +60,12 @@ class WatchServicePoller {
         };
 
         List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
-        final List<FileWatcherEvent> events;
-        if (!watchEvents.isEmpty()) {
-            events = CollectionUtils.collect(watchEvents, watchEventTransformer);
-        } else {
-            // TODO: When deleting directories, we receive a WatchKey without any events.
-            // This seems to be the same thing as a delete event for the Path.
-            // watchKey.reset() also returns false in this case.
-            events = Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
-        }
-
         watchKey.reset();
-//        if (!valid) {
-//            // TODO: What do we do when we're no longer watching a directory that's still an input?
-//        }
-        return events;
+        if (watchEvents.isEmpty()) {
+            return Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
+        } else {
+            return CollectionUtils.collect(watchEvents, watchEventTransformer);
+        }
     }
 
     private FileWatcherEvent toEvent(WatchEvent.Kind kind, File file) {

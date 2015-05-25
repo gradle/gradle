@@ -247,4 +247,40 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         then:
         succeeds()
     }
+
+    def "project directory can be used as input"() {
+        given:
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when:
+        file("A").text = "A"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when: "file is changed"
+        file("A").text = "B"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when:
+        file("A").delete()
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+    }
+
 }

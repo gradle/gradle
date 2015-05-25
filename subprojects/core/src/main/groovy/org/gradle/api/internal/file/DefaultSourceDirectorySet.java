@@ -152,7 +152,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public void resolve(FileCollectionResolveContext context) {
-        for (DirectoryTree directoryTree : getSrcDirTrees()) {
+        for (DirectoryTree directoryTree : doGetSrcDirTrees()) {
             context.add(((DirectoryFileTree) directoryTree).filter(filter));
         }
     }

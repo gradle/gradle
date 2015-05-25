@@ -62,21 +62,25 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
                 @Override
                 public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
                     if (timeout == null) {
-                        timeout = new IdleTimeout(QUIET_PERIOD, new Runnable() {
-                            @Override
-                            public void run() {
-                                watcher.stop();
-                                latch.countDown();
-                            }
-                        });
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                timeout.await();
-                            }
-                        });
+                        if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+                            timeout = new IdleTimeout(QUIET_PERIOD, new Runnable() {
+                                @Override
+                                public void run() {
+                                    watcher.stop();
+                                    latch.countDown();
+                                }
+                            });
+                            executorService.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    timeout.await();
+                                }
+                            });
+                            timeout.tick();
+                        }
+                    } else {
+                        timeout.tick();
                     }
-                    timeout.tick();
                 }
             }
         );
