@@ -58,7 +58,6 @@ public class PlayRun extends ConventionTask {
 
     private BaseForkOptions forkOptions;
 
-    private PlayApplicationRunnerToken runnerToken;
     private ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool;
 
     /**
@@ -83,7 +82,7 @@ public class PlayRun extends ConventionTask {
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
 
         try {
-            runnerToken = playApplicationRunnerTool.get().start(spec);
+            PlayApplicationRunnerToken runnerToken = playApplicationRunnerTool.get().start(spec);
             progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
