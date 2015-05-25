@@ -44,13 +44,17 @@ import java.util.concurrent.TimeUnit;
  *
  *     // add dependency substitution rules
  *     dependencySubstitution {
- *       //specifying a fixed version for all libraries with 'org.gradle' group
- *       eachModule { ModuleDependencySubstitution details ->
- *         if (details.requested.group == 'org.gradle') {
- *           details.useVersion '2.4'
+ *       all { DependencySubstitution details ->
+ *         // Use a local project dependency for any external dependency on 'org.gradle:util'
+ *         if (details.requested instanceof ModuleComponentSelector
+ *                 && details.requested.group == 'org.gradle'
+ *                 && details.requested.name == 'util') {
+ *           details.useTarget(project(':util'))
  *         }
+ *
  *         //changing 'groovy-all' into 'groovy':
- *         if (details.requested.name == 'groovy-all') {
+ *         if (details.requested instanceof ModuleComponentSelector
+ *                 && details.requested.name == 'groovy-all') {
  *           details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
  *         }
  *       }
@@ -251,20 +255,8 @@ public interface ResolutionStrategy {
      * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
      * can then be configured with substitution rules.
      *
-     * <pre autoTested=''>
-     * configurations {
-     *   compile.resolutionStrategy.dependencySubstitution {
-     *       eachModule { ModuleDependencySubstitution details ->
-     *         //specifying a fixed version for all libraries with 'org.gradle' group
-     *         if (details.requested.group == 'org.gradle') {
-     *           details.useVersion '1.4'
-     *         }
-     *       }
-     *    }
-     * }
-     * </pre>
-     *
      * @return this ResolutionStrategy instance
+     * @see DependencySubstitutions
      * @since 2.5
      */
     @Incubating

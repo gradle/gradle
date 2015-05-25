@@ -26,13 +26,17 @@ import org.gradle.internal.HasInternalProtocol;
  * <pre>
  * // add dependency substitution rules
  * dependencySubstitution {
- *   //specifying a fixed version for all libraries with 'org.gradle' group
- *   eachModule { ModuleDependencySubstitution details ->
- *     if (details.requested.group == 'org.gradle') {
- *       details.useVersion '2.4'
+ *   all { DependencySubstitution details ->
+ *     // Use a local project dependency for any external dependency on 'org.gradle:util'
+ *     if (details.requested instanceof ModuleComponentSelector
+ *             && details.requested.group == 'org.gradle'
+ *             && details.requested.name == 'util') {
+ *       details.useTarget(project(':util'))
  *     }
+ *
  *     //changing 'groovy-all' into 'groovy':
- *     if (details.requested.name == 'groovy-all') {
+ *     if (details.requested instanceof ModuleComponentSelector
+ *             && details.requested.name == 'groovy-all') {
  *       details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
  *     }
  *   }
@@ -52,20 +56,7 @@ public interface DependencySubstitutions {
      * @return this
      * @since 2.4
      */
-    // TODO:PREZI Perhaps we should call this eachDependency(), as we do it for example in ResolutionRules?
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for every module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachModule(Action<? super ModuleDependencySubstitution> rule);
 
     /**
      * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
@@ -78,18 +69,6 @@ public interface DependencySubstitutions {
      * @since 2.4
      */
     DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for every project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachProject(Action<? super ProjectDependencySubstitution> rule);
 
     /**
      * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)

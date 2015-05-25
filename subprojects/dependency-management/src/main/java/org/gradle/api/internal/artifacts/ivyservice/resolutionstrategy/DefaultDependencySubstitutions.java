@@ -83,19 +83,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public DependencySubstitutions eachModule(Action<? super ModuleDependencySubstitution> rule) {
-        return all(new TypeFilteringDependencySubstitutionAction<ModuleDependencySubstitution>(ModuleDependencySubstitution.class, rule));
-    }
-
-    @Override
     public DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule) {
         ModuleIdentifier moduleId = moduleIdentifierNotationParser.parseNotation(id);
         return all(new ModuleIdFilteringDependencySubstitutionAction(moduleId, rule));
-    }
-
-    @Override
-    public DependencySubstitutions eachProject(Action<? super ProjectDependencySubstitution> rule) {
-        return all(new TypeFilteringDependencySubstitutionAction<ProjectDependencySubstitution>(ProjectDependencySubstitution.class, rule));
     }
 
     @Override
@@ -209,24 +199,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             ComponentSelector requested = substitution.getRequested();
             if (requested.matchesStrictly(id)) {
                 delegate.execute((ProjectDependencySubstitution) substitution);
-            }
-        }
-    }
-
-    private static class TypeFilteringDependencySubstitutionAction<T extends DependencySubstitution> implements Action<DependencySubstitution> {
-        private final Class<T> type;
-        private final Action<? super T> delegate;
-
-        public TypeFilteringDependencySubstitutionAction(Class<T> type, Action<? super T> delegate) {
-            this.type = type;
-            this.delegate = delegate;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public void execute(DependencySubstitution substitution) {
-            if (type.isAssignableFrom(substitution.getClass())) {
-                delegate.execute((T) substitution);
             }
         }
     }

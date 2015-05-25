@@ -109,31 +109,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
     }
 
-    def "eachModule() matches only modules"() {
-        given:
-        def action = Mock(Action)
-        substitutions.eachModule(action)
-
-        def moduleDetails = Mock(ModuleDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
-
-        then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        1 * action.execute(moduleDetails)
-        0 * _
-
-        def projectDetails = Mock(ProjectDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
-
-        then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        0 * _
-    }
-
     @Unroll
     def "withModule() matches only given module: #matchingModule"() {
         given:
@@ -185,31 +160,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
     }
 
-    def "eachProject() matches only projects"() {
-        given:
-        def action = Mock(Action)
-        substitutions.eachProject(action)
-
-        def projectDetails = Mock(ProjectDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
-
-        then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        1 * action.execute(projectDetails)
-        0 * _
-
-        def moduleDetails = Mock(ModuleDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
-
-        then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        0 * _
-    }
-
     @Unroll
     def "withProject() matches only given project: #matchingProject"() {
         given:
@@ -251,9 +201,9 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
     def "provides dependency substitution rule that orderly aggregates user specified rules"() {
         given:
-        substitutions.eachModule({ it.useVersion("1.0") } as Action)
-        substitutions.eachModule({ it.useVersion("2.0") } as Action)
-        substitutions.eachModule({ it.useVersion("3.0") } as Action)
+        substitutions.all({ it.useVersion("1.0") } as Action)
+        substitutions.all({ it.useVersion("2.0") } as Action)
+        substitutions.all({ it.useVersion("3.0") } as Action)
         def details = Mock(ModuleDependencySubstitutionInternal)
 
         when:
@@ -279,22 +229,10 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         when: substitutions.all(Mock(Closure))
         then: 1 * validator.validateMutation(STRATEGY)
         
-        when: substitutions.eachModule(Mock(Action))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.eachModule(Mock(Closure))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
         when: substitutions.withModule("org:foo", Mock(Action))
         then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withModule("org:foo", Mock(Closure))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.eachProject(Mock(Action))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.eachProject(Mock(Closure))
         then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withProject(":foo", Mock(Action))
@@ -313,12 +251,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         when:
         copy.all(Mock(Action))
         copy.all(Mock(Closure))
-        copy.eachModule(Mock(Action))
-        copy.eachModule(Mock(Closure))
         copy.withModule("org:foo", Mock(Action))
         copy.withModule("org:foo", Mock(Closure))
-        copy.eachProject(Mock(Action))
-        copy.eachProject(Mock(Closure))
         copy.withProject(":foo", Mock(Action))
         copy.withProject(":foo", Mock(Closure))
 
