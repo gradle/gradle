@@ -25,6 +25,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.*
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
 
@@ -32,6 +34,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+@Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion("current")
 @TargetGradleVersion("current")
 class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
