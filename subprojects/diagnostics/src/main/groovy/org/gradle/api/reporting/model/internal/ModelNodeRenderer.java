@@ -44,7 +44,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         } else {
             styledTextoutput.withStyle(Identifier).format("%s", model.getPath().getName());
             if (model.getLinkCount() == 0) {
-                Optional<String> value = Optional.fromNullable(model.getValueDescription());
+                Optional<String> value = model.getValueDescription();
                 if (value.isPresent()) {
                     styledTextoutput.withStyle(Description).format(" = %s", value.get());
                 }

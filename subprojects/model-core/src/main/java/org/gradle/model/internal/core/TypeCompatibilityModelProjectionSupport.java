@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -109,11 +111,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     @Override
-    public String getValueDescription(MutableModelNode modelNodeInternal) {
-        Object privateData = modelNodeInternal.getPrivateData();
-        if (null != privateData) {
-            return privateData.toString();
-        }
-        return null;
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
     }
 }

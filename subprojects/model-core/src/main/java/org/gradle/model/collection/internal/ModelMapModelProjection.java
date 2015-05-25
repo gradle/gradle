@@ -18,12 +18,14 @@ package org.gradle.model.collection.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -165,11 +167,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     @Override
-    public String getValueDescription(MutableModelNode modelNodeInternal) {
-        Object privateData = modelNodeInternal.getPrivateData();
-        if (null != privateData) {
-            return privateData.toString();
-        }
-        return null;
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
     }
 }

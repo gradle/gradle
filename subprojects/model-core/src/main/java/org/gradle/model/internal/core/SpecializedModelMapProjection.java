@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -116,11 +118,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     @Override
-    public String getValueDescription(MutableModelNode modelNodeInternal) {
-        Object privateData = modelNodeInternal.getPrivateData();
-        if (null != privateData) {
-            return privateData.toString();
-        }
-        return null;
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
     }
 }

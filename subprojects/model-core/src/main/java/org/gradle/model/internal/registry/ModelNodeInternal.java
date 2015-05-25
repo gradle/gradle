@@ -17,8 +17,12 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
-import com.google.common.collect.*;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -199,7 +203,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Nullable
     @Override
-    public String getValueDescription() {
+    public Optional<String> getValueDescription() {
         this.ensureUsable();
         return this.getAdapter().getValueDescription(this);
     }

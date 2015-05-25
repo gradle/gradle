@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -63,7 +64,7 @@ public class EmptyModelProjection implements ModelProjection {
     }
 
     @Override
-    public String getValueDescription(MutableModelNode modelNodeInternal) {
-        return null;
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
     }
 }
