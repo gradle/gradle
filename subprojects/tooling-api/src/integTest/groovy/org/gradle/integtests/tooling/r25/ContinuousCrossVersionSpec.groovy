@@ -22,6 +22,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -33,6 +37,7 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicInteger
 
 @Timeout(60)
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -47,6 +52,7 @@ class ContinuousCrossVersionSpec extends ToolingApiSpecification {
     Future<?> buildExecutionFuture
     ExecutionResult result
     ExecutionFailure failure
+    ProgressListener progressListener
     int buildTimeout = 10
 
     def setupJavaProject() {
@@ -67,6 +73,9 @@ apply plugin: 'java'
         withConnection { ProjectConnection connection ->
             BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
             launcher.withCancellationToken(cancellationTokenSource.token())
+            if(progressListener) {
+                launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
+            }
             launcher.setStandardOutput(stdout)
             launcher.setStandardError(stderr)
             launcher.run()
@@ -211,8 +220,43 @@ apply plugin: 'java'
         executedAndNotSkipped ":compileJava"
     }
 
-    @Ignore
-    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {}
+    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {
+        given:
+        def javaSrcDir = setupJavaProject()
+        def javaSrcFile = javaSrcDir.file("Thing.java")
+        javaSrcFile << 'public class Thing {}'
+        AtomicInteger buildCounter=new AtomicInteger(0)
+        AtomicInteger eventCounter=new AtomicInteger(0)
+        int lastEventCounter
+        progressListener = new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                eventCounter.incrementAndGet()
+                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
+                    buildCounter.incrementAndGet()
+                }
+            }
+        }
+        when:
+        succeeds('build')
+        then:
+        eventCounter.get() > 0
+        buildCounter.get() == 1
+        when:
+        lastEventCounter = eventCounter.get()
+        javaSrcFile.text = 'public class Thing { public static final int FOO=1; }'
+        then:
+        succeeds()
+        eventCounter.get() > lastEventCounter
+        buildCounter.get() == 2
+        when:
+        lastEventCounter = eventCounter.get()
+        javaSrcFile.text = 'public class Thing {}'
+        then:
+        succeeds()
+        eventCounter.get() > lastEventCounter
+        buildCounter.get() == 3
+    }
 
     @Ignore
     def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
