@@ -263,7 +263,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 force("org.utils:impl:1.5")
 
                 dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with module("org.utils:api:1.6")
+                    substitute module("org.utils:api") with module("org.utils:api:1.6")
                 }
             }
 
@@ -317,7 +317,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         succeeds "check"
     }
 
-    void "can replace external dependency with project dependency"()
+    void "can substitute modules with project dependency using #name"()
     {
         settingsFile << 'include "api", "impl"'
         buildFile << """
@@ -329,7 +329,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("$selector") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -353,6 +353,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         then:
         executedAndNotSkipped ":api:jar"
+
+        where:
+        name                 | selector
+        "matching module"    | "org.utils:api"
+        "matching component" | "org.utils:api:1.5"
     }
 
     void "can access built artifacts from substituted project dependency"()
@@ -381,7 +386,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("org.utils:api") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -452,7 +457,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("org.utils:api") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -497,7 +502,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("org.utils:api") with project(":api")
                 }
 
                 task check << {
@@ -534,7 +539,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("org.utils:api") with project(":api")
                 }
 
                 task check << {
@@ -580,7 +585,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.testConf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                    substitute module("org.utils:api") with project(":api")
                 }
 
                 task checkConf << {
@@ -631,7 +636,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     force("org.utils:api:1.3")
 
                     dependencySubstitution {
-                        substitute module("org.utils:api:1.5") with project(":api")
+                        substitute module("org.utils:api") with project(":api")
                     }
                 }
 
@@ -712,7 +717,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:impl:1.5") with project(":impl")
+                    substitute module("org.utils:impl") with project(":impl")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -1176,10 +1181,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.all {
-                if (it.requested.group == 'foo') {
-                    it.useTarget group: 'org', name: 'b', version: '1.0'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('foo:bar:baz') with module('org:b:1.0')
             }
 """
 

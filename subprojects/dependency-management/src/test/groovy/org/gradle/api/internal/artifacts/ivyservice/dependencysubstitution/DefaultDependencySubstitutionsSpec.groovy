@@ -15,7 +15,9 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
+
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ModuleDependencySubstitution
 import org.gradle.api.artifacts.ProjectDependencySubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -138,9 +140,20 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         where:
-        matchingModule                                    | nonMatchingModule
-        "org.utils:api:1.5"                               | "org.utils:impl:1.0"
-//        [group: "org.utils", name: "api", version: "1.5"] | [group: "org.utils", name: "impl", version: "1.0"]
+        matchingModule      | nonMatchingModule
+        "org.utils:api:1.5" | "org.utils:api:1.6"
+        "org.utils:api"     | "org.utils:impl"
+    }
+
+    def "cannot substitute with unversioned module selector"() {
+        when:
+        with(substitutions) {
+            substitute project("foo") with module('group:name')
+        }
+
+        then:
+        def t = thrown(InvalidUserDataException)
+        t.message == "Must specify version for target of dependency substitution"
     }
 
     @Unroll
@@ -149,7 +162,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def matchingSubstitute = Mock(ComponentSelector)
         def nonMatchingSubstitute = Mock(ComponentSelector)
 
-        with (substitutions) {
+        with(substitutions) {
             substitute project(matchingProject) with matchingSubstitute
             substitute project(nonMatchingProject) with nonMatchingSubstitute
         }
@@ -172,9 +185,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         where:
-        matchingProject                                             | nonMatchingProject
-        ":api"                                                      | ":impl"
-//        Mock(Project) { Project project -> project.path >> ":api" } | Mock(Project) { Project project -> project.path >> ":impl" }
+        matchingProject | nonMatchingProject
+        ":api"          | ":impl"
     }
 
     def "provides dependency substitution rule that orderly aggregates user specified rules"() {
@@ -207,14 +219,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         1 * validator.validateMutation(STRATEGY)
 
         when:
-        with (substitutions) {
-            substitute module("org:foo:1.0") with project(":bar")
+        with(substitutions) {
+            substitute module("org:foo") with project(":bar")
         }
         then:
         1 * validator.validateMutation(STRATEGY)
 
         when:
-        with (substitutions) {
+        with(substitutions) {
             substitute project(":bar") with module("org:foo:1.0")
         }
         then:

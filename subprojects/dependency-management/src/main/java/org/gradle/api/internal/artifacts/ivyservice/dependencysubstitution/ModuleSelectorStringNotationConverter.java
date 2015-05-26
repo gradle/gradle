@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,54 +14,48 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
-import java.util.List;
+import static org.gradle.api.internal.notations.ModuleIdentifierNotationConverter.validate;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId;
-
-public class ModuleIdentifierNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
-
-    public ModuleIdentifierNotationConverter() {
+class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
+    public ModuleSelectorStringNotationConverter() {
         super(String.class);
     }
 
     /**
      * Empty String for either group or module name is not allowed.
      */
-    protected ModuleIdentifier parseType(String notation) {
+    protected ComponentSelector parseType(String notation) {
         assert notation != null;
         String[] split = notation.split(":");
-        if (split.length != 2) {
+
+        if (split.length < 2 || split.length > 3) {
             throw new UnsupportedNotationException(notation);
         }
         String group = validate(split[0].trim(), notation);
         String name = validate(split[1].trim(), notation);
-        return newId(group, name);
-    }
 
-    public static String validate(String part, String notation) {
-        if (!GUtil.isTrue(part)) {
+        if (split.length == 2) {
+            return new UnversionedModuleComponentSelector(group, name);
+        }
+        String version = split[2].trim();
+        if (!GUtil.isTrue(version)) {
             throw new UnsupportedNotationException(notation);
         }
-        for (char c : INVALID_SPEC_CHARS) {
-            if (part.indexOf(c) != -1) {
-                throw new UnsupportedNotationException(notation);
-            }
-        }
-        return part;
+        return DefaultModuleComponentSelector.newSelector(group, name, version);
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("String describing the module in 'group:name' format").example("'org.gradle:gradle-core'.");
+        visitor.candidate("String describing the selector in 'group:name:version' format").example("'org.gradle:gradle-core:1.+'.");
     }
 }
