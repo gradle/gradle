@@ -128,6 +128,8 @@ Progress events for more fine-grained operations will be added in future release
 
 ### Increased visibility of components in model report
 
+- The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display the values of the leaf nodes of the model space.
+
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 
 ## Promoted features
@@ -140,9 +142,6 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
-
-## Model Report
-The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display the values of the leaf nodes of the model space.
 
 ## Fixed issues
 
