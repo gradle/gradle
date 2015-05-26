@@ -15,11 +15,8 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
-
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ModuleDependencySubstitution
-import org.gradle.api.artifacts.ProjectDependencySubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
@@ -55,7 +52,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def action = Mock(Action)
         substitutions.all(action)
 
-        def moduleDetails = Mock(ModuleDependencySubstitution)
+        def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(moduleDetails)
@@ -65,7 +62,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         1 * action.execute(moduleDetails)
         0 * _
 
-        def projectDetails = Mock(ProjectDependencySubstitution)
+        def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(projectDetails)
