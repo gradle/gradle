@@ -59,9 +59,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 connection.newTestsLauncher()
                     .addJvmTestClasses('example.MyTest')
                     .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                        result.add(it)
+                    }.run()
         }
 
         then: "the test is executed"
