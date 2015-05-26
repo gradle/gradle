@@ -32,6 +32,8 @@ public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
     }
 
     public DefaultLibraryComponentIdentifier(String projectPath, String libraryName) {
+        assert projectPath != null : "project path cannot be null";
+        assert libraryName != null : "library name cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
         this.displayName = libraryToConfigurationName(projectPath, libraryName);
@@ -55,16 +57,14 @@ public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
         DefaultLibraryComponentIdentifier that = (DefaultLibraryComponentIdentifier) o;
-        return Objects.equal(getLibraryName(), that.getLibraryName()) && Objects.equal(getProjectPath(), that.getProjectPath());
+        return Objects.equal(projectPath, that.projectPath) &&
+            Objects.equal(libraryName, that.libraryName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), getLibraryName(), getProjectPath());
+        return Objects.hashCode(projectPath, libraryName);
     }
 
     @Override
