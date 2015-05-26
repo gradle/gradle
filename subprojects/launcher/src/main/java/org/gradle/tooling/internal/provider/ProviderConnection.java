@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
@@ -57,7 +58,6 @@ import java.util.*;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
-    private static final NoOpBuildEventConsumer NO_OP_BUILD_EVENT_CONSUMER = new NoOpBuildEventConsumer();
 
     private final PayloadSerializer payloadSerializer;
     private final LoggingServiceRegistry loggingServices;
@@ -106,35 +106,44 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-/*<<<<<<< HEAD
+///*<<<<<<< HEAD
+        TestConfiguration testConfiguration = createTestConfiguration(providerParameters);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions, testConfiguration);
         return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
-=======*/
-        InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
-        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-        boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
-        boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-        ConsumerListenerConfiguration listenerConfiguration = new ConsumerListenerConfiguration(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
-        BuildEventConsumer buildEventConsumer = listenerConfiguration.isSendAnyProgressEvents()
-            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
-            ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
-        }
+////=======*/
+//
+//        InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
+//        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
+//        boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
+//        boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
+////        ConsumerListenerConfiguration listenerConfiguration = new ConsumerListenerConfiguration(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
+//        BuildEventConsumer buildEventConsumer = listenerConfig.buildEventConsumer;
+////            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+////        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
+////            ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
+////        }
+//        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, testConfiguration);
+//        Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
+////        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
+////            rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);
+////        }
+//
+//        return out;
+    }
+
+    @Nullable
+    private TestConfiguration createTestConfiguration(ProviderOperationParameters providerParameters) {
+        TestConfiguration testConfiguration = null;
         List<String> testIncludePatterns = providerParameters.getTestIncludePatterns(null);
         List<String> testExcludePatterns = providerParameters.getTestExcludePatterns(null);
+
         List<? extends InternalTestDescriptor> testDescriptors = providerParameters.getTestDescriptors(null);
-        TestConfiguration testConfiguration = null;
+
         if (testIncludePatterns!=null || testExcludePatterns!=null || testDescriptors!=null) {
             testConfiguration = new TestConfiguration(testIncludePatterns, testExcludePatterns, testDescriptors, providerParameters.isAlwaysRunTests(false));
         }
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, testConfiguration);
-        Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
-        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
-            rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);
-        }
-
-        return out;
+        return testConfiguration;
     }
 
     private List<String> createRequestedJvmArgsList(ProviderOperationParameters providerParameters) {

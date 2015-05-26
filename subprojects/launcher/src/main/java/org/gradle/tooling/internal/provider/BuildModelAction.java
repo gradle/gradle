@@ -24,25 +24,15 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-<<<<<<< HEAD
     private final BuildClientSubscriptions clientSubscriptions;
+    private final TestConfiguration testConfiguration;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions, TestConfiguration testConfiguration) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
         this.clientSubscriptions = clientSubscriptions;
-=======
-    private final ConsumerListenerConfiguration consumerListenerConfiguration;
-    private final TestConfiguration testConfiguration;
-
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration, TestConfiguration testConfiguration) {
-        this.startParameter = startParameter;
-        this.modelName = modelName;
-        this.runTasks = runTasks;
-        this.consumerListenerConfiguration = consumerListenerConfiguration;
         this.testConfiguration = testConfiguration;
->>>>>>> Support include filters for test execution through TestsLauncher
     }
 
     @Override

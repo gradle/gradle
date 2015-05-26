@@ -16,7 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.test.TestProgressListener;
 
 import java.io.File;
 import java.io.InputStream;
@@ -70,19 +69,6 @@ public interface ConfigurableLauncher extends LongRunningOperation {
      * @since 1.0-milestone-9
      */
     ConfigurableLauncher setJvmArguments(String... jvmArguments);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    ConfigurableLauncher addProgressListener(ProgressListener listener);
-
-    /**
-     * {@inheritDoc}
-     * @since 2.4
-     */
-    @Incubating
-    ConfigurableLauncher addTestProgressListener(TestProgressListener listener);
 
     /**
      * {@inheritDoc}

@@ -16,17 +16,21 @@
 
 
 package org.gradle.integtests.tooling.r25
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
+
+
+    public static final Set<OperationType> TEST_OPERATION_TYPE = [OperationType.TEST] as Set
 
     private TestFile forkingTestBuildFile() {
         buildFile << """
@@ -58,9 +62,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestClasses('example.MyTest')
-                    .addTestProgressListener {
-                        result.add(it)
-                    }.run()
+                    .addProgressListener(testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    }).run()
         }
 
         then: "the test is executed"
@@ -97,11 +103,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestClasses('example.MyTest1')
-                    .addTestProgressListener {
+                    .addProgressListener (testListener {
                     if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
                         result << it
                     }
-                }
+                })
                 .run()
         }
 
@@ -139,10 +145,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addTestsByPattern('example.MyTest1')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                    .addProgressListener(testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    })
+                    .run()
         }
 
         then: "the test is executed and doesn't fail"
@@ -179,10 +187,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .excludeJvmTestClasses('example.MyTest2')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                    .addProgressListener (testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    }).run()
         }
 
         then: "the test is executed and doesn't fail"
@@ -213,9 +222,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
+                    .addProgressListener(testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    })
                 .run()
         }
 
@@ -247,9 +258,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .excludeJvmTestMethods('example.MyTest', 'bar')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
+                    .addProgressListener(testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    })
                 .run()
         }
 
@@ -287,10 +300,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestPackages('examples')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                    .addProgressListener( testListener {
+                        if (it instanceof TestProgressEvent) {
+                           result.add(it)
+                        }
+                }).run()
         }
 
         then: "the test method is executed"
@@ -327,10 +341,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .excludeJvmTestPackages('failing')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                    .addProgressListener (testListener {
+                        if (it instanceof TestProgressEvent) {
+                            result.add(it)
+                        }
+                    }).run()
         }
 
         then: "the test method is executed"
@@ -367,12 +382,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestPackages('examples','failing')
-                    .addTestProgressListener {
-                    if (it instanceof TestFinishEvent) {
-                        result[it.result instanceof TestSuccessResult?'success':'failure']++
-                    }
-                }
-                .run()
+                    .addProgressListener(testListener {
+                        if (it instanceof TestFinishEvent) {
+                            result[it.result instanceof TestSuccessResult?'success':'failure']++
+                        }
+                    }).run()
         }
 
         then: "the test method is executed"
@@ -405,10 +419,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .excludeTestsByPattern('example.MyTest.*')
-                    .addTestProgressListener {
-                    result.add(it)
-                }
-                .run()
+                    .addProgressListener (testListener {
+                    if (it instanceof TestProgressEvent) {
+                        result.add(it)
+                    }
+                }).run()
         }
 
         then: "the test method is executed"
@@ -455,12 +470,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addTests(jvmTest)
-                    .addTestProgressListener {
-                    if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
-                        result << it
-                    }
-                }
-                .run()
+                    .addProgressListener(testListener {
+                        if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
+                            result << it
+                        }
+                    })
+                    .run()
         }
 
         then: "only the specified test class is executed"
@@ -506,12 +521,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addTests(jvmTest)
-                    .addTestProgressListener {
+                    .addProgressListener(testListener {
                     if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
                         result << it
                     }
-                }
-                .run()
+                }).run()
         }
 
         then: "only the specified test class is executed"
@@ -541,15 +555,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestClasses('example.MyTest')
-                    .addTestProgressListener {
-                    if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
-                        if (!failingTestDescriptor) {
-                            // store the first failing test descriptor
-                            failingTestDescriptor = it.descriptor
+                    .addProgressListener(testListener {
+                        if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
+                            if (!failingTestDescriptor) {
+                                // store the first failing test descriptor
+                                failingTestDescriptor = it.descriptor
+                            }
                         }
-                    }
-                }
-                .run()
+                    }).run()
         }
 
         then: "test fails"
@@ -563,15 +576,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 connection.newTestsLauncher()
                     .addTests(failingTestDescriptor)
                     .setAlwaysRunTests(true)
-                    .addTestProgressListener {
-                    if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
-                        if (!failingTestDescriptor2) {
-                            // store the first failing test descriptor
-                            failingTestDescriptor2 = it.descriptor
+                    .addProgressListener(testListener {
+                        if (it instanceof TestFinishEvent && it.result instanceof TestFailureResult) {
+                            if (!failingTestDescriptor2) {
+                                // store the first failing test descriptor
+                                failingTestDescriptor2 = it.descriptor
+                            }
                         }
-                    }
-                }
-                .run()
+                }).run()
         }
 
         then: "test is executed and still fails"
@@ -583,7 +595,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         !failingTestDescriptor.is(failingTestDescriptor2)
     }
 
-
+    ProgressListener testListener(Closure<TestOperationDescriptor> action) {
+        ProgressListener listener = action as ProgressListener
+        return listener
+    }
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
@@ -600,17 +615,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        TestProgressListener listener = Mock()
+        ProgressListener listener = Mock()
         when: "we launch the same test twice"
 
         withConnection {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
         }
 
         then: "the test method is executed once"
@@ -632,19 +647,20 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        TestProgressListener listener = Mock()
+        ProgressListener listener = Mock()
         when: "we launch the same test twice"
 
         withConnection {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
+
+
                 connection.newTestsLauncher()
                     .setAlwaysRunTests(true)
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener)
-                    .run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
         }
 
         then: "the test method is executed once"
@@ -669,17 +685,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        TestProgressListener listener = Mock()
+        ProgressListener listener = Mock()
         when: "we launch the same test twice"
 
         withConnection {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'bar')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
         }
 
         then: "the test method is executed once"
@@ -736,14 +752,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        TestProgressListener listener = Mock()
+        ProgressListener listener = Mock()
         when: "a filter only matches in one task"
 
         withConnection {
             ProjectConnection connection ->
                 connection.newTestsLauncher()
                     .addJvmTestMethods('example.MyTest', 'foo')
-                    .addTestProgressListener(listener).run()
+                    .addProgressListener(listener, TEST_OPERATION_TYPE).run()
         }
 
         then: "the build doesn't fail"

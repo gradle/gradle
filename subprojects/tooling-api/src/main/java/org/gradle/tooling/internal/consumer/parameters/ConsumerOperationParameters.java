@@ -146,7 +146,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public void addProgressListener(ProgressListener listener) {
+        public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
             legacyProgressListeners.add(listener);
         }
 
@@ -203,12 +203,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
     private final List<String> testIncludePatterns;
-<<<<<<< HEAD
-
-    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, List<String> testIncludePatterns,
-                                        ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
-=======
     private final List<String> testExcludePatterns;
     private final List<? extends InternalTestDescriptor> testDescriptors;
     private final boolean alwaysRunTests;
@@ -228,9 +222,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                                         List<? extends InternalTestDescriptor> testDescriptors,
                                         boolean alwaysRunTests,
                                         ProgressListenerAdapter progressListener,
-                                        BuildProgressListenerAdapter buildProgressListener,
+                                        FailsafeBuildProgressListenerAdapter buildProgressListener,
                                         CancellationToken cancellationToken) {
->>>>>>> Prepare TestLauncher for test exclusion patterns
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
