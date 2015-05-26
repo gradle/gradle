@@ -27,7 +27,6 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -51,8 +50,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
             return false;
         }
     };
-
-    private final UUIDGenerator generator = new UUIDGenerator();
 
     @Override
     public void run(BuildAction action, BuildController buildController) {
@@ -108,9 +105,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
         // idea: generate a task that we will depend on test tasks with the given filter
         // question: what happens if all projects do not have a test task, or that those
         // projects do not match the filter? Can we add project path(s) to test configuration?
-
-        final List<String> taskNames = new ArrayList<String>();
         if (testConfiguration != null) {
+            final List<String> taskNames = new ArrayList<String>();
             gradle.addProjectEvaluationListener(new ProjectEvaluationListener() {
                 @Override
                 public void beforeEvaluate(Project project) {

@@ -331,6 +331,8 @@ Similar to `gradleApi()`
 	* TestsLauncher#excludeJvmTestClasses(String...)
 	* TestsLauncher#excludeJvmTestMethods(String testClass, String... methods);
 	* TestsLauncher#excludeJvmTestPackages(String...)
+
+* change BuildModelActionRunner to run test tasks if TestConfiguration is provided
 * run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied 
 * add ability to force execution of up-to-date tasks
 
