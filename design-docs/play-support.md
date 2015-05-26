@@ -706,10 +706,9 @@ It also does not improve the general capabilities of continuous mode.
 - client executes continuous build that fails, then responds to input changes and succeeds
 - client can cancel during execution of a continuous build
 - client can cancel while a continuous build is waiting for changes
-- client can request continuous mode when building a model, but request is effectively ignored
 - client can receive appropriate logging and progress events for subsequent builds in continuous mode
 - client receives appropriate error if continuous mode attempted on unsupported platform
-- logging does not include message to use `ctrl-c` to exit continuous mode
+- logging does not include message to use `ctrl-d` to exit continuous mode
 
 ### Story: Command line user exits continuous build mode without killing the Gradle process
 

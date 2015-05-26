@@ -100,9 +100,6 @@ apply plugin: 'java'
     ExecutionFailure fails(String... tasks) {
         executeBuild(tasks)
         if (!(result instanceof ExecutionFailure)) {
-            throw new UnexpectedBuildFailure("build was expected to succeed but failed")
-        }
-        if (!(result instanceof ExecutionFailure)) {
             throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
         }
         failure = result as ExecutionFailure
@@ -213,9 +210,6 @@ apply plugin: 'java'
         and:
         executedAndNotSkipped ":compileJava"
     }
-
-    @Ignore
-    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
 
     @Ignore
     def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {}
