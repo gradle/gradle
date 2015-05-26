@@ -291,7 +291,7 @@ class JavaReflectionUtilTest extends Specification {
 
     def "should not have a default toString"() {
         expect:
-        !hasDefaultToString([toString: {println "hello"}] as Root)
+        !hasDefaultToString(new ClassWithToString())
     }
 }
 
@@ -334,3 +334,10 @@ class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
 class SuperWithInterface implements RootInterface {}
 
 class InheritsInterface extends SuperWithInterface {}
+
+class ClassWithToString {
+    @Override
+    public String toString() {
+        return "ClassWithToString{}";
+    }
+}
