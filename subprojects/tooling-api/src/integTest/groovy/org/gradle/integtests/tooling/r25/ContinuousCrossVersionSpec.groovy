@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
@@ -183,7 +182,6 @@ apply plugin: 'java'
         executedAndNotSkipped ":compileJava", ":build"
     }
 
-    @Ignore
     def "client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds"() {
         given:
         def javaSrcDir = setupJavaProject()
