@@ -148,6 +148,9 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+## Model Report
+The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display the values of the leaf nodes of the model space.
+
 ## Fixed issues
 
 ## Deprecations
