@@ -24,7 +24,7 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.
  */
-public class DefaultJvmTestOperationDescriptor extends DefaultTestOperationDescriptor implements JvmTestOperationDescriptor {
+public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperationDescriptor implements JvmTestOperationDescriptor {
 
     private final JvmTestKind jvmTestKind;
     private final String suiteName;

@@ -16,10 +16,9 @@
 package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 import java.io.File;
 import java.io.InputStream;
@@ -72,12 +71,4 @@ public interface ProviderOperationParameters {
     List<String> getTasks();
 
     List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
-
-    List<String> getTestIncludePatterns(List<String> defaultIncludePatterns);
-
-    List<String> getTestExcludePatterns(List<String> defaultExcludePatterns);
-
-    List<? extends InternalTestDescriptor> getTestDescriptors(List<? extends InternalTestDescriptor> defaultDescriptors);
-
-    boolean isAlwaysRunTests(boolean defaultAlwaysRunTests);
 }

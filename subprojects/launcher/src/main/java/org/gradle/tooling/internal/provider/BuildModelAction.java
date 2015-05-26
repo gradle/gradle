@@ -25,14 +25,12 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final String modelName;
     private final boolean runTasks;
     private final BuildClientSubscriptions clientSubscriptions;
-    private final TestConfiguration testConfiguration;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions, TestConfiguration testConfiguration) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
         this.clientSubscriptions = clientSubscriptions;
-        this.testConfiguration = testConfiguration;
     }
 
     @Override
@@ -51,9 +49,4 @@ public class BuildModelAction implements BuildAction, Serializable {
     public BuildClientSubscriptions getClientSubscriptions() {
         return clientSubscriptions;
     }
-
-    public TestConfiguration getTestConfiguration() {
-        return testConfiguration;
-    }
-
 }

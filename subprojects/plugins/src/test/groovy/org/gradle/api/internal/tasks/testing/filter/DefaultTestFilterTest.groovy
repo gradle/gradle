@@ -26,28 +26,17 @@ class DefaultTestFilterTest extends Specification {
     def spec = new DefaultTestFilter()
 
     def "allows configuring test names"() {
-        expect:
-        spec.includePatterns.isEmpty()
-        spec.excludePatterns.isEmpty()
-        spec.failIfNoMatchingTestFound
+        expect: spec.includePatterns.isEmpty()
 
         when:
         spec.includeTestsMatching("*fooMethod")
         spec.includeTestsMatching("*.FooTest.*")
-        spec.excludeTestsMatching("*barMethod")
-        spec.excludeTestsMatching("*.BarTest.*")
 
         then: spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
-
-        and: spec.excludePatterns == ["*barMethod", "*.BarTest.*"] as Set
 
         when: spec.setIncludePatterns("x")
 
         then: spec.includePatterns == ["x"] as Set
-
-        when: spec.setExcludePatterns("x")
-
-        then: spec.excludePatterns == ["x"] as Set
     }
 
     def "prevents empty names"() {
@@ -59,23 +48,6 @@ class DefaultTestFilterTest extends Specification {
 
         when: spec.setIncludePatterns("ok", "")
         then: thrown(InvalidUserDataException)
-
-        when: spec.excludeTestsMatching(null)
-        then: thrown(InvalidUserDataException)
-
-        when: spec.excludeTestsMatching("")
-        then: thrown(InvalidUserDataException)
-
-        when: spec.setExcludePatterns("ok", "")
-        then: thrown(InvalidUserDataException)
-    }
-
-    def "can configure failsafe mode"() {
-        when:
-        spec.failIfNoMatchingTestFound = false
-
-        then:
-        !spec.failIfNoMatchingTestFound
     }
 
 }

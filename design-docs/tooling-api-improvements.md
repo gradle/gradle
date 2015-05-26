@@ -316,45 +316,6 @@ just the build directory and the `.gradle` directory. This can be improved later
 
 Similar to `gradleApi()`
 
-## Story: Add ability to launch tests
-
-### Implementation
-
-* Add new `TestsLauncher` that implements `LongRunningOperation`
-* Tests to be executed can be described via:
-	* TestsLauncher#addTests(TestOperationDescriptor...) 
-	* TestsLauncher#addTestsByPattern(String...)
-	* TestsLauncher#addJvmTestClasses(String...)
-	* TestsLauncher#addJvmTestMethods(String testClass, String... methods) 
-	* TestsLauncher#addJvmTestPackages(String... packages)
-	* TestsLauncher#excludeTestsByPattern(String... patterns)
-	* TestsLauncher#excludeJvmTestClasses(String...)
-	* TestsLauncher#excludeJvmTestMethods(String testClass, String... methods);
-	* TestsLauncher#excludeJvmTestPackages(String...)
-
-* change BuildModelActionRunner to run test tasks if TestConfiguration is provided
-* run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied 
-* add ability to force execution of up-to-date tasks
-
-### Test Coverage
-
-* can execute 
-	* single test with JVM class include pattern
-	* single test with regex include pattern
-	* single test with an exclude pattern"
-	* single test method
-	* tests from specific package
-	* tests from a single package using package exclude
-	* tests from a multiple packages
-	* test class using a test descriptor
-	* test method using a test descriptor
-* test will not execute if test task is up-to-date
-* can force execution of up-to-date test
-* build should not fail if filter matches a single test task
-
-### Open Issues
-* With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared. 
- 
 ## Story: Add ability to launch tests in debug mode
 
 Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.

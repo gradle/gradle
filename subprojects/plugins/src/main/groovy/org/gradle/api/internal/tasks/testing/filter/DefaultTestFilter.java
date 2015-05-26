@@ -25,9 +25,7 @@ import java.util.Set;
 
 public class DefaultTestFilter implements TestFilter {
 
-    private Set<String> includeTestNames = new HashSet<String>();
-    private Set<String> excludeTestNames = new HashSet<String>();
-    private boolean failIfNoMatchingTest = true;
+    private Set<String> testNames = new HashSet<String>();
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -37,50 +35,20 @@ public class DefaultTestFilter implements TestFilter {
 
     public TestFilter includeTestsMatching(String testNamePattern) {
         validateName(testNamePattern);
-        includeTestNames.add(testNamePattern);
+        testNames.add(testNamePattern);
         return this;
     }
 
     @Input
     public Set<String> getIncludePatterns() {
-        return includeTestNames;
+        return testNames;
     }
 
     public TestFilter setIncludePatterns(String... testNamePatterns) {
         for (String name : testNamePatterns) {
             validateName(name);
         }
-        this.includeTestNames = Sets.newHashSet(testNamePatterns);
-        return this;
-    }
-
-    public TestFilter excludeTestsMatching(String testNamePattern) {
-        validateName(testNamePattern);
-        excludeTestNames.add(testNamePattern);
-        return this;
-    }
-
-    @Input
-    public Set<String> getExcludePatterns() {
-        return excludeTestNames;
-    }
-
-    public TestFilter setExcludePatterns(String... testNamePatterns) {
-        for (String name : testNamePatterns) {
-            validateName(name);
-        }
-        this.excludeTestNames = Sets.newHashSet(testNamePatterns);
-        return this;
-    }
-
-    @Override
-    public boolean isFailIfNoMatchingTestFound() {
-        return failIfNoMatchingTest;
-    }
-
-    @Override
-    public TestFilter setFailIfNoMatchingTestFound(boolean fail) {
-        failIfNoMatchingTest = fail;
+        this.testNames = Sets.newHashSet(testNamePatterns);
         return this;
     }
 }

@@ -74,7 +74,7 @@ import java.util.Set;
  *
  * @since 1.0-milestone-3
  */
-public interface BuildLauncher extends ConfigurableLauncher {
+public interface BuildLauncher extends LongRunningOperation {
     /**
      * {@inheritDoc}
      * @since 1.0

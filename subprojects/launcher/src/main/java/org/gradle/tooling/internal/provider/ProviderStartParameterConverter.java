@@ -32,6 +32,25 @@ import java.util.Map;
 
 class ProviderStartParameterConverter {
 
+    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
+        // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
+        // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
+        List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
+        for (InternalLaunchable launchable : launchables) {
+            if (launchable instanceof TaskExecutionRequest) {
+                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
+                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
+                requests.add(launchableImpl);
+            } else {
+                throw new InternalUnsupportedBuildArgumentException(
+                        "Problem with provided launchable arguments: " + launchables + ". "
+                                + "\nOnly objects from this provider can be built."
+                );
+            }
+        }
+        return requests;
+    }
+
     public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameter startParameter = new StartParameter();
@@ -76,24 +95,5 @@ class ProviderStartParameterConverter {
         }
 
         return startParameter;
-    }
-
-    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
-        // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
-        // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
-        List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
-        for (InternalLaunchable launchable : launchables) {
-            if (launchable instanceof TaskExecutionRequest) {
-                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
-                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
-                requests.add(launchableImpl);
-            } else {
-                throw new InternalUnsupportedBuildArgumentException(
-                    "Problem with provided launchable arguments: " + launchables + ". "
-                        + "\nOnly objects from this provider can be built."
-                );
-            }
-        }
-        return requests;
     }
 }

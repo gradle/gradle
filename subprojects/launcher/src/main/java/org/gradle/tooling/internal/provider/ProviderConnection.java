@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
@@ -45,7 +44,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -58,7 +56,6 @@ import java.util.*;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
-
     private final PayloadSerializer payloadSerializer;
     private final LoggingServiceRegistry loggingServices;
     private final DaemonClientFactory daemonClientFactory;
@@ -106,24 +103,9 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        TestConfiguration testConfiguration = createTestConfiguration(providerParameters);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions, testConfiguration);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
-    }
-
-    @Nullable
-    private TestConfiguration createTestConfiguration(ProviderOperationParameters providerParameters) {
-        TestConfiguration testConfiguration = null;
-        List<String> testIncludePatterns = providerParameters.getTestIncludePatterns(null);
-        List<String> testExcludePatterns = providerParameters.getTestExcludePatterns(null);
-
-        List<? extends InternalTestDescriptor> testDescriptors = providerParameters.getTestDescriptors(null);
-
-        if (testIncludePatterns!=null || testExcludePatterns!=null || testDescriptors!=null) {
-            testConfiguration = new TestConfiguration(testIncludePatterns, testExcludePatterns, testDescriptors, providerParameters.isAlwaysRunTests(false));
-        }
-        return testConfiguration;
     }
 
     private List<String> createRequestedJvmArgsList(ProviderOperationParameters providerParameters) {

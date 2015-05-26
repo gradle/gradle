@@ -495,11 +495,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-        if (!getFilter().getIncludePatterns().isEmpty() && getFilter().isFailIfNoMatchingTestFound()) {
+        if (!getFilter().getIncludePatterns().isEmpty()) {
             addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
-        }
-        if (!getFilter().getExcludePatterns().isEmpty() && getFilter().isFailIfNoMatchingTestFound()) {
-            addTestListener(new NoMatchingTestsReporter("No tests found for given excludes: " + getFilter().getExcludePatterns()));
         }
 
         File binaryResultsDir = getBinResultsDir();

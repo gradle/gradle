@@ -39,12 +39,8 @@ class DefaultProjectConnection implements ProjectConnection {
         model(modelType).get(handler);
     }
 
-    public DefaultBuildLauncher newBuild() {
+    public BuildLauncher newBuild() {
         return new DefaultBuildLauncher(connection, parameters);
-    }
-
-    public TestsLauncher newTestsLauncher() {
-        return new DefaultTestsLauncher(connection, parameters);
     }
 
     public <T> ModelBuilder<T> model(Class<T> modelType) {

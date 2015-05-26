@@ -95,8 +95,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
-        addProgressListener(listener, EnumSet.allOf(OperationType.class));
-        return getThis();
+        return addProgressListener(listener, EnumSet.allOf(OperationType.class));
     }
 
     @Override

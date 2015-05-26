@@ -25,7 +25,6 @@ import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
@@ -57,10 +56,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
-        private List<String> testIncludePatterns;
-        private List<String> testExcludePatterns;
-        private List<? extends InternalTestDescriptor> testDescriptors;
-        private boolean alwaysRunTests;
 
         private Builder() {
         }
@@ -135,17 +130,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-
-        public Builder setTestIncludePatterns(List<String> patterns) {
-            this.testIncludePatterns = patterns;
-            return this;
-        }
-
-        public Builder setTestExcludePatterns(List<String> patterns) {
-            this.testExcludePatterns = patterns;
-            return this;
-        }
-
         public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
             legacyProgressListeners.add(listener);
         }
@@ -166,14 +150,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             this.cancellationToken = cancellationToken;
         }
 
-        public void setAlwaysRunTests(boolean alwaysRunTests) {
-            this.alwaysRunTests = alwaysRunTests;
-        }
-
-        public void setTestDescriptors(List<? extends InternalTestDescriptor> descriptors) {
-            this.testDescriptors = descriptors;
-        }
-
         public ConsumerOperationParameters build() {
             // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
@@ -181,7 +157,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
                 new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, testIncludePatterns, testExcludePatterns, testDescriptors, alwaysRunTests,
+            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
@@ -202,28 +178,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
-    private final List<String> testIncludePatterns;
-    private final List<String> testExcludePatterns;
-    private final List<? extends InternalTestDescriptor> testDescriptors;
-    private final boolean alwaysRunTests;
 
-    private ConsumerOperationParameters(ConnectionParameters parameters,
-                                        OutputStream stdout,
-                                        OutputStream stderr,
-                                        Boolean colorOutput,
-                                        InputStream stdin,
-                                        File javaHome,
-                                        List<String> jvmArguments,
-                                        List<String> arguments,
-                                        List<String> tasks,
-                                        List<InternalLaunchable> launchables,
-                                        List<String> testIncludePatterns,
-                                        List<String> testExcludePatterns,
-                                        List<? extends InternalTestDescriptor> testDescriptors,
-                                        boolean alwaysRunTests,
-                                        ProgressListenerAdapter progressListener,
-                                        FailsafeBuildProgressListenerAdapter buildProgressListener,
-                                        CancellationToken cancellationToken) {
+    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables,
+                                        ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -234,10 +192,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
-        this.testIncludePatterns = testIncludePatterns;
-        this.testExcludePatterns = testExcludePatterns;
-        this.testDescriptors = testDescriptors;
-        this.alwaysRunTests = alwaysRunTests;
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
@@ -338,21 +292,5 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public BuildCancellationToken getCancellationToken() {
         return ((CancellationTokenInternal) cancellationToken).getToken();
-    }
-
-    public List<String> getTestIncludePatterns() {
-        return testIncludePatterns;
-    }
-
-    public List<String> getTestExcludePatterns() {
-        return testExcludePatterns;
-    }
-
-    public List<? extends InternalTestDescriptor> getTestDescriptors() {
-        return testDescriptors;
-    }
-
-    public boolean isAlwaysRunTests() {
-        return alwaysRunTests;
     }
 }

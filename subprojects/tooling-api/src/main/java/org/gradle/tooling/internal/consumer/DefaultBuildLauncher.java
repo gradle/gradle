@@ -16,18 +16,29 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-class DefaultBuildLauncher extends AbstractBuildLauncher<DefaultBuildLauncher> implements BuildLauncher {
+class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
+    private final AsyncConsumerActionExecutor connection;
 
     public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
-        super(parameters, connection);
+        super(parameters);
         operationParamsBuilder.setTasks(Collections.<String>emptyList());
+        this.connection = connection;
+    }
+
+    @Override
+    protected DefaultBuildLauncher getThis() {
+        return this;
     }
 
     public BuildLauncher forTasks(String... tasks) {
@@ -54,8 +65,35 @@ class DefaultBuildLauncher extends AbstractBuildLauncher<DefaultBuildLauncher> i
         return this;
     }
 
-    @Override
-    protected DefaultBuildLauncher getThis() {
-        return this;
+    public void run() {
+        BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
+        run(handler);
+        handler.getResult();
+    }
+
+    public void run(final ResultHandler<? super Void> handler) {
+        final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
+        connection.run(new ConsumerAction<Void>() {
+            public ConsumerOperationParameters getParameters() {
+                return operationParameters;
+            }
+
+            public Void run(ConsumerConnection connection) {
+                Void sink = connection.run(Void.class, operationParameters);
+                operationParameters.getBuildProgressListener().rethrowErrors();
+                return sink;
+            }
+        }, new ResultHandlerAdapter(handler));
+    }
+
+    private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
+        public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
+            super(handler);
+        }
+
+        @Override
+        protected String connectionFailureMessage(Throwable failure) {
+            return String.format("Could not execute build using %s.", connection.getDisplayName());
+        }
     }
 }

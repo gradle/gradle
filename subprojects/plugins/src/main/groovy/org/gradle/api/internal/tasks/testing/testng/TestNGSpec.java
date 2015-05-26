@@ -38,7 +38,6 @@ public class TestNGSpec implements Serializable {
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
     private final Set<String> includedTests;
-    private final Set<String> excludedTests;
     private final String configFailurePolicy;
 
     public TestNGSpec(TestNGOptions options, DefaultTestFilter filter) {
@@ -54,7 +53,6 @@ public class TestNGSpec implements Serializable {
         this.excludeGroups = options.getExcludeGroups();
         this.listeners = options.getListeners();
         this.includedTests = filter.getIncludePatterns();
-        this.excludedTests = filter.getExcludePatterns();
         this.configFailurePolicy = options.getConfigFailurePolicy();
     }
 
@@ -104,10 +102,6 @@ public class TestNGSpec implements Serializable {
 
     public Set<String> getIncludedTests() {
         return includedTests;
-    }
-
-    public Set<String> getExcludedTests() {
-        return excludedTests;
     }
 
     public String getConfigFailurePolicy() {
