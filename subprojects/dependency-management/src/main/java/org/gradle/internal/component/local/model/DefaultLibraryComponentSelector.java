@@ -26,6 +26,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     private final String libraryName;
 
     public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
+        assert projectPath != null : "project path cannot be null";
+        assert libraryName != null : "library name cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
     }
@@ -72,5 +74,10 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     @Override
     public int hashCode() {
         return Objects.hashCode(projectPath, libraryName);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 }
