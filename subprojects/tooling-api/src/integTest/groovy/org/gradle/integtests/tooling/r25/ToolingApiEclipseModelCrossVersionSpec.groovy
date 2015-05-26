@@ -29,6 +29,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "export classpath entry option is reflected in eclipse model"() {
 
         projectDir.file('settings.gradle').text = '''
+include 'a'
 rootProject.name = 'root'
 '''
 
@@ -46,6 +47,7 @@ configurations {
 }
 
 dependencies {
+    compile project(':a')
     compile 'com.google.guava:guava:17.0'
     provided 'org.slf4j:slf4j-log4j12:1.7.12'
 }
@@ -55,12 +57,16 @@ eclipse {
         plusConfigurations += [ configurations.provided ]
     }
 }
-'''
+
+configure(project(':a')){
+    apply plugin:'java'
+}'''
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
+        rootProject.projectDependencies.find {it.targetProject.name == "a"}.exported ==false
         rootProject.classpath.find { it.file.name.contains("guava") }.exported == false
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
     }
