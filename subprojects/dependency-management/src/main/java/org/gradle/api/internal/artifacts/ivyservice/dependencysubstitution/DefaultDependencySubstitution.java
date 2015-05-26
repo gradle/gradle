@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -54,6 +55,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     public void useTarget(Object notation, ComponentSelectionReason selectionReason) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
         this.selectionReason = selectionReason;
+        validateTarget(target);
     }
 
     @Override
@@ -69,5 +71,11 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     @Override
     public boolean isUpdated() {
         return selectionReason != null;
+    }
+
+    public static void validateTarget(ComponentSelector componentSelector) {
+        if (componentSelector instanceof UnversionedModuleComponentSelector) {
+            throw new InvalidUserDataException("Must specify version for target of dependency substitution");
+        }
     }
 }

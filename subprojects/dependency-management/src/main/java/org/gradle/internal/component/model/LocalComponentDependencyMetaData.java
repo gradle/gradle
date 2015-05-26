@@ -142,7 +142,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         } else if (target instanceof ProjectComponentSelector) {
             return copyWithTarget(target, requested);
         } else {
-            throw new AssertionError();
+            throw new AssertionError("Invalid component selector type for substitution: " + target);
         }
     }
 

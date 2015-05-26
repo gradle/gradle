@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -96,9 +95,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return new Substitution() {
             @Override
             public void with(ComponentSelector substitute) {
-                if (substitute instanceof UnversionedModuleComponentSelector) {
-                    throw new InvalidUserDataException("Must specify version for target of dependency substitution");
-                }
+                DefaultDependencySubstitution.validateTarget(substitute);
 
                 if (substituted instanceof UnversionedModuleComponentSelector) {
                     final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();

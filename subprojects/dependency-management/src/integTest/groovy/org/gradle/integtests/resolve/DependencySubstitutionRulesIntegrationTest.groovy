@@ -1093,6 +1093,78 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
+    void "reasonable error message when attempting to substitute with an unversioned module selector"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            version = 1.0
+
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute project(":foo") with module("org.gradle:test")
+            }
+"""
+
+        when:
+        fails "dependencies"
+
+        then:
+        failure.assertHasCause("Must specify version for target of dependency substitution")
+    }
+
+    void "reasonable error message when attempting to create an invalid selector"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            version = 1.0
+
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module(":foo:bar:baz:") with module("")
+            }
+"""
+
+        when:
+        fails "dependencies"
+
+        then:
+        failure.assertHasCause("Cannot convert the provided notation to an object of type ComponentSelector: :foo:bar:baz:")
+    }
+
+    void "reasonable error message when attempting to add rule that substitutes with an unversioned module selector"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            version = 1.0
+
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                def moduleSelector = module("org.gradle:test")
+                all {
+                    it.useTarget moduleSelector
+                }
+            }
+"""
+
+        when:
+        fails "dependencies"
+
+        then:
+        failure.assertHasCause("Must specify version for target of dependency substitution")
+    }
+
     void "can substitute module name and resolve conflict"()
     {
         mavenRepo.module("org.utils", "a",  '1.2').publish()

@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Provides means to substitute a different dependency during resolution.
  *
- * @since 2.4
+ * @since 2.5
  */
 @Incubating
 @HasInternalProtocol
