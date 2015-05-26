@@ -192,8 +192,9 @@ apply plugin: 'java'
         then:
         executedAndNotSkipped ":compileJava", ":build"
         when:
-        javaSrcFile.text = 'public class Thing { '
+        javaSrcFile.text = 'public class Thing { *******'
         then:
+        assert javaSrcFile.text == 'public class Thing { *******'
         fails()
         when:
         javaSrcFile.text = 'public class Thing {} '
