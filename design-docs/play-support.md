@@ -701,14 +701,14 @@ It also does not improve the general capabilities of continuous mode.
 
 #### Test Coverage
 
-- client executes continuous build that succeeds, then responds to input changes and succeeds
-- client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds
-- client executes continuous build that fails, then responds to input changes and succeeds
-- client can cancel during execution of a continuous build
-- client can cancel while a continuous build is waiting for changes
-- client can receive appropriate logging and progress events for subsequent builds in continuous mode
-- client receives appropriate error if continuous mode attempted on unsupported platform
-- logging does not include message to use `ctrl-d` to exit continuous mode
+- ~~client executes continuous build that succeeds, then responds to input changes and succeeds~~
+- ~~client executes continuous build that succeeds, then responds to input changes and fails, then … and succeeds~~
+- ~~client executes continuous build that fails, then responds to input changes and succeeds~~
+- ~~client can cancel during execution of a continuous build~~
+- ~~client can cancel while a continuous build is waiting for changes~~
+- ~~client can receive appropriate logging and progress events for subsequent builds in continuous mode~~
+- ~~client receives appropriate error if continuous mode attempted on unsupported platform~~
+- ~~logging does not include message to use `ctrl-d` to exit continuous mode~~
 
 ### Story: Command line user exits continuous build mode without killing the Gradle process
 
