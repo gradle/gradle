@@ -622,7 +622,7 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 
 N/A
 
-### Story: Continuous Gradle mode triggered by task input changes
+### ~~Story: Continuous Gradle mode triggered by task input changes~~
 
 After performing a build, Gradle will automatically rerun the same logical build if the file system inputs of any task that was executed change.
 
@@ -693,7 +693,7 @@ For a conventional `apply plugin: 'java'` project:
 1. ~~Changes to input zips are respected~~
 1. ~~Changes to input tars are respected (compressed and uncompressed)~~
 
-### Story: Continuous build is executed via the Tooling API
+### ~~Story: Continuous build is executed via the Tooling API~~
 
 This story adds support for executing continuous builds via the Tooling API.
 It does not address continually building/providing tooling models.
@@ -716,6 +716,10 @@ Prior to this story, the only way for a command line user to exit continuous mod
 This story makes the use of continuous mode more effective by allowing better utilisation of warm Gradle daemons.
 
 `ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
+
+#### Test Coverage
+- tbd.
+
 
 ### Backlog & Open Issues
 
