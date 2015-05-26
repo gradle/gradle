@@ -39,8 +39,9 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
         // TODO: Support tooling API
+        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous();
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), action.getStartParameter() != null ? action.getStartParameter().isContinuous() : false, false);
+                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
         try {
             return executer.execute(action, buildRequestContext, actionParameters);
         } catch (ReportedException e) {
