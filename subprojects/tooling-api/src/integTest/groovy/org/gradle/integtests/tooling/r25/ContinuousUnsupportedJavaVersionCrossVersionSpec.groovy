@@ -32,7 +32,7 @@ class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecifi
 
     def "client receives appropriate error if continuous mode attempted on unsupported platform"() {
         given:
-        projectDir.file('build.gradle').text = '''
+        buildFile.text = '''
 apply plugin: 'java'
 '''
         when:

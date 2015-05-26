@@ -43,7 +43,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecificatio
     ByteArrayOutputStream stdout = new ByteArrayOutputStream(512)
 
     def setupJavaProject() {
-        projectDir.file('build.gradle').text = '''
+        buildFile.text = '''
 apply plugin: 'java'
 '''
         def javaSrcDir = projectDir.createDir('src/main/java')

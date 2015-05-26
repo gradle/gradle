@@ -56,7 +56,7 @@ class ContinuousCrossVersionSpec extends ToolingApiSpecification {
     int buildTimeout = 10
 
     def setupJavaProject() {
-        projectDir.file('build.gradle').text = '''
+        buildFile.text = '''
 apply plugin: 'java'
 '''
         def javaSrcDir = projectDir.createDir('src/main/java')
@@ -103,6 +103,7 @@ apply plugin: 'java'
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("build was expected to succeed but failed")
         }
+        failure = null
         result
     }
 
