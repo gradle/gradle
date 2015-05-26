@@ -26,11 +26,11 @@ allprojects {
 
     //START SNIPPET project_substitution
     configurations.all {
-        resolutionStrategy.dependencySubstitution.all { DependencySubstitution details ->
-            if (details.requested instanceof ModuleComponentSelector && details.requested.group == "org.example") {
-                def targetProject = findProject(":${details.requested.module}")
+        resolutionStrategy.dependencySubstitution.all { DependencySubstitution dependency ->
+            if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.group == "org.example") {
+                def targetProject = findProject(":${dependency.requested.module}")
                 if (targetProject != null) {
-                    details.useTarget targetProject
+                    dependency.useTarget targetProject
                 }
             }
         }
