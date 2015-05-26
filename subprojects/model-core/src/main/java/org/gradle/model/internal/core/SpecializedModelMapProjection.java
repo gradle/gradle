@@ -21,7 +21,6 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -119,6 +118,6 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
+        return Optional.absent();
     }
 }

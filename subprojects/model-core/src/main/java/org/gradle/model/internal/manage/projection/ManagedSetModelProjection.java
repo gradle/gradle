@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.projection;
 
+import com.google.common.base.Optional;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -57,6 +58,11 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
     @Override
     protected ModelView<ManagedSet<I>> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         return new ManagedSetModelView<I>(getType(), elementSchema, modelNode, writable, ruleDescriptor, modelCreatorFactory);
+    }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
     }
 
     private static class ManagedSetModelView<I> implements ModelView<ManagedSet<I>> {

@@ -25,7 +25,6 @@ import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -168,6 +167,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
+      return Optional.absent();
     }
 }

@@ -82,5 +82,10 @@ public interface ModelNode {
      */
     int getLinkCount();
 
+    /**
+     * Gets the value represented by this node.
+     *
+     * Calling this method may create or transition the node.
+     */
     Optional<String> getValueDescription();
 }

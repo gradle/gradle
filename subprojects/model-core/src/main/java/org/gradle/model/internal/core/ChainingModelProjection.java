@@ -21,7 +21,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.node.describe.ModelNodeValueDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -109,6 +108,11 @@ public class ChainingModelProjection implements ModelProjection {
     }
 
     @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
+    }
+
+    @Override
     public int hashCode() {
         return projections.hashCode();
     }
@@ -116,10 +120,5 @@ public class ChainingModelProjection implements ModelProjection {
     @Override
     public String toString() {
         return "ChainingModelProjection{projections=" + projections + '}';
-    }
-
-    @Override
-    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        return new ModelNodeValueDescriptor(modelNodeInternal).describe();
     }
 }
