@@ -101,7 +101,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .displayName("Global services")
                 .parent(loggingServices)
                 .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices(startParameter.isContinuousModeEnabled()))
+                .provider(new GlobalScopeServices(startParameter.isContinuous()))
                 .build();
 
         BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildExecuter.class);
@@ -144,7 +144,7 @@ class BuildActionsFactory implements CommandLineAction {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.getDaemonUsage(), startParameter.isContinuousModeEnabled(), true);
+                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), true);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters);
     }
 

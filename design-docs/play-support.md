@@ -754,9 +754,9 @@ All infrastructure can be internal and be just enough to meet the requirements f
     @ThreadSafe
     interface DeploymentRegistry extends Stoppable {
       void register(DeploymentHandle handle);
-      <T extends DeploymentHandle> void get(Class<T> handleType, String id);  
+      <T extends DeploymentHandle> void get(Class<T> handleType, String id);
     }
-    
+
     interface DeploymentHandle extends Stoppable {
       String getId();
       boolean isRunning();
@@ -777,7 +777,7 @@ Subsequent invocations will do nothing.
 ### Story: Play application is reloaded when changes are made to local source
 
 This story adds integration with Play's mechanics to reloading the application implementation.
-No changes to continuous building are required.
+No changes to continuous build are required.
 Builds are triggered as soon as changes are detected.
 
 #### Implementation

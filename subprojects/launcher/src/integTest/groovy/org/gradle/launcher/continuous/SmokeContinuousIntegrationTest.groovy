@@ -35,7 +35,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds("echo")
-        output.contains "Continuous building is an incubating feature."
+        output.contains "Continuous build is an incubating feature."
         output.contains "value: original"
 
         when:
@@ -127,7 +127,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         then:
         fails("a")
         !gradle.running
-        output.contains("Exiting continuous building as no executed tasks declared file system inputs.")
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
     def "exits when build fails with configuration error"() {
@@ -139,7 +139,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         then:
         fails("a")
         !gradle.running
-        output.contains("Exiting continuous building as no executed tasks declared file system inputs.")
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
     def "exits when no executed tasks have file system inputs"() {
@@ -151,7 +151,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         then:
         succeeds("a")
         !gradle.running
-        output.contains("Exiting continuous building as no executed tasks declared file system inputs.")
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
     def "reuses build script classes"() {

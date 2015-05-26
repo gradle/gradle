@@ -38,9 +38,9 @@ import java.util.concurrent.Future
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion("current")
 @TargetGradleVersion("current")
-class ContinuousModeCrossVersionSpec extends ToolingApiSpecification {
+class ContinuousCrossVersionSpec extends ToolingApiSpecification {
     @AutoCleanup("shutdown")
-    ExecutorService executorService =  Executors.newCachedThreadPool()
+    ExecutorService executorService = Executors.newCachedThreadPool()
     ByteArrayOutputStream stderr
     ByteArrayOutputStream stdout
     Runnable cancelTask
@@ -140,7 +140,7 @@ apply plugin: 'java'
     }
 
     private assertHasResult() {
-        assert result != null : "result is null, you haven't run succeeds()"
+        assert result != null: "result is null, you haven't run succeeds()"
     }
 
     protected Set<String> getSkippedTasks() {

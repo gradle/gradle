@@ -28,7 +28,7 @@
         A continuous build differs in that Gradle will keep satisfying the initial build request (until instructed to stop)
         by executing the build when it is detected that the result of the previous build is now out of date.
         For example, if your build compiles Java source files to Java class files, a continuous build would automatically initiate a compile when the source files change.
-        Continuous building is useful for many scenarios.
+        Continuous build is useful for many scenarios.
     </para>
     <section id="continuous_build_start_stop">
         <title>How do I start and stop a continuous build?</title>

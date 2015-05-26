@@ -35,7 +35,7 @@ import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-class ContinuousModeBuildActionExecuterTest extends Specification {
+class ContinuousBuildActionExecuterTest extends Specification {
 
     @Rule
     RedirectStdIn redirectStdIn = new RedirectStdIn()
@@ -59,7 +59,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         requestMetadata.getBuildTimeClock() >> clock
     }
 
-    def "uses underlying executer when continuous building is not enabled"() {
+    def "uses underlying executer when continuous build is not enabled"() {
         when:
         singleBuild()
         executeBuild()
@@ -83,7 +83,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     def "waits for trigger in continuous mode when build works"() {
         when:
-        continuousBuilding()
+        continuousBuild()
         1 * delegate.execute(action, requestContext, actionParameters) >> {
             declareInput(file)
         }
@@ -97,7 +97,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     def "exits if there are no file system inputs"() {
         when:
-        continuousBuilding()
+        continuousBuild()
         1 * delegate.execute(action, requestContext, actionParameters)
         executeBuild()
 
@@ -107,7 +107,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     def "throws exception if last build fails in continous mode"() {
         when:
-        continuousBuilding()
+        continuousBuild()
         1 * delegate.execute(action, requestContext, actionParameters) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
@@ -123,7 +123,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
 
     def "keeps running after failures in continuous mode"() {
         when:
-        continuousBuilding()
+        continuousBuild()
         executeBuild()
 
         then:
@@ -173,14 +173,14 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         executer = executer(JavaVersion.VERSION_1_6)
 
         when:
-        continuousBuilding()
+        continuousBuild()
 
         and:
         executeBuild()
 
         then:
         def e = thrown IllegalStateException
-        e.message == "Continuous building requires Java 1.7 or later."
+        e.message == "Continuous build requires Java 7 or later."
     }
 
     def "can use on all versions later than 7"() {
@@ -188,7 +188,7 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         executer = executer(javaVersion)
 
         when:
-        continuousBuilding()
+        continuousBuild()
 
         and:
         executeBuild()
@@ -201,11 +201,11 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
     }
 
     private void singleBuild() {
-        actionParameters.continuousModeEnabled >> false
+        actionParameters.continuous >> false
     }
 
-    private void continuousBuilding() {
-        actionParameters.continuousModeEnabled >> true
+    private void continuousBuild() {
+        actionParameters.continuous >> true
     }
 
     private void executeBuild() {
@@ -216,8 +216,8 @@ class ContinuousModeBuildActionExecuterTest extends Specification {
         listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
-    private ContinuousModeBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousModeBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, waiter)
+    private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, waiter)
     }
 
 }

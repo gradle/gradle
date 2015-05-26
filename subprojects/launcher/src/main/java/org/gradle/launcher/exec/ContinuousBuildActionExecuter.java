@@ -39,7 +39,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
-public class ContinuousModeBuildActionExecuter implements BuildExecuter {
+public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
@@ -48,22 +48,22 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
     private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
         this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), executorFactory, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, ExecutorFactory executorFactory, FileSystemChangeWaiter waiter) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, ExecutorFactory executorFactory, FileSystemChangeWaiter waiter) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.javaVersion = javaVersion;
         this.waiter = waiter;
         this.executorFactory = executorFactory;
-        this.logger = styledTextOutputFactory.create(ContinuousModeBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        if (actionParameters.isContinuousModeEnabled()) {
+        if (actionParameters.isContinuous()) {
             return executeMultipleBuilds(action, requestContext, actionParameters);
         } else {
             return delegate.execute(action, requestContext, actionParameters);
@@ -72,9 +72,9 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters) {
         if (!javaVersion.isJava7Compatible()) {
-            throw new IllegalStateException(String.format("Continuous building requires Java %s or later.", JavaVersion.VERSION_1_7));
+            throw new IllegalStateException("Continuous build requires Java 7 or later.");
         }
-        SingleMessageLogger.incubatingFeatureUsed("Continuous building");
+        SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
@@ -107,7 +107,7 @@ public class ContinuousModeBuildActionExecuter implements BuildExecuter {
 
             final FileSystemSubset toWatch = fileSystemSubsetBuilder.build();
             if (toWatch.isEmpty()) {
-                logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous building as no executed tasks declared file system inputs.");
+                logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                 if (lastResult instanceof ReportedException) {
                     throw (ReportedException) lastResult;
                 }

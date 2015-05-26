@@ -49,7 +49,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
-        final StoppableExecutor executorService = executorFactory.create("continuous building - wait");
+        final StoppableExecutor executorService = executorFactory.create("continuous build - wait");
 
         FileWatcher watcher = fileWatcherFactory.watch(
             taskFileSystemInputs,

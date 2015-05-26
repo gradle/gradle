@@ -348,14 +348,14 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
-    public void withContinuousModeEnabled() {
-        expectedContinuousModeEnabled = true;
+    public void withContinuous() {
+        expectedContinuous = true;
         checkConversion("--continuous");
     }
 
     @Test
-    public void withContinuousModeEnabledShortFlag() {
-        expectedContinuousModeEnabled = true;
+    public void withContinuousShortFlag() {
+        expectedContinuous = true;
         checkConversion("-t");
     }
 

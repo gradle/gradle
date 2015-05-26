@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion("current")
 @TargetGradleVersion("current")
-class ContinuousModeCancellationCrossVersionSpec extends ToolingApiSpecification {
+class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecification {
     @AutoCleanup("shutdown")
     ScheduledExecutorService scheduledExecutorService =  Executors.newSingleThreadScheduledExecutor()
     ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
