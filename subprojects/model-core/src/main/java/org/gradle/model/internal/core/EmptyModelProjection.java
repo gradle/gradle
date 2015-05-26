@@ -67,4 +67,5 @@ public class EmptyModelProjection implements ModelProjection {
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
         return Optional.absent();
     }
+
 }

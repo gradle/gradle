@@ -88,4 +88,11 @@ public interface ModelNode {
      * Calling this method may create or transition the node.
      */
     Optional<String> getValueDescription();
+
+    /**
+     * Gets the underlying type of this node.
+     *
+     * Calling this method may create or transition the node.
+     */
+    Optional<String> getTypeDescription();
 }

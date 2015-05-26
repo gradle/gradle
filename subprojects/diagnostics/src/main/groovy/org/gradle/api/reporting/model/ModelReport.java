@@ -50,7 +50,9 @@ public class ModelReport extends DefaultTask {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
         ModelNodeRenderer renderer = new ModelNodeRenderer();
+
         TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
+
         textModelReportRenderer.setOutput(textOutput);
         textModelReportRenderer.startProject(project);
         textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));

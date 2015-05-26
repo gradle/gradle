@@ -35,5 +35,5 @@ public interface ModelAdapter {
         // must implement logical equality
     boolean equals(Object other);
 
-    Optional<String> getValueDescription(MutableModelNode modelNodeInternal);
+    Optional<String> getValueDescription(MutableModelNode mutableModelNode);
 }

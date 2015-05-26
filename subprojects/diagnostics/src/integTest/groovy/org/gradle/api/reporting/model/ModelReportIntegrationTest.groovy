@@ -18,8 +18,6 @@ package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
@@ -30,108 +28,22 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        output.contains(toPlatformLineSeparators(
-            """model
-    tasks
-        components = task ':components'
-        dependencies = task ':dependencies'
-        dependencyInsight = task ':dependencyInsight'
-        help = task ':help'
-        init = task ':init'
-        model = task ':model'
-        projects = task ':projects'
-        properties = task ':properties'
-        tasks = task ':tasks'
-"""))
-    }
-
-    def "displays basic structure of a polyglot project"() {
-        given:
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-    id 'cpp'
-    id 'c'
-}
-
-model {
-    components {
-        jvmLib(JvmLibrarySpec)
-        nativeLib(NativeLibrarySpec)
-    }
-}
-"""
-        buildFile
-        when:
-        run "model"
-
-        then:
-        def report = new ConsoleReportOutput(output)
-        report.hasTitle('Root project')
-        report.hasRootNode('model')
-        report.hasNodeStructure(
-            """model
-    binaries
-        jvmLibJar
-            tasks
-        nativeLibSharedLibrary
-            tasks
-        nativeLibStaticLibrary
-            tasks
-    binaryNamingSchemeBuilder
-    binarySpecFactory
-    buildTypes
-    componentSpecFactory
-    components
-        jvmLib
-            binaries
-                jvmLibJar
-                    tasks
-            sources
-                java
-                resources
-        nativeLib
-            binaries
-                nativeLibSharedLibrary
-                    tasks
-                nativeLibStaticLibrary
-                    tasks
-            sources
-                c
-                cpp
-    flavors
-    javaToolChain
-    jvm
-    languageTransforms
-    languages
-    platformResolver
-    platforms
-    repositories
-    sources
-    tasks
-        assemble
-        build
-        check
-        clean
-        components
-        createJvmLibJar
-        createNativeLibStaticLibrary
-        dependencies
-        dependencyInsight
-        help
-        init
-        jvmLibJar
-        linkNativeLibSharedLibrary
-        model
-        nativeLibSharedLibrary
-        nativeLibStaticLibrary
-        projects
-        properties
-        tasks
-        wrapper
-    toolChains"""
-        )
+        new ModelReportOutput(output).hasNodeStructure({
+            model() {
+                tasks {
+                    components(value: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
+                    dependencies()
+                    dependencyInsight()
+                    help()
+                    init()
+                    model()
+                    projects()
+                    properties()
+                    tasks()
+                    wrapper()
+                }
+            }
+        })
     }
 
     def "displays basic values of a simple model graph with values"() {
@@ -171,28 +83,34 @@ model {
         run "model"
 
         then:
+        new ModelReportOutput(output).hasNodeStructure({
+            model {
+                nullCredentials {
+                    password()
+                    username()
+                }
 
-        output.contains(toPlatformLineSeparators(
-            """model
-    nullCredentials
-        password
-        username
-    numbers
-        value = 5
-    primaryCredentials
-        password = hunter2
-        username = uname
-    tasks
-        components = task ':components'
-        dependencies = task ':dependencies'
-        dependencyInsight = task ':dependencyInsight'
-        help = task ':help'
-        init = task ':init'
-        model = task ':model'
-        projects = task ':projects'
-        properties = task ':properties'
-        tasks = task ':tasks'
-"""))
-
+                numbers {
+                    value(value: 5)
+                }
+                primaryCredentials {
+                    password(value: 'hunter2')
+                    username(value: 'uname')
+                }
+                tasks {
+                    components(value: "task ':components'")
+                    dependencies(value: "task ':dependencies'")
+                    dependencyInsight(value: "task ':dependencyInsight'")
+                    help(value: "task ':help'")
+                    init(value: "task ':init'")
+                    model(value: "task ':model'")
+                    projects(value: "task ':projects'")
+                    properties(value: "task ':properties'")
+                    tasks(value: "task ':tasks'")
+                    wrapper()
+                }
+            }
+        })
     }
+
 }

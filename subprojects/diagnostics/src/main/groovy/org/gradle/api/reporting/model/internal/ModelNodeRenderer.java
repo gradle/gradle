@@ -40,14 +40,21 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
 
         StyledTextOutput styledTextoutput = output.getOutput();
         if (model.getPath().equals(ModelPath.ROOT)) {
-            styledTextoutput.println("model");
+            styledTextoutput.println("+ model");
         } else {
-            styledTextoutput.withStyle(Identifier).format("%s", model.getPath().getName());
+            styledTextoutput.withStyle(Identifier).format("+ %s", model.getPath().getName());
+            styledTextoutput.println();
+
             if (model.getLinkCount() == 0) {
                 Optional<String> value = model.getValueDescription();
                 if (value.isPresent()) {
-                    styledTextoutput.withStyle(Description).format(" = %s", value.get());
+                    styledTextoutput.withStyle(Description).format("      | Value: \t %s |", value.get());
+                    styledTextoutput.println();
                 }
+            }
+            Optional<String> typeDescription = model.getTypeDescription();
+            if(typeDescription.isPresent()){
+                styledTextoutput.withStyle(Description).format("      | Type: \t %s |", typeDescription.get());
             }
             styledTextoutput.println();
         }

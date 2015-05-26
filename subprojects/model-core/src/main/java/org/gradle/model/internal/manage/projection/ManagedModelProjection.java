@@ -171,6 +171,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
         return Optional.absent();
     }
 
+
     @Override
     public int hashCode() {
         return super.hashCode();

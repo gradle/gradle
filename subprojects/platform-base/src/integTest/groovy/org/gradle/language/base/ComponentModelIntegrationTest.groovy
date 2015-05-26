@@ -16,6 +16,7 @@
 
 package org.gradle.language.base
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
@@ -23,9 +24,9 @@ import spock.lang.Unroll
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
+
     def "setup"() {
         EnableModelDsl.enable(executer)
-
         buildScript """
             interface CustomComponent extends ComponentSpec {}
             class DefaultCustomComponent extends BaseComponentSpec implements CustomComponent {}
@@ -229,11 +230,14 @@ model {
         succeeds "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    components
-        main
-            binaries
-            sources = source set 'main'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries()
+                    sources(value: "source set 'main'")
+                }
+            }
+        }
     }
 
     def "can reference sources container for a component in a rule"() {
@@ -288,21 +292,29 @@ model {
         succeeds "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    components
-        foo
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'foo:bar'
-        main
-            binaries
-            sources
-                main = DefaultCustomLanguageSourceSet 'main:main'
-                test = DefaultCustomLanguageSourceSet 'main:test'
-        test
-            binaries
-            sources
-                test = DefaultCustomLanguageSourceSet 'test:test'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                foo {
+                    binaries()
+                    sources {
+                        bar(value: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                    }
+                }
+                main {
+                    binaries()
+                    sources {
+                        main()
+                        test()
+                    }
+                }
+                test {
+                    binaries()
+                    sources {
+                        test()
+                    }
+                }
+            }
+        }
     }
 
     def "can reference sources container elements in a rule"() {
@@ -393,15 +405,18 @@ model {
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""    components
-        main
-            binaries
-            sources = source set 'main'
-        someCustomComponent
-            binaries
-            sources = source set 'someCustomComponent'
-"""))
-
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries()
+                    sources(value: "source set 'main'")
+                }
+                someCustomComponent {
+                    binaries()
+                    sources(value: "source set 'someCustomComponent'")
+                }
+            }
+        }
     }
 
     def "plugin can configure component with given name"() {
@@ -426,12 +441,18 @@ model {
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""    components
-        main
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'main:bar'
-                main = DefaultCustomLanguageSourceSet 'main:main'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries()
+                    sources {
+                        bar()
+                        main()
+                    }
+                }
+            }
+
+        }
     }
 
     def "plugin can apply component beforeEach / afterEach"() {
@@ -484,13 +505,17 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""    components
-        main
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'main:bar'
-                main = DefaultCustomLanguageSourceSet 'main:main'"""))
-
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries()
+                    sources {
+                        bar()
+                        main()
+                    }
+                }
+            }
+        }
     }
 
     def "buildscript can create component"() {
@@ -506,10 +531,12 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-        someCustomComponent
-            binaries
-            sources = source set 'someCustomComponent'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            someCustomComponent {
+                binaries()
+                sources()
+            }
+        }
 
     }
 
@@ -534,17 +561,21 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""    components
-        main
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'main:bar'
-                main = DefaultCustomLanguageSourceSet 'main:main'
-        test
-            binaries
-            sources = source set 'test'
-"""))
-
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries()
+                    sources {
+                        bar()
+                        main()
+                    }
+                }
+                test {
+                    binaries()
+                    sources(value: "source set 'test'")
+                }
+            }
+        }
     }
 
     def "buildscript can apply component beforeEach / afterEach"() {
@@ -596,13 +627,15 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""    components
-        main
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'main:bar'
-                main = DefaultCustomLanguageSourceSet 'main:main'"""))
-
+        new ModelReportOutput(output).hasNodeStructure {
+            main {
+                binaries()
+                sources {
+                    bar(value: "DefaultCustomLanguageSourceSet 'main:bar'")
+                    main(value: "DefaultCustomLanguageSourceSet 'main:main'")
+                }
+            }
+        }
     }
 
     def "reasonable error message when creating component with default implementation"() {
@@ -711,22 +744,32 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    components
-        main
-            binaries
-                main
-                    tasks = []
-                test
-                    tasks = []
-            sources = source set 'main'
-        test
-            binaries
-                main
-                    tasks = []
-                test
-                    tasks = []
-            sources = source set 'test'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            components {
+                main {
+                    binaries {
+                        main {
+                            tasks()
+                        }
+                        test {
+                            tasks()
+                        }
+                    }
+                    sources(value: "source set 'main'")
+                }
+                test {
+                    binaries {
+                        main {
+                            tasks()
+                        }
+                        test {
+                            tasks()
+                        }
+                    }
+                    sources(value: "source set 'test'")
+                }
+            }
+        }
     }
 
     def "can reference binaries container for a component in a rule"() {

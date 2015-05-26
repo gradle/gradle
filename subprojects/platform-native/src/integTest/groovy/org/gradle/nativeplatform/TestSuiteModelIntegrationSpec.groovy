@@ -16,15 +16,14 @@
 
 package org.gradle.nativeplatform
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.util.TextUtil
 
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
         EnableModelDsl.enable(executer)
-
         buildScript """
             apply type: NativeBinariesTestPlugin
 
@@ -105,11 +104,14 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    testSuites
-        main
-            binaries
-            sources"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            testSuites {
+                main {
+                    binaries()
+                    sources()
+                }
+            }
+        }
     }
 
     def "can reference sources container for a test suite in a rule"() {
@@ -164,21 +166,31 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    testSuites
-        foo
-            binaries
-            sources
-                bar = DefaultCustomLanguageSourceSet 'foo:bar'
-        main
-            binaries
-            sources
-                main = DefaultCustomLanguageSourceSet 'main:main'
-                test = DefaultCustomLanguageSourceSet 'main:test'
-        secondary
-            binaries
-            sources
-                test = DefaultCustomLanguageSourceSet 'secondary:test'"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            testSuites {
+                foo {
+                    binaries()
+                    sources {
+                        bar(value: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                    }
+                }
+                main {
+                    binaries()
+                    sources {
+                        main(value: "DefaultCustomLanguageSourceSet 'main:main'")
+                        test(value: "DefaultCustomLanguageSourceSet 'main:test'")
+                    }
+                }
+                secondary {
+                    binaries()
+                    sources {
+                        test(value: "DefaultCustomLanguageSourceSet 'secondary:test'")
+
+                    }
+                }
+            }
+        }
+
     }
 
     def "can reference sources container elements in a rule"() {
@@ -274,14 +286,24 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    testSuites
-        main
-            binaries
-                first
-                    tasks = []
-                second
-                    tasks = []"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            testSuites {
+                main {
+                    binaries {
+                        first {
+                            tasks(value: "[]")
+                        }
+                        second {
+                            tasks(value: "[]")
+                        }
+
+                    }
+                    sources {
+
+                    }
+                }
+            }
+        }
     }
 
     def "can reference binaries container for a test suite in a rule"() {
