@@ -58,8 +58,8 @@ public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
             return false;
         }
         DefaultLibraryComponentIdentifier that = (DefaultLibraryComponentIdentifier) o;
-        return Objects.equal(projectPath, that.projectPath) &&
-            Objects.equal(libraryName, that.libraryName);
+        return Objects.equal(projectPath, that.projectPath)
+            && Objects.equal(libraryName, that.libraryName);
     }
 
     @Override

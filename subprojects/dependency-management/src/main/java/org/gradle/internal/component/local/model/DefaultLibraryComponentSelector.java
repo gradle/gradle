@@ -50,8 +50,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if(identifier instanceof LibraryIdentifier) {
-            LibraryIdentifier projectComponentIdentifier = (LibraryIdentifier)identifier;
+        if (identifier instanceof LibraryIdentifier) {
+            LibraryIdentifier projectComponentIdentifier = (LibraryIdentifier) identifier;
             return projectPath.equals(projectComponentIdentifier.getProjectPath()) && libraryName.equals(projectComponentIdentifier.getLibraryName());
         }
 
@@ -67,8 +67,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
             return false;
         }
         DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
-        return Objects.equal(projectPath, that.projectPath) &&
-            Objects.equal(libraryName, that.libraryName);
+        return Objects.equal(projectPath, that.projectPath)
+            && Objects.equal(libraryName, that.libraryName);
     }
 
     @Override

@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.serialize.SerializerSpec
 
 public class ComponentSelectorSerializerTest extends SerializerSpec {
@@ -56,5 +58,17 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
         then:
         result.projectPath == ':myPath'
+    }
+
+    def "serializes LibraryComponentSelector"() {
+        given:
+        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+
+        when:
+        LibraryComponentSelector result = serialize(selection, serializer)
+
+        then:
+        result.projectPath == ':myPath'
+        result.libraryName == 'myLib'
     }
 }
