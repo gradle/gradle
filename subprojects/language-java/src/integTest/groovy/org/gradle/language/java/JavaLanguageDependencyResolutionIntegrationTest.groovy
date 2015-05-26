@@ -15,11 +15,46 @@
  */
 
 package org.gradle.language.java
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can trigger dependency resolution for java based jvm component"() {
+    @NotYetImplemented // dependency resolution is done, but classpath generation still fails
+    def "can resolve dependency on local library"() {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        dep(JvmLibrarySpec)
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        expect:
+        succeeds 'assemble'
+
+    }
+
+    @NotYetImplemented // assertion error if a dependency doesn't exist
+    def "should fail if library doesn't exist"() {
         setup:
         buildFile << '''
 plugins {
@@ -43,10 +78,8 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        when:
-        succeeds 'assemble'
+        expect:
+        fails 'assemble'
 
-        then:
-        true
     }
 }

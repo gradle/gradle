@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.LibraryIdentifier;
 
-public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
+public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
     private final String projectPath;
     private final String libraryName;
-    private final String displayName;
 
-    public static String libraryToConfigurationName(String projectPath, String libraryName) {
-        return String.format("project %s library %s", projectPath, libraryName);
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public DefaultLibraryComponentIdentifier(String projectPath, String libraryName) {
+    public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
         this.projectPath = projectPath;
         this.libraryName = libraryName;
-        this.displayName = libraryToConfigurationName(projectPath, libraryName);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(getProjectPath(), getLibraryName());
     }
 
     @Override
@@ -47,6 +45,17 @@ public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
         return libraryName;
     }
 
+    public boolean matchesStrictly(ComponentIdentifier identifier) {
+        assert identifier != null : "identifier cannot be null";
+
+        if(identifier instanceof LibraryIdentifier) {
+            LibraryIdentifier projectComponentIdentifier = (LibraryIdentifier)identifier;
+            return projectPath.equals(projectComponentIdentifier.getProjectPath()) && libraryName.equals(projectComponentIdentifier.getLibraryName());
+        }
+
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -55,20 +64,13 @@ public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
-        DefaultLibraryComponentIdentifier that = (DefaultLibraryComponentIdentifier) o;
+
+        DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
         return Objects.equal(getLibraryName(), that.getLibraryName()) && Objects.equal(getProjectPath(), that.getProjectPath());
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), getLibraryName(), getProjectPath());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
     }
 }

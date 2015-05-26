@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
@@ -45,7 +46,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
+        if (isProjectModule(component.getComponentId()) || isLibrary(component.getComponentId())) {
             String configurationName = usage.getConfigurationName();
             Set<ComponentArtifactMetaData> artifacts = component.getConfiguration(configurationName).getArtifacts();
             result.resolved(artifacts);
@@ -70,5 +71,8 @@ public class ProjectArtifactResolver implements ArtifactResolver {
 
     private boolean isProjectModule(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
+    }
+    private boolean isLibrary(ComponentIdentifier componentId) {
+        return componentId instanceof LibraryIdentifier;
     }
 }

@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.component;
+
+package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * An identifier for a library instance that is built as part of the current build.
+ * Provides means to substitute a different dependency in place of a project library dependency.
  *
+ * @since 2.5
  */
 @Incubating
-public interface LibraryIdentifier extends ComponentIdentifier {
-    String getProjectPath();
-    String getLibraryName();
+@HasInternalProtocol
+public interface LibraryDependencySubstitution extends DependencySubstitution {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    LibraryComponentSelector getRequested();
 }

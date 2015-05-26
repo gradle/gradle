@@ -17,12 +17,13 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -174,9 +175,27 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
             ResolverResults results = new ResolverResults();
-            List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
+            final List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
             DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext(project, (DefaultJavaLanguageSourceSet) sourceSet);
             dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
+            ResolutionResult resolutionResult = results.getResolutionResult();
+            resolutionResult.allComponents(new Action<ResolvedComponentResult>() {
+                @Override
+                public void execute(ResolvedComponentResult resolvedComponentResult) {
+                    System.out.println("resolvedComponentResult = " + resolvedComponentResult);
+                }
+            });
+            resolutionResult.allDependencies(new Action<DependencyResult>() {
+                @Override
+                public void execute(DependencyResult dependencyResult) {
+                    if (dependencyResult instanceof ResolvedDependencyResult) {
+                        ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependencyResult;
+                        ResolvedComponentResult selected = resolved.getSelected();
+                        // TODO: Convert this into actual classpath!
+                        System.out.println("selected = " + selected);
+                    }
+                }
+            });
             return classpath;
         }
 

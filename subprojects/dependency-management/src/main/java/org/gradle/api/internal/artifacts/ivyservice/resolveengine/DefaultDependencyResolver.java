@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -102,8 +103,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 RepositoryChain repositoryChain = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory);
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
-
+                ProjectDependencyResolver projectDependencyResolver;
+                if (resolveContext instanceof ResolveContextInternal) {
+                    projectDependencyResolver = ((ResolveContextInternal) resolveContext).newProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
+                } else {
+                    projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
+                }
                 DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencySubstitutionRule());
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);

@@ -51,6 +51,10 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         return fullName;
     }
 
+    public String getParentName() {
+        return parentName;
+    }
+
     @Override
     public void builtBy(Object... tasks) {
         generated = true;

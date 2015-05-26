@@ -308,7 +308,10 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleDependency getModuleDependency() {
-            return ((DslOriginDependencyMetaData) dependencyMetaData).getSource();
+            if (dependencyMetaData instanceof DslOriginDependencyMetaData) {
+                return ((DslOriginDependencyMetaData) dependencyMetaData).getSource();
+            }
+            return null;
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData metaData1) {

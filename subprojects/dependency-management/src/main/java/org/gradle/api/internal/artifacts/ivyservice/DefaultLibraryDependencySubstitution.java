@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
+package org.gradle.api.internal.artifacts.ivyservice;
 
-/**
- * An identifier for a library instance that is built as part of the current build.
- *
- */
-@Incubating
-public interface LibraryIdentifier extends ComponentIdentifier {
-    String getProjectPath();
-    String getLibraryName();
+import org.gradle.api.artifacts.LibraryDependencySubstitution;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.LibraryComponentSelector;
+
+public class DefaultLibraryDependencySubstitution extends AbstractDependencySubstitution<LibraryComponentSelector> implements LibraryDependencySubstitution {
+
+    public DefaultLibraryDependencySubstitution(LibraryComponentSelector requested, ModuleVersionSelector oldRequested) {
+        super(requested, oldRequested);
+    }
 }

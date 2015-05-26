@@ -45,7 +45,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
-        if (resolveContext.getAllDependencies().isEmpty()) {
+        if (resolveContext instanceof Configuration && resolveContext.getAllDependencies().isEmpty()) {
             ModuleInternal module = ((DependencyMetaDataProvider) resolveContext).getModule();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
