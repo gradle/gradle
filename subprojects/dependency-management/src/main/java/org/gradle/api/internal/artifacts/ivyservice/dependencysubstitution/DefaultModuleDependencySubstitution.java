@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleDependencySubstitution;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.DelegatingDependencySubstitution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DependencySubstitutionsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
 

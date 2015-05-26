@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
+package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -28,8 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyResolveDetails;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
+import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -125,7 +124,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentiferNotationConverter())
+                .converter(new ModuleIdentifierNotationConverter())
                 .converter(ModuleIdentifierMapNotationConverter.getInstance())
                 .toComposite();
     }

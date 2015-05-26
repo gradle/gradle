@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ProjectDependencySubstitution;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.DelegatingDependencySubstitution;
 
 public class DefaultProjectDependencySubstitution extends DelegatingDependencySubstitution implements ProjectDependencySubstitution {
 

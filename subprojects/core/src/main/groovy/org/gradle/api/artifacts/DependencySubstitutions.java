@@ -19,7 +19,6 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /**

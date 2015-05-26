@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;

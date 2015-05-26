@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
