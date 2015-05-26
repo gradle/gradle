@@ -681,54 +681,7 @@ compile - Compile classpath for source set 'main'.
 """))
     }
 
-    def "reports external dependency replaced to project dependency"()
-    {
-        mavenRepo.module("org.utils", "api",  '1.3').publish()
-
-        file("settings.gradle") << "include 'client', 'api', 'impl'"
-
-        buildFile << """
-            allprojects {
-                version = '1.0'
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-
-                configurations {
-                    compile
-                }
-
-                group "org.utils"
-            }
-
-            project(":api") {
-                version = '1.5'
-            }
-
-            project(":impl") {
-                dependencies {
-                    compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
-                }
-
-                configurations.compile.resolutionStrategy.dependencySubstitution.all {
-                    if (it.requested.version == '1.3') {
-                        it.useTarget project(":api")
-                    }
-                }
-            }
-"""
-
-        when:
-        run(":impl:dependencies")
-
-        then:
-        output.contains(toPlatformLineSeparators("""
-compile
-\\--- org.utils:api:1.3 -> project :api
-"""))
-    }
-
-    def "reports external dependency replaced to project dependency with other group/name"()
+    def "reports external dependency replaced with project dependency"()
     {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
@@ -757,10 +710,8 @@ compile
                     compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
                 }
 
-                configurations.compile.resolutionStrategy.dependencySubstitution.all {
-                    if (it.requested.version == '1.3') {
-                        it.useTarget project(":api2")
-                    }
+                configurations.compile.resolutionStrategy.dependencySubstitution {
+                    substitute module('org.utils:api:1.3') with project(':api2')
                 }
             }
 """
@@ -775,8 +726,8 @@ compile
 """))
     }
 
-    def "reports external dependency name and version change"() {
-        mavenRepo.module("org.utils", "api2", '0.1').publish()
+    def "reports external dependency with version updated by resolve rule"() {
+        mavenRepo.module("org.utils", "api", '0.1').publish()
 
         file("settings.gradle") << "include 'client', 'impl'"
 
@@ -801,7 +752,7 @@ compile
 
                 configurations.compile.resolutionStrategy.eachDependency {
                     if (it.requested.version == '1.3') {
-                        it.useTarget group: 'org.utils', name: 'api2', version: '0.1'
+                        it.useVersion '0.1'
                     }
                 }
             }
@@ -813,7 +764,51 @@ compile
         then:
         output.contains(toPlatformLineSeparators("""
 compile
-\\--- org.utils:api:1.3 -> org.utils:api2:0.1
+\\--- org.utils:api:1.3 -> 0.1
+"""))
+    }
+
+    def "reports external dependency substituted with another"() {
+        mavenRepo.module("org.utils", "api", '0.1').publish()
+        mavenRepo.module("org.other", "another", '0.1').publish()
+
+        file("settings.gradle") << "include 'client', 'impl'"
+
+        buildFile << """
+            allprojects {
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+
+                configurations {
+                    compile
+                }
+
+                group "org.utils"
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: 'org.utils', name: 'api', version: '1.3'
+                    compile group: 'org.original', name: 'original', version: '1.0'
+                }
+
+                configurations.compile.resolutionStrategy.dependencySubstitution {
+                    substitute module('org.original:original') with module('org.other:another:0.1')
+                    substitute module('org.utils:api') with module('org.utils:api:0.1')
+                }
+            }
+"""
+
+        when:
+        run(":impl:dependencies")
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+compile
++--- org.utils:api:1.3 -> 0.1
+\\--- org.original:original:1.0 -> org.other:another:0.1
 """))
     }
 }
