@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
@@ -257,7 +256,4 @@ apply plugin: 'java'
         eventCounter.get() > lastEventCounter
         buildCounter.get() == 3
     }
-
-    @Ignore
-    def "client receives appropriate error if continuous mode attempted on unsupported platform"() {}
 }
