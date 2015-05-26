@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.advanced
+package org.gradle.play.integtest.fixtures
 
-import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-class AdvancedAppContentVerifier {
-    static void verifyRunningApp(PlayMultiVersionRunApplicationIntegrationTest test) {
+class AdvancedRunningPlayApp extends RunningPlayApp {
+    AdvancedRunningPlayApp(TestFile testDirectory) {
+        super(testDirectory)
+    }
+
+    @Override
+    void verifyContent() {
+        super.verifyContent()
+
         // Custom Routes
-        assert test.playUrl().text.contains("<li>foo:1</li>")
-        assert test.playUrl("root").text.contains("<li>bar:2</li>")
-        assert test.playUrl("java/one").text.contains("Your new application is ready.")
-        assert test.playUrl("scala/one").text.contains("<li>foo:1</li>")
+        assert playUrl().text.contains("<li>foo:1</li>")
+        assert playUrl("root").text.contains("<li>bar:2</li>")
+        assert playUrl("java/one").text.contains("Your new application is ready.")
+        assert playUrl("scala/one").text.contains("<li>foo:1</li>")
 
         // Custom Assets
-        assertUrlContent test.playUrl("assets/javascripts/test.js"), test.file("app/assets/javascripts/sample.js")
-        assertUrlContent test.playUrl("assets/javascripts/sample.js"), test.file("app/assets/javascripts/sample.js")
-        assertUrlContent test.playUrl("assets/javascripts/test.min.js"), minifiedSample
-        assertUrlContent test.playUrl("assets/javascripts/sample.min.js"), minifiedSample
+        assertUrlContent playUrl("assets/javascripts/test.js"), testDirectory.file("app/assets/javascripts/sample.js")
+        assertUrlContent playUrl("assets/javascripts/sample.js"), testDirectory.file("app/assets/javascripts/sample.js")
+        assertUrlContent playUrl("assets/javascripts/test.min.js"), minifiedSample
+        assertUrlContent playUrl("assets/javascripts/sample.min.js"), minifiedSample
     }
 
     static String getMinifiedSample() {

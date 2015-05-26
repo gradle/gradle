@@ -67,23 +67,22 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         String distDirPath = new File(testDirectory, "build/stage").path
 
         setup:
-        httpPort = portFinder.nextAvailable
         run "stage"
 
         when:
-        builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        builder = new DistributionTestExecHandleBuilder(runningApp.selectPort().toString(), distDirPath)
         handle = builder.build()
         handle.start()
 
         then:
-        verifyStarted()
+        runningApp.verifyStarted()
 
         and:
-        verifyRunningApp()
+        runningApp.verifyContent()
 
         cleanup:
         ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        verifyStopped()
+        runningApp.verifyStopped()
     }
 
     void verifyZips() {

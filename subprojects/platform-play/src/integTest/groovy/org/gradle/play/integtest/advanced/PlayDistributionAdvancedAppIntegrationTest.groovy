@@ -17,12 +17,14 @@
 package org.gradle.play.integtest.advanced
 
 import org.gradle.play.integtest.PlayDistributionApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
-import static org.gradle.integtests.fixtures.UrlValidator.*
-
 class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplicationIntegrationTest {
+    RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)
+
     @Override
     PlayApp getPlayApp() {
         return new AdvancedPlayApp()
@@ -60,12 +62,5 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
                 "controllers/scala/MixedJava.class",
                 "controllers/jva/PureJava.class"
         )
-    }
-
-    @Override
-    void verifyRunningApp() {
-        super.verifyRunningApp()
-
-        AdvancedAppContentVerifier.verifyRunningApp(this)
     }
 }

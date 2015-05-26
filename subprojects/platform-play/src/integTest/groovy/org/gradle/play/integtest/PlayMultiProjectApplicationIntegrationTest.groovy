@@ -19,13 +19,14 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
+import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
@@ -34,9 +35,7 @@ import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
-
-    int httpPort
-    def portFinder = AvailablePortFinder.createPrivate()
+    RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
         playApp.writeSources(file("."))
@@ -94,15 +93,13 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
     }
 
-    
+
     def "can run play app"(){
         setup:
-        httpPort = portFinder.nextAvailable
-
         file("primary/build.gradle") << """
     model {
         tasks.runPlayBinary {
-            httpPort = $httpPort
+            httpPort = ${runningApp.selectPort()}
         }
     }
 """
@@ -114,11 +111,11 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         GradleHandle gradleHandle = executer.withTasks(":primary:runPlayBinary").start()
 
         then:
-        def url = playUrl().toString()
+        def url = runningApp.playUrl().toString()
         available(url, "Play app", 60000)
 
         and:
-        validateRunningApp();
+        runningApp.verifyContent();
 
         when: "stopping gradle"
         userInput.write(4) // ctrl+d
@@ -138,35 +135,22 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         String distDirPath = file("primary/build/stage").path
 
         setup:
-        httpPort = portFinder.nextAvailable
         run ":primary:stage"
 
         when:
-        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder(runningApp.selectPort().toString(), distDirPath)
         handle = builder.build()
         handle.start()
 
         then:
-        available(playUrl().toString(), "Play app", 60000)
+        available(runningApp.playUrl().toString(), "Play app", 60000)
 
         and:
-        validateRunningApp()
+        runningApp.verifyContent()
 
         cleanup:
         ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        notAvailable(playUrl().toString())
-    }
-
-    def validateRunningApp() {
-        assertUrlContent playUrl(), "Your new application is ready."
-        assertUrlContent playUrl("assets/primary.txt"), "Primary asset"
-        assertUrlContent playUrl("submodule"), "Submodule page"
-        assertUrlContent playUrl("assets/submodule.txt"), "Submodule asset"
-        true
-    }
-
-    URL playUrl(String path='') {
-        return new URL("http://localhost:$httpPort/${path}")
+        notAvailable(runningApp.playUrl().toString())
     }
 
     JarTestFixture jar(String fileName) {
