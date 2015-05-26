@@ -21,9 +21,7 @@ A project dependency can be replaced with an external dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
-            withProject(":api") {
-                useTarget group: "org.utils", name: "api", version: "1.3"
-            }
+            substitute project(":api") with module("org.utils:api:1.3")
         }
     }
 
@@ -31,9 +29,7 @@ Or an external dependency can be replaced with a project dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
-            withModule("com.example:my-module") {
-                useTarget project(":project1")
-            }
+            substitute module("com.example:my-module:1.3") with project(":project1")
         }
     }
 

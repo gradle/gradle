@@ -35,12 +35,8 @@ configurations.all {
                     }
                 }
             }
-            withModule("org.gradle:mylib") { ModuleDependencySubstitution dependency ->
-                dependency.useTarget project(":foo")
-            }
-            withProject(":bar") { ProjectDependencySubstitution dependency ->
-                dependency.useTarget "org.gradle:another:1.+"
-            }
+            substitute module("org.gradle:mylib:1.0") with project(":foo")
+            substitute project(":bar") with module("org.gradle:another:1.+")
         }
     }
 }
@@ -78,10 +74,6 @@ A few notes:
 
 ### Open issues
 
-- What happens if `DependencySubstitution.withModule()` is called with a module that is not a dependency? Same with `withProject()`.
-- Need to (again) open discussion about a consistent syntax for _all_ dependency resolution rules
-    - `ResolutionStrategy.componentSelection`, `ResolutionStrategy.dependencySubstitution`, `DependencyHandler.components`, `DependencyHandler.modules`
-    - Is 'Dependency Substitution' the best way to refer to these rules?
 - Should generate `Closure` accepting API methods based on `Action` accepting API methods
     - Should also allow RuleSource input, and generate `Action` and `Closure` accepting methods based on `RuleSource` methods
 - DSL documentation

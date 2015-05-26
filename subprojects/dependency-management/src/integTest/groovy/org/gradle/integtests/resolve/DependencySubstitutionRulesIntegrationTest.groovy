@@ -119,17 +119,17 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             configurations.conf.resolutionStrategy {
                 dependencySubstitution {
-                    withModule('org.utils:api') {
+                    all {
                         assert it.target == it.requested
-                        it.useVersion '1.4'
+                        it.useTarget group: it.requested.group, name: it.requested.module, version: '1.4'
                     }
-                    withModule('org.utils:api') {
+                    all {
                         assert it.target.version == '1.4'
                         assert it.target.module == it.requested.module
                         assert it.target.group == it.requested.group
-                        it.useVersion '1.5'
+                        it.useTarget group: it.requested.group, name: it.requested.module, version: '1.5'
                     }
-                    withModule('org.utils:api') {
+                    all {
                         assert it.target.version == '1.5'
                         //don't change the version
                     }
@@ -145,11 +145,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 assert !apiDep.selectionReason.forced
                 assert apiDep.selectionReason.selectedByRule
                 assert apiDep.selectionReason.description == 'selected by rule'
-
-                def implDep = deps.find({ it.selected.id.module == 'impl' }).selected
-                assert implDep.id.version == '1.3'
-                assert !implDep.selectionReason.forced
-                assert !implDep.selectionReason.selectedByRule
             }
 """
 
@@ -255,7 +250,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
         mavenRepo.module("org.utils", "api", '1.3').publish()
-        mavenRepo.module("org.utils", "api", '1.5').publish()
+        mavenRepo.module("org.utils", "api", '1.6').publish()
 
         buildFile << """
             $common
@@ -268,10 +263,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 force("org.utils:impl:1.5")
 
                 dependencySubstitution {
-                    withModule("org.utils:api") {
-                        assert it.target == it.requested
-                        it.useVersion '1.5'
-                    }
+                    substitute module("org.utils:api:1.5") with module("org.utils:api:1.6")
                 }
             }
 
@@ -279,7 +271,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 def deps = configurations.conf.incoming.resolutionResult.allDependencies
 
                 def apiDep = deps.find({ it.selected.id.module == 'api' }).selected
-                assert apiDep.id.version == '1.5'
+                assert apiDep.id.version == '1.6'
                 assert !apiDep.selectionReason.forced
                 assert apiDep.selectionReason.selectedByRule
 
@@ -307,8 +299,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule('org.utils:api') {
-                it.useVersion '1.+'
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.utils:api:1.3') with module('org.utils:api:1.+')
             }
 
             task check << {
@@ -336,8 +328,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf group: "org.utils", name: "api", version: "1.5", configuration: "conf"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
-                    it.useTarget project(":api")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -388,8 +380,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf group: "org.utils", name: "api", version: "1.5"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
-                    it.useTarget project(":api")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -421,8 +413,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf project(path: ":api", configuration: "default")
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
-                    it.useTarget group: "org.utils", name: "api", version: "1.5"
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute project(":api") with module("org.utils:api:1.5")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -459,8 +451,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf group: "org.utils", name: "impl", version: "1.5"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -504,8 +496,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf module(group: "org.utils", name: "api", version: "1.5")
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check << {
@@ -541,8 +533,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     }
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check << {
@@ -587,8 +579,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf group: "org.utils", name: "api", version: "1.5"
                 }
 
-                configurations.testConf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
+                configurations.testConf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task checkConf << {
@@ -638,8 +630,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 configurations.conf.resolutionStrategy {
                     force("org.utils:api:1.3")
 
-                    dependencySubstitution.withModule("org.utils:api") {
-                        it.useTarget project(":api")
+                    dependencySubstitution {
+                        substitute module("org.utils:api:1.5") with project(":api")
                     }
                 }
 
@@ -688,8 +680,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     compile group: "org.utils", name: "api", version: "1.5", configuration: "conf"
                 }
 
-                configurations.compile.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
+                configurations.compile.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check(dependsOn: configurations.compile) << {
@@ -719,8 +711,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf (group: "org.utils", name: "impl", version: "1.5") { transitive = false }
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:impl") {
-                    it.useTarget project(":impl")
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:impl:1.5") with project(":impl")
                 }
 
                 task check(dependsOn: configurations.conf) << {
@@ -759,8 +751,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf "org.utils:api:2.0"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
-                    it.useTarget "org.utils:api:1.6"
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute project(":api") with module("org.utils:api:1.6")
                 }
 
                 task check << {
@@ -814,10 +806,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf "org.utils:api:2.0"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution.all {
-                    if (it.requested.module == "api" && it.requested.version == "1.5") {
-                        it.useTarget project(":api")
-                    }
+                configurations.conf.resolutionStrategy.dependencySubstitution {
+                    substitute module("org.utils:api:1.5") with project(":api")
                 }
 
                 task check << {
@@ -866,11 +856,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule('org.utils:a') {
-                // a:1.2 is blacklisted, 1.4 should be used instead:
-                if (it.requested.module == 'a' && it.requested.version == '1.2') {
-                    it.useVersion '1.4'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.utils:a:1.2') with module('org.utils:a:1.4')
             }
 
             task check << {
@@ -901,11 +888,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule('org.utils:a') {
-                // a:1.2 is blacklisted, 1.2.1 should be used instead:
-                if (it.requested.version == '1.2') {
-                    it.useVersion '1.2.1'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.utils:a:1.2') with module('org.utils:a:1.2.1')
             }
 
             task check << {
@@ -995,8 +979,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule('org.utils:api') {
-                it.useVersion '1.123.15' //does not exist
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.utils:api:1.3') with module('org.utils:api:1.123.15')
             }
 
             task check << {
@@ -1117,8 +1101,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:a:1.2', 'org.utils:b:2.0'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:a") {
-                it.useTarget(it.requested.group + ':b:2.1')
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.utils:a:1.2') with module('org.utils:b:2.1')
             }
 
             task check << {
@@ -1244,10 +1228,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org:a:1.0', 'org:a:2.0'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.all {
-                if (it.requested.module == 'a' && it.requested.version == '1.0') {
-                    it.useTarget group: 'org', name: 'c', version: '1.1'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org:a:1.0') with module('org:c:1.1')
             }
 """
 

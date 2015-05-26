@@ -16,22 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.DependencyResolveDetails;
+import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyResolveDetails;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultModuleDependencySubstitution;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultProjectDependencySubstitution;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
@@ -85,15 +86,30 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule) {
-        ModuleIdentifier moduleId = moduleIdentifierNotationParser.parseNotation(id);
-        return all(new ModuleIdFilteringDependencySubstitutionAction(moduleId, rule));
+    public ComponentSelector module(String notation) {
+        return ComponentSelectorParsers.parser().parseNotation(notation);
     }
 
     @Override
-    public DependencySubstitutions withProject(Object id, Action<? super ProjectDependencySubstitution> rule) {
-        ProjectComponentIdentifier componentId = projectIdentifierNotationParser.parseNotation(id);
-        return all(new ProjectIdFilteringDependencySubstitutionAction(componentId, rule));
+    public ComponentSelector project(final String path) {
+        return new DefaultProjectComponentSelector(path);
+    }
+
+    @Override
+    public Substitution substitute(final ComponentSelector substituted) {
+        return new Substitution() {
+            @Override
+            public void with(final ComponentSelector substitute) {
+                all(new Action<DependencySubstitution>() {
+                    @Override
+                    public void execute(DependencySubstitution dependencySubstitution) {
+                        if (substituted.equals(dependencySubstitution.getRequested())) {
+                            dependencySubstitution.useTarget(substitute);
+                        }
+                    }
+                });
+            }
+        };
     }
 
     @Override
@@ -162,46 +178,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void convert(Project notation, NotationConvertResult<? super ProjectComponentIdentifier> result) throws TypeConversionException {
             result.converted(DefaultProjectComponentIdentifier.newId(notation.getPath()));
-        }
-    }
-
-    private static class ModuleIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution> {
-        private final Action<? super ModuleDependencySubstitution> delegate;
-        private final ModuleIdentifier id;
-
-        public ModuleIdFilteringDependencySubstitutionAction(ModuleIdentifier id, Action<? super ModuleDependencySubstitution> delegate) {
-            this.id = id;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void execute(DependencySubstitution substitution) {
-            ComponentSelector requested = substitution.getRequested();
-            if (requested instanceof ModuleComponentSelector) {
-                ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
-                if (Objects.equal(requestedModule.getGroup(), id.getGroup())
-                        && Objects.equal(requestedModule.getModule(), id.getName())) {
-                    delegate.execute(new DefaultModuleDependencySubstitution(substitution));
-                }
-            }
-        }
-    }
-
-    private static class ProjectIdFilteringDependencySubstitutionAction implements Action<DependencySubstitution> {
-        private final Action<? super ProjectDependencySubstitution> delegate;
-        private final ProjectComponentIdentifier id;
-
-        public ProjectIdFilteringDependencySubstitutionAction(ProjectComponentIdentifier id, Action<? super ProjectDependencySubstitution> delegate) {
-            this.id = id;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void execute(DependencySubstitution substitution) {
-            ComponentSelector requested = substitution.getRequested();
-            if (requested.matchesStrictly(id)) {
-                delegate.execute(new DefaultProjectDependencySubstitution(substitution));
-            }
         }
     }
 

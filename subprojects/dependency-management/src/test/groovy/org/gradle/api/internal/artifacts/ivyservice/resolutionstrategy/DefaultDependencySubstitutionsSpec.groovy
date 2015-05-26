@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependencySubstitution
 import org.gradle.api.artifacts.ProjectDependencySubstitution
-import org.gradle.api.internal.artifacts.*
+import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -109,64 +111,48 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     }
 
     @Unroll
-    def "withModule() matches only given module: #matchingModule"() {
+    def "substitute module() matches only given module: #matchingModule"() {
         given:
-        def matchingModuleVersionAction = Mock(Action)
-        def nonMatchingModuleVersionAction = Mock(Action)
-
-        substitutions.withModule(matchingModule, matchingModuleVersionAction)
-        substitutions.withModule(nonMatchingModule, nonMatchingModuleVersionAction)
-
+        def matchingSubstitute = Mock(ComponentSelector)
+        def nonMatchingSubstitute = Mock(ComponentSelector)
         def moduleDetails = Mock(DependencySubstitutionInternal)
+
+        with(substitutions) {
+            substitute module(matchingModule) with matchingSubstitute
+            substitute module(nonMatchingModule) with nonMatchingSubstitute
+        }
 
         when:
         substitutions.dependencySubstitutionRule.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        1 * matchingModuleVersionAction.execute(_)
-        0 * nonMatchingModuleVersionAction.execute(_)
+        1 * moduleDetails.useTarget(matchingSubstitute)
         0 * _
 
-        def projectDetails = Mock(ProjectDependencySubstitution)
-
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.dependencySubstitutionRule.execute(moduleDetails)
 
         then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
+        _ * moduleDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
         0 * _
 
         where:
-        matchingModule                    | nonMatchingModule
-        "org.utils:api"                   | "org.utils:impl"
-        [group: "org.utils", name: "api"] | [group: "org.utils", name: "impl"]
-    }
-
-    def "withModule() does not match projects"() {
-        given:
-        def action = Mock(Action)
-
-        substitutions.withModule("org.utils:api", action)
-
-        def projectDetails = Mock(ProjectDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
-
-        then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        0 * _
+        matchingModule                                    | nonMatchingModule
+        "org.utils:api:1.5"                               | "org.utils:impl:1.0"
+//        [group: "org.utils", name: "api", version: "1.5"] | [group: "org.utils", name: "impl", version: "1.0"]
     }
 
     @Unroll
-    def "withProject() matches only given project: #matchingProject"() {
+    def "substitute project() matches only given project: #matchingProject"() {
         given:
-        def matchingProjectAction = Mock(Action)
-        def nonMatchingProjectAction = Mock(Action)
+        def matchingSubstitute = Mock(ComponentSelector)
+        def nonMatchingSubstitute = Mock(ComponentSelector)
 
-        substitutions.withProject(matchingProject, matchingProjectAction)
-        substitutions.withProject(nonMatchingProject, nonMatchingProjectAction)
+        with (substitutions) {
+            substitute project(matchingProject) with matchingSubstitute
+            substitute project(nonMatchingProject) with nonMatchingSubstitute
+        }
 
         def projectDetails = Mock(DependencySubstitutionInternal)
 
@@ -175,27 +161,20 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        1 * matchingProjectAction.execute(_)
-        0 * nonMatchingProjectAction.execute(_)
+        1 * projectDetails.useTarget(matchingSubstitute)
+        0 * _
+
+        when:
+        substitutions.dependencySubstitutionRule.execute(projectDetails)
+
+        then:
+        _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
         0 * _
 
         where:
         matchingProject                                             | nonMatchingProject
         ":api"                                                      | ":impl"
-        Mock(Project) { Project project -> project.path >> ":api" } | Mock(Project) { Project project -> project.path >> ":impl" }
-    }
-
-    def "withProject() does not match modules"() {
-        def action = Mock(Action)
-        substitutions.withProject(":api", action)
-        def moduleDetails = Mock(ModuleDependencySubstitution)
-
-        when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
-
-        then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        0 * _
+//        Mock(Project) { Project project -> project.path >> ":api" } | Mock(Project) { Project project -> project.path >> ":impl" }
     }
 
     def "provides dependency substitution rule that orderly aggregates user specified rules"() {
@@ -216,29 +195,30 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         1 * details.useTarget("3.0")
         0 * details._
     }
-    
+
     def "mutations trigger lenient validation"() {
         given:
         def validator = Mock(MutationValidator)
         substitutions.setMutationValidator(validator)
-        
-        when: substitutions.all(Mock(Action))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.all(Mock(Closure))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.withModule("org:foo", Mock(Action))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.withModule("org:foo", Mock(Closure))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.withProject(":foo", Mock(Action))
-        then: 1 * validator.validateMutation(STRATEGY)
-        
-        when: substitutions.withProject(":foo", Mock(Closure))
-        then: 1 * validator.validateMutation(STRATEGY)
+
+        when:
+        substitutions.all(Mock(Action))
+        then:
+        1 * validator.validateMutation(STRATEGY)
+
+        when:
+        with (substitutions) {
+            substitute module("org:foo:1.0") with project(":bar")
+        }
+        then:
+        1 * validator.validateMutation(STRATEGY)
+
+        when:
+        with (substitutions) {
+            substitute project(":bar") with module("org:foo:1.0")
+        }
+        then:
+        1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutating copy does not trigger original validator"() {
@@ -249,11 +229,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         when:
         copy.all(Mock(Action))
-        copy.all(Mock(Closure))
-        copy.withModule("org:foo", Mock(Action))
-        copy.withModule("org:foo", Mock(Closure))
-        copy.withProject(":foo", Mock(Action))
-        copy.withProject(":foo", Mock(Closure))
 
         then:
         0 * validator.validateMutation(_)

@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -42,6 +44,7 @@ import org.gradle.internal.HasInternalProtocol;
  *   }
  * }
  * </pre>
+ * @since 2.5
  */
 @HasInternalProtocol
 @Incubating
@@ -54,31 +57,31 @@ public interface DependencySubstitutions {
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
      *
      * @return this
-     * @since 2.4
      */
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
-     * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     * Create a ModuleComponentSelector from the provided input string. Strings must be in the format "{group}:{module}:{version}".
      */
-    DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule);
+    ComponentSelector module(String notation);
 
     /**
-     * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     * Create a ProjectComponentSelector from the provided input string. Strings must be in the format ":path".
      */
-    DependencySubstitutions withProject(Object id, Action<? super ProjectDependencySubstitution> rule);
+    ComponentSelector project(String path);
+
+    /**
+     * Construct a DSL-friendly substitution that will substitute dependencies matching the provided selector.
+     */
+    Substitution substitute(ComponentSelector substitutedDependency);
+
+    /**
+     * Provides a DSL-friendly mechanism for specifying the target of a substitution.
+     */
+    interface Substitution {
+        /**
+         * Specify the target of the substitution.
+         */
+        void with(ComponentSelector notation);
+    }
 }
