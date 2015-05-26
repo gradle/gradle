@@ -106,30 +106,10 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-///*<<<<<<< HEAD
         TestConfiguration testConfiguration = createTestConfiguration(providerParameters);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions, testConfiguration);
         return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
-////=======*/
-//
-//        InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
-//        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TEST_EXECUTION);
-//        boolean listenToTaskProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.TASK_EXECUTION);
-//        boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
-////        ConsumerListenerConfiguration listenerConfiguration = new ConsumerListenerConfiguration(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
-//        BuildEventConsumer buildEventConsumer = listenerConfig.buildEventConsumer;
-////            ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
-////        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
-////            ((InternalFailSafeProgressListenersProvider) buildProgressListener).setListenerFailSafeMode(true);
-////        }
-//        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfiguration, testConfiguration);
-//        Object out = run(action, cancellationToken, buildEventConsumer, providerParameters, params);
-////        if (buildProgressListener instanceof InternalFailSafeProgressListenersProvider) {
-////            rethrowListenerErrors((InternalFailSafeProgressListenersProvider) buildProgressListener);
-////        }
-//
-//        return out;
     }
 
     @Nullable

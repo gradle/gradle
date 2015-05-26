@@ -29,7 +29,6 @@ import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
-
     public static final Set<OperationType> TEST_OPERATION_TYPE = [OperationType.TEST] as Set
 
     private TestFile forkingTestBuildFile() {
@@ -107,8 +106,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                     if (it instanceof TestFinishEvent && it.displayName =~ 'Test foo' && it.displayName.endsWith('succeeded')) {
                         result << it
                     }
-                })
-                .run()
+                }).run()
         }
 
         then: "the test is executed and doesn't fail"
@@ -226,8 +224,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                         if (it instanceof TestProgressEvent) {
                             result.add(it)
                         }
-                    })
-                .run()
+                    }).run()
         }
 
         then: "the test method is executed"
