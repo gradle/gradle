@@ -26,10 +26,10 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId;
 
-public class ModuleIdentiferNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
+public class ModuleIdentifierNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
     private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
 
-    public ModuleIdentiferNotationConverter() {
+    public ModuleIdentifierNotationConverter() {
         super(String.class);
     }
 

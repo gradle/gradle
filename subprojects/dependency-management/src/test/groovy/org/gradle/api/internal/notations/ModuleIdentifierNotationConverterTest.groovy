@@ -26,9 +26,9 @@ import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
-class ModuleIdentiferNotationConverterTest extends Specification {
+class ModuleIdentifierNotationConverterTest extends Specification {
 
-    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentiferNotationConverter()).toComposite()
+    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter()).toComposite()
 
     def "parses module identifer notation"() {
         expect:
