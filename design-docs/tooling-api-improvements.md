@@ -334,7 +334,7 @@ Similar to `gradleApi()`
 
 * change BuildModelActionRunner to run test tasks if TestConfiguration is provided
 * run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied 
-* add ability to force execution of up-to-date tasks
+* add ability to force execution of up-to-date test tasks
 
 ### Test Coverage
 
@@ -351,6 +351,10 @@ Similar to `gradleApi()`
 * test will not execute if test task is up-to-date
 * can force execution of up-to-date test
 * build should not fail if filter matches a single test task
+
+### Open Issues
+* With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared. 
+
 
 ## Story: Add ability to launch tests in debug mode
 
