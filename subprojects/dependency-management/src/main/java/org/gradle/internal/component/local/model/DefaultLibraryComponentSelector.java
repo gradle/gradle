@@ -64,13 +64,13 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
-        return Objects.equal(getLibraryName(), that.getLibraryName()) && Objects.equal(getProjectPath(), that.getProjectPath());
+        return Objects.equal(projectPath, that.projectPath) &&
+            Objects.equal(libraryName, that.libraryName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), getLibraryName(), getProjectPath());
+        return Objects.hashCode(projectPath, libraryName);
     }
 }
