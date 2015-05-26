@@ -42,7 +42,7 @@ abstract public class ModelCreators {
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, Action<? super MutableModelNode> initializer) {
         @SuppressWarnings("unchecked")
-        Action<? super MutableModelNode> initializers = Actions.composite(new Action<MutableModelNode>() {
+        Action<MutableModelNode> initializers = Actions.composite(new Action<MutableModelNode>() {
             public void execute(MutableModelNode modelNode) {
                 modelNode.setPrivateData(modelReference.getType(), factory.create());
             }
