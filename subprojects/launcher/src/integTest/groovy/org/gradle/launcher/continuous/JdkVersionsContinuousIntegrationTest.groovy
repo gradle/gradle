@@ -41,7 +41,7 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
         fails("tasks")
 
         and:
-        failureDescriptionContains("Continuous build requires Java 1.7 or later.")
+        failureDescriptionContains("Continuous build requires Java 7 or later.")
     }
 
     @Requires(adhoc = { JdkVersionsContinuousIntegrationTest.java6() && JdkVersionsContinuousIntegrationTest.java7OrBetter() })

@@ -122,23 +122,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         return start().waitForFailure();
     }
 
-    @Override
-    protected List<String> getGradleOpts() {
-        List<String> gradleOpts = new ArrayList<java.lang.String>(super.getGradleOpts());
-        for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            gradleOpts.add(String.format("-D%s=%s", key, value));
-        }
-        gradleOpts.add("-ea");
-
-        if (isDebug()) {
-            gradleOpts.addAll(DEBUG_ARGS);
-        }
-
-        return gradleOpts;
-    }
-
     private interface ExecHandlerConfigurer {
         void configure(ExecHandleBuilder builder);
     }

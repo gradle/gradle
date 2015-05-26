@@ -31,6 +31,7 @@ public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
     private final String uid;
     private final File gradleUserHomeDir;
@@ -42,6 +43,7 @@ public class DaemonParameters {
     private File javaHome;
     private boolean foreground;
     private boolean stop;
+    private boolean interactive = System.console() != null || Boolean.getBoolean(INTERACTIVE_TOGGLE);
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -53,6 +55,10 @@ public class DaemonParameters {
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
+    }
+
+    public boolean isInteractive() {
+        return interactive;
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
@@ -104,6 +110,11 @@ public class DaemonParameters {
             return Jvm.current().getJavaExecutable();
         }
         return Jvm.forHome(javaHome).getJavaExecutable();
+    }
+
+    public DaemonParameters setInteractive(boolean interactive) {
+        this.interactive = interactive;
+        return this;
     }
 
     public DaemonParameters setJavaHome(File javaHome) {

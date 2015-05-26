@@ -30,7 +30,7 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
 
@@ -42,10 +42,13 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean expectBuildFailure = false
+    boolean killToStop
 
     @Rule
     RedirectStdIn redirectStdIn = new RedirectStdIn()
     PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
+
+    String waitingMessage = "Waiting for changes to input files of tasks... (ctrl+d to exit)\n"
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -99,7 +102,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         errorOutputBuildMarker = 0
 
         executer.withStdIn(System.in)
-        gradle = executer.withTasks(tasks).withArgument("--continuous").start()
+        gradle = executer.withTasks(tasks).withForceInteractive(true).withArgument("--continuous").start()
     }
 
     private void waitForBuild() {
@@ -107,7 +110,7 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         //       to be more adaptable to slow build environments without using huge timeouts
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
             if (gradle.isRunning()) {
-                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks... (ctrl+d to exit)\n"))
+                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators(waitingMessage))
             }
         }
 
@@ -122,18 +125,22 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
 
     void stopGradle() {
         if (gradle && gradle.isRunning()) {
-            closeStdIn()
-            assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
-                @Override
-                Boolean call() throws Exception {
-                    if (expectBuildFailure) {
-                        gradle.waitForFailure()
-                    } else {
-                        gradle.waitForFinish()
+            if (killToStop) {
+                gradle.abort()
+            } else {
+                closeStdIn()
+                assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
+                    @Override
+                    Boolean call() throws Exception {
+                        if (expectBuildFailure) {
+                            gradle.waitForFailure()
+                        } else {
+                            gradle.waitForFinish()
+                        }
+                        return Boolean.TRUE
                     }
-                    return Boolean.TRUE
-                }
-            }, shutdownTimeout, TimeUnit.SECONDS, false)
+                }, shutdownTimeout, TimeUnit.SECONDS, false)
+            }
         }
     }
 

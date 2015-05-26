@@ -17,6 +17,8 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.internal.SystemProperties
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
@@ -66,5 +68,23 @@ class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIn
 
         then:
         expectOutput { it.contains("Build cancelled") }
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "does not cancel on EOT when not interactive"() {
+        when:
+        executer.beforeExecute { it.withForceInteractive(false) }
+        waitingMessage = "Waiting for changes to input files of tasks...\n"
+        killToStop = true
+        stdinPipe.close()
+
+        then:
+        succeeds "build" // tests message
+
+        when:
+        file("src/main/java/Thing.java") << "class Thing {}"
+
+        then:
+        succeeds()
     }
 }

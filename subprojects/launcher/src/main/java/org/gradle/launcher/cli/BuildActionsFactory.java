@@ -144,7 +144,7 @@ class BuildActionsFactory implements CommandLineAction {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), true);
+                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), daemonParameters.isInteractive());
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters);
     }
 
