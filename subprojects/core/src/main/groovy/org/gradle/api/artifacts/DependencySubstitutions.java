@@ -27,18 +27,17 @@ import org.gradle.internal.HasInternalProtocol;
  * <pre>
  * // add dependency substitution rules
  * dependencySubstitution {
- *   all { DependencySubstitution details ->
- *     // Use a local project dependency for any external dependency on 'org.gradle:util'
- *     if (details.requested instanceof ModuleComponentSelector
- *             && details.requested.group == 'org.gradle'
- *             && details.requested.name == 'util') {
- *       details.useTarget(project(':util'))
- *     }
+ *   // Substitute project and module dependencies
+ *   substitute module('org.gradle:api') with project(':api')
+ *   substitute project(':util') with module('org.gradle:util:3.0')
  *
- *     //changing 'groovy-all' into 'groovy':
- *     if (details.requested instanceof ModuleComponentSelector
- *             && details.requested.name == 'groovy-all') {
- *       details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+ *   // Substitute one module dependency for another
+ *   substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+ *
+ *   // Use a rule to change the dependency module while leaving group + version intact
+ *   all { DependencySubstitution details ->
+ *     if (details.requested instanceof ModuleComponentSelector && details.requested.name == 'groovy-all') {
+ *       details.useTarget details.requested.group + ':groovy:' + details.requested.version
  *     }
  *   }
  * }

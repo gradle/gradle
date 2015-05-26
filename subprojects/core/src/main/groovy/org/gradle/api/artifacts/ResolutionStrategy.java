@@ -44,20 +44,8 @@ import java.util.concurrent.TimeUnit;
  *
  *     // add dependency substitution rules
  *     dependencySubstitution {
- *       all { DependencySubstitution details ->
- *         // Use a local project dependency for any external dependency on 'org.gradle:util'
- *         if (details.requested instanceof ModuleComponentSelector
- *                 && details.requested.group == 'org.gradle'
- *                 && details.requested.name == 'util') {
- *           details.useTarget(project(':util'))
- *         }
- *
- *         //changing 'groovy-all' into 'groovy':
- *         if (details.requested instanceof ModuleComponentSelector
- *                 && details.requested.name == 'groovy-all') {
- *           details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
- *         }
- *       }
+ *       substitute module('org.gradle:api') with project(':api')
+ *       substitute project(':util') with module('org.gradle:util:3.0')
  *     }
  *
  *     // cache dynamic versions for 10 minutes
