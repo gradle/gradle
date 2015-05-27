@@ -80,7 +80,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
 
         where:
-        delayms << [0L, 50L, 1500L, 5000L]
+        delayms << [0L, 1L, 1000L, 2000L]
     }
 
     def "client can cancel during execution of a continuous build - before task execution has started"() {
