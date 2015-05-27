@@ -15,14 +15,10 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.internal.project.ProjectInternal;
-
 /**
  * Represents something that can be resolved.
  */
 public interface ResolveContext {
-    ProjectInternal getProject();
-
     String getName();
 
     DependencySet getDependencies();

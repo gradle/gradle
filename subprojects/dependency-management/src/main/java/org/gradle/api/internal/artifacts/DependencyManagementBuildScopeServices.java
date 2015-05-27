@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
@@ -81,14 +80,14 @@ class DependencyManagementBuildScopeServices {
                                               ClassPathRegistry classPathRegistry,
                                               FileLookup fileLookup) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
+                projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup),
-            new ClientModuleNotationParserFactory(instantiator).create(),
-            projectDependencyFactory);
+                DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup),
+                new ClientModuleNotationParserFactory(instantiator).create(),
+                projectDependencyFactory);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {
@@ -101,39 +100,39 @@ class DependencyManagementBuildScopeServices {
 
     ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new SingleFileBackedModuleVersionsCache(
-            timeProvider,
-            cacheLockingManager
+                timeProvider,
+                cacheLockingManager
         );
     }
 
     ModuleArtifactsCache createModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new DefaultModuleArtifactsCache(
-            timeProvider,
-            cacheLockingManager
+                timeProvider,
+                cacheLockingManager
         );
     }
 
     ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
         return new DefaultModuleMetaDataCache(
-            timeProvider,
-            cacheLockingManager,
-            resolverStrategy
+                timeProvider,
+                cacheLockingManager,
+                resolverStrategy
         );
     }
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ArtifactAtRepositoryCachedArtifactIndex(
-            "artifact-at-repository",
-            timeProvider,
-            cacheLockingManager
+                "artifact-at-repository",
+                timeProvider,
+                cacheLockingManager
         );
     }
 
     ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ByUrlCachedExternalResourceIndex(
-            "artifact-at-url",
-            timeProvider,
-            cacheLockingManager
+                "artifact-at-url",
+                timeProvider,
+                cacheLockingManager
         );
     }
 
@@ -151,9 +150,9 @@ class DependencyManagementBuildScopeServices {
 
     LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
-            artifactCacheMetaData,
-            localMavenRepositoryLocator,
-            fileStore);
+                artifactCacheMetaData,
+                localMavenRepositoryLocator,
+                fileStore);
         return finderFactory.create();
     }
 
@@ -176,12 +175,12 @@ class DependencyManagementBuildScopeServices {
                                                                 CacheLockingManager cacheLockingManager,
                                                                 ServiceRegistry serviceRegistry) {
         return new RepositoryTransportFactory(
-            serviceRegistry.getAll(ResourceConnectorFactory.class),
-            progressLoggerFactory,
-            temporaryFileProvider,
-            externalResourceIndex,
-            buildCommencedTimeProvider,
-            cacheLockingManager
+                serviceRegistry.getAll(ResourceConnectorFactory.class),
+                progressLoggerFactory,
+                temporaryFileProvider,
+                externalResourceIndex,
+                buildCommencedTimeProvider,
+                cacheLockingManager
         );
     }
 
@@ -191,38 +190,42 @@ class DependencyManagementBuildScopeServices {
                                               VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
-            moduleVersionsCache,
-            moduleMetaDataCache,
-            moduleArtifactsCache,
-            artifactAtRepositoryCachedArtifactIndex,
-            cacheLockingManager,
-            startParameterResolutionOverride,
-            buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory,
-            versionSelectorScheme,
-            versionComparator);
+                moduleVersionsCache,
+                moduleMetaDataCache,
+                moduleArtifactsCache,
+                artifactAtRepositoryCachedArtifactIndex,
+                cacheLockingManager,
+                startParameterResolutionOverride,
+                buildCommencedTimeProvider,
+                inMemoryCachedRepositoryFactory,
+                versionSelectorScheme,
+                versionComparator);
     }
 
-    ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
+    ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, LocalComponentFactory publishModuleDescriptorConverter, DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                                VersionComparator versionComparator, ComponentIdentifierFactory componentIdentifierFactory,
+                                                                VersionComparator versionComparator, ProjectRegistry<ProjectInternal> projectRegistry, ComponentIdentifierFactory componentIdentifierFactory,
                                                                 StartParameter startParameter) {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
-            resolveIvyFactory,
-            dependencyDescriptorFactory,
-            cacheLockingManager,
-            ivyContextManager,
-            resolutionResultsStoreFactory,
-            versionComparator,
-            startParameter.isBuildProjectDependencies()
+                resolveIvyFactory,
+                publishModuleDescriptorConverter,
+                dependencyDescriptorFactory,
+                new DefaultProjectComponentRegistry(
+                        publishModuleDescriptorConverter,
+                        projectRegistry),
+                cacheLockingManager,
+                ivyContextManager,
+                resolutionResultsStoreFactory,
+                versionComparator,
+                startParameter.isBuildProjectDependencies()
         );
         return new ErrorHandlingArtifactDependencyResolver(
-            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                new SelfResolvingDependencyResolver(
-                    new CacheLockingArtifactDependencyResolver(
-                        cacheLockingManager,
-                        resolver)),
-                componentIdentifierFactory));
+                new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                        new SelfResolvingDependencyResolver(
+                                new CacheLockingArtifactDependencyResolver(
+                                        cacheLockingManager,
+                                        resolver)),
+                        componentIdentifierFactory));
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
@@ -231,11 +234,5 @@ class DependencyManagementBuildScopeServices {
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
         return new DefaultProjectPublicationRegistry();
-    }
-
-    ProjectDependencyResolver createProjectDependencyResolver(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentFactory publishModuleDescriptorConverter) {
-        return new ProjectDependencyResolver(new DefaultProjectComponentRegistry(
-            publishModuleDescriptorConverter,
-            projectRegistry));
     }
 }

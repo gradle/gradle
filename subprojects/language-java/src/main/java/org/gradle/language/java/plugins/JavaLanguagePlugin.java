@@ -18,15 +18,19 @@ package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.CompositeResolveLocalComponentFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,14 +44,15 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
+import org.gradle.language.java.internal.DefaultJavaLocalComponentFactory;
 import org.gradle.language.java.internal.DefaultJavaSourceSetResolveContext;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.*;
 
 import java.io.File;
 import java.util.*;
@@ -61,6 +66,14 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
+        GradleInternal gradle = (GradleInternal) project.getGradle();
+        registerLocalComponentFactory(gradle);
+    }
+
+    private void registerLocalComponentFactory(GradleInternal gradle) {
+        ServiceRegistry services = gradle.getServices();
+        CompositeResolveLocalComponentFactory componentFactory = services.get(CompositeResolveLocalComponentFactory.class);
+        componentFactory.addFactory(new DefaultJavaLocalComponentFactory());
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -165,15 +178,35 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
             ResolverResults results = new ResolverResults();
             final List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
-            DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext((ProjectInternal) project, (DefaultJavaLanguageSourceSet) sourceSet);
+            DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext(project, (DefaultJavaLanguageSourceSet) sourceSet);
             dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
             ResolutionResult resolutionResult = results.getResolutionResult();
             resolutionResult.allDependencies(new Action<DependencyResult>() {
                 @Override
                 public void execute(DependencyResult dependencyResult) {
                     if (dependencyResult instanceof ResolvedDependencyResult) {
+                        ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependencyResult;
+                        ResolvedComponentResult selected = resolved.getSelected();
+                        ComponentIdentifier id = selected.getId();
+                        if (id instanceof LibraryComponentIdentifier) {
+                            LibraryComponentIdentifier library = (LibraryComponentIdentifier) id;
+                            String projectPath = library.getProjectPath();
+                            String libraryName = library.getLibraryName();
+                            if (!projectPath.equals(project.getPath()) || !libraryName.equals(((DefaultJavaLanguageSourceSet) sourceSet).getParentName())) {
+                                // not the same library
+                                ComponentSpec component = ((ProjectInternal) project.getRootProject().findProject(projectPath)).getModelRegistry().realize(ModelPath.path("components"),
+                                    ModelType.of(ComponentSpecContainer.class)).get(libraryName);
+                                component.getBinaries().all(new Action<BinarySpec>() {
+                                    @Override
+                                    public void execute(BinarySpec binarySpec) {
+                                        classpath.addAll(binarySpec.getTasks().getBuild().getOutputs().getFiles().getFiles());
+                                    }
+                                });
+                                System.out.println("component = " + component);
+                            }
+                        }
                         // TODO: Convert this into actual classpath!
-                        //System.out.println("selected = " + ((ResolvedDependencyResult) dependencyResult).getSelected());
+                        System.out.println("selected = " + selected);
                     }
                 }
             });

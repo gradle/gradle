@@ -15,17 +15,36 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
+import org.gradle.api.internal.artifacts.ResolveContextInternal;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.internal.resolve.DefaultLanguageSourceSetResolveContext;
+import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
-public class DefaultJavaSourceSetResolveContext extends DefaultLanguageSourceSetResolveContext {
+public class DefaultJavaSourceSetResolveContext implements ResolveContextInternal {
+    private final Project project;
+    private final DefaultJavaLanguageSourceSet sourceSet;
 
-    public DefaultJavaSourceSetResolveContext(ProjectInternal project, DefaultJavaLanguageSourceSet sourceSet) {
-        super(project, sourceSet);
+    public DefaultJavaSourceSetResolveContext(Project project, DefaultJavaLanguageSourceSet sourceSet) {
+        this.project = project;
+        this.sourceSet = sourceSet;
+    }
+
+    @Override
+    public String getName() {
+        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(project.getPath(), getLibraryName());
+    }
+
+    private String getLibraryName() {
+        return sourceSet.getParentName();
     }
 
     @Override
@@ -38,6 +57,19 @@ public class DefaultJavaSourceSetResolveContext extends DefaultLanguageSourceSet
     @Override
     public DependencySet getAllDependencies() {
         return new DefaultDependencySet(getLibraryName(), new DefaultDomainObjectSet<Dependency>(Dependency.class));
+    }
+
+    public DefaultJavaLanguageSourceSet getSourceSet() {
+        return sourceSet;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    @Override
+    public ProjectDependencyResolver newProjectDependencyResolver(final ProjectComponentRegistry projectComponentRegistry, final LocalComponentFactory localComponentFactory, DependencyToComponentIdResolver delegateIdResolver, ComponentMetaDataResolver delegateComponentResolver) {
+        return new ProjectLibraryDependencyResolver((ProjectInternal) getProject(), projectComponentRegistry, localComponentFactory, delegateIdResolver, delegateComponentResolver);
     }
 
 }

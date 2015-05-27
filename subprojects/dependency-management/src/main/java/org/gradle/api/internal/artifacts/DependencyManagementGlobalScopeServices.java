@@ -46,20 +46,22 @@ class DependencyManagementGlobalScopeServices {
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
-            new ProjectIvyDependencyDescriptorFactory(
-                excludeRuleConverter),
-            descriptorFactory);
+                new ProjectIvyDependencyDescriptorFactory(
+                        excludeRuleConverter),
+                descriptorFactory);
     }
 
-    ResolveLocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                                    DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                    ExcludeRuleConverter excludeRuleConverter,
-                                                                    ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ResolveLocalComponentFactory(
-            configurationsToModuleDescriptorConverter,
-            new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter),
-            componentIdentifierFactory,
-            new DefaultConfigurationsToArtifactsConverter());
+    CompositeResolveLocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                             ExcludeRuleConverter excludeRuleConverter,
+                                                             ComponentIdentifierFactory componentIdentifierFactory) {
+        return new CompositeResolveLocalComponentFactory(new ResolveLocalComponentFactory(
+                configurationsToModuleDescriptorConverter,
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        dependencyDescriptorFactory,
+                        excludeRuleConverter),
+                componentIdentifierFactory,
+                new DefaultConfigurationsToArtifactsConverter()));
 
     }
 }

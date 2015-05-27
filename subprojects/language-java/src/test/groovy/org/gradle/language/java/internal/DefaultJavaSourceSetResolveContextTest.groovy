@@ -16,14 +16,14 @@
 
 package org.gradle.language.java.internal
 
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.Project
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultJavaSourceSetResolveContextTest extends Specification {
     def "resolve context can be created from a java source set"() {
         given:
-        def project = Mock(ProjectInternal)
+        def project = Mock(Project)
         def sourceset = Mock(DefaultJavaLanguageSourceSet)
 
         when:
@@ -38,7 +38,7 @@ class DefaultJavaSourceSetResolveContextTest extends Specification {
     @Unroll
     def "context name for project #path and library #library is #contextName"() {
         given:
-        def project = Mock(ProjectInternal)
+        def project = Mock(Project)
         def sourceset = Mock(DefaultJavaLanguageSourceSet)
 
         when:

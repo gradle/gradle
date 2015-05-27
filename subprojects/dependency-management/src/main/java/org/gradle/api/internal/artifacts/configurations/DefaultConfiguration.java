@@ -143,11 +143,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         };
     }
 
-    @Override
-    public ProjectInternal getProject() {
-        return projectFinder.getProject(getModule().getProjectPath());
-    }
-
     public String getName() {
         return name;
     }

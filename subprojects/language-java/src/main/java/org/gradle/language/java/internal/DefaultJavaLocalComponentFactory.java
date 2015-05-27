@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.resolve;
+package org.gradle.language.java.internal;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Project;
@@ -26,28 +26,25 @@ import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.*;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
-import org.gradle.language.base.internal.DependentSourceSetInternal;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.Collections;
 
-public class LanguageSourceSetLocalComponentFactory implements LocalComponentFactory {
+public class DefaultJavaLocalComponentFactory implements LocalComponentFactory {
 
     private static final ExcludeRule[] EXCLUDE_RULES = new ExcludeRule[0];
 
     @Override
     public boolean canConvert(Object source) {
-        return source instanceof DefaultLanguageSourceSetResolveContext;
+        return source instanceof DefaultJavaSourceSetResolveContext;
     }
 
     @Override
     public LocalComponentMetaData convert(Object source) {
-        DefaultLanguageSourceSetResolveContext context = (DefaultLanguageSourceSetResolveContext) source;
+        DefaultJavaSourceSetResolveContext context = (DefaultJavaSourceSetResolveContext) source;
         String projectPath = context.getProject().getPath();
-        BaseLanguageSourceSet sourceSet = context.getSourceSet();
-        String libraryName = sourceSet.getParentName();
+        String libraryName = context.getSourceSet().getParentName();
         String version = context.getProject().getVersion().toString();
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
             projectPath, libraryName, version
@@ -55,9 +52,7 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(id, component, Project.DEFAULT_STATUS);
         metaData.addConfiguration(context.getName(), "Configuration for "+libraryName, Collections.<String>emptySet(), Collections.singleton(context.getName()), true, true);
-        if (sourceSet instanceof DependentSourceSetInternal) {
-            addDependencies(projectPath, id, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
-        }
+        addDependencies(projectPath, id, metaData, context.getSourceSet().getDependencies());
         return metaData;
     }
 
@@ -77,6 +72,7 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
+                //"*", "*",
                 DefaultLibraryComponentIdentifier.libraryToConfigurationName(mvi.getGroup(), mvi.getName()),
                 DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, dependency.getLibraryName()),
                 Collections.<IvyArtifactName>emptySet(),
