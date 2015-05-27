@@ -78,7 +78,7 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
     }
 
     static JavaInfo java7OrBetter() {
-        AvailableJavaHomes.getAvailableJdk { it.javaVersion >= JavaVersion.VERSION_1_6 }
+        AvailableJavaHomes.getAvailableJdk { it.javaVersion.isJava7Compatible() }
     }
 
 }
