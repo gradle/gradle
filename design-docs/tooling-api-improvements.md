@@ -340,8 +340,9 @@ From a client this API can be used like:
 		   connection.newBuild()
 		     .forTests(TestExecutionConfigurationBuilder.newTestExecutionConfiguration()
 					.withJvmTestClasses('example.MyTest')
-					.withJvmTestMethods('example.MyTest', "testMethod1", "testMethod2")
-					.build())
+					.withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
+					.build()) // this will ensure all tests of MyTest and MyTest2#testMethod1, MyTest2#testMethod2
+							  // will be executed
 		     .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
 		     .setStandardOutput(System.out)
 		     .run();	
