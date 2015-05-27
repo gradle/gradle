@@ -16,13 +16,16 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.BuildCancelledException
-import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.*
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
@@ -34,59 +37,48 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-@ToolingApiVersion("current")
-@TargetGradleVersion("current")
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
+@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecification {
+
     @AutoCleanup("shutdown")
-    ScheduledExecutorService scheduledExecutorService =  Executors.newSingleThreadScheduledExecutor()
+    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
     ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
     ByteArrayOutputStream stdout = new ByteArrayOutputStream(512)
+    def cancellationTokenSource = new DefaultCancellationTokenSource()
 
     def setupJavaProject() {
-        buildFile.text = '''
-apply plugin: 'java'
-'''
-        def javaSrcDir = projectDir.createDir('src/main/java')
-        javaSrcDir
+        buildFile.text = "apply plugin: 'java'"
     }
 
-    def runContinuousBuild(DefaultCancellationTokenSource cancellationTokenSource, ProgressListener progressListener, String task = "classes") {
-        withConnection { ProjectConnection connection ->
-            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(task)
-            launcher.withCancellationToken(cancellationTokenSource.token())
-            launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
-            launcher.setStandardOutput(stdout)
-            launcher.setStandardError(stderr)
-            launcher.run()
+    def runContinuousBuild(ProgressListener progressListener, String task = "classes") {
+        withConnection {
+            newBuild().withArguments("--continuous").forTasks(task)
+                .withCancellationToken(cancellationTokenSource.token())
+                .addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
+                .run()
         }
     }
 
+    // @Unroll // multiversion stuff is incompatible with unroll
     def "client can cancel while a continuous build is waiting for changes - after #delayms ms delay"(long delayms) {
         given:
         setupJavaProject()
+
         when:
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        Runnable cancelTask = new Runnable() {
-            @Override
-            void run() {
-                cancellationTokenSource.cancel()
+        runContinuousBuild {
+            if (it instanceof FinishEvent && it.descriptor.name == 'Running build') {
+                delayms > 0 ?
+                    scheduledExecutorService.schedule(cancellationTokenSource.&cancel, delayms, TimeUnit.MILLISECONDS) :
+                    cancellationTokenSource.cancel()
             }
         }
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
-                    if(delayms > 0) {
-                        scheduledExecutorService.schedule(cancelTask, delayms, TimeUnit.MILLISECONDS)
-                    } else {
-                        cancelTask.run()
-                    }
-                }
-            }
-        }
-        runContinuousBuild(cancellationTokenSource, progressListener)
+
         then:
         noExceptionThrown()
+
         where:
         delayms << [0L, 50L, 1500L, 5000L]
     }
@@ -94,17 +86,14 @@ apply plugin: 'java'
     def "client can cancel during execution of a continuous build - before task execution has started"() {
         given:
         setupJavaProject()
+
         when:
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if(event instanceof StartEvent && event.descriptor.name == 'Running build') {
-                    cancellationTokenSource.cancel()
-                }
+        runContinuousBuild {
+            if (it instanceof StartEvent && it.descriptor.name == 'Running build') {
+                cancellationTokenSource.cancel()
             }
         }
-        runContinuousBuild(cancellationTokenSource, progressListener)
+
         then:
         thrown BuildCancelledException
     }
@@ -112,17 +101,14 @@ apply plugin: 'java'
     def "client can cancel during execution of a continuous build - just before the last task execution has started"() {
         given:
         setupJavaProject()
+
         when:
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if(event instanceof TaskStartEvent && event.descriptor.taskPath==":classes") {
-                    cancellationTokenSource.cancel()
-                }
+        runContinuousBuild {
+            if (it instanceof TaskStartEvent && it.descriptor.taskPath == ":classes") {
+                cancellationTokenSource.cancel()
             }
         }
-        runContinuousBuild(cancellationTokenSource, progressListener)
+
         then:
         noExceptionThrown()
     }
@@ -131,17 +117,14 @@ apply plugin: 'java'
     def "client can cancel during execution of a continuous build - before a task which isn't the last task"() {
         given:
         setupJavaProject()
+
         when:
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if(event instanceof TaskStartEvent && event.descriptor.taskPath==":compileJava") {
-                    cancellationTokenSource.cancel()
-                }
+        runContinuousBuild {
+            if (it instanceof TaskStartEvent && it.descriptor.taskPath == ":compileJava") {
+                cancellationTokenSource.cancel()
             }
         }
-        runContinuousBuild(cancellationTokenSource, progressListener)
+
         then:
         thrown(BuildCancelledException)
     }
@@ -149,24 +132,15 @@ apply plugin: 'java'
     def "logging does not include message to use ctrl-d to exit continuous mode"() {
         given:
         setupJavaProject()
+
         when:
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        Runnable cancelTask = new Runnable() {
-            @Override
-            void run() {
-                cancellationTokenSource.cancel()
+        runContinuousBuild {
+            if (it instanceof FinishEvent && it.descriptor.name == 'Running build') {
+                scheduledExecutorService.schedule(cancellationTokenSource.&cancel, 2000L, TimeUnit.MILLISECONDS)
             }
         }
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
-                    scheduledExecutorService.schedule(cancelTask, 2000L, TimeUnit.MILLISECONDS)
-                }
-            }
-        }
-        runContinuousBuild(cancellationTokenSource, progressListener)
         def stdoutContent = stdout.toString()
+
         then:
         !stdoutContent.contains("ctrl+d to exit")
         stdoutContent.contains("Waiting for changes to input files of tasks...")

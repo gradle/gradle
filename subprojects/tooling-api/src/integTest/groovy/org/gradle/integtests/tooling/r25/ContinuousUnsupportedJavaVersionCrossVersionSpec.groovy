@@ -16,32 +16,37 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildLauncher
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK6)
-@ToolingApiVersion("current")
-@TargetGradleVersion("current")
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
+@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
+@Requires(adhoc = { AvailableJavaHomes.jdk6 })
 class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecification {
 
     def "client receives appropriate error if continuous mode attempted on unsupported platform"() {
         given:
-        buildFile.text = '''
-apply plugin: 'java'
-'''
+        toolingApi.requireIsolatedDaemons()
+        buildFile.text = "apply plugin: 'java'"
+
         when:
-        withConnection { ProjectConnection connection ->
-            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks("build")
-            launcher.run()
+        withConnection {
+            newBuild()
+                .setJavaHome(AvailableJavaHomes.jdk6.javaHome)
+                .withArguments("--continuous")
+                .forTasks("build")
+                .run()
         }
+
         then:
-        GradleConnectionException gradleConnectionException = thrown()
-        gradleConnectionException.cause.message == 'Continuous build requires Java 7 or later.'
+        def e = thrown(GradleConnectionException)
+        e.cause.message == 'Continuous build requires Java 7 or later.'
     }
+
 }

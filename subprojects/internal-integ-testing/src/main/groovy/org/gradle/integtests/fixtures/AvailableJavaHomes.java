@@ -54,6 +54,11 @@ abstract public class AvailableJavaHomes {
     }
 
     @Nullable
+    public static JavaInfo getJdk6() {
+        return getJdk(JavaVersion.VERSION_1_6);
+    }
+
+    @Nullable
     public static JavaInfo getJdk(final JavaVersion version) {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override

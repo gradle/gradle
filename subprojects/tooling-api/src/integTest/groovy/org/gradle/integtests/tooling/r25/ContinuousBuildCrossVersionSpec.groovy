@@ -20,11 +20,12 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
@@ -40,9 +41,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Timeout(60)
 @Requires(TestPrecondition.JDK7_OR_LATER)
-@ToolingApiVersion("current")
-@TargetGradleVersion("current")
-class ContinuousCrossVersionSpec extends ToolingApiSpecification {
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
+@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
+class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
+
     @AutoCleanup("shutdown")
     ExecutorService executorService = Executors.newCachedThreadPool()
     ByteArrayOutputStream stderr
@@ -54,25 +56,24 @@ class ContinuousCrossVersionSpec extends ToolingApiSpecification {
     ProgressListener progressListener
     int buildTimeout = 10
 
-    def setupJavaProject() {
-        buildFile.text = '''
-apply plugin: 'java'
-'''
-        def javaSrcDir = projectDir.createDir('src/main/java')
-        javaSrcDir
+    def cancellationTokenSource = new DefaultCancellationTokenSource()
+
+    TestFile setupJavaProject() {
+        buildFile.text = "apply plugin: 'java'"
+        projectDir.createDir('src/main/java')
     }
 
     def cleanup() {
         cancelTask?.run()
     }
 
-    def runContinuousBuild(DefaultCancellationTokenSource cancellationTokenSource, String... tasks) {
+    def runContinuousBuild(String... tasks) {
         stderr = new ByteArrayOutputStream(512)
         stdout = new ByteArrayOutputStream(512)
         withConnection { ProjectConnection connection ->
             BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
             launcher.withCancellationToken(cancellationTokenSource.token())
-            if(progressListener) {
+            if (progressListener) {
                 launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
             }
             launcher.setStandardOutput(stdout)
@@ -82,19 +83,10 @@ apply plugin: 'java'
     }
 
     void runBuild(String... tasks) {
-        DefaultCancellationTokenSource cancellationTokenSource = new DefaultCancellationTokenSource()
-        cancelTask = new Runnable() {
-            @Override
-            void run() {
-                cancellationTokenSource.cancel()
-            }
+        cancelTask = cancellationTokenSource.&cancel
+        buildExecutionFuture = executorService.submit {
+            runContinuousBuild(tasks)
         }
-        buildExecutionFuture = executorService.submit(new Runnable() {
-            @Override
-            void run() {
-                runContinuousBuild(cancellationTokenSource, tasks)
-            }
-        })
     }
 
     ExecutionResult succeeds(String... tasks) {
@@ -170,15 +162,18 @@ apply plugin: 'java'
         def javaSrcDir = setupJavaProject()
         def javaSrcFile = javaSrcDir.file("Thing.java")
         javaSrcFile << 'public class Thing {}'
+
         when:
         succeeds('build')
+
         then:
         executedAndNotSkipped ":compileJava", ":build"
+
         when:
         javaSrcFile.text = 'public class Thing { public static final int FOO=1; }'
+
         then:
         succeeds()
-        and:
         executedAndNotSkipped ":compileJava", ":build"
     }
 
@@ -187,20 +182,24 @@ apply plugin: 'java'
         def javaSrcDir = setupJavaProject()
         def javaSrcFile = javaSrcDir.file("Thing.java")
         javaSrcFile << 'public class Thing {}'
+
         when:
         succeeds('build')
+
         then:
         executedAndNotSkipped ":compileJava", ":build"
+
         when:
         javaSrcFile.text = 'public class Thing { *******'
+
         then:
-        assert javaSrcFile.text == 'public class Thing { *******'
         fails()
+
         when:
         javaSrcFile.text = 'public class Thing {} '
+
         then:
         succeeds()
-        and:
         executedAndNotSkipped ":compileJava"
     }
 
@@ -209,15 +208,18 @@ apply plugin: 'java'
         def javaSrcDir = setupJavaProject()
         def javaSrcFile = javaSrcDir.file("Thing.java")
         javaSrcFile << 'public class Thing {'
+
         when:
         fails('build')
+
         then:
         noExceptionThrown()
+
         when:
         javaSrcFile.text = 'public class Thing {} '
+
         then:
         succeeds()
-        and:
         executedAndNotSkipped ":compileJava"
     }
 
@@ -226,33 +228,36 @@ apply plugin: 'java'
         def javaSrcDir = setupJavaProject()
         def javaSrcFile = javaSrcDir.file("Thing.java")
         javaSrcFile << 'public class Thing {}'
-        AtomicInteger buildCounter=new AtomicInteger(0)
-        AtomicInteger eventCounter=new AtomicInteger(0)
+        AtomicInteger buildCounter = new AtomicInteger(0)
+        AtomicInteger eventCounter = new AtomicInteger(0)
         int lastEventCounter
-        progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                eventCounter.incrementAndGet()
-                if(event instanceof FinishEvent && event.descriptor.name == 'Running build') {
-                    buildCounter.incrementAndGet()
-                }
+        progressListener = {
+            eventCounter.incrementAndGet()
+            if (it instanceof FinishEvent && it.descriptor.name == 'Running build') {
+                buildCounter.incrementAndGet()
             }
         }
+
         when:
         succeeds('build')
+
         then:
         eventCounter.get() > 0
         buildCounter.get() == 1
+
         when:
         lastEventCounter = eventCounter.get()
         javaSrcFile.text = 'public class Thing { public static final int FOO=1; }'
+
         then:
         succeeds()
         eventCounter.get() > lastEventCounter
         buildCounter.get() == 2
+
         when:
         lastEventCounter = eventCounter.get()
         javaSrcFile.text = 'public class Thing {}'
+
         then:
         succeeds()
         eventCounter.get() > lastEventCounter
