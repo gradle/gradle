@@ -26,7 +26,6 @@ import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.tooling.events.ProgressListener
 import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
