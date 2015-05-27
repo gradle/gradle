@@ -710,7 +710,7 @@ It also does not improve the general capabilities of continuous mode.
 - ~~client receives appropriate error if continuous mode attempted on unsupported platform~~
 - ~~logging does not include message to use `ctrl-d` to exit continuous mode~~
 
-### Story: Command line user exits continuous build mode without killing the Gradle process
+### ~~Story: Command line user exits continuous build mode without killing the Gradle process~~
 
 Prior to this story, the only way for a command line user to exit continuous mode is to kill the process.
 This story makes the use of continuous mode more effective by allowing better utilisation of warm Gradle daemons.
@@ -718,7 +718,9 @@ This story makes the use of continuous mode more effective by allowing better ut
 `ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
 
 #### Test Coverage
-- tbd.
+- ~~can cancel continuous build by ctrl+d~~
+- ~~does not cancel continuous build when other than ctrl+d is entered~~
+- ~~can cancel continuous build by ctrl+d after multiple builds~~
 
 
 ### Backlog & Open Issues
