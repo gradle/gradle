@@ -126,9 +126,10 @@ can configure to only receive events for the execution of task operations.
 
 Progress events for more fine-grained operations will be added in future releases of Gradle.
 
-### Increased visibility of components in model report
+### New model improvements
 
-- The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display the values of the leaf nodes of the model space.
+The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display string representations of some values.
+This allows the effective values of the build model to be visualised, not just the structure as was the case previously.
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 
