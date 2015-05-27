@@ -17,9 +17,11 @@
 package org.gradle.tooling.internal.protocol.events;
 
 /**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
  * @since 2.5
  */
-public interface InternalTaskFinishedProgressEvent extends InternalTaskProgressEvent {
+public interface InternalTaskFinishedProgressEvent extends InternalTaskProgressEvent, InternalBuildOperationFinishedProgressEvent {
     /**
      * Returns the result of running the task.
      *

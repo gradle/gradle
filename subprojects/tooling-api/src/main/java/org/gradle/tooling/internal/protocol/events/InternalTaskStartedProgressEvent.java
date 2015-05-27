@@ -17,7 +17,9 @@
 package org.gradle.tooling.internal.protocol.events;
 
 /**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
  * @since 2.5
  */
-public interface InternalTaskStartedProgressEvent extends InternalTaskProgressEvent {
+public interface InternalTaskStartedProgressEvent extends InternalTaskProgressEvent, InternalBuildOperationStartedProgressEvent {
 }
