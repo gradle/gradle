@@ -25,10 +25,43 @@ class FileSystemSubsetTest extends Specification {
 
     def "root of directory tree is contained"() {
         when:
-        def f = new File('foo')
-        def s = FileSystemSubset.builder().add(f, new PatternSet()).build()
+        def f = new File('foo').absoluteFile
+        def s = FileSystemSubset.builder().add(f).build()
 
         then:
         s.contains(f)
+        s.contains(new File(f, "sub"))
+        !s.contains(f.parentFile)
+    }
+
+    def "can be empty"() {
+        expect:
+        FileSystemSubset.builder().build().empty
+        !FileSystemSubset.builder().add(new File("f")).build().empty
+    }
+
+    def "can filter tree"() {
+        when:
+        def f = new File('foo').absoluteFile
+        def s = FileSystemSubset.builder().add(f, new PatternSet().include("*.txt")).build()
+
+        then:
+        s.contains(f)
+        s.contains(new File(f, "some.txt"))
+        !s.contains(new File(f, "some.img"))
+    }
+
+    def "can compose"() {
+        when:
+        def f = new File('foo').absoluteFile
+        def s = FileSystemSubset.builder()
+            .add(f, new PatternSet().include("*.txt"))
+            .add(f)
+            .build()
+
+        then:
+        s.contains(f)
+        s.contains(new File(f, "some.txt"))
+        s.contains(new File(f, "some.img"))
     }
 }
