@@ -23,11 +23,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
@@ -56,7 +56,7 @@ class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
     ProgressListener progressListener
     int buildTimeout = 10
 
-    def cancellationTokenSource = new DefaultCancellationTokenSource()
+    def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
 
     TestFile setupJavaProject() {
         buildFile.text = "apply plugin: 'java'"

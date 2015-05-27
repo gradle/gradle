@@ -22,12 +22,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
@@ -45,7 +45,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecificatio
     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
     ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
     ByteArrayOutputStream stdout = new ByteArrayOutputStream(512)
-    def cancellationTokenSource = new DefaultCancellationTokenSource()
+    def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
 
     def setupJavaProject() {
         buildFile.text = "apply plugin: 'java'"
