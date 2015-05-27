@@ -24,7 +24,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Unroll
 
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -83,7 +85,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         given:
         def onErrorReference = new AtomicReference<Action>()
         def fileWatcherFactory = Mock(FileWatcherFactory) {
-            watch(_,_,_) >> { FileSystemSubset systemSubset, Action onError, FileWatcherListener listener ->
+            watch(_, _, _) >> { FileSystemSubset systemSubset, Action onError, FileWatcherListener listener ->
                 onErrorReference.set(onError)
                 Mock(FileWatcher)
             }
@@ -114,4 +116,57 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         waitFor.done
     }
 
+    @Unroll
+    def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
+        when:
+        def quietPeriod = 250L
+        def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
+        def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
+        def c = new DefaultBuildCancellationToken()
+        def testfile = testDirectory.file("testfile")
+
+        start {
+            w.wait(f, c) {
+                instant.notified
+            }
+            instant.done
+        }
+
+        then:
+        waitFor.notified
+
+        when:
+        def lastChangeRef = new AtomicLong(0)
+        fileChanger(instant, testfile, lastChangeRef)
+
+        then:
+        waitFor.done
+        System.currentTimeMillis() - lastChangeRef.get() >= quietPeriod
+
+        where:
+        description            | fileChanger
+        'append and close'     | this.&changeByAppendingAndClosing
+        'append and keep open' | this.&changeByAppendingAndKeepingFileOpen
+    }
+
+    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef) {
+        for (int i = 0; i < 10; i++) {
+            instant.assertNotReached('done')
+            testfile << "change"
+            lastChangeRef.set(System.currentTimeMillis())
+            sleep(50)
+        }
+    }
+
+    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef) {
+        testfile.withPrintWriter { PrintWriter out ->
+            for (int i = 0; i < 10; i++) {
+                instant.assertNotReached('done')
+                out.println("change")
+                out.flush()
+                lastChangeRef.set(System.currentTimeMillis())
+                sleep(50)
+            }
+        }
+    }
 }

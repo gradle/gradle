@@ -32,15 +32,18 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
-
-    private static final long QUIET_PERIOD = 250L;
-
     private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
+    private final long quietPeriodMillis;
 
     public DefaultFileSystemChangeWaiter(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
+        this(executorFactory, fileWatcherFactory, 250L);
+    }
+
+    public DefaultFileSystemChangeWaiter(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
         this.executorFactory = executorFactory;
         this.fileWatcherFactory = fileWatcherFactory;
+        this.quietPeriodMillis = quietPeriodMillis;
     }
 
     @Override
@@ -94,8 +97,8 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             lock.lock();
             try {
                 long lastChangeAtValue = lastChangeAt.get();
-                while (!cancellationToken.isCancellationRequested() && error.get()==null && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < QUIET_PERIOD)) {
-                    condition.await(QUIET_PERIOD, TimeUnit.MILLISECONDS);
+                while (!cancellationToken.isCancellationRequested() && error.get()==null && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < quietPeriodMillis)) {
+                    condition.await(quietPeriodMillis, TimeUnit.MILLISECONDS);
                     lastChangeAtValue = lastChangeAt.get();
                 }
             } finally {
