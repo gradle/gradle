@@ -97,12 +97,12 @@ normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_
 ### Continuous build (i)
 
 The new continuous build support allows Gradle to automatically start building in response to file system changes.
-When you run with the `--continuous` command line option, Gradle will not exit at the end of a build.  
-Instead, Gradle will wait for something to change.  
+When you run with the `--continuous` command line option, Gradle will not exit at the end of a build.
+Instead, Gradle will wait for something to change.
 When changes are detected, Gradle will re-run the previous build with the same task selection.
 
-For instance, if you run `gradle --continuous build` in a typical Java project, main and test sources will be built and tests will be run. 
-If changes are made to the project's main sources, Gradle will rebuild the main Java sources and re-run the project's tests.  
+For instance, if you run `gradle --continuous build` in a typical Java project, main and test sources will be built and tests will be run.
+If changes are made to the project's main sources, Gradle will rebuild the main Java sources and re-run the project's tests.
 If changes are made to the project's test sources, Gradle will only rebuild the test Java sources and re-run the project's tests.
 
 For more information, please see the [new User Guide chapter](userguide/continuous_build.html).
@@ -131,17 +131,6 @@ Progress events for more fine-grained operations will be added in future release
 - The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display the values of the leaf nodes of the model space.
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
