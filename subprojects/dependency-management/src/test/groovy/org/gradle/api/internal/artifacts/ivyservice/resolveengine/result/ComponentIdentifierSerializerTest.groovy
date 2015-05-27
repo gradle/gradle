@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.LibraryIdentifier
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -51,10 +51,10 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes LibraryIdentifier"() {
         given:
-        LibraryIdentifier selection = new DefaultLibraryComponentIdentifier(':project', 'lib')
+        LibraryComponentIdentifier selection = new DefaultLibraryComponentIdentifier(':project', 'lib')
 
         when:
-        LibraryIdentifier result = serialize(selection, serializer)
+        LibraryComponentIdentifier result = serialize(selection, serializer)
 
         then:
         result.projectPath == ':project'

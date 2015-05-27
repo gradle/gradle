@@ -18,7 +18,7 @@ package org.gradle.language.java.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.component.LibraryIdentifier
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
@@ -72,7 +72,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
 
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
-        metadata.componentId instanceof LibraryIdentifier
+        metadata.componentId instanceof LibraryComponentIdentifier
         metadata.componentId.displayName == 'project :myPath library myLib'
         metadata.dependencies.empty
         !metadata.changing
@@ -116,7 +116,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
 
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
-        metadata.componentId instanceof LibraryIdentifier
+        metadata.componentId instanceof LibraryComponentIdentifier
         metadata.componentId.displayName == 'project :myPath library myLib'
         !metadata.changing
         metadata.configurationNames == ['project :myPath library myLib'] as Set

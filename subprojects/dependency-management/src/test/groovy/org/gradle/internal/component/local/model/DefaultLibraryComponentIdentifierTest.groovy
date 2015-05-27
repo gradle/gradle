@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.artifacts.component.LibraryIdentifier
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,7 +24,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultLibraryComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(':myPath', 'myLib')
+        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(':myPath', 'myLib')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
@@ -54,8 +54,8 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath,#libraryName)"() {
         expect:
-        LibraryIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryComponentIdentifier(':myProjectPath1', 'myLib')
-        LibraryIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
+        LibraryComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryComponentIdentifier(':myProjectPath1', 'myLib')
+        LibraryComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation

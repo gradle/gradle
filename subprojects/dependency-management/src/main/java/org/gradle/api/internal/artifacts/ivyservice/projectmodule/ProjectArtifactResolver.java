@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
@@ -73,6 +73,6 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         return componentId instanceof ProjectComponentIdentifier;
     }
     private boolean isLibrary(ComponentIdentifier componentId) {
-        return componentId instanceof LibraryIdentifier;
+        return componentId instanceof LibraryComponentIdentifier;
     }
 }

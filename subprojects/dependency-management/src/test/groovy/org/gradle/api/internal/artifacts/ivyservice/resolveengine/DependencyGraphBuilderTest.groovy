@@ -49,7 +49,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
-import org.gradle.internal.resolve.resolver.ModuleToComponentResolver
+import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -68,7 +68,7 @@ class DependencyGraphBuilderTest extends Specification {
     def resolutionResultBuilder = Mock(ResolutionResultBuilder)
     def projectModelBuilder = Mock(ResolvedProjectConfigurationResultBuilder)
     def TestMetaData root = project('root')
-    def moduleResolver = Mock(ModuleToComponentResolver)
+    def moduleResolver = Mock(ResolveContextToComponentResolver)
     def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
     def moduleReplacements = Mock(ModuleReplacementsData)
     def builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, artifactResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), dependencyToConfigurationResolver)

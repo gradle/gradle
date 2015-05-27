@@ -25,11 +25,11 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
+import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-public class ProjectDependencyResolver implements DependencyToComponentIdResolver, ModuleToComponentResolver, ComponentMetaDataResolver {
+public class ProjectDependencyResolver implements DependencyToComponentIdResolver, ResolveContextToComponentResolver, ComponentMetaDataResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
     private final DependencyToComponentIdResolver delegateIdResolver;
     private final ComponentMetaDataResolver delegateComponentResolver;

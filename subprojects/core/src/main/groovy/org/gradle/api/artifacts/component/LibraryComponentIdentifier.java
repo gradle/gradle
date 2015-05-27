@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  *
  */
 @Incubating
-public interface LibraryIdentifier extends ComponentIdentifier {
+public interface LibraryComponentIdentifier extends ComponentIdentifier {
     String getProjectPath();
     String getLibraryName();
 }

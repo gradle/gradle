@@ -16,9 +16,9 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.artifacts.component.LibraryIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 
-public class DefaultLibraryComponentIdentifier implements LibraryIdentifier {
+public class DefaultLibraryComponentIdentifier implements LibraryComponentIdentifier {
     private final String projectPath;
     private final String libraryName;
     private final String displayName;

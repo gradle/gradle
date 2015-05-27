@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -60,7 +60,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             encoder.writeByte(Implementation.BUILD.getId());
             encoder.writeString(projectComponentIdentifier.getProjectPath());
         } else if(value instanceof DefaultLibraryComponentIdentifier) {
-            LibraryIdentifier libraryIdentifier = (LibraryIdentifier)value;
+            LibraryComponentIdentifier libraryIdentifier = (LibraryComponentIdentifier)value;
             encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryIdentifier.getProjectPath());
             encoder.writeString(libraryIdentifier.getLibraryName());

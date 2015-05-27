@@ -18,6 +18,8 @@ package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -48,9 +50,9 @@ import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.*;
 
 import java.io.File;
 import java.util.*;
@@ -172,25 +174,37 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public Set<File> getFiles() {
-            Set<File> classpath = new LinkedHashSet<File>();
+            final Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
             ResolverResults results = new ResolverResults();
             final List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
             DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext(project, (DefaultJavaLanguageSourceSet) sourceSet);
             dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
             ResolutionResult resolutionResult = results.getResolutionResult();
-            resolutionResult.allComponents(new Action<ResolvedComponentResult>() {
-                @Override
-                public void execute(ResolvedComponentResult resolvedComponentResult) {
-                    System.out.println("resolvedComponentResult = " + resolvedComponentResult);
-                }
-            });
             resolutionResult.allDependencies(new Action<DependencyResult>() {
                 @Override
                 public void execute(DependencyResult dependencyResult) {
                     if (dependencyResult instanceof ResolvedDependencyResult) {
                         ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependencyResult;
                         ResolvedComponentResult selected = resolved.getSelected();
+                        ComponentIdentifier id = selected.getId();
+                        if (id instanceof LibraryComponentIdentifier) {
+                            LibraryComponentIdentifier library = (LibraryComponentIdentifier) id;
+                            String projectPath = library.getProjectPath();
+                            String libraryName = library.getLibraryName();
+                            if (!projectPath.equals(project.getPath()) || !libraryName.equals(((DefaultJavaLanguageSourceSet) sourceSet).getParentName())) {
+                                // not the same library
+                                ComponentSpec component = ((ProjectInternal) project.getRootProject().findProject(projectPath)).getModelRegistry().realize(ModelPath.path("components"),
+                                    ModelType.of(ComponentSpecContainer.class)).get(libraryName);
+                                component.getBinaries().all(new Action<BinarySpec>() {
+                                    @Override
+                                    public void execute(BinarySpec binarySpec) {
+                                        classpath.addAll(binarySpec.getTasks().getBuild().getOutputs().getFiles().getFiles());
+                                    }
+                                });
+                                System.out.println("component = " + component);
+                            }
+                        }
                         // TODO: Convert this into actual classpath!
                         System.out.println("selected = " + selected);
                     }

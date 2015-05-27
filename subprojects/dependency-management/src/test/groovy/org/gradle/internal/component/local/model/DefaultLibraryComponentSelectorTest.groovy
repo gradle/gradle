@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
-import org.gradle.api.artifacts.component.LibraryIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -92,7 +92,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     def "matches id (#projectPath,#libraryName)"() {
         expect:
         LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myProjectPath1', 'myLib')
-        LibraryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
+        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:
