@@ -61,7 +61,17 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         args.add("--stacktrace");
+        addPropagatedSystemProperties(args);
         return args;
+    }
+
+    private void addPropagatedSystemProperties(List<String> args) {
+        for (String propName : propagatedSystemProperties) {
+            String propValue = System.getProperty(propName);
+            if (propValue != null) {
+                args.add("-D" + propName + "=" + propValue);
+            }
+        }
     }
 
     private ExecHandleBuilder createExecHandleBuilder() {

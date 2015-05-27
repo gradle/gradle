@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -43,6 +44,11 @@ import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+    protected static Set<String> propagatedSystemProperties = Sets.newHashSet();
+
+    public static void propagateSystemProperty(String name) {
+        propagatedSystemProperties.add(name);
+    }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
 

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures;
-
+package org.gradle.integtests.fixtures
+import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 /**
  * Runs tests with fluid dependencies enabled and disabled: when fluid dependencies are enabled, any configuration that
  * is a task input is resolved when constructing the task graph.
  * Test classes that use this runner will have tests run twice, with and without fluid dependencies enabled.
  */
 public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
-    final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
+    public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
+
     public FluidDependenciesResolveRunner(Class<?> target) {
         super(target)
+        // Ensure that the system property is propagated to forked Gradle executions
+        AbstractGradleExecuter.propagateSystemProperty(ASSUME_FLUID_DEPENDENCIES);
     }
 
     @Override

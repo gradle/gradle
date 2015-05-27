@@ -17,9 +17,11 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-//@RunWith(FluidDependenciesResolveRunner)
+
+@RunWith(FluidDependenciesResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
