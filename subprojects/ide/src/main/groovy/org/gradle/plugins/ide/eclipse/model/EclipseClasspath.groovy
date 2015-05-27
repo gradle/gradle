@@ -20,6 +20,8 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.DeprecationLogger
+
 /**
  * The build path settings for the generated Eclipse project. Used by the
  * {@link org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath} task to generate an Eclipse .classpath file.
@@ -47,9 +49,6 @@ import org.gradle.util.ConfigureUtil
  *
  *     //you can also remove configurations from the classpath:
  *     minusConfigurations += [ configurations.someBoringConfig ]
- *
- *     //if you don't want some classpath entries 'exported' in Eclipse
- *     noExportConfigurations += [ configurations.provided ]
  *
  *     //if you want to append extra containers:
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
@@ -102,6 +101,8 @@ import org.gradle.util.ConfigureUtil
  * </pre>
  */
 class EclipseClasspath {
+    private static final String DEPRECATED_NOEXPORTCONFIGURATION_FIELD = "EclipseClasspath.noExportConfigurations"
+
 
     /**
      * The source sets to be added.
@@ -129,7 +130,9 @@ class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    Collection<Configuration> noExportConfigurations = new DeprecatedNoExportConfigurationsCollection([])
+
+    @Deprecated
+    Collection<Configuration> noExportConfigurations = []
 
     /**
      * The classpath containers to be added.
@@ -217,5 +220,15 @@ class EclipseClasspath {
         def referenceFactory = new FileReferenceFactory()
         pathVariables.each { name, dir -> referenceFactory.addPathVariable(name, dir) }
         return referenceFactory
+    }
+
+    Collection<Configuration> getNoExportConfigurations() {
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD)
+        return noExportConfigurations
+    }
+
+    void setNoExportConfigurations(Collection<Configuration> noExportConfigurations) {
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD)
+        this.noExportConfigurations = noExportConfigurations
     }
 }

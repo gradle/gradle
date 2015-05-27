@@ -19,6 +19,8 @@ import org.gradle.util.DeprecationLogger
 
 class ProjectDependency extends AbstractClasspathEntry {
 
+    private static final String DEPRECATED_DECLAREDCONFIGNAME_FIELD = "ProjectDependency.declaredConfigurationName"
+
     String gradlePath
 
     @Deprecated
@@ -35,8 +37,13 @@ class ProjectDependency extends AbstractClasspathEntry {
         this.gradlePath = gradlePath
     }
 
+    String getDeclaredConfigurationName() {
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD)
+        return declaredConfigurationName
+    }
+
     void setDeclaredConfigurationName(String declaredConfigurationName) {
-        DeprecationLogger.nagUserOfDeprecated("ProjectDependency.declaredConfigurationName")
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD)
         this.declaredConfigurationName = declaredConfigurationName
     }
 

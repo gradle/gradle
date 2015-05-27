@@ -180,7 +180,6 @@ configure(project(":b")){
         def aLibraries = classpath("a")
         aLibraries.projects.size() == 2
         aLibraries.projects == ['b', 'c']
-        aLibraries.libs.size() == 1
     }
 
     @Test void includesTransitiveFileDependencies() {
@@ -221,11 +220,8 @@ configure(project(":c")){
         def aLibraries = classpath("a")
         aLibraries.projects.size() == 2
         aLibraries.projects == ['b', 'c']
-        aLibraries.libs.any {it.jarName == "foo.txt"}
-        aLibraries.libs.any {it.jarName == "bar.txt"}
-        aLibraries.libs.any {it.jarName == "baz.txt"}
+        aLibraries.libs*.jarName as Set == ["foo.txt", "bar.txt", "baz.txt"] as Set
     }
-
 
     @Test
     void substituesPathVariablesIntoLibraryPathsExceptForJavadoc() {
