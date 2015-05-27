@@ -23,9 +23,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.BasicCancellableOperationManager;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
+import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -86,7 +86,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
             DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
             cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"), inputStream, cancellationToken);
         } else {
-            cancellableOperationManager = new BasicCancellableOperationManager(cancellationToken);
+            cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
 
         Object lastResult = null;
@@ -113,7 +113,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 }
                 return lastResult;
             } else {
-                cancellableOperationManager.monitorInputExecute(new Action<BuildCancellationToken>() {
+                cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                     @Override
                     public void execute(BuildCancellationToken cancellationToken) {
                         waiter.wait(toWatch, cancellationToken, new Runnable() {

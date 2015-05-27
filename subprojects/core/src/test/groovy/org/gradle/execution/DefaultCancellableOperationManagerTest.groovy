@@ -20,9 +20,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.DisconnectableInputStream
 import spock.lang.AutoCleanup
-import spock.util.concurrent.BlockingVariable
 
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
@@ -36,37 +34,18 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
 
     def "can exit without cancel"() {
         when:
-        monitor.monitorInputExecute {}
+        monitor.monitorInput {}
 
         then:
         !cancellationToken.isCancellationRequested()
         executorService.shutdownNow().empty
     }
 
-    def "monitoring input enables interrupt on cancel"() {
-        when:
-        def var = new BlockingVariable()
-        start {
-            var.set(monitor.monitorInputYield {
-                instant.await
-                new CountDownLatch(1).await()
-            })
-        }
-
-        thread.blockUntil.await
-        writeEnd.close()
-
-        then:
-        var.get() == null
-        cancellationToken.isCancellationRequested()
-        executorService.shutdownNow().empty
-    }
 
     def "closing input after monitoring doesn't trigger cancel"() {
         when:
-        def var = new BlockingVariable()
         start {
-            monitor.monitorInputYield {}
+            monitor.monitorInput {}
             writeEnd.close()
             instant.done
         }
@@ -80,7 +59,7 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
 
     def "can throw"() {
         when:
-        monitor.monitorInputExecute {
+        monitor.monitorInput {
             throw new Exception("!")
         }
 
@@ -93,7 +72,7 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
     def "triggers cancel when input is closed"() {
         when:
         start {
-            monitor.monitorInputExecute {
+            monitor.monitorInput {
                 instant.started
                 it.addCallback {
                     instant.cancelled
@@ -115,7 +94,7 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
     def "triggers cancel when input contains EOT"() {
         when:
         start {
-            monitor.monitorInputExecute {
+            monitor.monitorInput {
                 instant.started
                 it.addCallback {
                     instant.cancelled
@@ -132,94 +111,6 @@ class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
         then:
         cancellationToken.isCancellationRequested()
         executorService.shutdownNow().empty
-    }
-
-    def "yields when monitoring"() {
-        expect:
-        monitor.monitorInputYield { 2 } == 2
-    }
-
-    def "interrupts thread causing block to throw"() {
-        given:
-        def var = new BlockingVariable()
-
-        when:
-        start {
-            def mainThread = Thread.currentThread()
-            var.set(monitor.interruptYield {
-                assert Thread.currentThread().is(mainThread)
-                instant.await
-                try {
-                    new CountDownLatch(1).await() // something that throws on interrupt
-                } catch (e) {
-                    return e
-                }
-            })
-        }
-
-        thread.blockUntil.await
-        cancellationToken.cancel()
-
-        then:
-        var.get() instanceof InterruptedException
-        executorService.shutdownNow().empty
-    }
-
-    def "swallows interrupted exception if cancelled"() {
-        given:
-        def var = new BlockingVariable()
-
-        when:
-        start {
-            var.set(monitor.interruptYield {
-                instant.await
-                new CountDownLatch(1).await()
-            })
-        }
-
-        thread.blockUntil.await
-        cancellationToken.cancel()
-
-        then:
-        var.get() == null
-        executorService.shutdownNow().empty
-    }
-
-    def "swallows interrupted exception if interrupted"() {
-        given:
-        Thread workThread
-        def var = new BlockingVariable()
-
-        when:
-        start {
-            workThread = Thread.currentThread()
-            var.set(monitor.interruptYield {
-                instant.await
-                new CountDownLatch(1).await()
-            })
-        }
-
-        thread.blockUntil.await
-        workThread.interrupt()
-
-        then:
-        var.get() == null
-        noExceptionThrown()
-        !cancellationToken.cancellationRequested
-    }
-
-    def "cancel after operation does not interrupt"() {
-        when:
-        start {
-            def workThread = Thread.currentThread()
-            monitor.interruptYield {}
-            cancellationToken.cancel()
-            assert !workThread.interrupted
-            instant.done
-        }
-
-        then:
-        thread.blockUntil.done
     }
 
 }

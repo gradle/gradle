@@ -17,7 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.DisconnectableInputStream;
@@ -26,22 +25,23 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-public class DefaultCancellableOperationManager extends BasicCancellableOperationManager {
+public class DefaultCancellableOperationManager implements CancellableOperationManager {
 
     private static final int EOF = -1;
     private static final int KEY_CODE_CTRL_D = 4;
 
     private final ExecutorService executorService;
     private final DisconnectableInputStream input;
+    private final BuildCancellationToken cancellationToken;
 
     public DefaultCancellableOperationManager(ExecutorService executorService, DisconnectableInputStream input, BuildCancellationToken cancellationToken) {
-        super(cancellationToken);
         this.executorService = executorService;
         this.input = input;
+        this.cancellationToken = cancellationToken;
     }
 
     @Override
-    public <T> T monitorInputYield(Transformer<? extends T, ? super BuildCancellationToken> operation) {
+    public void monitorInput(final Action<? super BuildCancellationToken> operation) {
         Future<?> handle = null;
         try {
             handle = executorService.submit(new Runnable() {
@@ -51,7 +51,7 @@ public class DefaultCancellableOperationManager extends BasicCancellableOperatio
                         while (!Thread.currentThread().isInterrupted()) {
                             int c = input.read();
                             if (c == KEY_CODE_CTRL_D || c == EOF) {
-                                getCancellationToken().cancel();
+                                cancellationToken.cancel();
                                 break;
                             }
                         }
@@ -60,22 +60,11 @@ public class DefaultCancellableOperationManager extends BasicCancellableOperatio
                     }
                 }
             });
-            return interruptYield(operation);
+            operation.execute(cancellationToken);
         } finally {
             if (handle != null) {
                 handle.cancel(true);
             }
         }
-    }
-
-    @Override
-    public void monitorInputExecute(final Action<? super BuildCancellationToken> operation) {
-        monitorInputYield(new Transformer<Void, BuildCancellationToken>() {
-            @Override
-            public Void transform(BuildCancellationToken cancellationToken) {
-                operation.execute(cancellationToken);
-                return null;
-            }
-        });
     }
 }

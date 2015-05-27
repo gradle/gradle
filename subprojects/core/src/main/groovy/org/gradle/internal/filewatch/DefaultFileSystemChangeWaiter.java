@@ -22,16 +22,18 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
 
     private static final long QUIET_PERIOD = 250L;
-
 
     private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
@@ -47,9 +49,20 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             return;
         }
 
-        final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
         final StoppableExecutor executorService = executorFactory.create("continuous build - wait");
+
+        final Lock lock = new ReentrantLock();
+        final Condition condition = lock.newCondition();
+        final AtomicLong lastChangeAt = new AtomicLong(0);
+
+        Runnable cancellationHandler = new Runnable() {
+            @Override
+            public void run() {
+                signal(lock, condition);
+            }
+        };
+
 
         FileWatcher watcher = fileWatcherFactory.watch(
             taskFileSystemInputs,
@@ -57,55 +70,66 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
                 @Override
                 public void execute(Throwable throwable) {
                     error.set(throwable);
-                    latch.countDown();
+                    signal(lock, condition);
                 }
             },
             new FileWatcherListener() {
-                private IdleTimeout timeout;
-
                 @Override
                 public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
-                    if (timeout == null) {
-                        if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
-                            timeout = new IdleTimeout(QUIET_PERIOD, new Runnable() {
-                                @Override
-                                public void run() {
-                                    watcher.stop();
-                                    latch.countDown();
-                                }
-                            });
-                            executorService.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    timeout.await();
-                                }
-                            });
-                            timeout.tick();
-                        }
-                    } else {
-                        timeout.tick();
+                    if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+                        signal(lock, condition, new Runnable() {
+                            @Override
+                            public void run() {
+                                lastChangeAt.set(System.currentTimeMillis());
+                            }
+                        });
                     }
                 }
             }
         );
 
         try {
+            cancellationToken.addCallback(cancellationHandler);
             notifier.run();
-            latch.await();
+            lock.lock();
+            try {
+                long lastChangeAtValue = lastChangeAt.get();
+                while (!cancellationToken.isCancellationRequested() && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < QUIET_PERIOD)) {
+                    condition.await(QUIET_PERIOD, TimeUnit.MILLISECONDS);
+                    lastChangeAtValue = lastChangeAt.get();
+                }
+            } finally {
+                lock.unlock();
+            }
             Throwable throwable = error.get();
             if (throwable != null) {
-                throw UncheckedException.throwAsUncheckedException(throwable);
+                throw throwable;
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            CompositeStoppable.stoppable(watcher, new Stoppable() {
-                @Override
-                public void stop() {
-                    executorService.shutdownNow();
-                }
-            }).stop();
+            cancellationToken.removeCallback(cancellationHandler);
+            CompositeStoppable.stoppable(watcher, executorService).stop();
         }
+    }
+
+    private void signal(Lock lock, Condition condition, Runnable runnable) {
+        lock.lock();
+        try {
+            runnable.run();
+            condition.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void signal(Lock lock, Condition condition) {
+        signal(lock, condition, new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
     }
 
 }

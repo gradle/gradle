@@ -19,11 +19,15 @@ package org.gradle.execution;
 import org.gradle.api.Action;
 import org.gradle.initialization.BuildCancellationToken;
 
-public interface CancellableOperationManager {
+public class PassThruCancellableOperationManager implements CancellableOperationManager {
+    private final BuildCancellationToken cancellationToken;
 
-    /**
-     * Executes the operation, while consuming System.in, watching for closure or EOT.
-     */
-    void monitorInput(Action<? super BuildCancellationToken> operation);
+    public PassThruCancellableOperationManager(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
+    }
 
+    @Override
+    public void monitorInput(Action<? super BuildCancellationToken> operation) {
+        operation.execute(cancellationToken);
+    }
 }
