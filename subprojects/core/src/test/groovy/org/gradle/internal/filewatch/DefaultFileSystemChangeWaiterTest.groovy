@@ -16,6 +16,7 @@
 
 package org.gradle.internal.filewatch
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -23,6 +24,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+
+import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
@@ -71,6 +74,41 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         when:
         c.cancel()
+
+        then:
+        waitFor.done
+    }
+
+    def "escapes on exception"() {
+        given:
+        def onErrorReference = new AtomicReference<Action>()
+        def fileWatcherFactory = Mock(FileWatcherFactory) {
+            watch(_,_,_) >> { FileSystemSubset systemSubset, Action onError, FileWatcherListener listener ->
+                onErrorReference.set(onError)
+                Mock(FileWatcher)
+            }
+
+        }
+        when:
+        def w = new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory)
+        def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
+        def c = new DefaultBuildCancellationToken()
+
+        start {
+            try {
+                w.wait(f, c) {
+                    instant.notified
+                }
+            } catch (Exception e) {
+                instant.done
+            }
+        }
+
+        then:
+        waitFor.notified
+
+        when:
+        onErrorReference.get().execute(new Exception("Exception in file watching"))
 
         then:
         waitFor.done

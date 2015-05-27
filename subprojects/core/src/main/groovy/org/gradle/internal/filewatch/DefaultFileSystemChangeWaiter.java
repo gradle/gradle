@@ -94,7 +94,7 @@ public class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
             lock.lock();
             try {
                 long lastChangeAtValue = lastChangeAt.get();
-                while (!cancellationToken.isCancellationRequested() && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < QUIET_PERIOD)) {
+                while (!cancellationToken.isCancellationRequested() && error.get()==null && (lastChangeAtValue == 0 || System.currentTimeMillis() - lastChangeAtValue < QUIET_PERIOD)) {
                     condition.await(QUIET_PERIOD, TimeUnit.MILLISECONDS);
                     lastChangeAtValue = lastChangeAt.get();
                 }
