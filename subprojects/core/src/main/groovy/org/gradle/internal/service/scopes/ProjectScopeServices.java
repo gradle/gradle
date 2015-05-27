@@ -51,8 +51,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.persist.ModelRegistryStore;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -158,16 +158,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
-                get(DependencyMetaDataProvider.class));
+                get(ProjectBackedModuleMetaDataProvider.class));
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }
 
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProvider() {
-            public ModuleInternal getModule() {
-                return new ProjectBackedModule(project);
-            }
-        };
+    protected ProjectBackedModuleMetaDataProvider createDependencyMetaDataProvider() {
+        return new ProjectBackedModuleMetaDataProvider();
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -185,4 +181,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new ComponentRegistry();
     }
 
+    private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+        public ModuleInternal getModule() {
+            return new ProjectBackedModule(project);
+        }
+    }
 }

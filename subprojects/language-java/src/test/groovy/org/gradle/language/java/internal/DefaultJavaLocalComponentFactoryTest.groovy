@@ -16,10 +16,11 @@
 
 package org.gradle.language.java.internal
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.language.base.internal.resolve.LanguageSourceSetLocalComponentFactory
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
@@ -28,10 +29,10 @@ import spock.lang.Unroll
 class DefaultJavaLocalComponentFactoryTest extends Specification {
     def "can convert java source set resolve context"() {
         given:
-        def context = new DefaultJavaSourceSetResolveContext(Mock(Project), Mock(DefaultJavaLanguageSourceSet))
+        def context = new DefaultJavaSourceSetResolveContext(Mock(ProjectInternal), Mock(DefaultJavaLanguageSourceSet))
 
         when:
-        def factory = new DefaultJavaLocalComponentFactory()
+        def factory = new LanguageSourceSetLocalComponentFactory()
 
         then:
         factory.canConvert(context)
@@ -41,7 +42,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         given: "a java sourceset that doesn't define any dependency"
         def sourceSet = Mock(DefaultJavaLanguageSourceSet)
         def dependencySpecs = Mock(DependencySpecContainer)
-        def project = Mock(Project)
+        def project = Mock(ProjectInternal)
 
         dependencySpecs.iterator() >> { [].iterator() }
         sourceSet.parentName >> 'myLib'
@@ -52,7 +53,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new DefaultJavaLocalComponentFactory()
+        def factory = new LanguageSourceSetLocalComponentFactory()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)
@@ -85,7 +86,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         given: "a java sourceset that defines dependencies"
         def sourceSet = Mock(DefaultJavaLanguageSourceSet)
         def dependencySpecs = Mock(DependencySpecContainer)
-        def project = Mock(Project)
+        def project = Mock(ProjectInternal)
 
         dependencySpecs.iterator() >> { dependencies.iterator() }
         sourceSet.parentName >> 'myLib'
@@ -96,7 +97,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new DefaultJavaLocalComponentFactory()
+        def factory = new LanguageSourceSetLocalComponentFactory()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)

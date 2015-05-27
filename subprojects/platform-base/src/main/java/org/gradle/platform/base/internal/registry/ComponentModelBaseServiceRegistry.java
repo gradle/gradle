@@ -16,9 +16,12 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import org.gradle.api.internal.artifacts.LocalLibraryDependencyResolver;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.language.base.internal.resolve.LanguageSourceSetLocalComponentFactory;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.internal.toolchain.DefaultToolResolver;
@@ -50,6 +53,15 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             }
             return toolResolver;
         }
+
+        LanguageSourceSetLocalComponentFactory createLocalComponentFactory() {
+            return new LanguageSourceSetLocalComponentFactory();
+        }
+
+        LocalLibraryDependencyResolver createLibraryResolver(ProjectFinder projectFinder) {
+            return new LocalLibraryDependencyResolver(projectFinder);
+        }
+
     }
 
     private static class GlobalScopeServices {
