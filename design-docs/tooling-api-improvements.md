@@ -316,7 +316,9 @@ just the build directory and the `.gradle` directory. This can be improved later
 
 Similar to `gradleApi()`
 
-## Story: Add ability to launch (a subset of) tests
+## Feature: Test Execution
+
+## Story: Add ability to launch tests
 
 ### API proposal
 
@@ -324,15 +326,8 @@ Similar to `gradleApi()`
 * `TestExecutionConfiguration` interface contains all information about which tests should be executed.
 * `TestExecutionConfiguration` can be build using fluent API TestExecutionConfigurationBuilder
 * can configure `TestExecutionConfigurationBuilder` via
-	* TestExecutionConfigurationBuilder#withTestsByPattern(String...)
- 	* TestExecutionConfigurationBuilder#withTests(TestOperationDescriptor...)
 	* TestExecutionConfigurationBuilder#withJvmTestClasses(String...)
 	* TestExecutionConfigurationBuilder#withJvmTestMethods(String testClass, String... methods)
-	* TestExecutionConfigurationBuilder#withJvmTestPackages(String... packages)
-	* TestExecutionConfigurationBuilder#withExcludeTestsByPattern(String... patterns)
-	* TestExecutionConfigurationBuilder#withExcludeJvmTestClasses(String...)
-	* TestExecutionConfigurationBuilder#withExcludeJvmTestMethods(String testClass, String... methods);
-	* TestExecutionConfigurationBuilder#withExcludeJvmTestPackages(String...)
 
 From a client this API can be used like:
 
@@ -367,20 +362,55 @@ TBD
 ### Test Coverage
 
 * can execute
-	* single test with JVM class include pattern
-	* single test with regex include pattern
-	* single test with an exclude pattern"
-	* single test method
-	* tests from specific package
-	* tests from a single package using package exclude
-	* tests from a multiple packages
-	* test class using a test descriptor
-	* test method using a test descriptor
+	* single JVM test class
+	* multiple specific JVM test classes
+	* single test method of JVM test class
+	* multiple test methods of JVM test class
 * test will not execute if test task is up-to-date
 * build should not fail if filter matches a single test task
 
 ### Open Issues
+
 * With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
+
+## Story: Allow specification of tests to run via package, patterns, TestDiscriptor inclusion/exclusion
+
+### API proposal
+
+* TestExecutionConfigurationBuilder#withJvmTestPackages(String... packages)
+* TestExecutionConfigurationBuilder#withTestsByPattern(String...)
+* TestExecutionConfigurationBuilder#withTests(TestOperationDescriptor...)
+* TestExecutionConfigurationBuilder#excludeJvmTestPackages(String...)
+* TestExecutionConfigurationBuilder#excludeJvmTestMethods(String testClass, String... methods)
+* TestExecutionConfigurationBuilder#excludeTestsByPattern(String... patterns)
+* TestExecutionConfigurationBuilder#excludeJvmTestClasses(String...)
+
+### Implementation
+
+* add according inclusive pattern declared in TestExecutionConfigurationBuilder to TestExecutionConfiguration#testIncludePatterns / TestExecutionConfiguration#testExcludePatterns
+
+### Test Coverage
+
+* can execute 
+	* all tests from specific package
+ 	* tests from a multiple packages
+	* single test with regex include pattern
+	* single test with an exclude pattern"
+	* tests from specific package
+	* tests from a single package using package exclude
+	* test class using a test descriptor
+	* test method using a test descriptor
+
+## Story: Allow force execution of up-to-date test tasks
+
+### Implementation
+
+* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not) 
+* allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
+
+### Test Coverage
+
+* can force execution of up-to-date test
 
 ## Story: Allow force exeuction of up-to-date test tasks
 
@@ -392,8 +422,6 @@ TBD
 ### Test Coverage
 
 * can force execution of up-to-date test
-
-### API proposal
 
 ## Story: Add ability to launch tests in debug mode
 
