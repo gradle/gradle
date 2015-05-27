@@ -49,7 +49,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-
         final Set<ResolvedComponentResult> projectComponents = CollectionUtils.filter(result.getAllComponents(), new Spec<ResolvedComponentResult>() {
             @Override
             public boolean isSatisfiedBy(ResolvedComponentResult element) {
@@ -168,7 +167,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return External dependencies
      */
     private List<SelfResolvingDependency> findAllExternalDependencies(List<SelfResolvingDependency> externalDependencies, List<Dependency> visited, Configuration configuration) {
-
         for (Dependency dependency : configuration.getAllDependencies()) {
             if(!visited.contains(dependency)){
                 visited.add(dependency);
