@@ -128,10 +128,15 @@
             </para>
         </section>
         <section>
-            <title>Performance on Mac OS X</title>
+            <title>Performance and stability on Mac OS X</title>
             <para>
                 The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-7133447">JDK-7133447</ulink>).
                 This can significantly delay notification of changes on large projects with many source files.
+            </para>
+            <para>
+                Additionally, the watching mechanism may deadlock under <emphasis>heavy</emphasis> load on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-8079620">JDK-8079620</ulink>).
+                This will manifest as Gradle appearing not to notice file changes.
+                If you suspect this is occurring, exit continuous build and start again.
             </para>
         </section>
         <section>
