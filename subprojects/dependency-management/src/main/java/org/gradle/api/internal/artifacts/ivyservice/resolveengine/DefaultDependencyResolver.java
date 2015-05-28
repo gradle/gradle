@@ -118,7 +118,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 metaDataResolvers.add(new ClientModuleResolver(resolverProvider.getComponentResolver(), dependencyDescriptorFactory));
 
                 LocalComponentFactoryChain localComponentFactory = new LocalComponentFactoryChain(localComponentFactories);
-                CompositeComponentMetaDataResolver metaDataResolver = new CompositeComponentMetaDataResolver(metaDataResolvers);
+                ComponentMetaDataResolverChain metaDataResolver = new ComponentMetaDataResolverChain(metaDataResolvers);
                 DependencyToComponentIdResolverChain componentIdResolver = new DependencyToComponentIdResolverChain(componentIdResolvers);
                 DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(componentIdResolver, resolutionStrategy.getDependencySubstitutionRule());
 
