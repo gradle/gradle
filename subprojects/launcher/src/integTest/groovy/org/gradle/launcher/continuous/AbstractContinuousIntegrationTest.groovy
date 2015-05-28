@@ -167,9 +167,24 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         gradle.standardOutput.substring(standardOutputBuildMarker)
     }
 
-    void expectOutput(double waitSeconds = 3.0, Closure<?> checkOutput) {
-        new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
-            assert checkOutput(buildOutputSoFar())
+    void cancelsAndExits() {
+        waitForNotRunning()
+        assert buildOutputSoFar().contains("Build cancelled.")
+    }
+
+    void doesntExit() {
+        try {
+            waitForNotRunning()
+            assert gradle.running
+        } catch (AssertionError ignore) {
+
         }
     }
+
+    private waitForNotRunning() {
+        new PollingConditions().within(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
+            assert !gradle.running
+        }
+    }
+
 }

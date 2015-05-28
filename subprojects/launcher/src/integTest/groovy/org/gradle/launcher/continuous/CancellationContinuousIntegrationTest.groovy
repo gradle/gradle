@@ -22,11 +22,10 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.util.concurrent.PollingConditions
 
-class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class CancellationContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {
         buildFile.text = "apply plugin: 'java'"
-        testDirectory.createDir('src/main/java')
     }
 
     def "should cancel build when System.in contains EOT"() {
@@ -42,36 +41,8 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
 
         then:
-        expectOutput {
-            it.contains("Build cancelled")
-        }
+        cancelsAndExits()
     }
-
-    def "should cancel continuous build by EOT, also when EOT isn't the first character"() {
-        when:
-        succeeds("build")
-
-        then:
-        noExceptionThrown()
-
-        when:
-        if (inputBefore) {
-            stdinPipe << inputBefore
-        }
-        if (flushBefore) {
-            stdinPipe.flush()
-        }
-        stdinPipe.write(4)
-
-        then:
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert !gradle.isRunning()
-        }
-
-        where:
-        [inputBefore, flushBefore] << [['', ' ', 'a', 'some input', 'a' * 8192], [true, false]].combinations()
-    }
-
 
     def "should cancel build when System.in is closed"() {
         given:
@@ -81,7 +52,7 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         closeStdIn()
 
         then:
-        expectOutput { it.contains("Build cancelled") }
+        cancelsAndExits()
     }
 
     def "should cancel build when System.in contains some other characters, then closes"() {
@@ -90,22 +61,22 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         stdinPipe << 'abc'
 
         then:
-        expectOutput { !it.contains("Build cancelled") }
+        doesntExit()
 
         when:
         stdinPipe.close()
 
         then:
-        expectOutput { it.contains("Build cancelled") }
+        cancelsAndExits()
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.NOT_WINDOWS) // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
     def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:
         executer.beforeExecute { it.withForceInteractive(false) }
         waitingMessage = "Waiting for changes to input files of tasks...\n"
         killToStop = true
-        stdinPipe.close()
+        closeStdIn()
 
         then:
         succeeds "build" // tests message
@@ -117,45 +88,4 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         succeeds()
     }
 
-    def "does not cancel continuous build when other than EOT is entered"() {
-        when:
-        succeeds("build")
-
-        then:
-        noExceptionThrown()
-
-        when:
-        stdinPipe << "some input"
-        stdinPipe << TextUtil.platformLineSeparator
-        stdinPipe.flush()
-
-        then:
-        sleep(1000L)
-        assert gradle.isRunning()
-    }
-
-    def "can cancel continuous build by EOT after multiple builds"() {
-        given:
-        def testfile = file('src/main/java/Thing.java')
-        testfile.text = 'public class Thing {}'
-
-        when:
-        succeeds("build")
-
-        then:
-        noExceptionThrown()
-
-        when:
-        for (int i = 0; i < 3; i++) {
-            testfile << '// changed'
-            succeeds()
-        }
-        and:
-        stdinPipe.write(4)
-
-        then:
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert !gradle.isRunning()
-        }
-    }
 }

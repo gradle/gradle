@@ -19,6 +19,8 @@ package org.gradle.launcher.continuous
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
+// NB: there's nothing specific about Java support and continuous.
+//     this spec just lays out some more practical use cases than the other targeted tests.
 class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {

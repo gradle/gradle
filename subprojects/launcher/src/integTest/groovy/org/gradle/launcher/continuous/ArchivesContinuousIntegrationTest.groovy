@@ -33,12 +33,13 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         sourceDir.file("README").text = "README"
         subDir.file("A").text = "A"
         buildFile << """
-    apply plugin: 'base'
-    task zip(type: Zip) {
-        archiveName = "zip.zip"
-        from("src")
-    }
-"""
+            apply plugin: 'base'
+            task zip(type: Zip) {
+                archiveName = "zip.zip"
+                from("src")
+            }
+        """
+
         then:
         succeeds("zip")
         executedAndNotSkipped(":zip")
@@ -49,6 +50,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         subDir.file("B").text = "B"
+
         then:
         succeeds()
         executedAndNotSkipped(":zip")
@@ -58,6 +60,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         sourceDir.file("newdir").createDir()
+
         then:
         succeeds()
         skipped(":zip") // GRADLE-2827 - current behaviour, not desired
