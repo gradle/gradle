@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent;
 
-public class DefaultBuildOperationStartedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildOperationStartedProgressEvent {
+public class DefaultBuildOperationStartedProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements InternalBuildOperationStartedProgressEvent {
     public DefaultBuildOperationStartedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
         super(eventTime, descriptor);
     }

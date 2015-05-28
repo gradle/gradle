@@ -33,6 +33,9 @@ public class ListenerFailedException extends GradleConnectionException {
     public ListenerFailedException(List<? extends Throwable> failures) {
         super("One or more progress listeners failed with an exception.");
         listenerFailures = failures;
+        if (!failures.isEmpty()) {
+            initCause(failures.get(0));
+        }
     }
 
     public List<? extends Throwable> getCauses() {

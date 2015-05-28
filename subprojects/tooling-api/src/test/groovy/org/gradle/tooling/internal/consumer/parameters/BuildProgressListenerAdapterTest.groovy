@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent
 import spock.lang.Specification
 
 class BuildProgressListenerAdapterTest extends Specification {
@@ -75,7 +74,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * buildStartEvent.getDisplayName() >> 'build started'
         _ * buildStartEvent.getDescriptor() >> buildDescriptor
 
-        def taskStartEvent = Mock(InternalTaskStartedProgressEvent)
+        def taskStartEvent = Mock(InternalBuildOperationStartedProgressEvent)
         _ * taskStartEvent.getEventTime() >> 1001
         _ * taskStartEvent.getDisplayName() >> 'task started'
         _ * taskStartEvent.getDescriptor() >> taskDescriptor

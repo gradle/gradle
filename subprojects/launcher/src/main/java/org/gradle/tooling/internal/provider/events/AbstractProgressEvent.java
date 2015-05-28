@@ -15,9 +15,12 @@
  */
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
+
 import java.io.Serializable;
 
-public abstract class AbstractProgressEvent<T> implements Serializable {
+public abstract class AbstractProgressEvent<T extends InternalBuildDescriptor> implements Serializable, InternalBuildProgressEvent {
     private final long eventTime;
     private final T descriptor;
 
