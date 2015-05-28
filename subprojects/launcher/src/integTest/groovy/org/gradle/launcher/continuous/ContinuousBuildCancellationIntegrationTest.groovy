@@ -16,21 +16,38 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.internal.SystemProperties
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.util.concurrent.PollingConditions
 
 class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
-    TestFile setupJavaProject() {
+    def setup() {
         buildFile.text = "apply plugin: 'java'"
         testDirectory.createDir('src/main/java')
     }
 
-    def "can cancel continuous build by ctrl+d"() {
+    def "should cancel build when System.in contains EOT"() {
         given:
-        setupJavaProject()
+        succeeds("build")
 
+        when:
+        stdinPipe.write(4) // EOT / CTRL-D
+
+        // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
+        // Possibly, the daemon should be EOT aware and close the stream.
+        // Or, when the client is doing a blocking read of the input we shouldn't buffer.
+        stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
+
+        then:
+        expectOutput {
+            it.contains("Build cancelled")
+        }
+    }
+
+    def "should cancel continuous build by EOT, also when EOT isn't the first character"() {
         when:
         succeeds("build")
 
@@ -55,10 +72,52 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         [inputBefore, flushBefore] << [['', ' ', 'a', 'some input', 'a' * 8192], [true, false]].combinations()
     }
 
-    def "does not cancel continuous build when other than ctrl+d is entered"() {
-        given:
-        setupJavaProject()
 
+    def "should cancel build when System.in is closed"() {
+        given:
+        succeeds("build")
+
+        when:
+        closeStdIn()
+
+        then:
+        expectOutput { it.contains("Build cancelled") }
+    }
+
+    def "should cancel build when System.in contains some other characters, then closes"() {
+        when:
+        succeeds("build")
+        stdinPipe << 'abc'
+
+        then:
+        expectOutput { !it.contains("Build cancelled") }
+
+        when:
+        stdinPipe.close()
+
+        then:
+        expectOutput { it.contains("Build cancelled") }
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "does not cancel on EOT or by closing System.in when not interactive"() {
+        when:
+        executer.beforeExecute { it.withForceInteractive(false) }
+        waitingMessage = "Waiting for changes to input files of tasks...\n"
+        killToStop = true
+        stdinPipe.close()
+
+        then:
+        succeeds "build" // tests message
+
+        when:
+        file("src/main/java/Thing.java") << "class Thing {}"
+
+        then:
+        succeeds()
+    }
+
+    def "does not cancel continuous build when other than EOT is entered"() {
         when:
         succeeds("build")
 
@@ -75,9 +134,9 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         assert gradle.isRunning()
     }
 
-    def "can cancel continuous build by ctrl+d after multiple builds"() {
+    def "can cancel continuous build by EOT after multiple builds"() {
         given:
-        def testfile = setupJavaProject().file('Thing.java')
+        def testfile = file('src/main/java/Thing.java')
         testfile.text = 'public class Thing {}'
 
         when:

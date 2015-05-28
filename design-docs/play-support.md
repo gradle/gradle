@@ -718,9 +718,12 @@ This story makes the use of continuous mode more effective by allowing better ut
 `ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
 
 #### Test Coverage
-- ~~can cancel continuous build by ctrl+d~~
-- ~~does not cancel continuous build when other than ctrl+d is entered~~
-- ~~can cancel continuous build by ctrl+d after multiple builds~~
+- ~~should cancel continuous build by [EOT](http://en.wikipedia.org/wiki/End-of-transmission_character) (ctrl-d)~~
+- ~~should cancel build when System.in is closed~~
+- ~~should cancel build when System.in contains some other characters, then closes~~
+- ~~does not cancel on EOT or System.in closing when not interactive~~
+- ~~does not cancel continuous build when other than EOT is entered~~
+- ~~can cancel continuous build by EOT after multiple builds~~
 
 
 ### Backlog & Open Issues
