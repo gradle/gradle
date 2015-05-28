@@ -18,24 +18,24 @@ package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.scala.fixtures.TestScalaComponent
+import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-class MixedPlayAndScalaLangProjectIntegrationTest extends AbstractIntegrationSpec {
-    TestJvmComponent scalaApp = new TestScalaComponent()
+class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSpec {
+    TestJvmComponent jvmApp = new TestJavaComponent()
     PlayApp playApp = new BasicPlayApp()
 
     def setup() {
         playApp.writeSources(file("."))
-        scalaApp.writeSources(file("src/scalaLib"))
-        scalaApp.writeResources(file("src/scalaLib/resources"))
-        settingsFile.text = "rootProject.name = 'mixedScalaAndPlay'"
+        jvmApp.writeSources(file("src/jvmLib"))
+        jvmApp.writeResources(file("src/jvmLib/resources"))
+        settingsFile.text = "rootProject.name = 'mixedJvmAndPlay'"
         buildFile.text = """
         plugins {
             id 'jvm-component'
-            id '${scalaApp.languageName}-lang'
+            id '${jvmApp.languageName}-lang'
             id 'play'
         }
         repositories{
@@ -49,7 +49,7 @@ class MixedPlayAndScalaLangProjectIntegrationTest extends AbstractIntegrationSpe
 
         model {
             components {
-                scalaLib(JvmLibrarySpec)
+                jvmLib(JvmLibrarySpec)
             }
         }
 """
@@ -59,12 +59,13 @@ class MixedPlayAndScalaLangProjectIntegrationTest extends AbstractIntegrationSpe
         when:
         succeeds("assemble")
         then:
-        executedAndNotSkipped(":createPlayBinaryAssetsJar", ":compileRoutesPlayBinary", ":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary",
-                ":compileScalaLibJarScalaLibScala", ":processScalaLibJarScalaLibResources", ":createScalaLibJar", ":scalaLibJar", ":assemble")
+        executedAndNotSkipped(":compileJvmLibJarJvmLibJava", ":processJvmLibJarJvmLibResources", ":createJvmLibJar", ":jvmLibJar", ":createPlayBinaryAssetsJar",
+                ":compileRoutesPlayBinary", ":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
         and:
-        file("build/classes/scalaLibJar").assertHasDescendants(scalaApp.expectedOutputs*.fullPath as String[])
-        new JarTestFixture(file("build/jars/scalaLibJar/scalaLib.jar")).hasDescendants(scalaApp.expectedOutputs*.fullPath as String[])
-        file("build/playBinary/lib/mixedScalaAndPlay.jar").exists()
-        file("build/playBinary/lib/mixedScalaAndPlay-assets.jar").exists()
+        file("build/classes/jvmLibJar").assertHasDescendants(jvmApp.expectedOutputs*.fullPath as String[])
+        new JarTestFixture(file("build/jars/jvmLibJar/jvmLib.jar")).hasDescendants(jvmApp.expectedOutputs*.fullPath as String[])
+        file("build/playBinary/lib/mixedJvmAndPlay.jar").exists()
+        file("build/playBinary/lib/mixedJvmAndPlay-assets.jar").exists()
     }
+
 }

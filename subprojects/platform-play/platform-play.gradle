@@ -10,7 +10,6 @@ dependencies {
 }
 
 useTestFixtures()
-useTestFixtures(project: ":platformBase", sourceSet: 'integTest')
 useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
 useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
 useTestFixtures(project: ":launcher", sourceSet: 'integTest')
