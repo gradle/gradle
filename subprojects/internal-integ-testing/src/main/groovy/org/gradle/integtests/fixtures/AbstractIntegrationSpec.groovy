@@ -31,11 +31,12 @@ import spock.lang.Specification
 
 /**
  * Spockified version of AbstractIntegrationTest.
- * 
+ *
  * Plan is to bring features over as needed.
  */
 class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
         @Override
         Statement apply(Statement base, FrameworkMethod method, Object target) {
             return super.apply(new Statement() {
@@ -138,30 +139,27 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     protected ExecutionFailure runAndFail(String... tasks) {
         fails(*tasks)
     }
-    
+
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
         result = failure
     }
-    
+
     protected List<String> getExecutedTasks() {
         assertHasResult()
         result.executedTasks
     }
-    
+
     protected Set<String> getSkippedTasks() {
         assertHasResult()
         result.skippedTasks
     }
-    
+
     protected List<String> getNonSkippedTasks() {
         executedTasks - skippedTasks
     }
-    
+
     protected void executedAndNotSkipped(String... tasks) {
-        if (GradleContextualExecuter.parallel) {
-            return
-        }
         tasks.each {
             assert it in executedTasks
             assert !skippedTasks.contains(it)
@@ -169,9 +167,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected void skipped(String... tasks) {
-        if (GradleContextualExecuter.parallel) {
-            return
-        }
         tasks.each {
             assert it in executedTasks
             assert skippedTasks.contains(it)
@@ -201,7 +196,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     protected void failureDescriptionContains(String description) {
         failure.assertThatDescription(CoreMatchers.containsString(description))
     }
-    
+
     private assertHasResult() {
         assert result != null : "result is null, you haven't run succeeds()"
     }
@@ -239,14 +234,14 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         return mavenRepo
     }
 
-    public MavenFileRepository publishedMavenModules(String ... modulesToPublish) {
+    public MavenFileRepository publishedMavenModules(String... modulesToPublish) {
         modulesToPublish.each { String notation ->
             def modules = notation.split("->").reverse()
             def current
             modules.each { String module ->
                 def s = new TestDependency(module)
                 def m = mavenRepo.module(s.group, s.name, s.version)
-                current = current? m.dependsOn(current.groupId, current.artifactId, current.version).publish() : m.publish()
+                current = current ? m.dependsOn(current.groupId, current.artifactId, current.version).publish() : m.publish()
             }
         }
         mavenRepo
