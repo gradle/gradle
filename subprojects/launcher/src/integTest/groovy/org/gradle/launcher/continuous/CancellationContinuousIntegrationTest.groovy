@@ -19,8 +19,6 @@ package org.gradle.launcher.continuous
 import org.gradle.internal.SystemProperties
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
-import spock.util.concurrent.PollingConditions
 
 class CancellationContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
