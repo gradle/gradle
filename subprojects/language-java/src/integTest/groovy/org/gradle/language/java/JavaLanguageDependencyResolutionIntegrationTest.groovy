@@ -272,4 +272,51 @@ model {
         fails 'assemble'
         failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
     }
+
+    def "can resolve dependencies on a different projects"() {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        other(JvmLibrarySpec)
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'other'
+                        project ':dep' library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('settings.gradle') << 'include "dep"'
+        file('dep/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec)
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp /* extends Dep implements SomeInterface */{}'
+        file('src/other/java/Dep.java') << 'public class Dep {}'
+        file('dep/src/main/java/SomeInterface.java') << 'public interface SomeInterface {}'
+
+        expect:
+        succeeds 'assemble'
+
+    }
+
 }

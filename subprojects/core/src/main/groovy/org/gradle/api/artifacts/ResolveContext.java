@@ -26,4 +26,6 @@ public interface ResolveContext {
 
     DependencySet getAllDependencies();
 
+    ResolutionStrategy getResolutionStrategy();
+
 }

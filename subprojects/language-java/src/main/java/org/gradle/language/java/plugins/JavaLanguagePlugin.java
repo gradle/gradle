@@ -177,7 +177,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                         ResolvedComponentResult selected = resolved.getSelected();
                         ComponentIdentifier id = selected.getId();
                         // TODO: Convert this into actual classpath!
-                        //System.out.println("selected = " + ((ResolvedDependencyResult) dependencyResult).getSelected());
+                        // System.out.println("selected = " + ((ResolvedDependencyResult) dependencyResult).getSelected());
                     } else if (dependencyResult instanceof UnresolvedDependencyResult) {
                         UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
                         notFound.add(unresolved.getFailure());

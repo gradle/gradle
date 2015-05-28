@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -36,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
@@ -111,12 +109,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                ResolutionStrategyInternal resolutionStrategy;
-                if (resolveContext instanceof ConfigurationInternal) {
-                    resolutionStrategy =((ConfigurationInternal) resolveContext).getResolutionStrategy();
-                } else {
-                    resolutionStrategy = new DefaultResolutionStrategy();
-                }
+                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) resolveContext.getResolutionStrategy();
 
                 List<LocalComponentFactory> localComponentFactories = allServices(LocalComponentFactory.class);
                 List<ResolverProvider> resolvers = allServices(ResolverProvider.class, ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));

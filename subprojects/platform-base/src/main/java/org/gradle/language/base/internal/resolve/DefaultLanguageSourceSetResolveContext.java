@@ -16,6 +16,8 @@
 package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -23,6 +25,7 @@ import org.gradle.language.base.sources.BaseLanguageSourceSet;
 public abstract class DefaultLanguageSourceSetResolveContext implements ResolveContext {
     private final ProjectInternal project;
     private final BaseLanguageSourceSet sourceSet;
+    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
 
     public DefaultLanguageSourceSetResolveContext(ProjectInternal project, BaseLanguageSourceSet sourceSet) {
         this.project = project;
@@ -44,5 +47,10 @@ public abstract class DefaultLanguageSourceSetResolveContext implements ResolveC
 
     public ProjectInternal getProject() {
         return project;
+    }
+
+    @Override
+    public ResolutionStrategyInternal getResolutionStrategy() {
+        return resolutionStrategy;
     }
 }
