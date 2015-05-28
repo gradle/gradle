@@ -169,7 +169,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         pomReader.parseActivePomProfiles().size() == 1
-        pomReader.properties.size() == 5
+        pomReader.properties.size() == 7
         !pomReader.properties.containsKey('prop1')
         !pomReader.properties.containsKey('prop3')
         pomReader.properties['prop2'] == 'myproperty2'
@@ -286,7 +286,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomProfile.properties['groupId.prop'] == 'group-two'
         pomProfile.properties['artifactId.prop'] == 'artifact-two'
         pomProfile.properties['version.prop'] == 'version-two'
-        pomReader.properties.size() == 7
+        pomReader.properties.size() == 9
         pomReader.properties['groupId.prop'] == 'group-two'
         pomReader.properties['artifactId.prop'] == 'artifact-two'
         pomReader.properties['version.prop'] == 'version-two'
@@ -331,7 +331,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         pomReader.parseActivePomProfiles().size() == 2
-        pomReader.properties.size() == 7
+        pomReader.properties.size() == 9
         pomReader.properties['groupId.prop'] == 'group-two'
         pomReader.properties['artifactId.prop'] == 'artifact-two'
         pomReader.properties['version.prop'] == 'version-two'
@@ -2243,7 +2243,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         pomReader.parseActivePomProfiles().size() == 2
-        pomReader.properties.size() == 7
+        pomReader.properties.size() == 9
         pomReader.properties['groupId.prop'] == 'group-two'
         pomReader.properties['artifactId.prop'] == 'artifact-two'
         pomReader.properties['version.prop'] == 'version-two'
