@@ -88,7 +88,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         binaries.all(new Action<PlayApplicationBinarySpec>() {
             @Override
             public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
-                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getSource().withType(CoffeeScriptSourceSet.class)  ) {
+                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getSource().withType(CoffeeScriptSourceSet.class)) {
                     JavaScriptSourceSet javaScriptSourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet.class, String.format("%sJavaScript", coffeeScriptSourceSet.getName()), playApplicationBinarySpec.getName(), fileResolver, instantiator);
                     playApplicationBinarySpec.getGeneratedJavaScript().put(coffeeScriptSourceSet, javaScriptSourceSet);
                 }
