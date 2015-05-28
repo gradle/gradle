@@ -27,7 +27,6 @@ import org.junit.Rule
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
-import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
@@ -106,11 +105,18 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     private void waitForBuild() {
-        // TODO: change this to 'tick' on any output change rather than waiting for the hold build to complete
-        //       to be more adaptable to slow build environments without using huge timeouts
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            if (gradle.isRunning()) {
-                assert buildOutputSoFar().endsWith(TextUtil.toPlatformLineSeparators(waitingMessage))
+        def lastOutput = buildOutputSoFar()
+        def lastActivity = System.currentTimeMillis()
+
+        while (System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
+            sleep 100
+            def lastLength = lastOutput.size()
+            lastOutput = buildOutputSoFar()
+
+            if (lastOutput.endsWith(TextUtil.toPlatformLineSeparators(waitingMessage))) {
+                break
+            } else if (lastOutput.size() > lastLength) {
+                lastActivity = System.currentTimeMillis()
             }
         }
 
@@ -129,17 +135,10 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                 gradle.abort()
             } else {
                 closeStdIn()
-                assert new SimpleTimeLimiter().callWithTimeout(new Callable() {
-                    @Override
-                    Boolean call() throws Exception {
-                        if (expectBuildFailure) {
-                            gradle.waitForFailure()
-                        } else {
-                            gradle.waitForFinish()
-                        }
-                        return Boolean.TRUE
-                    }
-                }, shutdownTimeout, TimeUnit.SECONDS, false)
+                new SimpleTimeLimiter().callWithTimeout(
+                    { expectBuildFailure ? gradle.waitForFailure() : gradle.waitForFinish() },
+                    shutdownTimeout, TimeUnit.SECONDS, false
+                )
             }
         }
     }
