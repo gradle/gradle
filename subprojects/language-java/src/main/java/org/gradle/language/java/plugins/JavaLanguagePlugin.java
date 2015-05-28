@@ -16,11 +16,9 @@
 
 package org.gradle.language.java.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.result.*;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -191,14 +189,15 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
 
         private List<ResolutionAwareRepository> getResolutionAwareRepositories() {
-            ImmutableList<ArtifactRepository> artifactRepositories = ImmutableList.copyOf(repositories.iterator());
+            /*ImmutableList<ArtifactRepository> artifactRepositories = ImmutableList.copyOf(repositories.iterator());
             List<ResolutionAwareRepository> resolutionRepositories = new LinkedList<ResolutionAwareRepository>();
             for (ArtifactRepository artifactRepository : artifactRepositories) {
                 if (artifactRepository instanceof ResolutionAwareRepository) {
                     resolutionRepositories.add((ResolutionAwareRepository)artifactRepository);
                 }
             }
-            return resolutionRepositories;
+            return resolutionRepositories;*/
+            return Collections.emptyList();
         }
     }
 }
