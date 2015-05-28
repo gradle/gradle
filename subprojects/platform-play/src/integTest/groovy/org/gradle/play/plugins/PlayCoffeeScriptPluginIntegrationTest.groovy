@@ -27,7 +27,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             plugins {
-                id 'play-application'
+                id 'play'
                 id 'play-coffeescript'
             }
 

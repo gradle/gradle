@@ -74,7 +74,6 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                // TODO - should have some way to lookup using internal type
                 CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScript", CoffeeScriptSourceSet.class);
                 coffeeScriptSourceSet.getSource().srcDir("app/assets");
                 coffeeScriptSourceSet.getSource().include("**/*.coffee");
@@ -89,7 +88,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         binaries.all(new Action<PlayApplicationBinarySpec>() {
             @Override
             public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
-                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getSource().withType(CoffeeScriptSourceSet.class)) {
+                for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getSource().withType(CoffeeScriptSourceSet.class)  ) {
                     JavaScriptSourceSet javaScriptSourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet.class, String.format("%sJavaScript", coffeeScriptSourceSet.getName()), playApplicationBinarySpec.getName(), fileResolver, instantiator);
                     playApplicationBinarySpec.getGeneratedJavaScript().put(coffeeScriptSourceSet, javaScriptSourceSet);
                 }

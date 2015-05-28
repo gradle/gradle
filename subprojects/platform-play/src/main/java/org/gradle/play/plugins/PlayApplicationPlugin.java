@@ -26,15 +26,12 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
-import org.gradle.language.jvm.internal.DefaultJvmResourceLanguageSourceSet;
 import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
@@ -131,29 +128,20 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void configureDefaultPlaySources(ModelMap<PlayApplicationSpec> playApplicationComponents, ServiceRegistry serviceRegistry) {
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            playApplicationComponents.all(new Action<PlayApplicationSpec>() {
+        void createJvmSourceSets(ModelMap<PlayApplicationSpec> components, ServiceRegistry serviceRegistry) {
+            components.beforeEach(new Action<PlayApplicationSpec>() {
+                @Override
                 public void execute(PlayApplicationSpec playComponent) {
-                    // TODO:DAZ Scala source set type should be registered via scala-lang plugin
-                    ScalaLanguageSourceSet scalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
-
-                    // Compile scala/java sources under /app\
-                    // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
+                    ScalaLanguageSourceSet scalaSources = ((ComponentSpecInternal) playComponent).getSources().create("scala", ScalaLanguageSourceSet.class);
                     scalaSources.getSource().srcDir("app");
                     scalaSources.getSource().include("**/*.scala");
-                    FunctionalSourceSet sources = ((ComponentSpecInternal) playComponent).getSources();
-                    sources.add(scalaSources);
 
-                    JavaSourceSet javaSources = BaseLanguageSourceSet.create(DefaultJavaLanguageSourceSet.class, "java", playComponent.getName(), fileResolver, instantiator);
+                    JavaSourceSet javaSources = ((ComponentSpecInternal) playComponent).getSources().create("java", JavaSourceSet.class);
                     javaSources.getSource().srcDir("app");
                     javaSources.getSource().include("**/*.java");
-                    sources.add(javaSources);
 
-                    JvmResourceSet appResources = BaseLanguageSourceSet.create(DefaultJvmResourceLanguageSourceSet.class, "resources", playComponent.getName(), fileResolver, instantiator);
+                    JvmResourceSet appResources = ((ComponentSpecInternal) playComponent).getSources().create("resources", JvmResourceSet.class);
                     appResources.getSource().srcDirs("conf");
-                    sources.add(appResources);
                 }
             });
         }
@@ -282,8 +270,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             binaries.all(new Action<PlayApplicationBinarySpec>() {
                 @Override
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
+                    // TODO:DAZ We'll need a different container of source sets for generated sources (can't add new ones while we iterate over the set)
                     for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getSource().withType(languageSourceSetType)) {
-                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, String.format("%sScalaSources", languageSourceSet.getName()), playApplicationBinarySpec.getName(), fileResolver, instantiator);
+                        String name = String.format("%sScalaSources", languageSourceSet.getName());
+                        ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver, instantiator);
                         playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, twirlScalaSources);
                     }
                 }
