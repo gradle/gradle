@@ -72,7 +72,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.javaScriptClasspath = javaScriptClasspath;
     }
 
-    // TODO:DAZ Detangle Routes adapter from compile specs
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);

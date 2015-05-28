@@ -85,7 +85,7 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
         return Arrays.asList("play.templates");
     }
 
-    public Object getDependencyNotation() {
+    public String getDependencyNotation() {
         return String.format("com.typesafe.play:templates-compiler_%s:%s", scalaVersion, twirlVersion);
     }
 }

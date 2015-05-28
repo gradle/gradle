@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public interface VersionedRoutesCompilerAdapter extends Serializable {
-    Object getDependencyNotation();
+    String getDependencyNotation();
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 

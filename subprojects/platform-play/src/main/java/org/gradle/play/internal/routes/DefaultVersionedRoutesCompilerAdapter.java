@@ -40,7 +40,7 @@ abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesC
         return false;
     }
 
-    public Object getDependencyNotation() {
+    public String getDependencyNotation() {
         return String.format("com.typesafe.play:routes-compiler_%s:%s", scalaVersion, playVersion);
     }
 

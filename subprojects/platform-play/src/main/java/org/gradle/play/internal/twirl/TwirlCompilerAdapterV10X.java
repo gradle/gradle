@@ -99,7 +99,7 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         return Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
     }
 
-    public Object getDependencyNotation() {
+    public String getDependencyNotation() {
         return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);
     }
 }
