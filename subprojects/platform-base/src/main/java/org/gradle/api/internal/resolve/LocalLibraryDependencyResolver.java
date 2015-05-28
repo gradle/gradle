@@ -57,7 +57,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             DefaultLocalComponentMetaData metaData = null;
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             ProjectInternal project = projectFinder.getProject(dependency.getRequested().getGroup());
-            if (selector.getProjectPath() != null) {
+            if (project!=null && selector.getProjectPath() != null) {
                 project = project.getRootProject().findProject(selector.getProjectPath());
             }
             if (project != null) {
