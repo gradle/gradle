@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.GUtil;

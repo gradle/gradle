@@ -15,26 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
-import java.util.Set;
+import java.util.List;
 
-public class CompositeResolveLocalComponentFactory implements LocalComponentFactory {
-    private final Set<LocalComponentFactory> factories;
+public class LocalComponentFactoryChain implements LocalComponentFactory {
+    private final List<LocalComponentFactory> factories;
 
-    public CompositeResolveLocalComponentFactory(LocalComponentFactory... factories) {
-        this.factories = Sets.newHashSet(factories);
-    }
-
-    public void addFactory(LocalComponentFactory factory) {
-        factories.add(factory);
+    public LocalComponentFactoryChain(List<LocalComponentFactory> factories) {
+        this.factories = factories;
     }
 
     @Override
     public boolean canConvert(Object source) {
-        return true;
+        for (LocalComponentFactory factory : factories) {
+            if (factory.canConvert(source)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

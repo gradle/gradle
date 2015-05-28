@@ -19,6 +19,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;

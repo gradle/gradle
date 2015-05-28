@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -23,21 +24,20 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContextInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyToComponentIdResolverChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentFactoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
@@ -54,9 +54,13 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,23 +68,22 @@ import java.util.List;
 
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
-    private final LocalComponentFactory localComponentFactory;
+    private final ServiceRegistry serviceRegistry;
     private final DependencyDescriptorFactory dependencyDescriptorFactory;
     private final ResolveIvyFactory ivyFactory;
-    private final ProjectComponentRegistry projectComponentRegistry;
     private final CacheLockingManager cacheLockingManager;
     private final IvyContextManager ivyContextManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final VersionComparator versionComparator;
     private final boolean buildProjectDependencies;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                     ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
-                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator, boolean buildProjectDependencies) {
+    public DefaultDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
+                                     CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
+                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator,
+                                     boolean buildProjectDependencies) {
+        this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
-        this.localComponentFactory = localComponentFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-        this.projectComponentRegistry = projectComponentRegistry;
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
         this.storeFactory = storeFactory;
@@ -103,14 +106,20 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 RepositoryChain repositoryChain = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor());
 
-                ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory);
-                ProjectDependencyResolver projectDependencyResolver;
-                if (resolveContext instanceof ResolveContextInternal) {
-                    projectDependencyResolver = ((ResolveContextInternal) resolveContext).newProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
-                } else {
-                    projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
-                }
-                DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencySubstitutionRule());
+                List<LocalComponentFactory> localComponentFactories = serviceRegistry.getAll(LocalComponentFactory.class);
+                LocalComponentFactoryChain localComponentFactory = new LocalComponentFactoryChain(localComponentFactories);
+
+                List<DependencyToComponentIdResolver> dependencyToComponentIdResolvers = serviceRegistry.getAll(DependencyToComponentIdResolver.class);
+                List<DependencyToComponentIdResolver> componentIdResolvers = Lists.newArrayList(dependencyToComponentIdResolvers);
+                componentIdResolvers.add(repositoryChain.getComponentIdResolver());
+                DependencyToComponentIdResolverChain componentIdResolver = new DependencyToComponentIdResolverChain(componentIdResolvers);
+
+                List<ComponentMetaDataResolver> compomentMetaDataResolvers = serviceRegistry.getAll(ComponentMetaDataResolver.class);
+                List<ComponentMetaDataResolver> metaDataResolvers = Lists.newArrayList(compomentMetaDataResolvers);
+                metaDataResolvers.add(new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory));
+                CompositeComponentMetaDataResolver metaDataResolver = new CompositeComponentMetaDataResolver(metaDataResolvers);
+
+                DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(componentIdResolver, resolutionStrategy.getDependencySubstitutionRule());
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
 
@@ -122,8 +131,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
                 ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-
-                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, projectDependencyResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
+                DefaultResolveContextToComponentResolver moduleResolver = new DefaultResolveContextToComponentResolver(localComponentFactory);
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
 
                 StoreSet stores = storeFactory.createStoreSet();
 
@@ -172,4 +181,17 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         return artifactResolver;
     }
 
+    private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
+        private final LocalComponentFactoryChain localComponentFactory;
+
+        public DefaultResolveContextToComponentResolver(LocalComponentFactoryChain localComponentFactory) {
+            this.localComponentFactory = localComponentFactory;
+        }
+
+        @Override
+        public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
+            LocalComponentMetaData componentMetaData = localComponentFactory.convert(resolveContext);
+            result.resolved(componentMetaData.toResolveMetaData());
+        }
+    }
 }

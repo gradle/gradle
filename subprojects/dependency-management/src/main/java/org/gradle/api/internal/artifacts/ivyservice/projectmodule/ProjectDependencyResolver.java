@@ -15,31 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-public class ProjectDependencyResolver implements DependencyToComponentIdResolver, ResolveContextToComponentResolver, ComponentMetaDataResolver {
+public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
-    private final DependencyToComponentIdResolver delegateIdResolver;
-    private final ComponentMetaDataResolver delegateComponentResolver;
-    private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToComponentIdResolver delegateIdResolver, ComponentMetaDataResolver delegateComponentResolver) {
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry) {
         this.projectComponentRegistry = projectComponentRegistry;
-        this.delegateIdResolver = delegateIdResolver;
-        this.delegateComponentResolver = delegateComponentResolver;
-        this.localComponentFactory = localComponentFactory;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
@@ -47,8 +38,6 @@ public class ProjectDependencyResolver implements DependencyToComponentIdResolve
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(selector.getProjectPath());
             result.resolved(componentMetaData.toResolveMetaData());
-        } else {
-            delegateIdResolver.resolve(dependency, result);
         }
     }
 
@@ -56,13 +45,7 @@ public class ProjectDependencyResolver implements DependencyToComponentIdResolve
         if (identifier instanceof ProjectComponentIdentifier) {
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(((ProjectComponentIdentifier) identifier).getProjectPath());
             result.resolved(componentMetaData.toResolveMetaData());
-        } else {
-            delegateComponentResolver.resolve(identifier, componentOverrideMetadata, result);
         }
     }
 
-    public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
-        LocalComponentMetaData componentMetaData = localComponentFactory.convert(resolveContext);
-        result.resolved(componentMetaData.toResolveMetaData());
-    }
 }
