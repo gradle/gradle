@@ -279,11 +279,11 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-T</option>, <option>--continuous</option>
+            <term>
+                <option>-t</option>, <option>--continuous (incubating)</option>
             </term>
             <listitem>
-                <para>Enables 'continuous mode'.  Gradle will automatically re-run when changes are detected. See <xref linkend="continuous_mode"/>.
-                </para>
+                <para>Enables <link linkend="continuous_build">continuous building</link> - Gradle will automatically re-run when changes are detected.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
