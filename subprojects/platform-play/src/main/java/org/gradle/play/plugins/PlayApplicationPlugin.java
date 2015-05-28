@@ -295,7 +295,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool = toolResolver.resolveCompiler(TwirlCompileSpec.class, binary.getTargetPlatform());
             for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
-                final String twirlCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
+                final String twirlCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), StringUtils.capitalize(twirlSourceSet.getName()));
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
 
                 tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
@@ -318,7 +318,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool = toolResolver.resolveCompiler(RoutesCompileSpec.class, binary.getTargetPlatform());
             for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class)) {
-                final String routesCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(routesSourceSet.getName()), StringUtils.capitalize(binary.getName()));
+                final String routesCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), StringUtils.capitalize(routesSourceSet.getName()));
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
 
                 tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
@@ -338,7 +338,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @BinaryTasks
         void createScalaCompileTask(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
-            final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
+            final String scalaCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), "Scala");
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
 

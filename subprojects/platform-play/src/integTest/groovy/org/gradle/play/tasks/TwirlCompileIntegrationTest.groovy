@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
-    def destinationDirPath = "build/playBinary/src/compileTwirlTemplatesPlayBinary/views/html"
+    def destinationDirPath = "build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html"
     def destinationDir = file(destinationDirPath)
 
     def setup() {
@@ -53,21 +53,21 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         given:
         withTwirlTemplate()
         when:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
         destinationDir.assertHasDescendants("index.template.scala")
 
         when:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
-        skipped(":compileTwirlTemplatesPlayBinary");
+        skipped(":compilePlayBinaryTwirlTemplates");
     }
 
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
         then:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
         def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
@@ -75,7 +75,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         when:
         withTwirlTemplate("input2.scala.html")
         and:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
         destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
         and:
@@ -84,7 +84,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         when:
         file("app/views/input2.scala.html").delete()
         then:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
     }
@@ -93,7 +93,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         given:
         withTwirlTemplate("input1.scala.html")
         withTwirlTemplate("input2.scala.html")
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
 
         and:
         destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
@@ -103,7 +103,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         file("app/views/input2.scala.html").delete()
 
         then:
-        succeeds("compileTwirlTemplatesPlayBinary")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
         destinationDir.assertHasDescendants("input1.template.scala")
         file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
@@ -121,15 +121,15 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
         then:
         executedAndNotSkipped(
-                ":compileTwirlTemplatesPlayBinary",
-                ":compileExtraTwirlPlayBinary",
-                ":compileOtherTwirlPlayBinary"
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryExtraTwirl",
+                ":compilePlayBinaryOtherTwirl"
         )
 
         and:
         destinationDir.assertHasDescendants("index.template.scala")
-        file("build/playBinary/src/compileOtherTwirlPlayBinary/templates/html").assertHasDescendants("other.template.scala")
-        file("build/playBinary/src/compileExtraTwirlPlayBinary/html").assertHasDescendants("extra.template.scala")
+        file("build/playBinary/src/compilePlayBinaryOtherTwirl/templates/html").assertHasDescendants("other.template.scala")
+        file("build/playBinary/src/compilePlayBinaryExtraTwirl/html").assertHasDescendants("extra.template.scala")
 
         and:
         jar("build/playBinary/lib/twirl-play-app.jar")

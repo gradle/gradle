@@ -103,9 +103,9 @@ Binaries
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":compileRoutesPlayBinary",
-                ":compileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary")
+        skipped(":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants()
@@ -158,13 +158,13 @@ Binaries
 
         then:
         executedAndNotSkipped(
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":scalaCompilePlayBinary",
                 ":playBinary",
                 ":assemble")
-        skipped(":compileRoutesPlayBinary",
-                ":compileTwirlTemplatesPlayBinary")
+        skipped(":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")

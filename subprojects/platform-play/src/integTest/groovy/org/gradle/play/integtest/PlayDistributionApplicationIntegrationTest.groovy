@@ -30,8 +30,8 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
 
         then:
         executedAndNotSkipped(
-                ":compileRoutesPlayBinary",
-                ":compileTwirlTemplatesPlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
@@ -48,8 +48,8 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
-                ":compileRoutesPlayBinary",
-                ":compileTwirlTemplatesPlayBinary",
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
