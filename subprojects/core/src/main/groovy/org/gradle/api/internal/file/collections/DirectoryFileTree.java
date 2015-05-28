@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.base.Function;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
@@ -47,13 +46,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * excludes.
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
-
-    public static final Function<DirectoryTree, File> GET_DIR = new Function<DirectoryTree, File>() {
-        @Override
-        public File apply(DirectoryTree input) {
-            return input.getDir();
-        }
-    };
 
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
 
