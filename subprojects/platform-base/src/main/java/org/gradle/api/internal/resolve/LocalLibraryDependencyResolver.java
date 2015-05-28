@@ -15,16 +15,12 @@
  */
 package org.gradle.api.internal.resolve;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -35,6 +31,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
@@ -74,12 +71,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     String projectPath = project.getPath();
                     LibrarySpec library = libraries.get(libraryName);
                     if (library != null) {
-                        ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
-                            projectPath, libraryName, version
-                        );
-                        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, library.getName());
-                        metaData = new DefaultLocalComponentMetaData(id, component, Project.DEFAULT_STATUS);
-                        metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName), "Configuration for " + libraryName, Collections.<String>emptySet(), Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName)), true, true);
+                        metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
                     }
                 }
             }

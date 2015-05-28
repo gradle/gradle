@@ -16,17 +16,18 @@
 package org.gradle.language.base.internal.resolve;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.component.local.model.*;
+import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
@@ -43,25 +44,21 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
     }
 
     @Override
-    public LocalComponentMetaData convert(Object source) {
+    public DefaultLibraryLocalComponentMetaData convert(Object source) {
         DefaultLanguageSourceSetResolveContext context = (DefaultLanguageSourceSetResolveContext) source;
         String projectPath = context.getProject().getPath();
         BaseLanguageSourceSet sourceSet = context.getSourceSet();
         String libraryName = sourceSet.getParentName();
         String version = context.getProject().getVersion().toString();
-        ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
-            projectPath, libraryName, version
-        );
-        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(id, component, Project.DEFAULT_STATUS);
-        metaData.addConfiguration(context.getName(), "Configuration for "+libraryName, Collections.<String>emptySet(), Collections.singleton(context.getName()), true, true);
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
         if (sourceSet instanceof DependentSourceSetInternal) {
-            addDependencies(projectPath, id, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
+            addDependencies(projectPath, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
         }
         return metaData;
     }
 
-    private void addDependencies(String defaultProject, ModuleVersionIdentifier mvi, DefaultLocalComponentMetaData metaData, DependencySpecContainer allDependencies) {
+    private void addDependencies(String defaultProject, DefaultLocalComponentMetaData metaData, DependencySpecContainer allDependencies) {
+        ModuleVersionIdentifier mvi = metaData.getId();
         for (DependencySpec dependency : allDependencies) {
             ComponentSelector selector;
             String projectPath = dependency.getProjectPath();
