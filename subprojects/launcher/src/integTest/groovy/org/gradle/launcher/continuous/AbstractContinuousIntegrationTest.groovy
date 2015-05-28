@@ -108,7 +108,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         def lastOutput = buildOutputSoFar()
         def lastActivity = System.currentTimeMillis()
 
-        while (System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
+        while (gradle.isRunning() && System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
             sleep 100
             def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
