@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk"/>
     <orderEntry type="sourceFolder" forTests="false"/>
-    <orderEntry type="module-library" exported="" scope="RUNTIME">
+    <orderEntry type="module-library" scope="RUNTIME">
       <library>
         <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2.jar!/"/>
@@ -18,7 +18,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="RUNTIME">
+    <orderEntry type="module-library" scope="RUNTIME">
       <library>
         <CLASSES>
           <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar!/"/>

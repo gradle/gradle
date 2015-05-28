@@ -33,7 +33,7 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
     }
 
     @Requires(adhoc = { JdkVersionsContinuousIntegrationTest.java6() })
-    def "can NOT enable continuous mode"() {
+    def "requires java 7 build runtime"() {
         when:
         executer.withJavaHome(java6().javaHome)
 

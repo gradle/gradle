@@ -693,7 +693,7 @@ For a conventional `apply plugin: 'java'` project:
 1. ~~Changes to input zips are respected~~
 1. ~~Changes to input tars are respected (compressed and uncompressed)~~
 
-### ~~Story: Continuous build is executed via the Tooling API~~
+### Story: Continuous build is executed via the Tooling API
 
 This story adds support for executing continuous builds via the Tooling API.
 It does not address continually building/providing tooling models.
@@ -709,6 +709,8 @@ It also does not improve the general capabilities of continuous mode.
 - ~~client can receive appropriate logging and progress events for subsequent builds in continuous mode~~
 - ~~client receives appropriate error if continuous mode attempted on unsupported platform~~
 - ~~logging does not include message to use `ctrl-d` to exit continuous mode~~
+- All tooling API clients that support cancellation (>=2.1) can run continuous build
+- Attempt to run continuous build with tooling api client that does not support cancellation fails eagerly
 
 ### ~~Story: Command line user exits continuous build mode without killing the Gradle process~~
 
@@ -718,9 +720,12 @@ This story makes the use of continuous mode more effective by allowing better ut
 `ctrl-d` will replace `ctrl-c` as the advertised mechanism for escaping wait state when using continuous build.
 
 #### Test Coverage
-- ~~can cancel continuous build by ctrl+d~~
-- ~~does not cancel continuous build when other than ctrl+d is entered~~
-- ~~can cancel continuous build by ctrl+d after multiple builds~~
+- ~~should cancel continuous build by [EOT](http://en.wikipedia.org/wiki/End-of-transmission_character) (ctrl-d)~~
+- ~~should cancel build when System.in is closed~~
+- ~~should cancel build when System.in contains some other characters, then closes~~
+- ~~does not cancel on EOT or System.in closing when not interactive~~
+- ~~does not cancel continuous build when other than EOT is entered~~
+- ~~can cancel continuous build by EOT after multiple builds~~
 
 
 ### Backlog & Open Issues

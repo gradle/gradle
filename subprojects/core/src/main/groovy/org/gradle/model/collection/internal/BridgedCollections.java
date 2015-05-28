@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
@@ -51,7 +52,7 @@ public abstract class BridgedCollections {
             containerPath,
             new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
-                    C container = containerFactory.transform(containerNode);
+                    final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
                     container.all(new Action<I>() {
                         public void execute(final I item) {
@@ -65,14 +66,12 @@ public abstract class BridgedCollections {
 
                             if (!containerNode.hasLink(name)) {
                                 ModelType<I> itemType = ModelType.typeOf(item);
-                                ModelCreator itemCreator = ModelCreators.of(containerPath.child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                ModelCreator itemCreator = ModelCreators.unmanagedInstance(ModelReference.of(containerPath.child(name), itemType), new Factory<I>() {
                                     @Override
-                                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                                        I item = containerNode.getPrivateData(containerType).getByName(name);
-                                        modelNode.setPrivateData(ModelType.typeOf(item), item);
+                                    public I create() {
+                                        return container.getByName(name);
                                     }
                                 })
-                                    .withProjection(UnmanagedModelProjection.of(itemType))
                                     .descriptor(itemDescriptorGenerator.transform(name)).build();
 
                                 containerNode.addLink(itemCreator);

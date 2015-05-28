@@ -242,6 +242,21 @@ public interface ResolutionStrategy {
     /**
      * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
      * can then be configured with substitution rules.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * // add dependency substitution rules
+     * configurations.all {
+     *   resolutionStrategy.dependencySubstitution {
+     *     // Substitute project and module dependencies
+     *     substitute module('org.gradle:api') with project(':api')
+     *     substitute project(':util') with module('org.gradle:util:3.0')
+     *
+     *     // Substitute one module dependency for another
+     *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     *   }
+     * }
+     * </pre>
      *
      * @return this ResolutionStrategy instance
      * @see DependencySubstitutions

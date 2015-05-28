@@ -252,7 +252,6 @@ project(':three') {
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
-        dependencies.modules.each {IdeaModuleFixture.ImlModule module -> println module.moduleName}
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule("COMPILE", "two")
         dependencies.assertHasModule("COMPILE", "three")

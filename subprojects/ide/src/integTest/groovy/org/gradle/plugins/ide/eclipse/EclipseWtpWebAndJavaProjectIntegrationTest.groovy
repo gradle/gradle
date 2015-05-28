@@ -106,7 +106,6 @@ project(':java') {
         webComponent.resources.size() == 2
         webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
-        webComponent.modules.each{println it}
         webComponent.modules.size() == 3
         webComponent.lib('commons-lang3-3.0.jar').assertDeployedAt('/WEB-INF/lib')
         webComponent.project('java').assertDeployedAt('/WEB-INF/lib')

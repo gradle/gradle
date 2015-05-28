@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalBuildOperationFinishedProgressEvent;
 
-public class DefaultBuildOperationFinishedProgressEvent extends AbstractBuildProgressEvent implements InternalBuildOperationFinishedProgressEvent {
+public class DefaultBuildOperationFinishedProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements InternalBuildOperationFinishedProgressEvent {
     private final AbstractBuildOperationResult result;
 
     public DefaultBuildOperationFinishedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor, AbstractBuildOperationResult result) {

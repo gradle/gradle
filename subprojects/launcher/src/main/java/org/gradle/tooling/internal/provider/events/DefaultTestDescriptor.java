@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 
 import java.io.Serializable;
 
-public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor {
+public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalBuildDescriptor {
 
     private final Object id;
     private final String name;

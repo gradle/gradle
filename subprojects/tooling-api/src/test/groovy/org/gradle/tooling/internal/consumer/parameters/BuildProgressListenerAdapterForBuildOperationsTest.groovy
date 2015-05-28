@@ -51,7 +51,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        adapter.onEvent(new Object())
+        adapter.onEvent(Mock(InternalTestProgressEvent))
 
         then:
         0 * listener.statusChanged(_)
@@ -136,7 +136,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         _ * parentTaskDescriptor.getName() >> 'some parent'
         _ * parentTaskDescriptor.getParentId() >> null
 
-        def parentEvent = Mock(InternalTaskStartedProgressEvent)
+        def parentEvent = Mock(InternalBuildOperationStartedProgressEvent)
         _ * parentEvent.getEventTime() >> 999
         _ * parentEvent.getDescriptor() >> parentTaskDescriptor
 
@@ -145,7 +145,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> parentTaskDescriptor.getId()
 
-        def childEvent = Mock(InternalTaskStartedProgressEvent)
+        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
 

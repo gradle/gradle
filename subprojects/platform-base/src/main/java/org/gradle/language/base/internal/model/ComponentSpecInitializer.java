@@ -21,7 +21,6 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.internal.core.*;
@@ -72,8 +71,7 @@ public class ComponentSpecInitializer {
             }
         };
 
-        return domainObjectCollectionModelRegistrar("sources", namedDomainObjectCollectionOf(LanguageSourceSet.class),
-            sourcesPropertyTransformer);
+        return domainObjectCollectionModelRegistrar("sources", namedDomainObjectCollectionOf(LanguageSourceSet.class), sourcesPropertyTransformer);
     }
 
     private static <T> ModelType<NamedDomainObjectCollection<T>> namedDomainObjectCollectionOf(Class<T> type) {
@@ -85,29 +83,20 @@ public class ComponentSpecInitializer {
     private static <T extends Named, C extends NamedDomainObjectCollection<T>> BiAction<MutableModelNode, ComponentSpec> domainObjectCollectionModelRegistrar(
         final String domainObjectCollectionName, final ModelType<C> collectionType, final Transformer<C, ComponentSpecInternal> collectionTransformer
     ) {
-        return domainObjectCollectionModelRegistrar(domainObjectCollectionName, collectionType, collectionTransformer, BiActions.doNothing());
-    }
-
-    private static <T extends Named, C extends NamedDomainObjectCollection<T>> BiAction<MutableModelNode, ComponentSpec> domainObjectCollectionModelRegistrar(
-        final String domainObjectCollectionName, final ModelType<C> collectionType, final Transformer<C, ComponentSpecInternal> collectionTransformer,
-        final BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction
-    ) {
-        return new DomainObjectCollectionModelRegistrationAction<T, C>(domainObjectCollectionName, collectionType, collectionTransformer, itemInitializationAction);
+        return new DomainObjectCollectionModelRegistrationAction<T, C>(domainObjectCollectionName, collectionType, collectionTransformer);
     }
 
     private static <T extends Named, C extends NamedDomainObjectCollection<T>> Action<MutableModelNode> domainObjectCollectionItemModelRegistrar(
-        final ModelType<C> collectionType, final StandardDescriptorFactory itemCreatorDescriptorFactory, final BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction) {
-        return new DomainObjectCollectionItemModelRegistrationAction<T, C>(collectionType, itemInitializationAction, itemCreatorDescriptorFactory);
+        final ModelType<C> collectionType, final StandardDescriptorFactory itemCreatorDescriptorFactory) {
+        return new DomainObjectCollectionItemModelRegistrationAction<T, C>(collectionType, itemCreatorDescriptorFactory);
     }
 
     private static class DomainObjectCollectionItemModelRegistrationAction<T extends Named, C extends NamedDomainObjectCollection<T>> implements Action<MutableModelNode> {
         private final ModelType<C> collectionType;
-        private final BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction;
         private final StandardDescriptorFactory itemCreatorDescriptorFactory;
 
-        public DomainObjectCollectionItemModelRegistrationAction(ModelType<C> collectionType, BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction, StandardDescriptorFactory itemCreatorDescriptorFactory) {
+        public DomainObjectCollectionItemModelRegistrationAction(ModelType<C> collectionType, StandardDescriptorFactory itemCreatorDescriptorFactory) {
             this.collectionType = collectionType;
-            this.itemInitializationAction = itemInitializationAction;
             this.itemCreatorDescriptorFactory = itemCreatorDescriptorFactory;
         }
 
@@ -116,8 +105,6 @@ public class ComponentSpecInitializer {
             collectionModelNode.getPrivateData(collectionType).all(new Action<T>() {
                 @Override
                 public void execute(T item) {
-                    ComponentSpec componentSpec = collectionModelNode.getParent().getPrivateData(ModelType.of(ComponentSpec.class));
-                    itemInitializationAction.execute(item, (ComponentSpecInternal) componentSpec);
                     final String name = item.getName();
                     ModelType<T> itemType = ModelType.typeOf(item);
                     ModelReference<T> itemReference = ModelReference.of(collectionModelNode.getPath().child(name), itemType);
@@ -130,7 +117,6 @@ public class ComponentSpecInitializer {
                         .build();
 
                     collectionModelNode.addLink(itemCreator);
-                    collectionModelNode.getLink(name).ensureUsable();
                 }
             });
         }
@@ -141,14 +127,11 @@ public class ComponentSpecInitializer {
         private final String domainObjectCollectionName;
         private final ModelType<C> collectionType;
         private final Transformer<C, ComponentSpecInternal> collectionTransformer;
-        private final BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction;
 
-        public DomainObjectCollectionModelRegistrationAction(String domainObjectCollectionName, ModelType<C> collectionType, Transformer<C, ComponentSpecInternal> collectionTransformer,
-                                                             BiAction<? super T, ? super ComponentSpecInternal> itemInitializationAction) {
+        public DomainObjectCollectionModelRegistrationAction(String domainObjectCollectionName, ModelType<C> collectionType, Transformer<C, ComponentSpecInternal> collectionTransformer) {
             this.domainObjectCollectionName = domainObjectCollectionName;
             this.collectionType = collectionType;
             this.collectionTransformer = collectionTransformer;
-            this.itemInitializationAction = itemInitializationAction;
         }
 
         @Override
@@ -164,13 +147,12 @@ public class ComponentSpecInitializer {
                     return collectionTransformer.transform((ComponentSpecInternal) componentSpec);
                 }
             };
-            Action<MutableModelNode> itemRegistrar = domainObjectCollectionItemModelRegistrar(collectionType, itemCreatorDescriptorFactory, itemInitializationAction);
+            Action<MutableModelNode> itemRegistrar = domainObjectCollectionItemModelRegistrar(collectionType, itemCreatorDescriptorFactory);
             mutableModelNode.addLink(
-                    ModelCreators.unmanagedInstance(reference, domainObjectCollectionFactory, itemRegistrar)
-                            .descriptor(containerCreatorDescriptor)
-                            .build()
+                ModelCreators.unmanagedInstance(reference, domainObjectCollectionFactory, itemRegistrar)
+                    .descriptor(containerCreatorDescriptor)
+                    .build()
             );
-            mutableModelNode.getLink(domainObjectCollectionName).ensureUsable();
         }
     }
 }

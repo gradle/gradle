@@ -19,6 +19,8 @@ package org.gradle.launcher.continuous
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
+// NB: there's nothing specific about Java support and continuous.
+//     this spec just lays out some more practical use cases than the other targeted tests.
 class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {
@@ -28,7 +30,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executer.withStackTraceChecksDisabled() // some tests fail compilation
     }
 
-    def "can build in continuous mode when no source dir present"() {
+    def "can build when no source dir present"() {
         when:
         assert !file("src/main/java").exists()
 
@@ -38,7 +40,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         ":build" in executedTasks
     }
 
-    def "can build in continuous mode when source dir is removed"() {
+    def "can build when source dir is removed"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
 
@@ -83,7 +85,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         succeeds()
     }
 
-    def "running test in continuous mode"() {
+    def "can run tests"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
         def testFile = file("src/test/java/TestThing.java") << "class TestThing {}"
@@ -154,7 +156,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     }
 
     // Just exercises the dependency management layers to shake out any weirdness
-    def "can resolve dependencies from remote repository in continuous mode"() {
+    def "can resolve dependencies from remote repository"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
 

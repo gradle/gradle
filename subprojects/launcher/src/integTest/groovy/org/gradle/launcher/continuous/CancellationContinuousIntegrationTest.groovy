@@ -20,10 +20,10 @@ import org.gradle.internal.SystemProperties
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class CancellationContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {
-        buildFile << "apply plugin: 'java'"
+        buildFile.text = "apply plugin: 'java'"
     }
 
     def "should cancel build when System.in contains EOT"() {
@@ -39,9 +39,7 @@ class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIn
         stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
 
         then:
-        expectOutput {
-            it.contains("Build cancelled")
-        }
+        cancelsAndExits()
     }
 
     def "should cancel build when System.in is closed"() {
@@ -52,7 +50,7 @@ class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIn
         closeStdIn()
 
         then:
-        expectOutput { it.contains("Build cancelled") }
+        cancelsAndExits()
     }
 
     def "should cancel build when System.in contains some other characters, then closes"() {
@@ -61,22 +59,22 @@ class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIn
         stdinPipe << 'abc'
 
         then:
-        expectOutput { !it.contains("Build cancelled") }
+        doesntExit()
 
         when:
         stdinPipe.close()
 
         then:
-        expectOutput { it.contains("Build cancelled") }
+        cancelsAndExits()
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "does not cancel on EOT when not interactive"() {
+    @Requires(TestPrecondition.NOT_WINDOWS) // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
+    def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:
         executer.beforeExecute { it.withForceInteractive(false) }
         waitingMessage = "Waiting for changes to input files of tasks...\n"
         killToStop = true
-        stdinPipe.close()
+        closeStdIn()
 
         then:
         succeeds "build" // tests message
@@ -87,4 +85,5 @@ class KeyboardCancelContinuousIntegrationTest extends Java7RequiringContinuousIn
         then:
         succeeds()
     }
+
 }

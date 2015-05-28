@@ -213,7 +213,6 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        // TODO: verify this is right
-        builder.add(getTmpDir());
+
     }
 }
