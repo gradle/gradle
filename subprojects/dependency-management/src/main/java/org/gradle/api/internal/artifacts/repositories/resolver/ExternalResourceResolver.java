@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.component.ArtifactType;
@@ -40,11 +40,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.*;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.ByteArrayLocalResource;
-import org.gradle.internal.resource.local.FileLocalResource;
-import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.local.*;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.CollectionUtils;
@@ -63,7 +59,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
     private List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
     private String name;
-    private RepositoryChain repositoryChain;
+    private ResolverProvider resolverProvider;
 
     private final ExternalResourceRepository repository;
     private final boolean local;
@@ -105,8 +101,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return false;
     }
 
-    public void setRepositoryChain(RepositoryChain resolver) {
-        this.repositoryChain = resolver;
+    public void setResolverProvider(ResolverProvider resolver) {
+        this.resolverProvider = resolver;
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -170,7 +166,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             return null;
         }
 
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(repositoryChain);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(resolverProvider);
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 

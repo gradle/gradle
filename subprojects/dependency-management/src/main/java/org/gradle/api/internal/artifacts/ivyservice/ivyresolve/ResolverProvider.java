@@ -19,8 +19,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
-// TODO: Rename to ResolverProvider
-public interface RepositoryChain {
+public interface ResolverProvider {
     public DependencyToComponentIdResolver getComponentIdResolver();
 
     public ComponentMetaDataResolver getComponentResolver();

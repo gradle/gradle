@@ -72,7 +72,7 @@ public class ResolveIvyFactory {
         this.versionComparator = versionComparator;
     }
 
-    public RepositoryChain create(ResolutionStrategyInternal resolutionStrategy,
+    public ResolverProvider create(ResolutionStrategyInternal resolutionStrategy,
                                   Collection<? extends ResolutionAwareRepository> repositories,
                                   ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
@@ -91,7 +91,7 @@ public class ResolveIvyFactory {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             if (baseRepository instanceof ExternalResourceResolver) {
-                ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentModuleResolver);
+                ((ExternalResourceResolver) baseRepository).setResolverProvider(parentModuleResolver);
             }
 
             // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
@@ -123,7 +123,7 @@ public class ResolveIvyFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+    private static class ParentModuleLookupResolver implements ResolverProvider, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final CacheLockingManager cacheLockingManager;
         private final UserResolverChain delegate;
 

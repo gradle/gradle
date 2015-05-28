@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
-import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
 import spock.lang.Specification
 
-class RepositoryChainArtifactResolverTest extends Specification {
+class ResolverProviderArtifactResolverTest extends Specification {
     final artifact = Mock(ComponentArtifactMetaData)
     final component = Mock(ComponentResolveMetaData)
     final originalSource = Mock(ModuleSource)
