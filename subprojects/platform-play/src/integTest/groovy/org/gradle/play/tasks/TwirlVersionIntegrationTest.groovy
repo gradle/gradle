@@ -45,20 +45,20 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file("build/playBinary/src/compileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
 
         when:
         withPlayVersion("2.3.7")
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file("build/playBinary/src/compileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
     }
 
     def "changing between twirl-compatible versions of play does NOT cause Twirl to recompile" () {
@@ -69,17 +69,17 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file("build/playBinary/src/compileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
 
         when:
         withPlayVersion("2.3.7")
         succeeds "playBinary"
 
         then:
-        skipped(":twirlCompileTwirlTemplatesPlayBinary")
+        skipped(":compileTwirlTemplatesPlayBinary")
         executedAndNotSkipped(":scalaCompilePlayBinary")
     }
 

@@ -39,8 +39,8 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
         succeeds("check")
         then:
         executed(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
@@ -55,8 +55,8 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
         succeeds("check")
         then:
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",

@@ -60,7 +60,7 @@ class MixedPlayAndJavaLangProjectIntegrationTest extends AbstractIntegrationSpec
         succeeds("assemble")
         then:
         executedAndNotSkipped(":compileJavaLibJarJavaLibJava", ":processJavaLibJarJavaLibResources", ":createJavaLibJar", ":javaLibJar", ":createPlayBinaryAssetsJar",
-                ":routesCompileRoutesSourcesPlayBinary", ":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
+                ":compileRoutesPlayBinary", ":compileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
         and:
         file("build/classes/javaLibJar").assertHasDescendants(javaApp.expectedOutputs*.fullPath as String[])
         new JarTestFixture(file("build/jars/javaLibJar/javaLib.jar")).hasDescendants(javaApp.expectedOutputs*.fullPath as String[])

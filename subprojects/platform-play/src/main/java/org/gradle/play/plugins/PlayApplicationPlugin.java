@@ -262,7 +262,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
-                    RoutesSourceSet routesSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("routesSources", RoutesSourceSet.class);
+                    RoutesSourceSet routesSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("routes", RoutesSourceSet.class);
                     routesSourceSet.getSource().srcDir("conf");
                     routesSourceSet.getSource().include("routes");
                     routesSourceSet.getSource().include("*.routes");
@@ -295,7 +295,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool = toolResolver.resolveCompiler(TwirlCompileSpec.class, binary.getTargetPlatform());
             for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
-                final String twirlCompileTaskName = String.format("twirlCompile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
+                final String twirlCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
 
                 tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
@@ -318,7 +318,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool = toolResolver.resolveCompiler(RoutesCompileSpec.class, binary.getTargetPlatform());
             for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class)) {
-                final String routesCompileTaskName = String.format("routesCompile%s%s", StringUtils.capitalize(routesSourceSet.getName()), StringUtils.capitalize(binary.getName()));
+                final String routesCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(routesSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
 
                 tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {

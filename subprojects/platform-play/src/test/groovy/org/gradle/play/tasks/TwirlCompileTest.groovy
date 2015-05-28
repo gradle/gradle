@@ -28,7 +28,7 @@ import org.gradle.language.base.internal.compile.Compiler
 
 class TwirlCompileTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
-    TwirlCompile compile = project.tasks.create("twirlCompile", TwirlCompile)
+    TwirlCompile compile = project.tasks.create("compile", TwirlCompile)
     Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
     ResolvedTool<Compiler<TwirlCompileSpec>> twirlCompilerTool = Mock(ResolvedTool) {
         get() >> twirlCompiler

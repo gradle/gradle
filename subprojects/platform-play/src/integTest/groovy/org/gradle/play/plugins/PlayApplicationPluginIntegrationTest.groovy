@@ -60,7 +60,7 @@ Source sets
         includes: **/*.java
     JVM resources 'play:resources'
         srcDir: conf
-    Routes source 'play:routesSources'
+    Routes source 'play:routes'
         srcDir: conf
         includes: routes, *.routes
     Scala source 'play:scala'
@@ -103,8 +103,8 @@ Binaries
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+        skipped(":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary")
 
         and:
@@ -163,8 +163,8 @@ Binaries
                 ":scalaCompilePlayBinary",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary")
+        skipped(":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")

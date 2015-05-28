@@ -71,8 +71,8 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary")
 
         and:
@@ -92,8 +92,8 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":compileRoutesPlayBinary",
+                ":compileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
