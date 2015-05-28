@@ -23,21 +23,24 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows replacing dependencies with other dependencies.
- *
- * <pre>
+ * <p/>
+ * Examples:
+ * <pre autoTested=''>
  * // add dependency substitution rules
- * dependencySubstitution {
- *   // Substitute project and module dependencies
- *   substitute module('org.gradle:api') with project(':api')
- *   substitute project(':util') with module('org.gradle:util:3.0')
+ * configurations.all {
+ *   resolutionStrategy.dependencySubstitution {
+ *     // Substitute project and module dependencies
+ *     substitute module('org.gradle:api') with project(':api')
+ *     substitute project(':util') with module('org.gradle:util:3.0')
  *
- *   // Substitute one module dependency for another
- *   substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+ *     // Substitute one module dependency for another
+ *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
  *
- *   // Use a rule to change the dependency module while leaving group + version intact
- *   all { DependencySubstitution details ->
- *     if (details.requested instanceof ModuleComponentSelector && details.requested.name == 'groovy-all') {
- *       details.useTarget details.requested.group + ':groovy:' + details.requested.version
+ *     // Use a rule to change the dependency module while leaving group + version intact
+ *     all { DependencySubstitution dependency ->
+ *       if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.name == 'groovy-all') {
+ *         dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
+ *       }
  *     }
  *   }
  * }
@@ -69,7 +72,7 @@ public interface DependencySubstitutions {
     ComponentSelector project(String path);
 
     /**
-     * Construct a DSL-friendly substitution that will substitute dependencies matching the provided selector.
+     * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
      */
     Substitution substitute(ComponentSelector substitutedDependency);
 
