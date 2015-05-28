@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
-    def "creating zips in continuous mode"() {
+    def "creating zips"() {
         given:
         def sourceDir = file("src")
         def subDir = sourceDir.file("subdir")

@@ -81,7 +81,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         thrown(RuntimeException)
     }
 
-    def "waits for trigger in continuous mode when build works"() {
+    def "waits for waiter"() {
         when:
         continuousBuild()
         1 * delegate.execute(action, requestContext, actionParameters) >> {
@@ -121,7 +121,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         thrown(ReportedException)
     }
 
-    def "keeps running after failures in continuous mode"() {
+    def "keeps running after failures when continuous"() {
         when:
         continuousBuild()
         executeBuild()
