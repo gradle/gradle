@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Criteria for selecting a library instance that is built as part of the current build.
@@ -24,6 +25,25 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface LibraryComponentSelector extends ComponentSelector {
+    /**
+     * Return the project path of the selected library. If the project path is null then
+     * it is expected to find the library in the current project. It is not possible to
+     * have both {@link #getProjectPath()} and {@link #getLibraryName()} to return null
+     * at the same time: at least one of them has to be non null.
+     *
+     * @return the project path of the library
+     */
+    @Nullable
     String getProjectPath();
+
+    /**
+     * Return the library name of the selected library. If the library name is null then
+     * it is expected to find single library defined in the current project. It is not possible to
+     * have both {@link #getProjectPath()} and {@link #getLibraryName()} to return null
+     * at the same time: at least one of them has to be non null.
+     *
+     * @return the library name
+     */
+    @Nullable
     String getLibraryName();
 }

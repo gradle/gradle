@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.resolve;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.model.ModelMap;
@@ -39,7 +43,7 @@ import org.gradle.platform.base.LibrarySpec;
 
 import java.util.Collections;
 
-public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver {
+public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectFinder projectFinder;
 
     public LocalLibraryDependencyResolver(ProjectFinder projectFinder) {
@@ -89,8 +93,33 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
-        if (identifier instanceof LibraryComponentIdentifier) {
+        if (isLibrary(identifier)) {
             throw new RuntimeException("Not yet implemented");
+        }
+    }
+
+    private boolean isLibrary(ComponentIdentifier identifier) {
+        return identifier instanceof LibraryComponentIdentifier;
+    }
+
+    @Override
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        if (isLibrary(component.getComponentId())) {
+            result.resolved(Collections.<ComponentArtifactMetaData>emptyList());
+        }
+    }
+
+    @Override
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        if (isLibrary(component.getComponentId())) {
+            result.resolved(Collections.<ComponentArtifactMetaData>emptyList());
+        }
+    }
+
+    @Override
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        if (isLibrary(artifact.getComponentId())) {
+            result.resolved(null);
         }
     }
 }

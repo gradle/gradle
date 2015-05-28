@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
@@ -57,16 +58,14 @@ public class DependencyGraphBuilder {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
 
-    public DependencyGraphBuilder(DependencyToComponentIdResolver idResolver,
-                                  ComponentMetaDataResolver metaDataResolver,
+    public DependencyGraphBuilder(ResolverProvider resolverProvider,
                                   ResolveContextToComponentResolver moduleResolver,
-                                  ArtifactResolver artifactResolver,
                                   ConflictHandler conflictHandler,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {
-        this.idResolver = idResolver;
-        this.metaDataResolver = metaDataResolver;
+        this.idResolver = resolverProvider.getComponentIdResolver();
+        this.metaDataResolver = resolverProvider.getComponentResolver();
+        this.artifactResolver = resolverProvider.getArtifactResolver();
         this.moduleResolver = moduleResolver;
-        this.artifactResolver = artifactResolver;
         this.conflictHandler = conflictHandler;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }

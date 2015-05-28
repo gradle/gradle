@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.resolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
-public interface ResolverProvider {
-    DependencyToComponentIdResolver getComponentIdResolver();
+public class LocalLibraryResolverProvider implements ResolverProvider {
+    private final LocalLibraryDependencyResolver resolver;
 
-    ComponentMetaDataResolver getComponentResolver();
+    public LocalLibraryResolverProvider(LocalLibraryDependencyResolver resolver) {
+        this.resolver = resolver;
+    }
 
-    ArtifactResolver getArtifactResolver();
+    @Override
+    public ArtifactResolver getArtifactResolver() {
+        return resolver;
+    }
+
+    @Override
+    public DependencyToComponentIdResolver getComponentIdResolver() {
+        return resolver;
+    }
+
+    @Override
+    public ComponentMetaDataResolver getComponentResolver() {
+        return resolver;
+    }
 }

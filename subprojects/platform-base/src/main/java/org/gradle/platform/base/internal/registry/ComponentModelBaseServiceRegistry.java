@@ -16,10 +16,11 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.internal.artifacts.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
+import org.gradle.api.internal.resolve.LocalLibraryResolverProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -65,6 +66,10 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
 
         LocalLibraryDependencyResolver createLibraryResolver(ProjectFinder projectFinder) {
             return new LocalLibraryDependencyResolver(projectFinder);
+        }
+
+        LocalLibraryResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {
+            return new LocalLibraryResolverProvider(resolver);
         }
 
         ProjectFinder createProjectFinder(final ProjectRegistry<ProjectInternal> projectRegistry) {
