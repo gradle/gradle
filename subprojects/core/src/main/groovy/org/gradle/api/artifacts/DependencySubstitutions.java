@@ -23,28 +23,6 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows replacing dependencies with other dependencies.
- * <p/>
- * Examples:
- * <pre autoTested=''>
- * // add dependency substitution rules
- * configurations.all {
- *   resolutionStrategy.dependencySubstitution {
- *     // Substitute project and module dependencies
- *     substitute module('org.gradle:api') with project(':api')
- *     substitute project(':util') with module('org.gradle:util:3.0')
- *
- *     // Substitute one module dependency for another
- *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
- *
- *     // Use a rule to change the dependency module while leaving group + version intact
- *     all { DependencySubstitution dependency ->
- *       if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.name == 'groovy-all') {
- *         dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
- *       }
- *     }
- *   }
- * }
- * </pre>
  * @since 2.5
  */
 @HasInternalProtocol
@@ -54,6 +32,29 @@ public interface DependencySubstitutions {
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
+     * <p/>
+     * Example:
+     * <pre autoTested=''>
+     * configurations { main }
+     * // add dependency substitution rules
+     * configurations.main.resolutionStrategy.dependencySubstitution {
+     *   // Use a rule to change the dependency module while leaving group + version intact
+     *   all { DependencySubstitution dependency ->
+     *     if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.name == 'groovy-all') {
+     *       dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
+     *     }
+     *   }
+     *   // Use a rule to replace all missing projects with module dependencies
+     *   all { DependencySubstitution dependency ->
+     *    if (dependency.requested instanceof ProjectComponentSelector) {
+     *       def targetProject = findProject(":${dependency.requested.path}")
+     *       if (targetProject == null) {
+     *         dependency.useTarget "org.myorg:" + dependency.requested.path + ":+"
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
      *
@@ -73,6 +74,19 @@ public interface DependencySubstitutions {
 
     /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * configurations { main }
+     * configurations.main.resolutionStrategy.dependencySubstitution {
+     *   // Substitute project and module dependencies
+     *   substitute module('org.gradle:api') with project(':api')
+     *   substitute project(':util') with module('org.gradle:util:3.0')
+     *
+     *   // Substitute one module dependency for another
+     *   substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     * }
+     * </pre>
      */
     Substitution substitute(ComponentSelector substitutedDependency);
 
