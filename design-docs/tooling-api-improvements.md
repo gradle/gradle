@@ -334,26 +334,30 @@ From a client this API can be used like:
 		ProjectConnection connection = GradleConnector.newConnector()
 		   	.forProjectDirectory(new File("someFolder"))
 		   	.connect();
-		
+
 		try {
 		   //run tests
-		   connection.newBuild()
+		   connection.newTestRunner()
 		     .forTests(TestExecutionConfigurationBuilder.newTestExecutionConfiguration()
+					.withTests(TestOperationDescriptor... testDescriptors)
 					.withJvmTestClasses('example.MyTest')
+
 					.withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
 					.build()) // this will ensure all tests of MyTest and MyTest2#testMethod1, MyTest2#testMethod2
 							  // will be executed
 		     .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
 		     .setStandardOutput(System.out)
-		     .run();	
+		     .run();
 		} finally {
 		   connection.close();
-	} 
+	}
 
 ### Implementation
 
 TBD
 
+* Introduce new LongRunningOperation `TestLauncher`
+* Add factory method `ProjectConnection#newTestRunner()`
 * Introduce `TestExecutionConfigurationBuilder`, `TestExecutionConfiguration`
 * add `BuildLauncher#forTests(TestExecutionConfiguration)`
 * change BuildModelActionRunner to run test tasks if TestConfiguration is provided
@@ -368,11 +372,22 @@ TBD
 	* single test method of JVM test class
 	* multiple test methods of JVM test class
 * test will not execute if test task is up-to-date
+* class included in multiple test tasks are executed multiple times (for each test task)
+* tooling api operation fails with meaningful error message when no matching tests can be found.
 * build should not fail if filter matches a single test task
 
 ### Open Issues
 
 * With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
+* We need to improve how we deal with custom test runners, where there isn't a one-to-one mapping between test method and test execution. This is broken in the test progress reporting stuff.
+
+## Story: Allow specification of tests from candidate invocations of a given test
+
+A test class or method can run more than once. For example, the test class might be included by several different `Test` tasks,
+or it might be a method on a superclass with several different subclasses, or it might have a test runner that defines several invocations for the test.
+It would be nice to present users with this set of invocations and allow selection of one, some or all of them.
+
+TBD
 
 ## Story: Allow specification of tests to run via package, patterns, TestDiscriptor inclusion/exclusion
 
@@ -392,7 +407,7 @@ TBD
 
 ### Test Coverage
 
-* can execute 
+* can execute
 	* all tests from specific package
  	* tests from a multiple packages
 	* single test with regex include pattern
@@ -406,7 +421,7 @@ TBD
 
 ### Implementation
 
-* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not) 
+* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not)
 * allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
 
 ### Test Coverage
@@ -417,7 +432,7 @@ TBD
 
 ### Implementation
 
-* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not) 
+* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not)
 * allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
 
 ### Test Coverage
