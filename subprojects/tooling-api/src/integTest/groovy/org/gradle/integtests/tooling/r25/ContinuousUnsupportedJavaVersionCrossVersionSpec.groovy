@@ -30,7 +30,7 @@ import org.gradle.util.Requires
 @Requires(adhoc = { AvailableJavaHomes.jdk6 })
 class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecification {
 
-    def "client receives appropriate error if continuous mode attempted on unsupported platform"() {
+    def "client receives appropriate error if continuous build attempted on unsupported platform"() {
         given:
         toolingApi.requireIsolatedDaemons()
         buildFile.text = "apply plugin: 'java'"

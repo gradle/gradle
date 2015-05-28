@@ -223,7 +223,7 @@ class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
         executedAndNotSkipped ":compileJava"
     }
 
-    def "client can receive appropriate logging and progress events for subsequent builds in continuous mode"() {
+    def "client can receive appropriate logging and progress events for subsequent builds"() {
         given:
         def javaSrcDir = setupJavaProject()
         def javaSrcFile = javaSrcDir.file("Thing.java")

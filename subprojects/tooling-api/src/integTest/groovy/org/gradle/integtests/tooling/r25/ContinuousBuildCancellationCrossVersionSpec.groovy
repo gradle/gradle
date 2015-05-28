@@ -129,7 +129,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecificatio
         thrown(BuildCancelledException)
     }
 
-    def "logging does not include message to use ctrl-d to exit continuous mode"() {
+    def "logging does not include message to use ctrl-d to exit"() {
         given:
         setupJavaProject()
 
