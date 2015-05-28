@@ -16,14 +16,12 @@
 
 package org.gradle.play.plugins
 
-import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Unroll
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -114,16 +112,18 @@ Binaries
         jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
-    @Unroll
-    def "can declare additional #languageName sourceSets"() {
+    def "can declare additional scala and java sourceSets"() {
         given:
         buildFile << """
         model {
             components {
                 play {
                     sources {
-                        extra($sourceSetType) {
-                            source.srcDir "src/extra"
+                        extraJava(JavaSourceSet) {
+                            source.srcDir "src/extraJava"
+                        }
+                        extraScala(ScalaLanguageSourceSet) {
+                            source.srcDir "src/extraScala"
                         }
                     }
                 }
@@ -131,10 +131,13 @@ Binaries
         }
 """
         and:
-        file("src/extra/org/acme/model/Person.${languageName}") << """
+        file("src/extraJava/org/acme/model/JavaPerson.java") << """
             package org.acme.model;
-            class Person {
-            }
+            class JavaPerson {}
+"""
+        file("src/extraScala/org/acme/model/ScalaPerson.scala") << """
+            package org.acme.model;
+            class ScalaPerson {}
 """
 
         when:
@@ -142,8 +145,12 @@ Binaries
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-    ${StringUtils.capitalize(languageName)} source 'play:extra'
-        srcDir: src${File.separator}extra
+    Java source 'play:extraJava'
+        srcDir: src${File.separator}extraJava
+"""))
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    Scala source 'play:extraScala'
+        srcDir: src${File.separator}extraScala
 """))
 
         when:
@@ -160,14 +167,8 @@ Binaries
                 ":twirlCompileTwirlTemplatesPlayBinary")
 
         and:
-        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/Person.class")
+        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")
         jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
-
-        where:
-
-        languageName | sourceSetType
-        "scala"      | "ScalaLanguageSourceSet"
-        "java"       | "JavaSourceSet"
     }
 
     JarTestFixture jar(String fileName) {
