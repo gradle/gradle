@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.resolve;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -39,6 +40,8 @@ import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectFinder projectFinder;
@@ -53,10 +56,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
             DefaultLocalComponentMetaData metaData = null;
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
-            ProjectInternal project = projectFinder.getProject(dependency.getRequested().getGroup());
-            if (project!=null && selector.getProjectPath() != null) {
-                project = project.getRootProject().findProject(selector.getProjectPath());
+            String requestedProjectPath = dependency.getRequested().getGroup();
+            ProjectInternal project = projectFinder.getProject(requestedProjectPath);
+            String selectorProjectPath = selector.getProjectPath();
+            if (project!=null && selectorProjectPath != null) {
+                project = project.getRootProject().findProject(selectorProjectPath);
             }
+            List<String> candidateLibraries = new LinkedList<String>();
             if (project != null) {
                 ComponentSpecContainer components = project.getModelRegistry().realize(
                     ModelPath.path("components"),
@@ -65,6 +71,9 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 String libraryName = selector.getLibraryName();
                 if (libraryName == null && libraries.size() == 1) {
                     libraryName = libraries.values().iterator().next().getName();
+                }
+                for (LibrarySpec candidateLibrary : libraries.values()) {
+                    candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
                 }
                 if (libraryName != null) {
                     String version = project.getVersion().toString();
@@ -78,9 +87,36 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             if (metaData != null) {
                 result.resolved(metaData.toResolveMetaData());
             } else {
-                result.failed(new ModuleVersionResolveException(selector, String.format("Could not resolve dependency '%s'", selector)));
+                String message = prettyErrorMessage(selector, project, requestedProjectPath, selectorProjectPath, candidateLibraries);
+                ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, message);
+                result.failed(failure);
             }
         }
+    }
+
+    private static String prettyErrorMessage(
+        LibraryComponentSelector selector,
+        ProjectInternal project,
+        String requestedProjectPath,
+        String selectorProjectPath,
+        List<String> candidateLibraries) {
+        StringBuilder sb = new StringBuilder("Could not resolve dependency '");
+        sb.append(selector);
+        sb.append("'");
+        if (project==null) {
+            sb.append(". Project '").append(selectorProjectPath).append("' not found.");
+        } else {
+            sb.append(" on project '").append(requestedProjectPath).append("'");
+            sb.append(". Did you want to use ");
+            if (candidateLibraries.size()==1) {
+                sb.append(candidateLibraries.get(0));
+            } else {
+                sb.append("one of ");
+                Joiner.on(", ").appendTo(sb, candidateLibraries);
+            }
+            sb.append("?");
+        }
+        return sb.toString();
     }
 
     @Override

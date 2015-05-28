@@ -18,6 +18,8 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can resolve dependency on local library"() {
@@ -142,9 +144,13 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
+        expect: "build fails"
         fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project : library someLib'")
+
+        and: "displays the possible solution"
+        failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
     }
 
     def "can resolve dependency on a different project library"() {
@@ -226,9 +232,13 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
+        expect: "build fails"
         fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :sub library main'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Project ':sub' not found.*"))
     }
 
     def "should fail if project exists but not library" () {
@@ -270,7 +280,58 @@ model {
 
         expect:
         fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
+    }
+
+    def "should display the list of candidate libraries in case a library is not found" () {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':dep' library 'doesNotExist'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('settings.gradle') << 'include "dep"'
+        file('dep/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        awesome(JvmLibrarySpec)
+        lib(JvmLibrarySpec)
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+
+        expect:
+        fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Did you want to use one of 'awesome', 'lib'\\?.*"))
     }
 
     def "can resolve dependencies on a different projects"() {
