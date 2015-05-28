@@ -44,7 +44,7 @@ class PlayJavaScriptPluginTest extends Specification {
         plugin.createJavascriptSourceSets(components)
 
         then:
-        1 * sources.create("javaScriptAssets", JavaScriptSourceSet) >> sourceSet
+        1 * sources.create("javaScript", JavaScriptSourceSet) >> sourceSet
         2 * sourceSet.getSource() >> sourceDirSet
         1 * sourceDirSet.srcDir("app/assets")
         1 * sourceDirSet.include("**/*.js")

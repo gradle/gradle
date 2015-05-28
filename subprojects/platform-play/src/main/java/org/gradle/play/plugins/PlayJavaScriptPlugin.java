@@ -61,7 +61,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
                 // TODO - should have some way to lookup using internal type
-                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
+                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScript", JavaScriptSourceSet.class);
                 javaScriptSourceSet.getSource().srcDir("app/assets");
                 javaScriptSourceSet.getSource().include("**/*.js");
             }

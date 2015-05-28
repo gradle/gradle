@@ -19,7 +19,7 @@ package org.gradle.play.tasks
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     @Override
     String getDefaultSourceSet() {
-        return "CoffeeScriptAssets"
+        return "CoffeeScript"
     }
 
     def setup() {
@@ -50,8 +50,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
+                ":compilePlayBinaryCoffeeScript",
+                ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -67,10 +67,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
     def "minify task depends on compile task" () {
         when:
         withCoffeeScriptSource(assets("test.coffee"))
-        succeeds "minifyPlayBinaryCoffeeScriptAssetsJavaScript"
+        succeeds "minifyPlayBinaryCoffeeScriptJavaScript"
 
         then:
-        executedAndNotSkipped ":compilePlayBinaryCoffeeScriptAssets"
+        executedAndNotSkipped ":compilePlayBinaryCoffeeScript"
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -101,13 +101,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
+                ":compilePlayBinaryCoffeeScript",
+                ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":compilePlayBinaryExtraCoffeeScript",
                 ":minifyPlayBinaryExtraCoffeeScriptJavaScript",
                 ":compilePlayBinaryAnotherCoffeeScript",
                 ":minifyPlayBinaryAnotherCoffeeScriptJavaScript",
-                ":minifyPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScript",
                 ":minifyPlayBinaryExtraJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
@@ -144,8 +144,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         then:
-        skipped(":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
+        skipped(":compilePlayBinaryCoffeeScript",
+                ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -162,8 +162,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
+                ":compilePlayBinaryCoffeeScript",
+                ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -182,8 +182,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
+                ":compilePlayBinaryCoffeeScript",
+                ":minifyPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         compiled("test.js").exists()
@@ -227,7 +227,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         fails "assemble"
 
         then:
-        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryCoffeeScriptAssets'."
+        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryCoffeeScript'."
         failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
         failure.assertHasCause "SyntaxError: unexpected if (coffee-script-js-1.8.0.js#10)"
     }

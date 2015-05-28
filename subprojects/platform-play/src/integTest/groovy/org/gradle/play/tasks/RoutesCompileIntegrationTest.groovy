@@ -180,7 +180,7 @@ Binaries
     }
 
     def destinationDir(String sourceSetName) {
-        return file("build/playBinary/src/compile${StringUtils.capitalize(sourceSetName)}PlayBinary")
+        return file("build/playBinary/src/compilePlayBinary${StringUtils.capitalize(sourceSetName)}")
     }
 
     def withRoutesSource(TestFile routesFile, String packageId) {

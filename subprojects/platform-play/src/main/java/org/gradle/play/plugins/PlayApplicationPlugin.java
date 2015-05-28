@@ -364,7 +364,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     for (LanguageSourceSet generatedSourceSet : binary.getGeneratedScala().values()) {
                         scalaCompile.source(generatedSourceSet.getSource());
-                        scalaCompile.dependsOn(generatedSourceSet.getBuildDependencies());
+                        scalaCompile.dependsOn(generatedSourceSet);
                     }
 
                     scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());

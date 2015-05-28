@@ -44,7 +44,7 @@ class PlayCoffeeScriptPluginTest extends Specification {
         plugin.createCoffeeScriptSourceSets(components)
 
         then:
-        1 * sources.create("coffeeScriptAssets", CoffeeScriptSourceSet) >> sourceSet
+        1 * sources.create("coffeeScript", CoffeeScriptSourceSet) >> sourceSet
         2 * sourceSet.getSource() >> sourceDirSet
         1 * sourceDirSet.srcDir("app/assets")
         1 * sourceDirSet.include("**/*.coffee")

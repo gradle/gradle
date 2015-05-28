@@ -47,7 +47,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 /**
  * Plugin for adding coffeescript compilation to a Play application.  Adds support for
  * defining {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet} source sets.  A
- * "coffeeScriptAssets" source set is created by default.
+ * "coffeeScript" source set is created by default.
  */
 @SuppressWarnings("UnusedDeclaration")
 @Incubating
@@ -75,7 +75,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
                 // TODO - should have some way to lookup using internal type
-                CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
+                CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScript", CoffeeScriptSourceSet.class);
                 coffeeScriptSourceSet.getSource().srcDir("app/assets");
                 coffeeScriptSourceSet.getSource().include("**/*.coffee");
             }
