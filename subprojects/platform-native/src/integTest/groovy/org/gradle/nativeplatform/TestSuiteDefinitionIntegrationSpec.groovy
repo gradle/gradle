@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -89,15 +89,22 @@ model {
         run "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    testSuites
-        unitTests
-            binaries
-                tests
-                    tasks = []
-            sources
-                tests = DefaultCustomTestSourceSet 'unitTests:tests'
-"""))
+        new ModelReportOutput(output).hasNodeStructure {
+            testSuites {
+                unitTests {
+                    binaries {
+                        tests {
+                            tasks()
+                        }
+                    }
+                    sources {
+                        tests()
+                    }
+                }
+            }
+        }
+
+
 
         when:
         run "check"
@@ -123,11 +130,20 @@ model {
         run "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    components
-        unitTests
-            binaries
-            sources"""))
+        ModelReportOutput modelReportOutput = new ModelReportOutput(output).hasNodeStructure {
+            components {
+                unitTests {
+                    binaries()
+                    sources()
+
+                }
+            }
+        }
+//        output.contains(TextUtil.toPlatformLineSeparators("""
+//    components
+//        unitTests
+//            binaries
+//            sources"""))
 
         when:
         run "assemble"
