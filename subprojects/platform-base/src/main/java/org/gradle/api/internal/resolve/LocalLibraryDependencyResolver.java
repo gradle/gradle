@@ -35,10 +35,12 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,28 +61,35 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             String requestedProjectPath = dependency.getRequested().getGroup();
             ProjectInternal project = projectFinder.getProject(requestedProjectPath);
             String selectorProjectPath = selector.getProjectPath();
-            if (project!=null && selectorProjectPath != null) {
+            if (project != null) {
                 project = project.getRootProject().findProject(selectorProjectPath);
             }
             List<String> candidateLibraries = new LinkedList<String>();
             if (project != null) {
-                ComponentSpecContainer components = project.getModelRegistry().realize(
+                ModelRegistry modelRegistry = project.getModelRegistry();
+                ComponentSpecContainer components = modelRegistry.find(
                     ModelPath.path("components"),
                     ModelType.of(ComponentSpecContainer.class));
-                ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
-                String libraryName = selector.getLibraryName();
-                if (libraryName == null && libraries.size() == 1) {
-                    libraryName = libraries.values().iterator().next().getName();
-                }
-                for (LibrarySpec candidateLibrary : libraries.values()) {
-                    candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
-                }
-                if (libraryName != null) {
-                    String version = project.getVersion().toString();
-                    String projectPath = project.getPath();
-                    LibrarySpec library = libraries.get(libraryName);
-                    if (library != null) {
-                        metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
+                if (components!=null) {
+                    ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
+                    String libraryName = selector.getLibraryName();
+                    boolean findSingleLibrary = "".equals(libraryName);
+                    Collection<? extends LibrarySpec> availableLibraries = libraries.values();
+                    for (LibrarySpec candidateLibrary : availableLibraries) {
+                        candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
+                    }
+                    if (findSingleLibrary && availableLibraries.size() == 1) {
+                        libraryName = availableLibraries.iterator().next().getName();
+                    }
+                    if (!availableLibraries.isEmpty()) {
+                        // todo: this should probably be moved to a library selector
+                        // at some point to handle more complex library selection (flavors, ...)
+                        String version = project.getVersion().toString();
+                        String projectPath = project.getPath();
+                        LibrarySpec library = libraries.get(libraryName);
+                        if (library != null) {
+                            metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
+                        }
                     }
                 }
             }
@@ -103,7 +112,15 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         StringBuilder sb = new StringBuilder("Could not resolve dependency '");
         sb.append(selector);
         sb.append("'");
-        if (project==null) {
+        if ("".equals(selector.getLibraryName())) {
+            sb.append(". Project ").append(selectorProjectPath);
+            if (candidateLibraries.isEmpty()) {
+                sb.append(" doesn't define any library.");
+            } else {
+                sb.append(" contains more than one library. Please select one of ");
+                Joiner.on(", ").appendTo(sb, candidateLibraries);
+            }
+        } else if (project==null) {
             sb.append(". Project '").append(selectorProjectPath).append("' not found.");
         } else {
             sb.append(" on project '").append(requestedProjectPath).append("'");

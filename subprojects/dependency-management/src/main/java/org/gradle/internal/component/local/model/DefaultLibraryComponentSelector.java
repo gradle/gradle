@@ -34,7 +34,7 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
 
     @Override
     public String getDisplayName() {
-        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(getProjectPath(), getLibraryName());
+        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, "".equals(libraryName)?"<default>":libraryName);
     }
 
     @Override

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
@@ -60,22 +59,22 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
     private void addDependencies(String defaultProject, DefaultLocalComponentMetaData metaData, DependencySpecContainer allDependencies) {
         ModuleVersionIdentifier mvi = metaData.getId();
         for (DependencySpec dependency : allDependencies) {
-            ComponentSelector selector;
+
             String projectPath = dependency.getProjectPath();
             if (projectPath==null) {
                 projectPath = defaultProject;
             }
-            if (dependency.getLibraryName()==null) {
-                selector = new DefaultProjectComponentSelector(dependency.getProjectPath());
-            } else {
-                selector = new DefaultLibraryComponentSelector(projectPath, dependency.getLibraryName());
+            String libraryName = dependency.getLibraryName();
+            if (libraryName ==null) {
+                libraryName = "";
             }
-            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, dependency.getLibraryName(), mvi.getVersion());
+            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, mvi.getVersion());
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
                 DefaultLibraryComponentIdentifier.libraryToConfigurationName(mvi.getGroup(), mvi.getName()),
-                DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, dependency.getLibraryName()),
+                DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName),
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false,

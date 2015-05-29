@@ -380,4 +380,128 @@ model {
 
     }
 
+    def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available" () {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('settings.gradle') << 'include "dep"'
+        file('dep/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        awesome(JvmLibrarySpec)
+        lib(JvmLibrarySpec)
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+
+        expect:
+        fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Project :dep contains more than one library. Please select one of 'awesome', 'lib'.*"))
+    }
+
+    def "should fail and display a sensible error message if target project doesn't define any library" () {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('settings.gradle') << 'include "dep"'
+        file('dep/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+
+        expect:
+        fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Project :dep doesn't define any library..*"))
+    }
+
+   def "should fail and display a sensible error message if target project doesn't use new model" () {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('settings.gradle') << 'include "dep"'
+        file('dep/build.gradle') << ''
+
+        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+
+        expect:
+        fails 'assemble'
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+
+        and: "displays that the project doesn't exist"
+        failure.assertThatCause(matchesRegexp(".*Project :dep doesn't define any library..*"))
+    }
+
 }
