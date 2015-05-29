@@ -16,146 +16,29 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.fixtures.executer.*
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.AutoCleanup
 import spock.lang.Timeout
-import spock.util.concurrent.PollingConditions
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicInteger
 
 @Timeout(60)
-@Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
-class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
+class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
-    @AutoCleanup("shutdown")
-    ExecutorService executorService = Executors.newCachedThreadPool()
-    ByteArrayOutputStream stderr
-    ByteArrayOutputStream stdout
-    Runnable cancelTask
-    Future<?> buildExecutionFuture
-    ExecutionResult result
-    ExecutionFailure failure
     ProgressListener progressListener
-    int buildTimeout = 10
 
-    def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-
-    TestFile setupJavaProject() {
-        buildFile.text = "apply plugin: 'java'"
-        projectDir.createDir('src/main/java')
-    }
-
-    def cleanup() {
-        cancelTask?.run()
-    }
-
-    def runContinuousBuild(String... tasks) {
-        stderr = new ByteArrayOutputStream(512)
-        stdout = new ByteArrayOutputStream(512)
-        withConnection { ProjectConnection connection ->
-            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
-            launcher.withCancellationToken(cancellationTokenSource.token())
-            if (progressListener) {
-                launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
-            }
-            launcher.setStandardOutput(stdout)
-            launcher.setStandardError(stderr)
-            launcher.run()
-        }
-    }
-
-    void runBuild(String... tasks) {
-        cancelTask = cancellationTokenSource.&cancel
-        buildExecutionFuture = executorService.submit {
-            runContinuousBuild(tasks)
-        }
-    }
-
-    ExecutionResult succeeds(String... tasks) {
-        executeBuild(tasks)
-        if (result instanceof ExecutionFailure) {
-            throw new UnexpectedBuildFailure("build was expected to succeed but failed")
-        }
-        failure = null
-        result
-    }
-
-    ExecutionFailure fails(String... tasks) {
-        executeBuild(tasks)
-        if (!(result instanceof ExecutionFailure)) {
-            throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
-        }
-        failure = result as ExecutionFailure
-        failure
-    }
-
-    private void executeBuild(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (buildExecutionFuture.isDone()) {
-            throw new UnexpectedBuildFailure("Tooling API build connection has exited")
-        }
-        if (buildExecutionFuture == null) {
-            throw new UnexpectedBuildFailure("Tooling API build connection never started")
-        }
-        waitForBuild()
-    }
-
-    private void waitForBuild() {
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...")
-        }
-
-        def out = stdout.toString()
-        stdout.reset()
-        def err = stderr.toString()
-        stderr.reset()
-
-        result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
-    }
-
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    private assertHasResult() {
-        assert result != null: "result is null, you haven't run succeeds()"
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
-    protected List<String> getNonSkippedTasks() {
-        executedTasks - skippedTasks
-    }
-
-    protected void executedAndNotSkipped(String... tasks) {
-        tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
+    void customizeLauncher(BuildLauncher launcher) {
+        if (progressListener) {
+            launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
         }
     }
 
