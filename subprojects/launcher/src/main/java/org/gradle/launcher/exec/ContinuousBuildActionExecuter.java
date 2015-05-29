@@ -36,6 +36,7 @@ import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
@@ -63,7 +64,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        if (actionParameters.isContinuous()) {
+        if (actionParameters.isContinuous() && !(action instanceof BuildModelAction)) {
             return executeMultipleBuilds(action, requestContext, actionParameters);
         } else {
             return delegate.execute(action, requestContext, actionParameters);

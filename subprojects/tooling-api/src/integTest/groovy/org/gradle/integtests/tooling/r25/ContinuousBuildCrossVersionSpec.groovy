@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -267,7 +266,6 @@ class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
         buildCounter.get() == 3
     }
 
-    @NotYetImplemented
     def "client can request continuous mode when building a model, but request is effectively ignored"() {
         given:
         stderr = new ByteArrayOutputStream(512)
