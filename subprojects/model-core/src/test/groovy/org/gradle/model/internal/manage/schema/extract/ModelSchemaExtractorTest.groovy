@@ -19,8 +19,8 @@ package org.gradle.model.internal.manage.schema.extract
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
-import org.gradle.model.Unmanaged
 import org.gradle.model.ModelSet
+import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
@@ -176,7 +176,10 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "only selected unmanaged property types are allowed"() {
         expect:
-        fail NonStringProperty, Pattern.quote("an unmanaged type")
+        fail type, Pattern.quote("an unmanaged type")
+
+        where:
+        type << [NonStringProperty, ClassWithExtendedFileType]
     }
 
     @Managed
@@ -495,9 +498,9 @@ class ModelSchemaExtractorTest extends Specification {
 
         where:
         type << [
-                new ModelType<ModelSet<?>>() {},
-                new ModelType<ModelSet<? extends A1>>() {},
-                new ModelType<ModelSet<? super A1>>() {}
+            new ModelType<ModelSet<?>>() {},
+            new ModelType<ModelSet<? extends A1>>() {},
+            new ModelType<ModelSet<? super A1>>() {}
         ]
     }
 
@@ -852,6 +855,19 @@ $type
 
         where:
         type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+    }
+
+    @Managed
+    static interface ClassWithExtendedFileType {
+        ExtendedFile getExtendedFile()
+
+        void setExtendedFile(ExtendedFile extendedFile)
+    }
+
+    static class ExtendedFile extends File {
+        ExtendedFile(String pathname) {
+            super(pathname)
+        }
     }
 
     private Class<?> managedClass(Class<?> type) {
