@@ -17,13 +17,16 @@
 package org.gradle.language.java.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -166,17 +169,15 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext((ProjectInternal) project, (DefaultJavaLanguageSourceSet) sourceSet);
             dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
             ResolutionResult resolutionResult = results.getResolutionResult();
+            ResolvedArtifactResults resolve = results.getArtifactsBuilder().resolve();
+            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                classpath.add(resolvedArtifact.getFile());
+            }
             final List<Throwable> notFound = new LinkedList<Throwable>();
             resolutionResult.allDependencies(new Action<DependencyResult>() {
                 @Override
                 public void execute(DependencyResult dependencyResult) {
-                    if (dependencyResult instanceof ResolvedDependencyResult) {
-                        ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependencyResult;
-                        ResolvedComponentResult selected = resolved.getSelected();
-                        ComponentIdentifier id = selected.getId();
-                        // TODO: Convert this into actual classpath!
-                        // System.out.println("selected = " + ((ResolvedDependencyResult) dependencyResult).getSelected());
-                    } else if (dependencyResult instanceof UnresolvedDependencyResult) {
+                    if (dependencyResult instanceof UnresolvedDependencyResult) {
                         UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
                         notFound.add(unresolved.getFailure());
                     }

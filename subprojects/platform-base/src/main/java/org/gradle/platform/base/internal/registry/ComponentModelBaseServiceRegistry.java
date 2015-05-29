@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.LocalLibraryResolverProvider;
+import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -64,8 +65,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new LanguageSourceSetLocalComponentFactory();
         }
 
-        LocalLibraryDependencyResolver createLibraryResolver(ProjectFinder projectFinder) {
-            return new LocalLibraryDependencyResolver(projectFinder);
+        LocalLibraryDependencyResolver createLibraryResolver(ProjectFinder projectFinder, BinarySpecToArtifactConverterRegistry registry) {
+            return new LocalLibraryDependencyResolver(projectFinder, registry);
         }
 
         LocalLibraryResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {
@@ -79,6 +80,10 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
                     return projectRegistry.getProject(path);
                 }
             };
+        }
+
+        BinarySpecToArtifactConverterRegistry createBinaryToArtifactRegistry(ServiceRegistry serviceRegistry) {
+            return new BinarySpecToArtifactConverterRegistry(serviceRegistry);
         }
     }
 

@@ -46,7 +46,11 @@ model {
 }
 '''
         file('src/dep/java/Dep.java') << 'public class Dep {}'
-        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+        // this works by accident because tasks seem to be ordered by name, so until
+        // task resolution is done, explicit dependency is removed, but the classpath
+        // is correct
+        //file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp /* extends Dep */ {}'
 
         expect:
         succeeds 'assemble'

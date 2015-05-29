@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.resolve
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
@@ -54,7 +55,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
             projects[name]
         }
         rootProject = mockProject(':')
-        resolver = new LocalLibraryDependencyResolver(finder)
+        resolver = new LocalLibraryDependencyResolver(finder, Mock(BinarySpecToArtifactConverterRegistry))
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

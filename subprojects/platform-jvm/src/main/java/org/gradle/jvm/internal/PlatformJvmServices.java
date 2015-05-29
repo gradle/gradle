@@ -25,11 +25,20 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildScopeServices());
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
+    }
+
+    private static class BuildScopeServices {
+
+        public JvmBinarySpecToArtifactConverter createConverter() {
+            return new JvmBinarySpecToArtifactConverter();
+        }
+
     }
 }

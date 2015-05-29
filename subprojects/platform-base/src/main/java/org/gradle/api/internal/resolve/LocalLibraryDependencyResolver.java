@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -37,10 +39,10 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -48,9 +50,11 @@ import java.util.List;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectFinder projectFinder;
+    private final BinarySpecToArtifactConverterRegistry binarySpecToArtifactConverterRegistry;
 
-    public LocalLibraryDependencyResolver(ProjectFinder projectFinder) {
+    public LocalLibraryDependencyResolver(ProjectFinder projectFinder, BinarySpecToArtifactConverterRegistry registry) {
         this.projectFinder = projectFinder;
+        this.binarySpecToArtifactConverterRegistry = registry;
     }
 
     @Override
@@ -90,8 +94,10 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
             boolean findSingleLibrary = "".equals(libraryName);
             Collection<? extends LibrarySpec> availableLibraries = libraries.values();
-            for (LibrarySpec candidateLibrary : availableLibraries) {
-                candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
+            if (candidateLibraries!=null) {
+                for (LibrarySpec candidateLibrary : availableLibraries) {
+                    candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
+                }
             }
             if (findSingleLibrary && availableLibraries.size() == 1) {
                 libraryName = availableLibraries.iterator().next().getName();
@@ -152,8 +158,9 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     @Override
     public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
-        if (isLibrary(component.getComponentId())) {
-            result.resolved(Collections.<ComponentArtifactMetaData>emptyList());
+        ComponentIdentifier componentId = component.getComponentId();
+        if (isLibrary(componentId)) {
+            doConvertArtifact(result, (LibraryComponentIdentifier) componentId);
         }
     }
 
@@ -167,7 +174,38 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     @Override
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isLibrary(artifact.getComponentId())) {
-            result.resolved(new File("<no file>"));
+            if (artifact instanceof PublishArtifactLocalArtifactMetaData) {
+                result.resolved(((PublishArtifactLocalArtifactMetaData) artifact).getFile());
+            } else {
+                result.failed(new ArtifactResolveException("Unsupported artifact metadata type: "+artifact));
+            }
         }
     }
+
+    private void doConvertArtifact(BuildableArtifactSetResolveResult result, LibraryComponentIdentifier componentId) {
+        final LibraryComponentIdentifier libId = componentId;
+        String projectPath = libId.getProjectPath();
+        String libraryName = libId.getLibraryName();
+        ProjectInternal project = projectFinder.getProject(projectPath);
+        if (project!=null) {
+            final List<ComponentArtifactMetaData> artifacts = new LinkedList<ComponentArtifactMetaData>();
+            withLibrary(project, libraryName, null, new Action<LibrarySpec>() {
+                @Override
+                public void execute(LibrarySpec librarySpec) {
+                    Collection<BinarySpec> binaries = librarySpec.getBinaries().values();
+                    for (BinarySpec binary : binaries) {
+                        BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(binary);
+                        if (factory!=null) {
+                            artifacts.add(factory.convertArtifact(libId, binary));
+                        }
+                    }
+                }
+            });
+            result.resolved(artifacts);
+        }
+        if (!result.hasResult()) {
+            result.failed(new ArtifactResolveException("Unable to resolve artifact for "+componentId));
+        }
+    }
+
 }
