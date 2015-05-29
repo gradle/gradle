@@ -32,6 +32,7 @@ import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -46,9 +47,9 @@ class DefaultFileWatcherFactoryTest extends Specification {
     FileWatcher fileWatcher
     private PollingConditions poll = new PollingConditions()
 
-    Throwable thrown
+    Throwable thrownInWatchExecution
     Action<? super Throwable> onError = {
-        thrown = it
+        thrownInWatchExecution = it
     }
 
     FileSystemSubset fileSystemSubset
@@ -60,12 +61,11 @@ class DefaultFileWatcherFactoryTest extends Specification {
     }
 
     void cleanup() {
-        //println "stopping file watcher"
         fileWatcher?.stop()
         fileWatcherFactory?.stop()
-        //println "file watcher stopped"
-
-        assert thrown == null
+        if (thrownInWatchExecution) {
+            throw new ExecutionException("Exception was catched in executing watch", thrownInWatchExecution)
+        }
     }
 
     def "watch service should notify of new files"() {
