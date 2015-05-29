@@ -139,11 +139,6 @@ model {
                 }
             }
         }
-//        output.contains(TextUtil.toPlatformLineSeparators("""
-//    components
-//        unitTests
-//            binaries
-//            sources"""))
 
         when:
         run "assemble"
