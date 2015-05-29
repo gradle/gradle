@@ -711,6 +711,7 @@ It also does not improve the general capabilities of continuous mode.
 - ~~logging does not include message to use `ctrl-d` to exit continuous mode~~
 - All tooling API clients that support cancellation (>=2.1) can run continuous build
 - Attempt to run continuous build with tooling api client that does not support cancellation fails eagerly
+- client can request continuous mode when building a model, but request is effectively ignored
 
 ### ~~Story: Command line user exits continuous build mode without killing the Gradle process~~
 

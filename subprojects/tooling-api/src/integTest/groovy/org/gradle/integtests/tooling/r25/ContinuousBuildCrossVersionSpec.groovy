@@ -30,6 +30,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Ignore
 import spock.lang.AutoCleanup
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
@@ -263,4 +264,7 @@ class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
         eventCounter.get() > lastEventCounter
         buildCounter.get() == 3
     }
+
+    @Ignore
+    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
 }
