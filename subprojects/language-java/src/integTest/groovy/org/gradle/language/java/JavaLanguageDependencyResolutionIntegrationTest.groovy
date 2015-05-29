@@ -424,7 +424,7 @@ model {
         failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
 
         and: "displays that the project doesn't exist"
-        failure.assertThatCause(matchesRegexp(".*Project :dep contains more than one library. Please select one of 'awesome', 'lib'.*"))
+        failure.assertThatCause(matchesRegexp(".*Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'.*"))
     }
 
     def "should fail and display a sensible error message if target project doesn't define any library" () {
@@ -465,7 +465,7 @@ plugins {
         failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
 
         and: "displays that the project doesn't exist"
-        failure.assertThatCause(matchesRegexp(".*Project :dep doesn't define any library..*"))
+        failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
     }
 
    def "should fail and display a sensible error message if target project doesn't use new model" () {
@@ -500,8 +500,8 @@ model {
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
 
-        and: "displays that the project doesn't exist"
-        failure.assertThatCause(matchesRegexp(".*Project :dep doesn't define any library..*"))
+        and:
+        failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
     }
 
 }

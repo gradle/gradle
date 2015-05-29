@@ -40,6 +40,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LibrarySpec;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -58,12 +59,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
             DefaultLocalComponentMetaData metaData = null;
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
-            String requestedProjectPath = dependency.getRequested().getGroup();
-            ProjectInternal project = projectFinder.getProject(requestedProjectPath);
             String selectorProjectPath = selector.getProjectPath();
-            if (project != null) {
-                project = project.getRootProject().findProject(selectorProjectPath);
-            }
+            ProjectInternal project = projectFinder.getProject(selectorProjectPath);
             List<String> candidateLibraries = new LinkedList<String>();
             if (project != null) {
                 ModelRegistry modelRegistry = project.getModelRegistry();
@@ -85,10 +82,9 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         // todo: this should probably be moved to a library selector
                         // at some point to handle more complex library selection (flavors, ...)
                         String version = project.getVersion().toString();
-                        String projectPath = project.getPath();
                         LibrarySpec library = libraries.get(libraryName);
                         if (library != null) {
-                            metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
+                            metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, libraryName, version);
                         }
                     }
                 }
@@ -96,7 +92,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             if (metaData != null) {
                 result.resolved(metaData.toResolveMetaData());
             } else {
-                String message = prettyErrorMessage(selector, project, requestedProjectPath, selectorProjectPath, candidateLibraries);
+                String message = prettyErrorMessage(selector, project, selectorProjectPath, candidateLibraries);
                 ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, message);
                 result.failed(failure);
             }
@@ -106,24 +102,23 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     private static String prettyErrorMessage(
         LibraryComponentSelector selector,
         ProjectInternal project,
-        String requestedProjectPath,
         String selectorProjectPath,
         List<String> candidateLibraries) {
         StringBuilder sb = new StringBuilder("Could not resolve dependency '");
         sb.append(selector);
         sb.append("'");
-        if ("".equals(selector.getLibraryName())) {
-            sb.append(". Project ").append(selectorProjectPath);
-            if (candidateLibraries.isEmpty()) {
+        if ("".equals(selector.getLibraryName()) || candidateLibraries.isEmpty()) {
+            sb.append(". Project '").append(selectorProjectPath).append("'");
+            if (project==null) {
+                sb.append(" not found.");
+            } else if (candidateLibraries.isEmpty()) {
                 sb.append(" doesn't define any library.");
             } else {
                 sb.append(" contains more than one library. Please select one of ");
                 Joiner.on(", ").appendTo(sb, candidateLibraries);
             }
-        } else if (project==null) {
-            sb.append(". Project '").append(selectorProjectPath).append("' not found.");
         } else {
-            sb.append(" on project '").append(requestedProjectPath).append("'");
+            sb.append(" on project '").append(selectorProjectPath).append("'");
             sb.append(". Did you want to use ");
             if (candidateLibraries.size()==1) {
                 sb.append(candidateLibraries.get(0));
@@ -164,7 +159,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     @Override
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isLibrary(artifact.getComponentId())) {
-            result.resolved(null);
+            result.resolved(new File("<no file>"));
         }
     }
 }
