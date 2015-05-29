@@ -16,6 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.collection.ManagedSet;
+import org.gradle.model.ModelSet;
 
-interface SpecialManagedSet<T> extends ManagedSet<T> {}
+interface SpecialModelSet<T> extends ModelSet<T> {}

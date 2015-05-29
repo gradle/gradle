@@ -43,8 +43,8 @@ import java.lang.annotation.Target;
  * String getName();
  * </pre>
  * <p>
- * A getter and setter must be declared for each property that is not of a managed type or of {@link org.gradle.model.collection.ManagedSet}.
- * For properties of managed types or of {@link org.gradle.model.collection.ManagedSet} the getter is mandatory and the setter is optional.
+ * A getter and setter must be declared for each property that is not of a managed type or of {@link ModelSet}.
+ * For properties of managed types or of {@link ModelSet} the getter is mandatory and the setter is optional.
  * If no setter is provided the property is considered inherent and defaults to an "empty" instance of the type.
  *
  * <h4>Supported property types</h4>
@@ -65,7 +65,7 @@ import java.lang.annotation.Target;
  * <p>
  * Properties that are themselves of a managed type are also supported.
  * <p>
- * Currently, the only collection type that is supported is {@link org.gradle.model.collection.ManagedSet}.
+ * Currently, the only collection type that is supported is {@link ModelSet}.
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.

@@ -206,6 +206,10 @@ Currently component container can be only accessed using model rules.
 - `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
 - `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
 
+### ManagedSet renamed to ModelSet
+
+The, incubating, `org.gradle.model.collection.ManagedSet` type has been renamed to `org.gradle.model.ModelSet`.
+
 ### Maven publishing
 
 The [maven-publish](userguide/publishing_maven.html) and [maven](userguide/maven_plugin.html) plugins

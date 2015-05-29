@@ -1,6 +1,6 @@
 This spec outlines some initial stories for what's generally termed “managed model”.
 This is a sub stream of the “unified-configuration-model” stream.
-   
+
 ## Background
 
 There are several key drivers for this stream of work:
@@ -15,12 +15,12 @@ For example, a model browsing tool would rely on this insight to generate visual
 
 The term “bidirectional model externalisation” refers to being able to serialize a data set to some “external” form (e.g. JSON, YAML, XML, Turtle etc.) for consumption by other systems, and the possibility of using such a format to construct a data set for Gradle to use.
 
-The term “model caching” refers to the ability to safely reuse a previously “built” model element, avoiding the need to execute the user code that contributed to its final state. 
+The term “model caching” refers to the ability to safely reuse a previously “built” model element, avoiding the need to execute the user code that contributed to its final state.
 
 Moreover, we consider owning the implementation of model elements an enabler for the general dependency based configuration model.
-   
+
 ## Stories
-                                           
+
 ### Support properties of type `File`
 
     @Managed
@@ -33,7 +33,7 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - Similar to `String` etc. `setFile()` cannot be called when the object is read only
 
 ### Support managed types declaring properties of type `ModelMap<T>`
-    
+
     @Managed
     interface Thing {
       ModelMap<Foo> getFoos();
@@ -49,15 +49,15 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - Element type cannot be any kind of type var
 
 ### Support declaring top level model elements of type `ModelMap<T>`
-    
+
     class Rules extends RuleSource {
       @Model void things(ModelMap<Thing> things) {}
     }
-                                            
+
 ### Support for polymorphic managed sets
 
 ```
-interface ManagedSet<T> implements Set<T> {
+interface ModelSet<T> implements Set<T> {
   void create(Class<? extends T> type, Action<? super T> initializer);
   <O> Set<O> ofType(Class<O> type);
 }
@@ -65,7 +65,7 @@ interface ManagedSet<T> implements Set<T> {
 
 - `<T>` does not need to be managed type (but can be)
 - `type` given to `create()` must be a valid managed type
-- All mutative methods of `Set` throw UnsupportedOperationException (like `ManagedSet`).
+- All mutative methods of `Set` throw UnsupportedOperationException (like `ModelSet`).
 - `create` throws exception when set has been realised (i.e. using as an input)
 - “read” methods (including `ofType`) throws exception when called on mutable instance
 - No constraints on `O` type parameter given to `ofType` method
@@ -190,17 +190,17 @@ Other issues:
 
 ## Feature: Support for managed container of tasks
 
-### ManagedSet defers creation of elements
+### ModelSet defers creation of elements
 
 - Reasonable error message when action fails.
 - Support 'anonymous' links
 - Sync view logic with `CollectionBuilder` views.
 - Use same descriptor scheme as `CollectionBuilder`.
 - Use more efficient implementation of set query methods.
-- Allow `ManagedSet` to be used as a task dependency.
+- Allow `ModelSet` to be used as a task dependency.
 - Fail when mutator rule for an input is not bound.
 
-### ManagedSet supports Groovy DSL
+### ModelSet supports Groovy DSL
 
 - Support passing a closure to `create()`
 - Validate closure parameter types.
@@ -229,7 +229,7 @@ Other issues:
 
 ### Support for managed container of source sets
 
-- Add `all(Action<? super T)` method to `ManagedSet`.
+- Add `all(Action<? super T)` method to `ModelSet`.
 - Add DSL support for `all { }` rule.
 
 ## Backlog

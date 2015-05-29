@@ -20,7 +20,7 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.collection.ManagedSet
+import org.gradle.model.ModelSet
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
@@ -32,7 +32,7 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ManagedSetModelProjectionTest extends Specification {
+class ModelSetModelProjectionTest extends Specification {
     @Managed
     interface NamedThing {
         String getName()
@@ -45,11 +45,11 @@ class ManagedSetModelProjectionTest extends Specification {
     }
 
     def collectionPath = ModelPath.path("collection")
-    def collectionType = new ModelType<ManagedSet<NamedThing>>() {}
+    def collectionType = new ModelType<ModelSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
     def factory = new DefaultModelCreatorFactory(schemaStore)
     def registry = new ModelRegistryHelper()
-    private ModelReference<ManagedSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ManagedSet<NamedThing>>() {})
+    private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 
     def setup() {
         registry.create(
@@ -62,7 +62,7 @@ class ManagedSetModelProjectionTest extends Specification {
         )
     }
 
-    void mutate(@DelegatesTo(ManagedSet) Closure<?> action) {
+    void mutate(@DelegatesTo(ModelSet) Closure<?> action) {
         registry.mutate(reference, new ClosureBackedAction<>(action))
         registry.realizeNode(collectionPath)
     }

@@ -154,15 +154,15 @@ Use of `byte` and `Byte` is unsupported.
     }
 
     package org.gradle.model.collection
-    interface ManagedSet<T> extends Set<T> {
+    interface ModelSet<T> extends Set<T> {
       void create(Action<? super T> action)
     }
 
     class Rules {
       @Model
-      void people(ManagedSet<Person> people) {}
+      void people(ModelSet<Person> people) {}
 
-      @Mutate void addPeople(ManagedSet<Person> people) {
+      @Mutate void addPeople(ModelSet<Person> people) {
         people.create(p -> p.setName("p1"))
         people.create(p -> p.setName("p2"))
       }
@@ -280,7 +280,7 @@ Notes:
     @Managed
     interface Group {
       String getName(); void setName(String string)
-      ManagedSet<Person> getMembers();
+      ModelSet<Person> getMembers();
     }
 
     class Rules {
@@ -419,7 +419,7 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 - ~~When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.~~
 
-### “read” methods of ManagedSet throw exceptions when set is mutable
+### “read” methods of ModelSet throw exceptions when set is mutable
 
 It should not be possible to call any of these methods until the set is realised.
 
@@ -539,7 +539,7 @@ Runtime error received when trying to mutate an immutable object should include 
 
     @Managed
     interface Platform {
-      ManagedSet<OperatingSystem> getOperatingSystems()
+      ModelSet<OperatingSystem> getOperatingSystems()
     }
 
     @Managed

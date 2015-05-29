@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.Unmanaged
-import org.gradle.model.collection.ManagedSet
+import org.gradle.model.ModelSet
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
@@ -454,11 +454,11 @@ class ModelSchemaExtractorTest extends Specification {
         def type = ModelType.returnType(TypeHolder.getDeclaredMethod("noParam"))
 
         expect:
-        fail type, "type parameter of $ManagedSet.name has to be specified"
+        fail type, "type parameter of $ModelSet.name has to be specified"
     }
 
     static interface TypeHolder {
-        ManagedSet noParam();
+        ModelSet noParam();
     }
 
     @Managed
@@ -489,36 +489,36 @@ class ModelSchemaExtractorTest extends Specification {
     @Unroll
     def "type argument of a managed set cannot be a wildcard - #type"() {
         expect:
-        fail type, "type parameter of $ManagedSet.name cannot be a wildcard"
+        fail type, "type parameter of $ModelSet.name cannot be a wildcard"
 
         where:
         type << [
-                new ModelType<ManagedSet<?>>() {},
-                new ModelType<ManagedSet<? extends A1>>() {},
-                new ModelType<ManagedSet<? super A1>>() {}
+                new ModelType<ModelSet<?>>() {},
+                new ModelType<ModelSet<? extends A1>>() {},
+                new ModelType<ModelSet<? super A1>>() {}
         ]
     }
 
     def "type argument of a managed set has to be managed"() {
         given:
-        def type = new ModelType<ManagedSet<Object>>() {}
+        def type = new ModelType<ModelSet<Object>>() {}
 
         when:
         extract(type)
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ManagedSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
+        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ModelSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
 Supported types:
  - enum types
  - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal
- - org.gradle.model.collection.ManagedSet<?> of a managed type
+ - org.gradle.model.ModelSet<?> of a managed type
  - interfaces and abstract classes annotated with org.gradle.model.Managed""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
         given:
-        def type = new ModelType<ManagedSet<SetterOnly>>() {}
+        def type = new ModelType<ModelSet<SetterOnly>>() {}
 
         when:
         extract(type)
@@ -534,18 +534,18 @@ $type
 
     def "specializations of managed set are not supported"() {
         given:
-        def type = new ModelType<SpecialManagedSet<A1>>() {}
+        def type = new ModelType<SpecialModelSet<A1>>() {}
 
         expect:
-        fail type, "subtyping $ManagedSet.name is not supported"
+        fail type, "subtyping $ModelSet.name is not supported"
     }
 
     def "managed sets of managed set are not supported"() {
         given:
-        def type = new ModelType<ManagedSet<ManagedSet<A1>>>() {}
+        def type = new ModelType<ModelSet<ModelSet<A1>>>() {}
 
         expect:
-        fail type, "$ManagedSet.name cannot be used as type parameter of $ManagedSet.name"
+        fail type, "$ModelSet.name cannot be used as type parameter of $ModelSet.name"
     }
 
     static class MyBigInteger extends BigInteger {

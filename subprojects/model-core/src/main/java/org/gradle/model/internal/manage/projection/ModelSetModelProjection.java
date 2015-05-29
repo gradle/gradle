@@ -20,9 +20,9 @@ import com.google.common.base.Optional;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.model.ModelSet;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
-import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
@@ -35,29 +35,29 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ManagedSet<I>> {
+public class ModelSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ModelSet<I>> {
     private final ModelCreatorFactory modelCreatorFactory;
     private final ModelSchema<I> elementSchema;
 
-    private ManagedSetModelProjection(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
+    private ModelSetModelProjection(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
         super(typeOf(elementSchema.getType()), true, true);
         this.elementSchema = elementSchema;
         this.modelCreatorFactory = modelCreatorFactory;
     }
 
-    public static <I> ManagedSetModelProjection<I> of(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
-        return new ManagedSetModelProjection<I>(elementSchema, modelCreatorFactory);
+    public static <I> ModelSetModelProjection<I> of(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
+        return new ModelSetModelProjection<I>(elementSchema, modelCreatorFactory);
     }
 
-    public static <I> ModelType<ManagedSet<I>> typeOf(ModelType<I> elementType) {
-        return new ModelType.Builder<ManagedSet<I>>() {
+    public static <I> ModelType<ModelSet<I>> typeOf(ModelType<I> elementType) {
+        return new ModelType.Builder<ModelSet<I>>() {
         }.where(new ModelType.Parameter<I>() {
         }, elementType).build();
     }
 
     @Override
-    protected ModelView<ManagedSet<I>> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
-        return new ManagedSetModelView<I>(getType(), elementSchema, modelNode, writable, ruleDescriptor, modelCreatorFactory);
+    protected ModelView<ModelSet<I>> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
+        return new ModelSetModelView<I>(getType(), elementSchema, modelNode, writable, ruleDescriptor, modelCreatorFactory);
     }
 
     @Override
@@ -65,8 +65,8 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         return Optional.absent();
     }
 
-    private static class ManagedSetModelView<I> implements ModelView<ManagedSet<I>> {
-        private final ModelType<ManagedSet<I>> type;
+    private static class ModelSetModelView<I> implements ModelView<ModelSet<I>> {
+        private final ModelType<ModelSet<I>> type;
         private final ModelSchema<I> elementSchema;
         private final MutableModelNode modelNode;
         private final boolean writable;
@@ -76,7 +76,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         private Set<I> elementViews;
         private final ModelReference<I> elementReference;
 
-        public ManagedSetModelView(ModelType<ManagedSet<I>> type, ModelSchema<I> elementSchema, MutableModelNode modelNode, boolean writable, ModelRuleDescriptor ruleDescriptor, ModelCreatorFactory modelCreatorFactory) {
+        public ModelSetModelView(ModelType<ModelSet<I>> type, ModelSchema<I> elementSchema, MutableModelNode modelNode, boolean writable, ModelRuleDescriptor ruleDescriptor, ModelCreatorFactory modelCreatorFactory) {
             this.type = type;
             this.elementSchema = elementSchema;
             this.modelNode = modelNode;
@@ -92,13 +92,13 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         }
 
         @Override
-        public ModelType<ManagedSet<I>> getType() {
+        public ModelType<ModelSet<I>> getType() {
             return type;
         }
 
         @Override
-        public ManagedSet<I> getInstance() {
-            return new ModelNodeBackedManagedSet();
+        public ModelSet<I> getInstance() {
+            return new ModelNodeBackedModelSet();
         }
 
         @Override
@@ -119,7 +119,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         }
 
 
-        public class ModelNodeBackedManagedSet implements ManagedSet<I>, ManagedInstance {
+        public class ModelNodeBackedModelSet implements ModelSet<I>, ManagedInstance {
             @Override
             public MutableModelNode getBackingNode() {
                 return modelNode;

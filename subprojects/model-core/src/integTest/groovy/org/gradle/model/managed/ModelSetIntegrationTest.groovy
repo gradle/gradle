@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
-class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
+class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         EnableModelDsl.enable(executer)
@@ -46,13 +46,13 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               }
 
               @Model
-              void people(ManagedSet<Person> people, Names names) {
+              void people(ModelSet<Person> people, Names names) {
                 names.names.each { n ->
                     people.create { name = n }
                 }
               }
 
-              @Mutate void addPeople(ManagedSet<Person> people) {
+              @Mutate void addPeople(ModelSet<Person> people) {
                 people.create { name = "p3" }
                 people.create { name = "p4" }
               }
@@ -82,7 +82,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains "people: org.gradle.model.collection.ManagedSet<Person> 'people'"
+        output.contains "people: org.gradle.model.ModelSet<Person> 'people'"
         output.contains 'names: p0, p1, p2, p3, p4'
     }
 
@@ -97,7 +97,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
               @Model
-              void people(ManagedSet<Person> people) {
+              void people(ModelSet<Person> people) {
                 people.create { name = "p1" }
                 people.create { name = "p2" }
               }
@@ -137,7 +137,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             interface Group {
               String getName()
               void setName(String string)
-              ManagedSet<Person> getMembers()
+              ModelSet<Person> getMembers()
             }
 
             class Rules extends RuleSource {
@@ -187,19 +187,19 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             interface Group {
               String getName()
               void setName(String string)
-              ManagedSet<Person> getMembers()
-              void setMembers(ManagedSet<Person> members)
+              ModelSet<Person> getMembers()
+              void setMembers(ModelSet<Person> members)
             }
 
             class Rules extends RuleSource {
               @Model
-              void people(ManagedSet<Person> people) {
+              void people(ModelSet<Person> people) {
                 people.create { name = "Ada Lovelace" }
                 people.create { name = "Grace Hooper" }
               }
 
               @Model
-              void group(Group group, @Path("people") ManagedSet<Person> people) {
+              void group(Group group, @Path("people") ModelSet<Person> people) {
                 group.name = "Women in computing"
 
                 assert group.members == null
@@ -243,19 +243,19 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
               @Model
-              void people(ManagedSet<Person> people) {
+              void people(ModelSet<Person> people) {
                 println "initialize"
               }
 
-              @Defaults void initialPeople(ManagedSet<Person> people) {
+              @Defaults void initialPeople(ModelSet<Person> people) {
                 println "apply defaults"
               }
 
-              @Mutate void customPeople(ManagedSet<Person> people) {
+              @Mutate void customPeople(ModelSet<Person> people) {
                 println "configure"
               }
 
-              @Finalize void finalPeople(ManagedSet<Person> people) {
+              @Finalize void finalPeople(ModelSet<Person> people) {
                 println "finalize"
               }
             }
@@ -299,7 +299,7 @@ finalize
 
             class Rules extends RuleSource {
               @Model
-              void people(ManagedSet<Person> people) {
+              void people(ModelSet<Person> people) {
                 people.create {
                     println "configure p1"
                     name = "p1"
@@ -307,7 +307,7 @@ finalize
                 println "p1 defined"
               }
 
-              @Mutate void addPeople(ManagedSet<Person> people) {
+              @Mutate void addPeople(ModelSet<Person> people) {
                 people.create {
                   println "configure p2"
                   name = "p2"
@@ -368,14 +368,14 @@ configure p3
 
             class Rules extends RuleSource {
               @Model
-              void people(ManagedSet<Person> people) {
+              void people(ModelSet<Person> people) {
                 people.create {
                     throw new RuntimeException("broken")
                 }
               }
 
               @Mutate
-              void tasks(ModelMap<Task> tasks, ManagedSet<Person> people) { }
+              void tasks(ModelMap<Task> tasks, ModelSet<Person> people) { }
             }
 
             apply type: Rules
@@ -386,11 +386,11 @@ configure p3
 
         and:
         failure.assertHasDescription('A problem occurred configuring root project')
-        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(org.gradle.model.collection.ManagedSet<Person>)')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(org.gradle.model.ModelSet<Person>)')
         failure.assertHasCause('broken')
     }
 
-    def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
+    def "read methods of ModelSet throw exceptions when used in a creation rule"() {
         when:
         buildScript '''
             @Managed
@@ -399,12 +399,12 @@ configure p3
 
             class RulePlugin extends RuleSource {
                 @Model
-                void people(ManagedSet<Person> people) {
+                void people(ModelSet<Person> people) {
                     people.size()
                 }
 
                 @Mutate
-                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ModelSet<Person> people) {
                 }
             }
 
@@ -416,10 +416,10 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.ModelSet<Person>)'")
     }
 
-    def "read methods of ManagedSet throw exceptions when used in a mutation rule"() {
+    def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
         when:
         buildScript '''
             @Managed
@@ -428,16 +428,16 @@ configure p3
 
             class RulePlugin extends RuleSource {
                 @Model
-                void people(ManagedSet<Person> people) {
+                void people(ModelSet<Person> people) {
                 }
 
                 @Mutate
-                void readPeople(ManagedSet<Person> people) {
+                void readPeople(ModelSet<Person> people) {
                     people.toList()
                 }
 
                 @Mutate
-                void addDependencyOnPeople(ModelMap<Task> tasks, ManagedSet<Person> people) {
+                void addDependencyOnPeople(ModelMap<Task> tasks, ModelSet<Person> people) {
                 }
             }
 
@@ -449,7 +449,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.ModelSet<Person>)'")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
@@ -461,10 +461,10 @@ configure p3
 
             class RulePlugin extends RuleSource {
                 @Model
-                void people(ManagedSet<Person> people) {}
+                void people(ModelSet<Person> people) {}
 
                 @Mutate
-                void tryToMutateInputManagedSet(ModelMap<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateInputModelSet(ModelMap<Task> tasks, ModelSet<Person> people) {
                     people.create {}
                 }
             }
@@ -476,8 +476,8 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputModelSet")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#tryToMutateInputModelSet(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.ModelSet<Person>)'")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
@@ -488,17 +488,17 @@ configure p3
             }
 
             class Holder {
-                static ManagedSet<Person> people
+                static ModelSet<Person> people
             }
 
             class RulePlugin extends RuleSource {
                 @Model
-                void people(ManagedSet<Person> people) {
+                void people(ModelSet<Person> people) {
                     Holder.people = people
                 }
 
                 @Mutate
-                void tryToMutateManagedSetOutsideOfCreationRule(ModelMap<Task> tasks, ManagedSet<Person> people) {
+                void tryToMutateModelSetOutsideOfCreationRule(ModelMap<Task> tasks, ModelSet<Person> people) {
                     Holder.people.create {}
                 }
             }
@@ -510,8 +510,8 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateManagedSetOutsideOfCreationRule")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateModelSetOutsideOfCreationRule")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.ModelSet<Person>)'")
     }
 
     def "mutating managed set which is an input of a DSL rule is not allowed"() {
@@ -523,7 +523,7 @@ configure p3
 
             class RulePlugin extends RuleSource {
                 @Model
-                void people(ManagedSet<Person> people) {
+                void people(ModelSet<Person> people) {
                 }
             }
 
@@ -541,6 +541,6 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'model.tasks @ build file")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'model.tasks @ build file")
     }
 }
