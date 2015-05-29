@@ -36,6 +36,7 @@ public class GUtilTest extends spock.lang.Specification {
         toCamelCase(" Two  \t words\n") == "TwoWords"
         toCamelCase("four or so Words") == "FourOrSoWords"
         toCamelCase("123-project") == "123Project"
+        toCamelCase("i18n-admin") == "I18nAdmin"
         toCamelCase("trailing-") == "Trailing"
         toCamelCase("ABC") == "ABC"
         toCamelCase(".") == ""
@@ -57,6 +58,7 @@ public class GUtilTest extends spock.lang.Specification {
         toLowerCamelCase(" Two  \t words\n") == "twoWords"
         toLowerCamelCase("four or so Words") == "fourOrSoWords"
         toLowerCamelCase("123-project") == "123Project"
+        toLowerCamelCase("i18n-admin") == "i18nAdmin"
         toLowerCamelCase("trailing-") == "trailing"
         toLowerCamelCase("ABC") == "aBC"
         toLowerCamelCase(".") == ""
@@ -87,6 +89,7 @@ public class GUtilTest extends spock.lang.Specification {
         toConstant("ABC Thing") == "ABC_THING"
         toConstant("123-project") == "123_PROJECT"
         toConstant("123abc-project") == "123ABC_PROJECT"
+        toConstant("i18n-admin") == "I18N_ADMIN"
         toConstant(".") == ""
         toConstant("-") == ""
     }
