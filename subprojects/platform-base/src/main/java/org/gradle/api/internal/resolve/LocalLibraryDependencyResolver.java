@@ -16,13 +16,13 @@
 package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -54,47 +54,55 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     @Override
-    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
-
-            DefaultLocalComponentMetaData metaData = null;
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
-            String selectorProjectPath = selector.getProjectPath();
-            ProjectInternal project = projectFinder.getProject(selectorProjectPath);
+            final String selectorProjectPath = selector.getProjectPath();
+            final String libraryName = selector.getLibraryName();
+            final ProjectInternal project = projectFinder.getProject(selectorProjectPath);
             List<String> candidateLibraries = new LinkedList<String>();
             if (project != null) {
-                ModelRegistry modelRegistry = project.getModelRegistry();
-                ComponentSpecContainer components = modelRegistry.find(
-                    ModelPath.path("components"),
-                    ModelType.of(ComponentSpecContainer.class));
-                if (components!=null) {
-                    ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
-                    String libraryName = selector.getLibraryName();
-                    boolean findSingleLibrary = "".equals(libraryName);
-                    Collection<? extends LibrarySpec> availableLibraries = libraries.values();
-                    for (LibrarySpec candidateLibrary : availableLibraries) {
-                        candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
+                withLibrary(project, libraryName, candidateLibraries, new Action<LibrarySpec>() {
+                    @Override
+                    public void execute(LibrarySpec librarySpec) {
+                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, librarySpec.getName(), String.valueOf(project.getVersion()));
+                        result.resolved(metaData.toResolveMetaData());
                     }
-                    if (findSingleLibrary && availableLibraries.size() == 1) {
-                        libraryName = availableLibraries.iterator().next().getName();
-                    }
-                    if (!availableLibraries.isEmpty()) {
-                        // todo: this should probably be moved to a library selector
-                        // at some point to handle more complex library selection (flavors, ...)
-                        String version = project.getVersion().toString();
-                        LibrarySpec library = libraries.get(libraryName);
-                        if (library != null) {
-                            metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, libraryName, version);
-                        }
-                    }
-                }
+                });
             }
-            if (metaData != null) {
-                result.resolved(metaData.toResolveMetaData());
-            } else {
+            if (!result.hasResult()) {
                 String message = prettyErrorMessage(selector, project, selectorProjectPath, candidateLibraries);
                 ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, message);
                 result.failed(failure);
+            }
+        }
+    }
+
+    private void withLibrary(ProjectInternal project,
+                             String libraryName,
+                             List<String> candidateLibraries,
+                             Action<? super LibrarySpec> action) {
+        ModelRegistry modelRegistry = project.getModelRegistry();
+        ComponentSpecContainer components = modelRegistry.find(
+            ModelPath.path("components"),
+            ModelType.of(ComponentSpecContainer.class));
+        if (components!=null) {
+            ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
+            boolean findSingleLibrary = "".equals(libraryName);
+            Collection<? extends LibrarySpec> availableLibraries = libraries.values();
+            for (LibrarySpec candidateLibrary : availableLibraries) {
+                candidateLibraries.add(String.format("'%s'", candidateLibrary.getName()));
+            }
+            if (findSingleLibrary && availableLibraries.size() == 1) {
+                libraryName = availableLibraries.iterator().next().getName();
+            }
+            if (!availableLibraries.isEmpty()) {
+                // todo: this should probably be moved to a library selector
+                // at some point to handle more complex library selection (flavors, ...)
+                LibrarySpec library = libraries.get(libraryName);
+                if (library != null) {
+                    action.execute(library);
+                }
             }
         }
     }
