@@ -31,7 +31,7 @@ import static java.util.Collections.emptyList;
 
 public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
-    private static final Pattern UPPER_LOWER = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)");
+    private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
     public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
