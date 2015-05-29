@@ -44,6 +44,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Malte Finsterwalder](https://github.com/finsterwalder) - Fixed resolving of references to `${parent.artifactId}` in POM files (GRADLE-3299)
+* [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
+* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
+* [Andrew Shu](https://github.com/talklittle) - Documentation improvements
+
+
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
