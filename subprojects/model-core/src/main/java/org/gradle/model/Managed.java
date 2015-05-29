@@ -59,6 +59,7 @@ import java.lang.annotation.Target;
  * <li>{@link Double}</li>
  * <li>{@link java.math.BigInteger}</li>
  * <li>{@link java.math.BigDecimal}</li>
+ * <li>{@link java.io.File}</li>
  * </ul>
  * <p>
  * All {@link Enum} types are also allowed.
