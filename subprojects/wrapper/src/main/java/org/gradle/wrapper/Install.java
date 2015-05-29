@@ -50,8 +50,8 @@ public class Install {
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
-                    return getAndVerifyDistributionRoot(localZipFile, distributionSha256Sum,
-                            distDir, distDir.getAbsolutePath());
+                    verifyDownloadChecksum(localZipFile, distributionSha256Sum);
+                    return getAndVerifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
                 boolean needsDownload = !localZipFile.isFile();
@@ -69,11 +69,13 @@ public class Install {
                     logger.log("Deleting directory " + dir.getAbsolutePath());
                     deleteDir(dir);
                 }
+
+                verifyDownloadChecksum(localZipFile, distributionSha256Sum);
+
                 logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
 
-                File root = getAndVerifyDistributionRoot(localZipFile, distributionSha256Sum,
-                        distDir, distributionUrl.toString());
+                File root = getAndVerifyDistributionRoot(distDir, distributionUrl.toString());
                 setExecutablePermissions(root);
                 markerFile.createNewFile();
 
@@ -108,25 +110,8 @@ public class Install {
         return hexString.toString();
     }
 
-    private File getAndVerifyDistributionRoot(File localZipFile, String distributionSha256Sum,
-                                              File distDir, String distributionDescription)
+    private File getAndVerifyDistributionRoot(File distDir, String distributionDescription)
             throws Exception {
-        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
-        if (distributionSha256Sum != null) {
-            logger.log("Verifying " + localZipFile.getName() + " via SHA-256 hash sum comparison.");
-
-            if (!distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
-                throw new SignatureException("Verification of "
-                        + localZipFile.getName()
-                        + " via SHA-256 hash sum comparison failed! This is a serious problem,"
-                        + " it means that you retrieved a different gradle distribution zip than expected."
-                        + " Please inform the maintainer!"
-                        + "You can try to delete the cached gradle distribtion at "
-                        + distDir.getAbsolutePath()
-                        + " and try again.");
-            }
-        }
-
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
             throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
@@ -135,6 +120,21 @@ public class Install {
             throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         return dirs.get(0);
+    }
+
+    private void verifyDownloadChecksum(File localZipFile, String distributionSha256Sum) throws Exception {
+        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
+        if (distributionSha256Sum != null) {
+            logger.log("Verifying " + localZipFile.getName() + " via SHA-256 hash sum comparison.");
+
+            if (!distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
+                localZipFile.delete();
+                throw new SignatureException(String.format("Verification of %s"
+                        + " via SHA-256 hash sum comparison failed! This is a serious problem,"
+                        + " it means that you retrieved a different gradle distribution zip than expected."
+                        + " Please inform the maintainer!", localZipFile.getName()));
+            }
+        }
     }
 
     private List<File> listDirs(File distDir) {
