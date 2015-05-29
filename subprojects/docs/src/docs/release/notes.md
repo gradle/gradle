@@ -48,6 +48,7 @@ We would like to thank the following community members for making contributions 
 * [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
 * [Andrew Shu](https://github.com/talklittle) - Documentation improvements
+* [Dominik Schürmann](https://github.com/dschuermann) - Support for verifying Gradle wrapper distribution download against SHA-256 hash
 
 
 <!--

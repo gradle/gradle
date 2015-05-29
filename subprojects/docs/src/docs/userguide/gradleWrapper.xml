@@ -18,12 +18,12 @@
     <para>
         The Gradle Wrapper (henceforth referred to as the “wrapper”) is the preferred way of starting a Gradle build. The wrapper
         is a batch script on Windows, and a shell script for other operating systems. When you start a Gradle build via the wrapper,
-        Gradle will be automatically downloaded and used to run the build. 
+        Gradle will be automatically downloaded and used to run the build.
     </para>
     <para>
         The wrapper is something you <emphasis>should</emphasis> check into version control. By distributing the wrapper with your project,
-        anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the 
-        version of Gradle that the build was designed to work with. Of course, this is also great for 
+        anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the
+        version of Gradle that the build was designed to work with. Of course, this is also great for
         <ulink url="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration</ulink> servers (i.e. servers that regularly
         build your project) as it requires no configuration on the server.
     </para>
@@ -45,7 +45,7 @@
         <sourcefile file="build.gradle"/>
     </sample>
     <para>
-        After such an execution you find the following new or updated files in your project directory 
+        After such an execution you find the following new or updated files in your project directory
         (in case the default configuration of the wrapper task is used).
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
@@ -91,11 +91,11 @@
     </section>
     <section id='sec:verification'>
         <title>Verification of downloaded Gradle distributions</title>
-        <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison. 
-            This raises the security against targetted attacks by preventing a man-in-the-middle attacker from injecting a different gradle distrubution for you.
+        <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
+            This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
         </para>
         <para>
-            To enable this feature, download your gradle distribution manually and calculate the SHA-256 hash sum of it, e.g.,
+            To enable this feature, download your Gradle distribution manually and calculate the SHA-256 hash sum of it, e.g.,
             via <command>sha256sum gradle-2.3-bin.zip</command>.
             Add the returned hash sum to <literal>gradle-wrapper.properties</literal> using the <literal>distributionSha256Sum</literal> property, e.g.,
             <literal>distributionSha256Sum=010dd9f31849abc3d5644e282943b1c1c355f8e2635c5789833979ce590a3774</literal>
