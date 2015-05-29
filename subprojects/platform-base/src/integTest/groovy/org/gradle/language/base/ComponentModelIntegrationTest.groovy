@@ -233,7 +233,7 @@ model {
     components
         main
             binaries
-            sources = source set 'main'"""))
+            sources"""))
     }
 
     def "can reference sources container for a component in a rule"() {
@@ -245,7 +245,7 @@ model {
                     create("printSourceNames") {
                         def sources = $("components.main.sources")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${sources.values()*.name}"
                         }
                     }
                 }
@@ -396,10 +396,10 @@ model {
         output.contains(TextUtil.toPlatformLineSeparators("""    components
         main
             binaries
-            sources = source set 'main'
+            sources
         someCustomComponent
             binaries
-            sources = source set 'someCustomComponent'
+            sources
 """))
 
     }
@@ -509,7 +509,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         output.contains(TextUtil.toPlatformLineSeparators("""
         someCustomComponent
             binaries
-            sources = source set 'someCustomComponent'"""))
+            sources"""))
 
     }
 
@@ -542,7 +542,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 main = DefaultCustomLanguageSourceSet 'main:main'
         test
             binaries
-            sources = source set 'test'
+            sources
 """))
 
     }
@@ -719,14 +719,14 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                     tasks = []
                 test
                     tasks = []
-            sources = source set 'main'
+            sources
         test
             binaries
                 main
                     tasks = []
                 test
                     tasks = []
-            sources = source set 'test'"""))
+            sources"""))
     }
 
     def "can reference binaries container for a component in a rule"() {

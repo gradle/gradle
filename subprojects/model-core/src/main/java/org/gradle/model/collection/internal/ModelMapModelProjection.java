@@ -44,7 +44,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
 
     public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
-        return new ModelMapModelProjection<T>(itemType, false, creatorStrategy);
+        return new ModelMapModelProjection<T>(itemType, false, false, creatorStrategy);
     }
 
     public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
@@ -52,16 +52,18 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
-        return new ModelMapModelProjection<T>(itemType, true, creatorStrategy);
+        return new ModelMapModelProjection<T>(itemType, false, true, creatorStrategy);
     }
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
+    private final boolean eager;
     private final ChildNodeCreatorStrategy<? super I> creatorStrategy;
     private final boolean managed;
 
-    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean managed, ChildNodeCreatorStrategy<? super I> creatorStrategy) {
+    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean eager, boolean managed, ChildNodeCreatorStrategy<? super I> creatorStrategy) {
         this.baseItemModelType = baseItemModelType;
+        this.eager = eager;
         this.managed = managed;
         this.baseItemType = baseItemModelType.getConcreteClass();
         this.creatorStrategy = creatorStrategy;
@@ -138,7 +140,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, boolean mutable, boolean canReadChildren) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, creatorStrategy);
+        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, creatorStrategy);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
         ModelType<ModelMap<S>> viewType = ModelTypes.modelMap(itemType);

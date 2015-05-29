@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.internal.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
@@ -41,15 +42,25 @@ abstract public class ModelCreators {
         return unmanagedInstance(modelReference, factory, Actions.doNothing());
     }
 
-    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, Action<? super MutableModelNode> initializer) {
-        @SuppressWarnings("unchecked")
-        Action<MutableModelNode> initializers = Actions.composite(new Action<MutableModelNode>() {
-            public void execute(MutableModelNode modelNode) {
-                modelNode.setPrivateData(modelReference.getType(), factory.create());
+    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, final Action<? super MutableModelNode> initializer) {
+        return unmanagedInstanceOf(modelReference, new Transformer<T, MutableModelNode>() {
+            @Override
+            public T transform(MutableModelNode modelNode) {
+                T t = factory.create();
+                initializer.execute(modelNode);
+                return t;
             }
-        }, initializer);
+        });
+    }
 
-        return of(modelReference.getPath(), initializers)
+    public static <T> Builder unmanagedInstanceOf(final ModelReference<T> modelReference, final Transformer<? extends T, ? super MutableModelNode> factory) {
+        return of(modelReference.getPath(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode modelNode) {
+                T t = factory.transform(modelNode);
+                modelNode.setPrivateData(modelReference.getType(), t);
+            }
+        })
             .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
     }
 

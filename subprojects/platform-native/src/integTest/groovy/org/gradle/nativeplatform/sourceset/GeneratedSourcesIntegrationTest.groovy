@@ -200,7 +200,9 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.lib library: 'hello', linkage: 'api'
+                c {
+                lib library: 'hello', linkage: 'api'
+                }
             }
         }
         hello(NativeLibrarySpec) {

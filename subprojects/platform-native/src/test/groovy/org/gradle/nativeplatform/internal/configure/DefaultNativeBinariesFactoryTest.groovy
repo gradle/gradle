@@ -22,8 +22,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.*
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -31,7 +30,7 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
@@ -57,11 +56,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for executable"() {
         given:
-        def componentModelNode = Mock(MutableModelNode) {
-            getPath() >> ModelPath.path("component")
-            getLink("binaries") >> Mock(MutableModelNode)
-        }
-        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, componentModelNode, mainSourceSet, instantiator)
+        def executable = BaseComponentFixtures.create(DefaultNativeExecutableSpec, new ModelRegistryHelper(), id, mainSourceSet, instantiator)
         def binary = BaseBinarySpec.create(DefaultNativeExecutableBinarySpec, "testExecutable", instantiator, taskFactory)
 
         when:
@@ -82,11 +77,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def componentModelNode = Mock(MutableModelNode) {
-            getPath() >> ModelPath.path("component")
-            getLink("binaries") >> Mock(MutableModelNode)
-        }
-        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, componentModelNode, mainSourceSet, DirectInstantiator.INSTANCE)
+        def library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), id, mainSourceSet, instantiator)
         def staticLibrary = BaseBinarySpec.create(DefaultStaticLibraryBinarySpec, "testStaticLibrary", instantiator, taskFactory)
         def sharedLibrary = BaseBinarySpec.create(DefaultSharedLibraryBinarySpec, "testSharedLibrary", instantiator, taskFactory)
 

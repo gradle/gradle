@@ -84,18 +84,18 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     @Override
     @Nullable
-    public ModelNode atState(ModelPath path, ModelNode.State state) {
-        return modelRegistry.atState(path, state);
+    public MutableModelNode atState(ModelPath path, ModelNode.State state) {
+        return (MutableModelNode) modelRegistry.atState(path, state);
     }
 
-    public ModelNode atState(String path, ModelNode.State state) {
+    public MutableModelNode atState(String path, ModelNode.State state) {
         return atState(ModelPath.path(path), state);
     }
 
     @Override
     @Nullable
-    public ModelNode atStateOrLater(ModelPath path, ModelNode.State state) {
-        return modelRegistry.atStateOrLater(path, state);
+    public MutableModelNode atStateOrLater(ModelPath path, ModelNode.State state) {
+        return (MutableModelNode) modelRegistry.atStateOrLater(path, state);
     }
 
     @Override

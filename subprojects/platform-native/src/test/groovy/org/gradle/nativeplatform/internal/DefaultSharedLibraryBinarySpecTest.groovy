@@ -24,8 +24,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -33,7 +32,7 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -152,13 +151,9 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        def componentModelNode = Mock(MutableModelNode) {
-            getPath() >> ModelPath.path("component")
-            getLink("binaries") >> Mock(MutableModelNode)
-        }
-        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), componentModelNode,
-                new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
+        final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"),
+            new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
         TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider),
-                platform, buildType, new DefaultFlavor("flavorOne"))
+            platform, buildType, new DefaultFlavor("flavorOne"))
     }
 }

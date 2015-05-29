@@ -15,19 +15,19 @@
  */
 
 package org.gradle.jvm.internal
+
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJvmLibrarySpecTest extends Specification {
-    def libraryId = Mock(ComponentSpecIdentifier)
+    def libraryId = new DefaultComponentSpecIdentifier(":project-path", "jvm-lib")
     FunctionalSourceSet mainSourceSet
 
     def setup(){
@@ -35,11 +35,8 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     def "library has name and path"() {
-        def library = createJvmLibrarySpec()
-
         when:
-        _ * libraryId.name >> "jvm-lib"
-        _ * libraryId.projectPath >> ":project-path"
+        def library = createJvmLibrarySpec()
 
         then:
         library.name == "jvm-lib"
@@ -62,11 +59,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        def componentModelNode = Mock(MutableModelNode) {
-            getPath() >> ModelPath.path("component")
-            getLink("binaries") >> Mock(MutableModelNode)
-        }
-        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, componentModelNode, mainSourceSet, DirectInstantiator.INSTANCE)
+        BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, mainSourceSet, DirectInstantiator.INSTANCE)
     }
 
     def languageSourceSet(String name) {

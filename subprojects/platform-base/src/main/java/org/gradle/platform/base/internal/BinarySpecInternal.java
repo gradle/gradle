@@ -17,9 +17,13 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
+
+    ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
+
     FunctionalSourceSet getBinarySources();
 
     void setBinarySources(FunctionalSourceSet sources);

@@ -121,7 +121,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     create("printSourceNames") {
                         def sources = $("testSuites.main.sources")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${sources.values()*.name}"
                         }
                     }
                 }

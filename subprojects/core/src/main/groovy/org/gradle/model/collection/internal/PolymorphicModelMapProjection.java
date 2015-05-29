@@ -25,12 +25,17 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
-    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
-        return new PolymorphicModelMapProjection<T>(itemType, creatorStrategy);
+
+    public static <T> ModelProjection ofEager(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        return new PolymorphicModelMapProjection<T>(itemType, true, creatorStrategy);
     }
 
-    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
-        super(baseItemType, false, creatorStrategy);
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        return new PolymorphicModelMapProjection<T>(itemType, false, creatorStrategy);
+    }
+
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, boolean eager, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        super(baseItemType, eager, false, creatorStrategy);
     }
 
     @Override
