@@ -46,7 +46,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        adapter.onEvent(Mock(InternalBuildProgressEvent))
+        adapter.onEvent(Mock(InternalProgressEvent))
 
         then:
         0 * listener.statusChanged(_)
@@ -58,7 +58,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        def unknownEvent = Mock(InternalBuildProgressEvent)
+        def unknownEvent = Mock(InternalProgressEvent)
         adapter.onEvent(unknownEvent)
 
         then:
@@ -76,7 +76,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getName() >> 'some task'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -99,7 +99,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getName() >> 'some task'
         _ * taskDescriptor.getParentId() >> null
 
-        def skippedEvent = Mock(InternalBuildOperationFinishedProgressEvent)
+        def skippedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> taskDescriptor
 
@@ -121,7 +121,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> 1
 
-        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getDisplayName() >> 'child event'
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
@@ -143,7 +143,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * parentTaskDescriptor.getName() >> 'some parent'
         _ * parentTaskDescriptor.getParentId() >> null
 
-        def parentEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def parentEvent = Mock(InternalOperationStartedProgressEvent)
         _ * parentEvent.getEventTime() >> 999
         _ * parentEvent.getDescriptor() >> parentTaskDescriptor
 
@@ -152,7 +152,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> parentTaskDescriptor.getId()
 
-        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
 
@@ -176,7 +176,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDisplayName() >> 'task started'
         _ * startEvent.getDescriptor() >> taskDescriptor
@@ -206,7 +206,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDisplayName() >> 'task started'
         _ * startEvent.getDescriptor() >> taskDescriptor
@@ -235,7 +235,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -244,7 +244,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.getSkipMessage() >> 'SKIPPED'
 
-        def skippedEvent = Mock(InternalBuildOperationFinishedProgressEvent)
+        def skippedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDisplayName() >> 'task skipped'
         _ * skippedEvent.getDescriptor() >> taskDescriptor
@@ -279,7 +279,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -288,7 +288,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.isUpToDate() >> true
 
-        def succeededEvent = Mock(InternalBuildOperationFinishedProgressEvent)
+        def succeededEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDisplayName() >> 'task succeeded'
         _ * succeededEvent.getDescriptor() >> taskDescriptor
@@ -323,7 +323,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -332,7 +332,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.getFailures() >> [Stub(InternalFailure)]
 
-        def failedEvent = Mock(InternalBuildOperationFinishedProgressEvent)
+        def failedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDisplayName() >> 'task failed'
         _ * failedEvent.getDescriptor() >> taskDescriptor

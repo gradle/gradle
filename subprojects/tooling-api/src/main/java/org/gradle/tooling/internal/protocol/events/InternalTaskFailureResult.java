@@ -21,5 +21,5 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.5
  */
-public interface InternalTaskFailureResult extends InternalTaskResult, InternalBuildFailureResult {
+public interface InternalTaskFailureResult extends InternalTaskResult, InternalFailureResult {
 }

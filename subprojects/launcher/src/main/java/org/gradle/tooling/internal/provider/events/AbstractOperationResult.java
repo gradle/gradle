@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildOperationResult;
+import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 
-public abstract class AbstractBuildOperationResult extends AbstractResult implements InternalBuildOperationResult {
-    protected AbstractBuildOperationResult(long startTime, long endTime, String outcomeDescription) {
+public abstract class AbstractOperationResult extends AbstractResult implements InternalOperationResult {
+    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription) {
         super(startTime, endTime, outcomeDescription);
     }
 }

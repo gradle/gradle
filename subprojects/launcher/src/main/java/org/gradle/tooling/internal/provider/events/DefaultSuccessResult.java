@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 
-import java.util.List;
-
-public class DefaultBuildOperationFailureResult extends AbstractBuildOperationResult implements InternalBuildFailureResult {
-    private final List<DefaultFailure> failures;
-
-    public DefaultBuildOperationFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failed");
-        this.failures = failures;
-    }
-
-    @Override
-    public List<DefaultFailure> getFailures() {
-        return failures;
+public class DefaultSuccessResult extends AbstractOperationResult implements InternalSuccessResult {
+    public DefaultSuccessResult(long startTime, long endTime) {
+        super(startTime, endTime, "succeeded");
     }
 }

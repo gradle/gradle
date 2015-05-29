@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildSuccessResult;
+package org.gradle.tooling.internal.protocol.events;
 
-public class DefaultBuildOperationSuccessResult extends AbstractBuildOperationResult implements InternalBuildSuccessResult {
-    public DefaultBuildOperationSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "succeeded");
-    }
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.5
+ */
+public interface InternalOperationFinishedProgressEvent extends InternalProgressEvent {
+    /**
+     * Returns the result of running the build operation.
+     *
+     * @return The build operation result
+     */
+    InternalOperationResult getResult();
 }

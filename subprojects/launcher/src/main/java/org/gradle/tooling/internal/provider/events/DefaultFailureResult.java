@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.5
- */
-public interface InternalBuildSuccessResult extends InternalBuildOperationResult {
+import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
+
+import java.util.List;
+
+public class DefaultFailureResult extends AbstractOperationResult implements InternalFailureResult {
+    private final List<DefaultFailure> failures;
+
+    public DefaultFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
+        super(startTime, endTime, "failed");
+        this.failures = failures;
+    }
+
+    @Override
+    public List<DefaultFailure> getFailures() {
+        return failures;
+    }
 }

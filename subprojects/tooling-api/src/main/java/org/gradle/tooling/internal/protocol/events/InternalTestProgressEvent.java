@@ -20,7 +20,7 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.4
  */
-public interface InternalTestProgressEvent extends InternalBuildProgressEvent {
+public interface InternalTestProgressEvent extends InternalProgressEvent {
     /**
      * Returns the description of the test for which progress is reported.
      *

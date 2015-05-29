@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.5
  */
-public interface InternalTaskDescriptor extends InternalBuildDescriptor {
+public interface InternalTaskDescriptor extends InternalOperationDescriptor {
     /**
      * Returns the path of the task.
      *

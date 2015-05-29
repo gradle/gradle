@@ -46,7 +46,7 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        adapter.onEvent(Stub(InternalBuildProgressEvent))
+        adapter.onEvent(Stub(InternalProgressEvent))
 
         then:
         0 * listener.statusChanged(_)

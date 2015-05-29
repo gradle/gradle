@@ -42,7 +42,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -249,7 +249,7 @@ public class ProviderConnection {
 
         @Override
         public void dispatch(Object event) {
-            if (event instanceof InternalBuildProgressEvent) {
+            if (event instanceof InternalProgressEvent) {
                 this.buildProgressListener.onEvent(event);
             }
         }
