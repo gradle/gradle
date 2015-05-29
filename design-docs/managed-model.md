@@ -20,6 +20,39 @@ The term “model caching” refers to the ability to safely reuse a previously 
 Moreover, we consider owning the implementation of model elements an enabler for the general dependency based configuration model.
    
 ## Stories
+                                           
+### Support properties of type `File`
+
+    @Managed
+    interface Thing {
+      File getFile();
+      void setFile(File file)
+    }
+
+- Similar to `String` etc., getter must be accompanied by setter
+- Similar to `String` etc. `setFile()` cannot be called when the object is read only
+
+### Support managed types declaring properties of type `ModelMap<T>`
+    
+    @Managed
+    interface Thing {
+      ModelMap<Foo> getFoos();
+    }
+
+- No setter for property allowed
+- Element type must implement `Named`, and have no `setName`
+- Element type must be `@Managed`
+- Type taking creation methods must support subtypes
+- Rule taking methods (e.g. `all(Action)`) must throw when object is read only
+- All created elements must have `name` property populated, matching the node link name
+- Can depend on model map element by specific type in rules
+- Element type cannot be any kind of type var
+
+### Support declaring top level model elements of type `ModelMap<T>`
+    
+    class Rules extends RuleSource {
+      @Model void things(ModelMap<Thing> things) {}
+    }
                                             
 ### Support for polymorphic managed sets
 
