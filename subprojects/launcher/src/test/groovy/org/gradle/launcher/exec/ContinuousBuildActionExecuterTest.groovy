@@ -28,6 +28,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.session.BuildSession
 import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
@@ -51,6 +52,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
+    def buildSession = Mock(BuildSession)
     def executer = executer()
 
     private File file = new File('file')
@@ -200,6 +202,24 @@ class ContinuousBuildActionExecuterTest extends Specification {
         javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_7 }
     }
 
+    def "closes build session after single build"() {
+        when:
+        singleBuild()
+        executeBuild()
+
+        then:
+        1 * buildSession.stop()
+    }
+
+    def "closes build session after continuous build"() {
+        when:
+        continuousBuild()
+        executeBuild()
+
+        then:
+        1 * buildSession.stop()
+    }
+
     private void singleBuild() {
         actionParameters.continuous >> false
     }
@@ -217,7 +237,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, waiter)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, buildSession, waiter)
     }
 
 }

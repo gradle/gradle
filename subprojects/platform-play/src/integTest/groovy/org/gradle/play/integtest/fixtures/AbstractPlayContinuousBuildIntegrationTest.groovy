@@ -27,9 +27,21 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends AbstractContin
     abstract RunningPlayApp getRunningApp()
 
     def setup() {
+        writeSources()
+
+        // Assemble first so that runPlayBinary can start (almost) immediately
+        //executer.withTasks("assemble").run()
+        buildTimeout = 60
+    }
+
+    def getPlayRunBuildFile() {
+        buildFile
+    }
+
+    def writeSources() {
         playApp.writeSources(testDirectory)
 
-        buildFile << """
+        playRunBuildFile << """
             model {
                 tasks.runPlayBinary {
                     httpPort = ${runningApp.selectPort()}
@@ -40,8 +52,16 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends AbstractContin
         settingsFile << """
             rootProject.name = '${playApp.name}'
         """
+    }
 
-        // Assemble first so that runPlayBinary can start (almost) immediately
-        executer.withTasks("assemble").run()
+    def appIsRunningAndDeployed() {
+        runningApp.verifyStarted()
+        runningApp.verifyContent()
+        true
+    }
+
+    def appIsStopped() {
+        runningApp.verifyStopped()
+        true
     }
 }

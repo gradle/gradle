@@ -17,8 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.platform.base.internal.toolchain.ResolvedTool
-import org.gradle.play.internal.run.PlayApplicationRunner
+import org.gradle.play.internal.run.PlayApplicationDeploymentHandle
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.util.RedirectStdIn
@@ -30,10 +29,7 @@ import spock.lang.Specification
 class PlayRunTest extends Specification {
 
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
-    ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = Mock(ResolvedTool) {
-        get() >> playApplicationRunner
-    }
+    PlayApplicationDeploymentHandle deploymentHandle = Mock(PlayApplicationDeploymentHandle)
     InputStream systemInputStream = Mock()
 
     @Shared @ClassRule
@@ -45,7 +41,7 @@ class PlayRunTest extends Specification {
         playRun = TestUtil.createTask(PlayRun)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
-        playRun.playApplicationRunnerTool = playApplicationRunnerTool
+        playRun.deploymentHandle = deploymentHandle
         System.in = systemInputStream
     }
 
@@ -57,7 +53,7 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
+        1 * deploymentHandle.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
             assert spec.getForkOptions().memoryMaximumSize == "5G"
             runnerToken
@@ -69,20 +65,9 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
+        1 * deploymentHandle.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions() != null
             runnerToken
         }
-    }
-
-    def "stops application after receiving ctrl+d"() {
-        1 * systemInputStream.read() >> {
-            1 * runnerToken.stop()
-            return 4
-        }
-        when:
-        playRun.execute();
-        then:
-        1 * playApplicationRunner.start(_) >> runnerToken
     }
 }

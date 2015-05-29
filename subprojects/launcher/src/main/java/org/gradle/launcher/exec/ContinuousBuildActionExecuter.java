@@ -34,6 +34,7 @@ import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.session.BuildSession;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.DisconnectableInputStream;
@@ -47,27 +48,32 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final ExecutorFactory executorFactory;
     private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
+    private final BuildSession buildSession;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), executorFactory, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory, BuildSession buildSession) {
+        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), executorFactory, buildSession, new DefaultFileSystemChangeWaiter(executorFactory, fileWatcherFactory));
     }
 
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, ExecutorFactory executorFactory, FileSystemChangeWaiter waiter) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, ExecutorFactory executorFactory, BuildSession buildSession, FileSystemChangeWaiter waiter) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.javaVersion = javaVersion;
         this.waiter = waiter;
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.buildSession = buildSession;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
+        Object result;
         if (actionParameters.isContinuous()) {
-            return executeMultipleBuilds(action, requestContext, actionParameters);
+            result = executeMultipleBuilds(action, requestContext, actionParameters);
         } else {
-            return delegate.execute(action, requestContext, actionParameters);
+            result = delegate.execute(action, requestContext, actionParameters);
         }
+        buildSession.stop();
+        return result;
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters) {

@@ -20,77 +20,95 @@ import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegration
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import org.gradle.util.TextUtil
-import spock.lang.Ignore
+import spock.util.concurrent.PollingConditions
 
 class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp()
 
-    @Ignore
     def "build does not block when running play app with continuous build" () {
         when:
-        // runs until continuous build mode starts
         succeeds("runPlayBinary")
 
         then:
-        runningApp.verifyStarted()
+        appIsRunningAndDeployed()
 
         and:
-        runningApp.verifyContent()
+        doesntExit()
 
         cleanup: "stopping gradle"
         stopGradle()
-        runningApp.verifyStopped()
+        appIsStopped()
     }
 
-    @Ignore
-    def "build failure prior to launch does not prevent launch on subsequent build" () {
+    def "can run play app multiple times with continuous build" () {
         when:
-        file('app/controllers/Application.scala').text = "object Application extends Controller {"
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("conf/routes") << "\n# changed"
+
+        then:
+        succeeds()
+
+        when:
+        file("conf/routes") << "\n# changed again"
+
+        then:
+        succeeds()
+
+        when:
+        file("conf/routes") << "\n# changed yet again"
+
+        then:
+        succeeds()
+
+        cleanup: "stopping gradle"
+        stopGradle()
+        appIsStopped()
+    }
+
+    def "build failure prior to launch does not prevent launch on subsequent build" () {
+        when: "source file is broken"
+        def original = file('conf/routes').text
+        file('conf/routes').text = "a bunch of nonsense"
 
         then:
         fails("runPlayBinary")
 
-        when:
-        playApp.writeSources(testDirectory)
+        when: "source file is fixed"
+        file('conf/routes').text = original
 
         then:
-        succeeds("runPlayBinary")
+        succeeds()
 
         and:
-        runningApp.verifyStarted()
-
-        and:
-        runningApp.verifyContent()
+        appIsRunningAndDeployed()
 
         cleanup: "stopping gradle"
         stopGradle()
-        runningApp.verifyStopped()
+        appIsStopped()
     }
 
-    @Ignore
     def "play application is stopped when build is cancelled" () {
         when:
-        // runs until continuous build mode starts
         succeeds("runPlayBinary")
 
         then:
-        runningApp.verifyStarted()
-
-        and:
-        runningApp.verifyContent()
+        appIsRunningAndDeployed()
 
         when:
         println "sending ctrl-d"
         stdinPipe.write(4) // ctrl-d
-        stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
 
         then:
-        stopGradle()
+        cancelsAndExits()
 
         and:
-        runningApp.verifyStopped()
+        appIsStopped()
     }
 
     def "play run task blocks when not using continuous build" () {
@@ -99,20 +117,33 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
         gradle = executer.withTasks("runPlayBinary").withForceInteractive(true).start()
 
         then:
-        runningApp.verifyStarted()
+        appIsRunningAndDeployed()
 
         and:
-        runningApp.verifyContent()
+        buildIsBlocked()
 
         when:
         println "sending ctrl-d"
         stdinPipe.write(4) // ctrl-d
-        stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
 
         then:
-        stopGradle()
+        buildFinishes()
 
         and:
-        runningApp.verifyStopped()
+        appIsStopped()
+    }
+
+    def buildFinishes() {
+        new PollingConditions().within(shutdownTimeout) {
+            assert !gradle.running
+        }
+        true
+    }
+
+    def buildIsBlocked() {
+        doesntExit()
+        assert ! buildOutputSoFar().contains("BUILD SUCCESSFUL")
+        assert ! buildOutputSoFar().contains("BUILD FAILED")
+        true
     }
 }

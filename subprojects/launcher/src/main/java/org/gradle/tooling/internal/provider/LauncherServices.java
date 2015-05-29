@@ -26,6 +26,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.session.BuildSession;
 import org.gradle.launcher.exec.*;
 import org.gradle.logging.StyledTextOutputFactory;
 
@@ -47,10 +48,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, BuildSession buildSession) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
+            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory, buildSession);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
@@ -64,6 +65,7 @@ public class LauncherServices implements PluginServiceRegistry {
         JarCache createJarCache() {
             return new JarCache();
         }
+
     }
 
     static class ToolingBuildScopeServices {

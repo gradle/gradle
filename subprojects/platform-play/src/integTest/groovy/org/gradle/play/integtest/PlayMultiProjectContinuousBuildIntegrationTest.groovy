@@ -21,27 +21,26 @@ import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
-import spock.lang.Ignore
+import org.gradle.test.fixtures.file.TestFile
 
 
 class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     PlayApp playApp = new PlayMultiProject()
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
+    TestFile playRunBuildFile = file("primary/build.gradle")
 
-    @Ignore
     def "can run multiproject play app with continuous build" () {
         when:
-        // runs until continuous build mode starts
         succeeds(":primary:runPlayBinary")
 
         then:
-        runningApp.verifyStarted()
+        appIsRunningAndDeployed()
 
         and:
-        runningApp.verifyContent()
+        doesntExit()
 
         cleanup: "stopping gradle"
         stopGradle()
-        runningApp.verifyStopped()
+        appIsStopped()
     }
 }

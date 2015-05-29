@@ -22,9 +22,12 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.LocalLibraryResolverProvider;
 import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.session.BuildSession;
 import org.gradle.language.base.internal.resolve.LanguageSourceSetLocalComponentFactory;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.platform.base.Platform;
@@ -105,6 +108,10 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
         }
         MethodModelRuleExtractor createBinaryTaskPluginInspector() {
             return new BinaryTasksModelRuleExtractor();
+        }
+
+        DeploymentRegistry createDeploymentRegistry(BuildSession buildSession) {
+            return new DefaultDeploymentRegistry(buildSession);
         }
     }
 }

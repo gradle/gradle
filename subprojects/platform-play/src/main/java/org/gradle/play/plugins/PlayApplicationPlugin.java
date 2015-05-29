@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -55,6 +56,7 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
@@ -210,6 +212,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
                     playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
+
+                    // TODO this isn't quite right - we really want a deployment handle for each
+                    // platform that a binary targets.  There's only one play binary now, so this
+                    // works, but we need a cleaner way to do this if there are ever multiple binaries
+                    ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
+                    final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, chosenPlatform);
+                    DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
+                    deploymentRegistry.register(new PlayApplicationDeploymentHandle(chosenPlatform.getName(), playApplicationRunnerTool));
                 }
             });
         }
@@ -394,14 +404,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
         void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations) {
-            ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
+            final DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-                final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, binary.getTargetPlatform());
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setPlayApplicationRunnerTool(playApplicationRunnerTool);
+                        playRun.setDeploymentHandle(deploymentRegistry.get(PlayApplicationDeploymentHandle.class, binary.getTargetPlatform().getName()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());

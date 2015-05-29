@@ -27,10 +27,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
-import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayApplicationRunnerToken;
+import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +56,7 @@ public class PlayRun extends ConventionTask {
 
     private BaseForkOptions forkOptions;
 
-    private ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool;
+    private PlayApplicationDeploymentHandle deploymentHandle;
 
     /**
      * fork options for the running a play application.
@@ -82,13 +80,14 @@ public class PlayRun extends ConventionTask {
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
 
         try {
-            PlayApplicationRunnerToken runnerToken = playApplicationRunnerTool.get().start(spec);
+            deploymentHandle.start(spec);
             progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
                             String.format("Running at http://localhost:%d/ (stop with ctrl+d)", httpPort));
-            waitForCtrlD();
-            runnerToken.stop();
+            if (!getProject().getGradle().getStartParameter().isContinuous()) {
+                waitForCtrlD();
+            }
         } finally {
             progressLogger.completed();
         }
@@ -129,7 +128,7 @@ public class PlayRun extends ConventionTask {
         this.runtimeClasspath = runtimeClasspath;
     }
 
-    public void setPlayApplicationRunnerTool(ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool) {
-        this.playApplicationRunnerTool = playApplicationRunnerTool;
+    public void setDeploymentHandle(PlayApplicationDeploymentHandle deploymentHandle) {
+        this.deploymentHandle = deploymentHandle;
     }
 }

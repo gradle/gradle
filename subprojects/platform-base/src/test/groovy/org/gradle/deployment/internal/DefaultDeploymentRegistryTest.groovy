@@ -1,0 +1,95 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.deployment.internal
+
+import org.gradle.internal.session.BuildSession
+import spock.lang.Specification
+
+
+class DefaultDeploymentRegistryTest extends Specification {
+    BuildSession buildSession = Mock(BuildSession)
+    DeploymentRegistry registry = new DefaultDeploymentRegistry(buildSession)
+
+    def "can register and retrieve a deployment handle" () {
+        DeploymentHandle handle = mockDeployment("test")
+
+        when:
+        registry.register(handle)
+
+        then:
+        registry.get(DeploymentHandle.class, "test") == handle
+    }
+
+    def "registering a deployment handle adds it to the build session" () {
+        DeploymentHandle handle = mockDeployment("test")
+
+        when:
+        registry.register(handle)
+
+        then:
+        1 * buildSession.add(handle)
+    }
+
+    def "can register a deployment handle twice" () {
+        DeploymentHandle handle = mockDeployment("test")
+        registry.register(handle)
+
+        when:
+        registry.register(handle)
+
+        then:
+        noExceptionThrown()
+
+        and:
+        registry.get(DeploymentHandle.class, "test") == handle
+    }
+
+    def "stopping registry stops deployment handles" () {
+        DeploymentHandle handle1 = mockDeployment("test1")
+        DeploymentHandle handle2 = mockDeployment("test2")
+        DeploymentHandle handle3 = mockDeployment("test3")
+        registry.register(handle1)
+        registry.register(handle2)
+        registry.register(handle3)
+
+        when:
+        registry.stop()
+
+        then:
+        1 * handle1.stop()
+        1 * handle2.stop()
+        1 * handle3.stop()
+    }
+
+    def "reasonable error when registering a deployment handle after registry is stopped" () {
+        DeploymentHandle handle = mockDeployment("test")
+        registry.stop()
+
+        when:
+        registry.register(handle)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot register a new DeploymentHandle after the registry has been stopped."
+    }
+
+    def mockDeployment(String id) {
+        return Mock(DeploymentHandle) {
+            _ * getId() >> id
+        }
+    }
+}
