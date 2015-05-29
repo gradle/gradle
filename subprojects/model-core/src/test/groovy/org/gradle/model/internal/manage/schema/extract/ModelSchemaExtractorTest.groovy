@@ -34,8 +34,10 @@ import java.util.regex.Pattern
 
 class ModelSchemaExtractorTest extends Specification {
 
+    def classLoader = new GroovyClassLoader(getClass().classLoader)
     def store = new ModelSchemaExtractor()
-    @Shared def cache = new ModelSchemaCache()
+    @Shared
+    def cache = new ModelSchemaCache()
 
     static interface NotAnnotatedInterface {}
 
@@ -395,9 +397,9 @@ class ModelSchemaExtractorTest extends Specification {
     def "conflicting properties of super types are detected"() {
         given:
         def invalidMethods = [
-                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float).takes(),
-                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
-                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
+            MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float).takes(),
+            MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
+            MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
         ]
         def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
 
@@ -511,7 +513,7 @@ class ModelSchemaExtractorTest extends Specification {
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ModelSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
 Supported types:
  - enum types
- - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal
+ - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File
  - org.gradle.model.ModelSet<?> of a managed type
  - interfaces and abstract classes annotated with org.gradle.model.Managed""")
     }
@@ -641,6 +643,7 @@ $type
     @Managed
     static abstract class NonAbstractGetterWithSetter {
         String getName() {}
+
         abstract void setName(String name)
     }
 
@@ -749,6 +752,7 @@ $type
     @Managed
     static abstract class ProtectedAbstractMethods {
         protected abstract String getName()
+
         protected abstract void setName(String name)
     }
 
@@ -771,6 +775,7 @@ $type
         protected String getName() {
             return null;
         }
+
         private void setName(String name) {}
     }
 
@@ -823,5 +828,54 @@ $type
 
     private String getName(Class<?> clazz) {
         clazz.name
+    }
+
+    @Unroll
+    def "can extract a simple managed type with a property of #type"() {
+        when:
+        Class<?> generatedClass = managedClass(type)
+
+        then:
+        extract(generatedClass)
+
+        where:
+        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+    }
+
+    @Unroll
+    def "should enforce properties of #type are managed"() {
+        when:
+        Class<?> generatedClass = managedClassWithoutSetter(type)
+
+        then:
+        fail generatedClass, "has non managed type ${type.name}, only managed types can be used"
+
+        where:
+        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+    }
+
+    private Class<?> managedClass(Class<?> type) {
+        String typeName = type.getSimpleName()
+        return classLoader.parseClass("""
+import org.gradle.model.Managed
+
+@Managed
+interface Managed${typeName} {
+    ${typeName} get${typeName}()
+    void set${typeName}(${typeName} a${typeName})
+}
+""")
+    }
+
+    private Class<?> managedClassWithoutSetter(Class<?> type) {
+        String typeName = type.getSimpleName()
+        return classLoader.parseClass("""
+import org.gradle.model.Managed
+
+@Managed
+interface Managed${typeName} {
+    ${typeName} get${typeName}()
+}
+""")
     }
 }
