@@ -26,6 +26,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.ReportedException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
@@ -38,8 +39,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
-        // TODO: Support tooling API
-        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous();
+        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
         try {
@@ -55,4 +55,13 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             throw new BuildExceptionVersion1(e.getCause());
         }
     }
+
+    private boolean isNotBuildingModel(BuildAction action) {
+        if (!(action instanceof BuildModelAction)) {
+            return true;
+        }
+        String modelName = ((BuildModelAction) action).getModelName();
+        return modelName.equals(ModelIdentifier.NULL_MODEL);
+    }
+
 }
