@@ -151,6 +151,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
 
     def "client can request continuous mode when building a model, but request is effectively ignored"() {
         given:
+        setupJavaProject()
         stderr = new ByteArrayOutputStream(512)
         stdout = new ByteArrayOutputStream(512)
 
@@ -173,6 +174,22 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         GradleProject gradleProject = withConnection { ProjectConnection connection ->
             connection.model(GradleProject.class)
                 .withArguments("--continuous")
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
+                .get()
+        }
+
+        then:
+        !stdout.toString().toLowerCase().contains("continuous")
+        gradleProject.buildDirectory != null
+
+        when: 'running task before fetching model'
+        stdout.reset()
+        stderr.reset()
+        gradleProject = withConnection { ProjectConnection connection ->
+            connection.model(GradleProject.class)
+                .withArguments("--continuous")
+                .forTasks("classes")
                 .setStandardOutput(stdout)
                 .setStandardError(stderr)
                 .get()
