@@ -21,15 +21,18 @@ import com.google.common.collect.*;
 import groovy.lang.GroovyObject;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;
@@ -211,32 +214,54 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
+                if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
+                    if (property.isWritable()) {
+                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                            "@Managed types implementing %s must not declare a setter for the name property",
+                            Named.class.getName()
+                        ));
+                    } else {
+                        return;
+                    }
+                }
+
                 if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",
-                            property.getName(), property.getType(), supportedTypeDescriptions.create()
+                        "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",
+                        property.getName(), property.getType(), supportedTypeDescriptions.create()
                     ));
                 }
 
                 if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
-                            property.getType(), property.getName(), supportedTypeDescriptions.create()
+                        "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
+                        property.getType(), property.getName(), supportedTypeDescriptions.create()
                     ));
                 }
 
                 if (!property.isWritable()) {
                     if (property.isUnmanaged()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
-                                property.getName())
+                            "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
+                            property.getName())
                         );
                     }
 
                     if (!propertySchema.getKind().isManaged()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "read only property '%s' has non managed type %s, only managed types can be used",
-                                property.getName(), property.getType()));
+                            "read only property '%s' has non managed type %s, only managed types can be used",
+                            property.getName(), property.getType()));
+                    }
+                }
+
+                if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+                    ModelCollectionSchema<?> propertyCollectionSchema = (ModelCollectionSchema<?>) propertySchema;
+                    if (propertyCollectionSchema.isMap()) {
+                        if (property.isWritable()) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "property '%s' cannot have a setter (%s properties must be read only).",
+                                property.getName(), ModelMap.class.getName()));
+                        }
                     }
                 }
             }

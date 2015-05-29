@@ -57,38 +57,45 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
 
     @Override
     public int size() {
+        viewState.assertCanReadChildren();
         return delegate.size();
     }
 
     @Override
     public boolean isEmpty() {
+        viewState.assertCanReadChildren();
         return delegate.isEmpty();
     }
 
     @Override
     @Nullable
     public I get(Object name) {
+        viewState.assertCanReadChildren();
         return delegate.get(name);
     }
 
     @Override
     @Nullable
     public I get(String name) {
+        viewState.assertCanReadChildren();
         return delegate.get(name);
     }
 
     @Override
     public boolean containsKey(Object name) {
+        viewState.assertCanReadChildren();
         return delegate.containsKey(name);
     }
 
     @Override
     public boolean containsValue(Object item) {
+        viewState.assertCanReadChildren();
         return delegate.containsValue(item);
     }
 
     @Override
     public Set<String> keySet() {
+        viewState.assertCanReadChildren();
         return delegate.keySet();
     }
 
@@ -177,6 +184,7 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
 
     @Override
     public Collection<I> values() {
+        viewState.assertCanReadChildren();
         return delegate.values();
     }
 
@@ -254,8 +262,8 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
         return null;
     }
 
-    public static <T> ModelMapGroovyDecorator<T> alwaysMutable(ModelMap<T> delegate) {
-        return wrap(delegate, ModelViewState.ALWAYS_MUTABLE);
+    public static <T> ModelMapGroovyDecorator<T> unmanaged(ModelMap<T> delegate) {
+        return wrap(delegate, ModelViewState.UNMANAGED);
     }
 
     public static <T> ModelMapGroovyDecorator<T> wrap(ModelMap<T> delegate, ModelViewState state) {

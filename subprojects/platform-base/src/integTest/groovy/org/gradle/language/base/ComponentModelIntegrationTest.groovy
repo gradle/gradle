@@ -694,7 +694,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         when:
         fails "tasks"
         then:
-        failureHasCause "Cannot add rule ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified) > all() for model element 'components.main' at state Initialized"
+        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified)'"
 
         where:
         projectionType                     | fullQualified

@@ -16,21 +16,9 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
-import org.gradle.model.collection.CollectionBuilder;
+@Managed
+public interface SpecialNamedThingInterface extends NamedThingInterface, Special {
+    String getSpecial();
 
-/**
- * Model backed map like structure allowing adding of items where instantiation is managed.
- * <p>
- * {@link org.gradle.model.Managed} types may declare model map properties.
- * Model maps can only contain managed types.
- *
- * @param <T> the contract type for all items
- */
-@SuppressWarnings("deprecation")
-@Incubating
-public interface ModelMap<T> extends CollectionBuilder<T> {
-
-    @Override
-    <S> ModelMap<S> withType(Class<S> type);
+    void setSpecial(String string);
 }

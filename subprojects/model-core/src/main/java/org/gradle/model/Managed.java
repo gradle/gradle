@@ -65,7 +65,7 @@ import java.lang.annotation.Target;
  * <p>
  * Properties that are themselves of a managed type are also supported.
  * <p>
- * Currently, the only collection type that is supported is {@link ModelSet}.
+ * Currently, the only collection types that are supported are {@link ModelSet} and {@link ModelMap}.
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.

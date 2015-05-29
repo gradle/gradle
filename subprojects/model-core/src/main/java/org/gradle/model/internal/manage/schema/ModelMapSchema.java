@@ -25,7 +25,7 @@ public class ModelMapSchema<T> extends ModelSchema<T> {
     private final ModelType<?> elementType;
 
     public ModelMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        super(type, Kind.MAP);
+        super(type, Kind.SPECIALIZED_MAP);
         this.elementType = elementType;
         this.managedImpl = new WeakReference<Class<?>>(managedImpl);
     }

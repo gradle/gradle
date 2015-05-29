@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model;
+package org.gradle.model.internal.registry
 
-import org.gradle.api.Incubating;
-import org.gradle.model.collection.CollectionBuilder;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-/**
- * Model backed map like structure allowing adding of items where instantiation is managed.
- * <p>
- * {@link org.gradle.model.Managed} types may declare model map properties.
- * Model maps can only contain managed types.
- *
- * @param <T> the contract type for all items
- */
-@SuppressWarnings("deprecation")
-@Incubating
-public interface ModelMap<T> extends CollectionBuilder<T> {
-
-    @Override
-    <S> ModelMap<S> withType(Class<S> type);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface HasDependencies {
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model;
 
 /**
  * Out on its own due to http://jira.codehaus.org/browse/GROOVY-7010
  */
-interface Special {
+public interface Special {
 }

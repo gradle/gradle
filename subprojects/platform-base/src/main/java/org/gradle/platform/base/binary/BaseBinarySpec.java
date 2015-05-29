@@ -120,7 +120,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(ModelMapGroovyDecorator.alwaysMutable(
+        action.execute(ModelMapGroovyDecorator.unmanaged(
             NamedDomainObjectSetBackedModelMap.wrap(LanguageSourceSet.class, sourceSets.getMainSources())
         ));
     }

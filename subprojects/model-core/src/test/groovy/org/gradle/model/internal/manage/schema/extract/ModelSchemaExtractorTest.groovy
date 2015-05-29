@@ -518,7 +518,8 @@ Supported types:
  - enum types
  - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File
  - org.gradle.model.ModelSet<?> of a managed type
- - interfaces and abstract classes annotated with org.gradle.model.Managed""")
+ - interfaces and abstract classes annotated with org.gradle.model.Managed
+ - org.gradle.model.ModelMap<?> of a managed type""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
