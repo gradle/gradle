@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -28,9 +29,10 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Ignore
 import spock.lang.AutoCleanup
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
@@ -265,6 +267,38 @@ class ContinuousBuildCrossVersionSpec extends ToolingApiSpecification {
         buildCounter.get() == 3
     }
 
-    @Ignore
-    def "client can request continuous mode when building a model, but request is effectively ignored"() {}
+    @NotYetImplemented
+    def "client can request continuous mode when building a model, but request is effectively ignored"() {
+        given:
+        stderr = new ByteArrayOutputStream(512)
+        stdout = new ByteArrayOutputStream(512)
+
+        when:
+        BuildEnvironment buildEnvironment = withConnection { ProjectConnection connection ->
+            connection.model(BuildEnvironment.class)
+                .withArguments("--continuous")
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
+                .get()
+        }
+
+        then:
+        !stdout.toString().toLowerCase().contains("continuous")
+        buildEnvironment.gradle.gradleVersion != null
+
+        when:
+        stdout.reset()
+        stderr.reset()
+        GradleProject gradleProject = withConnection { ProjectConnection connection ->
+            connection.model(GradleProject.class)
+                .withArguments("--continuous")
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
+                .get()
+        }
+
+        then:
+        !stdout.toString().toLowerCase().contains("continuous")
+        gradleProject.buildDirectory != null
+    }
 }
