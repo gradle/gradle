@@ -4,19 +4,47 @@
 Root project
 ------------------------------------------------------------
 
-model
-    person
-        firstName = John
-        lastName = Smith
-    tasks
-        components = task ':components'
-        dependencies = task ':dependencies'
-        dependencyInsight = task ':dependencyInsight'
-        hello = task ':hello'
-        help = task ':help'
-        init = task ':init'
-        model = task ':model'
-        projects = task ':projects'
-        properties = task ':properties'
-        tasks = task ':tasks'
-        wrapper = task ':wrapper'
++ model
+    + person
+          | Type:      Person |
+        + firstName
+              | Value:      John |
+              | Type:      java.lang.String |
+        + lastName
+              | Value:      Smith |
+              | Type:      java.lang.String |
+    + tasks
+          | Type:      org.gradle.model.ModelMap<org.gradle.api.Task> |
+        + components
+              | Value:      task ':components' |
+              | Type:      org.gradle.api.reporting.components.ComponentReport |
+        + dependencies
+              | Value:      task ':dependencies' |
+              | Type:      org.gradle.api.tasks.diagnostics.DependencyReportTask |
+        + dependencyInsight
+              | Value:      task ':dependencyInsight' |
+              | Type:      org.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+        + hello
+              | Value:      task ':hello' |
+              | Type:      org.gradle.api.Task |
+        + help
+              | Value:      task ':help' |
+              | Type:      org.gradle.configuration.Help |
+        + init
+              | Value:      task ':init' |
+              | Type:      org.gradle.buildinit.tasks.InitBuild |
+        + model
+              | Value:      task ':model' |
+              | Type:      org.gradle.api.reporting.model.ModelReport |
+        + projects
+              | Value:      task ':projects' |
+              | Type:      org.gradle.api.tasks.diagnostics.ProjectReportTask |
+        + properties
+              | Value:      task ':properties' |
+              | Type:      org.gradle.api.tasks.diagnostics.PropertyReportTask |
+        + tasks
+              | Value:      task ':tasks' |
+              | Type:      org.gradle.api.tasks.diagnostics.TaskReportTask |
+        + wrapper
+              | Value:      task ':wrapper' |
+              | Type:      org.gradle.api.tasks.wrapper.Wrapper |
