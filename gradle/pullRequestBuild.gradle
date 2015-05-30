@@ -1,8 +1,15 @@
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 
-
-ExecutorService executor = Executors.newFixedThreadPool(1);
+ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    @Override
+    Thread newThread(Runnable runnable) {
+        Thread thread = Executors.defaultThreadFactory().newThread(runnable)
+        thread.setDaemon(true)
+        return thread
+    }
+})
 
 task startHeartBeat << {
     logger.lifecycle("Starting heartbeat.")
@@ -24,11 +31,13 @@ class Heartbeat implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        boolean beating = true
+        while (beating) {
             logger.lifecycle(" [heartbeat] ")
             try {
                 Thread.sleep(frequency)
             } catch (InterruptedException e) {
+                beating = false
                 logger.lifecycle("Heartbeat thread Interrupted")
             }
         }
