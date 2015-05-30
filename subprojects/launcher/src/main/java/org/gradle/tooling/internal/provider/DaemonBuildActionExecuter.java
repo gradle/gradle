@@ -24,6 +24,7 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.ReportedException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
@@ -42,7 +43,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         if (continuous && !doesConsumerSupportCancellation(buildRequestContext)) {
-            throw new IllegalStateException("Continuous build requires Tooling API client version 2.1 or later.");
+            throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
         }
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
             System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
