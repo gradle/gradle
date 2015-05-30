@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.UnsupportedVersionException
 import spock.lang.Timeout
 
 @ToolingApiVersion(ToolingApiVersions.DOES_NOT_SUPPORT_CANCELLATION)
@@ -43,7 +44,7 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
 
         then:
         def e = thrown(GradleConnectionException)
-        e.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
+        e.cause.getClass().name == UnsupportedVersionException.name
     }
 
 }
