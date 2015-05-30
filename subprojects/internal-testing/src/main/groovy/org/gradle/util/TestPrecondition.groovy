@@ -132,7 +132,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
     NOT_PULL_REQUEST_BUILD({
-        System.getenv("TRAVIS")?.toUpperCase() == "TRUE"
+        System.getenv("TRAVIS")?.toUpperCase() != "TRUE"
     });
 
     /**
