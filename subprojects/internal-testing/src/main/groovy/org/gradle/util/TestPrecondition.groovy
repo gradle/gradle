@@ -127,6 +127,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     // TODO:DAZ Should be detecting this based on tool chain, not OS
         OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
+    }),
+    SMART_TERMINAL({
+        System.getenv("TERM")?.toUpperCase() != "DUMB"
     });
 
     /**
