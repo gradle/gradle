@@ -128,17 +128,20 @@ class WatchServiceRegistrar implements FileWatcherListener {
         if (!watcher.isRunning()) {
             return;
         }
+        if (dir.exists()) {
+            watchDir(dir.toPath());
+            File[] contents = dir.listFiles();
+            if (contents != null) {
+                for (File file : contents) {
+                    maybeFire(watcher, FileWatcherEvent.create(file));
+                    if (!watcher.isRunning()) {
+                        return;
+                    }
 
-        watchDir(dir.toPath());
-        File[] contents = dir.listFiles();
-        for (File file : contents) {
-            maybeFire(watcher, FileWatcherEvent.create(file));
-            if (!watcher.isRunning()) {
-                return;
-            }
-
-            if (file.isDirectory()) {
-                newDirectory(watcher, file);
+                    if (file.isDirectory()) {
+                        newDirectory(watcher, file);
+                    }
+                }
             }
         }
     }

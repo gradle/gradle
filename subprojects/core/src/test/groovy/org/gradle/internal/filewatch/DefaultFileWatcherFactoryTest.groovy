@@ -210,6 +210,24 @@ class DefaultFileWatcherFactoryTest extends Specification {
         totalLatch.await()
     }
 
+    def "watcher doesn't add directories that have been deleted after change detection"() {
+        when:
+        def eventReceivedLatch = new CountDownLatch(1)
+        fileWatcher = fileWatcherFactory.watch(fileSystemSubset, onError) { watcher, event ->
+            eventReceivedLatch.countDown()
+            event.file.delete()
+        }
+
+        testDir.file("testdir").createDir()
+        eventReceivedLatch.await()
+        sleep(500)
+
+        then:
+        noExceptionThrown()
+        thrownInWatchExecution == null
+    }
+
+
     def "watcher will stop if listener throws and error is forwarded"() {
         when:
         def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()
