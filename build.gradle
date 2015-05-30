@@ -104,13 +104,13 @@ ext {
         project(it)
     }
     publishedProjects = [
-            project(':core'),
-            project(':toolingApi'),
-            project(':wrapper'),
-            project(':baseServices'),
-            project(':baseServicesGroovy'),
-            project(':messaging'),
-            project(':resources')
+        project(':core'),
+        project(':toolingApi'),
+        project(':wrapper'),
+        project(':baseServices'),
+        project(':baseServicesGroovy'),
+        project(':messaging'),
+        project(':resources')
     ]
 }
 
@@ -184,9 +184,9 @@ dependencies {
 }
 
 task verifyIsProductionBuildEnvironment << {
-    assert javaVersion.java7 : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
+    assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
     def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-    assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+    assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
 
 task waitForDaemonsToDie {
@@ -220,3 +220,4 @@ task installAll(type: Install) {
 
 
 apply from: "gradle/intTestImage.gradle"
+apply from: 'gradle/pullRequestBuild.gradle'
