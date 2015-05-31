@@ -133,10 +133,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.resourcesDir = resourcesDir;
     }
 
-    public FunctionalSourceSet getBinarySources() {
-        throw new UnsupportedOperationException();
-    }
-
     public void setBinarySources(FunctionalSourceSet sources) {
         throw new UnsupportedOperationException();
     }

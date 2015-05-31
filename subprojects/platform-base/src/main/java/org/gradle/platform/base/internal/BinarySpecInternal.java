@@ -20,7 +20,6 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
-    FunctionalSourceSet getBinarySources();
 
     void setBinarySources(FunctionalSourceSet sources);
 

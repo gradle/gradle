@@ -15,10 +15,8 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.internal.ComponentSpecInternal
@@ -29,25 +27,28 @@ class PlayCoffeeScriptPluginTest extends Specification {
     def "adds coffeescript source sets to play components" () {
         def plugin = new PlayCoffeeScriptPlugin()
         def components = Mock(ModelMap)
-        def sources = Mock(FunctionalSourceSet)
+        def sources = Mock(ModelMap)
         def sourceSet = Mock(CoffeeScriptSourceSet)
         def sourceDirSet = Mock(SourceDirectorySet)
 
         when:
-        def playApp = Stub(PlayAppInternal) {
+        def playApp = Stub(PlayApplicationSpec) {
             getName() >> "play"
-            getSources() >> sources
+            getSource() >> sources
         }
         _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
+        _ * sourceSet.getSource() >> sourceDirSet
 
         and:
         plugin.createCoffeeScriptSourceSets(components)
 
         then:
-        1 * sources.create("coffeeScript", CoffeeScriptSourceSet) >> sourceSet
-        2 * sourceSet.getSource() >> sourceDirSet
+        1 * sources.create("coffeeScript", CoffeeScriptSourceSet, _ as Action) >> {
+            String name, Class type, Action a -> a.execute(sourceSet)
+        }
         1 * sourceDirSet.srcDir("app/assets")
         1 * sourceDirSet.include("**/*.coffee")
+        0 * _._
     }
 
     interface PlayAppInternal extends PlayApplicationSpec, ComponentSpecInternal {}

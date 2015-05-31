@@ -106,10 +106,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return getBuildAbility().isBuildable();
     }
 
-    public FunctionalSourceSet getBinarySources() {
-        return sourceSets.getMainSources();
-    }
-
     public void setBinarySources(FunctionalSourceSet sources) {
         sourceSets.setMainSources(sources);
     }
