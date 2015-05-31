@@ -4,20 +4,17 @@ Here are the new features introduced in this Gradle release.
 
 ### Dependency substitution rules (i)
 
-In previous Gradle versions you could use a 'Dependency resolve rule' to replace an external dependency with another:
+Previous versions of Gradle allowed an external dependency to be replaced with another using a 'Dependency Resolve Rule'.
+With the introduction of 'Dependency Substitution Rules' this behaviour has been enhanced and extended,
+which allow external dependencies and project dependencies to be replaced interchangeably.
 
-    resolutionStrategy {
-        eachDependency {
-            if (it.requested.group == 'com.deprecated') {
-                details.useTarget group: 'com.replacement.group', name: it.requested.module, version: it.requested.version
-            }
-        }
-    }
+When combined with a configurable Gradle settings file, this dependency substitution rules permit some powerful new ways of working with Gradle:
 
-This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
-These rules allow an external dependency to be replaced with a project dependency, and vice-versa.
+* While developing a patch for an external library, use a local project dependency instead of a module dependency.
+* For a large multi-project build, only develop as subset of the projects locally, downloading the rest from an external repository.
+* Enhancements to Gradle like [Prezi Pride](https://github.com/prezi/pride) no longer require a custom dependency syntax.
 
-A project dependency can be replaced with an external dependency like this:
+Substitute a project dependency with an external module dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
@@ -25,17 +22,26 @@ A project dependency can be replaced with an external dependency like this:
         }
     }
 
-Or an external dependency can be replaced with a project dependency like this:
+Alternatively, an external dependency can be replaced with a project dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
-            substitute module("com.example:my-module:1.3") with project(":project1")
+            substitute module("org.utils:api") with project(":api")
         }
     }
 
-It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).  See the javadoc for [DependencySubstitutions](javadoc/org/gradle/api/artifacts/DependencySubstitutions.html) to browse the
-various types of rules that can be configured.
+It is also possible to substitute a project dependency with another, or a module dependency with another. (The latter provides the same functionality
+as `eachDependency`, with a more convenient syntax).
+
+Note: adding a dependency substitution rule to a `Configuration` used as a task input changes the timing of when that configuration is resolved.
+Instead of being resolved on first use, the `Configuration` is instead resolved when the task graph is being constructed. This can have unexpected
+consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during
+execution of another task.
+
+For more information consult the [User Guide](userguide/dependency_management.html#dependency_substitution_rules)
+and the [DSL Reference](dsl/org.gradle.api.artifacts.DependencySubstitutions.html).
+
+Thanks go to Lóránt Pintér and his team at [Prezi](https://prezi.com) for providing much of the implementation of this feature.
 
 ### Specify default dependencies for a Configuration (i)
 
@@ -173,42 +179,40 @@ Use org.gradle.model.ModelMap instead.
 
 ## Potential breaking changes
 
-### Configurations that are task inputs are resolved before building the task execution graph
+### Changes to the new configuration and component model
 
-### Changes in ComponentModelBasePlugin
+As work continues on the new configuration and component model for Gradle, many changes to the new incubating plugins and types
+are required. These changes should have no impact on builds that do not leverage these new features.
 
 #### Removal of `componentSpec` project extension
 
 As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
 Currently component container can be only accessed using model rules.
 
-#### Changes in `ComponentSpecContainer`
+#### Changes to `ComponentSpecContainer`
 
 - `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`.
 - `ComponentSpecContainer` now implements `ModelMap<ComponentSpec>`.
 - All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
 
-### Changes in NativeBinariesTestPlugin
+#### Changes to `ComponentSpec`
+- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
+- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
+- `getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `DomainObjectSet<BinarySpec>`
+- `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super DomainObjectSet<BinarySpec>>`
+- Source sets and binaries cannot be removed
+
+#### Changes to source sets container of `BinarySpec`
+- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
+- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
+
+#### Changes in NativeBinariesTestPlugin
 
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
 - `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
 - All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle it was eager.
 
-### Source sets and binaries cannot be removed from components
-
-### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
-
-### Changes to `ComponentSpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-- `getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `NamedDomainObjectCollection<BinarySpec>`
-- `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super NamedDomainObjectCollection<BinarySpec>>`
-
-### Changes to source sets container of `BinarySpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-
-### ManagedSet renamed to ModelSet
+#### ManagedSet renamed to ModelSet
 
 The, incubating, `org.gradle.model.collection.ManagedSet` type has been renamed to `org.gradle.model.ModelSet`.
 
