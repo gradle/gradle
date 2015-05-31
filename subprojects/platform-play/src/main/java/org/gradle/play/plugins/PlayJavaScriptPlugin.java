@@ -31,7 +31,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.PlayApplicationBinarySpec;
@@ -60,10 +59,13 @@ public class PlayJavaScriptPlugin extends RuleSource {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                // TODO - should have some way to lookup using internal type
-                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScript", JavaScriptSourceSet.class);
-                javaScriptSourceSet.getSource().srcDir("app/assets");
-                javaScriptSourceSet.getSource().include("**/*.js");
+                playComponent.getSource().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
+                    @Override
+                    public void execute(JavaScriptSourceSet javaScriptSourceSet) {
+                        javaScriptSourceSet.getSource().srcDir("app/assets");
+                        javaScriptSourceSet.getSource().include("**/*.js");
+                    }
+                });
             }
         });
     }

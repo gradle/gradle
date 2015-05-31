@@ -43,7 +43,6 @@ import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -134,16 +133,28 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
-                    ScalaLanguageSourceSet scalaSources = ((ComponentSpecInternal) playComponent).getSources().create("scala", ScalaLanguageSourceSet.class);
-                    scalaSources.getSource().srcDir("app");
-                    scalaSources.getSource().include("**/*.scala");
+                    playComponent.getSource().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
+                        @Override
+                        public void execute(ScalaLanguageSourceSet scalaSources) {
+                            scalaSources.getSource().srcDir("app");
+                            scalaSources.getSource().include("**/*.scala");
+                        }
+                    });
 
-                    JavaSourceSet javaSources = ((ComponentSpecInternal) playComponent).getSources().create("java", JavaSourceSet.class);
-                    javaSources.getSource().srcDir("app");
-                    javaSources.getSource().include("**/*.java");
+                    playComponent.getSource().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
+                        @Override
+                        public void execute(JavaSourceSet javaSources) {
+                            javaSources.getSource().srcDir("app");
+                            javaSources.getSource().include("**/*.java");
+                        }
+                    });
 
-                    JvmResourceSet appResources = ((ComponentSpecInternal) playComponent).getSources().create("resources", JvmResourceSet.class);
-                    appResources.getSource().srcDirs("conf");
+                    playComponent.getSource().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
+                        @Override
+                        public void execute(JvmResourceSet appResources) {
+                            appResources.getSource().srcDirs("conf");
+                        }
+                    });
                 }
             });
         }
@@ -248,9 +259,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
-                    TwirlSourceSet twirlSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("twirlTemplates", TwirlSourceSet.class);
-                    twirlSourceSet.getSource().srcDir("app");
-                    twirlSourceSet.getSource().include("**/*.html");
+                    playComponent.getSource().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
+                        @Override
+                        public void execute(TwirlSourceSet twirlSourceSet) {
+                            twirlSourceSet.getSource().srcDir("app");
+                            twirlSourceSet.getSource().include("**/*.html");
+                        }
+                    });
                 }
             });
         }
@@ -260,10 +275,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.beforeEach(new Action<PlayApplicationSpec>() {
                 @Override
                 public void execute(PlayApplicationSpec playComponent) {
-                    RoutesSourceSet routesSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("routes", RoutesSourceSet.class);
-                    routesSourceSet.getSource().srcDir("conf");
-                    routesSourceSet.getSource().include("routes");
-                    routesSourceSet.getSource().include("*.routes");
+                    playComponent.getSource().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
+                        @Override
+                        public void execute(RoutesSourceSet routesSourceSet) {
+                            routesSourceSet.getSource().srcDir("conf");
+                            routesSourceSet.getSource().include("routes");
+                            routesSourceSet.getSource().include("*.routes");
+                        }
+                    });
                 }
             });
         }
