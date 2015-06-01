@@ -117,7 +117,7 @@ def forEachJavaProcess(Closure action) {
     def pidPattern
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
         exec {
-            commandLine('wmic', 'process' ,'get', 'processid,commandline')
+            commandLine('wmic', 'process', 'get', 'processid,commandline')
             standardOutput = output
         }
         pidPattern = /([0-9]+)\s*$/
@@ -131,7 +131,7 @@ def forEachJavaProcess(Closure action) {
     output.toString().readLines().each { String line ->
         def processMatcher = line =~ queryString
         if (processMatcher.find()) {
-            def pidMatcher = line =~pidPattern
+            def pidMatcher = line =~ pidPattern
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
@@ -177,7 +177,7 @@ project(":") {
     }
 
     task cleanUpDaemons {
-        ext.suspiciousDaemons = [:].withDefault {[].asSynchronized()}.asSynchronized()
+        ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
         ext.daemonPids = ([] as Set).asSynchronized()
         doLast {
             Set alreadyKilled = []
@@ -200,8 +200,8 @@ allprojects {
 }
 
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', ':cleanUpCaches'
-    finalizedBy ':cleanUpDaemons'
+    dependsOn ':intTestImage'
+    finalizedBy(':cleanUpDaemons', ':cleanUpCaches')
     shouldRunAfter 'test'
 
     testClassesDir = sourceSets.integTest.output.classesDir
@@ -241,8 +241,8 @@ integTestTasks.all { Test task ->
         def daemonPids = rootProject.cleanUpDaemons.daemonPids
         def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
         daemonListener = [
-            beforeTest : {test -> },
-            afterTest  : { test, result ->},
+            beforeTest : { test -> },
+            afterTest  : { test, result -> },
             beforeSuite: { suite ->
                 forEachJavaProcess { pid, process ->
                     // processes that exist before the test suite execution should
