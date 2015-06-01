@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
 import org.junit.Rule
