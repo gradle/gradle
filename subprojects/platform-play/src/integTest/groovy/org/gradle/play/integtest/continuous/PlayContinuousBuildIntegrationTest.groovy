@@ -27,13 +27,13 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
     PlayApp playApp = new BasicPlayApp()
 
     def "build does not block when running play app with continuous build" () {
-        when:
+        when: "the build runs until it enters continuous build"
         succeeds("runPlayBinary")
 
         then:
         appIsRunningAndDeployed()
 
-        and:
+        and: "the build is waiting for changes"
         doesntExit()
 
         cleanup: "stopping gradle"
@@ -72,15 +72,16 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
     }
 
     def "build failure prior to launch does not prevent launch on subsequent build" () {
+        def original = file("app/controllers/Application.scala").text
+
         when: "source file is broken"
-        def original = file('conf/routes').text
-        file('conf/routes').text = "a bunch of nonsense"
+        file("app/controllers/Application.scala").text = "object Application extends Controller {"
 
         then:
         fails("runPlayBinary")
 
         when: "source file is fixed"
-        file('conf/routes').text = original
+        file("app/controllers/Application.scala").text = original
 
         then:
         succeeds()

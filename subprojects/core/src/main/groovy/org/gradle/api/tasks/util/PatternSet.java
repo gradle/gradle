@@ -66,10 +66,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (caseSensitive != that.caseSensitive) {
             return false;
         }
-        if (!excludes.equals(that.excludes)) {
+        if (excludeSpecs != null ? !excludeSpecs.equals(that.excludeSpecs) : that.excludeSpecs != null) {
             return false;
         }
-        if (!includes.equals(that.includes)) {
+        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+            return false;
+        }
+        if (includeSpecs != null ? !includeSpecs.equals(that.includeSpecs) : that.includeSpecs != null) {
+            return false;
+        }
+        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
             return false;
         }
 
@@ -78,8 +84,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     @Override
     public int hashCode() {
-        int result = includes.hashCode();
-        result = 31 * result + excludes.hashCode();
+        int result = includes != null ? includes.hashCode() : 0;
+        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+        result = 31 * result + (includeSpecs != null ? includeSpecs.hashCode() : 0);
+        result = 31 * result + (excludeSpecs != null ? excludeSpecs.hashCode() : 0);
         result = 31 * result + (caseSensitive ? 1 : 0);
         return result;
     }
