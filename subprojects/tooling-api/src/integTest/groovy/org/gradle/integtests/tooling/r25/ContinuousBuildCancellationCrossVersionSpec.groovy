@@ -178,4 +178,77 @@ gradle.buildFinished {
         !stdoutContent.contains("ctrl+d to exit")
         stdoutContent.contains("Waiting for changes to input files of tasks...")
     }
+
+    def "after cancelling a continuous build, we can subsequently run another"() {
+        given:
+        setupJavaProject()
+        buildFile << """
+gradle.buildFinished {
+    new URL("${cyclicBarrierHttpServer.uri}").text
+}
+"""
+        when:
+        def buildFuture = runAsyncContinuousBuild()
+        cyclicBarrierHttpServer.sync()
+        Thread.sleep(2000)
+        cancellationTokenSource.cancel()
+        buildFuture.get(2000, TimeUnit.MILLISECONDS)
+        def stdoutContent = stdout.toString()
+
+        then:
+        stdoutContent.contains("Waiting for changes to input files of tasks...")
+        stdoutContent.contains("Build cancelled.")
+
+        when:
+        stdout.reset()
+        stderr.reset()
+        cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+        buildFuture = runAsyncContinuousBuild()
+        cyclicBarrierHttpServer.sync()
+        Thread.sleep(2000)
+        cancellationTokenSource.cancel()
+        buildFuture.get(2000, TimeUnit.MILLISECONDS)
+        stdoutContent = stdout.toString()
+
+        then:
+        stdoutContent.contains("Waiting for changes to input files of tasks...")
+        stdoutContent.contains("Build cancelled.")
+    }
+
+    def "should cancel in a watch period that is non initial"() {
+        given:
+        setupJavaProject()
+        def testfile = projectDir.createDir('src/main/java').file('Thing.java')
+        testfile.text = 'public class Thing {}'
+        buildFile << """
+gradle.buildFinished {
+    new URL("${cyclicBarrierHttpServer.uri}").text
+}
+"""
+        when:
+        def buildFuture = runAsyncContinuousBuild()
+        cyclicBarrierHttpServer.sync()
+        Thread.sleep(2000)
+        def stdoutContent = stdout.toString()
+
+        then:
+        stdoutContent.contains("Waiting for changes to input files of tasks...")
+        !stdoutContent.contains("Build cancelled.")
+
+        when:
+        stdout.reset()
+        stderr.reset()
+        testfile << '//CHANGED'
+        cyclicBarrierHttpServer.sync()
+        Thread.sleep(2000)
+        cancellationTokenSource.cancel()
+        buildFuture.get(2000, TimeUnit.MILLISECONDS)
+        stdoutContent = stdout.toString()
+
+        then:
+        stdoutContent.contains("Change detected, executing build...")
+        stdoutContent.contains("Waiting for changes to input files of tasks...")
+        stdoutContent.contains("Build cancelled.")
+    }
+
 }
