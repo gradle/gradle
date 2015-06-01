@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest
+package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
