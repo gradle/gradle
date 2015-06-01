@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -28,7 +29,7 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
             model {
                 components {
                     play {
-                        targetPlatform "play-${version}"
+                        targetPlatform "play-${MultiVersionIntegrationSpec.version}"
                     }
                 }
             }
