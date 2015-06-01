@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -68,8 +69,8 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         // this is here to ensure that the lastModified() timestamps actually change in between builds.
         // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
         executer.beforeExecute {
-            withArgument("-I")
-            withArgument((file("init.gradle") << """
+            def initScript = file("init.gradle")
+            initScript.text = """
                 def startAt = System.currentTimeMillis()
                 gradle.buildFinished {
                     def sinceStart = System.currentTimeMillis() - startAt
@@ -77,7 +78,8 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                       sleep 2000 - sinceStart
                     }
                 }
-            """).absolutePath)
+            """
+            withArgument("-I").withArgument(initScript.absolutePath)
         }
     }
 
