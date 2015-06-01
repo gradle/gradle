@@ -82,25 +82,21 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         packDir.file("A").text = "original"
-        packDir.file("subdir").createDir().file("B").text = "B"
-        packDir.file("subdir2").createDir()
         packDir."$packType"(sourceFile)
 
         then:
         succeeds("unpack")
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original"
-        outputDir.file("subdir/B").exists()
-        outputDir.file("subdir2").exists()
 
         when:
-        packDir.file("A").text = "changed"
+        packDir.file("A") << "-changed"
         packDir."$packType"(sourceFile)
 
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
-        outputDir.file("A").text == "changed"
+        outputDir.file("A").text == "original-changed"
 
         where:
         type      | packType | source
