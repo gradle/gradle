@@ -81,7 +81,11 @@ class WatchServiceRegistrar implements FileWatcherListener {
     }
 
     private void watchDir(Path dir) throws IOException {
-        dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+        try {
+            dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+        } catch (NoSuchFileException ignore) {
+            // directory may have been deleted
+        }
     }
 
     private boolean inUnfilteredSubsetOrAncestorOfAnyRoot(File file) {
