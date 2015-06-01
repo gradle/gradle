@@ -48,7 +48,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     @Override
     public void stop() {
         if (isRunning()) {
-            logger.warn("Stopping Play deployment handle for " + id);
+            logger.info("Stopping Play deployment handle for " + id);
             runnerToken.stop();
             stopped.set(true);
         }
@@ -56,6 +56,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
 
     public void start(PlayRunSpec spec) {
         if (stopped.get()) {
+            logger.info("Starting Play deployment handle for " + id);
             runnerToken = runnerTool.get().start(spec);
             stopped.set(false);
         }
