@@ -14,7 +14,7 @@ The test-kit will be agnostic of the test framework preferred by the user (e.g. 
 ## Technical details
 
 * Except for the Spock test adapter all code will be developed in Java.
-* The test-kit and all test adapters are implemented in a separate repository to Gradle core. The project is modeled as multi-project build. The repository is hosted on `https://github.com/gradle/testkit`.
+* The test-kit and all test adapters are implemented in the same repository as Gradle core. It would be handy to organize the components of the test-kit as subprojects under `test-kit`.
 * The artifacts for test-kit and test adapters are published to a central repository (likely our own repository). Publishing Gradle core should trigger publishing the test-kit/test adapters.
 * The build of the project will depends on the latest Gradle version. The version will need to updated manually in the beginning. We could also think of an automated solution here that uses the latest
 nightly.
@@ -150,7 +150,7 @@ As a user, you write your functional test by extending the base class.
 
 ### Implementation
 
-* Write a JUnit test rule for creating temporary directories for test execution per test case.
+* Temporary directories for test execution per test case will be creates by using the JUnit Rule [TemporaryFolder](http://junit.org/apidocs/org/junit/rules/TemporaryFolder.html).
 * The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with JUnit.
 * The metadata of the published library declares a dependency on the test-kit, the JUnit test adapter but not the test framework.
 
@@ -159,18 +159,21 @@ The base class implementation could look similar the following code snippet:
     package org.gradle.testkit.functional.junit;
 
     import org.gradle.testkit.functional.*;
-    import org.gradle.testkit.functional.junit.TestNameTestDirectoryProvider;
 
+    import java.io.File;
     import org.junit.Before;
     import org.junit.Rule;
+    import org.junit.rules.TemporaryFolder;
 
     public abstract class FunctionalTest {
-        @Rule private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+        @Rule private final TemporaryFolder temporaryFolder = new TemporaryFolder("build/tmp/test-files");
+        private File testDirectory;
         private final GradleRunner gradleRunner = GradleRunnerFactory.create();
 
         @Before
         public void setup() {
-            gradleRunner.setWorkingDir(testDirectoryProvider.getTestDirectory());
+            testDirectory = temporaryFolder.newFolder("...");
+            gradleRunner.setWorkingDir(testDirectory);
         }
 
         protected GradleRunner getGradleRunner() {
@@ -178,15 +181,15 @@ The base class implementation could look similar the following code snippet:
         }
 
         protected File getTestDirectory() {
-            return temporaryFolder.getTestDirectory();
+            return testDirectory;
         }
 
         protected File getBuildFile() {
-            return testDirectory.file("build.gradle");
+            return new File(testDirectory, "build.gradle");
         }
 
         protected File getSettingsFile() {
-            return testDirectory.file("settings.gradle");
+            return new File(testDirectory, "settings.gradle");
         }
 
         protected BuildResult succeeds(String... tasks) {
@@ -215,7 +218,7 @@ The base class implementation could look similar the following code snippet:
 
 ### Open issues
 
--
+* Potentially expose test fixtures as Gradle plugins so resources can be set up/clean automatically for each test case.
 
 ## Story 3: Spock test adapter
 
@@ -255,43 +258,47 @@ As a user, you write your functional test by extending the base class.
 
 The implementation of the Spock test adapter could look similar to this base class. The class extends `spock.lang.Specification`.
 
-    package org.gradle.testkit.functional.spock;
+    package org.gradle.testkit.functional.spock
 
-    import org.gradle.testkit.functional.*;
-    import org.gradle.testkit.functional.junit.TestNameTestDirectoryProvider;
+    import org.gradle.testkit.functional.*
 
-    import org.junit.Rule;
+    import java.io.File
+    import org.junit.Before
+    import org.junit.Rule
+    import org.junit.rules.TemporaryFolder
 
     public abstract class FunctionalTest extends Specification {
-        @Rule private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
-        private final GradleRunner gradleRunner = GradleRunnerFactory.create();
+        @Rule private final TemporaryFolder temporaryFolder = new TemporaryFolder("build/tmp/test-files")
+        private File testDirectory
+        private final GradleRunner gradleRunner = GradleRunnerFactory.create()
 
         def setup() {
-            gradleRunner.setWorkingDir(testDirectoryProvider.getTestDirectory());
+            testDirectory = temporaryFolder.newFolder("...")
+            gradleRunner.setWorkingDir(testDirectory)
         }
 
         protected GradleRunner getGradleRunner() {
-            return gradleRunner;
+            gradleRunner
         }
 
         protected File getTestDirectory() {
-            return temporaryFolder.getTestDirectory();
+            testDirectory
         }
 
         protected File getBuildFile() {
-            return testDirectory.file("build.gradle");
+            new File(testDirectory, "build.gradle")
         }
 
         protected File getSettingsFile() {
-            return testDirectory.file("settings.gradle");
+            new File(testDirectory, "settings.gradle")
         }
 
         protected BuildResult succeeds(String... tasks) {
-            return gradleRunner.useTasks(Arrays.asList(tasks)).succeeds();
+            gradleRunner.useTasks(Arrays.asList(tasks)).succeeds()
         }
 
         protected BuildResult fails(String... tasks) {
-            return gradleRunner.useTasks(Arrays.asList(tasks)).fails();
+            gradleRunner.useTasks(Arrays.asList(tasks)).fails()
         }
     }
 
@@ -308,7 +315,7 @@ The implementation of the Spock test adapter could look similar to this base cla
 
 ### Open issues
 
--
+* As an alternative to a Spock adapter, it would be better to have some Groovy bean that can be mixed into a Spock spec.
 
 ## Story 4: User creates and executes an integration test using the test-kit
 
