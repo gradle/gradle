@@ -139,8 +139,10 @@ This allows the effective values of the build model to be visualised, not just t
 
 - [`@Managed`](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
 
-[`@Managed`](javadoc/org/gradle/model/Managed.html) can now implement the [`Named`](javadoc/org/gradle/api/Named.html) interface.
+[`@Managed`](javadoc/org/gradle/model/Managed.html) types can now implement the [`Named`](javadoc/org/gradle/api/Named.html) interface.
 The `name` property will be automatically populated based on the objects location in the model graph.
+
+It is now possible to declare properties of type [`ModelMap<T>`](javadoc/org/gradle/model/ModelMap.html), where `T` is-a [`Named`](javadoc/org/gradle/api/Named.html).
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 
