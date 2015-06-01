@@ -69,11 +69,10 @@ public class ComponentRules extends RuleSource {
 
         // If there is a transform for the language into one of the component inputs, add a default source set
         void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {
-            final FunctionalSourceSet functionalSourceSet = component.getSources();
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
                         && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
+                    component.getSource().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
                     return;
                 }
             }
