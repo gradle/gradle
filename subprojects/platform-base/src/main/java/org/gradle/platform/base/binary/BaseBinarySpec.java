@@ -16,19 +16,17 @@
 
 package org.gradle.platform.base.binary;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceSetNotationParser;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
@@ -51,7 +49,6 @@ import java.util.Set;
  */
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private FunctionalSourceSet mainSources;
     private DefaultDomainObjectSet<LanguageSourceSet> additionalSources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
@@ -119,9 +116,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        @SuppressWarnings("unchecked")
-        DomainObjectSet<LanguageSourceSet> sources = CompositeDomainObjectSet.create(LanguageSourceSet.class, mainSources, additionalSources);
-        return sources;
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSources);
     }
 
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
@@ -130,9 +125,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         ));
     }
 
-    // TODO:DAZ Remove this
-    public void source(Object source) {
-        additionalSources.addAll(sourcesNotationParser.parseNotation(source));
+    public void source(LanguageSourceSet source) {
+        additionalSources.add(source);
+    }
+
+    @Override
+    public Set<LanguageSourceSet> getAllSources() {
+        Set<LanguageSourceSet> allSources = Sets.newLinkedHashSet(mainSources);
+        allSources.addAll(additionalSources);
+        return allSources;
     }
 
     public BinaryTasksCollection getTasks() {

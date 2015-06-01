@@ -17,9 +17,23 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 
+import java.util.Set;
+
 public interface BinarySpecInternal extends BinarySpec {
+
+    /**
+     * Adds a pre-configured source set: one that is created as part of another binary or component.
+     * This is currently used only by native-testing to add the tested component sources to the test binary.
+     */
+    void source(LanguageSourceSet source);
+
+    /**
+     * Return all language source sets, including any pre-configured source sets added via {@link #source(LanguageSourceSet)}.
+     */
+    Set<LanguageSourceSet> getAllSources();
 
     void setBinarySources(FunctionalSourceSet sources);
 

@@ -37,20 +37,6 @@ public interface BinarySpec extends BuildableModelElement, Named {
     boolean isBuildable();
 
     /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
-     */
-    // TODO:DAZ Remove this
-    void source(Object source);
-
-    /**
      * The source sets used to compile this binary.
      */
     DomainObjectSet<LanguageSourceSet> getSource();

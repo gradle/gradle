@@ -33,6 +33,7 @@ import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
+import java.util.Set;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -146,7 +147,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return sourceSets;
     }
 
-    public void source(Object source) {
+    public void source(LanguageSourceSet source) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<LanguageSourceSet> getAllSources() {
         throw new UnsupportedOperationException();
     }
 

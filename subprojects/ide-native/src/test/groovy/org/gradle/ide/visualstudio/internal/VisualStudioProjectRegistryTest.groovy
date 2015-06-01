@@ -15,7 +15,7 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.api.internal.DefaultDomainObjectSet
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
-    private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+    private Set<LanguageSourceSet> sources = [] as Set
     def fileResolver = Mock(FileResolver)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
     def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
@@ -36,7 +36,7 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
         executableBinary.component >> executable
-        executableBinary.source >> sources
+        executableBinary.allSources >> sources
 
         and:
         registry.addProjectConfiguration(executableBinary)
@@ -57,8 +57,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
         visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-        executableBinary1.source >> sources
-        executableBinary2.source >> sources
+        executableBinary1.allSources >> sources
+        executableBinary2.allSources >> sources
 
         and:
         registry.addProjectConfiguration(executableBinary1)
@@ -92,8 +92,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
         visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-        executableBinary1.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source1])
-        executableBinary2.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source2])
+        executableBinary1.allSources >> ([sourceCommon, source1] as Set)
+        executableBinary2.allSources >> ([sourceCommon, source2] as Set)
 
         and:
         registry.addProjectConfiguration(executableBinary1)

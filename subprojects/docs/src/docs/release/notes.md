@@ -36,9 +36,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Component model changes
+
+* Removed `BinarySpec.source(Object)`
 
 ## External contributions
 

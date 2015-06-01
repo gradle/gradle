@@ -15,11 +15,9 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
@@ -135,10 +133,10 @@ class VisualStudioProjectConfigurationTest extends Specification {
     }
 
     def "include paths include component headers"() {
-        final sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        final sources = [] as Set
 
         when:
-        exeBinary.source >> sources
+        exeBinary.allSources >> sources
         exeBinary.libs >> []
 
         then:
@@ -170,7 +168,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def deps1 = dependencySet(file1, file2)
         def deps2 = dependencySet(file3)
 
-        exeBinary.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+        exeBinary.allSources >> ([] as Set)
         exeBinary.libs >> [deps1, deps2]
 
         then:

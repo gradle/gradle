@@ -123,20 +123,18 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     }
 
                     final SourceTransformTaskConfig taskConfig = language.getTransformTask();
-                    binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
-                        public void execute(LanguageSourceSet languageSourceSet) {
-                            LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
-                            if (sourceSet.getMayHaveSources()) {
-                                String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
-                                Task task = tasks.create(taskName, taskConfig.getTaskType());
+                    for (LanguageSourceSet languageSourceSet : binary.getAllSources()) {
+                        LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
+                        if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
+                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
+                            Task task = tasks.create(taskName, taskConfig.getTaskType());
 
-                                taskConfig.configureTask(task, binary, sourceSet);
+                            taskConfig.configureTask(task, binary, sourceSet);
 
-                                task.dependsOn(sourceSet);
-                                binary.getTasks().add(task);
-                            }
+                            task.dependsOn(sourceSet);
+                            binary.getTasks().add(task);
                         }
-                    });
+                    }
                 }
             }
         }

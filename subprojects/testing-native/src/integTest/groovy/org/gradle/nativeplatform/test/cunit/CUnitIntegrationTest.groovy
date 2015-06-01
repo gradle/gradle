@@ -298,6 +298,7 @@ model {
                 sources {
                     variant(CSourceSet) {
                         source.srcDir "src/variant/c"
+                        lib sources.c
                     }
                 }
             }
