@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -92,7 +91,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getSource() >> sourceDirSet
             getExportedHeaders() >> headerDirSet
         }
-        binary.source sourceSet
+        binary.source.add sourceSet
 
         expect:
         binary.sharedLibraryFile == sharedLibraryFile
@@ -120,7 +119,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def resourceSet = Stub(NativeResourceSet) {
             getSource() >> sourceDirSet
         }
-        binary.source resourceSet
+        binary.source.add resourceSet
 
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")

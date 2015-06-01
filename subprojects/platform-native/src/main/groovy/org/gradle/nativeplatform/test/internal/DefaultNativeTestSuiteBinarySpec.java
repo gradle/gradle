@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.test.internal;
 
+import com.google.common.collect.Sets;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
@@ -28,10 +30,11 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
+import java.util.Set;
 
 public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
-    private NativeBinarySpec testedBinary;
+    private NativeBinarySpecInternal testedBinary;
     private File executableFile;
 
     @Override
@@ -50,6 +53,13 @@ public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBin
         setPlatformToolProvider(testedBinary.getPlatformToolProvider());
         setBuildType(testedBinary.getBuildType());
         setFlavor(testedBinary.getFlavor());
+    }
+
+    @Override
+    public Set<LanguageSourceSet> getAllSources() {
+        Set<LanguageSourceSet> sources = Sets.newHashSet(super.getAllSources());
+        sources.addAll(testedBinary.getAllSources());
+        return sources;
     }
 
     public File getExecutableFile() {

@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
@@ -81,10 +80,6 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpecInternal testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpecInternal.class)) {
                 NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) testSuiteBinary.getTestedBinary();
-                for (LanguageSourceSet languageSourceSet : testedBinary.getAllSources()) {
-                    testSuiteBinary.source(languageSourceSet);
-                }
-
                 for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
                     testSource.lib(testedBinary.getAllSources());
                 }

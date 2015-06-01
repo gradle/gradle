@@ -162,66 +162,6 @@ model {
         installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 
-    def "can configure a binary to use additional source sets"() {
-        given:
-        buildFile << """
-apply plugin: "cpp"
-
-model {
-    components { comp ->
-        util(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    exportedHeaders.srcDir "src/shared/headers"
-                }
-            }
-        }
-        main(NativeExecutableSpec) {
-            sources {
-                cpp {
-                    exportedHeaders.srcDir "src/shared/headers"
-                }
-            }
-            binaries.all {
-                source comp.util.sources.cpp
-            }
-        }
-    }
-}
-"""
-        settingsFile << "rootProject.name = 'test'"
-
-        and:
-        file("src/shared/headers/greeting.h") << """
-            void greeting();
-"""
-
-        file("src/util/cpp/greeting.cpp") << """
-            #include <iostream>
-            #include "greeting.h"
-
-            void greeting() {
-                std::cout << "Hello!";
-            }
-        """
-
-        file("src/main/cpp/helloworld.cpp") << """
-            #include "greeting.h"
-
-            int main() {
-                greeting();
-                return 0;
-            }
-        """
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def executable = executable("build/binaries/mainExecutable/main")
-        executable.exec().out == "Hello!"
-    }
-
     def "can customize binaries before and after linking"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:

@@ -50,7 +50,6 @@ import java.util.Set;
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private FunctionalSourceSet mainSources;
-    private DefaultDomainObjectSet<LanguageSourceSet> additionalSources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
@@ -125,15 +124,9 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         ));
     }
 
-    public void source(LanguageSourceSet source) {
-        additionalSources.add(source);
-    }
-
     @Override
     public Set<LanguageSourceSet> getAllSources() {
-        Set<LanguageSourceSet> allSources = Sets.newLinkedHashSet(mainSources);
-        allSources.addAll(additionalSources);
-        return allSources;
+        return Sets.newLinkedHashSet(mainSources);
     }
 
     public BinaryTasksCollection getTasks() {
