@@ -45,6 +45,7 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
         then:
         def e = thrown(GradleConnectionException)
         e.cause.getClass().name == UnsupportedVersionException.name
+        e.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
     }
 
 }
