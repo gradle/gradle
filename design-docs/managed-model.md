@@ -47,12 +47,8 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - All created elements must have `name` property populated, matching the node link name
 - Can depend on model map element by specific type in rules
 - Element type cannot be any kind of type var
-
-### Support declaring top level model elements of type `ModelMap<T>`
-
-    class Rules extends RuleSource {
-      @Model void things(ModelMap<Thing> things) {}
-    }
+- Can be top level element
+- Can be property of managed type
 
 ### Support for polymorphic managed sets
 
