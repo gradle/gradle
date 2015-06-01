@@ -32,25 +32,28 @@ plugins {
 
 model {
     components {
-        dep(JvmLibrarySpec)
+        zdep(JvmLibrarySpec)
         main(JvmLibrarySpec) {
             sources {
                 java {
                     dependencies {
-                        library 'dep'
+                        library 'zdep'
                     }
                 }
             }
         }
     }
+
+    tasks {
+        assemble.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(createZdepJar)
+        }
+    }
 }
 '''
-        file('src/dep/java/Dep.java') << 'public class Dep {}'
-        // this works by accident because tasks seem to be ordered by name, so until
-        // task resolution is done, explicit dependency is removed, but the classpath
-        // is correct
-        //file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
-        file('src/main/java/TestApp.java') << 'public class TestApp /* extends Dep */ {}'
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         expect:
         succeeds 'assemble'
@@ -82,7 +85,8 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         expect:
-        succeeds 'assemble'
+        fails 'assemble'
+        failure.assertHasDescription('Circular dependency between the following tasks')
 
     }
 
@@ -118,9 +122,11 @@ model {
 }
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
+        file('src/main2/java/TestApp2.java') << 'public class TestApp2 {}'
 
         expect:
-        succeeds 'assemble'
+        fails 'assemble'
+        failure.assertHasDescription('Circular dependency between the following tasks')
 
     }
 
@@ -177,6 +183,13 @@ model {
             }
         }
     }
+
+    tasks {
+        assemble.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:createMainJar')
+        }
+    }
 }
 '''
         file('settings.gradle') << 'include "dep"'
@@ -192,7 +205,8 @@ model {
     }
 }
 '''
-        file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+        file('dep/src/main/java/Dep.java') << 'public class Dep {}'
 
         expect:
         succeeds 'assemble'
@@ -360,6 +374,14 @@ model {
             }
         }
     }
+
+    tasks {
+        assemble.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.containsAll(
+            [':createOtherJar',':dep:createMainJar'])
+        }
+    }
 }
 '''
         file('settings.gradle') << 'include "dep"'
@@ -375,7 +397,7 @@ model {
     }
 }
 '''
-        file('src/main/java/TestApp.java') << 'public class TestApp /* extends Dep implements SomeInterface */{}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep implements SomeInterface {}'
         file('src/other/java/Dep.java') << 'public class Dep {}'
         file('dep/src/main/java/SomeInterface.java') << 'public interface SomeInterface {}'
 

@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -25,7 +27,7 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 
-public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData {
+public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData, Buildable {
     private final ComponentIdentifier componentIdentifier;
     private final String moduleName;
     private final String componentDisplayName;
@@ -102,5 +104,10 @@ public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtif
         }
         PublishArtifactLocalArtifactMetaData other = (PublishArtifactLocalArtifactMetaData) obj;
         return other.componentIdentifier.equals(componentIdentifier) && other.publishArtifact.equals(publishArtifact);
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return publishArtifact.getBuildDependencies();
     }
 }

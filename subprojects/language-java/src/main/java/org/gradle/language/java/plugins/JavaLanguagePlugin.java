@@ -17,10 +17,10 @@
 package org.gradle.language.java.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
@@ -157,36 +159,60 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public String getDisplayName() {
-            return "Classpath for "+sourceSet.getDisplayName();
+            return "Classpath for " + sourceSet.getDisplayName();
         }
 
         @Override
         public Set<File> getFiles() {
             final Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
-            ResolverResults results = new ResolverResults();
-            final List<ResolutionAwareRepository> resolutionRepositories = getResolutionAwareRepositories();
-            DefaultJavaSourceSetResolveContext resolveContext = new DefaultJavaSourceSetResolveContext((ProjectInternal) project, (DefaultJavaLanguageSourceSet) sourceSet);
-            dependencyResolver.resolve(resolveContext, resolutionRepositories, globalDependencyResolutionRules, results);
-            ResolutionResult resolutionResult = results.getResolutionResult();
-            ResolvedArtifactResults resolve = results.getArtifactsBuilder().resolve();
-            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                classpath.add(resolvedArtifact.getFile());
-            }
+            DefaultJavaSourceSetResolveContext resolveContext = createResolveContext();
             final List<Throwable> notFound = new LinkedList<Throwable>();
-            resolutionResult.allDependencies(new Action<DependencyResult>() {
+            resolve(resolveContext, new Action<ResolverResults>() {
                 @Override
-                public void execute(DependencyResult dependencyResult) {
-                    if (dependencyResult instanceof UnresolvedDependencyResult) {
-                        UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
-                        notFound.add(unresolved.getFailure());
+                public void execute(ResolverResults resolverResults) {
+                    ResolvedArtifactResults resolve = resolverResults.getArtifactsBuilder().resolve();
+                    for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                        classpath.add(resolvedArtifact.getFile());
                     }
+                    resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
+                        @Override
+                        public void execute(DependencyResult dependencyResult) {
+                            if (dependencyResult instanceof UnresolvedDependencyResult) {
+                                UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
+                                notFound.add(unresolved.getFailure());
+                            }
+                        }
+                    });
                 }
             });
             if (!notFound.isEmpty()) {
-                throw new LibraryResolveException("Could not resolve all dependencies for source set '"+sourceSet.getDisplayName()+"'", notFound);
+                // todo: should this be done in getBuildDependencies instead?
+                throw new LibraryResolveException("Could not resolve all dependencies for source set '" + sourceSet.getDisplayName() + "'", notFound);
             }
             return classpath;
+        }
+
+        private DefaultJavaSourceSetResolveContext createResolveContext() {
+            return new DefaultJavaSourceSetResolveContext((ProjectInternal) project, (DefaultJavaLanguageSourceSet) sourceSet);
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            final DefaultTaskDependency result = new DefaultTaskDependency();
+            result.add(super.getBuildDependencies());
+            resolve(createResolveContext(), new Action<ResolverResults>() {
+                @Override
+                public void execute(ResolverResults resolverResults) {
+                    ResolvedArtifactResults resolve = resolverResults.getArtifactsBuilder().resolve();
+                    for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                        if (resolvedArtifact instanceof Buildable) {
+                            result.add(((Buildable) resolvedArtifact).getBuildDependencies());
+                        }
+                    }
+                }
+            });
+            return result;
         }
 
         private List<ResolutionAwareRepository> getResolutionAwareRepositories() {
@@ -199,6 +225,12 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             }
             return resolutionRepositories;*/
             return Collections.emptyList();
+        }
+
+        public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
+            ResolverResults results = new ResolverResults();
+            dependencyResolver.resolve(resolveContext, getResolutionAwareRepositories(), globalDependencyResolutionRules, results);
+            onResolve.execute(results);
         }
     }
 }
