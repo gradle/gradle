@@ -38,7 +38,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
-        playApp.writeSources(file("."))
+        playApp.writeSources(testDirectory)
     }
 
     def "can build play app binary"() {

@@ -27,7 +27,7 @@ class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegration
     PlayApp playApp = new WithFailingTestsApp();
 
     def setup() {
-        playApp.writeSources(file("."))
+        playApp.writeSources(testDirectory)
         buildFile << """
 model {
     components {

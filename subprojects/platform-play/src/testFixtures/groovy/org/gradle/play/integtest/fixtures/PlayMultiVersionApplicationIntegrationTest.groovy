@@ -35,7 +35,7 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
             }
         """
 
-        playApp.writeSources(file("."))
+        playApp.writeSources(testDirectory)
         settingsFile << """
             rootProject.name = '${playApp.name}'
         """

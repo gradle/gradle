@@ -26,7 +26,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new BasicPlayApp()
 
     def setup() {
-        playApp.writeSources(file("."))
+        playApp.writeSources(testDirectory)
     }
 
     def "can build play app binary for default platform"() {
