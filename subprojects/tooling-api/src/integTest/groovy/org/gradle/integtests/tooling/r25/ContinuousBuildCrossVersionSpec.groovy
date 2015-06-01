@@ -22,8 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Timeout
@@ -31,14 +29,13 @@ import spock.lang.Timeout
 import java.util.concurrent.atomic.AtomicInteger
 
 @Timeout(60)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
 class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
-    ProgressListener progressListener
+    def progressListener
 
     void customizeLauncher(BuildLauncher launcher) {
         if (progressListener) {
-            launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
+            launcher.addProgressListener(progressListener)
         }
     }
 
@@ -108,6 +105,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         executedAndNotSkipped ":compileJava"
     }
 
+    @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
     def "client can receive appropriate logging and progress events for subsequent builds"() {
         given:
         def javaSrcDir = setupJavaProject()
@@ -121,7 +119,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
             if (it instanceof FinishEvent && it.descriptor.name == 'Running build') {
                 buildCounter.incrementAndGet()
             }
-        }
+        } as org.gradle.tooling.events.ProgressListener
 
         when:
         succeeds('build')
