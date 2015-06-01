@@ -165,7 +165,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         }
 
         then:
-        !stdout.toString().toLowerCase().contains("continuous")
+        !containsContinuousBuildOutput(stdout)
         buildEnvironment.gradle.gradleVersion != null
 
         when:
@@ -180,7 +180,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         }
 
         then:
-        !stdout.toString().toLowerCase().contains("continuous")
+        !containsContinuousBuildOutput(stdout)
         gradleProject.buildDirectory != null
 
         when: 'running task before fetching model'
@@ -196,7 +196,14 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         }
 
         then:
-        !stdout.toString().toLowerCase().contains("continuous")
+        !containsContinuousBuildOutput(stdout)
         gradleProject.buildDirectory != null
+    }
+
+    private boolean containsContinuousBuildOutput(stdout) {
+        String logOutput = stdout.toString()
+        return logOutput.contains("Continuous build is an incubating feature.") ||
+            logOutput.contains("Waiting for changes to input files of tasks...") ||
+            logOutput.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 }
