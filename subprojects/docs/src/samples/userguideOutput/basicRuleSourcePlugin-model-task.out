@@ -6,45 +6,60 @@ Root project
 
 + model
     + person
-          | Type: 	 Person |
+          | Type:   	Person |
+          | Origin: 	PersonRules#person(Person) |
         + firstName
-              | Value: 	 John |
-              | Type: 	 java.lang.String |
+              | Type:   	java.lang.String |
+              | Origin: 	PersonRules#person(Person) |
+              | Value:  	John |
         + lastName
-              | Value: 	 Smith |
-              | Type: 	 java.lang.String |
+              | Type:   	java.lang.String |
+              | Origin: 	PersonRules#person(Person) |
+              | Value:  	Smith |
     + tasks
-          | Type: 	 org.gradle.model.ModelMap<org.gradle.api.Task> |
+          | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task> |
+          | Origin: 	Project.<init>.tasks() |
         + components
-              | Value: 	 task ':components' |
-              | Type: 	 org.gradle.api.reporting.components.ComponentReport |
+              | Type:   	org.gradle.api.reporting.components.ComponentReport |
+              | Origin: 	tasks.addPlaceholderAction(components) |
+              | Value:  	task ':components' |
         + dependencies
-              | Value: 	 task ':dependencies' |
-              | Type: 	 org.gradle.api.tasks.diagnostics.DependencyReportTask |
+              | Type:   	org.gradle.api.tasks.diagnostics.DependencyReportTask |
+              | Origin: 	tasks.addPlaceholderAction(dependencies) |
+              | Value:  	task ':dependencies' |
         + dependencyInsight
-              | Value: 	 task ':dependencyInsight' |
-              | Type: 	 org.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+              | Type:   	org.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+              | Origin: 	tasks.addPlaceholderAction(dependencyInsight) |
+              | Value:  	task ':dependencyInsight' |
         + hello
-              | Value: 	 task ':hello' |
-              | Type: 	 org.gradle.api.Task |
+              | Type:   	org.gradle.api.Task |
+              | Origin: 	PersonRules#createHelloTask(org.gradle.model.ModelMap<org.gradle.api.Task>, Person) > create(hello) |
+              | Value:  	task ':hello' |
         + help
-              | Value: 	 task ':help' |
-              | Type: 	 org.gradle.configuration.Help |
+              | Type:   	org.gradle.configuration.Help |
+              | Origin: 	tasks.addPlaceholderAction(help) |
+              | Value:  	task ':help' |
         + init
-              | Value: 	 task ':init' |
-              | Type: 	 org.gradle.buildinit.tasks.InitBuild |
+              | Type:   	org.gradle.buildinit.tasks.InitBuild |
+              | Origin: 	tasks.addPlaceholderAction(init) |
+              | Value:  	task ':init' |
         + model
-              | Value: 	 task ':model' |
-              | Type: 	 org.gradle.api.reporting.model.ModelReport |
+              | Type:   	org.gradle.api.reporting.model.ModelReport |
+              | Origin: 	tasks.addPlaceholderAction(model) |
+              | Value:  	task ':model' |
         + projects
-              | Value: 	 task ':projects' |
-              | Type: 	 org.gradle.api.tasks.diagnostics.ProjectReportTask |
+              | Type:   	org.gradle.api.tasks.diagnostics.ProjectReportTask |
+              | Origin: 	tasks.addPlaceholderAction(projects) |
+              | Value:  	task ':projects' |
         + properties
-              | Value: 	 task ':properties' |
-              | Type: 	 org.gradle.api.tasks.diagnostics.PropertyReportTask |
+              | Type:   	org.gradle.api.tasks.diagnostics.PropertyReportTask |
+              | Origin: 	tasks.addPlaceholderAction(properties) |
+              | Value:  	task ':properties' |
         + tasks
-              | Value: 	 task ':tasks' |
-              | Type: 	 org.gradle.api.tasks.diagnostics.TaskReportTask |
+              | Type:   	org.gradle.api.tasks.diagnostics.TaskReportTask |
+              | Origin: 	tasks.addPlaceholderAction(tasks) |
+              | Value:  	task ':tasks' |
         + wrapper
-              | Value: 	 task ':wrapper' |
-              | Type: 	 org.gradle.api.tasks.wrapper.Wrapper |
+              | Type:   	org.gradle.api.tasks.wrapper.Wrapper |
+              | Origin: 	tasks.addPlaceholderAction(wrapper) |
+              | Value:  	task ':wrapper' |

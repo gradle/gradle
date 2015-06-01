@@ -70,12 +70,10 @@ class ModelReportOutput {
     void checkNodes(ReportNode actual, ReportNode expected) {
         assert actual.children().size() == expected.children().size()
         assert actual.name == expected.name
-
-        if (expected.nodeValue) {
-            assert actual.nodeValue == expected.nodeValue
-        }
-        if (expected.type) {
-            assert actual.type == expected.type
+        ModelReportParser.NODE_ATTRIBUTES.each { String display, String property ->
+            if (expected.attribute(property)) {
+                assert actual.attribute(property) == expected.attribute(property)
+            }
         }
         expected.children().eachWithIndex { ReportNode node, int index ->
             checkNodes(actual.children()[index], node)

@@ -87,16 +87,16 @@ model {
         ModelReportOutput.from(output).hasNodeStructure({
             model {
                 nullCredentials {
-                    password()
-                    username()
+                    password(type: 'java.lang.String', origin: 'model.nullCredentials')
+                    username(type: 'java.lang.String', origin: 'model.nullCredentials')
                 }
 
                 numbers {
-                    value(nodeValue: 5)
+                    value(nodeValue: "5")
                 }
                 primaryCredentials {
-                    password(nodeValue: 'hunter2')
-                    username(nodeValue: 'uname')
+                    password(nodeValue: 'hunter2', type: 'java.lang.String', origin: 'model.primaryCredentials')
+                    username(nodeValue: 'uname', type: 'java.lang.String', origin: 'model.primaryCredentials')
                 }
                 tasks {
                     components(nodeValue: "task ':components'")
@@ -159,56 +159,75 @@ model {
         modelReportOutput.nodeContentEquals("""
 + model
     + nullCredentials
-          | Type: \t PasswordCredentials |
+          | Type:   \tPasswordCredentials |
+          | Origin: \tmodel.nullCredentials |
         + password
-              | Type: \t java.lang.String |
+              | Type:   \tjava.lang.String |
+              | Origin: \tmodel.nullCredentials |
         + username
-              | Type: \t java.lang.String |
+              | Type:   \tjava.lang.String |
+              | Origin: \tmodel.nullCredentials |
     + numbers
-          | Type: \t Numbers |
+          | Type:   \tNumbers |
+          | Origin: \tmodel.numbers |
         + value
-              | Value: \t 5 |
-              | Type: \t java.lang.Integer |
+              | Type:   \tjava.lang.Integer |
+              | Origin: \tmodel.numbers |
+              | Value:  \t5 |
     + primaryCredentials
-          | Type: \t PasswordCredentials |
+          | Type:   \tPasswordCredentials |
+          | Origin: \tmodel.primaryCredentials |
         + password
-              | Value: \t hunter2 |
-              | Type: \t java.lang.String |
+              | Type:   \tjava.lang.String |
+              | Origin: \tmodel.primaryCredentials |
+              | Value:  \thunter2 |
         + username
-              | Value: \t uname |
-              | Type: \t java.lang.String |
+              | Type:   \tjava.lang.String |
+              | Origin: \tmodel.primaryCredentials |
+              | Value:  \tuname |
     + tasks
-          | Type: \t org.gradle.model.ModelMap<org.gradle.api.Task> |
+          | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task> |
+          | Origin: \tProject.<init>.tasks() |
         + components
-              | Value: \t task ':components' |
-              | Type: \t org.gradle.api.reporting.components.ComponentReport |
+              | Type:   \torg.gradle.api.reporting.components.ComponentReport |
+              | Origin: \ttasks.addPlaceholderAction(components) |
+              | Value:  \ttask ':components' |
         + dependencies
-              | Value: \t task ':dependencies' |
-              | Type: \t org.gradle.api.tasks.diagnostics.DependencyReportTask |
+              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask |
+              | Origin: \ttasks.addPlaceholderAction(dependencies) |
+              | Value:  \ttask ':dependencies' |
         + dependencyInsight
-              | Value: \t task ':dependencyInsight' |
-              | Type: \t org.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+              | Origin: \ttasks.addPlaceholderAction(dependencyInsight) |
+              | Value:  \ttask ':dependencyInsight' |
         + help
-              | Value: \t task ':help' |
-              | Type: \t org.gradle.configuration.Help |
+              | Type:   \torg.gradle.configuration.Help |
+              | Origin: \ttasks.addPlaceholderAction(help) |
+              | Value:  \ttask ':help' |
         + init
-              | Value: \t task ':init' |
-              | Type: \t org.gradle.buildinit.tasks.InitBuild |
+              | Type:   \torg.gradle.buildinit.tasks.InitBuild |
+              | Origin: \ttasks.addPlaceholderAction(init) |
+              | Value:  \ttask ':init' |
         + model
-              | Value: \t task ':model' |
-              | Type: \t org.gradle.api.reporting.model.ModelReport |
+              | Type:   \torg.gradle.api.reporting.model.ModelReport |
+              | Origin: \ttasks.addPlaceholderAction(model) |
+              | Value:  \ttask ':model' |
         + projects
-              | Value: \t task ':projects' |
-              | Type: \t org.gradle.api.tasks.diagnostics.ProjectReportTask |
+              | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask |
+              | Origin: \ttasks.addPlaceholderAction(projects) |
+              | Value:  \ttask ':projects' |
         + properties
-              | Value: \t task ':properties' |
-              | Type: \t org.gradle.api.tasks.diagnostics.PropertyReportTask |
+              | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask |
+              | Origin: \ttasks.addPlaceholderAction(properties) |
+              | Value:  \ttask ':properties' |
         + tasks
-              | Value: \t task ':tasks' |
-              | Type: \t org.gradle.api.tasks.diagnostics.TaskReportTask |
+              | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask |
+              | Origin: \ttasks.addPlaceholderAction(tasks) |
+              | Value:  \ttask ':tasks' |
         + wrapper
-              | Value: \t task ':wrapper' |
-              | Type: \t org.gradle.api.tasks.wrapper.Wrapper |
+              | Type:   \torg.gradle.api.tasks.wrapper.Wrapper |
+              | Origin: \ttasks.addPlaceholderAction(wrapper) |
+              | Value:  \ttask ':wrapper' |
 """)
     }
 }
