@@ -83,9 +83,10 @@ gradle.buildFinished {
             cancellationTokenSource.cancel()
         }
         buildFuture.get(2000, TimeUnit.MILLISECONDS)
+        def stdoutContent = stdout.toString()
 
         then:
-        noExceptionThrown()
+        stdoutContent.contains("Build cancelled.")
 
         where:
         delayms << [0L, 1L, 1000L, 2000L]
@@ -129,9 +130,11 @@ gradle.taskGraph.beforeTask { Task task ->
         cancellationTokenSource.cancel()
         cyclicBarrierHttpServer.release()
         buildFuture.get(2000, TimeUnit.MILLISECONDS)
+        def stdoutContent = stdout.toString()
 
         then:
-        noExceptionThrown()
+        !stdoutContent.contains("Waiting for changes to input files of tasks...")
+        stdoutContent.contains("Build cancelled.")
     }
 
     def "client can cancel during execution of a continuous build - before a task which isn't the last task"() {
