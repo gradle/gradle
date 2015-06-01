@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -78,7 +77,7 @@ import java.lang.annotation.Target;
  * Any managed type implementing this interface will have its {@code name} attribute populated automatically
  * based on the name of the corresponding node in the model graph.
  * <p>
- * The {@link ModelMap} type requires that its elements are {@link Named}.
+ * The {@link ModelMap} type requires that its elements are {@link org.gradle.api.Named}.
  *
  * <h3>Inheritance</h3>
  * <p>
