@@ -24,7 +24,8 @@ import java.util.Set;
 
 public interface BinarySpecInternal extends BinarySpec {
     /**
-     * Return all language source sets, including any pre-configured source sets added via {@link #source(LanguageSourceSet)}.
+     * Return all language source sets.
+     * This method is overridden by NativeTestSuiteBinarySpec to include the source sets from the tested binary.
      */
     Set<LanguageSourceSet> getAllSources();
 
