@@ -66,14 +66,15 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        Object result;
-        if (actionParameters.isContinuous()) {
-            result = executeMultipleBuilds(action, requestContext, actionParameters);
-        } else {
-            result = delegate.execute(action, requestContext, actionParameters);
+        try {
+            if (actionParameters.isContinuous()) {
+                return executeMultipleBuilds(action, requestContext, actionParameters);
+            } else {
+                return delegate.execute(action, requestContext, actionParameters);
+            }
+        } finally {
+            buildSession.stop();
         }
-        buildSession.stop();
-        return result;
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters) {
