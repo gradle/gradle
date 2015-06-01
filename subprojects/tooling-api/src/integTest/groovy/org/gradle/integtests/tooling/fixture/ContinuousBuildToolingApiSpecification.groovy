@@ -29,6 +29,7 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
@@ -52,6 +53,14 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     def cleanup() {
         cancelTask?.run()
+        if (buildExecutionFuture) {
+            try {
+                // wait for finish and throw exceptions that happened during execution
+                buildExecutionFuture.get(buildTimeout, TimeUnit.SECONDS)
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
     }
 
     def runContinuousBuild(String... tasks) {
