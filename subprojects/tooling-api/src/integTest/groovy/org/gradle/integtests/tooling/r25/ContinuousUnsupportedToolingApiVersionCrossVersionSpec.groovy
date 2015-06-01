@@ -25,7 +25,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
 import spock.lang.Timeout
 
-@ToolingApiVersion(ToolingApiVersions.DOES_NOT_SUPPORT_CANCELLATION)
+@ToolingApiVersion(ToolingApiVersions.PRE_CANCELLATION)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiSpecification {
 
