@@ -84,7 +84,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), null), locallyAvailableResourceFinder, false, resolverStrategy, artifactFileStore);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), null), locallyAvailableResourceFinder, false, resolverStrategy, artifactFileStore, true);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");

@@ -43,6 +43,7 @@ import java.util.Set;
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
     private AbstractRepositoryLayout layout;
+    private boolean validateDescriptors = true;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
@@ -101,7 +102,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, resolverStrategy, artifactFileStore);
+                metaDataProvider.dynamicResolve, resolverStrategy, artifactFileStore, validateDescriptors);
     }
 
     public URI getUrl() {
@@ -139,6 +140,16 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         layout(layoutName);
         ((Action) config).execute(layout);
+    }
+
+    @Override
+    public void setValidateDescriptors(boolean validate) {
+        validateDescriptors = validate;
+    }
+
+    @Override
+    public boolean isValidateDescriptors() {
+        return validateDescriptors;
     }
 
     public IvyArtifactRepositoryMetaDataProvider getResolve() {

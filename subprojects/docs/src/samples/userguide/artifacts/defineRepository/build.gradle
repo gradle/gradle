@@ -179,6 +179,15 @@ repositories {
 }
 //END SNIPPET ivy-repo-with-m2compatible-layout
 
+//START SNIPPET ivy-repo-with-validate-descriptors-disabled
+repositories {
+    ivy {
+        url "http://repo.mycompany.com/repo"
+        validateDescriptors false
+    }
+}
+//END SNIPPET ivy-repo-with-validate-descriptors-disabled
+
 //START SNIPPET ivy-repo-with-custom-pattern
 repositories {
     ivy {

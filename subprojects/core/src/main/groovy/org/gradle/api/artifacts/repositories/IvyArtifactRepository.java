@@ -161,6 +161,20 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     void layout(String layoutName, Closure config);
 
     /**
+     * Returns true if the Ivy descriptors from this repository will be validated. The default value is true.
+     *
+     * @return true if the Ivy descriptors from this repository will be validated.
+     */
+    boolean isValidateDescriptors();
+
+    /**
+     * Specifies whether the Ivy descriptors from this repository will be validated by the Ivy XML schema.
+     *
+     * @param validate
+     */
+    void setValidateDescriptors(boolean validate);
+
+    /**
      * Returns the meta-data provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the meta-data
      * for the modules and artifacts contained in this repository. Using this provider, you can fine tune how this resolution happens.
      *

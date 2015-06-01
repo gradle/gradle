@@ -35,8 +35,13 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
         return parseMetaData(ivySettings, descriptorFile, true);
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
-        return parseDescriptor(ivySettings, resource, true);
+    public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+        return parseDescriptor(ivySettings, resource, validate);
+    }
+
+    @Override
+    public T parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException {
+        return parseMetaData(context, resource, true);
     }
 
     protected T parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
