@@ -19,22 +19,19 @@ package org.gradle.integtests.fixtures
 import org.gradle.internal.hash.HashUtil
 import org.gradle.util.TextUtil
 import org.junit.Assert
+import spock.util.concurrent.PollingConditions
 
 class UrlValidator {
 
     static void available(String theUrl, String application = null, int timeout = 30000) {
         URL url = new URL(theUrl)
-        long expiry = System.currentTimeMillis() + timeout
-        while (System.currentTimeMillis() <= expiry) {
-            try {
-                url.text
-                return
-            } catch (IOException e) {
-                // continue
+        try {
+            new PollingConditions().within(timeout) {
+                assert urlIsAvailable(url)
             }
-            Thread.sleep(200)
+        } catch(AssertionError e) {
+            throw new RuntimeException(String.format("Timeout waiting for %s to become available.", application != null ? application : theUrl));
         }
-        throw new RuntimeException(String.format("Timeout waiting for %s to become available.", application != null ? application : theUrl));
     }
 
     static void notAvailable(String theUrl) {
@@ -42,6 +39,15 @@ class UrlValidator {
             String content = new URL(theUrl).text
             Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
         } catch (SocketException ex) {
+        }
+    }
+
+    private static boolean urlIsAvailable(URL url) {
+        try {
+            url.text
+            return true
+        } catch (IOException e) {
+            return false
         }
     }
 

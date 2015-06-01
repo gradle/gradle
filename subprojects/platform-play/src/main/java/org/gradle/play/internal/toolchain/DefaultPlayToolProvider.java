@@ -102,7 +102,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     public PlayApplicationRunner newApplicationRunner() {
         VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
-        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, playRunAdapter);
+        return new PlayApplicationRunner(workerProcessBuilderFactory, playRunAdapter);
     }
 
     private VersionedPlayRunAdapter createPlayRunAdapter() {

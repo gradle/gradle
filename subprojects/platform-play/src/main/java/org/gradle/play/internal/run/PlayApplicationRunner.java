@@ -25,18 +25,16 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import java.io.File;
 
 public class PlayApplicationRunner {
-    private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
-        this.workingDir = workingDir;
+    public PlayApplicationRunner(Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec, adapter);
+        WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();

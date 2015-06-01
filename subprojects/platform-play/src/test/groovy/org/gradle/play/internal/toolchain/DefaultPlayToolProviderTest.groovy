@@ -59,9 +59,6 @@ class DefaultPlayToolProviderTest extends Specification {
         runner != null
         runner.adapter.class == adapter
 
-        and:
-        1 * fileResolver.resolve('.') >> new File(".")
-
         where:
         playVersion | adapter
         "2.2.x"     | PlayRunAdapterV22X
@@ -98,6 +95,7 @@ class DefaultPlayToolProviderTest extends Specification {
         ex.message == "Cannot create Compiler for unsupported CompileSpec type 'UnknownCompileSpec'"
     }
 
+    class UnknownCompileSpec implements CompileSpec {}
 }
 
-class UnknownCompileSpec implements CompileSpec {}
+

@@ -22,6 +22,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':platformPlay', sourceSet: 'integTest')
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
