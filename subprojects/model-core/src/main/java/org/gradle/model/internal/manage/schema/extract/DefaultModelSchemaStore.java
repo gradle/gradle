@@ -42,6 +42,11 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     }
 
     @Override
+    public <T> ModelSchema<T> getSchema(Class<T> type) {
+        return getSchema(ModelType.of(type));
+    }
+
+    @Override
     public void cleanUp() {
         cache.cleanUp();
     }

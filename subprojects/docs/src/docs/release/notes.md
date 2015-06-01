@@ -137,7 +137,10 @@ Progress events for more fine-grained operations will be added in future release
 - The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display string representations of some values.
 This allows the effective values of the build model to be visualised, not just the structure as was the case previously.
 
-- [@Managed](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
+- [`@Managed`](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
+
+[`@Managed`](javadoc/org/gradle/model/Managed.html) can now implement the [`Named`](javadoc/org/gradle/api/Named.html) interface.
+The `name` property will be automatically populated based on the objects location in the model graph.
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 

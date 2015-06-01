@@ -17,6 +17,7 @@
 package org.gradle.model;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -70,6 +71,14 @@ import java.lang.annotation.Target;
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.
+ *
+ * <h3>Named types</h3>
+ * <p>
+ * Managed types may implement/extend the {@link org.gradle.api.Named} interface.
+ * Any managed type implementing this interface will have its {@code name} attribute populated automatically
+ * based on the name of the corresponding node in the model graph.
+ * <p>
+ * The {@link ModelMap} type requires that its elements are {@link Named}.
  *
  * <h3>Inheritance</h3>
  * <p>
