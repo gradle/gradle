@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.extract
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.Managed
-import org.gradle.model.collection.ManagedSet
+import org.gradle.model.ModelSet
 import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -64,8 +64,8 @@ class DefaultModelSchemaStoreTest extends Specification {
         impl << [
                 "class SomeThing {}",
                 "@${Managed.name} interface SomeThing { SomeThing getThing() }",
-                "@${Managed.name} interface SomeThing { ${ManagedSet.name}<SomeThing> getThings() }",
-                "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ManagedSet.name}<Child> getThings() }",
+                "@${Managed.name} interface SomeThing { ${ModelSet.name}<SomeThing> getThings() }",
+                "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ModelSet.name}<Child> getThings() }",
         ]
     }
 
@@ -117,8 +117,8 @@ class DefaultModelSchemaStoreTest extends Specification {
         when:
         def cl = new GroovyClassLoader()
         addClass(cl, "@${Managed.name} interface Thing {}")
-        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing> getThings() }")
-        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ModelSet.name}<Thing> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ModelSet.name}<Thing> getThings() }")
 
         then:
         store.cache.size() == 4
@@ -129,8 +129,8 @@ class DefaultModelSchemaStoreTest extends Specification {
         def cl = new GroovyClassLoader()
         addClass(cl, "@${Managed.name} interface Thing1 {}")
         addClass(cl, "@${Managed.name} interface Thing2 {}")
-        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing1> getThings() }")
-        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing2> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ModelSet.name}<Thing1> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ModelSet.name}<Thing2> getThings() }")
 
         then:
         store.cache.size() == 6

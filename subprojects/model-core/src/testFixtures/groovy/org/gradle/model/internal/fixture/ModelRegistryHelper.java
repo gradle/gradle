@@ -69,6 +69,14 @@ public class ModelRegistryHelper implements ModelRegistry {
         this.modelRegistry = modelRegistry;
     }
 
+    public ModelRuleDescriptor desc(String p) {
+        return new SimpleModelRuleDescriptor(p);
+    }
+
+    public ModelPath path(String p) {
+        return ModelPath.path(p);
+    }
+
     @Override
     public <T> T realize(ModelPath path, ModelType<T> type) {
         return modelRegistry.realize(path, type);
@@ -327,6 +335,10 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     public void realize(String path) {
         modelRegistry.realize(nonNullValidatedPath(path), ModelType.UNTYPED);
+    }
+
+    public <T> T realize(String path, Class<T> type) {
+        return modelRegistry.realize(nonNullValidatedPath(path), ModelType.of(type));
     }
 
     public static <C> ModelCreator creator(String path, Class<C> type, String inputPath, final Transformer<? extends C, Object> action) {

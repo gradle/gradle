@@ -24,8 +24,11 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.ReportedException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
+import org.gradle.tooling.internal.protocol.InternalCancellationToken;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
@@ -38,10 +41,12 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
-        // TODO: Support tooling API
-        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous();
+        boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
+        if (continuous && !doesConsumerSupportCancellation(buildRequestContext)) {
+            throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
+        }
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
         try {
             return executer.execute(action, buildRequestContext, actionParameters);
         } catch (ReportedException e) {
@@ -55,4 +60,18 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             throw new BuildExceptionVersion1(e.getCause());
         }
     }
+
+    protected boolean doesConsumerSupportCancellation(BuildRequestContext buildRequestContext) {
+        // cancellation token will be instanceof InternalCancellationToken when consumer supports cancellation
+        return buildRequestContext.getCancellationToken() instanceof InternalCancellationToken;
+    }
+
+    private boolean isNotBuildingModel(BuildAction action) {
+        if (!(action instanceof BuildModelAction)) {
+            return true;
+        }
+        String modelName = ((BuildModelAction) action).getModelName();
+        return modelName.equals(ModelIdentifier.NULL_MODEL);
+    }
+
 }

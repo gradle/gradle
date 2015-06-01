@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import java.io.Serializable;
 
-public class DefaultBuildDescriptor implements Serializable, InternalBuildDescriptor {
+public class DefaultOperationDescriptor implements Serializable, InternalOperationDescriptor {
     private final Object id;
     private final String name;
     private final String displayName;
     private final Object parentId;
 
-    public DefaultBuildDescriptor(Object id, String name, String displayName, Object parentId) {
+    public DefaultOperationDescriptor(Object id, String name, String displayName, Object parentId) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;

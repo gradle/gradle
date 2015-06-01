@@ -30,7 +30,7 @@ import java.util.Collections;
 /**
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
-public class MapStrategy implements ModelSchemaExtractionStrategy {
+public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
 
     @Nullable
@@ -57,7 +57,7 @@ public class MapStrategy implements ModelSchemaExtractionStrategy {
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
         Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.class, contractType);
-        return new ModelSchemaExtractionResult<T>(ModelSchema.map(extractionContext.getType(), elementType, proxyImpl));
+        return new ModelSchemaExtractionResult<T>(ModelSchema.specializedMap(extractionContext.getType(), elementType, proxyImpl));
     }
 
     @Override

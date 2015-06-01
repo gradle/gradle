@@ -18,16 +18,16 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 
-public class DefaultTaskFinishedProgressEvent extends AbstractProgressEvent<DefaultTaskDescriptor> implements InternalOperationFinishedProgressEvent {
-    private final AbstractTaskResult result;
+public class DefaultOperationFinishedProgressEvent extends AbstractProgressEvent<DefaultOperationDescriptor> implements InternalOperationFinishedProgressEvent {
+    private final AbstractOperationResult result;
 
-    public DefaultTaskFinishedProgressEvent(long eventTime, DefaultTaskDescriptor descriptor, AbstractTaskResult result) {
+    public DefaultOperationFinishedProgressEvent(long eventTime, DefaultOperationDescriptor descriptor, AbstractOperationResult result) {
         super(eventTime, descriptor);
         this.result = result;
     }
 
     @Override
-    public AbstractTaskResult getResult() {
+    public AbstractOperationResult getResult() {
         return result;
     }
 

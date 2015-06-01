@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -59,7 +60,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsReadOnly(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
             return null;
         }
@@ -69,17 +70,22 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
         if (canBeViewedAsWritable(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
             return null;
         }
     }
 
-    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+    private <T> ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
         ModelMap<E> rawView = new NodeBackedModelMap<E>(elementType, ruleDescriptor, modelNode, creatorStrategy);
-        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor);
+        final DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
         P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
-        return new ModelMapModelView<P>(modelNode.getPath(), publicType, instance, state);
+        return new InstanceModelView<P>(modelNode.getPath(), publicType, instance, new Action<P>() {
+            @Override
+            public void execute(P p) {
+                state.close();
+            }
+        });
     }
 
     @Override

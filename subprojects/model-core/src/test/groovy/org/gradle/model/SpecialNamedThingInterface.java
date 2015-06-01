@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.events;
+package org.gradle.model;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildOperationResult;
+@Managed
+public interface SpecialNamedThingInterface extends NamedThingInterface, Special {
+    String getSpecial();
 
-public abstract class AbstractBuildOperationResult extends AbstractResult implements InternalBuildOperationResult {
-    protected AbstractBuildOperationResult(long startTime, long endTime, String outcomeDescription) {
-        super(startTime, endTime, outcomeDescription);
-    }
+    void setSpecial(String string);
 }

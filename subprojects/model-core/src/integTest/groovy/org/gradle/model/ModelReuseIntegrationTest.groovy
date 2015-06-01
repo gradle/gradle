@@ -106,15 +106,15 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
             class VariantsRuleSource extends RuleSource {
                 @Model
-                void flavours(ManagedSet<Flavour> flavours) {
+                void flavours(ModelSet<Flavour> flavours) {
                 }
 
                 @Model
-                void types(ManagedSet<Type> types) {
+                void types(ModelSet<Type> types) {
                 }
 
                 @Model
-                void variants(ManagedSet<Variant> variants, ManagedSet<Flavour> flavours, ManagedSet<Type> types) {
+                void variants(ModelSet<Variant> variants, ModelSet<Flavour> flavours, ModelSet<Type> types) {
                     flavours.each { flavour ->
                         types.each { type ->
                             variants.create {
@@ -126,14 +126,14 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
                 }
 
                 @Mutate
-                void addVariantTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
+                void addVariantTasks(ModelMap<Task> tasks, ModelSet<Variant> variants) {
                     variants.each {
                         tasks.create(it.name)
                     }
                 }
 
                 @Mutate
-                void addAllVariantsTasks(ModelMap<Task> tasks, ManagedSet<Variant> variants) {
+                void addAllVariantsTasks(ModelMap<Task> tasks, ModelSet<Variant> variants) {
                     tasks.create("allVariants") { allVariants ->
                         variants.each {
                             allVariants.dependsOn it.name

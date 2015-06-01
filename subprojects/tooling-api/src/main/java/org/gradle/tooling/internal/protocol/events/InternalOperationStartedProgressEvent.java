@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.model.collection.ManagedSet;
-
-interface SpecialManagedSet<T> extends ManagedSet<T> {}
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.5
+ */
+public interface InternalOperationStartedProgressEvent extends InternalProgressEvent {
+}

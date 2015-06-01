@@ -23,29 +23,23 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
  *
  * @since 2.5
  */
-public interface InternalBuildDescriptor extends InternalProtocolInterface {
-
+public interface InternalProgressEvent extends InternalProtocolInterface {
     /**
-     * Returns an id that uniquely identifies the operation.
-     */
-    Object getId();
-
-    /**
-     * Returns the name of the operation, relative to its parent.
-     */
-    String getName();
-
-    /**
-     * Returns a human consumable display name for the operation.
+     * Returns the time when the event happened.
      *
-     * @return The display name of the operation
+     * @return The event time
+     */
+    long getEventTime();
+
+    /**
+     * Returns a human consumable display name for this event.
      */
     String getDisplayName();
 
     /**
-     * Returns the id of the parent of the operation, if any.
+     * Returns the description of the operation for which progress is reported.
      *
-     * @return The id of the parent of the operation, can be null
+     * @return The build description
      */
-    Object getParentId();
+    InternalOperationDescriptor getDescriptor();
 }

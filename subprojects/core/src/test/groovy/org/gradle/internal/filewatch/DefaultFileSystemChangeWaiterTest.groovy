@@ -119,7 +119,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     @Unroll
     def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
         when:
-        def quietPeriod = 250L
+        def quietPeriod = 1000L
         def w = new DefaultFileSystemChangeWaiter(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
@@ -141,6 +141,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+        lastChangeRef.get() != 0
         System.currentTimeMillis() - lastChangeRef.get() >= quietPeriod
 
         where:

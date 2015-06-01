@@ -41,7 +41,6 @@ import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousBuildActionExecuter implements BuildExecuter {
-
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final FileSystemChangeWaiter waiter;

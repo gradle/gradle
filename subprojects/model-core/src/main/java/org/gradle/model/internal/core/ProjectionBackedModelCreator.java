@@ -33,13 +33,13 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
 
     public ProjectionBackedModelCreator(
-            ModelPath path,
-            ModelRuleDescriptor descriptor,
-            boolean ephemeral,
-            boolean hidden,
-            List<ModelReference<?>> inputs,
-            ModelProjection projection,
-            BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
+        ModelPath path,
+        ModelRuleDescriptor descriptor,
+        boolean ephemeral,
+        boolean hidden,
+        List<ModelReference<?>> inputs,
+        ModelProjection projection,
+        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
     ) {
         this.path = path;
         this.descriptor = descriptor;

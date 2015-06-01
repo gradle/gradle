@@ -30,7 +30,7 @@ public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T>
     }
 
     private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
-        super(baseItemType, creatorStrategy);
+        super(baseItemType, false, creatorStrategy);
     }
 
     @Override

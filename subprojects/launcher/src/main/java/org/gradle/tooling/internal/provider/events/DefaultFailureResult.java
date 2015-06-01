@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.internal.provider.events;
 
-/**
- * Values are intended to be used with {@link ToolingApiVersion}.
- */
-public class ToolingApiVersions {
+import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 
-    private ToolingApiVersions() {
+import java.util.List;
+
+public class DefaultFailureResult extends AbstractOperationResult implements InternalFailureResult {
+    private final List<DefaultFailure> failures;
+
+    public DefaultFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
+        super(startTime, endTime, "failed");
+        this.failures = failures;
     }
 
-    public static final String SUPPORTS_CANCELLATION = ">=2.1";
-    public static final String SUPPORTS_RICH_PROGRESS_EVENTS = ">=2.5";
-    public static final String PRE_CANCELLATION = ">=1.2 <2.1";
-
+    @Override
+    public List<DefaultFailure> getFailures() {
+        return failures;
+    }
 }

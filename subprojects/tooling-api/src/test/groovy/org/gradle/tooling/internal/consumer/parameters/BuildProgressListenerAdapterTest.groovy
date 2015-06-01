@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.parameters
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
-import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
 import spock.lang.Specification
 
@@ -58,7 +58,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def adapter = createAdapter(null, listener, null)
 
         when:
-        def buildDescriptor = Mock(InternalBuildDescriptor)
+        def buildDescriptor = Mock(InternalOperationDescriptor)
         _ * buildDescriptor.getId() >> 1
         _ * buildDescriptor.getName() >> 'my build'
         _ * buildDescriptor.getParentId() >> null
@@ -69,12 +69,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> buildDescriptor.getId()
 
-        def buildStartEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def buildStartEvent = Mock(InternalOperationStartedProgressEvent)
         _ * buildStartEvent.getEventTime() >> 999
         _ * buildStartEvent.getDisplayName() >> 'build started'
         _ * buildStartEvent.getDescriptor() >> buildDescriptor
 
-        def taskStartEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def taskStartEvent = Mock(InternalOperationStartedProgressEvent)
         _ * taskStartEvent.getEventTime() >> 1001
         _ * taskStartEvent.getDisplayName() >> 'task started'
         _ * taskStartEvent.getDescriptor() >> taskDescriptor

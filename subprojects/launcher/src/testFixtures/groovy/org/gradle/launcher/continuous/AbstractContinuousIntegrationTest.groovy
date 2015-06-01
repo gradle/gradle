@@ -64,6 +64,24 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    def setup() {
+        // this is here to ensure that the lastModified() timestamps actually change in between builds.
+        // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
+        executer.beforeExecute {
+            def initScript = file("init.gradle")
+            initScript.text = """
+                def startAt = System.currentTimeMillis()
+                gradle.buildFinished {
+                    def sinceStart = System.currentTimeMillis() - startAt
+                    if (sinceStart < 2000) {
+                      sleep 2000 - sinceStart
+                    }
+                }
+            """
+            withArgument("-I").withArgument(initScript.absolutePath)
+        }
+    }
+
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         if (tasks) {

@@ -24,6 +24,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collections;
@@ -39,7 +40,8 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
             ModelType.of(Long.class),
             ModelType.of(Double.class),
             ModelType.of(BigInteger.class),
-            ModelType.of(BigDecimal.class)
+            ModelType.of(BigDecimal.class),
+            ModelType.of(File.class)
     );
 
     // Expected to be a subset of above

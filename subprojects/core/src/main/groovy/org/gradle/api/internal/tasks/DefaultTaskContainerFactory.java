@@ -64,7 +64,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
         modelRegistry.createOrReplace(
             creatorBuilder
-                .withProjection(ModelMapModelProjection.of(Task.class, NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
+                .withProjection(ModelMapModelProjection.unmanaged(Task.class, NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override
                     public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {
                         return modelNode.getPrivateData(ModelType.of(DefaultTaskContainer.class)).getEntityInstantiator();

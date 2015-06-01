@@ -16,15 +16,10 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 
-public class DefaultBuildOperationStartedProgressEvent extends AbstractProgressEvent<DefaultBuildDescriptor> implements InternalBuildOperationStartedProgressEvent {
-    public DefaultBuildOperationStartedProgressEvent(long eventTime, DefaultBuildDescriptor descriptor) {
-        super(eventTime, descriptor);
-    }
-
-    @Override
-    public String getDisplayName() {
-        return String.format("%s started", getDescriptor().getName());
+public abstract class AbstractOperationResult extends AbstractResult implements InternalOperationResult {
+    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription) {
+        super(startTime, endTime, outcomeDescription);
     }
 }

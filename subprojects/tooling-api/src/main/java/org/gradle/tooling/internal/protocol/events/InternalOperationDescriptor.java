@@ -16,10 +16,36 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.5
  */
-public interface InternalBuildFailureResult extends InternalBuildOperationResult {
+public interface InternalOperationDescriptor extends InternalProtocolInterface {
+
+    /**
+     * Returns an id that uniquely identifies the operation.
+     */
+    Object getId();
+
+    /**
+     * Returns the name of the operation, relative to its parent.
+     */
+    String getName();
+
+    /**
+     * Returns a human consumable display name for the operation.
+     *
+     * @return The display name of the operation
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the id of the parent of the operation, if any.
+     *
+     * @return The id of the parent of the operation, can be null
+     */
+    Object getParentId();
 }

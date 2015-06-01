@@ -41,13 +41,14 @@ class ModelSchemaExtractor {
         }
     };
     private final List<ModelSchemaExtractionStrategy> strategies = ImmutableList.of(
-            new PrimitiveStrategy(),
-            new EnumStrategy(),
-            new JdkValueTypeStrategy(),
-            new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(supportedTypeDescriptions),
-            new MapStrategy(),
-            new UnmanagedStrategy()
+        new PrimitiveStrategy(),
+        new EnumStrategy(),
+        new JdkValueTypeStrategy(),
+        new ModelSetStrategy(supportedTypeDescriptions),
+        new StructStrategy(supportedTypeDescriptions),
+        new SpecializedMapStrategy(),
+        new ModelMapStrategy(),
+        new UnmanagedStrategy()
     );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {

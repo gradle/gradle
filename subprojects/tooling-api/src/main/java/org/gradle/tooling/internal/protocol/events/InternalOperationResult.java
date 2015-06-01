@@ -16,30 +16,35 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+
+import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.5
  */
-public interface InternalBuildProgressEvent extends InternalProtocolInterface {
+public interface InternalOperationResult extends InternalProtocolInterface {
     /**
-     * Returns the time when the event happened.
+     * Returns the time the build execution started.
      *
-     * @return The event time
+     * @return The start time of the build
      */
-    long getEventTime();
+    long getStartTime();
 
     /**
-     * Returns a human consumable display name for this event.
+     * Returns the time the result was produced.
+     *
+     * @return The time the result was produced.
      */
-    String getDisplayName();
+    long getEndTime();
 
     /**
-     * Returns the description of the operation for which progress is reported.
+     * Returns the failures that occurred while running the build, if any.
      *
-     * @return The build description
+     * @return The failures that occurred
      */
-    InternalBuildDescriptor getDescriptor();
+    List<? extends InternalFailure> getFailures();
 }

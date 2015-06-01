@@ -63,7 +63,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        def unknownEvent = Mock(InternalBuildProgressEvent)
+        def unknownEvent = Mock(InternalProgressEvent)
         adapter.onEvent(unknownEvent)
 
         then:
@@ -109,12 +109,12 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         def adapter = createAdapter(listener)
 
         when:
-        def childBuildDescriptor = Mock(InternalBuildDescriptor)
+        def childBuildDescriptor = Mock(InternalOperationDescriptor)
         _ * childBuildDescriptor.getId() >> 2
         _ * childBuildDescriptor.getName() >> 'some child'
         _ * childBuildDescriptor.getParentId() >> 1
 
-        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getDisplayName() >> 'child event'
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childBuildDescriptor
@@ -136,7 +136,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         _ * parentTaskDescriptor.getName() >> 'some parent'
         _ * parentTaskDescriptor.getParentId() >> null
 
-        def parentEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def parentEvent = Mock(InternalOperationStartedProgressEvent)
         _ * parentEvent.getEventTime() >> 999
         _ * parentEvent.getDescriptor() >> parentTaskDescriptor
 
@@ -145,7 +145,7 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> parentTaskDescriptor.getId()
 
-        def childEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
 
@@ -291,8 +291,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         }
     }
 
-    private InternalBuildDescriptor buildDescriptor(id, String name, InternalBuildDescriptor parent = null) {
-        InternalBuildDescriptor descriptor = Mock(InternalBuildDescriptor)
+    private InternalOperationDescriptor buildDescriptor(id, String name, InternalOperationDescriptor parent = null) {
+        InternalOperationDescriptor descriptor = Mock(InternalOperationDescriptor)
         descriptor.getId() >> id
         descriptor.getName() >> name
         descriptor.getParentId() >> { parent ? parent.id : null }
@@ -300,8 +300,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         descriptor
     }
 
-    private InternalBuildDescriptor buildDescriptor(id, String name, String displayName, InternalBuildDescriptor parent = null) {
-        InternalBuildDescriptor descriptor = Mock(InternalBuildDescriptor)
+    private InternalOperationDescriptor buildDescriptor(id, String name, String displayName, InternalOperationDescriptor parent = null) {
+        InternalOperationDescriptor descriptor = Mock(InternalOperationDescriptor)
         descriptor.getId() >> id
         descriptor.getName() >> name
         descriptor.getDisplayName() >> displayName
@@ -310,8 +310,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         descriptor
     }
 
-    private InternalBuildOperationStartedProgressEvent buildStartEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor) {
-        InternalBuildOperationStartedProgressEvent event = Mock(InternalBuildOperationStartedProgressEvent)
+    private InternalOperationStartedProgressEvent buildStartEvent(long eventTime, String displayName, InternalOperationDescriptor descriptor) {
+        InternalOperationStartedProgressEvent event = Mock(InternalOperationStartedProgressEvent)
         event.getEventTime() >> eventTime
         event.getDisplayName() >> displayName
         event.getDescriptor() >> descriptor
@@ -319,8 +319,8 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         event
     }
 
-    private InternalBuildOperationFinishedProgressEvent buildFinishEvent(long eventTime, String displayName, InternalBuildDescriptor descriptor, InternalBuildOperationResult result = null) {
-        InternalBuildOperationFinishedProgressEvent event = Mock(InternalBuildOperationFinishedProgressEvent)
+    private InternalOperationFinishedProgressEvent buildFinishEvent(long eventTime, String displayName, InternalOperationDescriptor descriptor, InternalOperationResult result = null) {
+        InternalOperationFinishedProgressEvent event = Mock(InternalOperationFinishedProgressEvent)
         event.getEventTime() >> eventTime
         event.getDisplayName() >> displayName
         event.getDescriptor() >> descriptor
@@ -329,16 +329,16 @@ class BuildProgressListenerAdapterForBuildOperationsTest extends Specification {
         event
     }
 
-    private InternalBuildSuccessResult buildSuccess(long startTime, long endTime) {
-        InternalBuildSuccessResult result = Mock(InternalBuildSuccessResult)
+    private InternalSuccessResult buildSuccess(long startTime, long endTime) {
+        InternalSuccessResult result = Mock(InternalSuccessResult)
         result.startTime >> startTime
         result.endTime >> endTime
 
         result
     }
 
-    private InternalBuildFailureResult buildFailure(long startTime, long endTime, InternalFailure failure) {
-        InternalBuildFailureResult result = Mock(InternalBuildFailureResult)
+    private InternalFailureResult buildFailure(long startTime, long endTime, InternalFailure failure) {
+        InternalFailureResult result = Mock(InternalFailureResult)
         result.startTime >> startTime
         result.endTime >> endTime
         result.failures >> [failure]

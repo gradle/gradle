@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.model.internal.registry
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.5
- */
-public interface InternalBuildOperationFinishedProgressEvent extends InternalBuildProgressEvent {
-    /**
-     * Returns the result of running the build operation.
-     *
-     * @return The build operation result
-     */
-    InternalBuildOperationResult getResult();
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface HasDependencies {
 }

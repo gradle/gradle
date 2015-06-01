@@ -24,10 +24,10 @@ import org.gradle.model.internal.core.MutableModelNode;
 
 import java.util.List;
 
-class ManagedSetInitializer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
+class ModelSetInitializer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
     private final ModelAction<T> modelAction;
 
-    public ManagedSetInitializer(ModelAction<T> modelAction) {
+    public ModelSetInitializer(ModelAction<T> modelAction) {
         this.modelAction = modelAction;
     }
 

@@ -16,25 +16,24 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.ProgressListener
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.AutoCleanup
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
-
+@Requires(TestPrecondition.JDK7_OR_LATER)
+@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
     @AutoCleanup("shutdown")
     ExecutorService executorService = Executors.newCachedThreadPool()
@@ -44,7 +43,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     Future<?> buildExecutionFuture
     ExecutionResult result
     ExecutionFailure failure
-    ProgressListener progressListener
     int buildTimeout = 10
 
     def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
@@ -56,6 +54,14 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     def cleanup() {
         cancelTask?.run()
+        if (buildExecutionFuture) {
+            try {
+                // wait for finish and throw exceptions that happened during execution
+                buildExecutionFuture.get(buildTimeout, TimeUnit.SECONDS)
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
     }
 
     def runContinuousBuild(String... tasks) {
@@ -64,13 +70,15 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         withConnection { ProjectConnection connection ->
             BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
             launcher.withCancellationToken(cancellationTokenSource.token())
-            if (progressListener) {
-                launcher.addProgressListener(progressListener, [OperationType.GENERIC, OperationType.TASK] as Set)
-            }
+            customizeLauncher(launcher)
             launcher.setStandardOutput(stdout)
             launcher.setStandardError(stderr)
             launcher.run()
         }
+    }
+
+    void customizeLauncher(BuildLauncher launcher) {
+
     }
 
     void runBuild(String... tasks) {

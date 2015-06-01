@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection;
+package org.gradle.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -33,7 +33,7 @@ import java.util.Set;
  * @param <T> the type of model object
  */
 @Incubating
-public interface ManagedSet<T> extends Set<T> {
+public interface ModelSet<T> extends Set<T> {
 
     /**
      * Declares a new set element, configured by the given action.

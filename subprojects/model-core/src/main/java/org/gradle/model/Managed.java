@@ -43,8 +43,8 @@ import java.lang.annotation.Target;
  * String getName();
  * </pre>
  * <p>
- * A getter and setter must be declared for each property that is not of a managed type or of {@link org.gradle.model.collection.ManagedSet}.
- * For properties of managed types or of {@link org.gradle.model.collection.ManagedSet} the getter is mandatory and the setter is optional.
+ * A getter and setter must be declared for each property that is not of a managed type or of {@link ModelSet}.
+ * For properties of managed types or of {@link ModelSet} the getter is mandatory and the setter is optional.
  * If no setter is provided the property is considered inherent and defaults to an "empty" instance of the type.
  *
  * <h4>Supported property types</h4>
@@ -59,16 +59,25 @@ import java.lang.annotation.Target;
  * <li>{@link Double}</li>
  * <li>{@link java.math.BigInteger}</li>
  * <li>{@link java.math.BigDecimal}</li>
+ * <li>{@link java.io.File}</li>
  * </ul>
  * <p>
  * All {@link Enum} types are also allowed.
  * <p>
  * Properties that are themselves of a managed type are also supported.
  * <p>
- * Currently, the only collection type that is supported is {@link org.gradle.model.collection.ManagedSet}.
+ * Currently, the only collection types that are supported are {@link ModelSet} and {@link ModelMap}.
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.
+ *
+ * <h3>Named types</h3>
+ * <p>
+ * Managed types may implement/extend the {@link org.gradle.api.Named} interface.
+ * Any managed type implementing this interface will have its {@code name} attribute populated automatically
+ * based on the name of the corresponding node in the model graph.
+ * <p>
+ * The {@link ModelMap} type requires that its elements are {@link org.gradle.api.Named}.
  *
  * <h3>Inheritance</h3>
  * <p>

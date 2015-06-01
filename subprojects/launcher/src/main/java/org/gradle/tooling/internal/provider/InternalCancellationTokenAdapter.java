@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
-public class InternalCancellationTokenAdapter implements BuildCancellationToken {
+public class InternalCancellationTokenAdapter implements BuildCancellationToken, InternalCancellationToken {
     private final InternalCancellationToken cancellationToken;
 
     public InternalCancellationTokenAdapter(InternalCancellationToken cancellationToken) {

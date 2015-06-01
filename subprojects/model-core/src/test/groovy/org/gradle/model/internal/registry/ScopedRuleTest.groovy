@@ -23,7 +23,6 @@ import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
-import org.gradle.model.collection.internal.HasDependencies
 import org.gradle.model.internal.core.DependencyOnlyExtractedModelRule
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelRuleExecutionException
