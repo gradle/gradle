@@ -18,7 +18,9 @@ package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ModelReportFormatIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.api.reporting.model.ModelReportOutput.parse
+
+class ModelReportFormatIntegrationTest extends AbstractIntegrationSpec  {
 
     def "displays a report in the correct format"() {
         given:
@@ -57,7 +59,7 @@ model {
         run "model"
 
         then:
-        def modelReportOutput = new ModelReportOutput(output)
+        def modelReportOutput = new ModelReportOutput(parse(output))
         modelReportOutput.hasTitle("Root project")
 
         and:

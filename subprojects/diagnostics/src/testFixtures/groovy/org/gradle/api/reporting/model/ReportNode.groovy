@@ -15,34 +15,52 @@
  */
 
 package org.gradle.api.reporting.model
-
-class ReportNode {
-    String name
-    String type
-    String value
+/**
+ *
+ * Represents a node of a hierarchical report
+ * Extends from groovy's {@code groovy.util.Node} and hence GPath expressions can be used to search and identify report nodes and values.
+ *
+ * See http://www.groovy-lang.org/processing-xml.html#_gpath
+ *
+ * E.g:
+ * <pre>
+ *      modelReport.reportNode.'**'.primaryCredentials.username.@nodeValue[0] == 'uname'
+ *      modelReport.reportNode.'**'.primaryCredentials.username.@type[0] == 'java.lang.String'
+ * </pre>
+ *
+ */
+class ReportNode extends Node {
     Integer depth
-    ReportNode parent
-    List<ReportNode> nodes = []
 
-    ReportNode findFirstByName(String aName) {
-        if (this.name == aName) {
-            return this
-        } else {
-            for (ReportNode reportNode : nodes) {
-                def name = reportNode.findFirstByName(aName)
-                if (name) {
-                    return name
-                }
-            }
-            return null
-        }
+    ReportNode(name) {
+        super(null, name)
     }
 
-    @Override
-    public String toString() {
-        return "ReportNode{" +
-            "depth=" + depth +
-            ", name='" + name + '\'' +
-            '}';
+    ReportNode(ReportNode parent, name) {
+        super(parent, name)
+    }
+
+    ReportNode(name, Map attributes) {
+        super(null, name, attributes)
+    }
+
+    ReportNode(ReportNode parent, name, Map attributes) {
+        super(parent, name, attributes)
+    }
+
+    ReportNode findFirstByName(String aName) {
+        return this.depthFirst().find { ReportNode node -> node.name() == aName }
+    }
+
+    String getType() {
+        return attribute('type')
+    }
+
+    String getNodeValue() {
+        return attribute('nodeValue')
+    }
+
+    Integer getDepth() {
+        return depth
     }
 }

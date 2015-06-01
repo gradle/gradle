@@ -16,28 +16,31 @@
 
 package org.gradle.api.reporting.model
 
-class ModelReportBuilder extends BuilderSupport {
-    def nodes = []
+class ModelReportNodeBuilder extends BuilderSupport {
+    private ReportNode rootNode
 
     @Override
     protected void setParent(Object parent, Object child) {
-        parent.nodes << child
+        parent.append(child)
     }
 
     @Override
     protected Object createNode(Object name) {
-        return name == 'root' ? this : new ReportNode(name: name)
+        def node = new ReportNode(name)
+        if (name == 'root') {
+            this.rootNode = node
+        }
+        return node
     }
 
     @Override
     protected Object createNode(Object name, Object value) {
-        return new ReportNode(name: name)
+        return new ReportNode(name)
     }
 
     @Override
     protected Object createNode(Object name, Map attributes) {
-        def node = new ReportNode(attributes)
-        node.name = name
+        def node = new ReportNode(name, attributes)
         return node
     }
 
@@ -46,12 +49,12 @@ class ModelReportBuilder extends BuilderSupport {
         return null
     }
 
-    public ReportNode getRootNode() {
-        return nodes[0]
+    public ReportNode get() {
+        return rootNode.children()?.find()
     }
 
-    static ModelReportBuilder fromDsl(Closure<?> closure) {
-        def report = new ModelReportBuilder()
+    static ModelReportNodeBuilder fromDsl(Closure<?> closure) {
+        def report = new ModelReportNodeBuilder()
         report.root(closure)
         return report
     }

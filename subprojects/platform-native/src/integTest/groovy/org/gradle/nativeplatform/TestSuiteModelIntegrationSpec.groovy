@@ -20,6 +20,8 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
+import static org.gradle.api.reporting.model.ModelReportOutput.parse
+
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -104,7 +106,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             testSuites {
                 main {
                     binaries()
@@ -166,25 +168,25 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             testSuites {
                 foo {
                     binaries()
                     sources {
-                        bar(value: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                        bar(nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
                     }
                 }
                 main {
                     binaries()
                     sources {
-                        main(value: "DefaultCustomLanguageSourceSet 'main:main'")
-                        test(value: "DefaultCustomLanguageSourceSet 'main:test'")
+                        main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
+                        test(nodeValue: "DefaultCustomLanguageSourceSet 'main:test'")
                     }
                 }
                 secondary {
                     binaries()
                     sources {
-                        test(value: "DefaultCustomLanguageSourceSet 'secondary:test'")
+                        test(nodeValue: "DefaultCustomLanguageSourceSet 'secondary:test'")
 
                     }
                 }
@@ -286,15 +288,15 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             testSuites {
                 main {
                     binaries {
                         first {
-                            tasks(value: "[]")
+                            tasks(nodeValue: "[]")
                         }
                         second {
-                            tasks(value: "[]")
+                            tasks(nodeValue: "[]")
                         }
 
                     }

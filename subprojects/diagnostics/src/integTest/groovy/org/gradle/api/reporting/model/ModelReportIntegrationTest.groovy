@@ -18,6 +18,8 @@ package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.api.reporting.model.ModelReportOutput.parse
+
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
@@ -28,10 +30,11 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure({
+        def modelReportOutput = new ModelReportOutput(parse(output))
+        modelReportOutput.hasNodeStructure({
             model() {
                 tasks {
-                    components(value: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
+                    components(nodeValue: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
                     dependencies()
                     dependencyInsight()
                     help()
@@ -83,7 +86,7 @@ model {
         run "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure({
+        new ModelReportOutput(parse(output)).hasNodeStructure({
             model {
                 nullCredentials {
                     password()
@@ -91,22 +94,22 @@ model {
                 }
 
                 numbers {
-                    value(value: 5)
+                    value(nodeValue: 5)
                 }
                 primaryCredentials {
-                    password(value: 'hunter2')
-                    username(value: 'uname')
+                    password(nodeValue: 'hunter2')
+                    username(nodeValue: 'uname')
                 }
                 tasks {
-                    components(value: "task ':components'")
-                    dependencies(value: "task ':dependencies'")
-                    dependencyInsight(value: "task ':dependencyInsight'")
-                    help(value: "task ':help'")
-                    init(value: "task ':init'")
-                    model(value: "task ':model'")
-                    projects(value: "task ':projects'")
-                    properties(value: "task ':properties'")
-                    tasks(value: "task ':tasks'")
+                    components(nodeValue: "task ':components'")
+                    dependencies(nodeValue: "task ':dependencies'")
+                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
+                    help(nodeValue: "task ':help'")
+                    init(nodeValue: "task ':init'")
+                    model(nodeValue: "task ':model'")
+                    projects(nodeValue: "task ':projects'")
+                    properties(nodeValue: "task ':properties'")
+                    tasks(nodeValue: "task ':tasks'")
                     wrapper()
                 }
             }

@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
+import static org.gradle.api.reporting.model.ModelReportOutput.parse
+
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
 
@@ -230,11 +232,11 @@ model {
         succeeds "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries()
-                    sources(value: "source set 'main'")
+                    sources(nodeValue: "source set 'main'")
                 }
             }
         }
@@ -292,12 +294,12 @@ model {
         succeeds "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 foo {
                     binaries()
                     sources {
-                        bar(value: "DefaultCustomLanguageSourceSet 'foo:bar'")
+                        bar(nodeValue: "DefaultCustomLanguageSourceSet 'foo:bar'")
                     }
                 }
                 main {
@@ -405,15 +407,15 @@ model {
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries()
-                    sources(value: "source set 'main'")
+                    sources(nodeValue: "source set 'main'")
                 }
                 someCustomComponent {
                     binaries()
-                    sources(value: "source set 'someCustomComponent'")
+                    sources(nodeValue: "source set 'someCustomComponent'")
                 }
             }
         }
@@ -441,7 +443,7 @@ model {
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -505,7 +507,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -531,7 +533,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             someCustomComponent {
                 binaries()
                 sources()
@@ -561,7 +563,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -572,7 +574,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 }
                 test {
                     binaries()
-                    sources(value: "source set 'test'")
+                    sources(nodeValue: "source set 'test'")
                 }
             }
         }
@@ -627,12 +629,12 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             main {
                 binaries()
                 sources {
-                    bar(value: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    main(value: "DefaultCustomLanguageSourceSet 'main:main'")
+                    bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
+                    main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
                 }
             }
         }
@@ -744,7 +746,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         then:
-        new ModelReportOutput(output).hasNodeStructure {
+        new ModelReportOutput(parse(output)).hasNodeStructure {
             components {
                 main {
                     binaries {
@@ -755,7 +757,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                             tasks()
                         }
                     }
-                    sources(value: "source set 'main'")
+                    sources(nodeValue: "source set 'main'")
                 }
                 test {
                     binaries {
@@ -766,7 +768,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                             tasks()
                         }
                     }
-                    sources(value: "source set 'test'")
+                    sources(nodeValue: "source set 'test'")
                 }
             }
         }
