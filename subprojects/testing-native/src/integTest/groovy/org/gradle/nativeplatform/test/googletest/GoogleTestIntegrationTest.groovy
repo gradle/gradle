@@ -252,6 +252,7 @@ model {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variant/cpp"
+                        lib sources.cpp
                     }
                 }
             }
