@@ -19,9 +19,22 @@ package org.gradle.deployment.internal;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
 
+/**
+ * A registry of deployment handles.
+ */
 @ThreadSafe
 public interface DeploymentRegistry extends Stoppable {
-    void register(DeploymentHandle handle);
+    /**
+     * Registers a given deployment handle in the registry.
+     *
+     * @return true if the given handle was registered; false if it was considered a duplicate (already registered)
+     */
+    boolean register(DeploymentHandle handle);
 
+    /**
+     * Retrieves a deployment handle from the registry with the given id and type.
+     *
+     * @return the registered deployment handle; null if no deployment is registered with the given id
+     */
     <T extends DeploymentHandle> T get(Class<T> handleType, String id);
 }

@@ -46,13 +46,20 @@ class DefaultDeploymentRegistryTest extends Specification {
 
     def "can register a deployment handle twice" () {
         DeploymentHandle handle = mockDeployment("test")
-        registry.register(handle)
+        boolean newRegistration
 
         when:
-        registry.register(handle)
+        newRegistration = registry.register(handle)
+
+        then:
+        assert newRegistration
+
+        when:
+        newRegistration = registry.register(handle)
 
         then:
         noExceptionThrown()
+        assert !newRegistration
 
         and:
         registry.get(DeploymentHandle.class, "test") == handle

@@ -34,11 +34,14 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     }
 
     @Override
-    public void register(DeploymentHandle handle) {
+    public boolean register(DeploymentHandle handle) {
         lock.lock();
         try {
             if (!handles.containsKey(handle.getId())) {
                 handles.put(handle.getId(), handle);
+                return true;
+            } else {
+                return false;
             }
         } finally {
             lock.unlock();
