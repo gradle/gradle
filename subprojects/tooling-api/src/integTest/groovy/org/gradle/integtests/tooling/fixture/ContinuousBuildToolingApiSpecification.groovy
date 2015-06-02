@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
@@ -23,57 +26,93 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.AutoCleanup
+import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-
+@Timeout(180)
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
-    @AutoCleanup("shutdown")
-    ExecutorService executorService = Executors.newCachedThreadPool()
-    ByteArrayOutputStream stderr
-    ByteArrayOutputStream stdout
-    Runnable cancelTask
-    Future<?> buildExecutionFuture
+
+    public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
+
+    TestOutputStream stderr = new TestOutputStream()
+    TestOutputStream stdout = new TestOutputStream()
+
     ExecutionResult result
     ExecutionFailure failure
-    int buildTimeout = 10
 
+    int buildTimeout = 10
     def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
 
-    TestFile setupJavaProject() {
-        buildFile.text = "apply plugin: 'java'"
-        projectDir.createDir('src/main/java')
+    TestResultHandler buildResult
+    TestFile sourceDir
+
+    ProjectConnection projectConnection
+
+    void setup() {
+        buildFile.text = "apply plugin: 'java'\n"
+        sourceDir = file("src/main/java")
     }
 
-    def cleanup() {
-        cancelTask?.run()
-        if (buildExecutionFuture) {
+    @Override
+    <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        super.withConnection {
+            projectConnection = it
             try {
-                // wait for finish and throw exceptions that happened during execution
-                buildExecutionFuture.get(buildTimeout, TimeUnit.SECONDS)
-            } catch (InterruptedException e) {
-                // ignore
+                it.with(cl)
+            } finally {
+                projectConnection = null
             }
         }
     }
 
-    def runContinuousBuild(String... tasks) {
-        stderr = new ByteArrayOutputStream(512)
-        stdout = new ByteArrayOutputStream(512)
-        withConnection { ProjectConnection connection ->
-            BuildLauncher launcher = connection.newBuild().withArguments("--continuous").forTasks(tasks)
-            launcher.withCancellationToken(cancellationTokenSource.token())
-            customizeLauncher(launcher)
-            launcher.setStandardOutput(stdout)
-            launcher.setStandardError(stderr)
-            launcher.run()
+    public <T> T runBuild(List<String> tasks = ["build"], Closure<T> underBuild) {
+        if (projectConnection) {
+            cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+            buildResult = new TestResultHandler()
+            try {
+                // this is here to ensure that the lastModified() timestamps actually change in between builds.
+                // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
+                def initScript = file("init.gradle")
+                initScript.text = """
+                    def startAt = System.currentTimeMillis()
+                    gradle.buildFinished {
+                        def sinceStart = System.currentTimeMillis() - startAt
+                        if (sinceStart < 2000) {
+                          sleep 2000 - sinceStart
+                        }
+                    }
+                """
+
+                BuildLauncher launcher = projectConnection.newBuild()
+                    .withArguments("--continuous", "-I", initScript.absolutePath)
+                    .forTasks(tasks as String[])
+                    .withCancellationToken(cancellationTokenSource.token())
+
+                if (toolingApi.isEmbedded()) {
+                    launcher
+                        .setStandardOutput(stdout)
+                        .setStandardError(stderr)
+                } else {
+                    launcher
+                        .setStandardOutput(new TeeOutputStream(stdout, System.out))
+                        .setStandardError(new TeeOutputStream(stderr, System.err))
+                }
+
+                customizeLauncher(launcher)
+
+                launcher.run(buildResult)
+                T t = underBuild.call()
+                cancellationTokenSource.cancel()
+                buildResult.finished(buildTimeout)
+                t
+            } finally {
+                cancellationTokenSource.cancel()
+            }
+        } else {
+            withConnection { runBuild(tasks, underBuild) }
         }
     }
 
@@ -81,15 +120,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     }
 
-    void runBuild(String... tasks) {
-        cancelTask = cancellationTokenSource.&cancel
-        buildExecutionFuture = executorService.submit {
-            runContinuousBuild(tasks)
-        }
-    }
-
-    ExecutionResult succeeds(String... tasks) {
-        executeBuild(tasks)
+    ExecutionResult succeeds() {
+        waitForBuild()
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("build was expected to succeed but failed")
         }
@@ -97,8 +129,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         result
     }
 
-    ExecutionFailure fails(String... tasks) {
-        executeBuild(tasks)
+    ExecutionFailure fails() {
+        waitForBuild()
         if (!(result instanceof ExecutionFailure)) {
             throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
         }
@@ -106,21 +138,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         failure
     }
 
-    private void executeBuild(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (buildExecutionFuture.isDone()) {
-            throw new UnexpectedBuildFailure("Tooling API build connection has exited")
-        }
-        if (buildExecutionFuture == null) {
-            throw new UnexpectedBuildFailure("Tooling API build connection never started")
-        }
-        waitForBuild()
-    }
-
     private void waitForBuild() {
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...")
+            assert stdout.toString().contains(WAITING_MESSAGE)
         }
 
         def out = stdout.toString()
@@ -154,5 +174,10 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
             assert it in executedTasks
             assert !skippedTasks.contains(it)
         }
+    }
+
+    boolean cancel() {
+        cancellationTokenSource.cancel()
+        true
     }
 }

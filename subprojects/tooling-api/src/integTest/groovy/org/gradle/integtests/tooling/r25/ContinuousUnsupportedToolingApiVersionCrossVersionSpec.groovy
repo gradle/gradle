@@ -31,10 +31,8 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
 
     @Timeout(30)
     def "client receives appropriate error if continuous build attempted on unsupported platform"() {
-        given:
-        buildFile.text = "apply plugin: 'java'"
-
         when:
+        buildFile.text = "apply plugin: 'java'"
         withConnection {
             newBuild()
                 .withArguments("--continuous")
