@@ -19,6 +19,7 @@ package org.gradle.play.integtest.continuous
 import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
+import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
@@ -26,7 +27,10 @@ import org.gradle.test.fixtures.file.TestFile
 
 class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     PlayApp playApp = new PlayMultiProject()
+    PlayApp childApp = new BasicPlayApp()
+    TestFile childDirectory = testDirectory.file('child')
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
+    RunningPlayApp runningChildApp = new RunningPlayApp(childDirectory)
     TestFile playRunBuildFile = file("primary/build.gradle")
 
     def "can run multiproject play app with continuous build" () {
@@ -42,5 +46,66 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinu
         cleanup: "stopping gradle"
         stopGradle()
         appIsStopped()
+    }
+
+    def "can run play app with two projects in multiproject continuous build" () {
+        childApp.writeSources(childDirectory)
+        childDirectory.file('build.gradle') << """
+            model {
+                tasks.runPlayBinary {
+                    httpPort = ${runningChildApp.selectPort()}
+                }
+            }
+        """
+        file('settings.gradle') << """
+            include ':child'
+        """
+
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        executedAndNotSkipped(":primary:runPlayBinary", ":child:runPlayBinary")
+
+        and:
+        appIsRunningAndDeployed()
+
+        and:
+        childAppIsRunningAndDeployed()
+
+        when:
+        file('primary/conf/routes') << "# some change"
+
+        then:
+        succeeds()
+
+        when:
+        childDirectory.file('conf/routes') << "# some change"
+
+        then:
+        succeeds()
+
+        when:
+        stdinPipe.write(4) // ctrl-d
+
+        then:
+        cancelsAndExits()
+
+        and:
+        appIsStopped()
+
+        and:
+        childAppIsStopped()
+    }
+
+    def childAppIsRunningAndDeployed() {
+        runningChildApp.verifyStarted()
+        runningChildApp.verifyContent()
+        true
+    }
+
+    def childAppIsStopped() {
+        runningChildApp.verifyStopped()
+        true
     }
 }

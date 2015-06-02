@@ -230,7 +230,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
                     final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, chosenPlatform);
                     DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
-                    deploymentRegistry.register(new PlayApplicationDeploymentHandle(chosenPlatform.getName(), playApplicationRunnerTool));
+                    String deploymentId = getDeploymentId(projectIdentifier, chosenPlatform.getName());
+                    if (playApplicationRunnerTool.isAvailable()) {
+                        deploymentRegistry.register(new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
+                    }
                 }
             });
         }
@@ -422,14 +425,16 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations) {
+        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier) {
             final DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
+                final String deploymentId = getDeploymentId(projectIdentifier, binary.getTargetPlatform().getName());
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setDeploymentHandle(deploymentRegistry.get(PlayApplicationDeploymentHandle.class, binary.getTargetPlatform().getName()));
+                        playRun.setDeploymentRegistry(deploymentRegistry);
+                        playRun.setDeploymentId(deploymentId);
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());
@@ -441,6 +446,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
             return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
+        }
+
+        private String getDeploymentId(ProjectIdentifier projectIdentifier, String platformName) {
+            return projectIdentifier.getPath().concat(":").concat(platformName);
         }
     }
 }

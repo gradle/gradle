@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
@@ -56,7 +58,9 @@ public class PlayRun extends ConventionTask {
 
     private BaseForkOptions forkOptions;
 
-    private PlayApplicationDeploymentHandle deploymentHandle;
+    private DeploymentRegistry deploymentRegistry;
+
+    private String deploymentId;
 
     /**
      * fork options for the running a play application.
@@ -70,6 +74,11 @@ public class PlayRun extends ConventionTask {
 
     @TaskAction
     public void run() {
+        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+        if (deploymentHandle == null) {
+            throw new GradleException("There are no deployment handles registered with id '".concat(deploymentId).concat("'"));
+        }
+
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Start Play server", "Starting Play");
@@ -128,7 +137,11 @@ public class PlayRun extends ConventionTask {
         this.runtimeClasspath = runtimeClasspath;
     }
 
-    public void setDeploymentHandle(PlayApplicationDeploymentHandle deploymentHandle) {
-        this.deploymentHandle = deploymentHandle;
+    public void setDeploymentRegistry(DeploymentRegistry deploymentRegistry) {
+        this.deploymentRegistry = deploymentRegistry;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
     }
 }

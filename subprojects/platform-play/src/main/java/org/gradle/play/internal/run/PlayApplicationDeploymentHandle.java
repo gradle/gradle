@@ -19,20 +19,19 @@ package org.gradle.play.internal.run;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
-import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     private final String id;
-    private final ResolvedTool<PlayApplicationRunner> runnerTool;
+    private final PlayApplicationRunner runner;
     private final AtomicBoolean stopped = new AtomicBoolean(true);
     private PlayApplicationRunnerToken runnerToken;
     private static Logger logger = Logging.getLogger(PlayApplicationDeploymentHandle.class);
 
-    public PlayApplicationDeploymentHandle(String id, ResolvedTool<PlayApplicationRunner> runnerTool) {
+    public PlayApplicationDeploymentHandle(String id, PlayApplicationRunner runner) {
         this.id = id;
-        this.runnerTool = runnerTool;
+        this.runner = runner;
     }
 
     @Override
@@ -57,7 +56,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     public void start(PlayRunSpec spec) {
         if (stopped.get()) {
             logger.info("Starting Play deployment handle for " + id);
-            runnerToken = runnerTool.get().start(spec);
+            runnerToken = runner.start(spec);
             stopped.set(false);
         }
     }

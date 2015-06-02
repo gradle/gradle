@@ -16,14 +16,12 @@
 
 package org.gradle.play.internal.run
 
-import org.gradle.platform.base.internal.toolchain.ResolvedTool
 import spock.lang.Specification
 
 
 class PlayApplicationDeploymentHandleTest extends Specification {
-    def ResolvedTool runnerTool = Mock(ResolvedTool)
     def PlayApplicationRunner runner = Mock(PlayApplicationRunner)
-    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", runnerTool)
+    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", runner)
 
     def "starting deployment handle starts runner" () {
         PlayRunSpec spec = Mock(PlayRunSpec)
@@ -32,7 +30,6 @@ class PlayApplicationDeploymentHandleTest extends Specification {
         deploymentHandle.start(spec)
 
         then:
-        1 * runnerTool.get() >> runner
         1 * runner.start({ it == spec })
     }
 
@@ -45,7 +42,6 @@ class PlayApplicationDeploymentHandleTest extends Specification {
         deploymentHandle.stop()
 
         then:
-        1 * runnerTool.get() >> runner
         1 * runner.start(_) >> token
         1 * token.stop()
     }
