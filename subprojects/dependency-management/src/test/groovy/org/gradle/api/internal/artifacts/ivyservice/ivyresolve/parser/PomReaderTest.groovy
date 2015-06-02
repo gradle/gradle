@@ -854,7 +854,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("GRADLE-3299")
-    def "can define groupId with reference to parent.GroupId"() {
+    def "can define GAV with reference to parent.GAV"() {
         when:
         pomFile << """
 <project>

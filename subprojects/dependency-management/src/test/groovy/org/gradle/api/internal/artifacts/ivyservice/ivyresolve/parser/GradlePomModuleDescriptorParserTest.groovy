@@ -2249,7 +2249,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
     }
 
     @Issue("GRADLE-3299")
-    def "correctly resolve references to parent.artifactId"() {
+    def "correctly resolve references to parent GAV properties"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -2294,7 +2294,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         descriptor.dependencies.length == 1
         def depGroupOne = descriptor.dependencies[0]
         depGroupOne.dependencyRevisionId == moduleId('group-one', 'artifact-one-xxx', 'version-one')
-        depGroupOne.moduleConfigurations == ['compile', 'runtime']
+        depGroupOne.moduleConfigurations as List == ['compile', 'runtime']
         hasDefaultDependencyArtifact(depGroupOne)
     }
 }
