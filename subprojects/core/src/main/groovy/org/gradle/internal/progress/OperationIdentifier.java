@@ -37,4 +37,29 @@ public class OperationIdentifier {
     public String toString() {
         return id + ":" + parentId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        OperationIdentifier that = (OperationIdentifier) o;
+
+        if (getId() != that.getId()) {
+            return false;
+        }
+        return !(getParentId() != null ? !getParentId().equals(that.getParentId()) : that.getParentId() != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (getId() ^ (getId() >>> 32));
+        result = 31 * result + (getParentId() != null ? getParentId().hashCode() : 0);
+        return result;
+    }
 }

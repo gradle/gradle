@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest{
+class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest {
 
     @Override
     boolean isCanBuildForMultiplePlatforms() {

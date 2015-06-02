@@ -31,7 +31,7 @@ public class OperationsHierarchyKeeper {
         if (h == null) {
             h = new LinkedList<Long>();
             if (parentHint != null) {
-                h.add(parentHint.currentOperationId());
+                h.add(parentHint.currentOperationId().getId());
             }
             hierarchy.set(h);
         }
