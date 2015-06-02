@@ -273,6 +273,9 @@ task integTest(type: Test) {
         systemProperties['org.gradle.integtest.debug'] = 'true'
         testLogging.showStandardStreams = true
     }
+    if (project.hasProperty('org.gradle.integtest.verbose')) {
+        testLogging.showStandardStreams = true        
+    }
 }
 check.dependsOn(integTest)
 
