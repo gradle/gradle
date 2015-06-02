@@ -32,9 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -412,11 +410,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 public void execute(ResolvedProjectConfiguration projectResult) {
                     ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
                     Configuration targetConfig = project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                    taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(targetConfig.getAllDependencies()));
-                    taskDependency.add(targetConfig.getAllArtifacts());
+                    taskDependency.add(DirectBuildDependencies.forDependenciesAndArtifacts(targetConfig));
                 }
             });
-            taskDependency.add(new SelfResolvingDependenciesWithoutProjectDependencies(allDependencies));
+            taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
             return taskDependency;
         } else {
             return allDependencies.getBuildDependencies();
@@ -616,22 +613,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         if (type != MutationType.STRATEGY) {
             dependenciesModified = true;
-        }
-    }
-
-    private static class SelfResolvingDependenciesWithoutProjectDependencies extends AbstractTaskDependency {
-        private final DependencySet dependencies;
-
-        private SelfResolvingDependenciesWithoutProjectDependencies(DependencySet dependencies) {
-            this.dependencies = dependencies;
-        }
-
-        public void resolve(TaskDependencyResolveContext context) {
-            for (SelfResolvingDependency dependency : dependencies.withType(SelfResolvingDependency.class)) {
-                if (!(dependency instanceof ProjectDependency)) {
-                    context.add(dependency);
-                }
-            }
         }
     }
 
