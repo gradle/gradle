@@ -18,6 +18,7 @@ package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.session.BuildSession;
 
@@ -52,7 +53,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
         lock.lock();
         try {
-            return handleType.cast(handles.get(id));
+            return Cast.cast(handleType, handles.get(id));
         } finally {
             lock.unlock();
         }
