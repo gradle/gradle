@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -143,6 +144,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private final ArtifactDependencyResolver dependencyResolver;
         private final GlobalDependencyResolutionRules globalDependencyResolutionRules;
         private final RepositoryHandler repositories;
+        private final Set<File> dependencies = new LinkedHashSet<File>();
+
+        private TaskDependency taskDependency;
 
         private DependencyResolvingClasspath(
             Project project,
@@ -164,32 +168,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public Set<File> getFiles() {
-            final Set<File> classpath = new LinkedHashSet<File>();
+            Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
-            DefaultJavaSourceSetResolveContext resolveContext = createResolveContext();
-            final List<Throwable> notFound = new LinkedList<Throwable>();
-            resolve(resolveContext, new Action<ResolverResults>() {
-                @Override
-                public void execute(ResolverResults resolverResults) {
-                    ResolvedArtifactResults resolve = resolverResults.getArtifactsBuilder().resolve();
-                    for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                        classpath.add(resolvedArtifact.getFile());
-                    }
-                    resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                        @Override
-                        public void execute(DependencyResult dependencyResult) {
-                            if (dependencyResult instanceof UnresolvedDependencyResult) {
-                                UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
-                                notFound.add(unresolved.getFailure());
-                            }
-                        }
-                    });
-                }
-            });
-            if (!notFound.isEmpty()) {
-                // todo: should this be done in getBuildDependencies instead?
-                throw new LibraryResolveException("Could not resolve all dependencies for source set '" + sourceSet.getDisplayName() + "'", notFound);
-            }
+            classpath.addAll(dependencies);
             return classpath;
         }
 
@@ -199,20 +180,41 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public TaskDependency getBuildDependencies() {
-            final DefaultTaskDependency result = new DefaultTaskDependency();
-            result.add(super.getBuildDependencies());
-            resolve(createResolveContext(), new Action<ResolverResults>() {
-                @Override
-                public void execute(ResolverResults resolverResults) {
-                    ResolvedArtifactResults resolve = resolverResults.getArtifactsBuilder().resolve();
-                    for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                        if (resolvedArtifact instanceof Buildable) {
-                            result.add(((Buildable) resolvedArtifact).getBuildDependencies());
+            if (taskDependency==null) {
+                final DefaultTaskDependency result = new DefaultTaskDependency();
+                result.add(super.getBuildDependencies());
+                final List<Throwable> notFound = new LinkedList<Throwable>();
+                resolve(createResolveContext(), new Action<ResolverResults>() {
+                    @Override
+                    public void execute(ResolverResults resolverResults) {
+                        ResolvedArtifactsBuilder artifactsBuilder = resolverResults.getArtifactsBuilder();
+                        ResolvedArtifactResults resolve = artifactsBuilder.resolve();
+                        for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                            if (resolvedArtifact instanceof Buildable) {
+                                result.add(((Buildable) resolvedArtifact).getBuildDependencies());
+                            }
                         }
+                        for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                            dependencies.add(resolvedArtifact.getFile());
+                        }
+                        resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
+                            @Override
+                            public void execute(DependencyResult dependencyResult) {
+                                if (dependencyResult instanceof UnresolvedDependencyResult) {
+                                    UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
+                                    notFound.add(unresolved.getFailure());
+                                }
+                            }
+                        });
                     }
+                });
+                if (!notFound.isEmpty()) {
+                    throw new LibraryResolveException(String.format("Could not resolve all dependencies for source set '%s'", sourceSet.getDisplayName()), notFound);
                 }
-            });
-            return result;
+                taskDependency = result;
+            }
+
+            return taskDependency;
         }
 
         private List<ResolutionAwareRepository> getResolutionAwareRepositories() {
