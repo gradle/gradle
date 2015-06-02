@@ -36,6 +36,8 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         );
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
+        // should create a dummy configuration for the "default" library too in order to resolution to work
+        metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, ""), "Configuration for " + libraryName, Collections.<String>emptySet(), Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, "")), true, true);
         metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName), "Configuration for " + libraryName, Collections.<String>emptySet(), Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName)), true, true);
         return metaData;
     }

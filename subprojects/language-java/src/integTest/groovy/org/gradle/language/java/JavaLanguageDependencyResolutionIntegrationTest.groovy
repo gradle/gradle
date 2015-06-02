@@ -447,7 +447,7 @@ model {
         expect:
         fails 'assemble'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
         and: "displays that the project doesn't exist"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'.*"))
@@ -488,7 +488,7 @@ plugins {
         expect:
         fails 'assemble'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
         and: "displays that the project doesn't exist"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
@@ -524,7 +524,7 @@ model {
         expect:
         fails 'assemble'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep library <default>'")
+        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
         and:
         failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
@@ -578,6 +578,82 @@ model {
                 java {
                     dependencies {
                         project ':c' library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('c/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec)
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+        file('b/src/main/java/Dep.java') << 'public class Dep { void someMethod(Deeper deeper) {} }'
+        file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
+
+        expect:
+        succeeds 'assemble'
+
+    }
+
+    def "classpath for sourceset excludes transitive sourceset jar if no explicit library name is used"() {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':b'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        create('checkClasspath') {
+            doLast {
+                def cp = compileMainJarMainJava.classpath.files
+                assert cp.contains(project(':b').createMainJar.archivePath)
+                assert !cp.contains(project(':c').createMainJar.archivePath)
+            }
+        }
+        assemble.finalizedBy('checkClasspath')
+    }
+
+}
+'''
+        file('settings.gradle') << 'include "b","c"'
+        file('b/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':c'
                     }
                 }
             }
