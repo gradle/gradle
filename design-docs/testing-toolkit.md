@@ -14,7 +14,7 @@ The test-kit will be agnostic of the test framework preferred by the user (e.g. 
 ## Technical details
 
 * Except for the Spock test adapter all code will be developed in Java.
-* The test-kit and all test adapters are implemented in the same repository as Gradle core. It would be handy to organize the components of the test-kit as subprojects under `test-kit`.
+* The test-kit and all test adapters are implemented in the same repository as Gradle core. The test-kit classes are shipped with Gradle core distribution and can be imported as needed.
 * The artifacts for test-kit and test adapters are published to a central repository (likely our own repository). Publishing Gradle core should trigger publishing the test-kit/test adapters.
 * The build of the project will depends on the latest Gradle version. The version will need to updated manually in the beginning. We could also think of an automated solution here that uses the latest
 nightly.
@@ -26,12 +26,9 @@ with a specific Gradle version e.g. Gradle 2.4 with the test-kit version 2.4.
 
 ### User visible changes
 
-A user will need to declare the dependency on the test-kit in the build script. The test-kit does not have an opinion about the used test framework. It's up to the user to choose a test framework
-and declare its dependency.
+The test-kit does not have an opinion about the used test framework. It's up to the user to choose a test framework and declare its dependency.
 
     dependencies {
-        testCompile 'org.gradle.testkit:testkit:2.4'
-
         // Declare the preferred test framework
         testCompile '...'
     }
@@ -42,13 +39,10 @@ As a user, you write your functional test by using the following interfaces:
 
     public interface GradleRunner {
         File getWorkingDir();
-        void setWorkingDir(File directory);
-
+        void setWorkingDir(File workingDirectory);
         List<String> getArguments();
         void setArguments(List<String> string);
-
         void useTasks(List<String> taskNames);
-
         BuildResult succeeds();
         BuildResult fails();
     }
@@ -57,7 +51,7 @@ As a user, you write your functional test by using the following interfaces:
         String getStandardOutput();
         String getStandardError();
         List<String> getExecutedTasks();
-        Set<String> getSkippedTasks();
+        List<String> getSkippedTasks();
     }
 
     public class GradleRunnerFactory {
@@ -69,9 +63,10 @@ A functional test using Spock could look as such:
     class UserFunctionalTest extends Specification {
         def "run build"() {
             given:
-            def dir = new File("/tmp/gradle-build")
+            File testProjectDir = new File("${System.getProperty('user.home')}/tmp/gradle-build")
+            File buildFile = new File(testProjectDir, 'build.gradle')
 
-            new File(dir, "build.gradle").text << """
+            buildFile << """
                 task helloWorld {
                     doLast {
                         println 'Hello world!'
@@ -81,7 +76,7 @@ A functional test using Spock could look as such:
 
             when:
             def result = GradleRunnerFactory.create().with {
-                workingDir = dir
+                workingDir = testProjectDir
                 arguments << "helloWorld"
                 succeed()
             }
@@ -93,17 +88,32 @@ A functional test using Spock could look as such:
 
 ### Implementation
 
+* A new module named `test-kit-functional` will be created in Gradle core.
 * The implementation will be backed by the Tooling API.
 * The Gradle version/distribution selected will be what is selected by the Tooling APIs default behaviour (i.e. at this point, this is not specifyable).
 * No environmental control will be allowed (e.g. setting env vars or sys props).
 
 ### Test coverage
 
-* A build can be run successfully.
-* A failed build can be run successfully, that is a build that ultimate fails (through either an unexpected Gradle error or a legitimate failure such as a test failure) can be run without an exception
-being thrown by the runner (later stories add more options on how to respond to build failures).
-* When a build fails unexpectedly, good diagnostic messages are produced.
-* When a build succeeds unexpectedly, good diagnostic messages are produced.
+* Execute a build that is expected to succeed.
+    * No exception is thrown from `GradleRunner`.
+    * The task(s) requested to be executed is listed can be retrieved from `GradleRunner`.
+    * Standard output retrieved from `GradleRunner` contains `println` or log message.
+* Execute a build that is expected to succeed but fails.
+    * A `UnexpectedBuildFailure` is thrown.
+* Execute a build that is expected to fail.
+    * No exception is thrown from `GradleRunner`.
+    * The task(s) requested to be executed is listed can be retrieved from `GradleRunner`.
+    * Standard error retrieved from `GradleRunner` contains error message.
+* Execute a build that is expected to fail but succeeds.
+    * A `UnexpectedBuildSuccess` is thrown.
+* A build can be executed with more than one task.
+* A build can be provided with command line arguments. Upon execution the provided options come into effect.
+* A build that has `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
+* Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
+    * A plugin class under test can be referenced and tested in build script.
+    * A custom task class under test can be referenced and tested in build script.
+    * Arbitrary classes under test can be referenced and tested in build script.
 * Tooling API mechanical failures produce good diagnostic messages.
 
 ### Open issues
@@ -112,6 +122,7 @@ being thrown by the runner (later stories add more options on how to respond to 
 * The daemon is known to still have issues. What should happen if one of the daemon crashes or misbehaves?
 * If the artifacts are published to a binary repository hosted by Gradle, users will have to declare the repository. Are we OK with that as the initial approach?
 * Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. In a later story the work required could be simplified by introducing helper methods.
+* Should we allow for executing a build with a different Gradle version and/or distribution at this point? This is important for organizations that create their own distribution.
 
 ## Story 2: JUnit test adapter
 
@@ -119,10 +130,9 @@ being thrown by the runner (later stories add more options on how to respond to 
 
 ### User visible changes
 
-A user will need to declare the dependency on the test adapter and JUnit in the build script.
+A user will need to declare the dependency on JUnit in the build script.
 
     dependencies {
-        testCompile 'org.gradle.testkit:testkit-junit-adapter:2.4'
         testCompile 'junit:junit:4.8.2'
     }
 
@@ -150,6 +160,7 @@ As a user, you write your functional test by extending the base class.
 
 ### Implementation
 
+* A new module named `test-kit-junit` will be created in Gradle core.
 * Temporary directories for test execution per test case will be creates by using the JUnit Rule [TemporaryFolder](http://junit.org/apidocs/org/junit/rules/TemporaryFolder.html).
 * The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with JUnit.
 * The metadata of the published library declares a dependency on the test-kit, the JUnit test adapter but not the test framework.
@@ -220,17 +231,36 @@ The base class implementation could look similar the following code snippet:
 
 * Potentially expose test fixtures as Gradle plugins so resources can be set up/clean automatically for each test case.
 
-## Story 3: Spock test adapter
+## Story 3: Fine-tuning test execution behavior
+
+The first two stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
+
+### User visible changes
+
+none
+
+### Implementation
+
+* After all tests of a project are executed, temporary test files are automatically cleaned up.
+* Daemon instances run isolated from other tests and the user's `~/.gradle` directory.
+* Setting appropriate default daemon JVM arguments for test execution.
+
+### Test coverage
+
+### Open issues
+
+none
+
+## Story 4: Spock test adapter
 
 Using the Spock framework for testing is a common scenario in modern software projects. This test adapter will provide a library for using the test-kit with Spock tests. The test adapter will
 depend on the JUnit test adapter so it can share certain JUnit-specific classes like a test directory provider.
 
 ### User visible changes
 
-A user will need to declare the dependency on the test adapter and JUnit.
+A user will need to declare the dependency on the Spock framework.
 
     dependencies {
-        testCompile 'org.gradle.testkit:testkit-spock-adapter:2.4'
         testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     }
 
@@ -253,6 +283,7 @@ As a user, you write your functional test by extending the base class.
 
 ### Implementation
 
+* A new module named `test-kit-spock` will be created in Gradle core.
 * The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with Spock.
 * The metadata of the published library declares a dependency on the test-kit but not the test framework.
 
@@ -317,7 +348,7 @@ The implementation of the Spock test adapter could look similar to this base cla
 
 * As an alternative to a Spock adapter, it would be better to have some Groovy bean that can be mixed into a Spock spec.
 
-## Story 4: User creates and executes an integration test using the test-kit
+## Story 5: User creates and executes an integration test using the test-kit
 
 A set of interfaces/builders will be developed to provide programmatic creation of a dummy `Project` instance.
 
@@ -366,6 +397,7 @@ A integration test using Spock could look as such:
 
 ### Implementation
 
+* A new module named `test-kit-integration` will be created in Gradle core.
 * The actual implementation of the dummy project creation is hidden from the user. As a start we can reuse the `ProjectBuilder`. Later this implementation can be swapped out.
 * Provide base classes for all test adapters.
 * The Tooling API is not involved.
@@ -382,18 +414,12 @@ A integration test using Spock could look as such:
 * A user should be allowed to evaluate a project to trigger lifecycle events. Calling `Project.evaluate()` works but is an internal API.
 * Where do we draw the line between dummy project and real project instance?
 
-## Story 5: User can create repositories and populate dependencies
+## Story 6: User can create repositories and populate dependencies
 
 A set of interfaces will be developed to provide programmatic creation of a repositories and published dependencies. A benefit of this approach is that a test setup doesn't need to reach out to the
 internet for interacting with the dependency management mechanics. Furthermore, the user can create artifacts and metadata for test scenarios modeling the specific use case.
 
 ### User visible changes
-
-A user will need to declare the dependency on the test fixtures:
-
-    dependencies {
-        testCompile 'org.gradle.testkit:test-fixtures:2.4'
-    }
 
 As a user, you interact with the following interfaces to create repositories and dependencies:
 
@@ -480,6 +506,7 @@ The use of the test fixture in an integration test could look as such:
 
 ### Implementation
 
+* A new module named `test-kit-fixtures` will be created in Gradle core.
 * The support for test fixtures becomes its own project in the multi-project build hierarchy of the test-kit.
 * The artifact for test fixtures will be published separately from the test-kit and test adapters.
 * Default implementations for `IvyRepository`, `MavenRepository`, `IvyModule` and `MavenModule` will be file-based.
@@ -495,4 +522,14 @@ The use of the test fixture in an integration test could look as such:
 
 ### Open issues
 
--
+none
+
+## Story 7: Integration with plugin development plugin
+
+### User visible changes
+
+### Implementation
+
+### Test coverage
+
+### Open issues
