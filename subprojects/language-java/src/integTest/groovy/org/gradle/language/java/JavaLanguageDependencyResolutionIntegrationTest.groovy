@@ -681,4 +681,39 @@ model {
         succeeds 'assemble'
 
     }
+
+    def "should fail resolution if more than one binary is available"() {
+        setup:
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        zdep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+        }
+
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'zdep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/zdep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        expect:
+        fails 'assemble'
+        failure.assertHasCause("Multiple binaries available for library 'zdep'")
+    }
 }

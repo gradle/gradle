@@ -140,10 +140,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-                DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
                 ResolvedProjectConfigurationResultBuilder projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder(buildProjectDependencies);
 
                 // Resolve the dependency graph
+                DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
                 builder.resolve(resolveContext, newModelBuilder, oldModelBuilder, artifactsBuilder, projectModelBuilder);
                 results.resolved(newModelBuilder.complete(), projectModelBuilder.complete());
 

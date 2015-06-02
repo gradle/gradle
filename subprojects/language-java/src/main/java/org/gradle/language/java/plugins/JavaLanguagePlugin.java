@@ -187,15 +187,17 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 resolve(createResolveContext(), new Action<ResolverResults>() {
                     @Override
                     public void execute(ResolverResults resolverResults) {
-                        ResolvedArtifactsBuilder artifactsBuilder = resolverResults.getArtifactsBuilder();
-                        ResolvedArtifactResults resolve = artifactsBuilder.resolve();
-                        for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                            if (resolvedArtifact instanceof Buildable) {
-                                result.add(((Buildable) resolvedArtifact).getBuildDependencies());
+                        if (!resolverResults.hasError()) {
+                            ResolvedArtifactsBuilder artifactsBuilder = resolverResults.getArtifactsBuilder();
+                            ResolvedArtifactResults resolve = artifactsBuilder.resolve();
+                            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                                if (resolvedArtifact instanceof Buildable) {
+                                    result.add(((Buildable) resolvedArtifact).getBuildDependencies());
+                                }
                             }
-                        }
-                        for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                            dependencies.add(resolvedArtifact.getFile());
+                            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
+                                dependencies.add(resolvedArtifact.getFile());
+                            }
                         }
                         resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
                             @Override
@@ -232,6 +234,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
             ResolverResults results = new ResolverResults();
             dependencyResolver.resolve(resolveContext, getResolutionAwareRepositories(), globalDependencyResolutionRules, results);
+            //dependencyResolver.resolveArtifacts(resolveContext, getResolutionAwareRepositories(), globalDependencyResolutionRules, results);
             onResolve.execute(results);
         }
     }

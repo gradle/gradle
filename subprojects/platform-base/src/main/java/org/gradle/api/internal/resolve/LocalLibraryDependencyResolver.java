@@ -182,29 +182,33 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private void doConvertArtifact(BuildableArtifactSetResolveResult result, LibraryComponentIdentifier componentId) {
+    private void doConvertArtifact(final BuildableArtifactSetResolveResult result, LibraryComponentIdentifier componentId) {
         final LibraryComponentIdentifier libId = componentId;
         String projectPath = libId.getProjectPath();
-        String libraryName = libId.getLibraryName();
+        final String libraryName = libId.getLibraryName();
         ProjectInternal project = projectFinder.getProject(projectPath);
         if (project!=null) {
-            final List<ComponentArtifactMetaData> artifacts = new LinkedList<ComponentArtifactMetaData>();
             withLibrary(project, libraryName, null, new Action<LibrarySpec>() {
                 @Override
                 public void execute(LibrarySpec librarySpec) {
+                    List<ComponentArtifactMetaData> artifacts = new LinkedList<ComponentArtifactMetaData>();
                     Collection<BinarySpec> binaries = librarySpec.getBinaries().values();
-                    for (BinarySpec binary : binaries) {
-                        BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(binary);
-                        if (factory!=null) {
-                            artifacts.add(factory.convertArtifact(libId, binary));
+                    if (binaries.size()>1) {
+                        result.failed(new ArtifactResolveException(String.format("Multiple binaries available for library '%s' : %s", libraryName, binaries)));
+                    } else {
+                        for (BinarySpec binary : binaries) {
+                            BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(binary);
+                            if (factory != null) {
+                                artifacts.add(factory.convertArtifact(libId, binary));
+                            }
                         }
+                        result.resolved(artifacts);
                     }
                 }
             });
-            result.resolved(artifacts);
         }
         if (!result.hasResult()) {
-            result.failed(new ArtifactResolveException("Unable to resolve artifact for "+componentId));
+            result.failed(new ArtifactResolveException("Unable to resolve artifact for " + componentId));
         }
     }
 
