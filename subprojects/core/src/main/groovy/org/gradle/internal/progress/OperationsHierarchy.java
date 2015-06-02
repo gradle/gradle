@@ -49,10 +49,9 @@ public class OperationsHierarchy {
     }
 
     public OperationIdentifier completeCurrentOperation() {
-        assertOperationStarted();
         assertHierarchyNotEmpty();
+        OperationIdentifier currentOp = currentOperationId();
         Long last = hierarchy.getLast();
-        OperationIdentifier currentOp = id;
         if (currentOp.getId() == last) {
             //typical scenario
             hierarchy.removeLast();
