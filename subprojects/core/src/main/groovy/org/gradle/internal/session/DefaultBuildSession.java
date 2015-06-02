@@ -16,12 +16,29 @@
 
 package org.gradle.internal.session;
 
+import com.google.common.collect.Lists;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
-public class DefaultBuildSession extends CompositeStoppable implements BuildSession {
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class DefaultBuildSession implements BuildSession {
+    ReentrantLock lock = new ReentrantLock();
+    List<Stoppable> stoppables = Lists.newArrayList();
+
     @Override
     public void add(Stoppable stoppable) {
-        super.add(stoppable);
+        lock.lock();
+        try {
+            stoppables.add(stoppable);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void stop() {
+        new CompositeStoppable().add(stoppables).stop();
     }
 }

@@ -26,26 +26,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
-    private final BuildSession buildSession;
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
-    private final AtomicBoolean stopped = new AtomicBoolean();
 
     public DefaultDeploymentRegistry(BuildSession buildSession) {
-        this.buildSession = buildSession;
+        buildSession.add(this);
     }
 
     @Override
     public void register(DeploymentHandle handle) {
         lock.lock();
         try {
-            if (!stopped.get()) {
-                if (!handles.containsKey(handle.getId())) {
-                    handles.put(handle.getId(), handle);
-                }
-                buildSession.add(handles.get(handle.getId()));
-            } else {
-                throw new IllegalStateException("Cannot register a new DeploymentHandle after the registry has been stopped.");
+            if (!handles.containsKey(handle.getId())) {
+                handles.put(handle.getId(), handle);
             }
         } finally {
             lock.unlock();
@@ -68,7 +61,6 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         try {
             new CompositeStoppable().add(handles.values()).stop();
             handles.clear();
-            stopped.set(true);
         } finally {
             lock.unlock();
         }

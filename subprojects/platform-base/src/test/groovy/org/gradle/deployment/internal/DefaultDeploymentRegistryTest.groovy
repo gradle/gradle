@@ -34,14 +34,14 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.get(DeploymentHandle.class, "test") == handle
     }
 
-    def "registering a deployment handle adds it to the build session" () {
-        DeploymentHandle handle = mockDeployment("test")
+    def "a new deployment registry is added to the build session" () {
+        def newRegistry
 
         when:
-        registry.register(handle)
+        newRegistry = new DefaultDeploymentRegistry(buildSession)
 
         then:
-        1 * buildSession.add(handle)
+        1 * buildSession.add({ it == newRegistry })
     }
 
     def "can register a deployment handle twice" () {
@@ -73,18 +73,6 @@ class DefaultDeploymentRegistryTest extends Specification {
         1 * handle1.stop()
         1 * handle2.stop()
         1 * handle3.stop()
-    }
-
-    def "reasonable error when registering a deployment handle after registry is stopped" () {
-        DeploymentHandle handle = mockDeployment("test")
-        registry.stop()
-
-        when:
-        registry.register(handle)
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Cannot register a new DeploymentHandle after the registry has been stopped."
     }
 
     def mockDeployment(String id) {
