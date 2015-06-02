@@ -62,15 +62,13 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinu
         """
 
         when:
-        succeeds("runPlayBinary")
+        succeeds(":primary:runPlayBinary", ":child:runPlayBinary")
 
         then:
         executedAndNotSkipped(":primary:runPlayBinary", ":child:runPlayBinary")
 
         and:
         appIsRunningAndDeployed()
-
-        and:
         childAppIsRunningAndDeployed()
 
         when:
@@ -93,8 +91,6 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinu
 
         and:
         appIsStopped()
-
-        and:
         childAppIsStopped()
     }
 
