@@ -41,7 +41,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         newRegistry = new DefaultDeploymentRegistry(buildSession)
 
         then:
-        1 * buildSession.add({ it == newRegistry })
+        1 * buildSession.add(_)
     }
 
     def "can register a deployment handle twice" () {

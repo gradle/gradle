@@ -21,7 +21,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.session.BuildSession;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
