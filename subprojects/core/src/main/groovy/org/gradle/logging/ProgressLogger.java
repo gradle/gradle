@@ -16,6 +16,8 @@
 
 package org.gradle.logging;
 
+import org.gradle.internal.progress.OperationIdentifier;
+
 /**
  * Used to log the progress of a potentially long running operation.
  *
@@ -124,5 +126,5 @@ public interface ProgressLogger {
      */
     void completed(String status);
 
-    long currentOperationId();
+    OperationIdentifier currentOperationId();
 }

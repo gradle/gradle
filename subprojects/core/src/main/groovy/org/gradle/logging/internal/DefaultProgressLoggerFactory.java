@@ -117,7 +117,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertNotCompleted();
             state = State.started;
             OperationIdentifier id = hierarchy.start();
-            listener.started(new ProgressStartEvent(id.getId(), id.getParentId(), timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            listener.started(new ProgressStartEvent(id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
@@ -138,7 +138,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                     timeProvider.getCurrentTime(), category, description, toStatus(status)));
         }
 
-        public long currentOperationId() {
+        public OperationIdentifier currentOperationId() {
             return hierarchy.currentOperationId();
         }
 

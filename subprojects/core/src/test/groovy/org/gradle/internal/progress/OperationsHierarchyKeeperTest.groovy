@@ -50,8 +50,8 @@ class OperationsHierarchyKeeperTest extends ConcurrentSpecification {
     }
 
     def "may feed the parent logger"() {
-        def parent1 = Stub(ProgressLogger) { currentOperationId() >> 1 }
-        def parent2 = Mock(ProgressLogger) { currentOperationId() >> 2 }
+        def parent1 = Stub(ProgressLogger) { currentOperationId() >> new OperationIdentifier(1, 1) }
+        def parent2 = Mock(ProgressLogger) { currentOperationId() >> new OperationIdentifier(2, 1) }
 
         when:
         def h1 = manager.currentHierarchy(parent1)

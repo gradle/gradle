@@ -68,7 +68,7 @@ class OperationsHierarchyTest extends Specification {
 
         then:
         hierarchy.currentOperationId() //can be called many times
-        id1.id == hierarchy.currentOperationId()
+        id1 == hierarchy.currentOperationId()
         id1.id == 3
     }
 
@@ -78,8 +78,9 @@ class OperationsHierarchyTest extends Specification {
         when: hierarchy.start()
 
         then:
-        hierarchy.currentOperationId() == 13
-        hierarchy.completeCurrentOperation() == 13
+        def currentId = hierarchy.currentOperationId()
+        currentId.id == 13
+        hierarchy.completeCurrentOperation() == currentId
 
         when: hierarchy.currentOperationId()
 
@@ -97,7 +98,7 @@ class OperationsHierarchyTest extends Specification {
         then:
         id1.id == 13
         id1.parentId == 2
-        removed == 13
+        removed.id == 13
         id2.id == 14
         id2.parentId == 2
     }
@@ -108,13 +109,14 @@ class OperationsHierarchyTest extends Specification {
 
         when: hierarchy.start()
 
-        then: hierarchy.currentOperationId() == 13
+        then: hierarchy.currentOperationId().id == 13
 
         when: ids << 100L //some child operation is added
 
         then:
-        hierarchy.currentOperationId() == 13 //current id is the same
-        hierarchy.completeCurrentOperation() == 13
+        def currentId = hierarchy.currentOperationId()
+        currentId.id == 13 //current id is the same
+        hierarchy.completeCurrentOperation() == currentId
 
         when:
         def id = hierarchy.start()
