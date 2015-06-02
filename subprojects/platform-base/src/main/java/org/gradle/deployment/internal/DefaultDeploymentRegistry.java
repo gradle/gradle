@@ -17,6 +17,7 @@
 package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.session.BuildSession;
 
@@ -44,7 +45,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         }
     }
 
-    @Override
+    @Override @Nullable
     public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
         lock.lock();
         try {
@@ -58,7 +59,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public void stop() {
         lock.lock();
         try {
-            new CompositeStoppable().add(handles.values()).stop();
+            CompositeStoppable.stoppable(handles.values()).stop();
             handles.clear();
         } finally {
             lock.unlock();
