@@ -23,7 +23,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -32,7 +34,7 @@ import spock.lang.AutoCleanup
 import java.util.concurrent.*
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecification {
 
@@ -110,7 +112,6 @@ gradle.taskGraph.whenReady {
 
         then:
         def e = thrown(ExecutionException)
-        e.cause instanceof BuildCancelledException
     }
 
     def "client can cancel during execution of a continuous build - just before the last task execution has started"() {
@@ -157,7 +158,11 @@ gradle.taskGraph.beforeTask { Task task ->
 
         then:
         def e = thrown(ExecutionException)
-        e.cause instanceof BuildCancelledException
+        if (toolingApiVersion.equals(GradleVersion.version("2.1"))) {
+            assert e.cause instanceof GradleConnectionException
+        } else {
+            assert e.cause instanceof BuildCancelledException
+        }
     }
 
     def "logging does not include message to use ctrl-d to exit"() {
