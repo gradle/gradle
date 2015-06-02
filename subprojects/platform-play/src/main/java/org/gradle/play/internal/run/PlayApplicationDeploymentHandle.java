@@ -58,6 +58,8 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
             logger.info("Starting Play deployment handle for " + id);
             runnerToken = runner.start(spec);
             stopped.set(false);
+        } else {
+            runnerToken.rebuildSuccess(spec.getClasspath());
         }
     }
 }

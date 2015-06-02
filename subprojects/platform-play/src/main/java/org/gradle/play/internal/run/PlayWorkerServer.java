@@ -22,6 +22,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 
@@ -79,5 +80,10 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     public void stop() {
         stop.countDown();
+    }
+
+    @Override
+    public void rebuildSuccess(Iterable<File> classpath) {
+        spec.reloadWithClasspath(classpath);
     }
 }

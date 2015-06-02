@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
+import groovy.transform.NotYetImplemented
 import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -69,6 +70,52 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
         cleanup: "stopping gradle"
         stopGradle()
         appIsStopped()
+    }
+
+    @NotYetImplemented
+    def "can modify play app while app is running in continuous build"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addHelloWorld()
+
+        then:
+        succeeds()
+        runningApp.playUrl('hello').text == 'Hello world'
+
+        cleanup: "stopping gradle"
+        stopGradle()
+        appIsStopped()
+    }
+
+    def "can modify play app before it has been started"() {
+        when:
+        addHelloWorld()
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+        runningApp.playUrl('hello').text == 'Hello world'
+
+        cleanup: "stopping gradle"
+        stopGradle()
+        appIsStopped()
+    }
+
+    private void addHelloWorld() {
+        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+        file("app/controllers/Application.scala").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+  def hello = Action {
+    Ok("Hello world")
+  }
+}
+''')
+        }
     }
 
     def "build failure prior to launch does not prevent launch on subsequent build" () {

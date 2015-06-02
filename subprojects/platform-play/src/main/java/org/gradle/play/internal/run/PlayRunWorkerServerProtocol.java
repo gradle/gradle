@@ -18,5 +18,8 @@ package org.gradle.play.internal.run;
 
 import org.gradle.internal.concurrent.Stoppable;
 
+import java.io.File;
+
 public interface PlayRunWorkerServerProtocol extends Stoppable {
+    void rebuildSuccess(Iterable<File> classpath);
 }

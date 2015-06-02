@@ -16,6 +16,8 @@
 
 package org.gradle.play.internal.run;
 
+import java.io.File;
+
 public class PlayApplicationRunnerToken {
 
     private final PlayWorkerClient clientCallBack;
@@ -29,5 +31,9 @@ public class PlayApplicationRunnerToken {
     public PlayAppLifecycleUpdate stop() {
         workerServer.stop();
         return clientCallBack.waitForStop();
+    }
+
+    public void rebuildSuccess(Iterable<File> classpath) {
+        workerServer.rebuildSuccess(classpath);
     }
 }
