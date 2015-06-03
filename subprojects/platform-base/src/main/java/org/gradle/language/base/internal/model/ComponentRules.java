@@ -30,7 +30,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 /**
- * Cross-cutting rules for all {@link org.gradle.platform.base.ComponentSpec}.
+ * Cross-cutting rules for all {@link org.gradle.platform.base.ComponentSpec} instances.
  */
 @SuppressWarnings("UnusedDeclaration")
 public class ComponentRules extends RuleSource {
@@ -40,6 +40,19 @@ public class ComponentRules extends RuleSource {
             // TODO - allow view as internal type and remove the cast
             ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute((ComponentSpecInternal) component);
         }
+    }
+
+    @Defaults
+    void applyDefaultSourceConventions(final ComponentSpec component) {
+        component.getSource().afterEach(new Action<LanguageSourceSet>() {
+            @Override
+            public void execute(LanguageSourceSet languageSourceSet) {
+                // Only apply default locations when none explicitly configured
+                if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                    languageSourceSet.getSource().srcDir(String.format("src/%s/%s", component.getName(), languageSourceSet.getName()));
+                }
+            }
+        });
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource

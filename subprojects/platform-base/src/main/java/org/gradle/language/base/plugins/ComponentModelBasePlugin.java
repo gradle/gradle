@@ -135,24 +135,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Mutate
-        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
-                @Override
-                public void execute(final ComponentSpec componentSpec) {
-                    componentSpec.getSource().afterEach(new Action<LanguageSourceSet>() {
-                        @Override
-                        public void execute(LanguageSourceSet languageSourceSet) {
-                            // Only apply default locations when none explicitly configured
-                            if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                                languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
         // TODO:DAZ Work out why this is required
         @Mutate
         void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
