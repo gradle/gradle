@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import groovy.transform.NotYetImplemented
 import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -72,7 +71,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
         appIsStopped()
     }
 
-    @NotYetImplemented
     def "can modify play app while app is running in continuous build"() {
         when:
         succeeds("runPlayBinary")

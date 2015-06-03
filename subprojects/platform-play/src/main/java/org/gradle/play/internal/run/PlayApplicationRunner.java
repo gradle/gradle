@@ -52,8 +52,7 @@ public class PlayApplicationRunner {
     private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        builder.applicationClasspath(spec.getClasspath());
-        builder.sharedPackages("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
+        builder.sharedPackages("org.gradle.play.internal.run");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());

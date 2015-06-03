@@ -25,12 +25,16 @@ import java.io.Serializable;
 
 public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     private final Iterable<File> classpath;
+    private final File applicationJar;
+    private final File assetsJar;
     private final File projectPath;
     private BaseForkOptions forkOptions;
     private int httpPort;
 
-    public DefaultPlayRunSpec(FileCollection classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
+    public DefaultPlayRunSpec(FileCollection classpath, File applicationJar, File assetsJar, File projectPath, BaseForkOptions forkOptions, int httpPort) {
         this.classpath = Sets.newHashSet(classpath);
+        this.applicationJar = applicationJar;
+        this.assetsJar = assetsJar;
         this.projectPath = projectPath;
         this.forkOptions = forkOptions;
         this.httpPort = httpPort;
@@ -50,5 +54,13 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
 
     public int getHttpPort() {
         return httpPort;
+    }
+
+    public File getApplicationJar() {
+        return applicationJar;
+    }
+
+    public File getAssetsJar() {
+        return assetsJar;
     }
 }

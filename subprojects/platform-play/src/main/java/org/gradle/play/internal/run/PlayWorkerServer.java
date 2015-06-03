@@ -19,11 +19,12 @@ package org.gradle.play.internal.run;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
-import java.io.File;
 import java.io.Serializable;
+import java.net.URLClassLoader;
 import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
@@ -65,16 +66,22 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     private void run() {
+        final Thread thread = Thread.currentThread();
+        final ClassLoader previousContextClassLoader = thread.getContextClassLoader();
+        final ClassLoader classLoader = new URLClassLoader(new DefaultClassPath(runSpec.getClasspath()).getAsURLArray());
+        thread.setContextClassLoader(classLoader);
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            ClassLoader docsClassLoader = getClass().getClassLoader();
+            ClassLoader docsClassLoader = classLoader;
 
             Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
             ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
-            Object buildLink = spec.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getClasspath());
+
+            Object buildLink = spec.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getAssetsJar());
             runMethod.invoke(buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            thread.setContextClassLoader(previousContextClassLoader);
         }
     }
 
@@ -83,7 +90,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     @Override
-    public void rebuildSuccess(Iterable<File> classpath) {
-        spec.reloadWithClasspath(classpath);
+    public void rebuildSuccess() {
+        spec.forceReloadNextTime();
     }
 }

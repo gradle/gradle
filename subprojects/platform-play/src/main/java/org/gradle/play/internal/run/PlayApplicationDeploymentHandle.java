@@ -59,7 +59,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
             runnerToken = runner.start(spec);
             stopped.set(false);
         } else {
-            runnerToken.rebuildSuccess(spec.getClasspath());
+            runnerToken.rebuildSuccess();
         }
     }
 }

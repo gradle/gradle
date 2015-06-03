@@ -17,7 +17,6 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -43,8 +42,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
-    public Object getBuildLink(ClassLoader classLoader, final File projectPath, final Iterable<File> classpath) throws ClassNotFoundException {
-        reloadWithClasspath(classpath);
+    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final File assetsJar) throws ClassNotFoundException {
+        forceReloadNextTime();
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName().equals("projectPath")) {
@@ -53,9 +52,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     Object result = reloadObject.getAndSet(null);
                     if (result == null) {
                         return null;
-                    } else if (result instanceof DefaultClassPath) {
-                        DefaultClassPath projectClasspath = (DefaultClassPath) result;
-                        return new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}), Thread.currentThread().getContextClassLoader());
+                    } else if (result == Boolean.TRUE) {
+                        return new URLClassLoader(new URL[]{applicationJar.toURI().toURL(), assetsJar.toURI().toURL()}, classLoader);
                     } else {
                         throw new IllegalStateException();
                     }
@@ -69,8 +67,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     @Override
-    public void reloadWithClasspath(Iterable<File> classpath) {
-        reloadObject.set(new DefaultClassPath(classpath));
+    public void forceReloadNextTime() {
+        reloadObject.set(Boolean.TRUE);
     }
 
     public Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
