@@ -20,7 +20,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.util.GUtil;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -64,19 +63,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
         assert !operations.isEmpty();
         Operation operation = operations.remove(progressCompleteEvent.getOperationId());
-
-        // Didn't find an operation with that id in the map
-        if (operation == null) {
-            // Remove last operation and complete that
-            Iterator<Map.Entry<OperationIdentifier, Operation>> entryIterator = operations.entrySet().iterator();
-            Map.Entry<OperationIdentifier, Operation> lastEntry = entryIterator.next();
-            while (entryIterator.hasNext()) {
-                lastEntry = entryIterator.next();
-            }
-            entryIterator.remove();
-            operation = lastEntry.getValue();
-            // TODO: Do we actually run into this case anymore?
-        }
+        assert operation!=null;
         completeOperation(progressCompleteEvent, operation);
     }
 
