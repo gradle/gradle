@@ -216,6 +216,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
             if (type != null) {
                 return Optional.of(type.toString());
             }
+            modelView.close();
         }
         return Optional.absent();
     }
