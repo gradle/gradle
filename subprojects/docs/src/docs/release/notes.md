@@ -186,6 +186,13 @@ The types `org.gradle.model.collection.CollectionBuilder` and `org.gradle.model.
 As these types were incubating, they will be removed before Gradle 3.0.
 Please change your usage to the new `ModelMap` and `ModelSet` types.
 
+### Deprecations in Eclipse model
+As part of the changes in the IDE classpath generation, the following properties have been deprecated:
+
+- `EclipseClasspath#noExportConfigurations`
+- `ProjectDependency#declaredConfigurationName`
+- `AbstractLibrary#declaredConfigurationName`
+
 ## Potential breaking changes
 
 ### Changes to the new configuration and component model
