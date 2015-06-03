@@ -19,7 +19,6 @@ package org.gradle.language.java.plugins;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
@@ -114,7 +113,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
                     ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
                     ProjectInternal project = (ProjectInternal) task.getProject();
-                    RepositoryHandler repositories = project.getRepositories();
                     GlobalDependencyResolutionRules globalDependencyResolutionRules = project.getServices().get(GlobalDependencyResolutionRules.class);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
@@ -122,7 +120,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(project, javaSourceSet, dependencyResolver, repositories, globalDependencyResolutionRules));
+                    compile.setClasspath(new DependencyResolvingClasspath(project, javaSourceSet, dependencyResolver, globalDependencyResolutionRules));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -143,7 +141,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private final JavaSourceSet sourceSet;
         private final ArtifactDependencyResolver dependencyResolver;
         private final GlobalDependencyResolutionRules globalDependencyResolutionRules;
-        private final RepositoryHandler repositories;
         private final Set<File> dependencies = new LinkedHashSet<File>();
 
         private TaskDependency taskDependency;
@@ -152,12 +149,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             Project project,
             JavaSourceSet sourceSet,
             ArtifactDependencyResolver dependencyResolver,
-            RepositoryHandler repositories,
             GlobalDependencyResolutionRules globalDependencyResolutionRules) {
             this.project = project;
             this.sourceSet = sourceSet;
             this.dependencyResolver = dependencyResolver;
-            this.repositories = repositories;
             this.globalDependencyResolutionRules = globalDependencyResolutionRules;
         }
 
@@ -219,22 +214,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return taskDependency;
         }
 
-        private List<ResolutionAwareRepository> getResolutionAwareRepositories() {
-            /*ImmutableList<ArtifactRepository> artifactRepositories = ImmutableList.copyOf(repositories.iterator());
-            List<ResolutionAwareRepository> resolutionRepositories = new LinkedList<ResolutionAwareRepository>();
-            for (ArtifactRepository artifactRepository : artifactRepositories) {
-                if (artifactRepository instanceof ResolutionAwareRepository) {
-                    resolutionRepositories.add((ResolutionAwareRepository)artifactRepository);
-                }
-            }
-            return resolutionRepositories;*/
-            return Collections.emptyList();
-        }
-
         public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
             ResolverResults results = new ResolverResults();
-            dependencyResolver.resolve(resolveContext, getResolutionAwareRepositories(), globalDependencyResolutionRules, results);
-            //dependencyResolver.resolveArtifacts(resolveContext, getResolutionAwareRepositories(), globalDependencyResolutionRules, results);
+            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), globalDependencyResolutionRules, results);
             onResolve.execute(results);
         }
     }
