@@ -91,8 +91,14 @@ public interface ModelNode {
 
     /**
      * Gets the underlying type of this node.
-     *
+     * <p>
      * Calling this method may create or transition the node.
+     * <p>
+     * In practice, this describes the type that you would get if you asked for this node as Object, read only.
+     * This is used in the model report.
+     * In the future we may need a more sophisticated (e.g. multi-type aware, visibility aware) mechanism for advertising the type.
+     * <p>
+     * If an absent is returned, this node can not be viewed as an object.
      */
     Optional<String> getTypeDescription();
 }
