@@ -181,7 +181,6 @@ configure(project(":b")){
 
         then:
         def eclipseClasspath = classpath("a")
-        assert eclipseClasspath.projects.size() == 2
         assert eclipseClasspath.projects == ['/b', '/c']
     }
 
@@ -220,7 +219,6 @@ configure(project(":c")){
 """
 
         def eclipseClasspath = classpath("a")
-        assert eclipseClasspath.projects.size() == 2
         assert eclipseClasspath.projects == ['/b', '/c']
         eclipseClasspath.libs[0].assertHasJar(file("a/bar.jar"))
         eclipseClasspath.libs[1].assertHasJar(file("c/foo.jar"))
