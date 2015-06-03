@@ -19,13 +19,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.internal.resolve.DefaultLanguageSourceSetResolveContext;
 
 public class DefaultJavaSourceSetResolveContext extends DefaultLanguageSourceSetResolveContext {
 
-    public DefaultJavaSourceSetResolveContext(ProjectInternal project, DefaultJavaLanguageSourceSet sourceSet) {
-        super(project, sourceSet);
+    public DefaultJavaSourceSetResolveContext(String projectPath, DefaultJavaLanguageSourceSet sourceSet) {
+        super(projectPath, sourceSet);
     }
 
     @Override

@@ -69,7 +69,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 withLibrary(project, libraryName, candidateLibraries, new Action<LibrarySpec>() {
                     @Override
                     public void execute(LibrarySpec librarySpec) {
-                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, librarySpec.getName(), String.valueOf(project.getVersion()));
+                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, librarySpec.getName());
                         result.resolved(metaData.toResolveMetaData());
                     }
                 });

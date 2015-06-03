@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.java.internal
-
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.language.base.internal.resolve.LanguageSourceSetLocalComponentFactory
 import org.gradle.platform.base.DependencySpecContainer
@@ -29,7 +27,7 @@ import spock.lang.Unroll
 class DefaultJavaLocalComponentFactoryTest extends Specification {
     def "can convert java source set resolve context"() {
         given:
-        def context = new DefaultJavaSourceSetResolveContext(Mock(ProjectInternal), Mock(DefaultJavaLanguageSourceSet))
+        def context = new DefaultJavaSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
 
         when:
         def factory = new LanguageSourceSetLocalComponentFactory()
@@ -42,13 +40,11 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         given: "a java sourceset that doesn't define any dependency"
         def sourceSet = Mock(DefaultJavaLanguageSourceSet)
         def dependencySpecs = Mock(DependencySpecContainer)
-        def project = Mock(ProjectInternal)
+        def project = ':myPath'
 
         dependencySpecs.iterator() >> { [].iterator() }
         sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
-        project.path >> ':myPath'
-        project.version >> '1.0'
 
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
@@ -65,8 +61,8 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         component.id instanceof ModuleVersionIdentifier
         component.id.group == ':myPath'
         component.id.name == 'myLib'
-        component.id.version == '1.0'
-        component.id.toString() == ':myPath:myLib:1.0'
+        component.id.version == '<local component>'
+        component.id.toString() == ':myPath:myLib:<local component>'
 
         when: "we create resolution metadata"
         def metadata = component.toResolveMetaData()
@@ -86,13 +82,11 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         given: "a java sourceset that defines dependencies"
         def sourceSet = Mock(DefaultJavaLanguageSourceSet)
         def dependencySpecs = Mock(DependencySpecContainer)
-        def project = Mock(ProjectInternal)
+        def project = ':myPath'
 
         dependencySpecs.iterator() >> { dependencies.iterator() }
         sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
-        project.path >> ':myPath'
-        project.version >> '1.0'
 
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
@@ -109,8 +103,8 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         component.id instanceof ModuleVersionIdentifier
         component.id.group == ':myPath'
         component.id.name == 'myLib'
-        component.id.version == '1.0'
-        component.id.toString() == ':myPath:myLib:1.0'
+        component.id.version == '<local component>'
+        component.id.toString() == ':myPath:myLib:<local component>'
 
         when: "we create resolution metadata"
         def metadata = component.toResolveMetaData()
@@ -127,9 +121,9 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         metadata.dependencies.size() == dependencies.size()
         dependencies.eachWithIndex { spec, i ->
             def componentDep = metadata.dependencies[i]
-            assert componentDep.requested.group == spec.projectPath?:project.path
+            assert componentDep.requested.group == spec.projectPath?:project
             assert componentDep.requested.name == spec.libraryName
-            assert componentDep.requested.version == project.version
+            assert componentDep.requested.version == '<local component>'
         }
 
         where:

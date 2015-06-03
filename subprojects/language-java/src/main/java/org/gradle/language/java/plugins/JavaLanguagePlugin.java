@@ -119,7 +119,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(project, javaSourceSet, dependencyResolver));
+                    compile.setClasspath(new DependencyResolvingClasspath(project.getPath(), javaSourceSet, dependencyResolver));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -136,7 +136,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     }
 
     private static class DependencyResolvingClasspath extends AbstractFileCollection {
-        private final Project project;
+        private final String projectPath;
         private final JavaSourceSet sourceSet;
         private final ArtifactDependencyResolver dependencyResolver;
         private final Set<File> dependencies = new LinkedHashSet<File>();
@@ -144,10 +144,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private TaskDependency taskDependency;
 
         private DependencyResolvingClasspath(
-            Project project,
+            String projectPath,
             JavaSourceSet sourceSet,
             ArtifactDependencyResolver dependencyResolver) {
-            this.project = project;
+            this.projectPath = projectPath;
             this.sourceSet = sourceSet;
             this.dependencyResolver = dependencyResolver;
         }
@@ -166,7 +166,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
 
         private DefaultJavaSourceSetResolveContext createResolveContext() {
-            return new DefaultJavaSourceSetResolveContext((ProjectInternal) project, (DefaultJavaLanguageSourceSet) sourceSet);
+            return new DefaultJavaSourceSetResolveContext(projectPath, (DefaultJavaLanguageSourceSet) sourceSet);
         }
 
         @Override

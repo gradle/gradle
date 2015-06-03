@@ -15,23 +15,21 @@
  */
 
 package org.gradle.language.java.internal
-
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
-import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultJavaSourceSetResolveContextTest extends Specification {
     def "resolve context can be created from a java source set"() {
         given:
-        def project = Mock(ProjectInternal)
+        def project = ':foo'
         def sourceset = Mock(DefaultJavaLanguageSourceSet)
 
         when:
         def context = new DefaultJavaSourceSetResolveContext(project, sourceset)
 
         then:
-        context.project == project
+        context.projectPath == project
         context.dependencies.empty
         context.allDependencies.empty
     }
@@ -40,15 +38,14 @@ class DefaultJavaSourceSetResolveContextTest extends Specification {
     def "context name for project #path and library #library is #contextName"() {
         // keeping this test in case we need to change the context name again
         given:
-        def project = Mock(ProjectInternal)
         def sourceset = Mock(DefaultJavaLanguageSourceSet)
 
         when:
-        project.path >> path
         sourceset.parentName >> library
-        def context = new DefaultJavaSourceSetResolveContext(project, sourceset)
+        def context = new DefaultJavaSourceSetResolveContext(path, sourceset)
 
         then:
+        context.projectPath == path
         context.name == contextName
 
         where:

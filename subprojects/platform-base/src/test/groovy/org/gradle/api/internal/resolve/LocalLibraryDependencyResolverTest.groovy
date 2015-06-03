@@ -38,7 +38,6 @@ import spock.lang.Unroll
 class LocalLibraryDependencyResolverTest extends Specification {
 
     Map<String, Project> projects
-    String version
     ProjectFinder finder
     Project rootProject
     LocalLibraryDependencyResolver resolver
@@ -48,7 +47,6 @@ class LocalLibraryDependencyResolverTest extends Specification {
 
     def setup() {
         projects = [:]
-        version = '1.0'
         finder = Mock(ProjectFinder)
         finder.getProject(_) >> {
             String name = it[0]
@@ -67,7 +65,6 @@ class LocalLibraryDependencyResolverTest extends Specification {
     private ProjectInternal mockProject(String path) {
         def mock = Mock(ProjectInternal)
         mock.findProject(':') >> mock
-        mock.version >> version
         mock.path >> ':'
         mock.modelRegistry >> Mock(ModelRegistry)
         projects[path] = mock
@@ -79,7 +76,6 @@ class LocalLibraryDependencyResolverTest extends Specification {
         given:
         requested.group >> projectPath
         requested.name >> lib
-        requested.version >> version
         selector.projectPath >> projectPath
         selector.libraryName >> lib
         mockLibraries(rootProject, rootProjectComponents)
@@ -108,7 +104,6 @@ class LocalLibraryDependencyResolverTest extends Specification {
             } else {
                 assert md.id.name.length() > 0
             }
-            assert md.id.version == version
         }
 
         where:

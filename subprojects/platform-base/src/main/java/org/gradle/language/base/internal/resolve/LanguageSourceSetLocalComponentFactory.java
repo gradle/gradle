@@ -45,11 +45,10 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
     @Override
     public DefaultLibraryLocalComponentMetaData convert(Object source) {
         DefaultLanguageSourceSetResolveContext context = (DefaultLanguageSourceSetResolveContext) source;
-        String projectPath = context.getProject().getPath();
+        String projectPath = context.getProjectPath();
         BaseLanguageSourceSet sourceSet = context.getSourceSet();
         String libraryName = sourceSet.getParentName();
-        String version = context.getProject().getVersion().toString();
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, version);
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName);
         if (sourceSet instanceof DependentSourceSetInternal) {
             addDependencies(projectPath, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
         }

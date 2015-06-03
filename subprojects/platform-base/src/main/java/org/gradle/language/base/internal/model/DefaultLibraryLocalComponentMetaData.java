@@ -26,14 +26,15 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import java.util.Collections;
 
 public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentMetaData {
+    private final static String VERSION = "<local component>";
 
     private DefaultLibraryLocalComponentMetaData(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         super(id, componentIdentifier, Project.DEFAULT_STATUS);
     }
 
-    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName, String version) {
+    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName) {
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
-            projectPath, libraryName, version
+            projectPath, libraryName, VERSION
         );
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
