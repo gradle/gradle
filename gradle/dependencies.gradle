@@ -25,8 +25,8 @@ versions.groovy = "2.3.10"
 
 versions.bouncycastle = "1.51"
 
-libraries.ant = dependencies.module('org.apache.ant:ant:1.9.4') {
-    dependency 'org.apache.ant:ant-launcher:1.9.4@jar'
+libraries.ant = dependencies.module('org.apache.ant:ant:1.9.5') {
+    dependency 'org.apache.ant:ant-launcher:1.9.5@jar'
 }
 
 libraries.asm =  'org.ow2.asm:asm-all:5.0.3'
