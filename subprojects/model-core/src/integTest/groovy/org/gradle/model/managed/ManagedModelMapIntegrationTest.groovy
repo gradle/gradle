@@ -285,7 +285,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "printParent"
-        output.contains("""
+        outputContains("""
 parent
   :c1
     :gc1

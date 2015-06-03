@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
@@ -163,10 +162,5 @@ Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
     line 3
         """)
     }
-
-    private void outputContains(String text) {
-        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
-    }
-
 
 }

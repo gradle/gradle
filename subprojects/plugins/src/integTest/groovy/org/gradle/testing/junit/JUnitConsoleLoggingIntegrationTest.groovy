@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.TextUtil
 import org.junit.Rule
-import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 
@@ -114,8 +112,4 @@ xml entity: &amp;
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 
-
-    private void outputContains(String text) {
-        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
-    }
 }
