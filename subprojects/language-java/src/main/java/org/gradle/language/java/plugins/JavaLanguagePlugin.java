@@ -113,14 +113,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
                     ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
                     ProjectInternal project = (ProjectInternal) task.getProject();
-                    GlobalDependencyResolutionRules globalDependencyResolutionRules = project.getServices().get(GlobalDependencyResolutionRules.class);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(project, javaSourceSet, dependencyResolver, globalDependencyResolutionRules));
+                    compile.setClasspath(new DependencyResolvingClasspath(project, javaSourceSet, dependencyResolver));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -140,7 +139,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private final Project project;
         private final JavaSourceSet sourceSet;
         private final ArtifactDependencyResolver dependencyResolver;
-        private final GlobalDependencyResolutionRules globalDependencyResolutionRules;
         private final Set<File> dependencies = new LinkedHashSet<File>();
 
         private TaskDependency taskDependency;
@@ -148,12 +146,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private DependencyResolvingClasspath(
             Project project,
             JavaSourceSet sourceSet,
-            ArtifactDependencyResolver dependencyResolver,
-            GlobalDependencyResolutionRules globalDependencyResolutionRules) {
+            ArtifactDependencyResolver dependencyResolver) {
             this.project = project;
             this.sourceSet = sourceSet;
             this.dependencyResolver = dependencyResolver;
-            this.globalDependencyResolutionRules = globalDependencyResolutionRules;
         }
 
         @Override
@@ -216,7 +212,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
             ResolverResults results = new ResolverResults();
-            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), globalDependencyResolutionRules, results);
+            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), GlobalDependencyResolutionRules.NO_OP, results);
             onResolve.execute(results);
         }
     }
