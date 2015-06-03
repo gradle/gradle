@@ -337,18 +337,18 @@ allprojects {
 project(":a") {
     configurations { 'default' {} }
     dependencies { 'default' 'group:externalA:1.5' }
-    task aJar(type: Jar) { baseName='a' }
-    task bJar(type: Jar) { baseName='b' }
-    artifacts { 'default' aJar, bJar }
+    task xJar(type: Jar) { baseName='x' }
+    task yJar(type: Jar) { baseName='y' }
+    artifacts { 'default' xJar, yJar }
 }
 
 project(":b") {
     configurations { compile }
-    dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
+    dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
     task test {
         inputs.files configurations.compile
         doFirst {
-            assert configurations.compile.files.collect { it.name } == ['b.jar', 'externalA-1.5.jar']
+            assert configurations.compile.files.collect { it.name } == ['y.jar', 'externalA-1.5.jar']
         }
     }
 }
@@ -358,7 +358,7 @@ project(":b") {
         succeeds 'b:test'
 
         // Demonstrates superfluous task dependencies for project artifacts
-        executedAndNotSkipped ":a:aJar", ":a:bJar" // Should be only the ":a:aJar"
+        executedAndNotSkipped ":a:xJar", ":a:yJar" // Should be only the ":a:yJar"
     }
 
     public void "reports project dependency that refers to an unknown artifact"() {
