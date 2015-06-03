@@ -50,7 +50,7 @@ class PCHUtilsTest extends Specification {
     def "can generate a source file for a pre-compiled header" () {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
-        def pchSourceDir = tempDir.createDir("pchGeneratedSource")
+        def pchSourceDir = tempDir.createDir("pchGenerated")
         def headerDir = tmpDirProvider.createDir("headers")
         def sourceFile = headerDir.createFile("test.h")
         def spec = Mock(type) {
@@ -95,7 +95,7 @@ class PCHUtilsTest extends Specification {
     def "transforms pre-compiled header spec to contain generated source files" () {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
-        def pchSourceDir = tempDir.createDir("pchGeneratedSource")
+        def pchSourceDir = tempDir.createDir("pchGenerated")
         def headerDir = tmpDirProvider.createDir("headers")
         def sourceFile = headerDir.createFile("test.h")
         Transformer<CPCHCompileSpec, CPCHCompileSpec> transformer = PCHUtils.getHeaderToSourceFileTransformer(CPCHCompileSpec)
