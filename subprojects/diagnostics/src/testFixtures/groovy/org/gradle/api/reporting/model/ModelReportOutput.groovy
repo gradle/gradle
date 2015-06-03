@@ -16,10 +16,6 @@
 
 package org.gradle.api.reporting.model
 
-import org.gradle.util.TextUtil
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class ModelReportOutput {
     private final ParsedModelReport parsedModelReport
 
@@ -37,8 +33,8 @@ class ModelReportOutput {
 
     void nodeContentEquals(String text) {
         assert text
-        String[] subject = textToLines(text.trim())
-        assert subject.length == parsedModelReport.nodeOnlyLines.size()
+        List<String> subject = text.trim().readLines()
+        assert subject.size() == parsedModelReport.nodeOnlyLines.size()
         parsedModelReport.nodeOnlyLines.eachWithIndex { String line, i ->
             assert line.startsWith(subject[i]): "\n\n Expected Line:${line} to start with:${subject[i]} line#($i)\n\n"
         }
@@ -86,7 +82,4 @@ class ModelReportOutput {
         }
     }
 
-    String[] textToLines(String text) {
-        return (toPlatformLineSeparators(text)).split(TextUtil.getPlatformLineSeparator())
-    }
 }
