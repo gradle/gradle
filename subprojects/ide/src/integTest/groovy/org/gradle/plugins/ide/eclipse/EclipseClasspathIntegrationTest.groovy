@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
-
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
@@ -71,7 +70,7 @@ dependencies {
     @Test
     @Issue("GRADLE-1622")
     void classpathContainsEntriesForDependenciesThatOnlyDifferByClassifier() {
-        given:
+        //given:
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'extra')
         module.artifact(classifier: 'tests')
@@ -81,7 +80,7 @@ dependencies {
         def testsJar = module.artifactFile(classifier: 'tests')
         def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile
 
-        when:
+        //when:
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -98,7 +97,7 @@ dependencies {
 }
 """
 
-        then:
+        //then:
         def libraries = classpath.libs
         assert libraries.size() == 4
         libraries[0].assertHasJar(baseJar)
@@ -109,8 +108,8 @@ dependencies {
 
     @Test void includesTransitiveRepoFileDependencies() {
         given:
-        mavenRepo.module('someGroup', 'someArtifact', '1.0').publish()
-        mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish()
+        def someArtifactJar = mavenRepo.module('someGroup', 'someArtifact', '1.0').publish().artifactFile
+        def someOtherArtifactJar = mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish().artifactFile
 
         //when
         runEclipseTask """include 'a', 'b', 'c'""", """
@@ -145,12 +144,14 @@ configure(project(":c")){
 """
 
         then:
-        def aLibraries = classpath("a")
-        aLibraries.projects == ["/b", "/c"]
-        aLibraries.libs.size() == 1
+        def libs = classpath("a").libs
+        assert classpath("a").projects == ["/b", "/c"]
+        assert libs.size() == 2
+        libs[0].assertHasJar(someOtherArtifactJar)
+        libs[1].assertHasJar(someArtifactJar)
     }
 
-    @Test void includesTransitiveProjectDependencies() {
+    @Test void transitiveProjectDependenciesMappedAsDirectDependencies() {
         given:
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
@@ -177,12 +178,12 @@ configure(project(":b")){
 """
 
         then:
-        def aLibraries = classpath("a")
-        aLibraries.projects.size() == 2
-        aLibraries.projects == ['b', 'c']
+        def eclipseClasspath = classpath("a")
+        assert eclipseClasspath.projects.size() == 2
+        assert eclipseClasspath.projects == ['/b', '/c']
     }
 
-    @Test void includesTransitiveFileDependencies() {
+    @Test void transitiveFileDependenciesMappedAsDirectDependencies() {
         given:
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
@@ -196,7 +197,7 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        compile files("bar.txt")
+        compile files("bar.jar")
         compile project(':b')
     }
 }
@@ -204,23 +205,25 @@ configure(project(":a")){
 configure(project(":b")){
     dependencies {
         compile project(':c')
-        compile files("baz.txt")
+        compile files("baz.jar")
 
     }
 }
 
 configure(project(":c")){
     dependencies {
-        compile files("foo.txt")
+        compile files("foo.jar")
     }
 }
 """
 
         then:
-        def aLibraries = classpath("a")
-        aLibraries.projects.size() == 2
-        aLibraries.projects == ['b', 'c']
-        aLibraries.libs*.jarName as Set == ["foo.txt", "bar.txt", "baz.txt"] as Set
+        def eclipseClasspath = classpath("a")
+        assert eclipseClasspath.projects.size() == 2
+        assert eclipseClasspath.projects == ['/b', '/c']
+        eclipseClasspath.libs[0].assertHasJar(file("a/bar.jar"))
+        eclipseClasspath.libs[1].assertHasJar(file("c/foo.jar"))
+        eclipseClasspath.libs[2].assertHasJar(file("b/baz.jar"))
     }
 
     @Test
