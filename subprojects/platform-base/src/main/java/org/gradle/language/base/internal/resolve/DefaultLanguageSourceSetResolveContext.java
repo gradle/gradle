@@ -16,10 +16,10 @@
 package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.ResolveContext;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 
 public abstract class DefaultLanguageSourceSetResolveContext implements ResolveContext {
@@ -42,7 +42,7 @@ public abstract class DefaultLanguageSourceSetResolveContext implements ResolveC
 
     @Override
     public String getName() {
-        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(project.getPath(), getLibraryName());
+        return LibraryComponentIdentifier.API_CONFIGURATION_NAME;
     }
 
     public ProjectInternal getProject() {

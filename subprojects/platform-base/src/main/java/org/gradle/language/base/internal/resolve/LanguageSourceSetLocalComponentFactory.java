@@ -18,9 +18,9 @@ package org.gradle.language.base.internal.resolve;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -73,8 +73,8 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
-                DefaultLibraryComponentIdentifier.libraryToConfigurationName(mvi.getGroup(), mvi.getName()),
-                DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName),
+                LibraryComponentIdentifier.API_CONFIGURATION_NAME,
+                LibraryComponentIdentifier.API_CONFIGURATION_NAME,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false,

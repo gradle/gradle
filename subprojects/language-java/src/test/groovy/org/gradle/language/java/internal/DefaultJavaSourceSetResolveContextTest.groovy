@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.internal
 
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -37,6 +38,7 @@ class DefaultJavaSourceSetResolveContextTest extends Specification {
 
     @Unroll
     def "context name for project #path and library #library is #contextName"() {
+        // keeping this test in case we need to change the context name again
         given:
         def project = Mock(ProjectInternal)
         def sourceset = Mock(DefaultJavaLanguageSourceSet)
@@ -51,8 +53,8 @@ class DefaultJavaSourceSetResolveContextTest extends Specification {
 
         where:
         path       | library  | contextName
-        ':myPath'  | 'myLib'  | 'project :myPath library myLib'
-        ':myPath'  | 'myLib2' | 'project :myPath library myLib2'
-        ':myPath2' | 'myLib'  | 'project :myPath2 library myLib'
+        ':myPath'  | 'myLib'  | LibraryComponentIdentifier.API_CONFIGURATION_NAME
+        ':myPath'  | 'myLib2' | LibraryComponentIdentifier.API_CONFIGURATION_NAME
+        ':myPath2' | 'myLib'  | LibraryComponentIdentifier.API_CONFIGURATION_NAME
     }
 }

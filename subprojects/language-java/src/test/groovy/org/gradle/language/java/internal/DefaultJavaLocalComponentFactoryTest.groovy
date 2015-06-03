@@ -77,7 +77,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         metadata.componentId.displayName == 'project :myPath library myLib'
         metadata.dependencies.empty
         !metadata.changing
-        metadata.configurationNames == ['project :myPath default library', 'project :myPath library myLib'] as Set
+        metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
         metadata.source == null
     }
 
@@ -120,7 +120,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         metadata.componentId instanceof LibraryComponentIdentifier
         metadata.componentId.displayName == 'project :myPath library myLib'
         !metadata.changing
-        metadata.configurationNames == ['project :myPath default library', 'project :myPath library myLib'] as Set
+        metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
         metadata.source == null
 
         and: "component metadata dependencies correspond to the defined dependencies"

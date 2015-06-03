@@ -18,6 +18,7 @@ package org.gradle.language.base.internal.model;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -36,9 +37,13 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         );
         ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
-        // should create a dummy configuration for the "default" library too in order to resolution to work
-        metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, ""), "Configuration for " + libraryName, Collections.<String>emptySet(), Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, "")), true, true);
-        metaData.addConfiguration(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName), "Configuration for " + libraryName, Collections.<String>emptySet(), Collections.singleton(DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName)), true, true);
+        metaData.addConfiguration(
+            LibraryComponentIdentifier.API_CONFIGURATION_NAME,
+            String.format("Configuration for %s", libraryName),
+            Collections.<String>emptySet(),
+            Collections.singleton(LibraryComponentIdentifier.API_CONFIGURATION_NAME),
+            true,
+            true);
         return metaData;
     }
 }
