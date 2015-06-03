@@ -111,7 +111,11 @@ public interface MutableModelNode extends ModelNode {
 
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
+    <T> void setPrivateData(Class<? super T> type, T object);
+
     <T> void setPrivateData(ModelType<? super T> type, T object);
+
+    <T> T getPrivateData(Class<T> type);
 
     <T> T getPrivateData(ModelType<T> type);
 
@@ -126,6 +130,8 @@ public interface MutableModelNode extends ModelNode {
      * Ensure that the views are available, with default values applied.
      */
     void ensureUsable();
+
+    void realize();
 
     void setHidden(boolean hidden);
 

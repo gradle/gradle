@@ -32,4 +32,10 @@ class TestOutputStream extends OutputStream {
             return buffer.toString()
         }
     }
+
+    void reset() {
+        synchronized (buffer) {
+            buffer.reset()
+        }
+    }
 }

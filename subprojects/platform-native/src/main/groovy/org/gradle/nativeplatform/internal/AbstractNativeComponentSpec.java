@@ -20,12 +20,11 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
+public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec {
     private String baseName;
 
     public String getBaseName() {

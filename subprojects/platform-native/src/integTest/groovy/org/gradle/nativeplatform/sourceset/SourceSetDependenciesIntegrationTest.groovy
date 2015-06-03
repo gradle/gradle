@@ -45,7 +45,7 @@ model {
                     source.srcDir "src/library/c"
                     exportedHeaders.srcDir "src/library/headers"
                 }
-                c.lib sources.library
+                c.lib library
             }
         }
     }
@@ -102,7 +102,7 @@ model {
                     exportedHeaders.srcDir "src/library/headers"
                     source.srcDir "src/library/c"
                 }
-                cpp.lib sources.library
+                cpp.lib library
             }
         }
     }

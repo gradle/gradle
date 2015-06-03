@@ -30,10 +30,12 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentRules;
-import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -80,14 +82,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             descriptor
         );
         modelRegistry.create(componentsCreator);
-
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
-            DirectNodeNoInputsModelAction.of(
-                ModelReference.of(ComponentSpec.class),
-                descriptor,
-                ComponentSpecInitializer.action()
-            )
-        );
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
     }
 
@@ -137,21 +131,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     }
                 }
             }
-        }
-
-        @Mutate
-        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
-                @Override
-                public void execute(ComponentSpec componentSpec) {
-                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource().values()) {
-                        // Only apply default locations when none explicitly configured
-                        if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                            languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
-                        }
-                    }
-                }
-            });
         }
 
         // TODO:DAZ Work out why this is required

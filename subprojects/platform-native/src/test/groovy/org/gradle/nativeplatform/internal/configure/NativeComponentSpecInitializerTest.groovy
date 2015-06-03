@@ -20,18 +20,17 @@ import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
-import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
+import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
@@ -54,11 +53,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
-    def componentModelNode = Mock(MutableModelNode) {
-        getPath() >> ModelPath.path("component")
-        getLink("binaries") >> Mock(MutableModelNode)
-    }
-    def component = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, componentModelNode, mainSourceSet, instantiator)
+    def component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, new ModelRegistryHelper(), id, mainSourceSet, instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {
         component.targetPlatform("platform1")

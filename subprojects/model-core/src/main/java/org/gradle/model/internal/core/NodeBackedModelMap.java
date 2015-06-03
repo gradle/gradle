@@ -42,9 +42,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
+    private final boolean eager;
     private final ChildNodeCreatorStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        this.eager = eager;
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
         this.modelNode = modelNode;
@@ -120,7 +122,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public void all(final Action<? super T> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new NoInputsModelAction<T>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     @Override
@@ -145,7 +147,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
 
     @Override
     public void create(final String name) {
-        doCreate(name, elementType);
+        doCreate(name, elementType, Actions.doNothing());
     }
 
     @Override
@@ -155,7 +157,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
 
     @Override
     public <S extends T> void create(final String name, final Class<S> type) {
-        doCreate(name, ModelType.of(type));
+        doCreate(name, ModelType.of(type), Actions.doNothing());
     }
 
     @Override
@@ -166,29 +168,29 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, new NoInputsModelAction<S>(subject, descriptor, configAction));
-    }
-
-    private <S extends T> void doCreate(final String name, final ModelType<S> type) {
-        doCreate(name, type, Actions.doNothing());
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
         ModelCreator creator = creatorStrategy.creator(modelNode, sourceDescriptor, type, name);
         modelNode.addLink(creator);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "%s.<init>", name);
-        modelNode.applyToLink(ModelActionRole.Initialize, new NoInputsModelAction<S>(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
+        modelNode.applyToLink(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
             @Override
             public void execute(S s) {
                 initAction.execute(s);
             }
         }));
+        if (eager) {
+            //noinspection ConstantConditions
+            modelNode.getLink(name).ensureUsable();
+        }
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, new NoInputsModelAction<S>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     @Nullable
@@ -223,7 +225,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public void named(final String name, Action<? super T> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new NoInputsModelAction<T>(subject, descriptor, configAction));
+        modelNode.applyToLink(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     @Override
@@ -243,7 +245,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
         ChildNodeCreatorStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, creatorStrategy);
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, creatorStrategy);
     }
 
     @Override
@@ -260,7 +262,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new NoInputsModelAction<S>(subject, descriptor, configAction));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     @Override
@@ -280,7 +282,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
             return uncheckedCast(subType);
         }
 
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, new ChildNodeCreatorStrategy<S>() {
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, new ChildNodeCreatorStrategy<S>() {
             @Override
             public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));

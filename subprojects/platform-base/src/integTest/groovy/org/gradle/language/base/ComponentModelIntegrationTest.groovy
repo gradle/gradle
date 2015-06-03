@@ -251,7 +251,7 @@ model {
                     create("printSourceNames") {
                         def sources = $("components.main.sources")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${sources.values()*.name}"
                         }
                     }
                 }

@@ -58,6 +58,8 @@ abstract class ToolingApiSpecification extends Specification {
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
+    final GradleVersion toolingApiVersion = GradleVersion.current() // works due to classloading arrangement by ToolingApiCompatibilitySuiteRunner
+
     @Rule
     public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
 

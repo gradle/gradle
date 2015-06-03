@@ -22,8 +22,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
@@ -33,7 +32,7 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -43,12 +42,8 @@ class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def componentModelNode = Mock(MutableModelNode) {
-        getPath() >> ModelPath.path("component")
-        getLink("binaries") >> Mock(MutableModelNode)
-    }
     def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
-    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, componentModelNode, sourceSet, instantiator)
+    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, sourceSet, instantiator)
 
     def toolChain1 = Stub(NativeToolChainInternal) {
         getName() >> "ToolChain1"

@@ -152,7 +152,7 @@ class ToolingApi implements TestRule {
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }
-        if (!requiresDaemon && GradleVersion.current() == dist.version) {
+        if (isEmbedded()) {
             println("Using embedded tooling API provider from ${GradleVersion.current().version} to classpath (${dist.version.version})")
             connector.useClasspathDistribution()
             connector.embedded(true)
@@ -165,6 +165,10 @@ class ToolingApi implements TestRule {
             connector.with(it)
         }
         return connector
+    }
+
+    boolean isEmbedded() {
+        !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override

@@ -441,14 +441,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNodeInternal doCreate(ModelNodeInternal node, CreatorRuleBinder boundCreator) {
-        ModelCreator creator = boundCreator.getCreator();
-        List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator());
+    private ModelNodeInternal doCreate(final ModelNodeInternal node, CreatorRuleBinder boundCreator) {
+        final ModelCreator creator = boundCreator.getCreator();
+        final List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator());
 
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
         try {
-            creator.create(node, views);
+            RuleContext.run(creator.getDescriptor(), new Runnable() {
+                @Override
+                public void run() {
+                    creator.create(node, views);
+                }
+            });
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
@@ -458,18 +463,23 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
-        List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
+        final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
 
-        ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
-        ModelAction<T> mutator = boundMutator.getAction();
+        final ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
+        final ModelAction<T> mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
 
         ModelReference<T> reference = Cast.uncheckedCast(boundMutator.getSubjectReference().getReference());
-        ModelView<? extends T> view = assertView(node, reference, descriptor, inputs);
+        final ModelView<? extends T> view = assertView(node, reference, descriptor, inputs);
         try {
-            mutator.execute(node, view.getInstance(), inputs);
+            RuleContext.run(descriptor, new Runnable() {
+                @Override
+                public void run() {
+                    mutator.execute(node, view.getInstance(), inputs);
+                }
+            });
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
@@ -682,6 +692,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> void setPrivateData(Class<? super T> type, T object) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public <T> void setPrivateData(ModelType<? super T> type, T object) {
             throw new UnsupportedOperationException();
         }
@@ -692,7 +707,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> T getPrivateData(Class<T> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void ensureUsable() {
+        }
+
+        @Override
+        public void realize() {
+
         }
 
         @Override
@@ -723,6 +748,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             return node;
         }
 
+        @Override
+        public <T> T getPrivateData(Class<T> type) {
+            return getPrivateData(ModelType.of(type));
+        }
+
         public <T> T getPrivateData(ModelType<T> type) {
             if (privateData == null) {
                 return null;
@@ -737,6 +767,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Object getPrivateData() {
             return privateData;
+        }
+
+        @Override
+        public <T> void setPrivateData(Class<? super T> type, T object) {
+            setPrivateData(ModelType.of(type), object);
         }
 
         public <T> void setPrivateData(ModelType<? super T> type, T object) {
@@ -986,6 +1021,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         public void ensureUsable() {
             transition(this, Initialized, true);
         }
+
+        @Override
+        public void realize() {
+            close(this);
+        }
     }
 
     private class GoalGraph {
@@ -1023,6 +1063,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             VisitingDependencies,
             Achieved,
         }
+
         public State state = State.NotSeen;
 
         /**

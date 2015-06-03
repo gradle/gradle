@@ -157,7 +157,17 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        def <T> void setPrivateData(Class<? super T> type, T object) {
+
+        }
+
+        @Override
         def <T> T getPrivateData(ModelType<T> type) {
+            return null
+        }
+
+        @Override
+        def <T> T getPrivateData(Class<T> type) {
             return null
         }
 
@@ -173,6 +183,11 @@ class RegistrySpec extends Specification {
 
         @Override
         void ensureUsable() {
+
+        }
+
+        @Override
+        void realize() {
 
         }
 

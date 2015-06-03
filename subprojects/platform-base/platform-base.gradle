@@ -2,6 +2,7 @@ dependencies {
     compile libraries.groovy
     compile project(":core")
     compile project(":dependencyManagement")
+    testFixturesCompile project(path: ":modelCore", configuration: "testFixturesUsageRuntime")
 }
 
 useClassycle()

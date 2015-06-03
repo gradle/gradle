@@ -16,242 +16,76 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.fixtures.executer.GradleVersions
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
-import org.gradle.tooling.GradleConnector
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.AutoCleanup
 
-import java.util.concurrent.*
-
-@Requires(TestPrecondition.JDK7_OR_LATER)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
-class ContinuousBuildCancellationCrossVersionSpec extends ToolingApiSpecification {
-
-    @AutoCleanup("shutdown")
-    ExecutorService executorService = Executors.newSingleThreadExecutor()
-    ByteArrayOutputStream stderr = new ByteArrayOutputStream(512)
-    ByteArrayOutputStream stdout = new ByteArrayOutputStream(512)
-    def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
     @Rule
     CyclicBarrierHttpServer cyclicBarrierHttpServer = new CyclicBarrierHttpServer()
 
-    def setupJavaProject() {
-        buildFile.text = "apply plugin: 'java'"
-    }
-
-    def runAsyncContinuousBuild(String task = "classes") {
-        executorService.submit({
-            withConnection {
-                newBuild().withArguments("--continuous").forTasks(task)
-                    .withCancellationToken(cancellationTokenSource.token())
-                    .setStandardOutput(stdout)
-                    .setStandardError(stderr)
-                    .run()
-            }
-        } as Callable)
-    }
-
-    // @Unroll // multiversion stuff is incompatible with unroll
-    def "client can cancel while a continuous build is waiting for changes - after #delayms ms delay"(long delayms) {
+    def "client can cancel during execution of a continuous build"() {
         given:
-        setupJavaProject()
         buildFile << """
-gradle.buildFinished {
-    new URL("${cyclicBarrierHttpServer.uri}").text
-}
-"""
+            gradle.taskGraph.whenReady { new URL('${cyclicBarrierHttpServer.uri}').text }
+        """
 
         when:
-        def buildFuture = runAsyncContinuousBuild()
-        if (delayms == 0) {
+        runBuild {
             cyclicBarrierHttpServer.waitFor()
-            cancellationTokenSource.cancel()
+            cancel()
             cyclicBarrierHttpServer.release()
-        } else {
-            cyclicBarrierHttpServer.sync()
-            sleep(delayms)
-            cancellationTokenSource.cancel()
         }
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        def stdoutContent = stdout.toString()
 
         then:
-        stdoutContent.contains("Build cancelled.")
-
-        where:
-        delayms << [0L, 1L, 1000L, 2000L]
+        buildResult.failure instanceof BuildCancelledException
+        !stdout.toString().contains(WAITING_MESSAGE)
     }
 
-    def "client can cancel during execution of a continuous build - before task execution has started"() {
-        given:
-        setupJavaProject()
-        buildFile << """
-gradle.taskGraph.whenReady {
-    new URL("${cyclicBarrierHttpServer.uri}").text
-}
-"""
-
-        when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.waitFor()
-        cancellationTokenSource.cancel()
-        cyclicBarrierHttpServer.release()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-
-        then:
-        def e = thrown(ExecutionException)
-        e.cause instanceof BuildCancelledException
-    }
-
-    def "client can cancel during execution of a continuous build - just before the last task execution has started"() {
-        given:
-        setupJavaProject()
-        buildFile << """
-gradle.taskGraph.beforeTask { Task task ->
-    if(task.path == ':classes') {
-        new URL("${cyclicBarrierHttpServer.uri}").text
-    }
-}
-"""
-
-        when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.waitFor()
-        cancellationTokenSource.cancel()
-        cyclicBarrierHttpServer.release()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        def stdoutContent = stdout.toString()
-
-        then:
-        !stdoutContent.contains("Waiting for changes to input files of tasks...")
-        stdoutContent.contains("Build cancelled.")
-    }
-
-    def "client can cancel during execution of a continuous build - before a task which isn't the last task"() {
-        given:
-        setupJavaProject()
-        buildFile << """
-gradle.taskGraph.beforeTask { Task task ->
-    if(task.path == ':compileJava') {
-        new URL("${cyclicBarrierHttpServer.uri}").text
-    }
-}
-"""
-
-        when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.waitFor()
-        cancellationTokenSource.cancel()
-        cyclicBarrierHttpServer.release()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-
-        then:
-        def e = thrown(ExecutionException)
-        e.cause instanceof BuildCancelledException
-    }
 
     def "logging does not include message to use ctrl-d to exit"() {
-        given:
-        setupJavaProject()
-        buildFile << """
-gradle.buildFinished {
-    new URL("${cyclicBarrierHttpServer.uri}").text
-}
-"""
-
         when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.sync()
-        Thread.sleep(2000)
-        cancellationTokenSource.cancel()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        def stdoutContent = stdout.toString()
+        runBuild {
+            succeeds()
+            cancel()
+        }
 
         then:
-        !stdoutContent.contains("ctrl+d to exit")
-        stdoutContent.contains("Waiting for changes to input files of tasks...")
+        !result.output.contains("ctrl+d to exit")
+        result.output.contains("Waiting for changes to input files of tasks...")
     }
 
     def "after cancelling a continuous build, we can subsequently run another"() {
-        given:
-        setupJavaProject()
-        buildFile << """
-gradle.buildFinished {
-    new URL("${cyclicBarrierHttpServer.uri}").text
-}
-"""
         when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.sync()
-        Thread.sleep(2000)
-        cancellationTokenSource.cancel()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        def stdoutContent = stdout.toString()
+        withConnection {
+            runBuild {
+                succeeds()
+                cancel()
+            }
+            assert !buildResult.failure
+            runBuild {
+                succeeds()
+                cancel()
+            }
+        }
 
         then:
-        stdoutContent.contains("Waiting for changes to input files of tasks...")
-        stdoutContent.contains("Build cancelled.")
-
-        when:
-        stdout.reset()
-        stderr.reset()
-        cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-        buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.sync()
-        Thread.sleep(2000)
-        cancellationTokenSource.cancel()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        stdoutContent = stdout.toString()
-
-        then:
-        stdoutContent.contains("Waiting for changes to input files of tasks...")
-        stdoutContent.contains("Build cancelled.")
+        !buildResult.failure
     }
 
-    def "should cancel in a watch period that is non initial"() {
-        given:
-        setupJavaProject()
-        def testfile = projectDir.createDir('src/main/java').file('Thing.java')
-        testfile.text = 'public class Thing {}'
-        buildFile << """
-gradle.buildFinished {
-    new URL("${cyclicBarrierHttpServer.uri}").text
-}
-"""
+    def "can cancel in subsequent wait period"() {
         when:
-        def buildFuture = runAsyncContinuousBuild()
-        cyclicBarrierHttpServer.sync()
-        Thread.sleep(2000)
-        def stdoutContent = stdout.toString()
+        runBuild {
+            succeeds()
+            sourceDir.file("Thing.java") << "class Thing {}"
+            succeeds()
+            cancel()
+        }
 
         then:
-        stdoutContent.contains("Waiting for changes to input files of tasks...")
-        !stdoutContent.contains("Build cancelled.")
-
-        when:
-        stdout.reset()
-        stderr.reset()
-        testfile << '//CHANGED'
-        cyclicBarrierHttpServer.sync()
-        Thread.sleep(2000)
-        cancellationTokenSource.cancel()
-        buildFuture.get(2000, TimeUnit.MILLISECONDS)
-        stdoutContent = stdout.toString()
-
-        then:
-        stdoutContent.contains("Change detected, executing build...")
-        stdoutContent.contains("Waiting for changes to input files of tasks...")
-        stdoutContent.contains("Build cancelled.")
+        !buildResult.failure
     }
 
 }
