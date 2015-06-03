@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 
 import java.util.Set;
@@ -25,4 +26,9 @@ public interface LocalConfigurationMetaData extends ConfigurationMetaData {
     String getDescription();
 
     Set<String> getExtendsFrom();
+
+    /**
+     * The task dependencies required to build any artifacts and self-resolving dependencies for this configuration.
+     */
+    TaskDependency getDirectBuildDependencies();
 }

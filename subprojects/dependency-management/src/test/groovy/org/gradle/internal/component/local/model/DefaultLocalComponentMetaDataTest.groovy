@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetaData
@@ -31,11 +32,12 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
     def metaData = new DefaultLocalComponentMetaData(id, componentIdentifier, "status")
+    def taskDep = new DefaultTaskDependency()
 
     def "can lookup configuration after it has been added"() {
         when:
-        metaData.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false)
-        metaData.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true)
+        metaData.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, taskDep)
+        metaData.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, taskDep)
 
         then:
         def resolveMetaData = metaData.toResolveMetaData()
@@ -97,7 +99,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     private addConfiguration(String name) {
-        metaData.addConfiguration(name, "", [] as Set, [name] as Set, true, true)
+        metaData.addConfiguration(name, "", [] as Set, [name] as Set, true, true, taskDep)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file) {

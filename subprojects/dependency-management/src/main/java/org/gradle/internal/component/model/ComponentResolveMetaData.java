@@ -59,7 +59,6 @@ public interface ComponentResolveMetaData {
     /**
      * Returns the names of all of the configurations for this component.
      */
-    // TODO:DAZ Maybe getConfigurations() would be better?
     Set<String> getConfigurationNames();
 
     /**

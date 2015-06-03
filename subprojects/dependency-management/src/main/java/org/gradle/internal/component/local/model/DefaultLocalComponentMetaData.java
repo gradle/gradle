@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.model.*;
@@ -52,8 +53,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         allArtifacts.put(configuration, artifacts);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive) {
-        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy);
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
         allConfigurations.put(name, conf);
     }
 
@@ -155,17 +156,19 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private final boolean visible;
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
+        private final TaskDependency buildDependencies;
 
         private List<DependencyMetaData> configurationDependencies;
         private LinkedHashSet<ExcludeRule> configurationExcludeRules;
 
-        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy) {
+        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
             this.visible = visible;
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
+            this.buildDependencies = buildDependencies;
         }
 
         @Override
@@ -175,6 +178,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         public ComponentResolveMetaData getComponent() {
             return new DefaultLocalComponentResolveMetaData();
+        }
+
+        @Override
+        public TaskDependency getDirectBuildDependencies() {
+            return buildDependencies;
         }
 
         public String getDescription() {

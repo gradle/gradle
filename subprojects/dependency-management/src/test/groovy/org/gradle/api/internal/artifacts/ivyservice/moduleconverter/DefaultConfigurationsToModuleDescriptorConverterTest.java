@@ -17,9 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -95,6 +99,12 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
 
             allowing(configurationStub).getHierarchy();
             will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
+
+            allowing(configurationStub).getAllDependencies();
+            will(returnValue(new DefaultDependencySet("foo", WrapUtil.toDomainObjectSet(Dependency.class))));
+
+            allowing(configurationStub).getAllArtifacts();
+            will(returnValue(new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class))));
         }});
         return configurationStub;
     }

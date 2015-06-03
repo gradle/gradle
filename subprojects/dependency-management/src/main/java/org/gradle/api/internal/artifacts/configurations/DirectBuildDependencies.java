@@ -25,7 +25,7 @@ import org.gradle.api.tasks.TaskDependency;
  * Represents the direct build dependencies of a Configuration.
  * These do not include the build dependencies of any transitive dependencies, but does include self-resolving dependencies of this configuration.
  */
-class DirectBuildDependencies extends AbstractTaskDependency {
+public class DirectBuildDependencies extends AbstractTaskDependency {
     private final DependencySet dependencies;
     private final PublishArtifactSet publishArtifacts;
 
