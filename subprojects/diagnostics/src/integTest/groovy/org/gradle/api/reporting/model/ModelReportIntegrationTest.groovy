@@ -114,4 +114,101 @@ model {
         })
     }
 
+    // nb: specifically doesn't use the parsing fixture, so that the output is visualised
+    def "displays a report in the correct format"() {
+        given:
+        buildFile << """
+
+@Managed
+public interface PasswordCredentials {
+    String getUsername()
+    String getPassword()
+    void setUsername(String s)
+    void setPassword(String s)
+}
+
+
+@Managed
+public interface Numbers {
+    Integer getValue()
+    void setValue(Integer i)
+}
+
+model {
+    primaryCredentials(PasswordCredentials){
+        username = 'uname'
+        password = 'hunter2'
+    }
+
+    nullCredentials(PasswordCredentials) { }
+    numbers(Numbers){
+        value = 5
+    }
+}
+
+"""
+        buildFile
+        when:
+        run "model"
+
+        then:
+        def modelReportOutput = ModelReportOutput.from(output)
+        modelReportOutput.hasTitle("Root project")
+
+        and:
+        modelReportOutput.nodeContentEquals("""
++ model
+    + nullCredentials
+          | Type: \t PasswordCredentials |
+        + password
+              | Type: \t java.lang.String |
+        + username
+              | Type: \t java.lang.String |
+    + numbers
+          | Type: \t Numbers |
+        + value
+              | Value: \t 5 |
+              | Type: \t java.lang.Integer |
+    + primaryCredentials
+          | Type: \t PasswordCredentials |
+        + password
+              | Value: \t hunter2 |
+              | Type: \t java.lang.String |
+        + username
+              | Value: \t uname |
+              | Type: \t java.lang.String |
+    + tasks
+          | Type: \t org.gradle.model.ModelMap<org.gradle.api.Task> |
+        + components
+              | Value: \t task ':components' |
+              | Type: \t org.gradle.api.reporting.components.ComponentReport |
+        + dependencies
+              | Value: \t task ':dependencies' |
+              | Type: \t org.gradle.api.tasks.diagnostics.DependencyReportTask |
+        + dependencyInsight
+              | Value: \t task ':dependencyInsight' |
+              | Type: \t org.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
+        + help
+              | Value: \t task ':help' |
+              | Type: \t org.gradle.configuration.Help |
+        + init
+              | Value: \t task ':init' |
+              | Type: \t org.gradle.buildinit.tasks.InitBuild |
+        + model
+              | Value: \t task ':model' |
+              | Type: \t org.gradle.api.reporting.model.ModelReport |
+        + projects
+              | Value: \t task ':projects' |
+              | Type: \t org.gradle.api.tasks.diagnostics.ProjectReportTask |
+        + properties
+              | Value: \t task ':properties' |
+              | Type: \t org.gradle.api.tasks.diagnostics.PropertyReportTask |
+        + tasks
+              | Value: \t task ':tasks' |
+              | Type: \t org.gradle.api.tasks.diagnostics.TaskReportTask |
+        + wrapper
+              | Value: \t task ':wrapper' |
+              | Type: \t org.gradle.api.tasks.wrapper.Wrapper |
+""")
+    }
 }
