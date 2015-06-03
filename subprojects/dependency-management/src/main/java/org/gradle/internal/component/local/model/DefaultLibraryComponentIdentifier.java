@@ -26,9 +26,9 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
 
     public static String libraryToConfigurationName(String projectPath, String libraryName) {
         if (Strings.isNullOrEmpty(libraryName)) {
-            return String.format("project %s default library", projectPath);
+            return String.format("project '%s' default library", projectPath);
         }
-        return String.format("project %s library %s", projectPath, libraryName);
+        return String.format("project '%s' library '%s'", projectPath, libraryName);
     }
 
     public String getDisplayName() {

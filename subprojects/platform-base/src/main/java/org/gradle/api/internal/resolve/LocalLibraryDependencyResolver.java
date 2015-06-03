@@ -117,9 +117,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         ProjectInternal project,
         String selectorProjectPath,
         List<String> candidateLibraries) {
-        StringBuilder sb = new StringBuilder("Could not resolve dependency '");
+        StringBuilder sb = new StringBuilder("Could not resolve dependency on ");
         sb.append(selector);
-        sb.append("'");
         if ("".equals(selector.getLibraryName()) || candidateLibraries.isEmpty()) {
             sb.append(". Project '").append(selectorProjectPath).append("'");
             if (project==null) {

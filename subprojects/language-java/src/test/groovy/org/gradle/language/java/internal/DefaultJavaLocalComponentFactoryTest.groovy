@@ -70,7 +70,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
         metadata.componentId instanceof LibraryComponentIdentifier
-        metadata.componentId.displayName == 'project :myPath library myLib'
+        metadata.componentId.displayName == /project ':myPath' library 'myLib'/
         metadata.dependencies.empty
         !metadata.changing
         metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
@@ -112,7 +112,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
         metadata.componentId instanceof LibraryComponentIdentifier
-        metadata.componentId.displayName == 'project :myPath library myLib'
+        metadata.componentId.displayName == /project ':myPath' library 'myLib'/
         !metadata.changing
         metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
         metadata.source == null

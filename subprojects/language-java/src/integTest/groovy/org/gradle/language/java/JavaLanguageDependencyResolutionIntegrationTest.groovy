@@ -160,7 +160,7 @@ model {
         expect: "build fails"
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project : library someLib'")
+        failure.assertHasCause("Could not resolve dependency on project ':' library 'someLib'")
 
         and: "displays the possible solution"
         failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
@@ -259,7 +259,7 @@ model {
         expect: "build fails"
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :sub library main'")
+        failure.assertHasCause("Could not resolve dependency on project ':sub' library 'main'")
 
         and: "displays that the project doesn't exist"
         failure.assertThatCause(matchesRegexp(".*Project ':sub' not found.*"))
@@ -305,7 +305,7 @@ model {
         expect:
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
+        failure.assertHasCause("Could not resolve dependency on project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
         failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
@@ -352,7 +352,7 @@ model {
         expect:
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
+        failure.assertHasCause("Could not resolve dependency on project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
         failure.assertThatCause(matchesRegexp(".*Did you want to use one of 'awesome', 'lib'\\?.*"))
@@ -456,7 +456,7 @@ model {
         expect:
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
+        failure.assertHasCause("Could not resolve dependency on project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'.*"))
@@ -497,7 +497,7 @@ plugins {
         expect:
         fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
+        failure.assertHasCause("Could not resolve dependency on project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
@@ -535,7 +535,7 @@ model {
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
+        failure.assertHasCause("Could not resolve dependency on project ':dep'")
 
         and:
         failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))

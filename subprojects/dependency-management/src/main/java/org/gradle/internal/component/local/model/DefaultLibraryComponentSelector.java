@@ -34,6 +34,11 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
 
     @Override
     public String getDisplayName() {
+        if ("".equals(libraryName)) {
+            return String.format("project '%s'", projectPath);
+        } else if ("".equals(projectPath)) {
+            return String.format("library '%s'", libraryName);
+        }
         return DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName);
     }
 

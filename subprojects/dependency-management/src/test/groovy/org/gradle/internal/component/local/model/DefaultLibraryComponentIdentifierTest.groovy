@@ -29,8 +29,8 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
         defaultBuildComponentIdentifier.libraryName == 'myLib'
-        defaultBuildComponentIdentifier.displayName == 'project :myPath library myLib'
-        defaultBuildComponentIdentifier.toString() == 'project :myPath library myLib'
+        defaultBuildComponentIdentifier.displayName == /project ':myPath' library 'myLib'/
+        defaultBuildComponentIdentifier.toString() == /project ':myPath' library 'myLib'/
     }
 
     def "is instantiated with null project constructor parameter value"() {
