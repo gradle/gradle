@@ -23,8 +23,8 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class ModelReportOutput {
     private final ParsedModelReport parsedModelReport
 
-    static ParsedModelReport parse(String text) {
-        new ModelReportParser(text).toModelReport()
+    static ModelReportOutput from(String text) {
+        new ModelReportOutput(ModelReportParser.parse(text))
     }
 
     public ModelReportOutput(ParsedModelReport parsedModelReport) {
@@ -48,7 +48,7 @@ class ModelReportOutput {
      * Finds the first occurrence of the root node of the {@code closure} representing a {@link ModelReportNodeBuilder} from within the entire report. i.e. a subtree
      * @see {@link ModelReportOutput#hasNodeStructure(groovy.lang.Closure)}
      */
-    void hasNodeStructure(Closure closure) {
+    void hasNodeStructure(@DelegatesTo(ModelReportNodeBuilder) Closure<?> closure) {
         hasNodeStructure(ModelReportNodeBuilder.fromDsl(closure).get())
     }
 

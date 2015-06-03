@@ -18,8 +18,6 @@ package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.api.reporting.model.ModelReportOutput.parse
-
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
@@ -30,7 +28,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        def modelReportOutput = new ModelReportOutput(parse(output))
+        def modelReportOutput = ModelReportOutput.from(output)
         modelReportOutput.hasNodeStructure({
             model() {
                 tasks {
@@ -86,7 +84,7 @@ model {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure({
+        ModelReportOutput.from(output).hasNodeStructure({
             model {
                 nullCredentials {
                     password()

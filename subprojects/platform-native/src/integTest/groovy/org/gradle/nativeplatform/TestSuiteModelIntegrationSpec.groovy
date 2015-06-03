@@ -20,8 +20,6 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
-import static org.gradle.api.reporting.model.ModelReportOutput.parse
-
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -106,7 +104,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             testSuites {
                 main {
                     binaries()
@@ -168,7 +166,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             testSuites {
                 foo {
                     binaries()
@@ -288,7 +286,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             testSuites {
                 main {
                     binaries {

@@ -28,7 +28,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
-import static org.gradle.api.reporting.model.ModelReportOutput.parse
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -179,7 +178,7 @@ model {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure({
+        ModelReportOutput.from(output).hasNodeStructure({
             testSuites {
                 nativeComponentOneTest {
                     binaries {

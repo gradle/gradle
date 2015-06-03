@@ -24,9 +24,10 @@ class ModelReportParserTest extends Specification {
     @Unroll
     def "fails with invalid text"() {
         when:
-        new ModelReportParser(text).toModelReport()
+        ModelReportParser.parse(text)
+
         then:
-        def ex = thrown(java.lang.AssertionError)
+        def ex = thrown(AssertionError)
         ex.message.startsWith message
 
         where:
@@ -38,7 +39,7 @@ class ModelReportParserTest extends Specification {
 
     def "fails when missing the success marker"() {
         when:
-        new ModelReportParser("""1
+        ModelReportParser.parse("""1
 2
 3
 4
@@ -46,15 +47,15 @@ class ModelReportParserTest extends Specification {
 6
 + model
 BUILD SUCCESSFUsL
-""").toModelReport()
+""")
         then:
-        def ex = thrown(java.lang.AssertionError)
+        def ex = thrown(AssertionError)
         ex.message.startsWith "Expected to find an end of report marker '${ModelReportParser.END_OF_REPORT_MARKER}'"
     }
 
     def "fails when missing a root node"() {
         when:
-        new ModelReportParser("""1
+        ModelReportParser.parse("""1
 2
 3
 4
@@ -62,14 +63,14 @@ BUILD SUCCESSFUsL
 6
 + incorrect
 BUILD SUCCESSFUL
-""").toModelReport()
+""")
         then:
-        def ex = thrown(java.lang.AssertionError)
+        def ex = thrown(AssertionError)
         ex.message.startsWith "Expected to find the root node '${ModelReportParser.ROOT_NODE_MARKER}'"
     }
 
     def "should parse a report with no children"() {
-        def modelReport = new ModelReportParser(""":model
+        def modelReport = ModelReportParser.parse(""":model
 
 
 My Report
@@ -77,7 +78,7 @@ My Report
 
 + model
 BUILD SUCCESSFUL
-""").toModelReport()
+""")
         expect:
         modelReport.title == 'My Report'
         modelReport.reportNode.name() == 'model'
@@ -86,7 +87,7 @@ BUILD SUCCESSFUL
 
     def "should parse a model report with child nodes and vules"() {
         setup:
-        def modelReport = new ModelReportParser(""":model
+        def modelReport = ModelReportParser.parse(""":model
 
 
 My Report
@@ -114,7 +115,7 @@ My Report
               | Type: \t java.lang.String |
 
 BUILD SUCCESSFUL
-""").toModelReport()
+""")
 
         expect:
         modelReport.reportNode.'**'.primaryCredentials.username.@nodeValue[0] == 'uname'
@@ -122,10 +123,9 @@ BUILD SUCCESSFUL
     }
 
     def "should find a node attributes"() {
-        ModelReportParser modelReportParser = new ModelReportParser()
         ReportNode reportNode = new ReportNode('test')
         when:
-        modelReportParser.setNodeProperties(line, reportNode)
+        ModelReportParser.setNodeProperties(line, reportNode)
 
         then:
         reportNode.attribute(expectedAttribute) == expectedValue

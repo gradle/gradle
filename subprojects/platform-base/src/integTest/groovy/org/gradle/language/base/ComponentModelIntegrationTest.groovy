@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
-import static org.gradle.api.reporting.model.ModelReportOutput.parse
-
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
 
@@ -232,7 +230,7 @@ model {
         succeeds "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -294,7 +292,7 @@ model {
         succeeds "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 foo {
                     binaries()
@@ -407,7 +405,7 @@ model {
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -443,7 +441,7 @@ model {
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -507,7 +505,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -533,7 +531,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             someCustomComponent {
                 binaries()
                 sources()
@@ -563,7 +561,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries()
@@ -629,7 +627,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             main {
                 binaries()
                 sources {
@@ -746,7 +744,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 main {
                     binaries {

@@ -16,54 +16,48 @@
 
 package org.gradle.api.reporting.model
 
-import org.gradle.util.TextUtil
+import com.google.common.annotations.VisibleForTesting
 
 import java.util.regex.Matcher
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class ModelReportParser {
-    public static final String LINE_SEPARATOR = TextUtil.getPlatformLineSeparator()
+
     public static final int HEADING_LINE_NUMBER = 3
     public static final int FIRST_NODE_LINE_NUMBER = 6
     public static final String NODE_LEFT_PADDING = '    '
     public static final String NODE_SYMBOL = '+'
     public static final String END_OF_REPORT_MARKER = 'BUILD SUCCESSFUL'
     public static final String ROOT_NODE_MARKER = '+ model'
-    private final String text
 
-    ModelReportParser(String text) {
-        this.text = text
-    }
+    static ParsedModelReport parse(String text) {
+        validate(text)
+        def reportLines = text.readLines()
+        def nodeLines = reportLines[FIRST_NODE_LINE_NUMBER..-1]
 
-    public ParsedModelReport toModelReport() {
-        validate()
-        List<String> reportLines = textToLines(text)
-        List<String> nodeLines = reportLines[FIRST_NODE_LINE_NUMBER..-1]
         return new ParsedModelReport(
-            title: getTitle(reportLines),
-            reportNode: parseNodes(nodeLines),
-            reportLines: reportLines,
-            nodeOnlyLines: nodeOnlyLines(nodeLines))
+            getTitle(reportLines),
+            reportLines,
+            nodeOnlyLines(nodeLines),
+            parseNodes(nodeLines)
+        )
     }
 
-    private void validate() {
+    private static void validate(String text) {
         assert text: 'Report text must not be blank'
-        List<String> reportLines = textToLines(text)
+        def reportLines = text.readLines()
         assert reportLines.size() > FIRST_NODE_LINE_NUMBER: "Should have at least ${FIRST_NODE_LINE_NUMBER + 1} lines"
         assert text.contains(END_OF_REPORT_MARKER): "Expected to find an end of report marker '${END_OF_REPORT_MARKER}'"
         assert text.contains(ROOT_NODE_MARKER): "Expected to find the root node '${ROOT_NODE_MARKER}'"
     }
 
-    private String getTitle(List<String> reportLines) {
+    private static String getTitle(List<String> reportLines) {
         return reportLines[HEADING_LINE_NUMBER]
     }
 
-    private ReportNode parseNodes(List<String> nodeLines) {
+    private static ReportNode parseNodes(List<String> nodeLines) {
         ReportNode prev = null
         ReportNode root = null
-        for (int i = 0; i < nodeLines.size(); i++) {
-            String line = nodeLines[i]
+        nodeLines.each { line ->
             if (prev == null) {
                 assert line == ROOT_NODE_MARKER
                 root = new ReportNode(getNodeName(line))
@@ -81,9 +75,9 @@ class ModelReportParser {
                     prev = node
                 } else {
                     while (depth < prev.getDepth()) {
-                        prev = prev.parent();
+                        prev = prev.parent()
                     }
-                    ReportNode node = new ReportNode(prev.parent(), getNodeName(line));
+                    ReportNode node = new ReportNode(prev.parent(), getNodeName(line))
                     node.setDepth(depth)
                     prev = node
                 }
@@ -94,20 +88,17 @@ class ModelReportParser {
         return root
     }
 
-    String[] textToLines(String text) {
-        return (toPlatformLineSeparators(text)).split(LINE_SEPARATOR)
-    }
-
-    String getNodeName(String line) {
+    private static String getNodeName(String line) {
         def matcher = lineIsANode(line)
         return matcher[0][1]
     }
 
-    int getNodeDepth(String line) {
+    private static int getNodeDepth(String line) {
         return (line =~ /$NODE_LEFT_PADDING/).getCount()
     }
 
-    void setNodeProperties(String line, ReportNode reportNode) {
+    @VisibleForTesting
+    static void setNodeProperties(String line, ReportNode reportNode) {
         ['Value': 'nodeValue', 'Type': 'type'].each { String pattern, String prop ->
             def matcher = (line =~ /\| ${pattern}: (.+)\|$/)
             if (matcher) {
@@ -119,11 +110,11 @@ class ModelReportParser {
         }
     }
 
-    Matcher lineIsANode(String line) {
+    private static Matcher lineIsANode(String line) {
         return line =~ /\$NODE_SYMBOL (.+)$/
     }
 
-    private List<String> nodeOnlyLines(List<String> nodeLines) {
+    private static List<String> nodeOnlyLines(List<String> nodeLines) {
         int successMarker = nodeLines.findIndexOf { line -> line == END_OF_REPORT_MARKER }
         nodeLines.subList(0, successMarker - 1)
     }

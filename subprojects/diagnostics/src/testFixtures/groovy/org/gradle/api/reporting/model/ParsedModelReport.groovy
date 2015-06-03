@@ -17,9 +17,15 @@
 package org.gradle.api.reporting.model
 
 class ParsedModelReport {
-    String title;
-    ReportNode reportNode
-    String content
-    List<String> reportLines
-    List<String> nodeOnlyLines
+    final String title
+    final List<String> reportLines
+    final List<String> nodeOnlyLines
+    final ReportNode reportNode
+
+    ParsedModelReport(String title, List<String> reportLines, List<String> nodeOnlyLines, ReportNode reportNode) {
+        this.title = title
+        this.reportLines = reportLines.asImmutable()
+        this.nodeOnlyLines = nodeOnlyLines.asImmutable()
+        this.reportNode = reportNode
+    }
 }

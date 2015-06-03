@@ -19,8 +19,6 @@ package org.gradle.nativeplatform
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.api.reporting.model.ModelReportOutput.parse
-
 class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -91,7 +89,7 @@ model {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             testSuites {
                 unitTests {
                     binaries {
@@ -132,7 +130,7 @@ model {
         run "model"
 
         then:
-        new ModelReportOutput(parse(output)).hasNodeStructure {
+        ModelReportOutput.from(output).hasNodeStructure {
             components {
                 unitTests {
                     binaries()
