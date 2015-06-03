@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -40,6 +41,15 @@ public class DefaultModelViewState implements ModelViewState {
 
     public void close() {
         closed = true;
+    }
+
+    public Action<Object> closer() {
+        return new Action<Object>() {
+            @Override
+            public void execute(Object o) {
+                close();
+            }
+        };
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,21 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
-import org.gradle.model.ModelSet;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.type.ModelType;
 
-@ThreadSafe
-public class ModelSetStrategy extends SetStrategy {
+import java.util.Collections;
 
-    public ModelSetStrategy(Factory<String> supportedTypeDescriptions) {
-        super(new ModelType<ModelSet<?>>() {
+@ThreadSafe
+public class ManagedSetStrategy extends SetStrategy {
+
+    public ManagedSetStrategy(Factory<String> supportedTypeDescriptions) {
+        super(new ModelType<ManagedSet<?>>() {
         }, supportedTypeDescriptions);
     }
 
+    @Override
+    public Iterable<String> getSupportedManagedTypes() {
+        return Collections.emptySet();
+    }
 }

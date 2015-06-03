@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model;
+package org.gradle.model.collection;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.model.collection.ManagedSet;
+
+import java.util.Set;
 
 /**
  * A set of managed model objects.
@@ -26,13 +26,14 @@ import org.gradle.model.collection.ManagedSet;
  * {@link org.gradle.model.Managed} types may declare managed set properties.
  * Managed sets can only contain managed types.
  * <p>
- * Managed set objects cannot be mutated via the mutative methods of the {@link java.util.Set} interface (e.g. {@link java.util.Set#add(Object)}, {@link java.util.Set#clear()}).
+ * Managed set objects cannot be mutated via the mutative methods of the {@link Set} interface (e.g. {@link Set#add(Object)}, {@link Set#clear()}).
  * To add elements to the set, the {@link #create(Action)} method can be used.
  *
  * @param <T> the type of model object
+ * @deprecated use {@link org.gradle.model.ModelSet} instead
  */
-@Incubating
-public interface ModelSet<T> extends ManagedSet<T> {
+@Deprecated
+public interface ManagedSet<T> extends Set<T> {
 
     /**
      * Declares a new set element, configured by the given action.

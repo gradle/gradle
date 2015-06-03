@@ -178,9 +178,13 @@ project dependencies. Thus, these changes are safe to make.
 Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
 This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
 
-### Deprecation of org.gradle.model.collection.CollectionBuilder
+### Deprecation of `CollectionBuilder` and `ManagedSet`.
 
-Use org.gradle.model.ModelMap instead.
+The types `org.gradle.model.collection.CollectionBuilder` and `org.gradle.model.collection.ManagedSet` have been deprecated and replaced by
+[`org.gradle.model.ModelMap`](javadoc/org/gradle/model/ModelMap.html) and [`org.gradle.model.ModelSet`](javadoc/org/gradle/model/ModelSet.html) respectively.
+
+As these types were incubating, they will be removed before Gradle 3.0.
+Please change your usage to the new `ModelMap` and `ModelSet` types.
 
 ## Potential breaking changes
 

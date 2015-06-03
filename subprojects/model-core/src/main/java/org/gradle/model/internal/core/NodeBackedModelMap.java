@@ -29,6 +29,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
@@ -37,7 +38,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class NodeBackedModelMap<T> implements ModelMap<T> {
+public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
@@ -107,6 +108,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T> {
             new ModelType.Parameter<I>() {
             }, type
         ).build();
+    }
+
+    @Override
+    public MutableModelNode getBackingNode() {
+        return modelNode;
     }
 
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
