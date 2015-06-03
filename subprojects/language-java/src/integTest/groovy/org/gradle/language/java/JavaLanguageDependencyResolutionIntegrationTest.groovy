@@ -15,10 +15,7 @@
  */
 
 package org.gradle.language.java
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-import static org.gradle.util.Matchers.matchesRegexp
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -157,13 +154,14 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect: "build fails"
+        when: "build fails"
         fails ':mainJar'
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':' library 'someLib'")
 
-        and: "displays the possible solution"
-        failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
+        then: "displays the possible solution"
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve project ':' library 'someLib'")
+        failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
+
     }
 
     def "can resolve dependency on a different project library"() {
@@ -256,13 +254,14 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect: "build fails"
+        when: "build fails"
         fails ':mainJar'
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':sub' library 'main'")
 
-        and: "displays that the project doesn't exist"
-        failure.assertThatCause(matchesRegexp(".*Project ':sub' not found.*"))
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve project ':sub' library 'main'")
+        failure.assertHasCause("Project ':sub' not found.")
+
     }
 
     def "should fail if project exists but not library" () {
@@ -302,13 +301,15 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
+        when:
         fails ':mainJar'
+
+        then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':dep' library 'doesNotExist'")
+        failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
-        failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
+        failure.assertHasCause("Project ':dep' does not contain library 'doesNotExist'. Did you want to use 'main'?")
     }
 
     def "should display the list of candidate libraries in case a library is not found" () {
@@ -349,13 +350,15 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
+        when:
         fails ':mainJar'
+
+        then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':dep' library 'doesNotExist'")
+        failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
-        failure.assertThatCause(matchesRegexp(".*Did you want to use one of 'awesome', 'lib'\\?.*"))
+        failure.assertHasCause("Project ':dep' does not contain library 'doesNotExist'. Did you want to use one of 'awesome', 'lib'?")
     }
 
     def "can resolve dependencies on a different projects"() {
@@ -453,13 +456,15 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
+        when:
         fails ':mainJar'
+
+        then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':dep'")
+        failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
-        failure.assertThatCause(matchesRegexp(".*Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'.*"))
+        failure.assertHasCause("Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'")
     }
 
     def "should fail and display a sensible error message if target project doesn't define any library" () {
@@ -494,13 +499,15 @@ plugins {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
+        when:
         fails ':mainJar'
+
+        then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':dep'")
+        failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
-        failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
+        failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
    def "should fail and display a sensible error message if target project doesn't use new model" () {
@@ -535,10 +542,10 @@ model {
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
-        failure.assertHasCause("Could not resolve dependency on project ':dep'")
+        failure.assertHasCause("Could not resolve project ':dep'")
 
         and:
-        failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
+        failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
     def "classpath for sourceset excludes transitive sourceset jar"() {

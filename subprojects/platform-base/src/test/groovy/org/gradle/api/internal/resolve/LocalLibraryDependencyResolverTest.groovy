@@ -97,7 +97,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         then:
         result.hasResult()
         if (failure) {
-            assert result.failure.message =~ failure
+            assert result.failure.cause.message =~ failure
         } else {
             assert result.failure == null
             def md = result.metaData

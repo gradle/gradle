@@ -34,6 +34,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
+import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -75,7 +76,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             }
             if (!result.hasResult()) {
                 String message = prettyErrorMessage(selector, project, selectorProjectPath, candidateLibraries);
-                ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, message);
+                ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, new LibraryResolveException(message));
                 result.failed(failure);
             }
         }
@@ -117,10 +118,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         ProjectInternal project,
         String selectorProjectPath,
         List<String> candidateLibraries) {
-        StringBuilder sb = new StringBuilder("Could not resolve dependency on ");
-        sb.append(selector);
+        StringBuilder sb = new StringBuilder("Project '").append(selectorProjectPath).append("'");
         if ("".equals(selector.getLibraryName()) || candidateLibraries.isEmpty()) {
-            sb.append(". Project '").append(selectorProjectPath).append("'");
             if (project==null) {
                 sb.append(" not found.");
             } else if (candidateLibraries.isEmpty()) {
@@ -130,8 +129,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 Joiner.on(", ").appendTo(sb, candidateLibraries);
             }
         } else {
-            sb.append(" on project '").append(selectorProjectPath).append("'");
-            sb.append(". Did you want to use ");
+            sb.append(" does not contain library '").append(selector.getLibraryName()).append("'. Did you want to use ");
             if (candidateLibraries.size()==1) {
                 sb.append(candidateLibraries.get(0));
             } else {
