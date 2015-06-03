@@ -26,6 +26,7 @@ import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
@@ -54,6 +55,7 @@ class PlayContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpeci
         buildTimeout = 90
     }
 
+    @Ignore
     def "play application is stopped when continuous build is cancelled" () {
         when:
         runBuild(["runPlayBinary"]) {
