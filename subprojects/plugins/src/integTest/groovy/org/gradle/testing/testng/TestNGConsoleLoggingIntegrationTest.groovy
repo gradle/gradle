@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled()
 
         buildFile << """
             apply plugin: "groovy"
@@ -84,7 +84,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def "defaultLifecycleLogging"() {
         when:
-        result = executer.runWithFailure()
+        fails "test"
 
         then:
         outputContains("""
@@ -95,7 +95,8 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
 
     def customQuietLogging() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args "-q"
+        fails "test"
 
         then:
         outputContains("""
@@ -152,7 +153,8 @@ Gradle suite FAILED
         """
 
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args "-q"
+        fails "test"
 
         then:
         outputContains("""

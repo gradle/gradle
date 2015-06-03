@@ -281,6 +281,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     void outputContains(String string) {
         assertHasResult()
-        result.assertOutputContains(string)
+        result.assertOutputContains(string.trim())
     }
 }

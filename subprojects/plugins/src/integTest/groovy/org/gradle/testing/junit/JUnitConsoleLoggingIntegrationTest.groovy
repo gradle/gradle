@@ -19,7 +19,6 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.equalTo
@@ -27,15 +26,14 @@ import static org.hamcrest.Matchers.equalTo
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
 class JUnitConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    ExecutionResult result
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled()
     }
 
     def "defaultLifecycleLogging"() {
         when:
-        result = executer.runWithFailure()
+        fails("test")
 
         then:
         outputContains("""
@@ -46,7 +44,8 @@ org.gradle.JUnit4Test > badTest FAILED
 
     def "customQuietLogging"() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args("-q")
+        fails("test")
 
         then:
         outputContains("""
@@ -63,7 +62,8 @@ badTest FAILED
 
     def "standardOutputLogging"() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args("-q")
+        fails("test")
 
         then:
         outputContains("""
@@ -98,7 +98,7 @@ public class EncodingTest {
 }
 """
         when:
-        executer.withTasks("test").runWithFailure()
+        fails("test")
 
         then:
         new DefaultTestExecutionResult(testDirectory)
