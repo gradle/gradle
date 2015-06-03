@@ -222,4 +222,75 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.ModelMap<Person>)'")
     }
 
+    def "can read children of map when used as input"() {
+        when:
+        buildScript """
+            @Managed
+            interface Parent {
+                String getName();
+                void setName(String string)
+
+                ModelMap<Child> getChildren();
+            }
+
+            @Managed
+            interface Child extends Named {
+                ModelSet<GrandChild> getChildren();
+            }
+
+            @Managed
+            interface GrandChild {
+                String getName();
+                void setName(String string)
+            }
+
+            class Rules extends RuleSource {
+                @Model
+                void parent(Parent p) {
+                }
+
+                @Mutate
+                void printParentTask(TaskContainer tasks, Parent p) {
+                    tasks.create("printParent") {
+                        it.doLast {
+                            println p.name
+                            for (Child c : p.children.values()) {
+                                println "  :" + c?.name
+                                for (GrandChild gc : c.children) {
+                                    println "    :" + gc?.name
+                                }
+                            }
+                        }
+                    }
+                }
+
+                @Mutate
+                void addChildren(@Path("parent.children") children) {
+                    children.create("c1") {
+                        it.children.create { gc ->
+                            gc.name = "gc1"
+                        }
+                    }
+                }
+            }
+
+            apply type: Rules
+
+            model {
+                parent {
+                    name = "parent"
+                }
+            }
+        """
+
+        then:
+        succeeds "printParent"
+        output.contains("""
+parent
+  :c1
+    :gc1
+""".trim()
+        )
+    }
+
 }

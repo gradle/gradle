@@ -140,7 +140,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, boolean mutable, boolean canReadChildren) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, creatorStrategy);
+        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, mutable, creatorStrategy);
 
         ModelMap<S> subBuilder = builder.withType(itemClass);
         ModelType<ModelMap<S>> viewType = ModelTypes.modelMap(itemType);

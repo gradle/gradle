@@ -44,10 +44,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
     private final boolean eager;
+    private final boolean mutable;
     private final ChildNodeCreatorStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, boolean mutable, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
         this.eager = eager;
+        this.mutable = mutable;
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
         this.modelNode = modelNode;
@@ -75,9 +77,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                         modelNode.setPrivateData(type, item);
                     }
                 })
-                    .withProjection(UnmanagedModelProjection.of(type))
-                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-                    .build();
+                                    .withProjection(UnmanagedModelProjection.of(type))
+                                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
+                                    .build();
             }
         };
     }
@@ -94,10 +96,10 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                         modelNode.setPrivateData(type, item);
                     }
                 })
-                    .inputs(factoryReference)
-                    .withProjection(UnmanagedModelProjection.of(type))
-                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-                    .build();
+                                    .inputs(factoryReference)
+                                    .withProjection(UnmanagedModelProjection.of(type))
+                                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
+                                    .build();
             }
         };
     }
@@ -214,7 +216,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             return null;
         }
         link.ensureUsable();
-        return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+        if (mutable) {
+            return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+        } else {
+            return link.asReadOnly(elementType, sourceDescriptor).getInstance();
+        }
     }
 
     @Override
@@ -251,7 +257,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
         ChildNodeCreatorStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, creatorStrategy);
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, mutable, creatorStrategy);
     }
 
     @Override
@@ -288,7 +294,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             return uncheckedCast(subType);
         }
 
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, new ChildNodeCreatorStrategy<S>() {
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, mutable, new ChildNodeCreatorStrategy<S>() {
             @Override
             public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
