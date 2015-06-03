@@ -18,7 +18,7 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -30,7 +30,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
 public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
@@ -42,7 +41,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     private final ChildNodeCreatorStrategy<T> creatorStrategy;
     private final ModelReference<T> elementTypeReference;
 
-    private Set<T> elements;
+    private Collection<T> elements;
 
     public NodeBackedModelSet(String toString, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeCreatorStrategy<T> creatorStrategy) {
         this.toString = toString;
@@ -165,10 +164,10 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
         beforeEach(ClosureBackedAction.of(closure));
     }
 
-    private Set<T> getElements() {
+    private Collection<T> getElements() {
         state.assertCanReadChildren();
         if (elements == null) {
-            elements = Sets.newHashSet(
+            elements = Lists.newArrayList(
                 Iterables.transform(modelNode.getLinks(elementType), new Function<MutableModelNode, T>() {
                     @Override
                     public T apply(MutableModelNode input) {
