@@ -236,7 +236,7 @@ model {
             components {
                 main {
                     binaries()
-                    sources(nodeValue: "source set 'main'")
+                    sources()
                 }
             }
         }
@@ -411,11 +411,11 @@ model {
             components {
                 main {
                     binaries()
-                    sources(nodeValue: "source set 'main'")
+                    sources()
                 }
                 someCustomComponent {
                     binaries()
-                    sources(nodeValue: "source set 'someCustomComponent'")
+                    sources()
                 }
             }
         }
@@ -574,7 +574,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 }
                 test {
                     binaries()
-                    sources(nodeValue: "source set 'test'")
+                    sources()
                 }
             }
         }
@@ -757,7 +757,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                             tasks()
                         }
                     }
-                    sources(nodeValue: "source set 'main'")
+                    sources()
                 }
                 test {
                     binaries {
@@ -768,7 +768,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                             tasks()
                         }
                     }
-                    sources(nodeValue: "source set 'test'")
+                    sources()
                 }
             }
         }
