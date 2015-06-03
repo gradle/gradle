@@ -64,8 +64,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-
-        // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
         public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             for (final NativeComponentSpec component : components.values()) {
@@ -90,10 +88,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
             for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
-
-                CppSourceSet testSources = suiteSourceSet.maybeCreate("cpp", CppSourceSet.class);
-                testSources.getSource().srcDir(String.format("src/%s/%s", suite.getName(), "cpp"));
-                testSources.getExportedHeaders().srcDir(String.format("src/%s/headers", suite.getName()));
+                suiteSourceSet.maybeCreate("cpp", CppSourceSet.class);
             }
         }
 

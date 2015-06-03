@@ -37,6 +37,8 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.model.*;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
@@ -65,9 +67,11 @@ import java.io.File;
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
+    private final ModelRegistry modelRegistry;
 
     @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator) {
+    public NativeComponentModelPlugin(ModelRegistry modelRegistry, Instantiator instantiator) {
+        this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
     }
 
@@ -77,6 +81,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("buildTypes", DefaultBuildTypeContainer.class, instantiator);
         project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
         project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
+
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(NativeComponentSpec.class), NativeComponentRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -278,27 +284,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             }
                         });
                     }
-                }
-            });
-        }
-
-        @Mutate
-        public void applyHeaderSourceSetConventions(ModelMap<NativeComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
-                @Override
-                public void execute(final NativeComponentSpec componentSpec) {
-                    componentSpec.getSource().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>() {
-                        @Override
-                        public void execute(HeaderExportingSourceSet headerSourceSet) {
-                            // Only apply default locations when none explicitly configured
-                            if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                                headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
-                            }
-
-                            headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                            headerSourceSet.getImplicitHeaders().include("**/*.h");
-                        }
-                    });
                 }
             });
         }

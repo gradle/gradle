@@ -99,8 +99,6 @@ public class CUnitPlugin implements Plugin<Project> {
                 launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
 
                 CSourceSet testSources = suiteSourceSet.maybeCreate("c", CSourceSet.class);
-                testSources.getSource().srcDir(String.format("src/%s/%s", suite.getName(), "c"));
-                testSources.getExportedHeaders().srcDir(String.format("src/%s/headers", suite.getName()));
                 testSources.lib(launcherSources);
             }
         }
