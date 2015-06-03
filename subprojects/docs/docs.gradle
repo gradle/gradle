@@ -167,9 +167,9 @@ task samples(type: ExtractSnippetsTask) {
     exclude '**/.gradle/**'
 
     // Resources that should not be filtered
+    def unfilterable = [ '**/*.a', '**/*.jar', '**/*.lib' ]
     exclude 'userguide/tutorial/antLoadfileResources/**'
-    exclude 'native-binaries/cunit/libs/**'
-    exclude 'native-binaries/google-test/libs/**'
+    exclude unfilterable
 
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
@@ -178,8 +178,7 @@ task samples(type: ExtractSnippetsTask) {
             from samplesSrcDir
             into samplesDir
             include 'userguide/tutorial/antLoadfileResources/**'
-            include 'native-binaries/cunit/libs/**'
-            include 'native-binaries/google-test/libs/**'
+            include unfilterable
         }
     }
 }

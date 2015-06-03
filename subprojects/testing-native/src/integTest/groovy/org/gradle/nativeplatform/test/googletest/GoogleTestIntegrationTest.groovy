@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -126,6 +127,23 @@ tasks.withType(RunTestExecutable) {
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
+    }
+
+    @Issue("GRADLE-3225")
+    def "can build and run googleTest test suite with C and C++ plugins"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << "apply plugin: 'c'"
+        file("src/hello/c").createDir().file("foo.c").text = "int foobar() { return 0; }"
+
+        when:
+        run "runHelloTestGoogleTestExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloC",
+            ":compileHelloTestGoogleTestExeHelloTestCpp",
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
     def "can configure via testSuite component"() {

@@ -21,18 +21,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
-import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.internal.configure.ToolSettingNativeBinaryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
@@ -127,7 +127,10 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
+        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
+                                            LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
+            final Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
+
             testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
                 @Override
                 public void execute(final CUnitTestSuiteSpec cUnitTestSuite) {
@@ -151,6 +154,7 @@ public class CUnitPlugin implements Plugin<Project> {
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
+                                setToolsAction.execute(testBinary);
                                 configure(testBinary, buildDir);
                             }
                         });
@@ -166,8 +170,6 @@ public class CUnitPlugin implements Plugin<Project> {
             String baseName = testBinary.getComponent().getBaseName();
 
             testBinary.setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
-
-            ((ExtensionAware) testBinary).getExtensions().create("cCompiler", DefaultPreprocessingTool.class);
         }
     }
 }
