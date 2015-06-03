@@ -19,11 +19,13 @@ package org.gradle.platform.base.internal.registry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.DefaultProjectLocator;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.LocalLibraryResolverProvider;
-import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
-import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.api.internal.resolve.ProjectLocator;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -68,12 +70,16 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new LanguageSourceSetLocalComponentFactory();
         }
 
-        LocalLibraryDependencyResolver createLibraryResolver(ProjectFinder projectFinder, BinarySpecToArtifactConverterRegistry registry) {
-            return new LocalLibraryDependencyResolver(projectFinder, registry);
+        LocalLibraryDependencyResolver createLibraryResolver(ProjectLocator projectLocator, BinarySpecToArtifactConverterRegistry registry) {
+            return new LocalLibraryDependencyResolver(projectLocator, registry);
         }
 
         LocalLibraryResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {
             return new LocalLibraryResolverProvider(resolver);
+        }
+
+        ProjectLocator createProjectLocator(ProjectFinder finder) {
+            return new DefaultProjectLocator(finder);
         }
 
         ProjectFinder createProjectFinder(final ProjectRegistry<ProjectInternal> projectRegistry) {

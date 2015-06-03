@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.resolve
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
@@ -24,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
@@ -38,6 +38,7 @@ import spock.lang.Unroll
 class LocalLibraryDependencyResolverTest extends Specification {
 
     Map<String, Project> projects
+    ProjectLocator locator
     ProjectFinder finder
     Project rootProject
     LocalLibraryDependencyResolver resolver
@@ -52,8 +53,9 @@ class LocalLibraryDependencyResolverTest extends Specification {
             String name = it[0]
             projects[name]
         }
+        locator = new DefaultProjectLocator(finder)
         rootProject = mockProject(':')
-        resolver = new LocalLibraryDependencyResolver(finder, Mock(BinarySpecToArtifactConverterRegistry))
+        resolver = new LocalLibraryDependencyResolver(locator, Mock(BinarySpecToArtifactConverterRegistry))
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)
@@ -67,6 +69,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         mock.findProject(':') >> mock
         mock.path >> ':'
         mock.modelRegistry >> Mock(ModelRegistry)
+        mock.tasks >> Mock(TaskContainerInternal)
         projects[path] = mock
         mock
     }

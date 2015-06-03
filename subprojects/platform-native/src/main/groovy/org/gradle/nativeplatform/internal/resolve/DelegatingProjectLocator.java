@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,24 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.resolve.ProjectLocator;
 
-public class DefaultProjectLocator implements ProjectLocator {
+public class DelegatingProjectLocator implements ProjectLocator {
     private final String projectPath;
-    private final ProjectFinder delegate;
+    private final ProjectLocator delegate;
+    private final ProjectFinder finder;
 
-    public DefaultProjectLocator(String projectPath, ProjectFinder delegate) {
+    public DelegatingProjectLocator(String projectPath, ProjectLocator delegate, ProjectFinder finder) {
         this.projectPath = projectPath;
         this.delegate = delegate;
+        this.finder = finder;
     }
 
     public ProjectInternal locateProject(String path) {
         if (path == null || path.length() == 0) {
-            return delegate.getProject(projectPath);
+            return finder.getProject(projectPath);
         }
 
-        ProjectInternal referencedProject = delegate.getProject(path);
-        // TODO This is a brain-dead way to ensure that the reference project's model is ready to access
-        referencedProject.evaluate();
-        referencedProject.getTasks().discoverTasks();
-        return referencedProject;
+        return delegate.locateProject(path);
     }
 }

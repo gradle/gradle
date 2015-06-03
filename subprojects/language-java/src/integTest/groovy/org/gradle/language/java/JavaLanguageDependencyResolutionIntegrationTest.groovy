@@ -45,7 +45,7 @@ model {
     }
 
     tasks {
-        assemble.finalizedBy('checkDependencies')
+        mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(createZdepJar)
         }
@@ -55,8 +55,11 @@ model {
         file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        expect:
-        succeeds 'assemble'
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped ':createZdepJar'
 
     }
 
@@ -85,7 +88,7 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription('Circular dependency between the following tasks')
 
     }
@@ -125,7 +128,7 @@ model {
         file('src/main2/java/TestApp2.java') << 'public class TestApp2 {}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription('Circular dependency between the following tasks')
 
     }
@@ -155,7 +158,7 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         expect: "build fails"
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project : library someLib'")
 
@@ -185,7 +188,7 @@ model {
     }
 
     tasks {
-        assemble.finalizedBy('checkDependencies')
+        mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:createMainJar')
         }
@@ -208,8 +211,11 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
         file('dep/src/main/java/Dep.java') << 'public class Dep {}'
 
-        expect:
-        succeeds 'assemble'
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped ':dep:createMainJar'
 
     }
 
@@ -251,7 +257,7 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         expect: "build fails"
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :sub library main'")
 
@@ -297,11 +303,11 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
 
-        and: "displays that the project doesn't exist"
+        and: "displays a suggestion about the library to use"
         failure.assertThatCause(matchesRegexp(".*Did you want to use 'main'.*"))
     }
 
@@ -344,11 +350,11 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep library doesNotExist'")
 
-        and: "displays that the project doesn't exist"
+        and: "displays a list of suggestion for libraries to use"
         failure.assertThatCause(matchesRegexp(".*Did you want to use one of 'awesome', 'lib'\\?.*"))
     }
 
@@ -376,7 +382,7 @@ model {
     }
 
     tasks {
-        assemble.finalizedBy('checkDependencies')
+        mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.containsAll(
             [':createOtherJar',':dep:createMainJar'])
@@ -401,8 +407,11 @@ model {
         file('src/other/java/Dep.java') << 'public class Dep {}'
         file('dep/src/main/java/SomeInterface.java') << 'public interface SomeInterface {}'
 
-        expect:
-        succeeds 'assemble'
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped ':dep:createMainJar', ':createOtherJar'
 
     }
 
@@ -445,11 +454,11 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
-        and: "displays that the project doesn't exist"
+        and: "displays a list of suggestions for libraries in dependent project"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'.*"))
     }
 
@@ -486,11 +495,11 @@ plugins {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         expect:
-        fails 'assemble'
+        fails ':mainJar'
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
-        and: "displays that the project doesn't exist"
+        and: "displays that the dependent project doesn't define any dependency"
         failure.assertThatCause(matchesRegexp(".*Project ':dep' doesn't define any library..*"))
     }
 
@@ -521,8 +530,10 @@ model {
 
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        expect:
-        fails 'assemble'
+        when:
+        fails ':mainJar'
+
+        then:
         failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve dependency 'project :dep default library'")
 
@@ -559,7 +570,7 @@ model {
                 assert !cp.contains(project(':c').createMainJar.archivePath)
             }
         }
-        assemble.finalizedBy('checkClasspath')
+        mainJar.finalizedBy('checkClasspath')
     }
 
 }
@@ -601,8 +612,11 @@ model {
         file('b/src/main/java/Dep.java') << 'public class Dep { void someMethod(Deeper deeper) {} }'
         file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
 
-        expect:
-        succeeds 'assemble'
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped ':c:createMainJar',':b:createMainJar'
 
     }
 
@@ -635,7 +649,7 @@ model {
                 assert !cp.contains(project(':c').createMainJar.archivePath)
             }
         }
-        assemble.finalizedBy('checkClasspath')
+        mainJar.finalizedBy('checkClasspath')
     }
 
 }
@@ -677,8 +691,11 @@ model {
         file('b/src/main/java/Dep.java') << 'public class Dep { void someMethod(Deeper deeper) {} }'
         file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
 
-        expect:
-        succeeds 'assemble'
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
 
     }
 
@@ -712,8 +729,10 @@ model {
         file('src/zdep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        expect:
-        fails 'assemble'
+        when:
+        fails ':mainJar'
+
+        then:
         failure.assertHasCause("Multiple binaries available for library 'zdep'")
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.resolve.ProjectLocator;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -37,7 +38,6 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.platform.base.BinaryContainer;
 

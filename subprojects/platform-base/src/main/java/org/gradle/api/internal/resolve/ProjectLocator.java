@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.internal.resolve;
+package org.gradle.api.internal.resolve;
 
 import org.gradle.api.internal.project.ProjectInternal;
 

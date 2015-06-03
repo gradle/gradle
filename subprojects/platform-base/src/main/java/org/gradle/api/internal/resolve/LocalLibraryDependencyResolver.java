@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
@@ -49,11 +48,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-    private final ProjectFinder projectFinder;
+    private final ProjectLocator projectLocator;
     private final BinarySpecToArtifactConverterRegistry binarySpecToArtifactConverterRegistry;
 
-    public LocalLibraryDependencyResolver(ProjectFinder projectFinder, BinarySpecToArtifactConverterRegistry registry) {
-        this.projectFinder = projectFinder;
+    public LocalLibraryDependencyResolver(ProjectLocator projectLocator, BinarySpecToArtifactConverterRegistry registry) {
+        this.projectLocator = projectLocator;
         this.binarySpecToArtifactConverterRegistry = registry;
     }
 
@@ -63,7 +62,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             final String selectorProjectPath = selector.getProjectPath();
             final String libraryName = selector.getLibraryName();
-            final ProjectInternal project = projectFinder.getProject(selectorProjectPath);
+            final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
             List<String> candidateLibraries = new LinkedList<String>();
             if (project != null) {
                 withLibrary(project, libraryName, candidateLibraries, new Action<LibrarySpec>() {
@@ -186,7 +185,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         final LibraryComponentIdentifier libId = componentId;
         String projectPath = libId.getProjectPath();
         final String libraryName = libId.getLibraryName();
-        ProjectInternal project = projectFinder.getProject(projectPath);
+        ProjectInternal project = projectLocator.locateProject(projectPath);
         if (project!=null) {
             withLibrary(project, libraryName, null, new Action<LibrarySpec>() {
                 @Override
