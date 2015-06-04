@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import java.util.Collection;
 
-public interface ResolvedProjectConfigurationResultBuilder {
-    void registerRoot(ComponentIdentifier componentId);
-    void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName);
-    ResolvedProjectConfigurationResults complete();
+public class DefaultResolvedLocalComponentsResult implements ResolvedLocalComponentsResult {
+    private final Collection<ResolvedProjectConfiguration> results;
+
+    public DefaultResolvedLocalComponentsResult(Collection<ResolvedProjectConfiguration> results) {
+        this.results = results;
+    }
+
+    @Override
+    public Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations() {
+        return results;
+    }
 }

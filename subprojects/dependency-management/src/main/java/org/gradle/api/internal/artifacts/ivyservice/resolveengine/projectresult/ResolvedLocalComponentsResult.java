@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-public interface ResolvedProjectConfigurationResults {
-    Iterable<ResolvedProjectConfiguration> get();
+public interface ResolvedLocalComponentsResult {
+    Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations();
 }

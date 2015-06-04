@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
@@ -75,10 +75,10 @@ public class DependencyGraphBuilder {
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder,
                         ResolvedArtifactsBuilder artifactsBuilder,
-                        ResolvedProjectConfigurationResultBuilder projectModelBuilder) throws ResolveException {
+                        ResolvedLocalComponentsResultBuilder projectModelBuilder) throws ResolveException {
         DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, artifactResolver);
         DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
-        DependencyGraphVisitor projectModelVisitor = new ResolvedProjectConfigurationResultGraphVisitor(projectModelBuilder);
+        DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder);
         DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
 
         resolveDependencyGraph(resolveContext, modelVisitor);

@@ -21,13 +21,13 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import spock.lang.Specification
 
 class ResolverResultsSpec extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
-    private projectConfigurationResult = Mock(ResolvedProjectConfigurationResults)
+    private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
     private fatalFailure = Mock(ResolveException)
     private results = new ResolverResults()
 

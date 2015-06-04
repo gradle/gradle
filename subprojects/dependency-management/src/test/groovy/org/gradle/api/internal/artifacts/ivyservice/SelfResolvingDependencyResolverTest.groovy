@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
@@ -46,7 +46,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "returns correct resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults)) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
         delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
@@ -65,7 +65,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "uses configuration transitive setting"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults)) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
         delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> false
@@ -81,7 +81,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "delegates to provided resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults)) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
         delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true

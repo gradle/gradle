@@ -16,39 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultResolvedProjectConfigurationResultBuilder implements ResolvedProjectConfigurationResultBuilder {
+public class DefaultResolvedLocalComponentsResultBuilder implements ResolvedLocalComponentsResultBuilder {
     private final List<ResolvedProjectConfiguration> results = new ArrayList<ResolvedProjectConfiguration>();
     private final boolean buildProjectDependencies;
-    private ComponentIdentifier rootId;
 
-    public DefaultResolvedProjectConfigurationResultBuilder(boolean buildProjectDependencies) {
+    public DefaultResolvedLocalComponentsResultBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
     @Override
-    public void registerRoot(ComponentIdentifier componentId) {
-        this.rootId = componentId;
-    }
-
-    @Override
-    public void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName) {
+    public void projectConfigurationResolved(ProjectComponentIdentifier componentId, String configurationName) {
         if (!buildProjectDependencies) {
-            return;
-        }
-        if (rootId.equals(componentId)) {
             return;
         }
         results.add(new DefaultResolvedProjectConfiguration(componentId, configurationName));
     }
 
     @Override
-    public ResolvedProjectConfigurationResults complete() {
-        return new DefaultResolvedProjectConfigurationResults(results);
+    public ResolvedLocalComponentsResult complete() {
+        return new DefaultResolvedLocalComponentsResult(results);
     }
 }

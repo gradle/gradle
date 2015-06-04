@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
     private delegate = Mock(ArtifactDependencyResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
-    private projectConfigResult = Mock(ResolvedProjectConfigurationResults)
+    private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
     private repositories = [Mock(ResolutionAwareRepository)]
     private metadataHandler = Stub(GlobalDependencyResolutionRules)

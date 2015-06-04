@@ -51,7 +51,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             return;
         }
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), resolveContext);
-        results.resolved(wrappedResult, results.getResolvedProjectConfigurationResults());
+        results.resolved(wrappedResult, results.getResolvedLocalComponentsResult());
     }
 
     public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {

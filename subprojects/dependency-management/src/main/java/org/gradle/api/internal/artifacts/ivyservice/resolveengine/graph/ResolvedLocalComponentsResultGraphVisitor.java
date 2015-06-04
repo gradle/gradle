@@ -18,25 +18,30 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
 
-public class ResolvedProjectConfigurationResultGraphVisitor implements DependencyGraphVisitor {
-    private final ResolvedProjectConfigurationResultBuilder builder;
+public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
+    private final ResolvedLocalComponentsResultBuilder builder;
+    private ComponentIdentifier rootId;
 
-    public ResolvedProjectConfigurationResultGraphVisitor(ResolvedProjectConfigurationResultBuilder builder) {
+    public ResolvedLocalComponentsResultGraphVisitor(ResolvedLocalComponentsResultBuilder builder) {
         this.builder = builder;
     }
 
     @Override
     public void start(DependencyGraphBuilder.ConfigurationNode root) {
-        builder.registerRoot(root.getComponentId());
+        rootId = root.getComponentId();
     }
 
     @Override
     public void visitNode(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration) {
+        if (rootId.equals(resolvedConfiguration.getComponentId())) {
+            return;
+        }
+
         ComponentIdentifier componentId = resolvedConfiguration.getComponentId();
         if (componentId instanceof ProjectComponentIdentifier) {
-            builder.addProjectComponentResult((ProjectComponentIdentifier) componentId, resolvedConfiguration.id.getConfiguration());
+            builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.id.getConfiguration());
         }
     }
 

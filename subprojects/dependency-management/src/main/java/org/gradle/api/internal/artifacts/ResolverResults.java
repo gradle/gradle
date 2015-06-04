@@ -24,13 +24,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 public class ResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
-    private ResolvedProjectConfigurationResults resolvedProjectConfigurationResults;
+    private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
     private ResolvedGraphResults graphResults;
     private ResolvedArtifactsBuilder artifactResults;
@@ -68,13 +68,13 @@ public class ResolverResults {
         if (fatalFailure != null) {
             throw fatalFailure;
         }
-        for (ResolvedProjectConfiguration resolvedProjectConfiguration : resolvedProjectConfigurationResults.get()) {
+        for (ResolvedProjectConfiguration resolvedProjectConfiguration : resolvedLocalComponentsResult.getResolvedProjectConfigurations()) {
             action.execute(resolvedProjectConfiguration);
         }
     }
 
-    public ResolvedProjectConfigurationResults getResolvedProjectConfigurationResults() {
-        return resolvedProjectConfigurationResults;
+    public ResolvedLocalComponentsResult getResolvedLocalComponentsResult() {
+        return resolvedLocalComponentsResult;
     }
 
     private void assertHasResult() {
@@ -89,9 +89,9 @@ public class ResolverResults {
         }
     }
 
-    public void resolved(ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
+    public void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult) {
         this.resolutionResult = resolutionResult;
-        this.resolvedProjectConfigurationResults = resolvedProjectConfigurationResults;
+        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.fatalFailure = null;
     }
 

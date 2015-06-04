@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -428,7 +428,7 @@ class DefaultConfigurationSpec extends Specification {
 
     private void expectResolved(ResolvedConfiguration resolvedConfiguration) {
         def resolutionResults = Mock(ResolutionResult)
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
 
         _ * projectConfigurationResults.get() >> Collections.emptySet()
         _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
@@ -787,7 +787,7 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def resolvedConfiguration = Mock(ResolvedConfiguration)
         def resolverResults = new ResolverResults()
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
 
         given:
         config.dependencies.add(dependency)
@@ -923,7 +923,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
         projectConfigurationResults.get() >> []
         resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(resolutionResult, projectConfigurationResults)

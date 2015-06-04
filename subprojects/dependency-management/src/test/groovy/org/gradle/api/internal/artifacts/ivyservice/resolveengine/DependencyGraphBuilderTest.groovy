@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Defa
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
@@ -66,7 +66,7 @@ class DependencyGraphBuilderTest extends Specification {
     def metaDataResolver = Mock(ComponentMetaDataResolver)
     def artifactResolver = Mock(ArtifactResolver)
     def resolutionResultBuilder = Mock(ResolutionResultBuilder)
-    def projectModelBuilder = Mock(ResolvedProjectConfigurationResultBuilder)
+    def projectModelBuilder = Mock(ResolvedLocalComponentsResultBuilder)
     def TestMetaData root = project('root')
     def moduleResolver = Mock(ResolveContextToComponentResolver)
     def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
@@ -159,10 +159,10 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * projectModelBuilder.registerRoot({ it.projectPath == ':root'})
-        1 * projectModelBuilder.addProjectComponentResult({ it.projectPath == ':root'}, { it == 'root' })
-        1 * projectModelBuilder.addProjectComponentResult({ it.projectPath == ':a'}, { it == 'default' })
-        1 * projectModelBuilder.addProjectComponentResult({ it.projectPath == ':b'}, { it == 'default' })
-        1 * projectModelBuilder.addProjectComponentResult({ it.projectPath == ':c'}, { it == 'default' })
+        1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':root'}, { it == 'root' })
+        1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':a'}, { it == 'default' })
+        1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':b'}, { it == 'default' })
+        1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':c'}, { it == 'default' })
         0 * projectModelBuilder._
     }
 
