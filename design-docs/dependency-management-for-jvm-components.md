@@ -263,11 +263,12 @@ dependencies of the source are also built and the source compiled.
 
 - Allow a `JarBinarySpec` to be added to the binaries container of any component.
 - When `jvm-component` plugin is applied, the Jar binary should be buildable.
-    - Fail when no rule is available to define the tasks of any `BinarySpec`.
 - API dependencies should be built before the Java source is compiled.
 - Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
 - Default Java platform and tool-chains are used to build the binary. For this story, the Java platform is not configurable for these binaries.
 - Dependency resolution honors the target platform of the consuming custom Jar binary.
+- Error cases:
+    - Fail when no rule is available to define the tasks for a `BinarySpec`.
 
 ### Test cases
 
