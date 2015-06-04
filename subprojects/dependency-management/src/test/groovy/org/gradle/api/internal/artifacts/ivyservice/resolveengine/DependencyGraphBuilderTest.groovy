@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
-import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.id.ArtifactId
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -38,9 +40,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
-import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper
 import org.gradle.internal.component.model.*
@@ -57,7 +62,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 
 class DependencyGraphBuilderTest extends Specification {
     def configuration = Mock(ConfigurationInternal)
@@ -67,7 +71,7 @@ class DependencyGraphBuilderTest extends Specification {
     def artifactResolver = Mock(ArtifactResolver)
     def resolutionResultBuilder = Mock(ResolutionResultBuilder)
     def projectModelBuilder = Mock(ResolvedLocalComponentsResultBuilder)
-    def TestMetaData root = project('root')
+    def root = project('root', '1.0', ['root'])
     def moduleResolver = Mock(ResolveContextToComponentResolver)
     def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
     def moduleReplacements = Mock(ModuleReplacementsData)
@@ -75,7 +79,6 @@ class DependencyGraphBuilderTest extends Specification {
     DependencyGraphBuilder builder
 
     def setup() {
-        config(root, 'root', 'default')
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
@@ -159,8 +162,11 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':a'}, { it == 'default' })
+        1 * projectModelBuilder.localComponentResolved({ it.projectPath == ':a'}, _)
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':b'}, { it == 'default' })
+        1 * projectModelBuilder.localComponentResolved({ it.projectPath == ':b'}, _)
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':c'}, { it == 'default' })
+        1 * projectModelBuilder.localComponentResolved({ it.projectPath == ':c'}, _)
         0 * projectModelBuilder._
     }
 
@@ -929,30 +935,30 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def revision(String name, String revision = '1.0') {
-        def descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
-        def metaData = new TestModuleMetaData(descriptor)
-        config(metaData, 'default')
-        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
-        return metaData
+        // TODO Shouldn't really be using the local component implementation here
+        def id = newId("group", name, revision)
+        def metaData = new DefaultLocalComponentMetaData(id, DefaultModuleComponentIdentifier.newId(id), "release")
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, new DefaultTaskDependency())
+        metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
+//        def descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
+//        def metaData = new MutableModuleMetaData(descriptor)
+//        metaData.descriptor.addConfiguration(new org.apache.ivy.core.module.descriptor.Configuration('default', org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC, null, [] as String[], true, null))
+//        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
+        return metaData.toResolveMetaData()
     }
 
-    def project(String name, String revision = '1.0') {
-        def revisionId = createModuleRevisionId("group", name, revision)
-        def descriptor = new DefaultModuleDescriptor(revisionId, "release", new Date())
-        def metaData = new TestProjectMetaData(newId(revisionId), descriptor, DefaultProjectComponentIdentifier.newId(":${name}"))
-        config(metaData, 'default')
-        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
-        return metaData
+    def project(String name, String revision = '1.0', List<String> extraConfigs = []) {
+        def metaData = new DefaultLocalComponentMetaData(newId("group", name, revision), DefaultProjectComponentIdentifier.newId(":${name}"), "release")
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, new DefaultTaskDependency())
+        extraConfigs.each { String config ->
+            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, new DefaultTaskDependency())
+        }
+        metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
+        return metaData.toResolveMetaData()
     }
 
-    def config(ComponentResolveMetaData metaData, String name, String... extendsFrom) {
-        def configuration = new org.apache.ivy.core.module.descriptor.Configuration(name, org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC, null, extendsFrom, true, null)
-        metaData.descriptor.addConfiguration(configuration)
-        return configuration
-    }
-
-    def traverses(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
-        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+    def traverses(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.id)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
 
         1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
@@ -960,28 +966,28 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def doesNotTraverse(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
-        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+    def doesNotTraverse(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.id)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
         0 * metaDataResolver.resolve(to.componentId, _, _)
     }
 
-    def doesNotResolve(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
-        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+    def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.id)
         0 * idResolver.resolve(dependencyMetaData, _)
         0 * metaDataResolver.resolve(to.componentId, _, _)
     }
 
-    def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
-        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+    def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.id)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
         1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.notFound(to.componentId)
         }
     }
 
-    def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
-        def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
+    def traversesBroken(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {
+        def dependencyMetaData = dependsOn(args, from, to.id)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
         1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
@@ -996,28 +1002,32 @@ class DependencyGraphBuilderTest extends Specification {
         moduleVersionIdentifier
     }
 
-    def brokenSelector(Map<String, ?> args = [:], TestMetaData from, String to) {
-        def dependencyMetaData = dependsOn(args, from, createModuleRevisionId("group", to, "1.0"))
+    def brokenSelector(Map<String, ?> args = [:], def from, String to) {
+        def dependencyMetaData = dependsOn(args, from, newId("group", to, "1.0"))
         1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetaData dep, BuildableComponentIdResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
         }
     }
 
-    def dependsOn(Map<String, ?> args = [:], TestMetaData from, ModuleRevisionId to) {
-        def dependencyId = args.revision ? createModuleRevisionId(to.moduleId.organisation, to.moduleId.name, args.revision) : to
+    def dependsOn(Map<String, ?> args = [:], ComponentResolveMetaData from, ModuleVersionIdentifier to) {
+        ModuleVersionIdentifier dependencyId = args.revision ? newId(to.group, to.name, args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
-        def descriptor = new DefaultDependencyDescriptor(from.descriptor, dependencyId, force, false, transitive)
-        descriptor.addDependencyConfiguration("default", "default")
+        ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, dependencyId.version)
+        ComponentSelector componentSelector = DefaultModuleComponentSelector.newSelector(selector)
+        def excludeRules = []
         if (args.exclude) {
-            descriptor.addExcludeRule("default", new DefaultExcludeRule(new ArtifactId(
-                    args.exclude.descriptor.moduleRevisionId.moduleId, PatternMatcher.ANY_EXPRESSION,
+            ComponentResolveMetaData excluded = args.exclude
+            excludeRules << new DefaultExcludeRule(new ArtifactId(new ModuleId(excluded.id.group, excluded.id.name),
+                    PatternMatcher.ANY_EXPRESSION,
                     PatternMatcher.ANY_EXPRESSION,
                     PatternMatcher.ANY_EXPRESSION),
-                    ExactPatternMatcher.INSTANCE, null))
+                    ExactPatternMatcher.INSTANCE, null)
         }
-        def dependencyMetaData = new DslOriginDependencyMetaDataWrapper(new DefaultDependencyMetaData(descriptor), Stub(ModuleDependency))
-        from.addDependency(dependencyMetaData)
+        def dependencyMetaData = new LocalComponentDependencyMetaData(componentSelector, selector, "default", "default", [] as Set<IvyArtifactName>,
+                                                                      excludeRules as org.apache.ivy.core.module.descriptor.ExcludeRule[], force, false, transitive)
+        dependencyMetaData = new DslOriginDependencyMetaDataWrapper(dependencyMetaData, Stub(ModuleDependency))
+        from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData
     }
 
@@ -1027,7 +1037,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def ids(ModuleComponentResolveMetaData... descriptors) {
+    def ids(ComponentResolveMetaData... descriptors) {
         return descriptors.collect { it.id } as Set
     }
 
@@ -1045,55 +1055,5 @@ class DependencyGraphBuilderTest extends Specification {
 
     def artifacts(LenientConfiguration config) {
         return config.resolvedArtifacts.collect { it.moduleVersion.id } as Set
-    }
-
-    private interface TestMetaData extends ComponentResolveMetaData {
-        void addDependency(DependencyMetaData dependencyMetaData)
-    }
-
-    private static class TestModuleMetaData extends BuildableIvyModuleResolveMetaData implements TestMetaData {
-        def deps = []
-
-        TestModuleMetaData(DefaultModuleDescriptor module) {
-            super(module)
-        }
-
-        @Override
-        void addDependency(DependencyMetaData dependencyMetaData) {
-            deps.add(dependencyMetaData)
-        }
-
-        @Override
-        protected List<DependencyMetaData> populateDependenciesFromDescriptor() {
-            return deps
-        }
-    }
-
-    private static class TestProjectMetaData extends AbstractModuleDescriptorBackedMetaData implements TestMetaData {
-        def deps = []
-
-        TestProjectMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor module, ComponentIdentifier componentIdentifier) {
-            super(moduleVersionIdentifier, module, componentIdentifier)
-        }
-
-        @Override
-        void addDependency(DependencyMetaData dependencyMetaData) {
-            deps.add(dependencyMetaData)
-        }
-
-        @Override
-        protected List<DependencyMetaData> populateDependenciesFromDescriptor() {
-            return deps
-        }
-
-        @Override
-        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configuration) {
-            return []
-        }
-
-        @Override
-        ComponentResolveMetaData withSource(ModuleSource source) {
-            return null
-        }
     }
 }
