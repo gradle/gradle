@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.tasks.TaskDependency;
 
 public interface ResolvedLocalComponentsResultBuilder {
+    void localComponentResolved(ComponentIdentifier componentIdentifier, TaskDependency buildDependency);
     void projectConfigurationResolved(ProjectComponentIdentifier componentId, String configurationName);
     ResolvedLocalComponentsResult complete();
 }

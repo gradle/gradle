@@ -405,14 +405,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
             final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
             resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-            cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
-                @Override
-                public void execute(ResolvedProjectConfiguration projectResult) {
-                    ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                    Configuration targetConfig = project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                    taskDependency.add(DirectBuildDependencies.forDependenciesAndArtifacts(targetConfig));
-                }
-            });
+
+            taskDependency.add(cachedResolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
             taskDependency.add(DirectBuildDependencies.forDependenciesOnly(this));
             return taskDependency;
         } else {

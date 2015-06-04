@@ -57,7 +57,7 @@ class ResolverResultsSpec extends Specification {
         Action<ResolvedProjectConfiguration> action = Mock(Action)
         def projectConfiguration = Mock(ResolvedProjectConfiguration)
 
-        projectConfigurationResult.get() >> [projectConfiguration]
+        projectConfigurationResult.getResolvedProjectConfigurations() >> [projectConfiguration]
 
         when:
         results.resolved(resolutionResult, projectConfigurationResult)

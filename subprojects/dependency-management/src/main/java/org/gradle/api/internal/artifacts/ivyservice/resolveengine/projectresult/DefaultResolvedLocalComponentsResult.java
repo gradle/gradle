@@ -16,17 +16,27 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
+import org.gradle.api.tasks.TaskDependency;
+
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultResolvedLocalComponentsResult implements ResolvedLocalComponentsResult {
-    private final Collection<ResolvedProjectConfiguration> results;
+    private final Collection<ResolvedProjectConfiguration> resolvedProjectConfigurations;
+    private final TaskDependency componentBuildDependencies;
 
-    public DefaultResolvedLocalComponentsResult(Collection<ResolvedProjectConfiguration> results) {
-        this.results = results;
+    public DefaultResolvedLocalComponentsResult(List<ResolvedProjectConfiguration> resolvedProjectConfigurations, TaskDependency componentBuildDependencies) {
+        this.resolvedProjectConfigurations = resolvedProjectConfigurations;
+        this.componentBuildDependencies = componentBuildDependencies;
+    }
+
+    @Override
+    public TaskDependency getComponentBuildDependencies() {
+        return componentBuildDependencies;
     }
 
     @Override
     public Iterable<ResolvedProjectConfiguration> getResolvedProjectConfigurations() {
-        return results;
+        return resolvedProjectConfigurations;
     }
 }

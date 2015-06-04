@@ -158,8 +158,6 @@ class DependencyGraphBuilderTest extends Specification {
         resolve()
 
         then:
-        1 * projectModelBuilder.registerRoot({ it.projectPath == ':root'})
-        1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':root'}, { it == 'root' })
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':a'}, { it == 'default' })
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':b'}, { it == 'default' })
         1 * projectModelBuilder.projectConfigurationResolved({ it.projectPath == ':c'}, { it == 'default' })

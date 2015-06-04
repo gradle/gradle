@@ -63,6 +63,7 @@ public class ResolverResults {
         return resolutionResult;
     }
 
+    // TODO:DAZ Remove this
     public void eachResolvedProject(Action<ResolvedProjectConfiguration> action) {
         assertHasResult();
         if (fatalFailure != null) {
@@ -73,7 +74,11 @@ public class ResolverResults {
         }
     }
 
-    public ResolvedLocalComponentsResult getResolvedLocalComponentsResult() {
+    public ResolvedLocalComponentsResult getResolvedLocalComponents() {
+        assertHasResult();
+        if (fatalFailure != null) {
+            throw fatalFailure;
+        }
         return resolvedLocalComponentsResult;
     }
 

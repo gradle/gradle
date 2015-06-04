@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
+import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
+import org.gradle.internal.component.model.ConfigurationMetaData;
 
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
     private final ResolvedLocalComponentsResultBuilder builder;
@@ -42,6 +44,10 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
         ComponentIdentifier componentId = resolvedConfiguration.getComponentId();
         if (componentId instanceof ProjectComponentIdentifier) {
             builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.id.getConfiguration());
+        }
+        ConfigurationMetaData configurationMetaData = resolvedConfiguration.getMetaData();
+        if (configurationMetaData instanceof LocalConfigurationMetaData) {
+            builder.localComponentResolved(componentId, ((LocalConfigurationMetaData) configurationMetaData).getDirectBuildDependencies());
         }
     }
 

@@ -16,13 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultResolvedLocalComponentsResultBuilder implements ResolvedLocalComponentsResultBuilder {
-    private final List<ResolvedProjectConfiguration> results = new ArrayList<ResolvedProjectConfiguration>();
+    private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
+    private final DefaultTaskDependency componentBuildDependencies = new DefaultTaskDependency();
     private final boolean buildProjectDependencies;
 
     public DefaultResolvedLocalComponentsResultBuilder(boolean buildProjectDependencies) {
@@ -30,15 +34,20 @@ public class DefaultResolvedLocalComponentsResultBuilder implements ResolvedLoca
     }
 
     @Override
-    public void projectConfigurationResolved(ProjectComponentIdentifier componentId, String configurationName) {
+    public void localComponentResolved(ComponentIdentifier componentIdentifier, TaskDependency buildDependency) {
         if (!buildProjectDependencies) {
             return;
         }
-        results.add(new DefaultResolvedProjectConfiguration(componentId, configurationName));
+        componentBuildDependencies.add(buildDependency);
+    }
+
+    @Override
+    public void projectConfigurationResolved(ProjectComponentIdentifier componentId, String configurationName) {
+        resolvedProjectConfigurations.add(new DefaultResolvedProjectConfiguration(componentId, configurationName));
     }
 
     @Override
     public ResolvedLocalComponentsResult complete() {
-        return new DefaultResolvedLocalComponentsResult(results);
+        return new DefaultResolvedLocalComponentsResult(resolvedProjectConfigurations, componentBuildDependencies);
     }
 }
