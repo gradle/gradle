@@ -147,7 +147,8 @@ Resolve the task dependencies and artifacts for the compile time dependency grap
 
 - When a Java library is to be compiled, determine the tasks required to build the API of its required libraries.
 - When a Java library is compiled, provide a classpath that contains the API of its required libraries.
-- API of a Java library is its Jar binary only.
+- API of a Java library is its Jar binary only, and no transitive dependencies. The runtime of the Java library, which is to be added in later stories, will include
+  the transitive dependencies.
 - Error cases:
     - Java library does not have exactly one Jar binary. For example, for a library with multiple target platforms.
         - Error message should include details of which binaries are available.
@@ -163,6 +164,7 @@ Out of scope:
 - Given `a` requires `b` requires `c`.
     - When the source for `a` is compiled, the compile classpath contains the Jar for `b` but not the Jar for `c`.
 - Reasonable error message when building a library with a dependency cycle.
+- Jar is built when library depends on itself.
 - Error cases as above.
 
 ### Implementation:
@@ -170,7 +172,7 @@ Out of scope:
 The implementation should continue to build on the dependency resolution engine.
 
 - When the meta-data for a Java library is assembled, attach the Jar
-    - Select the `JarBinarySpec` to use from the Java library's set of binaries. Fail if there aren't exactly one.
+    - Select the `JarBinarySpec` to use from the Java library's set of binaries. Fail if there isn't exactly one such binary.
     - Add a `PublishArtifact` implementation for this `JarBinarySpec`.
 
 ## Story: Compatible variant of Java library is selected
@@ -178,12 +180,24 @@ The implementation should continue to build on the dependency resolution engine.
 When a Java library has multiple target Java platforms, select a compatible variant of its dependencies, or fail when none available.
 
 - When compiling Java library variant for Java `n`, then from the target library select the Jar binary with the highest target platform that is <= 'n'
-- Fail when there is no such Jar binary. For example, when building for Java 7, fail if a required library has target platform Java 9.
+- Error cases:
+    - Fail when there is no Jar binary with compatible target platform. For example, when building for Java 7, fail if a required library has target platform Java 9.
+      Error message should include information about which target platforms are available.
 
 ### Test cases
 
-- Consume a Java library that has different required libraries for each target platform. For example, for Java 7 it requires library 'a' and for Java 9 it requires
-library 'b'.
+- Given library `a` requires library `b`
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 6, then both binaries of `a` are built against `b` Java 6.
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 6 and Java 7, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7. 
+- Error cases as above.
+
+## Story: Resolution failures explain why library selector was attempted
+
+The goal is parity with the error reporting for `Configuration` resolution failures.
+
+- Show the path through the graph from the consumer to the problematic selector 
+- Give a reasonable display name for the consumer, nodes in the graph and the selectors
+- Collect all selector resolve failures
 
 ## Feature backlog
 
