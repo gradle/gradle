@@ -172,7 +172,7 @@ This allows the effective values of the build model to be visualised, not just t
 [`@Managed`](javadoc/org/gradle/model/Managed.html) types can now implement the [`Named`](javadoc/org/gradle/api/Named.html) interface.
 The `name` property will be automatically populated based on the objects location in the model graph.
 
-It is now possible to declare properties of type [`ModelMap<T>`](javadoc/org/gradle/model/ModelMap.html), where `T` is-a [`Named`](javadoc/org/gradle/api/Named.html).
+It is now possible for [`@Managed`] types to declare properties of type [`ModelMap<T>`](javadoc/org/gradle/model/ModelMap.html).
 
 - TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
 
@@ -248,19 +248,11 @@ Currently component container can be only accessed using model rules.
 - `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super DomainObjectSet<BinarySpec>>`
 - Source sets and binaries cannot be removed
 
-#### Changes to source sets container of `BinarySpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-
 #### Changes in NativeBinariesTestPlugin
 
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
 - `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
 - All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle it was eager.
-
-#### ManagedSet renamed to ModelSet
-
-The, incubating, `org.gradle.model.collection.ManagedSet` type has been renamed to `org.gradle.model.ModelSet`.
 
 ### Maven publishing
 
