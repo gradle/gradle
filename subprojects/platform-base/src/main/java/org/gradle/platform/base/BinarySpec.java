@@ -19,12 +19,12 @@ package org.gradle.platform.base;
 import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.ModelMap;
 
 /**
  * Represents a binary artifact that is the result of building a project component.
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface BinarySpec extends BuildableModelElement, Named {
     /**
      * Returns a human-consumable display name for this binary.
@@ -37,15 +37,10 @@ public interface BinarySpec extends BuildableModelElement, Named {
     boolean isBuildable();
 
     /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
+     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary. <p/> This method accepts the following types:
      *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
+     * <ul> <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li> <li>A {@link org.gradle.language.base.LanguageSourceSet}</li> <li>A Collection of {@link
+     * org.gradle.language.base.LanguageSourceSet}s</li> </ul>
      */
     // TODO:DAZ Remove this
     void source(Object source);
@@ -58,7 +53,7 @@ public interface BinarySpec extends BuildableModelElement, Named {
     /**
      * Configures the source sets used to build this binary.
      */
-    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
+    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
     /**
      * The set of tasks associated with this binary.

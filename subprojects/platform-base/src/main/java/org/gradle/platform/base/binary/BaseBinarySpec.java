@@ -19,6 +19,7 @@ package org.gradle.platform.base.binary;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -26,9 +27,6 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -37,12 +35,9 @@ import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
 
 /**
- * Base class for custom binary implementations.
- * A custom implementation of {@link org.gradle.platform.base.BinarySpec} must extend this type.
+ * Base class for custom binary implementations. A custom implementation of {@link org.gradle.platform.base.BinarySpec} must extend this type.
  *
- * TODO at the moment leaking BinarySpecInternal here to generate lifecycleTask in
- * LanguageBasePlugin$createLifecycleTaskForBinary#createLifecycleTaskForBinary rule
- *
+ * TODO at the moment leaking BinarySpecInternal here to generate lifecycleTask in LanguageBasePlugin$createLifecycleTaskForBinary#createLifecycleTaskForBinary rule
  */
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
@@ -119,14 +114,9 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return sourceSets.getSources();
     }
 
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(
-            ModelMapGroovyDecorator.wrap(
-                NamedDomainObjectSetBackedModelMap.wrap(
-                    LanguageSourceSet.class, sourceSets.getMainSources()
-                )
-            )
-        );
+
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(sourceSets.getMainSources());
     }
 
     // TODO:DAZ Remove this
