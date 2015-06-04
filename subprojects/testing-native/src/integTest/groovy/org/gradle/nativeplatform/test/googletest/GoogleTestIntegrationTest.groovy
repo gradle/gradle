@@ -71,16 +71,21 @@ model {
         }
     }
 }
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
+"""
+        addGoogleTestDep()
+    }
+
+    private void addGoogleTestDep() {
+        buildFile << """
 binaries.withType(GoogleTestTestSuiteBinarySpec) {
     lib library: "googleTest", linkage: "static"
     if (targetPlatform.operatingSystem.linux) {
         cppCompiler.args '-pthread'
         linker.args '-pthread'
     }
-}
-
-tasks.withType(RunTestExecutable) {
-    args "--gtest_output=xml:test_detail.xml"
 }
 """
     }
@@ -174,6 +179,7 @@ tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
 """
+        addGoogleTestDep()
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -280,10 +286,8 @@ model {
         }
     }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
 """
+        addGoogleTestDep()
 
         then:
         succeeds "runHelloTestGoogleTestExe"
