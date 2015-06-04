@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -137,12 +138,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     private static List<String> formatLibraryNames(List<String> libs) {
-        return Lists.transform(libs, new Function<String, String>() {
+        List<String> list = Lists.transform(libs, new Function<String, String>() {
             @Override
             public String apply(String input) {
                 return String.format("'%s'", input);
             }
         });
+        return Ordering.natural().sortedCopy(list);
     }
 
     @Override
