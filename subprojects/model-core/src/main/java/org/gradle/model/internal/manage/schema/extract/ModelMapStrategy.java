@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
 import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -68,13 +67,6 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
                         throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
                             "cannot create a model map of type %s as it is not a %s type.",
                             elementType, Managed.class.getName()
-                        ));
-                    }
-
-                    if (!Named.class.isAssignableFrom(elementType.getRawClass())) {
-                        throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                            "cannot create a model map of type %s as it does not implement %s.",
-                            elementType, Named.class.getName()
                         ));
                     }
                 }

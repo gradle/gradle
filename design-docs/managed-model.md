@@ -40,11 +40,10 @@ Moreover, we consider owning the implementation of model elements an enabler for
     }
 
 - No setter for property allowed
-- Element type must implement `Named`, and have no `setName`
 - Element type must be `@Managed`
 - Type taking creation methods must support subtypes
 - Rule taking methods (e.g. `all(Action)`) must throw when object is read only
-- All created elements must have `name` property populated, matching the node link name
+- All created elements implementing `Named` must have `name` property populated, matching the node link name
 - Can depend on model map element by specific type in rules
 - Element type cannot be any kind of type var
 - Can be top level element

@@ -293,4 +293,41 @@ parent
         )
     }
 
+    def "name is not populated when entity is not named"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+              String getName()
+              void setName(String name)
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void things(ModelMap<Thing> things) {
+                things.create("a")
+                things.create("b")
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("print") {
+                  doLast {
+                    println "things: ${$("things").values().collect { it.name }.join(',')}"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "things: null,null"
+    }
+
 }
