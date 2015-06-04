@@ -205,4 +205,11 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    void control_D() {
+        stdinPipe.write(4)
+        if (executer.isDaemon()) {
+            // For some reason, this is necessary when running in a daemon
+            stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes)
+        }
+    }
 }

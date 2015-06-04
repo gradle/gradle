@@ -84,7 +84,8 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinu
         succeeds()
 
         when:
-        stdinPipe.write(4) // ctrl-d
+        println "sending ctrl-d"
+        control_D()
 
         then:
         cancelsAndExits()

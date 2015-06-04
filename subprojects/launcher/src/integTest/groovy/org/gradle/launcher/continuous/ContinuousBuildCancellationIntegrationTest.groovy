@@ -44,7 +44,7 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         if (flushBefore) {
             stdinPipe.flush()
         }
-        stdinPipe.write(4)
+        control_D()
 
         then:
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
@@ -92,7 +92,7 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
             succeeds()
         }
         and:
-        stdinPipe.write(4)
+        control_D()
 
         then:
         new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
