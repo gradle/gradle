@@ -36,7 +36,7 @@ Later work:
 2. Support for runtime dependencies.
 3. TBD - reporting, etc.
 
-# Feature: Build author declares dependencies of Java library
+# Feature 1: Build author declares dependencies of Java library
 
 This feature adds support for compile time dependencies between Java libraries.
 
@@ -212,7 +212,7 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 - allow a `LibrarySpec` instance to be added as a requirement.
 - make dependency declarations managed and immutable post resolve
 
-# Feature: Custom component built from Java source
+# Feature 2: Custom component built from Java source
 
 This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
 
@@ -317,6 +317,8 @@ Change dependency resolution to honor the variant dimensions for a custom compon
 - Plugin declares Jar or classes as intermediate output rather than final output.
 - Expose a way to query the resolved compile classpath for a Java source set.
 - Plugin author defines target Java platform for Jar binary
+
+# Feature 3: TBD 
 
 # Later work
 
