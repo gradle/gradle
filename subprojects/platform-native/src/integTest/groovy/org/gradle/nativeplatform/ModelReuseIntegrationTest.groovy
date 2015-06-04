@@ -14,19 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm
+package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.SingleToolChainTestRunner
+import org.junit.runner.RunWith
 
 // Requires daemon because reuse right now doesn't handle the build actually changing
+@RequiresInstalledToolChain
+@RunWith(SingleToolChainTestRunner.class)
 class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
-        EnableModelDsl.enable(executer)
+        def toolChain = AbstractInstalledToolChainIntegrationSpec.toolChain
+        def initScript = file("init.gradle") << """
+allprojects { p ->
+    apply plugin: ${toolChain.pluginClass}
 
+    model {
+          toolChains {
+            ${toolChain.buildScriptConfig}
+          }
+    }
+}
+"""
         executer.beforeExecute {
+            usingInitScript(initScript)
             withArgument("-D$ReusingModelRegistryStore.TOGGLE=true")
         }
     }
@@ -35,28 +51,35 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
         when:
         buildScript """
             plugins {
-              id "org.gradle.jvm-component"
-              id "org.gradle.java-lang"
+              id "c"
             }
 
             model {
                 components {
-                    main(JvmLibrarySpec)
+                  main(NativeExecutableSpec)
                 }
             }
         """
 
-        file("src/main/java/Thing.java") << "class Thing {}"
+        file("src/main/c/lib.c") << """
+            int main() {
+              return 0;
+            }
+        """
 
         then:
         succeeds "build"
-        executedAndNotSkipped ":compileMainJarMainJava"
+        executedAndNotSkipped ":compileMainExecutableMainC"
 
         when:
-        file("src/main/java/Thing.java").text = "class Thing { static int foo = 1; }"
+        file("src/main/c/lib.c").text = """
+            int main() {
+              return 10;
+            }
+        """
 
         then:
         succeeds "build"
-        executedAndNotSkipped ":compileMainJarMainJava"
+        executedAndNotSkipped ":compileMainExecutableMainC"
     }
 }

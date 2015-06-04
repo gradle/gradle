@@ -150,7 +150,6 @@ public class CUnitPlugin implements Plugin<Project> {
                             @Override
                             public void execute(CUnitTestSuiteBinarySpec binary) {
                                 DefaultCUnitTestSuiteBinary testBinary = (DefaultCUnitTestSuiteBinary) binary;
-                                testBinary.setComponent(cUnitTestSuite);
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);

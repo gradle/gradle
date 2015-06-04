@@ -119,7 +119,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
                             @Override
                             public void execute(GoogleTestTestSuiteBinarySpec binary) {
                                 DefaultGoogleTestTestSuiteBinary testBinary = (DefaultGoogleTestTestSuiteBinary) binary;
-                                testBinary.setComponent(testSuiteSpec);
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);

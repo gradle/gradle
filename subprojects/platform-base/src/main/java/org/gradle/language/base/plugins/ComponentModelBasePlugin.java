@@ -170,7 +170,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     binarySpecFactory.register(type, null, new BiFunction<U, String, MutableModelNode>() {
                         @Override
                         public U apply(String s, MutableModelNode modelNode) {
-                            return factory.create(s);
+                            final U binarySpec = factory.create(s);
+                            final Object parentObject = modelNode.getParent().getParent().getPrivateData();
+                            if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
+                                ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
+                            }
+
+                            return binarySpec;
                         }
                     });
                 }

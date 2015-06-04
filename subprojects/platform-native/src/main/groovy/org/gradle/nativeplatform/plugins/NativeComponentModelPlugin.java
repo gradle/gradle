@@ -22,10 +22,8 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -41,11 +39,10 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
-import org.gradle.nativeplatform.internal.configure.*;
+import org.gradle.nativeplatform.internal.configure.NativeComponentRules;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
@@ -54,8 +51,6 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegist
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
@@ -85,9 +80,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(NativeComponentSpec.class), NativeComponentRules.class);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-
         @ComponentType
         void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableSpec.class);
@@ -155,25 +148,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @BinaryType
         void registerNativeExecutableBinaryType(BinaryTypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
-        }
-
-        @ComponentBinaries
-        public void createNativeBinaries(ModelMap<NativeBinarySpec> binaries, NativeComponentSpec nativeComponent,
-                                         LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
-                                         PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
-                                         ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
-            Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
-            Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
-            @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction);
-            NativeBinariesFactory factory = new DefaultNativeBinariesFactory(binaries, initAction, resolver);
-            BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
-            Action<NativeComponentSpec> createBinariesAction =
-                new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, nativePlatforms, buildTypes, flavors);
-
-            createBinariesAction.execute(nativeComponent);
         }
 
         @Finalize
@@ -294,6 +268,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 sourceSet.srcDir(value);
             }
         }
+
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
@@ -312,4 +287,5 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             return object.getName();
         }
     }
+
 }

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.model;
+package org.gradle.platform.base.internal;
 
-import org.gradle.model.internal.core.BaseInstanceFactory;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 
-public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, String> {
-    public BinarySpecFactory(String displayName) {
-        super(displayName);
-    }
+public interface ComponentSpecAware {
+
+    void setComponent(ComponentSpec componentSpec);
+
 }

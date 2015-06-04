@@ -75,17 +75,18 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return new ChildNodeCreatorStrategy<T>() {
             @Override
             public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
-                return ModelCreators.of(parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(parentNode);
-                        S item = instantiator.create(name, type.getConcreteClass());
-                        modelNode.setPrivateData(type, item);
-                    }
-                })
-                                    .withProjection(UnmanagedModelProjection.of(type))
-                                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-                                    .build();
+                return ModelCreators.of(
+                    parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        @Override
+                        public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                            NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(parentNode);
+                            S item = instantiator.create(name, type.getConcreteClass());
+                            modelNode.setPrivateData(type, item);
+                        }
+                    })
+                    .withProjection(UnmanagedModelProjection.of(type))
+                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
+                    .build();
             }
         };
     }
@@ -94,18 +95,19 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return new ChildNodeCreatorStrategy<T>() {
             @Override
             public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
-                return ModelCreators.of(parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
-                        S item = instantiator.create(type.getConcreteClass(), modelNode, name);
-                        modelNode.setPrivateData(type, item);
-                    }
-                })
-                                    .inputs(factoryReference)
-                                    .withProjection(UnmanagedModelProjection.of(type))
-                                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-                                    .build();
+                return ModelCreators.of(
+                    parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        @Override
+                        public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                            InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
+                            S item = instantiator.create(type.getConcreteClass(), modelNode, name);
+                            modelNode.setPrivateData(type, item);
+                        }
+                    })
+                    .inputs(factoryReference)
+                    .withProjection(UnmanagedModelProjection.of(type))
+                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
+                    .build();
             }
         };
     }
@@ -193,12 +195,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         ModelCreator creator = creatorStrategy.creator(modelNode, sourceDescriptor, type, name);
         modelNode.addLink(creator);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "%s.<init>", name);
-        modelNode.applyToLink(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
-            @Override
-            public void execute(S s) {
-                initAction.execute(s);
-            }
-        }));
+        modelNode.applyToLink(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(creator.getPath(), type), descriptor, initAction));
         if (eager) {
             //noinspection ConstantConditions
             modelNode.getLink(name).ensureUsable();

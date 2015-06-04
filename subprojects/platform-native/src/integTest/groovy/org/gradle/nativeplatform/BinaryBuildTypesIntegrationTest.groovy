@@ -177,7 +177,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries(")
+        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.internal.configure.NativeComponentRules#createBinaries(")
         failure.assertHasCause("Invalid BuildType: 'unknown'")
     }
 

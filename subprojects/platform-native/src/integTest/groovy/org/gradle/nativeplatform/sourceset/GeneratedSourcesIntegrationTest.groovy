@@ -139,7 +139,7 @@ model {
                 generatedC(CSourceSet) {
                     generatedBy tasks.generateCSources
                 }
-                c.lib sources.generatedC
+                c.lib generatedC
             }
         }
     }
