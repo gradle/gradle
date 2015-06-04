@@ -119,7 +119,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(project.getPath(), javaSourceSet, dependencyResolver));
+                    compile.setClasspath(new DependencyResolvingClasspath(project.getPath(), binarySpec, javaSourceSet, dependencyResolver));
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -138,6 +138,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     private static class DependencyResolvingClasspath extends AbstractFileCollection {
         private final String projectPath;
         private final JavaSourceSet sourceSet;
+        private final BinarySpec binary;
         private final ArtifactDependencyResolver dependencyResolver;
         private final Set<File> dependencies = new LinkedHashSet<File>();
 
@@ -145,9 +146,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         private DependencyResolvingClasspath(
             String projectPath,
+            BinarySpec binarySpec,
             JavaSourceSet sourceSet,
             ArtifactDependencyResolver dependencyResolver) {
             this.projectPath = projectPath;
+            this.binary = binarySpec;
             this.sourceSet = sourceSet;
             this.dependencyResolver = dependencyResolver;
         }
@@ -202,7 +205,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     }
                 });
                 if (!notFound.isEmpty()) {
-                    throw new LibraryResolveException(String.format("Could not resolve all dependencies for source set '%s'", sourceSet.getDisplayName()), notFound);
+                    throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
                 }
                 taskDependency = result;
             }

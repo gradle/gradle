@@ -142,7 +142,7 @@ model {
         fails ':mainJar'
 
         then: "displays the possible solution"
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
         failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
 
@@ -235,7 +235,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':sub' library 'main'")
         failure.assertHasCause("Project ':sub' not found.")
 
@@ -278,7 +278,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
@@ -323,7 +323,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
@@ -421,7 +421,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
@@ -460,7 +460,7 @@ plugins {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
@@ -494,7 +494,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and:
@@ -712,7 +712,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
