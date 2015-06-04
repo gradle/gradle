@@ -125,9 +125,6 @@ public class JvmComponentPlugin extends RuleSource {
                 jar.setArchiveName(binary.getJarFile().getName());
             }
         });
-
-        // bad, bad, bad
-        binary.builtBy(tasks.get(taskName));
     }
 
     private String createBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
