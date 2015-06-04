@@ -778,12 +778,12 @@ Subsequent invocations will do nothing.
 
 #### Test coverage
 
-- Play application stays running across continuous build instances (implicitly: > 1 instances are never launched)
-- Build failure prior to launching play app (e.g. compile failure) does not prevent app from being launched on subsequent build
-- Play application is shutdown when build is cancelled
-- PlayRun task blocks when not continuously building
-- Can be used from Tooling API, deployment is stopped when build is cancelled
-- Two projects in multiproject build can start deployments
+- ~~Play application stays running across continuous build instances (implicitly: > 1 instances are never launched)~~
+- ~~Build failure prior to launching play app (e.g. compile failure) does not prevent app from being launched on subsequent build~~
+- ~~Play application is shutdown when build is cancelled~~
+- ~~PlayRun task blocks when not continuously building~~
+- ~~Can be used from Tooling API, deployment is stopped when build is cancelled~~
+- ~~Two projects in multiproject build can start deployments~~
 
 ### Story: Play application is reloaded when changes are made to local source
 
