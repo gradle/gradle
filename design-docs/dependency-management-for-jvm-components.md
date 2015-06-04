@@ -152,6 +152,7 @@ Resolve the task dependencies and artifacts for the compile time dependency grap
 - Error cases:
     - Java library does not have exactly one Jar binary. For example, for a library with multiple target platforms.
         - Error message should include details of which binaries are available.
+- Include a sample.
 
 Out of scope:
 
@@ -163,6 +164,7 @@ Out of scope:
 
 - Given `a` requires `b` requires `c`.
     - When the source for `a` is compiled, the compile classpath contains the Jar for `b` but not the Jar for `c`.
+    - When `c` does not exist, can successfully resolve the classpath of `a`. Cannot actually build the Jar for `a` because resolution of the classpath of `b` will fail.
 - Reasonable error message when building a library with a dependency cycle.
 - Jar is built when library depends on itself.
 - Error cases as above.
@@ -201,36 +203,120 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 
 ## Feature backlog
 
+- documentation
 - declare transitive API dependencies
+- runtime dependencies
 - use component model terminology in error messages
 - reporting
+- allow another dependency set to be added as input.
+- allow a `LibrarySpec` instance to be added as a requirement.
 - make dependency declarations managed and immutable post resolve
 
 # Feature: Custom component built from Java source
 
 This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
 
-## Story: Plugin author defines a Jar binary built from Java source
+## Story: Plugin author defines a custom component built from Java source
 
-Define a custom component that produces a Jar binary from Java source. When the jar is built, the compile time
+Define a custom component that produces a Jar binary from Java source. When the Jar is built, the compile time
 dependencies of the source are also built and the source compiled.
 
-Default Java platform and toolchains are used to build the binary.
+- Allow a `JarBinarySpec` to be added to the binaries container of any component.
+- When `jvm-component` plugin is applied, the Jar binary should be buildable.
+    - Fail when no rule is available to define the tasks of any `BinarySpec`.
+- Can wire in one or more input Java and resource source sets.
+    - These are not owned by the binary, they are inputs to the binary.
+    - API dependencies should be built before the Java source is compiled.
+    - Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
+    - Fail when there is no language rule available to build the binary from a given source set. 
+- Default Java platform and tool-chains are used to build the binary. For this story, the Java platform is not configurable for these binaries.
+- Dependency resolution honors the target platform of the consuming custom Jar binary.
 
-## Story: Plugin author defines target Java platform for Jar binary
+### Test cases
 
-Allow the Java platform to be configured for an ad hoc Jar binary, but not for a Jar binary defined implicitly for Java library.
-Java toolchain should be attached to the Jar binary only after the target platform has been configured.
+- Given a custom component: 
+    - Source set `a` depends on Java library `lib1`
+    - Source set `b` depends on Java library `lib2`
+    - Resources set `res-a` and `res-b`
+    - Then when the binary is built:
+        - Source from `a` is compiled against the API of `lib1` only and the compiled classes end up in the Jar.
+        - Source from `b` is compiled against the API of `lib2` only and the compiled classes end up in the Jar.
+        - Resources from `res-a` and `res-b` end up in the Jar.
+        - Jar contains only the above items.
+- Error cases above.
 
-Add infrastructure to model configuration to support this staged configuration, so that it can be applied elsewhere.
+### Implementation
+
+- Changes to `BinarySpec`
+    - Add `ModelMap <LanguageSourceSet> getSources()` and deprecate `getSource()`.
+    - Change implementation of `sources(Action)` to execute the action against the return value of `getSources()`. 
+    - Add `Set<LanguagesSourceSet> getInputs()`.
+    - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
+    - Any source set instance can be added to `BinarySpec.inputs`.
+    - Remove `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
+    - Change component report to report on all inputs.
+- Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
+- Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
+- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
+
+## Story: Plugin author defines a custom library that provides a Java API
+
+Define a custom library that produces a Jar binary from Java source. When another Java or custom component requires
+this library, the Jar binary is built and made available to the consuming component.
+
+- Change dependency resolution to select a `LibrarySpec` instance that provides a `JarBinarySpec`.
+    - Fail when there is not exactly one such library.
+    - Given a single library, fail when that library does not provide exactly one compatible `JarBinarySpec`.
+- Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
+- Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
+
+## Story: Plugin author defines variants for custom component
+
+Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
+
+    interface CustomBinarySpec extends JarBinarySpec { 
+        @Variant
+        String getFlavor()
+        
+        @Variant
+        BuildType getBuildType() // Must extend `Named`
+    }
+
+Each property marked with `@Variant` defines a variant dimension for this kind of binary.
+
+- Property type must either be a String or a type that extends `Named`
+- Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
+- Component report shows variants for a binary. 
+- For this story, ignore variants when resolving dependencies.
+
+TBD - Implementation is by extending `BaseJarBinarySpec` or allowing @Managed subclasses of `JarBinarySpec`?
+
+### Implementation
+
+- Meta-data must be extracted once and cached as part of the `ModelSchema` associated with the type.
+- Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
+
+## Story: Plugin author defines variants for custom library
+
+Change dependency resolution to honor the variant dimensions for a custom component.
+
+- When resolving dependencies of a binary with variant dimensions `D` whose values are the tuple `v`:
+    - Match any binary with variant dimensions `D` with values compatible to `v`.
+    - Match any binary with variant dimensions that are a subset of `D` and whose corresponding values are compatible with `v`.
+    - Fail when there is not exactly one such binary.
+    - Fail when any binary has variant dimensions that are not `D` or some proper subset.
+- To determine whether the variant values are compatible:
+    - Exact match on name 
+    - Special case compatibility for `JavaPlatform`.
 
 ## Feature backlog
 
+- Allow library to expose Jar, classes dir or any combination as its Java API.  
+- Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
 - Allow plugin to use compiled classes from a Java source set to build a custom binary.
-- Plugin declares Jar as intermediate output rather than final output.
-- Custom component can be consumed as a Java library.
-- Allow plugin to declare variants of custom component, select matching variant.
-- Expose a way to query the resolved compile classpath for a Java source set
+- Plugin declares Jar or classes as intermediate output rather than final output.
+- Expose a way to query the resolved compile classpath for a Java source set.
+- Plugin author defines target Java platform for Jar binary
 
 # Later work
 
