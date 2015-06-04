@@ -181,7 +181,8 @@ class Rules extends RuleSource {
     @Defaults
     void verifyAsContainer(ComponentSpecContainer c) {
         assert c.toString() == "ComponentSpecContainer 'components'"
-        assert c.toString() == c.withType(CustomComponent).toString()
+        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert !(c.withType(CustomComponent) instanceof ComponentSpecContainer)
     }
 
     @Defaults

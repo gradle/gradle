@@ -120,9 +120,13 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(ModelMapGroovyDecorator.unmanaged(
-            NamedDomainObjectSetBackedModelMap.wrap(LanguageSourceSet.class, sourceSets.getMainSources())
-        ));
+        action.execute(
+            ModelMapGroovyDecorator.wrap(
+                NamedDomainObjectSetBackedModelMap.wrap(
+                    LanguageSourceSet.class, sourceSets.getMainSources()
+                )
+            )
+        );
     }
 
     // TODO:DAZ Remove this

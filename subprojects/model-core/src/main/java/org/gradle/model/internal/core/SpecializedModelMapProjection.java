@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -77,15 +76,11 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-            ModelMap<E> rawView = new NodeBackedModelMap<E>(elementType, ruleDescriptor, modelNode, false, mutable, creatorStrategy);
-        final DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
-        P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
-        return new InstanceModelView<P>(modelNode.getPath(), publicType, instance, new Action<P>() {
-            @Override
-            public void execute(P p) {
-                state.close();
-            }
-        });
+        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
+        String description = publicType.getSimpleName() + " '" + modelNode.getPath() + "'";
+        ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
+        P instance = DirectInstantiator.instantiate(viewImpl, rawView);
+        return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }
 
     @Override

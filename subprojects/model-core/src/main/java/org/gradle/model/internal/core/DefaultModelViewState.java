@@ -65,4 +65,14 @@ public class DefaultModelViewState implements ModelViewState {
             throw new WriteOnlyModelViewException(type, ruleDescriptor);
         }
     }
+
+    @Override
+    public boolean isCanMutate() {
+        return mutable && !closed;
+    }
+
+    @Override
+    public boolean isCanReadChildren() {
+        return canReadChildren;
+    }
 }

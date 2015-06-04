@@ -43,17 +43,23 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
+    private final String description;
     private final boolean eager;
-    private final boolean mutable;
+    private final ModelViewState viewState;
     private final ChildNodeCreatorStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, boolean mutable, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        this.description = description;
         this.eager = eager;
-        this.mutable = mutable;
+        this.viewState = viewState;
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
         this.modelNode = modelNode;
         this.sourceDescriptor = sourceDescriptor;
+    }
+
+    public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeCreatorStrategy<? super T> childNodeCreatorStrategy) {
+        this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, eager, viewState, childNodeCreatorStrategy);
     }
 
     public static <T> ChildNodeCreatorStrategy<T> createUsingParentNode(final ModelType<T> baseItemModelType) {
@@ -128,6 +134,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public void all(final Action<? super T> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
@@ -145,6 +152,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public boolean containsKey(Object name) {
+        viewState.assertCanReadChildren();
         return name instanceof String && modelNode.hasLink((String) name, elementType);
     }
 
@@ -174,12 +182,14 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Defaults, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
+        viewState.assertCanMutate();
         ModelCreator creator = creatorStrategy.creator(modelNode, sourceDescriptor, type, name);
         modelNode.addLink(creator);
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "%s.<init>", name);
@@ -196,6 +206,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Finalize, NoInputsModelAction.of(subject, descriptor, configAction));
@@ -210,13 +221,15 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     @Nullable
     @Override
     public T get(String name) {
+        viewState.assertCanReadChildren();
+
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);
         if (link == null) {
             return null;
         }
         link.ensureUsable();
-        if (mutable) {
+        if (viewState.isCanMutate()) {
             return link.asWritable(elementType, sourceDescriptor, null).getInstance();
         } else {
             return link.asReadOnly(elementType, sourceDescriptor).getInstance();
@@ -230,11 +243,13 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public Set<String> keySet() {
+        viewState.assertCanReadChildren();
         return modelNode.getLinkNames(elementType);
     }
 
     @Override
     public void named(final String name, Action<? super T> configAction) {
+        viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
         modelNode.applyToLink(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
@@ -242,26 +257,33 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
+        viewState.assertCanMutate();
         modelNode.applyToLink(name, ruleSource);
     }
 
     @Override
     public int size() {
+        viewState.assertCanReadChildren();
         return modelNode.getLinkCount(elementType);
     }
 
     @Override
     public String toString() {
+        return description;
+    }
+
+    private static String derivedDescription(ModelNode modelNode, ModelType<?> elementType) {
         return ModelMap.class.getSimpleName() + '<' + elementType.getSimpleName() + "> '" + modelNode.getPath() + "'";
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
         ChildNodeCreatorStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, mutable, creatorStrategy);
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, creatorStrategy);
     }
 
     @Override
     public Collection<T> values() {
+        viewState.assertCanReadChildren();
         Iterable<T> values = Iterables.transform(keySet(), new Function<String, T>() {
             public T apply(@Nullable String name) {
                 return get(name);
@@ -274,11 +296,13 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
+        viewState.assertCanMutate();
         modelNode.applyToAllLinks(ModelActionRole.Mutate, NoInputsModelAction.of(subject, descriptor, configAction));
     }
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+        viewState.assertCanMutate();
         modelNode.applyToLinks(ModelType.of(type), rules);
     }
 
@@ -294,7 +318,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             return uncheckedCast(subType);
         }
 
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, mutable, new ChildNodeCreatorStrategy<S>() {
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, new ChildNodeCreatorStrategy<S>() {
             @Override
             public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
