@@ -26,8 +26,8 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 
@@ -46,7 +46,7 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
     public DefaultLibraryLocalComponentMetaData convert(Object source) {
         DefaultLanguageSourceSetResolveContext context = (DefaultLanguageSourceSetResolveContext) source;
         String projectPath = context.getProjectPath();
-        BaseLanguageSourceSet sourceSet = context.getSourceSet();
+        LanguageSourceSetInternal sourceSet = context.getSourceSet();
         String libraryName = sourceSet.getParentName();
         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName);
         if (sourceSet instanceof DependentSourceSetInternal) {
