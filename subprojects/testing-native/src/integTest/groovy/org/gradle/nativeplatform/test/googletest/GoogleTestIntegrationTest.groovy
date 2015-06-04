@@ -73,6 +73,10 @@ model {
 }
 binaries.withType(GoogleTestTestSuiteBinarySpec) {
     lib library: "googleTest", linkage: "static"
+    if (targetPlatform.operatingSystem.linux) {
+        cppCompiler.args '-pthread'
+        linker.args '-pthread'
+    }
 }
 
 tasks.withType(RunTestExecutable) {

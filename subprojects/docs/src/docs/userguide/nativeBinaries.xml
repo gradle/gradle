@@ -883,10 +883,11 @@
                 which will run all of the registered GoogleTest tests.
                 Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
-            <sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">
-                <sourcefile file="build.gradle" snippet="complete-example"/>
-                <output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>
-            </sample>
+            <!-- Google test sample output is nondeterministic -->
+            <!--<sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">-->
+                <!--<sourcefile file="build.gradle" snippet="complete-example"/>-->
+                <!--<output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>-->
+            <!--</sample>-->
         </section>
 
         <note>
