@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 

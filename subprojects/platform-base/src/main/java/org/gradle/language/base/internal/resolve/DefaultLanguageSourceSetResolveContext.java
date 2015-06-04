@@ -15,8 +15,8 @@
  */
 package org.gradle.language.base.internal.resolve;
 
-import org.gradle.api.artifacts.ResolveContext;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
