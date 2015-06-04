@@ -204,10 +204,14 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 ## Feature backlog
 
 - documentation
+- resolve libraries from binary repositories, for libraries with a single variant
+    - Maven repo: assume API dependencies are defined by `compile` scope. 
+    - Ivy repo: look for a particular configuration, if not present assume no API dependencies (or perhaps use `default` configuration)
+    - Assume no target platform, and assume compatible with all target platforms. 
 - declare transitive API dependencies
-- runtime dependencies
-- use component model terminology in error messages
+- use component model terminology in error messages and exception class names.
 - reporting
+- runtime dependencies
 - allow another dependency set to be added as input.
 - allow a `LibrarySpec` instance to be added as a requirement.
 - make dependency declarations managed and immutable post resolve
@@ -216,19 +220,52 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 
 This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
 
+## Story: Jar binary is built from input source sets 
+
+Allow multiple Jar binaries to be built from multiple Java source and resource sets, to somewhat approximate the Jars built for Android components.
+
+- A source set may be input to multiple binaries.
+    - These are not owned by the binary, they are inputs to the binary.
+    - A binary may also own some source sets, these are also implicit inputs to the binary. 
+- A binary may be built from multiple input source sets
+- A Jar binary can be built from one or more input Java and resource source sets.
+- Error cases:
+    - Fail at configuration time when there is no language rule available to build the binary from a given input source set. 
+
+### Test cases
+
+- Given a custom component: 
+    - Java Source set `a` and `b`
+    - Resources set `res-a` and `res-b`
+    - Binaries `jar-a` and `jar-b`
+    - Can build binaries with `a`, `b`, `res-a` and `res-b` as inputs, plus a source set owned by the binary.  
+        - Only the expected compiled classes and resources end up in each jar.
+- Error cases above.
+
+### Implementation
+
+- Changes to `BinarySpec`
+    - Add `ModelMap <LanguageSourceSet> getSources()` and deprecate `getSource()`.
+    - Change implementation of `sources(Action)` to execute the action against the return value of `getSources()`. 
+    - Add `Set<LanguagesSourceSet> getInputs()`.
+    - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
+    - Any source set instance can be added to `BinarySpec.inputs`.
+    - Remove `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
+- Change component report to report on all inputs for a binary.
+- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
+- Change base plugins to add component source sets as inputs to its binaries, rather than owned by the binary.
+- Remove special case for inputs from `DefaultNativeTestSuiteBinarySpec` and reuse general mechanism.
+
 ## Story: Plugin author defines a custom component built from Java source
 
-Define a custom component that produces a Jar binary from Java source. When the Jar is built, the compile time
+Define a custom component that produces a Jar binary from Java source and resources. When the Jar is built, the compile time
 dependencies of the source are also built and the source compiled.
 
 - Allow a `JarBinarySpec` to be added to the binaries container of any component.
 - When `jvm-component` plugin is applied, the Jar binary should be buildable.
     - Fail when no rule is available to define the tasks of any `BinarySpec`.
-- Can wire in one or more input Java and resource source sets.
-    - These are not owned by the binary, they are inputs to the binary.
-    - API dependencies should be built before the Java source is compiled.
-    - Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
-    - Fail when there is no language rule available to build the binary from a given source set. 
+- API dependencies should be built before the Java source is compiled.
+- Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
 - Default Java platform and tool-chains are used to build the binary. For this story, the Java platform is not configurable for these binaries.
 - Dependency resolution honors the target platform of the consuming custom Jar binary.
 
@@ -247,17 +284,8 @@ dependencies of the source are also built and the source compiled.
 
 ### Implementation
 
-- Changes to `BinarySpec`
-    - Add `ModelMap <LanguageSourceSet> getSources()` and deprecate `getSource()`.
-    - Change implementation of `sources(Action)` to execute the action against the return value of `getSources()`. 
-    - Add `Set<LanguagesSourceSet> getInputs()`.
-    - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
-    - Any source set instance can be added to `BinarySpec.inputs`.
-    - Remove `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
-    - Change component report to report on all inputs.
 - Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
 - Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
-- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
 
 ## Story: Plugin author defines a custom library that provides a Java API
 
@@ -265,8 +293,9 @@ Define a custom library that produces a Jar binary from Java source. When anothe
 this library, the Jar binary is built and made available to the consuming component.
 
 - Change dependency resolution to select a `LibrarySpec` instance that provides a `JarBinarySpec`.
-    - Fail when there is not exactly one such library.
-    - Given a single library, fail when that library does not provide exactly one compatible `JarBinarySpec`.
+    - For a requirement that specifies a `project` and no `library`, select the library that may provide a Jar binary.
+        - Fail when there is not exactly one such library.
+    - Given a selected library, fail when that library does not provide exactly one compatible `JarBinarySpec`.
 - Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
 - Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
 
@@ -274,6 +303,7 @@ this library, the Jar binary is built and made available to the consuming compon
 
 Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
 
+    @Managed
     interface CustomBinarySpec extends JarBinarySpec { 
         @Variant
         String getFlavor()
@@ -284,12 +314,12 @@ Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
 
 Each property marked with `@Variant` defines a variant dimension for this kind of binary.
 
-- Property type must either be a String or a type that extends `Named`
+- Property type must either be a String or a type that extends `Named`.
 - Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
-- Component report shows variants for a binary. 
+- Component report shows variants for a binary.
+- Not all binaries for a library need to have the same set of dimensions.
 - For this story, ignore variants when resolving dependencies.
-
-TBD - Implementation is by extending `BaseJarBinarySpec` or allowing @Managed subclasses of `JarBinarySpec`?
+- For this story, assume that it is possible to add managed subtypes of `JarBinarySpec`.
 
 ### Implementation
 
@@ -300,21 +330,25 @@ TBD - Implementation is by extending `BaseJarBinarySpec` or allowing @Managed su
 
 Change dependency resolution to honor the variant dimensions for a custom component.
 
-- When resolving dependencies of a binary with variant dimensions `D` whose values are the tuple `v`:
-    - Match any binary with variant dimensions `D` with values compatible to `v`.
-    - Match any binary with variant dimensions that are a subset of `D` and whose corresponding values are compatible with `v`.
+- When resolving dependencies of a binary with variant dimensions `D` with values `d`:
+    - Match any binary with variant dimensions `E` and values `e` where the intersection of `D` and `E` is not empty, and the values of `e` from the intersection are compatible. 
+      with the values from `d`.
     - Fail when there is not exactly one such binary.
-    - Fail when any binary has variant dimensions that are not `D` or some proper subset.
 - To determine whether the variant values are compatible:
     - Exact match on name 
     - Special case compatibility for `JavaPlatform`.
+- For example:
+    - Resolving for a binary with `(platform, buildType, screenSize)` from a library with binaries with `(platform)`, select all candidates with compatible `platform` and
+      ignore the other dimensions.
+    - Resolving for a binary with `(platform)` from a library with binaries with `(platform, buildType, screenSize)`, select all candidates with compatible `platform`.      
+    - Resolving for a binary with `(platform, screenSize)` from a library with binaries with `(platform, buildType)`, select all candidates with compatible `platform`.      
 
 ## Feature backlog
 
 - Allow library to expose Jar, classes dir or any combination as its Java API.  
-- Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
 - Allow plugin to use compiled classes from a Java source set to build a custom binary.
 - Plugin declares Jar or classes as intermediate output rather than final output.
+- Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
 - Expose a way to query the resolved compile classpath for a Java source set.
 - Plugin author defines target Java platform for Jar binary
 
