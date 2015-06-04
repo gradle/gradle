@@ -576,6 +576,97 @@ model {
 
     }
 
+    def "dependency resolution should be limited to the scope of the API of a single project"() {
+        given: "project 'a' depending on project 'b' depending itself on project 'c' but 'c' doesn't exist"
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelType
+
+class DependencyResolutionObserver extends RuleSource {
+    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+        tasks.create('checkDependenciesForMainJar') {
+        doLast {
+            def task = tasks.get('compileMainJarMainJava')
+            def cp = task.classpath.files
+            assert cp == [task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.createMainJar'), ModelType.of(Task)).archivePath] as Set
+
+        }
+        }
+    }
+}
+apply plugin: DependencyResolutionObserver
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':b' library 'main'
+                    }
+                }
+            }
+        }
+    }
+
+}
+'''
+        file('settings.gradle') << 'include "b"'
+        file('b/build.gradle') << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelType
+
+class DependencyResolutionObserver extends RuleSource {
+    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+        tasks.create('checkDependenciesForMainJar') {
+        doLast {
+            def task = tasks.get('compileMainJarMainJava')
+            task.classpath.files
+        }
+        }
+    }
+}
+apply plugin: DependencyResolutionObserver
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':c' library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+        file('b/src/main/java/Dep.java') << 'public class Dep {}'
+
+        when: "we query the classpath for project 'a' library 'main'"
+        succeeds ':checkDependenciesForMainJar'
+
+        then: "dependency resolution resolves the classpath"
+        executedAndNotSkipped ':checkDependenciesForMainJar'
+
+        when: "we query the classpath for project 'b' library 'main'"
+        fails ':b:checkDependenciesForMainJar'
+
+        then: "dependency resolution fails because project 'c' doesn't exist"
+        failure.assertHasCause(/Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java''/)
+        failure.assertHasCause(/Could not resolve project ':c' library 'main'./)
+        failure.assertHasCause(/Project ':c' not found./)
+
+    }
+
     def "classpath for sourceset excludes transitive sourceset jar if no explicit library name is used"() {
         given:
         applyJavaPlugin(buildFile)

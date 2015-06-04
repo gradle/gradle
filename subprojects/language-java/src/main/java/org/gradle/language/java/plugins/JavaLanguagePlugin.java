@@ -162,6 +162,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public Set<File> getFiles() {
+            assertResolved();
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
             classpath.addAll(dependencies);
@@ -174,6 +175,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Override
         public TaskDependency getBuildDependencies() {
+            assertResolved();
+            return taskDependency;
+        }
+
+        private void assertResolved() {
             if (taskDependency==null) {
                 final DefaultTaskDependency result = new DefaultTaskDependency();
                 result.add(super.getBuildDependencies());
@@ -209,8 +215,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 }
                 taskDependency = result;
             }
-
-            return taskDependency;
         }
 
         public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
