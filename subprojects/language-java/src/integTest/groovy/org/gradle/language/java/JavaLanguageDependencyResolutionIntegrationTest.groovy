@@ -20,13 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can resolve dependency on local library"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         zdep(JvmLibrarySpec)
@@ -61,13 +57,9 @@ model {
     }
 
     def "can define a dependency on the same library"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -91,13 +83,9 @@ model {
     }
 
     def "can define a cyclic dependency"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -131,13 +119,9 @@ model {
     }
 
     def "should fail if library doesn't exist"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -165,12 +149,9 @@ model {
     }
 
     def "can resolve dependency on a different project library"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
 
 model {
     components {
@@ -218,13 +199,9 @@ model {
     }
 
     def "should fail if project doesn't exist" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -265,13 +242,9 @@ model {
     }
 
     def "should fail if project exists but not library" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -313,13 +286,9 @@ model {
     }
 
     def "should display the list of candidate libraries in case a library is not found" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -362,13 +331,9 @@ model {
     }
 
     def "can resolve dependencies on a different projects"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         other(JvmLibrarySpec)
@@ -419,13 +384,9 @@ model {
     }
 
     def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -468,13 +429,9 @@ model {
     }
 
     def "should fail and display a sensible error message if target project doesn't define any library" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -511,13 +468,9 @@ plugins {
     }
 
    def "should fail and display a sensible error message if target project doesn't use new model" () {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -549,13 +502,9 @@ model {
     }
 
     def "classpath for sourceset excludes transitive sourceset jar"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -628,13 +577,9 @@ model {
     }
 
     def "classpath for sourceset excludes transitive sourceset jar if no explicit library name is used"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         main(JvmLibrarySpec) {
@@ -707,13 +652,9 @@ model {
     }
 
     def "should fail resolution if more than one binary is available"() {
-        setup:
+        given:
+        applyJavaPlugin(buildFile)
         buildFile << '''
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
 model {
     components {
         zdep(JvmLibrarySpec) {
@@ -741,5 +682,107 @@ model {
 
         then:
         failure.assertHasCause("Multiple binaries available for library 'zdep'")
+    }
+
+    def "fails if a dependency is not a JvmLibrarySpec library"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        zdep(CustomLibrary)
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'zdep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp {}'
+
+        when:
+        fails ':mainJar'
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve project ':' library 'zdep'")
+
+        and:
+        failure.assertHasCause("Project ':' contains a library named 'zdep' but it is not a JvmLibrarySpec")
+    }
+
+    def "successfully selects a JVM library if no library name is provided and 2 components are available"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':b'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        def projectB = file('b/build.gradle')
+        applyJavaPlugin(projectB)
+        addCustomLibraryType(projectB)
+        projectB << '''
+model {
+    components {
+        main(JvmLibrarySpec)
+        other(CustomLibrary)
+    }
+}
+'''
+        settingsFile << /include 'b'/
+
+        file('b/src/main/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped(':b:createMainJar')
+    }
+
+    void applyJavaPlugin(File buildFile) {
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+'''
+    }
+
+    void addCustomLibraryType(File buildFile) {
+        buildFile << """
+            interface CustomLibrary extends LibrarySpec {}
+            class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {}
+
+            class ComponentTypeRules extends RuleSource {
+                @ComponentType
+                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {
+                    builder.defaultImplementation(DefaultCustomLibrary)
+                }
+            }
+
+            apply type: ComponentTypeRules
+        """
     }
 }

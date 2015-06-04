@@ -28,6 +28,7 @@ import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
+import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.ComponentSpecContainer
@@ -199,7 +200,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
             project.modelRegistry.find(_, _) >> components
             def map = Mock(ModelMap)
             def librarySpecs = libraries.collect {
-                def lib = Mock(LibrarySpec)
+                def lib = Mock(JvmLibrarySpec)
                 lib.name >> it
                 lib
             }
