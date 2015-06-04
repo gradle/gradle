@@ -28,10 +28,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends AbstractContin
 
     def setup() {
         writeSources()
-
-        // Assemble first so that runPlayBinary can start (almost) immediately
-        //executer.withTasks("assemble").run()
-        buildTimeout = 60
+        buildTimeout = 90
     }
 
     def getPlayRunBuildFile() {

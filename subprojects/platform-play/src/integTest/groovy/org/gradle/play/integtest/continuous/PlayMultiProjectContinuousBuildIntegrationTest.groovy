@@ -48,7 +48,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractPlayContinu
         appIsStopped()
     }
 
-    def "can run play app with two projects in multiproject continuous build" () {
+    def "can run play apps in multiple projects in multiproject continuous build" () {
         childApp.writeSources(childDirectory)
         childDirectory.file('build.gradle') << """
             model {

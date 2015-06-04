@@ -38,7 +38,7 @@ class DefaultBuildSessionTest extends Specification {
         1 * stoppable3.stop()
     }
 
-    def "a stoppable added to build session can be stopped more than once" () {
+    def "a stoppable added to build session will be stopped after every session" () {
         Stoppable stoppable1 = Mock(Stoppable)
         buildSession.add(stoppable1)
 

@@ -44,7 +44,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         1 * buildSession.add(_)
     }
 
-    def "can register a deployment handle twice" () {
+    def "can register a duplicate deployment handle" () {
         DeploymentHandle handle = mockDeployment("test")
         boolean newRegistration
 
@@ -80,6 +80,23 @@ class DefaultDeploymentRegistryTest extends Specification {
         1 * handle1.stop()
         1 * handle2.stop()
         1 * handle3.stop()
+    }
+
+    def "stopping registry removes deployment handles from registry" () {
+        DeploymentHandle handle1 = mockDeployment("test1")
+        DeploymentHandle handle2 = mockDeployment("test2")
+        DeploymentHandle handle3 = mockDeployment("test3")
+        registry.register(handle1)
+        registry.register(handle2)
+        registry.register(handle3)
+
+        when:
+        registry.stop()
+
+        then:
+        registry.get(DeploymentHandle.class, "test1") == null
+        registry.get(DeploymentHandle.class, "test2") == null
+        registry.get(DeploymentHandle.class, "test3") == null
     }
 
     def mockDeployment(String id) {
