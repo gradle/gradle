@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
@@ -40,7 +42,11 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
         }
 
         then:
-        buildResult.failure instanceof BuildCancelledException
+        if (toolingApiVersion.equals(GradleVersion.version("2.1"))) {
+            assert buildResult.failure instanceof GradleConnectionException
+        } else {
+            assert buildResult.failure instanceof BuildCancelledException
+        }
         !stdout.toString().contains(WAITING_MESSAGE)
     }
 
