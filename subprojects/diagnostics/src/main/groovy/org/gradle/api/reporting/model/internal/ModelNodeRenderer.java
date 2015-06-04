@@ -26,11 +26,11 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.gradle.logging.StyledTextOutput.Style.Description;
-import static org.gradle.logging.StyledTextOutput.Style.Identifier;
+import static org.gradle.logging.StyledTextOutput.Style.*;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
@@ -45,19 +45,20 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         StyledTextOutput styledTextoutput = output.getOutput();
 
         if (model.getPath().equals(ModelPath.ROOT)) {
-            styledTextoutput.println("+ model");
+            styledTextoutput.withStyle(Identifier).format("+ %s", "model");
+            styledTextoutput.println();
         } else {
             printNodeName(model, styledTextoutput);
             maybePrintType(model, styledTextoutput);
             printOrigin(model, styledTextoutput);
             maybePrintValue(model, styledTextoutput);
+            maybePrintRules(model, styledTextoutput);
         }
 
         Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
         }
-
         output.collection(links.values(), this);
     }
 
@@ -87,6 +88,26 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
                 printNodeAttribute(styledTextoutput, "Value:", value.get());
             }
         }
+    }
+
+    private void maybePrintRules(ModelNode model, StyledTextOutput styledTextoutput) {
+        List<ModelRuleDescriptor> executedRules = model.getExecutedRules();
+        if (executedRules.size() > 0) {
+            printNestedAttributeTitle(styledTextoutput, "Rules: ");
+            for (ModelRuleDescriptor ruleDescriptor : executedRules) {
+                printNestedAttribute(styledTextoutput, "⤷ " + ruleDescriptor.toString());
+            }
+        }
+    }
+
+    private void printNestedAttribute(StyledTextOutput styledTextoutput, String value) {
+        styledTextoutput.withStyle(Normal).format("         %s", value);
+        styledTextoutput.println();
+    }
+
+    private void printNestedAttributeTitle(StyledTextOutput styledTextoutput, String title) {
+        styledTextoutput.withStyle(Identifier).format("      | %s |", title);
+        styledTextoutput.println();
     }
 
     public void printNodeAttribute(StyledTextOutput styledTextoutput, String label, String value) {

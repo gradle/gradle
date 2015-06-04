@@ -55,7 +55,9 @@ public class ModelReport extends DefaultTask {
 
         textModelReportRenderer.setOutput(textOutput);
         textModelReportRenderer.startProject(project);
+
         textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+
         textModelReportRenderer.completeProject(project);
         textModelReportRenderer.complete();
     }
