@@ -16,19 +16,25 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.process.internal.WorkerProcess;
+
 public class PlayApplicationRunnerToken {
 
     private final PlayWorkerClient clientCallBack;
     private final PlayRunWorkerServerProtocol workerServer;
+    private final WorkerProcess process;
 
-    public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack) {
+    public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack, WorkerProcess process) {
         this.workerServer = workerServer;
         this.clientCallBack = clientCallBack;
+        this.process = process;
     }
 
     public PlayAppLifecycleUpdate stop() {
         workerServer.stop();
-        return clientCallBack.waitForStop();
+        PlayAppLifecycleUpdate update = clientCallBack.waitForStop();
+        process.waitForStop();
+        return update;
     }
 
     public void rebuildSuccess() {
