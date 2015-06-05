@@ -27,37 +27,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 
 class JavaEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup() {
-        //this test does not make any sense in embedded mode
-        //as we don't own the process
-        toolingApi.requireDaemons()
-    }
-
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    def "tooling api honours differentiates jvm args from system properties specified in gradle.properties"() {
-        file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
-assert System.getProperty('some-prop') == 'some-value'
-"""
-        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
-
-        when:
-        BuildEnvironment env = toolingApi.withConnection { connection ->
-            connection.newBuild().run() //the assert
-            connection.getModel(BuildEnvironment)
-        }
-
-        then: "complete jvm args include the max memory from gradle.properties"
-        env.java.allJvmArguments.contains('-Xmx16m')
-
-        and: "requested jvm args filter out max memory"
-        !env.java.requestedJvmArguments.contains('-Xmx16m')
-
-        and: "user provided system properties are found in the requested system properties"
-        env.java.requestedSystemProperties['some-prop'] == 'some-value'
-    }
-
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
     def "provide Java environment information on BuildEnvironment"() {
@@ -73,15 +42,15 @@ assert System.getProperty('some-prop') == 'some-value'
         def java = buildEnvironment.java
         java != null
 
-        and: "requested system properties are empty"
-        !java.systemProperties.isEmpty()
-        java.requestedSystemProperties.isEmpty()
+        and: "effective system properties are different from user system properties"
+        java.systemProperties.isEmpty()
+        !java.effectiveSystemProperties.isEmpty()
 
         and: "JVM arguments are different from user JVM arguments"
-        java.requestedJvmArguments.size() < java.jvmArguments.size()
+        java.effectiveJvmArguments.size() > java.jvmArguments.size()
 
         and: "all JVM arguments are the same as effective JVM arguments"
-        java.allJvmArguments.size() == java.jvmArguments.size()
+        java.allJvmArguments.size() == java.effectiveJvmArguments.size()
     }
 
 
@@ -103,15 +72,15 @@ assert System.getProperty('some-prop') == 'some-value'
         java != null
 
         and: "effective system properties contains user specified system properties"
-        java.systemProperties.foo == 'bar'
-        java.requestedSystemProperties == [foo:'bar']
+        java.systemProperties == [foo:'bar']
+        java.effectiveSystemProperties.foo == 'bar'
 
         and: "user specified JVM arguments are empty"
-        java.requestedJvmArguments.empty
+        java.jvmArguments.empty
 
         and: "JVM arguments are different from user JVM arguments"
-        java.jvmArguments.size() > 0
-        java.allJvmArguments.size() == java.jvmArguments.size() + 1
+        java.effectiveJvmArguments.size() > java.jvmArguments.size()
+        java.allJvmArguments.size() == java.effectiveJvmArguments.size() + 1
     }
 
     @ToolingApiVersion(">=2.5")
@@ -132,18 +101,17 @@ assert System.getProperty('some-prop') == 'some-value'
         java != null
 
         and: "effective system properties are different from user system properties"
-        java.requestedSystemProperties.isEmpty()
-        !java.systemProperties.isEmpty()
+        java.systemProperties.isEmpty()
+        !java.effectiveSystemProperties.isEmpty()
 
         and: "user specified JVM arguments are not empty"
-        java.requestedJvmArguments == ['-XX:MaxPermSize=128m']
+        java.jvmArguments == ['-XX:MaxPermSize=128m']
 
         and: "JVM arguments are different from user JVM arguments"
-        java.requestedJvmArguments.size() < java.jvmArguments.size()
+        java.effectiveJvmArguments.size() > java.jvmArguments.size()
 
         and: "all JVM arguments are the same as effective JVM arguments"
-        java.allJvmArguments.size() == java.jvmArguments.size()
+        java.allJvmArguments.size() == java.effectiveJvmArguments.size()
     }
-
 
 }
