@@ -2,7 +2,10 @@ This spec collects issues that prevent Gradle from working well, or at all, with
 
 # Feature: Run all Gradle tests against Java 9
 
-Goal: Successfully run all Gradle tests in a CI build on Java 8, running tests against Java 9. 
+Goal: Successfully run all Gradle tests in a CI build on Java 8, running tests against Java 9. At completion, Gradle will be fully working on Java 9.
+At this stage, however, there will be no special support for Java 9 specific features.
+
+It is a non-goal of this feature to be able to build Gradle on Java 9. This is a later feature.
 
 ## Issues
 
@@ -39,13 +42,15 @@ See: https://issues.gradle.org/browse/GRADLE-3286
 
 # Feature: Self hosted on Java 9
 
-Goal: Run a coverage CI build on Java 9.  
+Goal: Run a coverage CI build on Java 9. At completion, it will be possible to build and test Gradle using Java 9.
 
 ### Initial JDK9 support in Gradle's own build
 [gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9.
  Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
 
-# Feature: Build Java 9 modules
+# Feature: Support Java 9 language and runtime features
+
+Goal: full support of the Java 9 module system, and its build and runtime features
 
 In no particular order:
 
