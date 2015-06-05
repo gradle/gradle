@@ -250,7 +250,7 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
     - Add `Set<LanguagesSourceSet> getInputs()`.
     - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
     - Any source set instance can be added to `BinarySpec.inputs`.
-    - Remove `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
+    - Remove internal `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
 - Change component report to report on all inputs for a binary.
 - Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
 - Change base plugins to add component source sets as inputs to its binaries, rather than owned by the binary.
@@ -285,6 +285,7 @@ dependencies of the source are also built and the source compiled.
 
 ### Implementation
 
+- Need to replace `ComponentSpecInternal.getInputTypes()`, possibly by moving to `BinarySpecInternal` for now.
 - Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
 - Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
 
