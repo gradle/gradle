@@ -49,7 +49,7 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                def deps = $('components.main.sources.java').dependencies
+                def deps = $('components.main.sources.java').dependencies.dependencies
                 assert deps.size() == 3
                 assert deps[0].libraryName == 'someLib'
                 assert deps[1].projectPath == 'otherProject'
@@ -92,7 +92,7 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                def deps = $('components.main.sources.java').dependencies
+                def deps = $('components.main.sources.java').dependencies.dependencies
                 assert deps.size() == 1
                 assert deps[0].libraryName == 'someLib'
                 assert deps[0] instanceof org.gradle.platform.base.internal.DefaultDependencySpec // this guy is immutable
@@ -138,7 +138,7 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                def libraries = $('components.main.sources.java').dependencies*.libraryName
+                def libraries = $('components.main.sources.java').dependencies.dependencies*.libraryName
             }
         }
     }
@@ -175,7 +175,7 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                def libraries = $('components.main.sources.java').dependencies*.libraryName
+                def libraries = $('components.main.sources.java').dependencies.dependencies*.libraryName
             }
         }
     }
@@ -219,7 +219,7 @@ model {
     tasks {
         create('checkDependencies') {
             doLast {
-                def deps = $('components.main.sources.java').dependencies
+                def deps = $('components.main.sources.java').dependencies.dependencies
                 assert deps.size() == 3
                 assert deps[0].libraryName == 'someLib'
                 assert deps[1].projectPath == 'otherProject'
