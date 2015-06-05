@@ -174,7 +174,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
     }
 
-    def "managed model type can reference a collection of managed types"() {
+    def "managed model cannot have a mutable ModelSet member"() {
         when:
         buildScript '''
             @Managed
@@ -188,48 +188,25 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
               String getName()
               void setName(String string)
               ModelSet<Person> getMembers()
+              //Invalid setter
               void setMembers(ModelSet<Person> members)
             }
 
             class Rules extends RuleSource {
               @Model
-              void people(ModelSet<Person> people) {
-                people.create { name = "Ada Lovelace" }
-                people.create { name = "Grace Hooper" }
-              }
-
-              @Model
               void group(Group group, @Path("people") ModelSet<Person> people) {
-                group.name = "Women in computing"
-
-                assert group.members == null
-
-                group.members = people
-
-                assert group.members.is(people)
               }
             }
 
             apply type: Rules
-
-            model {
-              tasks {
-                create("printGroup") {
-                  doLast {
-                    def members = $("group").members*.name.sort().join(", ")
-                    def name = $("group").name
-                    println "$name: $members"
-                  }
-                }
-              }
-            }
         '''
 
         then:
-        succeeds "printGroup"
+        fails "tasks"
 
         and:
-        output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
+        failure.assertHasCause("Declaration of model rule Rules#group(Group, org.gradle.model.ModelSet<Person>) is invalid.")
+        failure.assertHasCause("Invalid managed model type Group: property 'members' cannot have a setter (org.gradle.model.ModelSet properties must be read only)")
     }
 
     def "rule method can apply defaults to a managed set"() {

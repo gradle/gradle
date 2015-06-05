@@ -20,6 +20,8 @@ import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -55,7 +57,8 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Ob
                 ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
                 modelNode.addLink(creator);
             } else {
-                ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
+                ModelStructSchema<P> structSchema = (ModelStructSchema<P>) propertySchema;
+                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore,  new ManagedProxyFactory());
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                     .withProjection(projection)
                     .descriptor(descriptor).build();

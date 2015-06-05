@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
+import org.gradle.model.ModelSet;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -261,6 +262,14 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                             throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                                 "property '%s' cannot have a setter (%s properties must be read only).",
                                 property.getName(), ModelMap.class.getName()));
+                        }
+                    }
+
+                    if (propertyCollectionSchema.isSet()) {
+                        if (property.isWritable()) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "property '%s' cannot have a setter (%s properties must be read only).",
+                                property.getName(), ModelSet.class.getName()));
                         }
                     }
                 }

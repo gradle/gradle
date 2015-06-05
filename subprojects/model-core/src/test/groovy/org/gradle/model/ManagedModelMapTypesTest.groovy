@@ -101,6 +101,13 @@ class ManagedModelMapTypesTest extends Specification {
         abstract ModelMap<NamedThingInterface> getMap()
     }
 
+    @Managed
+    static abstract class WritableSetProperty {
+        abstract void setSet(ModelSet<NamedThingInterface> set)
+
+        abstract ModelSet<NamedThingInterface> getSet()
+    }
+
     def "map cannot be writable"() {
         when:
         schemaStore.getSchema(ModelType.of(WritableMapProperty))
@@ -108,6 +115,15 @@ class ManagedModelMapTypesTest extends Specification {
         then:
         def e = thrown InvalidManagedModelElementTypeException
         e.message == "Invalid managed model type $WritableMapProperty.name: property 'map' cannot have a setter ($ModelMap.name properties must be read only)."
+    }
+
+    def "set cannot be writable"() {
+        when:
+        schemaStore.getSchema(ModelType.of(WritableSetProperty))
+
+        then:
+        def e = thrown InvalidManagedModelElementTypeException
+        e.message == "Invalid managed model type $WritableSetProperty.name: property 'set' cannot have a setter ($ModelSet.name properties must be read only)."
     }
 
 }
