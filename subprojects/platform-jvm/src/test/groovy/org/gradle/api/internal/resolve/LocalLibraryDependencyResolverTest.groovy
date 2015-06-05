@@ -202,6 +202,9 @@ class LocalLibraryDependencyResolverTest extends Specification {
             def librarySpecs = libraries.collect {
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> it
+                def binaries = Mock(ModelMap)
+                binaries.values() >> {[]}
+                lib.binaries >> binaries
                 lib
             }
             map.values() >> librarySpecs

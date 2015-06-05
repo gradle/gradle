@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 
@@ -33,7 +33,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         super(id, componentIdentifier, Project.DEFAULT_STATUS);
     }
 
-    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName) {
+    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName, TaskDependency buildDependencies) {
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
             projectPath, libraryName, VERSION
         );
@@ -46,7 +46,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
             Collections.singleton(LibraryComponentIdentifier.API_CONFIGURATION_NAME),
             true,
             true,
-            new DefaultTaskDependency());
+            buildDependencies);
         return metaData;
     }
 }

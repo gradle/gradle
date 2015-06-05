@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -48,7 +49,8 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
         String projectPath = context.getProjectPath();
         LanguageSourceSetInternal sourceSet = context.getSourceSet();
         String libraryName = sourceSet.getParentName();
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName);
+        TaskDependency buildDependencies = context.getSourceSet().getBuildDependencies();
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, buildDependencies);
         if (sourceSet instanceof DependentSourceSetInternal) {
             addDependencies(projectPath, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
         }

@@ -40,7 +40,7 @@ model {
     tasks {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(createZdepJar)
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJar)
         }
     }
 }
@@ -76,9 +76,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        fails ':mainJar'
-        failure.assertHasDescription('Circular dependency between the following tasks')
+        when:
+        succeeds ':mainJar'
+
+        then:
+        executedAndNotSkipped(':createMainJar',':mainJar')
 
     }
 
@@ -169,7 +171,7 @@ model {
     tasks {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
-            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:createMainJar')
+            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.contains(':dep:mainJar')
         }
     }
 }
@@ -353,7 +355,7 @@ model {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).path.containsAll(
-            [':createOtherJar',':dep:createMainJar'])
+            [':otherJar',':dep:mainJar'])
         }
     }
 }

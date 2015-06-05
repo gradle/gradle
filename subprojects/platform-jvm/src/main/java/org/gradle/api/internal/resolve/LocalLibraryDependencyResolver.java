@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -71,7 +72,11 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
-                DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName());
+                DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+                for (BinarySpec spec : selectedLibrary.getBinaries().values()) {
+                    buildDependencies.add(spec.getBuildTask());
+                }
+                DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), buildDependencies);
                 result.resolved(metaData.toResolveMetaData());
             } else {
                 String message = prettyErrorMessage(selector, resolutionResult);

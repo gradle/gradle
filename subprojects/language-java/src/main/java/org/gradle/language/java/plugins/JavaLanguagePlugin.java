@@ -191,13 +191,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                             ResolvedArtifactsBuilder artifactsBuilder = resolverResults.getArtifactsBuilder();
                             ResolvedArtifactResults resolve = artifactsBuilder.resolve();
                             for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                                if (resolvedArtifact instanceof Buildable) {
-                                    result.add(((Buildable) resolvedArtifact).getBuildDependencies());
-                                }
-                            }
-                            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
                                 dependencies.add(resolvedArtifact.getFile());
                             }
+                            result.add(resolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
                         }
                         resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
                             @Override
