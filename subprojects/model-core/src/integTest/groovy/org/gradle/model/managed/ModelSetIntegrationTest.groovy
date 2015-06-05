@@ -206,7 +206,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Declaration of model rule Rules#group(Group, org.gradle.model.ModelSet<Person>) is invalid.")
-        failure.assertHasCause("Invalid managed model type Group: property 'members' cannot have a setter (org.gradle.model.ModelSet properties must be read only)")
+        failure.assertHasCause("Invalid managed model type Group: property 'members' cannot have a setter (org.gradle.model.ModelSet<Person> properties must be read only)")
     }
 
     def "rule method can apply defaults to a managed set"() {

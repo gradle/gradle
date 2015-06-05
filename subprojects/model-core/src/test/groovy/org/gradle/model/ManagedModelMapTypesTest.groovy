@@ -114,7 +114,9 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type $WritableMapProperty.name: property 'map' cannot have a setter ($ModelMap.name properties must be read only)."
+        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableMapProperty: property 'map' cannot have a setter (org.gradle.model.ModelMap<org.gradle.model.NamedThingInterface> properties must be read only)."
+
+
     }
 
     def "set cannot be writable"() {
@@ -123,7 +125,6 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type $WritableSetProperty.name: property 'set' cannot have a setter ($ModelSet.name properties must be read only)."
+        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableSetProperty: property 'set' cannot have a setter (org.gradle.model.ModelSet<org.gradle.model.NamedThingInterface> properties must be read only)."
     }
-
 }

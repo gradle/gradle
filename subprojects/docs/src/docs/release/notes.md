@@ -39,6 +39,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Component model changes
 
 * Removed `BinarySpec.source(Object)`: It is no longer possible to add a sourceSet from one binary/component to another binary.
+* `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
 
 ## External contributions
 

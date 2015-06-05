@@ -23,7 +23,6 @@ import org.gradle.model.internal.type.ModelType;
 public class ModelCollectionSchema<T> extends ModelSchema<T> {
     private final ModelType<?> elementType;
     private boolean map;
-    private boolean set;
 
     public ModelCollectionSchema(ModelType<T> type, ModelType<?> elementType) {
         super(type, Kind.COLLECTION);
@@ -31,7 +30,7 @@ public class ModelCollectionSchema<T> extends ModelSchema<T> {
         if (type.getRawClass().equals(ModelMap.class)) {
             map = true;
         } else if (type.getRawClass().equals(ModelSet.class)) {
-            set = true;
+            map = false;
         } else {
             throw new IllegalArgumentException("Expected type of either ModelMap or ModelSet");
         }
@@ -43,9 +42,5 @@ public class ModelCollectionSchema<T> extends ModelSchema<T> {
 
     public boolean isMap() {
         return map;
-    }
-
-    public boolean isSet() {
-        return set;
     }
 }
