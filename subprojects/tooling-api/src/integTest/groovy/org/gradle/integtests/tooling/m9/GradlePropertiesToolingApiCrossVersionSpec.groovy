@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.IgnoreIf
 
@@ -33,7 +32,6 @@ class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification
         toolingApi.requireDaemons()
     }
 
-    @TargetGradleVersion('<=2.4')
     def "tooling api honours jvm args specified in gradle.properties"() {
         file('build.gradle') << """
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
@@ -49,25 +47,6 @@ assert System.getProperty('some-prop') == 'some-value'
 
         then:
         env.java.jvmArguments.contains('-Xmx16m')
-    }
-
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    def "tooling api honours jvm args specified in gradle.properties on Gradle 2.5+"() {
-        file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
-assert System.getProperty('some-prop') == 'some-value'
-"""
-        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
-
-        when:
-        BuildEnvironment env = toolingApi.withConnection { connection ->
-            connection.newBuild().run() //the assert
-            connection.getModel(BuildEnvironment.class)
-        }
-
-        then:
-        env.java.allJvmArguments.contains('-Xmx16m')
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })

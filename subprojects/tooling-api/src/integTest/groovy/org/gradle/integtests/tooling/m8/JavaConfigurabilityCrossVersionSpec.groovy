@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Issue
@@ -32,14 +30,13 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireDaemons()
     }
 
-    @TargetGradleVersion('<=2.4')
     def "configures the java settings"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
+            def model = it.model(BuildEnvironment.class)
             model
-                    .setJvmArguments("-Xmx333m", "-Xms13m")
-                    .get()
+                .setJvmArguments("-Xmx333m", "-Xms13m")
+                .get()
         }
 
         then:
@@ -47,29 +44,13 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments.contains "-Xmx333m"
     }
 
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    def "configures the java settings with Gradle 2.5+"() {
-        when:
-        BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
-            model
-                    .setJvmArguments("-Xmx333m", "-Xms13m")
-                    .get()
-        }
-
-        then:
-        env.java.allJvmArguments.contains "-Xms13m"
-        env.java.allJvmArguments.contains "-Xmx333m"
-    }
-
     def "uses sensible java defaults if nulls configured"() {
         when:
         BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment)
+            def model = it.model(BuildEnvironment.class)
             model
-                    .setJvmArguments(null)
-                    .get()
+                .setJvmArguments(null)
+                .get()
         }
 
         then:
@@ -87,15 +68,14 @@ assert System.getProperty('some-prop') == 'BBB'
         when:
         def model = withConnection {
             it.model(GradleProject.class)
-                    .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
-                    .get()
+                .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
+                .get()
         }
 
         then:
         model != null
     }
 
-    @TargetGradleVersion('<=2.4')
     def "customized java args are reflected in the inputArguments and the build model"() {
         given:
         file('build.gradle') <<
@@ -105,33 +85,13 @@ assert System.getProperty('some-prop') == 'BBB'
         BuildEnvironment env
         GradleProject project
         withConnection {
-            env = it.model(BuildEnvironment).setJvmArguments('-Xmx200m', '-Xms100m').get()
-            project = it.model(GradleProject).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            env = it.model(BuildEnvironment.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            project = it.model(GradleProject.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
         }
 
         then:
         def inputArgsInBuild = project.description.split('##') as List
         env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
-    }
-
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    def "customized java args are reflected in the inputArguments and the build model on Gradle 2.5+"() {
-        given:
-        file('build.gradle') <<
-                "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
-
-        when:
-        BuildEnvironment env
-        GradleProject project
-        withConnection {
-            env = it.model(BuildEnvironment).setJvmArguments('-Xmx200m', '-Xms100m').get()
-            project = it.model(GradleProject).setJvmArguments('-Xmx200m', '-Xms100m').get()
-        }
-
-        then:
-        def inputArgsInBuild = project.description.split('##') as List
-        env.java.allJvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
     @Issue("GRADLE-1799")
