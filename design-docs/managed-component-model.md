@@ -15,8 +15,6 @@ The goal for this feature is to expose something like the following structure to
     |       |   +-- <source-set-name>
     |       +-- binaries
     |           +-- <binary-name>
-    |               +-- tasks
-    |                   +-- <task-name>
     +-- testSuites
         +-- <test-suite-name>
             +-- <same-structure-as-component-above>
@@ -42,7 +40,7 @@ and attach node and edges as elements are added, bridging the legacy collections
 Possibly a better implementation would be to change `CollectionBuilder` into a 'managed map' and use a managed implementation
 (not the existing bridged implementation) for these collections instead. This approach would mean some interleaving of this feature and the next.
 
-## Candidate stories
+## Stories
 
 ### Make `ComponentSpecContainer` a `CollectionBuilder<ComponentSpec>`
 
@@ -123,8 +121,8 @@ duplicated.
 
 ## Story: Use `ModelMap` instead of various domain object collection types in public API of component model
 
-- Change the methods currently using domain object collections (i.e. `ComponentSpec.getSource()`, `ComponentSpec.sources()`, `ComponentSpec.getBinaries()`, `ComponentSpec.binaries()`,
-`BinarySpec.getSource()`, `BinarySpec.sources()`) to use `ModelMap`.
+- Change the methods currently using domain object collections (i.e. `ComponentSpec.getSource()`, `ComponentSpec.sources()`, `ComponentSpec.getBinaries()`, `ComponentSpec.binaries()`
+  to use `ModelMap`.
 - Create new implementations of `ModelMap` that are backed by appropriate domain object collection and use them in implementation of the above methods.
 - Backing these implementations with domain object collection types means that they will be eager.
 
@@ -138,8 +136,6 @@ Existing test coverage still works.
 - `ComponentSpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
 - `ComponentSpec.getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `NamedDomainObjectCollection<BinarySpec>`.
 - `ComponentSpec.binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super NamedDomainObjectContainer<BinarySpec>>`.
-- `BinarySpec.getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
-- `BinarySpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
 
 # Feature 3: Configuration of key parts of the software model are deferrable until required
 
@@ -147,10 +143,9 @@ This feature changes the software model to introduce 'managed map' types instead
 
 - The property `ComponentSpec.sources`, a collection of `LanguageSourceSet`, should allow any `LanguageSourceSet` type registered using a `@LanguageType` rule to be added.
 - The property `ComponentSpec.binaries`, a collection of `BinarySpec`, should allow any `BinarySpec` type registered using a `@BinaryType` rule to be added.
-- The property `BinarySpec.tasks`, a collection of `Task`, should allow any `Task` implementation to be added.
 
-At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component,
-and the tasks of a binary. These rules will be executed as required.
+At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component. 
+These rules will be executed as required.
 
 This feature does not require that sources, binaries etc. of the component model are actually deferred under conventional use.
 Some of the infrastructure rules in the component model plugins are currently coarse in that they effectively depend on all the components, forcing realisation.
@@ -216,14 +211,6 @@ It is not a requirement that `ModelMap` is structurally compatible with NamedDom
 
 - Implications for FunctionalSourceSet and project level source set container?
 
-## Story: Component binaries are not realized unless required
-
-TODO
-
-## Story: Binary tasks are not realized unless required
-
-TODO
-
 # Feature 4: Plugin author uses managed types to extend the software model
 
 This feature allows a plugin author to extend certain key types using a managed type:
@@ -231,6 +218,7 @@ This feature allows a plugin author to extend certain key types using a managed 
 - `ComponentSpec`
 - `LanguageSourceSet`
 - `BinarySpec`
+- `JarBinarySpec`
 
 It is a non-goal of this feature to add any further capabilities to managed types, or to migrate any of the existing subtypes to managed types.
 
@@ -239,7 +227,39 @@ It is a non-goal of this feature to add any further capabilities to managed type
 This feature will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
 individual nodes.
 
-# Feature 5: Build logic defines tasks for generated source sets and intermediate outputs
+As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
+
+# Feature 5: Plugin author attaches source sets to managed type
+
+This feature allows source sets to be added to arbitrary locations in the model. For example, it should be possible to model Android
+build types and flavors each with an associated source set.
+
+It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
+
+## Implementation
+
+- Allow any registered `LanguageSourceSet` subtype to be added as a property of a managed type, or created as a top-level element
+    - Instances are linked into top level `sources` container
+    - Need some convention for source directory locations. Possibly default to empty set.
+- Change `ComponentSpec.source` so that configuration is deferred
+    - Need to replace usages of internal `ComponentSpecInternal.sources`
+    - Rename `source` to `sources` via add-deprecate-remove
+- Change `BinarySpec.sources` so that configuration is deferred
+- Change `FunctionalSourceSet` so that it extends `ModelMap`
+- Allow `FunctionalSourceSet` to be added as a property of a managed type, or created as a top-level element
+    - Instances are linked into top level `sources` container
+    - Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
+    - Need some convention for which languages are included. Possibly default to no languages 
+- Change `BinarySpec.sources` and `ComponentSpec.sources` to have type `FunctionalSourceSet`
+
+# Feature 6: Key component model elements are not realized until required
+
+This feature continues earlier work to make key properties of `BinarySpec` managed.
+
+- `BinarySpec.source`
+- `BinarySpec.tasks`
+
+# Feature 7: Build logic defines tasks for generated source sets and intermediate outputs
 
 This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
 and intermediate outputs.
@@ -287,7 +307,7 @@ The implementation would be responsible for invoking the rules when assembling t
 - When a physical thing is used as input, the tasks that build its inputs, if any, should be determined and attached as dependencies of those tasks
 that take the physical thing as input.
 
-# Feature 6: Plugin author uses managed types to define intermediate outputs
+# Feature 8: Plugin author uses managed types to define intermediate outputs
 
 This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
@@ -300,7 +320,7 @@ kind of JVM classpath component.
 One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
 of a buildable thing.
 
-# Feature 7: Build logic defines tasks that run executable things
+# Feature 9: Build logic defines tasks that run executable things
 
 This feature generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
 
@@ -319,7 +339,7 @@ The implementation would be responsible for building the executable things, and 
 
 The `components` report should show details of the executable things, which as the entry point task to run the thing.
 
-# Feature 8: References between key objects in the software model are visible to rules
+# Feature 10: References between key objects in the software model are visible to rules
 
 The relationships exposed in the first feature represent ownership, where the relationship is one between a parent and child.
 This feature exposes other key 'non-ownership' relationships present in the software model.
