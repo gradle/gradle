@@ -799,8 +799,19 @@ Existing BuildLink adapter can be used with minor modifications.
 
 #### Test coverage
 
-- Changes to source are reflected in running play app (TODO: expand for relevant different types of source)
+- Changes to source are reflected in running play app
+  - test changes to different types of source:
+     - controller (java/scala), routes, model (java/scala), views (twirl), javascript, coffeescript, css, lesscss
 - Reload is not triggered if dependency of play run task fails
+
+### Backlog & Open Issues
+
+- Debugging Play application that is run with playRun
+  - currently there isn't a way to add debugging JVM arguments to the worker process
+- PlayRun uses org.gradle.api.tasks.compile.BaseForkOptions for forkOptions. That class is documented to hold forked compiler JVM arguments.
+- Reloading doesn't support multi-project builds
+  - The BuildLink solution returns a new classloader that contains the "changing" application resources. All other dependencies should be in the higher level classloader.
+    However there isn't currently a way to distinguish the changing dependencies (application resources) in a multi-project build.
 
 ### Story: Build of pending changes is deferred until reload is requested by Play application
 
