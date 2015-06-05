@@ -16,12 +16,8 @@
 
 package org.gradle.tooling.model.build;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.model.UnsupportedMethodException;
-
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Informs about the Java environment, for example the Java home or the JVM args used. See example in {@link BuildEnvironment}.
@@ -46,42 +42,4 @@ public interface JavaEnvironment {
      */
     List<String> getJvmArguments();
 
-    /**
-     * The effective JVM arguments used to start the Java process that handles Gradle operations (for example running tasks or acquiring model information). The returned arguments do not include
-     * system properties passed as -Dfoo=bar. They may include implicitly immutable system properties like "file.encoding".
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    List<String> getEffectiveJvmArguments() throws UnsupportedMethodException;
-
-    /**
-     * The effective JVM arguments used to start the Java process that handles Gradle operations (for example running tasks or acquiring model information) including system properties passed as
-     * -Dfoo=bar. They may include implicitly immutable system properties like "file.encoding".
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    List<String> getAllJvmArguments() throws UnsupportedMethodException;
-
-    /**
-     * The system properties the user provided to start the Java process that handles Gradle operations (for example running tasks or acquiring model information).
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    Map<String, String> getSystemProperties() throws UnsupportedMethodException;
-
-    /**
-     * The effective system properties used to start the Java process that handles Gradle operations (for example running tasks or acquiring model information), including the default system
-     * properties.
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    Map<String, String> getEffectiveSystemProperties();
 }

@@ -89,15 +89,10 @@ public class ProviderConnection {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             return new DefaultBuildEnvironment(
-                params.gradleUserhome,
-                GradleVersion.current().getVersion(),
-                params.daemonParams.getEffectiveJavaHome(),
-                params.daemonParams.getEffectiveJvmArgs(),
-                params.daemonParams.getJvmArgs(),
-                params.daemonParams.getAllJvmArgs(),
-                params.daemonParams.getEffectiveSystemProperties(),
-                params.daemonParams.getSystemProperties()
-            );
+                    params.gradleUserhome,
+                    GradleVersion.current().getVersion(),
+                    params.daemonParams.getEffectiveJavaHome(),
+                    params.daemonParams.getEffectiveJvmArgs());
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
