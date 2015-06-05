@@ -51,14 +51,11 @@ assert System.getProperty('some-prop') == 'some-value'
         then: "complete jvm args include the max memory from gradle.properties"
         env.java.allJvmArguments.contains('-Xmx16m')
 
-        and: "requested jvm args are empty"
-        env.java.requestedJvmArguments == []
+        and: "requested jvm args filter out max memory"
+        !env.java.requestedJvmArguments.contains('-Xmx16m')
 
-        and: "user provided system properties are empty"
-        !env.java.requestedSystemProperties.containsKey('some-prop')
-
-        and: "complete system properties contains the custom system property"
-        env.java.systemProperties['some-prop'] == 'some-value'
+        and: "user provided system properties are found in the requested system properties"
+        env.java.requestedSystemProperties['some-prop'] == 'some-value'
     }
 
     @ToolingApiVersion(">=2.5")

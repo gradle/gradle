@@ -48,25 +48,17 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion('>=2.5')
     @ToolingApiVersion('>=2.5')
-    def "managed JVM arguments are not filtered out of requested JVM arguments"() {
+    def "managed JVM arguments are filtered out of requested JVM arguments"() {
         when:
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment)
             model
-                    .setJvmArguments("-Xmx333m", "-Xms13m","-Dfoo=bar")
+                    .setJvmArguments("-Xmx333m", "-Xms13m")
                     .get()
         }
 
-        then: "requested JVM arguments contains all JVM arguments provided by the user which are not system properties"
-        env.java.requestedJvmArguments as Set == ['-Xmx333m', '-Xms13m'] as Set
-
-        and: "JVM arguments contains more than the requested arguments but not the user provided system properties"
-        env.java.jvmArguments.size() > env.java.requestedJvmArguments.size()
-        !env.java.jvmArguments.contains('-Dfoo=bar')
-
-        and: "all JVM arguments contains user provided system properties"
-        env.java.allJvmArguments.size() > env.java.jvmArguments.size()
-        env.java.allJvmArguments.contains('-Dfoo=bar')
+        then:
+        env.java.requestedJvmArguments.isEmpty()
     }
 
     def "uses sensible java defaults if nulls configured"() {
