@@ -18,13 +18,13 @@ package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * A container for dependency specifications.
  */
 @Incubating
-public interface DependencySpecContainer extends Set<DependencySpec> {
+public interface DependencySpecContainer {
     /**
      * Defines a new dependency, based on a project path. The returned dependency can be mutated.
      *
@@ -32,7 +32,7 @@ public interface DependencySpecContainer extends Set<DependencySpec> {
      *
      * @return a mutable dependency, added to this container
      */
-    DependencySpec project(String path);
+    DependencySpecBuilder project(String path);
 
     /**
      * Defines a new dependency, based on a library name. The returned dependency can be mutated.
@@ -41,6 +41,20 @@ public interface DependencySpecContainer extends Set<DependencySpec> {
      *
      * @return a mutable dependency, added to this container
      */
-    DependencySpec library(String name);
+    DependencySpecBuilder library(String name);
+
+    /**
+     * Returns an immutable view of dependencies stored in this container.
+     *
+     * @return an immutable view of dependencies. Each dependency in the collection is itself immutable.
+     */
+    Collection<DependencySpec> getDependencies();
+
+    /**
+     * Returns true if this container doesn't hold any dependency.
+     *
+     * @return true if this container doesn't contain any dependency specification.
+     */
+    boolean isEmpty();
 
 }

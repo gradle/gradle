@@ -40,6 +40,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         given: "a java sourceset that doesn't define any dependency"
         def sourceSet = Mock(DefaultJavaLanguageSourceSet)
         def dependencySpecs = Mock(DependencySpecContainer)
+        dependencySpecs.dependencies >> { [] as Set }
         def project = ':myPath'
 
         dependencySpecs.iterator() >> { [].iterator() }
@@ -84,7 +85,6 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def dependencySpecs = Mock(DependencySpecContainer)
         def project = ':myPath'
 
-        dependencySpecs.iterator() >> { dependencies.iterator() }
         sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
 
@@ -97,6 +97,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         factory.canConvert(context)
 
         when: "we convert the context to a local component"
+        dependencySpecs.dependencies >> dependencies
         def component = factory.convert(context)
 
         then: "component metadata reflects the library configuration"

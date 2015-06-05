@@ -16,13 +16,18 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecBuilder;
 import org.gradle.platform.base.DependencySpecContainer;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
@@ -48,15 +53,16 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
         });
     }
 
-    private Collection<DependencySpec> getDependencies() {
+    public Collection<DependencySpec> getDependencies() {
         if (builders.isEmpty()) {
             return Collections.emptySet();
         }
-        ArrayList<DependencySpec> specs = new ArrayList<DependencySpec>(builders.size());
-        for (DefaultDependencySpec.Builder builder : builders) {
-            specs.add(builder.build());
-        }
-        return ImmutableSet.copyOf(specs);
+        return ImmutableSet.copyOf(Lists.transform(builders, new Function<DefaultDependencySpec.Builder, DependencySpec>() {
+            @Override
+            public DependencySpec apply(DefaultDependencySpec.Builder builder) {
+                return builder.build();
+            }
+        }));
     }
 
     private DefaultDependencySpec.Builder doCreate(Action<? super DefaultDependencySpec.Builder> action) {
@@ -67,68 +73,7 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
     }
 
     @Override
-    public boolean add(DependencySpec dependencySpec) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int size() {
-        return getDependencies().size();
-    }
-
-    @Override
     public boolean isEmpty() {
         return builders.isEmpty();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Iterator<DependencySpec> iterator() {
-        return getDependencies().iterator();
-    }
-
-    @Override
-    public Object[] toArray() {
-        return getDependencies().toArray();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T[] toArray(T[] a) {
-        return (T[]) getDependencies().toArray((DefaultDependencySpec[])a);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends DependencySpec> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
     }
 }

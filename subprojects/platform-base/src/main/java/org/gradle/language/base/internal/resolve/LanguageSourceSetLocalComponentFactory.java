@@ -57,7 +57,7 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
 
     private void addDependencies(String defaultProject, DefaultLocalComponentMetaData metaData, DependencySpecContainer allDependencies) {
         ModuleVersionIdentifier mvi = metaData.getId();
-        for (DependencySpec dependency : allDependencies) {
+        for (DependencySpec dependency : allDependencies.getDependencies()) {
 
             String projectPath = dependency.getProjectPath();
             if (projectPath==null) {

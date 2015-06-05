@@ -39,8 +39,8 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         sourceSet.dependencies.project ':foo'
 
         then:
-        sourceSet.dependencies.size() == 1
-        sourceSet.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies.dependencies.size() == 1
+        sourceSet.dependencies.dependencies[0].projectPath == ':foo'
     }
 
     def "can add a project dependency"() {
@@ -52,8 +52,8 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         }
 
         then:
-        sourceSet.dependencies.size() == 1
-        sourceSet.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies.dependencies.size() == 1
+        sourceSet.dependencies.dependencies[0].projectPath == ':foo'
     }
 
     def "can add a library dependency"() {
@@ -65,8 +65,8 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         }
 
         then:
-        sourceSet.dependencies.size() == 1
-        sourceSet.dependencies[0].libraryName == 'fooLib'
+        sourceSet.dependencies.dependencies.size() == 1
+        sourceSet.dependencies.dependencies[0].libraryName == 'fooLib'
     }
 
     def "can add a project library dependency"() {
@@ -78,9 +78,9 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         }
 
         then:
-        sourceSet.dependencies.size() == 1
-        sourceSet.dependencies[0].projectPath == ':foo'
-        sourceSet.dependencies[0].libraryName == 'fooLib'
+        sourceSet.dependencies.dependencies.size() == 1
+        sourceSet.dependencies.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies.dependencies[0].libraryName == 'fooLib'
     }
 
     def "can add a multiple dependencies"() {
@@ -94,11 +94,11 @@ class DefaultJavaLanguageSourceSetTest extends Specification {
         }
 
         then:
-        sourceSet.dependencies.size() == 3
-        sourceSet.dependencies[0].projectPath == ':foo'
-        sourceSet.dependencies[1].libraryName == 'fooLib'
-        sourceSet.dependencies[2].projectPath == ':bar'
-        sourceSet.dependencies[2].libraryName == 'barLib'
+        sourceSet.dependencies.dependencies.size() == 3
+        sourceSet.dependencies.dependencies[0].projectPath == ':foo'
+        sourceSet.dependencies.dependencies[1].libraryName == 'fooLib'
+        sourceSet.dependencies.dependencies[2].projectPath == ':bar'
+        sourceSet.dependencies.dependencies[2].libraryName == 'barLib'
     }
 
     private DefaultJavaLanguageSourceSet newJavaSourceSet() {

@@ -76,7 +76,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
             DependencySpecContainer dependencies = ((DependentSourceSetInternal) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
                 builder.item("dependencies");
-                builder.collection(dependencies, new ReportRenderer<DependencySpec, TextReportBuilder>() {
+                builder.collection(dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
                     @Override
                     public void render(DependencySpec model, TextReportBuilder output) throws IOException {
                         List<String> parts = Lists.newArrayList();
