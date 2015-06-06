@@ -75,7 +75,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     private static void applyRules(ModelRegistry modelRegistry, DefaultBinaryContainer binaries) {
-        final String descriptor = LanguageBasePlugin.class.getName() + ".apply()";
+        final String descriptor = LanguageBasePlugin.class.getSimpleName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
 
