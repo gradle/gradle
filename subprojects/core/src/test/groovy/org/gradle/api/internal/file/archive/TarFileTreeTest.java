@@ -143,4 +143,14 @@ public class TarFileTreeTest {
 
         assertVisitsPermissions(tree, expected);
     }
+
+    @Test
+    public void readsTarFileWithNullPermissions() {
+        resources.findResource("nullpermissions.tar").copyTo(tarFile);
+
+        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        expected.put("bin", 0755);
+
+        assertVisitsPermissions(tree, expected);
+    }
 }

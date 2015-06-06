@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelCollectionSchema<T> extends ModelSchema<T> {
@@ -29,7 +30,7 @@ public class ModelCollectionSchema<T> extends ModelSchema<T> {
         this.elementType = elementType;
         if (type.getRawClass().equals(ModelMap.class)) {
             map = true;
-        } else if (type.getRawClass().equals(ModelSet.class)) {
+        } else if (type.getRawClass().equals(ModelSet.class) || type.getRawClass().equals(ManagedSet.class)) {
             map = false;
         } else {
             throw new IllegalArgumentException("Expected type of either ModelMap or ModelSet");

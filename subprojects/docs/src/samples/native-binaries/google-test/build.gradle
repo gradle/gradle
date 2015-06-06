@@ -37,6 +37,11 @@ binaries.withType(GoogleTestTestSuiteBinarySpec) {
     if (flavor == flavors.failing) {
         cppCompiler.define "PLUS_BROKEN"
     }
+
+    if (targetPlatform.operatingSystem.linux) {
+        cppCompiler.args '-pthread'
+        linker.args '-pthread'
+    }
 }
 // END SNIPPET configure-test-binary
 // END SNIPPET complete-example

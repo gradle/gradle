@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -27,9 +28,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedDomainObjectSetBackedModelMap;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -118,10 +116,8 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSources);
     }
 
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(ModelMapGroovyDecorator.unmanaged(
-            NamedDomainObjectSetBackedModelMap.wrap(LanguageSourceSet.class, mainSources)
-        ));
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(mainSources);
     }
 
     @Override

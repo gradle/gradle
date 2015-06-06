@@ -24,24 +24,32 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class NativeBinarySpecInitializerTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+class NativeBinaryRulesTest extends Specification {
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     def project = Mock(Project)
-    def configAction
 
     def namingScheme = Mock(BinaryNamingScheme)
     def toolProvider = Mock(PlatformToolProvider)
+    def platform = Mock(NativePlatformInternal)
+    def toolChains = Mock(NativeToolChainRegistryInternal) {
+        getForPlatform(platform) >> Mock(NativeToolChainInternal) {
+            select(platform) >> toolProvider
+        }
+    }
 
     def setup() {
         project.buildDir >> tmpDir.testDirectory
-        configAction = new NativeBinarySpecInitializer(project.buildDir)
     }
 
     def "test executable"() {
@@ -51,7 +59,7 @@ class NativeBinarySpecInitializerTest extends Specification {
         toolProvider.getExecutableName("base_name") >> "exe_name"
 
         and:
-        configAction.execute(binary)
+        NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
         1 * binary.setExecutableFile(tmpDir.testDirectory.file("binaries", "output_dir", "exe_name"))
@@ -65,7 +73,7 @@ class NativeBinarySpecInitializerTest extends Specification {
         toolProvider.getSharedLibraryLinkFileName("base_name") >> "shared_library_link_name"
 
         and:
-        configAction.execute(binary)
+        NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
         1 * binary.setSharedLibraryFile(tmpDir.testDirectory.file("binaries", "output_dir", "shared_library_name"))
@@ -79,7 +87,7 @@ class NativeBinarySpecInitializerTest extends Specification {
         toolProvider.getStaticLibraryName("base_name") >> "static_library_name"
 
         and:
-        configAction.execute(binary)
+        NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
         1 * binary.setStaticLibraryFile(tmpDir.testDirectory.file("binaries", "output_dir", "static_library_name"))
@@ -91,6 +99,8 @@ class NativeBinarySpecInitializerTest extends Specification {
         binary.component >> component
         binary.platformToolProvider >> toolProvider
         binary.namingScheme >> namingScheme
+        binary.targetPlatform >> platform
+
 
         namingScheme.outputDirectoryBase >> "output_dir"
         component.baseName >> "base_name"

@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
@@ -66,14 +65,13 @@ public abstract class BridgedCollections {
 
                             if (!containerNode.hasLink(name)) {
                                 ModelType<I> itemType = ModelType.typeOf(item);
-                                ModelCreator itemCreator = ModelCreators.unmanagedInstance(ModelReference.of(containerPath.child(name), itemType), new Factory<I>() {
-                                    @Override
-                                    public I create() {
-                                        return container.getByName(name);
-                                    }
-                                })
-                                    .descriptor(itemDescriptorGenerator.transform(name)).build();
-
+                                ModelCreator itemCreator = ModelCreators
+                                    .unmanagedInstanceOf(
+                                        ModelReference.of(containerPath.child(name), itemType),
+                                        new ExtractFromParentContainer<I, C>(name, containerType)
+                                    )
+                                    .descriptor(itemDescriptorGenerator.transform(name))
+                                    .build();
                                 containerNode.addLink(itemCreator);
                             }
                         }
@@ -93,6 +91,22 @@ public abstract class BridgedCollections {
 
     public static Transformer<String, String> itemDescriptor(String parentDescriptor) {
         return new StandardDescriptorFactory(parentDescriptor);
+    }
+
+    private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>> implements Transformer<I, MutableModelNode> {
+
+        private final String name;
+        private final ModelType<C> containerType;
+
+        public ExtractFromParentContainer(String name, ModelType<C> containerType) {
+            this.name = name;
+            this.containerType = containerType;
+        }
+
+        @Override
+        public I transform(MutableModelNode modelNode) {
+            return modelNode.getParent().getPrivateData(containerType).getByName(name);
+        }
     }
 
 }

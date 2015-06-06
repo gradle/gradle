@@ -16,70 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.ModelSet;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-
 @ThreadSafe
-public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
-
-    private static final ModelType<ModelSet<?>> MODEL_SET_MODEL_TYPE = new ModelType<ModelSet<?>>() {
-    };
-    private final Factory<String> supportedTypeDescriptions;
+public class ModelSetStrategy extends SetStrategy {
 
     public ModelSetStrategy(Factory<String> supportedTypeDescriptions) {
-        this.supportedTypeDescriptions = supportedTypeDescriptions;
+        super(new ModelType<ModelSet<?>>() {
+        }, supportedTypeDescriptions);
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache) {
-        ModelType<T> type = extractionContext.getType();
-        if (MODEL_SET_MODEL_TYPE.isAssignableFrom(type)) {
-            if (!type.getRawClass().equals(ModelSet.class)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("subtyping %s is not supported", ModelSet.class.getName()));
-            }
-            if (type.isHasWildcardTypeVariables()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
-            }
-
-            List<ModelType<?>> typeVariables = type.getTypeVariables();
-            if (typeVariables.isEmpty()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
-            }
-
-            ModelType<?> elementType = typeVariables.get(0);
-
-            if (MODEL_SET_MODEL_TYPE.isAssignableFrom(elementType)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", ModelSet.class.getName()));
-            }
-
-            ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType(), elementType);
-            ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-                public void execute(ModelSchemaExtractionContext<?> context) {
-                    ModelSchema<?> typeParamSchema = cache.get(context.getType());
-
-                    if (!typeParamSchema.getKind().isManaged()) {
-                        throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                                "cannot create a managed set of type %s as it is an unmanaged type.%nSupported types:%n%s",
-                                context.getType(), supportedTypeDescriptions.create()
-                        ));
-                    }
-                }
-            });
-            return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
-        } else {
-            return null;
-        }
-    }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton(MODEL_SET_MODEL_TYPE + " of a managed type");
-    }
 }

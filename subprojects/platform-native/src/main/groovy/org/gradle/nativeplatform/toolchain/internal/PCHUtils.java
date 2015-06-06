@@ -66,7 +66,7 @@ public class PCHUtils {
     }
 
     public static <T extends NativeCompileSpec> File generatePCHSourceFile(T original, File sourceFile) {
-        File generatedSourceDir = new File(original.getTempDir(), "pchGeneratedSource");
+        File generatedSourceDir = new File(original.getTempDir(), "pchGenerated");
         generatedSourceDir.mkdirs();
         File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(getSourceFileExtension(original.getClass())));
         File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());

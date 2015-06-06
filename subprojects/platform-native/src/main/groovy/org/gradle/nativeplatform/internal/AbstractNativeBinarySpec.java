@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -59,8 +60,8 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return component;
     }
 
-    public void setComponent(NativeComponentSpec component) {
-        this.component = component;
+    public void setComponent(ComponentSpec component) {
+        this.component = (NativeComponentSpec) component;
     }
 
     public Flavor getFlavor() {

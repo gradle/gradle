@@ -36,155 +36,131 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 // TODO - mix in Groovy support
 public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements ModelMap<I> {
-    private final String displayName;
-    private final ModelMap<I> delegate;
-    private final ModelViewState viewState;
 
-    public ModelMapGroovyDecorator(ModelMap<I> delegate, ModelViewState viewState) {
-        this(null, delegate, viewState);
+    private final ModelMap<I> delegate;
+
+    public static <T> ModelMap<T> wrap(ModelMap<T> delegate) {
+        return new ModelMapGroovyDecorator<T>(delegate);
     }
 
-    public ModelMapGroovyDecorator(@Nullable String displayName, ModelMap<I> delegate, ModelViewState viewState) {
-        this.displayName = displayName;
+    public ModelMapGroovyDecorator(ModelMap<I> delegate) {
         this.delegate = delegate;
-        this.viewState = viewState;
     }
 
     @Override
     public <S> ModelMap<S> withType(Class<S> type) {
-        return new ModelMapGroovyDecorator<S>(displayName, delegate.withType(type), viewState);
+        return new ModelMapGroovyDecorator<S>(delegate.withType(type));
     }
 
     @Override
     public int size() {
-        viewState.assertCanReadChildren();
         return delegate.size();
     }
 
     @Override
     public boolean isEmpty() {
-        viewState.assertCanReadChildren();
         return delegate.isEmpty();
     }
 
     @Override
     @Nullable
     public I get(Object name) {
-        viewState.assertCanReadChildren();
         return delegate.get(name);
     }
 
     @Override
     @Nullable
     public I get(String name) {
-        viewState.assertCanReadChildren();
         return delegate.get(name);
     }
 
     @Override
     public boolean containsKey(Object name) {
-        viewState.assertCanReadChildren();
         return delegate.containsKey(name);
     }
 
     @Override
     public boolean containsValue(Object item) {
-        viewState.assertCanReadChildren();
         return delegate.containsValue(item);
     }
 
     @Override
     public Set<String> keySet() {
-        viewState.assertCanReadChildren();
         return delegate.keySet();
     }
 
     @Override
     public void create(String name) {
-        viewState.assertCanMutate();
         delegate.create(name);
     }
 
     @Override
     public void create(String name, Action<? super I> configAction) {
-        viewState.assertCanMutate();
         delegate.create(name, configAction);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type) {
-        viewState.assertCanMutate();
         delegate.create(name, type);
     }
 
     @Override
     public <S extends I> void create(String name, Class<S> type, Action<? super S> configAction) {
-        viewState.assertCanMutate();
         delegate.create(name, type, configAction);
     }
 
     @Override
     public void named(String name, Action<? super I> configAction) {
-        viewState.assertCanMutate();
         delegate.named(name, configAction);
     }
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
-        viewState.assertCanMutate();
         delegate.named(name, ruleSource);
     }
 
     @Override
     public void beforeEach(Action<? super I> configAction) {
-        viewState.assertCanMutate();
         delegate.beforeEach(configAction);
     }
 
     @Override
     public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
-        viewState.assertCanMutate();
         delegate.beforeEach(type, configAction);
     }
 
     @Override
     public void all(Action<? super I> configAction) {
-        viewState.assertCanMutate();
         delegate.all(configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
-        viewState.assertCanMutate();
         delegate.withType(type, configAction);
     }
 
     @Override
     public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
-        viewState.assertCanMutate();
         delegate.withType(type, rules);
     }
 
     @Override
     public void afterEach(Action<? super I> configAction) {
-        viewState.assertCanMutate();
         delegate.afterEach(configAction);
     }
 
     @Override
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
-        viewState.assertCanMutate();
         delegate.afterEach(type, configAction);
     }
 
     @Override
     public String toString() {
-        return displayName != null ? displayName : delegate.toString();
+        return delegate.toString();
     }
 
     @Override
     public Collection<I> values() {
-        viewState.assertCanReadChildren();
         return delegate.values();
     }
 
@@ -262,12 +238,5 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
         return null;
     }
 
-    public static <T> ModelMapGroovyDecorator<T> unmanaged(ModelMap<T> delegate) {
-        return wrap(delegate, ModelViewState.UNMANAGED);
-    }
-
-    public static <T> ModelMapGroovyDecorator<T> wrap(ModelMap<T> delegate, ModelViewState state) {
-        return new ModelMapGroovyDecorator<T>(delegate, state);
-    }
 }
 

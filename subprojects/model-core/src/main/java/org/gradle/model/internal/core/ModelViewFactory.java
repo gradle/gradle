@@ -16,13 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-public interface ModelViewState {
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-    void assertCanMutate();
-
-    void assertCanReadChildren();
-
-    boolean isCanMutate();
-
-    boolean isCanReadChildren();
+public interface ModelViewFactory<M> {
+    ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
 }

@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.CollectionBuilder;
@@ -139,18 +138,16 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, boolean mutable, boolean canReadChildren) {
+        DefaultModelViewState state = new DefaultModelViewState(targetType, sourceDescriptor, mutable, canReadChildren);
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, creatorStrategy);
+        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, state, creatorStrategy);
 
-        ModelMap<S> subBuilder = builder.withType(itemClass);
-        ModelType<ModelMap<S>> viewType = ModelTypes.modelMap(itemType);
-        final DefaultModelViewState state = new DefaultModelViewState(targetType, sourceDescriptor, mutable, canReadChildren);
-        return new InstanceModelView<ModelMap<S>>(node.getPath(), viewType, new ModelMapGroovyDecorator<S>(subBuilder, state), new Action<ModelMap<S>>() {
-            @Override
-            public void execute(ModelMap<S> sModelMap) {
-                state.close();
-            }
-        });
+        return InstanceModelView.of(
+            node.getPath(),
+            ModelTypes.modelMap(itemType),
+            ModelMapGroovyDecorator.wrap(builder.withType(itemClass)),
+            state.closer()
+        );
     }
 
     @Override

@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.platform.base.internal;
 
-public interface ModelViewState {
+import org.gradle.platform.base.ComponentSpec;
 
-    void assertCanMutate();
+public interface ComponentSpecAware {
 
-    void assertCanReadChildren();
+    void setComponent(ComponentSpec componentSpec);
 
-    boolean isCanMutate();
-
-    boolean isCanReadChildren();
 }

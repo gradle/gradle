@@ -31,7 +31,6 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
@@ -61,7 +60,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     }
 
     def getStaticLibrary() {
-        TestNativeBinariesFactory.create(DefaultStaticLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform,
+        TestNativeBinariesFactory.create(DefaultStaticLibraryBinarySpec, "test", instantiator, Mock(ITaskFactory), library, namingScheme, resolver, platform,
             buildType, new DefaultFlavor("flavorOne"))
     }
 

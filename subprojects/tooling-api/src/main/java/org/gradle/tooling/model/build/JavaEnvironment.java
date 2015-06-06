@@ -16,12 +16,8 @@
 
 package org.gradle.tooling.model.build;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.model.UnsupportedMethodException;
-
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Informs about the Java environment, for example the Java home or the JVM args used. See example in {@link BuildEnvironment}.
@@ -38,52 +34,12 @@ public interface JavaEnvironment {
     File getJavaHome();
 
     /**
-     * The JVM arguments used to start the Java process that handles Gradle operations
-     * (for example running tasks or acquiring model information).
-     * The returned arguments do not include system properties passed as -Dfoo=bar.
-     * They may include implicitly immutable system properties like "file.encoding".
+     * The JVM arguments the user has provided to start the Java process that handles Gradle operations (for example running tasks or acquiring model information). The returned arguments do not
+     * include system properties passed as -Dfoo=bar. They may include extra properties added by default if no user jvm arguments are specified, like those required by the Gradle daemon (eg.
+     * MaxPermSize).
      *
      * @since 1.0-milestone-8
      */
     List<String> getJvmArguments();
 
-    /**
-     * The JVM arguments the user has requested to start the Java process that handles Gradle operations (for example running tasks or acquiring model information). The returned arguments do not
-     * include system properties passed as -Dfoo=bar.
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    List<String> getRequestedJvmArguments() throws UnsupportedMethodException;
-
-    /**
-     * The effective JVM arguments used to start the Java process that handles Gradle operations (for example running tasks or acquiring model information) including system properties passed as
-     * -Dfoo=bar. They may include implicitly immutable system properties like "file.encoding" and differ from {@link #getJvmArguments()} by including the system properties that
-     * the user requested.
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    List<String> getAllJvmArguments() throws UnsupportedMethodException;
-
-    /**
-     * The effective system properties used to start the Java process that handles Gradle operations (for example running tasks or acquiring model information), including the default system
-     * properties.
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    Map<String, String> getSystemProperties() throws UnsupportedMethodException;
-
-    /**
-     * The system properties the user configured to start the Java process that handles Gradle operations (for example running tasks or acquiring model information).
-     *
-     * @since 2.5
-     * @throws UnsupportedMethodException For Gradle versions older than 2.5, where this method is not supported.
-     */
-    @Incubating
-    Map<String, String> getRequestedSystemProperties() throws UnsupportedMethodException;
 }

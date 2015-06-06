@@ -198,7 +198,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     private assertHasResult() {
-        assert result != null : "result is null, you haven't run succeeds()"
+        assert result != null: "result is null, you haven't run succeeds()"
     }
 
     String getOutput() {
@@ -277,5 +277,10 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     def createDir(String name, Closure cl) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    void outputContains(String string) {
+        assertHasResult()
+        result.assertOutputContains(string.trim())
     }
 }

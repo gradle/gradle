@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -70,12 +71,21 @@ model {
         }
     }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
-
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
+}
+"""
+        addGoogleTestDep()
+    }
+
+    private void addGoogleTestDep() {
+        buildFile << """
+binaries.withType(GoogleTestTestSuiteBinarySpec) {
+    lib library: "googleTest", linkage: "static"
+    if (targetPlatform.operatingSystem.linux) {
+        cppCompiler.args '-pthread'
+        linker.args '-pthread'
+    }
 }
 """
     }
@@ -128,6 +138,23 @@ tasks.withType(RunTestExecutable) {
         testResults.checkTestCases(1, 1, 0)
     }
 
+    @Issue("GRADLE-3225")
+    def "can build and run googleTest test suite with C and C++ plugins"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << "apply plugin: 'c'"
+        file("src/hello/c").createDir().file("foo.c").text = "int foobar() { return 0; }"
+
+        when:
+        run "runHelloTestGoogleTestExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloC",
+            ":compileHelloTestGoogleTestExeHelloTestCpp",
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+    }
+
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -152,6 +179,7 @@ tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
 """
+        addGoogleTestDep()
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -259,10 +287,8 @@ model {
         }
     }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
 """
+        addGoogleTestDep()
 
         then:
         succeeds "runHelloTestGoogleTestExe"

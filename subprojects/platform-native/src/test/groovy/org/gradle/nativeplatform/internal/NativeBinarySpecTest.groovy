@@ -31,7 +31,6 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
@@ -187,8 +186,8 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1,
-                Stub(PlatformToolProvider), platform1, buildType1, flavor)
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+            , platform1, buildType1, flavor)
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {

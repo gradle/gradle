@@ -25,6 +25,8 @@ public interface ExecutionResult {
 
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
+    ExecutionResult assertOutputContains(String expectedOutput);
+
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
      */

@@ -18,6 +18,7 @@ package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
@@ -44,15 +45,7 @@ public class ComponentRules extends RuleSource {
 
     @Defaults
     void applyDefaultSourceConventions(final ComponentSpec component) {
-        component.getSource().afterEach(new Action<LanguageSourceSet>() {
-            @Override
-            public void execute(LanguageSourceSet languageSourceSet) {
-                // Only apply default locations when none explicitly configured
-                if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                    languageSourceSet.getSource().srcDir(String.format("src/%s/%s", component.getName(), languageSourceSet.getName()));
-                }
-            }
-        });
+        component.getSource().afterEach(new AddDefaultSourceLocation(component.getName()));
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
@@ -88,6 +81,23 @@ public class ComponentRules extends RuleSource {
                     component.getSource().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
                     return;
                 }
+            }
+        }
+    }
+
+    private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
+        private String name;
+
+        public AddDefaultSourceLocation(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public void execute(LanguageSourceSet languageSourceSet) {
+            // Only apply default locations when none explicitly configured
+            final SourceDirectorySet source = languageSourceSet.getSource();
+            if (source.getSrcDirs().isEmpty()) {
+                source.srcDir(String.format("src/%s/%s", name, languageSourceSet.getName()));
             }
         }
     }

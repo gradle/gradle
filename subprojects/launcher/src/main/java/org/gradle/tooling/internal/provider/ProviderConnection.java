@@ -33,7 +33,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.ListenerFailedException;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -50,7 +49,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -79,8 +81,6 @@ public class ProviderConnection {
         if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
-        List<String> requestedJvmArgsList = createRequestedJvmArgsList(providerParameters);
-        Map<String, String> requestedSystemProperties = createRequestedSystemProperties(providerParameters);
         Parameters params = initParams(providerParameters);
         Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         if (type == InternalBuildEnvironment.class) {
@@ -89,49 +89,16 @@ public class ProviderConnection {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             return new DefaultBuildEnvironment(
-                params.gradleUserhome,
-                GradleVersion.current().getVersion(),
-                params.daemonParams.getEffectiveJavaHome(),
-                params.daemonParams.getEffectiveJvmArgs(),
-                requestedJvmArgsList,
-                params.daemonParams.getAllJvmArgs(),
-                params.daemonParams.getEffectiveSystemProperties(),
-                requestedSystemProperties
-            );
+                    params.gradleUserhome,
+                    GradleVersion.current().getVersion(),
+                    params.daemonParams.getEffectiveJavaHome(),
+                    params.daemonParams.getEffectiveJvmArgs());
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig.buildEventConsumer, providerParameters, params);
-    }
-
-    private List<String> createRequestedJvmArgsList(ProviderOperationParameters providerParameters) {
-        // do not remove the defensive copy or it will mutate the actual parameters!
-        List<String> jvmArguments = new ArrayList<String>(providerParameters.getJvmArguments(Collections.<String>emptyList()));
-        Iterator<String> it = jvmArguments.iterator();
-        while (it.hasNext()) {
-            String arg = it.next();
-            if (arg.startsWith("-D")) {
-                it.remove();
-            }
-        }
-        return jvmArguments;
-    }
-
-    private Map<String, String> createRequestedSystemProperties(ProviderOperationParameters providerParameters) {
-        JvmOptions options = new JvmOptions(null);
-        // do not remove the defensive copy or it will mutate the actual parameters!
-        List<String> jvmArguments = new ArrayList<String>(providerParameters.getJvmArguments(Collections.<String>emptyList()));
-        options.setJvmArgs(jvmArguments);
-        Map<String, Object> systemProperties = options.getSystemProperties();
-        Map<String, String> result = new HashMap<String, String>();
-        for (Map.Entry<String, Object> entry : systemProperties.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            result.put(key, value == null ? null : value.toString());
-        }
-        return result;
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {

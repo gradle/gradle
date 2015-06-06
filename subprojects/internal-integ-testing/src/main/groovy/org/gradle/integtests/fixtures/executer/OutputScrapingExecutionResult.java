@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
+import org.gradle.util.TextUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -49,6 +51,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
         matcher.assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertOutputContains(String expectedOutput) {
+        assertThat("Substring not found in build output", TextUtil.normaliseLineSeparators(getOutput()), org.hamcrest.core.StringContains.containsString(normaliseLineSeparators(expectedOutput)));
         return this;
     }
 

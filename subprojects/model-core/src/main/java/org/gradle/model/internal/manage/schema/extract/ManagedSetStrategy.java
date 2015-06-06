@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.model;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.core.BaseInstanceFactory;
-import org.gradle.platform.base.BinarySpec;
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Factory;
+import org.gradle.model.collection.ManagedSet;
+import org.gradle.model.internal.type.ModelType;
 
-public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, String> {
-    public BinarySpecFactory(String displayName) {
-        super(displayName);
+import java.util.Collections;
+
+@ThreadSafe
+public class ManagedSetStrategy extends SetStrategy {
+
+    public ManagedSetStrategy(Factory<String> supportedTypeDescriptions) {
+        super(new ModelType<ManagedSet<?>>() {
+        }, supportedTypeDescriptions);
+    }
+
+    @Override
+    public Iterable<String> getSupportedManagedTypes() {
+        return Collections.emptySet();
     }
 }

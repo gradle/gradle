@@ -20,18 +20,21 @@ import org.gradle.model.ModelMap
 import spock.lang.Specification
 
 class ModelMapGroovyDecoratorTest extends Specification {
-    def viewState = Mock(ModelViewState)
+
     def target = Mock(ModelMap)
-    def collection = new ModelMapGroovyDecorator<String>(target, viewState)
+    def collection = new ModelMapGroovyDecorator<String>(target)
 
-    def "asserts can mutate typed view"() {
-        given:
-        target.withType(Integer) >> Stub(ModelMap)
-
+    def "delegates"() {
         when:
-        collection.withType(Integer).create("thing")
+        collection.create("thing")
 
         then:
-        1 * viewState.assertCanMutate()
+        target.create("thing")
     }
+
+    def "wraps derivatives"() {
+        expect:
+        collection.withType(Integer) instanceof ModelMapGroovyDecorator
+    }
+
 }
