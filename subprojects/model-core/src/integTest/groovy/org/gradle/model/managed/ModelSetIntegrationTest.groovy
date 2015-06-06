@@ -174,7 +174,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
     }
 
-    def "managed model cannot have a mutable ModelSet member"() {
+    def "managed model cannot have a reference to a model set"() {
         when:
         buildScript '''
             @Managed
