@@ -143,7 +143,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         final ModelPath sourcesNodePath = modelNode.getPath().child("sources");
         binaries.applyToAllLinks(ModelActionRole.Defaults, DirectNodeInputUsingModelAction.of(
             ModelReference.of(BinarySpecInternal.PUBLIC_MODEL_TYPE),
-            new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".binaries"),
+            new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".sources"),
             Collections.<ModelReference<?>>singletonList(ModelReference.of(sourcesNodePath, FunctionalSourceSet.class)),
             CREATE_BINARY_SOURCE_SET
         ));
@@ -159,7 +159,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                     BridgedCollections.itemDescriptor(sourcesDescriptor.toString())
                 )
                 .withProjection(
-                    PolymorphicModelMapProjection.of(
+                    PolymorphicModelMapProjection.ofEager(
                         LanguageSourceSetInternal.PUBLIC_MODEL_TYPE,
                         NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR)
                     )
