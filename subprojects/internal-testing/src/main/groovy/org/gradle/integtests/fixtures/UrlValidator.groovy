@@ -23,7 +23,7 @@ import spock.util.concurrent.PollingConditions
 
 class UrlValidator {
 
-    static void available(String theUrl, String application = null, int timeout = 30000) {
+    static void available(String theUrl, String application = null, int timeout = 30) {
         URL url = new URL(theUrl)
         try {
             new PollingConditions().within(timeout) {

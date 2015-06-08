@@ -68,7 +68,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
-        available("http://localhost:$httpPort", "Play app", 60000)
+        available("http://localhost:$httpPort", "Play app", 60)
 
         and:
         checkContent()

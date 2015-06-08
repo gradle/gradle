@@ -64,7 +64,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         GradleHandle gradleHandle = executer.withTasks(":admin:runPlayBinary").start()
 
         then:
-        available("http://localhost:$httpPort/admin", "Play app", 60000)
+        available("http://localhost:$httpPort/admin", "Play app", 60)
 
         and:
         checkAdminModuleContent()

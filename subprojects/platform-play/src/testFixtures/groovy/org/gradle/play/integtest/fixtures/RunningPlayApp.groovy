@@ -41,7 +41,7 @@ class RunningPlayApp {
 
     void verifyStarted() {
         def url = playUrl().toString()
-        available(url, "Play app", 60000)
+        available(url, "Play app", 60)
         assert playUrl().text.contains("Your new application is ready.")
     }
 

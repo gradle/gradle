@@ -112,7 +112,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def url = runningApp.playUrl().toString()
-        available(url, "Play app", 60000)
+        available(url, "Play app", 60)
 
         and:
         runningApp.verifyContent();
@@ -143,7 +143,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         handle.start()
 
         then:
-        available(runningApp.playUrl().toString(), "Play app", 60000)
+        available(runningApp.playUrl().toString(), "Play app", 60)
 
         and:
         runningApp.verifyContent()
