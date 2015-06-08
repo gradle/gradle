@@ -559,3 +559,79 @@ none
 ### Test coverage
 
 ### Open issues
+
+## Story 8: Test build code against different Gradle versions
+
+Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
+specific Gradle version. Example: Plugin X is built with 2.3, but check if it is also compatible with 2.2, 2.4 and 2.5.
+
+### User visible changes
+
+A user interacts with the following interfaces/classes:
+
+    package org.gradle.testkit.functional.dist;
+
+    public interface GradleDistribution<T> {
+        T getHandle();
+    }
+
+    public final class VersionBasedGradleDistribution implements GradleDistribution<String> { /* ... */ }
+    public final class URILocatedGradleDistribution implements GradleDistribution<URI> { /* ... */ }
+    public final class InstalledGradleDistribution implements GradleDistribution<File> { /* ... */ }
+
+    package org.gradle.testkit.functional;
+
+    public class GradleRunnerFactory {
+        public static GradleRunner create(GradleDistribution gradleDistribution) { /* ... */ }
+    }
+
+A functional test using Spock could look as such:
+
+    class UserFunctionalTest extends Specification {
+        @Unroll
+        def "run build with #gradleDistribution"() {
+            given:
+            File testProjectDir = new File("${System.getProperty('user.home')}/tmp/gradle-build")
+            File buildFile = new File(testProjectDir, 'build.gradle')
+
+            buildFile << """
+                task helloWorld {
+                    doLast {
+                        println 'Hello world!'
+                    }
+                }
+            """
+
+            when:
+            def result = GradleRunnerFactory.create(gradleDistribution).with {
+                workingDir = testProjectDir
+                arguments << "helloWorld"
+                succeed()
+            }
+
+            then:
+            result.standardOutput.contains "Hello World!"
+
+            where:
+            gradleDistribution << [new VersionBasedGradleDistribution("2.4"), new VersionBasedGradleDistribution("2.5")]
+        }
+    }
+
+### Implementation
+
+* The tooling API uses the provided Gradle distribution. Any of the following locations is valid:
+    * Gradle version String e.g. `"2.4"`
+    * Gradle URI e.g. `new URI("http://services.gradle.org/distributions/gradle-2.4-bin.zip")`
+    * Gradle installation e.g. `new File("/Users/foo/bar/gradle-installation/gradle-2.4-bin")`
+* Each test executed with a specific Gradle version creates a unique temporary test directory.
+* Tests executed with the different Gradle versions run with an isolated daemon.
+
+### Test coverage
+
+* `GradleRunnerFactory` throws and exception if `GradleDistribution` is provided that doesn't match the supported types.
+* A test can be executed with Gradle distribution provided by the user. The version of the distribution can be a different from the Gradle version used to build the project.
+
+### Open issues
+
+* Execution of tests in parallel for multiple Gradle versions
+* JUnit Runner implementation to simplify definition of Gradle distributions
