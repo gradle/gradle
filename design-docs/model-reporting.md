@@ -48,6 +48,26 @@ Biggest one so far
 - Order is important
 - some of them are internal/mechanical?
 
+# Story: Model report shows more concise name for rule source method rules
+
+- Change descriptor for such rules to use simple type name, and no parameters
+- Ensure overloading of rule methods is forbidden (so that dropping the params doesn't make it ambiguous)
+- Ensure that rules methods from enclosed classes include the top level class in the description (e.g. `ComponentModelPlugin$Rules`)
+
+# Story: DSL based rules include relative path to script, from project root
+
+When we toggle `org.gradle.model.dsl` we provide better descriptors for DSL rules.
+Currently, we include the absolute path to the script containing the rule.
+This should be relative to the project root.
+
+# Story: Rule binding failure errors use consistent terminology
+
+See ModelRuleBindingFailureIntegrationTest.
+
+Two problems:
+
+1. Use of `mutable` & `immutable`: should be `subject`, `inputs`
+1. Use of `+` for “did bind” and `-` for “did not bind” is too subtle - needs to be clearer what is happening
 
 # Story: Model report shows hidden nodes
 
