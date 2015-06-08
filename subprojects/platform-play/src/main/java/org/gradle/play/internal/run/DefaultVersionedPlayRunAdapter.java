@@ -20,9 +20,11 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,6 +37,7 @@ import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
     private final AtomicReference<Object> reloadObject = new AtomicReference<Object>();
+    private volatile SoftReference<URLClassLoader> previousClassLoaderReference;
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -53,7 +56,10 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     if (result == null) {
                         return null;
                     } else if (result == Boolean.TRUE) {
-                        return new URLClassLoader(new URL[]{applicationJar.toURI().toURL(), assetsJar.toURI().toURL()}, classLoader);
+                        URLClassLoader currentClassLoader = new URLClassLoader(new URL[]{applicationJar.toURI().toURL(), assetsJar.toURI().toURL()}, classLoader);
+                        closePreviousClassLoader();
+                        storeClassLoader(currentClassLoader);
+                        return currentClassLoader;
                     } else {
                         throw new IllegalStateException();
                     }
@@ -64,6 +70,18 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 return null;
             }
         });
+    }
+
+    private void storeClassLoader(URLClassLoader currentClassLoader) {
+        previousClassLoaderReference = new SoftReference<URLClassLoader>(currentClassLoader);
+    }
+
+    private void closePreviousClassLoader() throws IOException {
+        URLClassLoader previousClassLoader = previousClassLoaderReference != null ? previousClassLoaderReference.get() : null;
+        if (previousClassLoader instanceof Closeable) {
+            // use Closeable interface to find close method to prevent Java 1.7 specific method access
+            ((Closeable) previousClassLoader).close();
+        }
     }
 
     @Override
