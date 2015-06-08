@@ -57,6 +57,8 @@ public class PlayApplicationRunner {
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
+        // TODO: workaround for JVM crash after assets jar gets modified
+        javaCommand.jvmArgs("-Dsun.zip.disableMemoryMapping=true");
         return builder.worker(new PlayWorkerServer(spec, adapter)).build();
     }
 }

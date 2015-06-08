@@ -20,6 +20,7 @@ import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegration
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.junit.Ignore
 
 class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
@@ -88,5 +89,24 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         then:
         succeeds()
         runningApp.playUrl('java/hello').text == 'Hello world from Java'
+    }
+
+    @Ignore
+    def "can modify coffeescript file"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("app/assets/javascripts/test.coffee") << '''
+message = "Hello coffeescript"
+'''
+
+        then:
+        succeeds()
+        runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
+        runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
 }
