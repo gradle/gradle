@@ -18,12 +18,12 @@ package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
-import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
 class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
-    PlayApp playApp = new BasicPlayApp()
+    PlayApp playApp = new AdvancedPlayApp()
 
     def "can modify play app while app is running in continuous build"() {
         when:
