@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
-
+package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
@@ -23,8 +22,8 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext
+import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
-import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
@@ -41,7 +40,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
     private repositories = [Mock(ResolutionAwareRepository)]
     private dependencies = Mock(DependencySet)
     private metadataHandler = Stub(GlobalDependencyResolutionRules)
-    private results = new ResolverResults()
+    private results = new DefaultResolverResults()
     private resolver = new SelfResolvingDependencyResolver(delegate);
 
     void "returns correct resolved configuration"() {

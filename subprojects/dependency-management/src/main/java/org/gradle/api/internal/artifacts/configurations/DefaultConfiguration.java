@@ -92,7 +92,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private InternalState resolvedState = InternalState.UNRESOLVED;
     private boolean insideBeforeResolve;
 
-    private ResolverResults cachedResolverResults = new ResolverResults();
+    private DefaultResolverResults cachedResolverResults = new DefaultResolverResults();
 
     // TODO:DAZ These should really be protected by the lock as well
     private boolean dependenciesModified;

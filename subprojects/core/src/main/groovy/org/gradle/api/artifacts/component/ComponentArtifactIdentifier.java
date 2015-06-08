@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-
-import java.io.File;
+package org.gradle.api.artifacts.component;
 
 /**
- * Information about a resolved artifact.
+ * An immutable identifier for an artifact that belongs to some component instance.
  */
-public interface ResolvedArtifact {
-    File getFile();
+public interface ComponentArtifactIdentifier {
+    /**
+     * Returns the id of the component that this artifact belongs to.
+     */
+    ComponentIdentifier getComponentIdentifier();
 
     /**
-     * Returns the module which this artifact belongs to.
-     *
-     * @return The module.
+     * Returns some human-consumable display name for this artifact.
      */
-    ResolvedModuleVersion getModuleVersion();
-
-    String getName();
-
-    String getType();
-
-    String getExtension();
-
-    String getClassifier();
-
-    ComponentArtifactIdentifier getId();
+    String getDisplayName();
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 import java.io.File;
 

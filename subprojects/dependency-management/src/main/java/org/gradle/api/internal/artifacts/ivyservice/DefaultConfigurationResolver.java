@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -40,12 +40,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.metadataHandler = metadataHandler;
     }
 
-    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, DefaultResolverResults results) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, results);
     }
 
-    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ConfigurationInternal configuration, DefaultResolverResults results) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         resolver.resolveArtifacts(configuration, resolutionAwareRepositories, metadataHandler, results);
     }

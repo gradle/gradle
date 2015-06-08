@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -105,7 +105,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolve(final ResolveContext resolveContext,
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
-                        final ResolverResults results) throws ResolveException {
+                        final DefaultResolverResults results) throws ResolveException {
         LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
@@ -156,17 +156,27 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolveArtifacts(final ResolveContext resolveContext,
                                  final List<? extends ResolutionAwareRepository> repositories,
                                  final GlobalDependencyResolutionRules metadataHandler,
-                                 final ResolverResults results) throws ResolveException {
-        // TODO:DAZ Should not be holding onto all of this state
+                                 final DefaultResolverResults results) throws ResolveException {
         ResolvedGraphResults graphResults = results.getGraphResults();
-
         ResolvedArtifactResults artifactResults = results.getArtifactsBuilder().resolve();
 
-        Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
+        if (resolveContext instanceof Configuration) {
+            // TODO:DAZ Should not be holding onto all of this state
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(
-            (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
-        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
+
+            Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
+
+            DefaultLenientConfiguration result = new DefaultLenientConfiguration(
+                (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
+            results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
+        } else {
+            results.getResolutionResult().allComponents(new Action<ResolvedComponentResult>() {
+                @Override
+                public void execute(ResolvedComponentResult resolvedComponentResult) {
+
+                }
+            });
+        }
     }
 
     private ArtifactResolver createArtifactResolver(ArtifactResolver origin) {

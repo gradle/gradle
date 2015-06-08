@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.internal.component.model.ComponentArtifactIdentifier
-import org.gradle.internal.component.model.ComponentArtifactMetaData
-import org.gradle.internal.component.model.ComponentUsage
-import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver

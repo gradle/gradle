@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
-import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -34,7 +34,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
     def metadataHandler = Stub(GlobalDependencyResolutionRules)
     def dependencies = Stub(DependencySet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    def results = new ResolverResults()
+    def results = new DefaultResolverResults()
     def dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate, componentIdentifierFactory);
 
     def "returns empty result when no dependencies"() {

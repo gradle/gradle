@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
-import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
@@ -305,7 +305,7 @@ class DefaultConfigurationSpec extends Specification {
         def failure = new ResolveException(configuration, new RuntimeException())
 
         and:
-        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
             resolverResults.failed(failure)
         }
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
@@ -432,7 +432,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
-        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
             resolverResults.resolved(resolutionResults, localComponentsResult)
             resolverResults.withResolvedConfiguration(resolvedConfiguration)
         }
@@ -787,7 +787,7 @@ class DefaultConfigurationSpec extends Specification {
         TaskDependency taskDep = Mock()
         def config = conf("conf")
         def resolvedConfiguration = Mock(ResolvedConfiguration)
-        def resolverResults = new ResolverResults()
+        def resolverResults = new DefaultResolverResults()
         def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
 
         given:
@@ -802,7 +802,7 @@ class DefaultConfigurationSpec extends Specification {
         fileTaskDeps == [task] as Set
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         _ * resolvedConfiguration.hasError() >> false
-        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
         }
         _ * projectConfigurationResults.get() >> []
@@ -927,10 +927,10 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         localComponentsResult.resolvedProjectConfigurations >> []
         localComponentsResult.componentBuildDependencies >> new DefaultTaskDependency()
-        resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+        resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.resolved(resolutionResult, localComponentsResult)
         }
-        resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+        resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.withResolvedConfiguration(resolvedConfiguration)
         }
     }

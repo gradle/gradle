@@ -21,12 +21,8 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -140,8 +136,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private final JavaSourceSet sourceSet;
         private final BinarySpec binary;
         private final ArtifactDependencyResolver dependencyResolver;
-        private final Set<File> dependencies = new LinkedHashSet<File>();
 
+        private ResolverResults resolverResults;
         private TaskDependency taskDependency;
 
         private DependencyResolvingClasspath(
@@ -165,7 +161,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             assertResolved();
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
-            classpath.addAll(dependencies);
+            Set<ResolvedArtifact> artifacts = resolverResults.getResolvedArtifacts().getArtifacts();
+            for (ResolvedArtifact resolvedArtifact : artifacts) {
+                classpath.add(resolvedArtifact.getFile());
+            }
             return classpath;
         }
 
@@ -180,20 +179,16 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
 
         private void assertResolved() {
-            if (taskDependency==null) {
+            if (resolverResults==null) {
                 final DefaultTaskDependency result = new DefaultTaskDependency();
                 result.add(super.getBuildDependencies());
                 final List<Throwable> notFound = new LinkedList<Throwable>();
-                resolve(createResolveContext(), new Action<ResolverResults>() {
+                resolve(createResolveContext(), new Action<DefaultResolverResults>() {
                     @Override
-                    public void execute(ResolverResults resolverResults) {
+                    public void execute(DefaultResolverResults resolverResults) {
                         if (!resolverResults.hasError()) {
-                            ResolvedArtifactsBuilder artifactsBuilder = resolverResults.getArtifactsBuilder();
-                            ResolvedArtifactResults resolve = artifactsBuilder.resolve();
-                            for (ResolvedArtifact resolvedArtifact : resolve.getArtifacts()) {
-                                dependencies.add(resolvedArtifact.getFile());
-                            }
-                            result.add(resolverResults.getResolvedLocalComponents().getComponentBuildDependencies());
+                            ResolvedLocalComponentsResult resolvedLocalComponents = resolverResults.getResolvedLocalComponents();
+                            result.add(resolvedLocalComponents.getComponentBuildDependencies());
                         }
                         resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
                             @Override
@@ -213,10 +208,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             }
         }
 
-        public void resolve(ResolveContext resolveContext, Action<ResolverResults> onResolve) {
-            ResolverResults results = new ResolverResults();
-            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), GlobalDependencyResolutionRules.NO_OP, results);
-            onResolve.execute(results);
+        public void resolve(ResolveContext resolveContext, Action<DefaultResolverResults> onResolve) {
+            resolverResults = new DefaultResolverResults();
+            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), GlobalDependencyResolutionRules.NO_OP, (DefaultResolverResults) resolverResults);
+            onResolve.execute((DefaultResolverResults) resolverResults);
         }
     }
 }

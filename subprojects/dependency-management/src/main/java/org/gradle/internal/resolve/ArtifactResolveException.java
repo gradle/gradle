@@ -16,8 +16,8 @@
 package org.gradle.internal.resolve;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.util.GUtil;
 
