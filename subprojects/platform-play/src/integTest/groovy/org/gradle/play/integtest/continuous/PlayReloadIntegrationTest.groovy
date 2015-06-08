@@ -25,6 +25,11 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new AdvancedPlayApp()
 
+    def cleanup() {
+        stopGradle()
+        assert appIsStopped()
+    }
+
     def "can modify play app while app is running in continuous build"() {
         when:
         succeeds("runPlayBinary")
@@ -38,10 +43,6 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         then:
         succeeds()
         runningApp.playUrl('hello').text == 'Hello world'
-
-        cleanup: "stopping gradle"
-        stopGradle()
-        appIsStopped()
     }
 
     def "can modify play app before it has been started"() {
@@ -52,10 +53,6 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         then:
         appIsRunningAndDeployed()
         runningApp.playUrl('hello').text == 'Hello world'
-
-        cleanup: "stopping gradle"
-        stopGradle()
-        appIsStopped()
     }
 
     private void addHelloWorld() {
