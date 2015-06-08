@@ -224,14 +224,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
 
-                    // TODO this isn't quite right - we really want a deployment handle for each
-                    // platform that a binary targets.  There's only one play binary now, so this
-                    // works, but we need a cleaner way to do this if there are ever multiple binaries
                     ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
                     final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, chosenPlatform);
                     DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
-                    String deploymentId = getDeploymentId(projectIdentifier, chosenPlatform.getName());
+                    // this doesn't handle a scenario where a binary name changes between builds in the same
+                    // session.  We only allow one play component/binary right now, so this isn't an issue, but
+                    // it will need to be dealt with if we ever support multiple play binaries in a project.
+                    String deploymentId = getDeploymentId(projectIdentifier, playBinary.getName(), chosenPlatform.getName());
                     if (playApplicationRunnerTool.isAvailable()) {
+                        // we resolve the runner now so that we we don't carry all of the baggage from PlayToolProvider across builds via the registry
                         deploymentRegistry.register(new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
                     }
                 }
@@ -429,7 +430,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
-                final String deploymentId = getDeploymentId(projectIdentifier, binary.getTargetPlatform().getName());
+                final String deploymentId = getDeploymentId(projectIdentifier, binary.getName(), binary.getTargetPlatform().getName());
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
@@ -448,8 +449,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
         }
 
-        private String getDeploymentId(ProjectIdentifier projectIdentifier, String platformName) {
-            return projectIdentifier.getPath().concat(":").concat(platformName);
+        private String getDeploymentId(ProjectIdentifier projectIdentifier, String binaryName, String platformName) {
+            return projectIdentifier.getPath().concat(":").concat(binaryName).concat(":").concat(platformName);
         }
     }
 }
