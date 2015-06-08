@@ -322,7 +322,8 @@ Similar to `gradleApi()`
 
 ### API proposal
 
-* BuildLauncher can be configured to execute specific tests via `BuildLauncher#forTests(TestExecutionConfiguration)`
+* new method `newTestLauncher()` to ProjectConnection create test specific long running operation. returns `TestLauncher`
+* `TestLauncher` can be configured to execute specific tests via `TestLauncher#forTests(TestExecutionConfiguration)`
 * `TestExecutionConfiguration` interface contains all information about which tests should be executed.
 * `TestExecutionConfiguration` can be build using fluent API TestExecutionConfigurationBuilder
 * can configure `TestExecutionConfigurationBuilder` via
@@ -337,7 +338,7 @@ From a client this API can be used like:
 
 		try {
 		   //run tests
-		   connection.newTestRunner()
+		   connection.newTestLauncher()
 		     .forTests(TestExecutionConfigurationBuilder.newTestExecutionConfiguration()
 					.withTests(TestOperationDescriptor... testDescriptors)
 					.withJvmTestClasses('example.MyTest')
@@ -352,6 +353,7 @@ From a client this API can be used like:
 	}
 
 ### Implementation
+
 
 * Introduce new LongRunningOperation `TestLauncher`
 * Add factory method `ProjectConnection#newTestRunner()`
