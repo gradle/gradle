@@ -785,6 +785,14 @@ Subsequent invocations will do nothing.
 - ~~Can be used from Tooling API, deployment is stopped when build is cancelled~~
 - ~~Two projects in multiproject build can start deployments~~
 
+#### Open Issues
+
+- Need to figure out what to do with deployment handles when various project/model changes take place in between builds:
+  - Binary name changes (currently not possible)
+  - Platform changes (i.e. need to stop any deployment handles from other platforms before starting the new one)
+  - Project name changes
+  - PlayRun task config changes (e.g. fork options)
+
 ### Story: Play application is reloaded when changes are made to local source
 
 This story adds integration with Play's mechanics to reloading the application implementation.
