@@ -109,4 +109,23 @@ message = "Hello coffeescript"
         runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
         runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
+
+    @Ignore
+    def "can add javascript file"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("app/assets/javascripts/helloworld.js") << '''
+var message = "Hello JS";
+'''
+
+        then:
+        succeeds()
+        runningApp.playUrl('assets/javascripts/helloworld.js').text.contains('Hello JS')
+        runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
+    }
 }
