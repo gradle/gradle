@@ -66,4 +66,27 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
 ''')
         }
     }
+
+    def "can reload java controller"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("conf/jva.routes") << "\nGET     /hello                   controllers.jva.PureJava.hello"
+        file("app/controllers/jva/PureJava.java").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+  public static Result hello() {
+    return ok("Hello world from Java");
+  }
+}
+''')
+        }
+
+        then:
+        succeeds()
+        runningApp.playUrl('java/hello').text == 'Hello world from Java'
+    }
 }
