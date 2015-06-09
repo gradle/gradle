@@ -4,7 +4,6 @@ This stories are partially extracted, re-aligned and distilled from this [spec](
 
 ## High-level goals
 
-* Writing and executing integration tests with `Project` instance that behaves similar to real-world object (aka project created by `ProjectBuilder`).
 * Writing and executing functional tests against build scripts via Tooling API.
 * Providing utility methods for common operations in tests e.g. creating directories/files.
 * Generating Ivy and Maven repositories for testing purposes. Creating modules and artifacts in a repository to emulate dependency management behavior.
@@ -13,13 +12,17 @@ The test-kit will be agnostic of the test framework preferred by the user (e.g. 
 
 ## Technical details
 
-* Except for the Spock test adapter all code will be developed in Java.
+* Except for the Groovy-based test adapter all code will be developed in Java.
 * The test-kit and all test adapters are implemented in the same repository as Gradle core. The test-kit classes are shipped with Gradle core distribution and can be imported as needed.
-* The artifacts for test-kit and test adapters are published to a central repository (likely our own repository). Publishing Gradle core should trigger publishing the test-kit/test adapters.
 * The build of the project will depends on the latest Gradle version. The version will need to updated manually in the beginning. We could also think of an automated solution here that uses the latest
 nightly.
 
-## Story 1: User creates and executes a functional test using the test-kit
+# Milestone 1
+
+The first milestone lays the foundation for defining and executing functional tests. The goal should be a solid implementation based on the tooling API, support for JUnit and the integration
+with the plugin development plugin.
+
+## Story: User creates and executes a functional test using the test-kit
 
 A set of interfaces/builders will be developed to provide programmatic execution of Gradle builds. Tests are executed with the Tooling API.
 
@@ -125,7 +128,7 @@ A functional test using Spock could look as such:
 * Should we allow for executing a build with a different Gradle version and/or distribution at this point? This is important for organizations that create their own distribution. In the Gradle core
 build the Gradle distribution should be the one built locally from the sources (same as the referenced by `IntegrationTestBuildContext.getGradleHomeDir()`).
 
-## Story 2: JUnit test adapter
+## Story: JUnit test adapter
 
 An abstract class that simplifies the use of the test-kit through the test framework JUnit.
 
@@ -231,7 +234,7 @@ The base class implementation could look similar to the following code snippet:
 
 * Potentially expose test fixtures as Gradle plugins so resources can be set up/clean automatically for each test case.
 
-## Story 3: Fine-tuning test execution behavior
+## Story: Fine-tuning test execution behavior
 
 The first two stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
 
@@ -264,7 +267,40 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
 none
 
-## Story 4: Groovy/Spock framework test adapter
+## Story: Integration with plugin-development-plugin
+
+Users can easily test their Gradle plugins developed using the [plugin-development-plugin](https://docs.gradle.org/current/userguide/javaGradle_plugin.html).
+
+### User visible changes
+
+### Implementation
+
+* The plugin depends on the relevant modules of the test-kit.
+* Applying the `java-gradle-plugin` plugin adds a functional test SourceSet and Test task.
+    * The SourceSet name will be `functionalTest`. The srcDir will be set to `src/functTest/java`, the resourcesDir will be set to `src/functTest/resources`. Both directories
+    will be created by the plugin if they don't exist yet.
+    * The task name will be `functionalTest`. The `check` task depends on `functionalTest`. The task `functionalTest` must run after `test`.
+* Derive the test adapter that should be applied by the declared dependencies of the project.
+
+### Test coverage
+
+* Applying the plugin creates the functional SourceSet and Test task with the appropriate configuration.
+* Executing the `functionalTest` task exercises all functional tests in the appropriate directory.
+* The generated XML and HTML test reports are stored in a different target directory than the ones produces by the `test` task.
+
+### Open issues
+
+* Should the test suite generation be the responsibility of another plugin?
+* Will there be a `groovy-gradle-plugin` and `scala-gradle-plugin` in the future or will automatic configuration kick in if other plugins are applied e.g. the `groovy` plugin?
+* Do we want to auto-generate a sample functional test case class and method based on JUnit that demonstrates the use of test-kit?
+* Should there be any support for IDE integration?
+
+# Milestone 2
+
+The second milestone built on top of the test executing mechanism by exposing other test adapters than JUnit and additional test fixtures for creating file repositories
+and dependencies to emulate dependency management operations for testing purposes.
+
+## Story: Groovy/Spock framework test adapter
 
 A Groovy bean that can be mixed in with tests classes written in Groovy or test classes that use the Spock framework.
 
@@ -376,73 +412,7 @@ The implementation of functional test trait could look similar to the following 
 
 * Instead of using a Groovy trait should we go for a different solution as it required Groovy >= 2.3?
 
-## Story 5: User creates and executes an integration test using the test-kit
-
-A set of interfaces/builders will be developed to provide programmatic creation of a dummy `Project` instance.
-
-### User visible changes
-
-As a user, you write your integration test by using the following interfaces:
-
-    package org.gradle.testkit.integration;
-
-    public interface GradleProjectBuilder {
-        File getWorkingDir();
-        void setWorkingDir(File directory);
-
-        String getName();
-        void setName(String projectName);
-
-        Project getParent();
-        void setParent(Project parentProject);
-
-        Project build();
-    }
-
-    public class GradleProjectBuilderFactory {
-        public static GradleProjectBuilder create() { /* ... */ }
-    }
-
-A integration test using Spock could look as such:
-
-    class UserIntegrationTest extends Specification {
-        def "run build"() {
-            given:
-            def project = GradleProjectBuilderFactory.create().with {
-                workingDir = new File("/tmp/gradle-build")
-                build()
-            }
-
-            when:
-            project.plugins.apply('java')
-
-            then:
-            project.tasks.getByName('classes')
-            project.tasks.getByName('test')
-            project.tasks.getByName('check')
-        }
-    }
-
-### Implementation
-
-* A new module named `test-kit-integration` will be created in Gradle core.
-* The actual implementation of the dummy project creation is hidden from the user. As a start we can reuse the `ProjectBuilder`. Later this implementation can be swapped out.
-* Provide base classes for all test adapters.
-* The Tooling API is not involved.
-
-### Test coverage
-
-* A project can be created.
-* Projects can form project hierarchies to model multi-project builds.
-* Methods on a project instance can be called as if it would be a regular project instance. There are some limitation though.
-
-### Open issues
-
-* A user should be allowed to execute a task with a public method. Calling `Task.execute()` is sufficient but is an internal API. It's easier to test custom task types.
-* A user should be allowed to evaluate a project to trigger lifecycle events. Calling `Project.evaluate()` works but is an internal API.
-* Where do we draw the line between dummy project and real project instance?
-
-## Story 6: User can create repositories and populate dependencies
+## Story: User can create repositories and populate dependencies
 
 A set of interfaces will be developed to provide programmatic creation of a repositories and published dependencies. A benefit of this approach is that a test setup doesn't need to reach out to the
 internet for interacting with the dependency management mechanics. Furthermore, the user can create artifacts and metadata for test scenarios modeling the specific use case.
@@ -550,17 +520,11 @@ The use of the test fixture in an integration test could look as such:
 
 none
 
-## Story 7: Integration with plugin development plugin
+# Milestone 3
 
-### User visible changes
+The third milestone is focused on creating a functional test infrastructure that allows for testing against multiple Gradle versions.
 
-### Implementation
-
-### Test coverage
-
-### Open issues
-
-## Story 8: Test build code against different Gradle versions
+## Story: Test build code against different Gradle versions
 
 Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
 specific Gradle version. Example: Plugin X is built with 2.3, but check if it is also compatible with 2.2, 2.4 and 2.5.
