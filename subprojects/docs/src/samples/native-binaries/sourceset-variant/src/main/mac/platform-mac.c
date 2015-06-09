@@ -1,6 +1,6 @@
 #include "platform.h"
 
-const char* platform_name = "Mac OS X";
+const char* platform_name = "MacOSX";
 
 int max_path_length() { return 1024; }
 
