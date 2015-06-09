@@ -15,6 +15,7 @@
  */
 package org.gradle.play.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -54,6 +55,7 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
@@ -69,6 +71,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -78,6 +81,8 @@ import java.util.Date;
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
     private static final VersionNumber MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT = VersionNumber.parse("2.3.7");
+    public static final String RUN_SUPPORT_PLAY_MODULE = "run-support";
+    public static final String SBT_IO_VERSION = "0.13.6";
 
     @Override
     public void apply(Project project) {
@@ -258,22 +263,45 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
             configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
-            // run-support requires Play >= 2.3.7
+
+            addRunSupportDependencies(configurations, playPlatform);
+        }
+
+        private void addRunSupportDependencies(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
+            if (PlayMajorVersion.forPlatform(playPlatform) != PlayMajorVersion.PLAY_2_2_X) {
+                List<?> runSupportDependencies = createRunSupportDependencies(playPlatform);
+                for (Object dependencyNotation : runSupportDependencies) {
+                    configurations.getPlayRun().addDependency(dependencyNotation);
+                }
+            }
+        }
+
+        private List<?> createRunSupportDependencies(PlayPlatform playPlatform) {
+            ImmutableList.Builder<Object> listBuilder = ImmutableList.builder();
+
+            String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
+
+            // run-support is available in Play >= 2.3.7
             VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
             if (playVersion.compareTo(MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT) >= 0) {
                 // run-support contains AssetsClassLoader class, which is required for reloading support
-                configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("run-support"));
-                // run-support requires org.scala-sbt.io
-                String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
-                // the name is "io" for Scala 2.10 , but "io_2.11" for Scala 2.11
-                String name = scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s", "io", scalaCompatibilityVersion);
-                // this dependency is only available in ivy repo that doesn't have a proper default configuration
-                // must specify configuration to resolve dependency
-
-                DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, "0.13.6", "runtime");
-                dependency.setTransitive(false);
-                configurations.getPlayRun().addDependency(dependency);
+                listBuilder.add(((PlayPlatformInternal) playPlatform).getDependencyNotation(RUN_SUPPORT_PLAY_MODULE));
+            } else {
+                // use run-support from default version for older Play 2.3.x versions
+                DefaultExternalModuleDependency runSupportDependency = new DefaultExternalModuleDependency("com.typesafe.play", String.format("%s_%s", RUN_SUPPORT_PLAY_MODULE, scalaCompatibilityVersion), DefaultPlayPlatform.DEFAULT_PLAY_VERSION);
+                runSupportDependency.setTransitive(false);
+                listBuilder.add(runSupportDependency);
             }
+
+            // the name is "io" for Scala 2.10 , but "io_2.11" for Scala 2.11
+            String name = scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s", "io", scalaCompatibilityVersion);
+            // this dependency is only available in ivy repo that doesn't have a proper default configuration
+            // must specify configuration to resolve dependency
+            DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, SBT_IO_VERSION, "runtime");
+            dependency.setTransitive(false);
+            listBuilder.add(dependency);
+
+            return listBuilder.build();
         }
 
         @Mutate
