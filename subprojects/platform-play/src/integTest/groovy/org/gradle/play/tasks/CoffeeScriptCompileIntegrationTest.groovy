@@ -39,6 +39,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                     name = "gradle-js"
                     url = "https://repo.gradle.org/gradle/javascript-public"
                 }
+                ivy {
+                    url "https://repo.typesafe.com/typesafe/ivy-releases/"
+                    layout "pattern", {
+                        ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
+                        artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
+                    }
+                }    
             }
         """
     }

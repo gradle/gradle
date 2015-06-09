@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * A Task to run a play application.
@@ -51,6 +52,9 @@ public class PlayRun extends ConventionTask {
 
     @InputFile
     private File assetsJar;
+
+    @InputFiles
+    private Set<File> assetsDirs;
 
     @InputFiles
     private FileCollection runtimeClasspath;
@@ -83,7 +87,7 @@ public class PlayRun extends ConventionTask {
                 .start("Start Play server", "Starting Play");
 
         int httpPort = getHttpPort();
-        PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, applicationJar, assetsJar, getProject().getProjectDir(), getForkOptions(), httpPort);
+        PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
 
         try {
             deploymentHandle.start(spec);
@@ -128,6 +132,10 @@ public class PlayRun extends ConventionTask {
 
     public void setAssetsJar(File assetsJar) {
         this.assetsJar = assetsJar;
+    }
+
+    public void setAssetsDirs(Set<File> assetsDirs) {
+        this.assetsDirs = assetsDirs;
     }
 
     public void setRuntimeClasspath(FileCollection runtimeClasspath) {

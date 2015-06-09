@@ -81,8 +81,8 @@ public class PlayPluginConfigurations {
         FileCollection getFileCollection() {
             return configurations.getByName(name);
         }
-        
-        void addDependency(String notation) {
+
+        void addDependency(Object notation) {
             dependencyHandler.add(name, notation);
         }
 

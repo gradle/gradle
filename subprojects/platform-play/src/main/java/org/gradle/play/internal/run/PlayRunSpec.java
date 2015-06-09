@@ -30,6 +30,8 @@ public interface PlayRunSpec {
 
     File getAssetsJar();
 
+    Iterable<File> getAssetsDirs();
+
     File getProjectPath();
 
     int getHttpPort();

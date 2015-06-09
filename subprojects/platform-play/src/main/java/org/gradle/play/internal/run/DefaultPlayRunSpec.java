@@ -27,14 +27,16 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     private final Iterable<File> classpath;
     private final File applicationJar;
     private final File assetsJar;
+    private final Iterable<File> assetsDirs;
     private final File projectPath;
     private BaseForkOptions forkOptions;
     private int httpPort;
 
-    public DefaultPlayRunSpec(FileCollection classpath, File applicationJar, File assetsJar, File projectPath, BaseForkOptions forkOptions, int httpPort) {
+    public DefaultPlayRunSpec(FileCollection classpath, File applicationJar, File assetsJar, Iterable<File> assetsDirs, File projectPath, BaseForkOptions forkOptions, int httpPort) {
         this.classpath = Sets.newHashSet(classpath);
         this.applicationJar = applicationJar;
         this.assetsJar = assetsJar;
+        this.assetsDirs = assetsDirs;
         this.projectPath = projectPath;
         this.forkOptions = forkOptions;
         this.httpPort = httpPort;
@@ -62,5 +64,9 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
 
     public File getAssetsJar() {
         return assetsJar;
+    }
+
+    public Iterable<File> getAssetsDirs() {
+        return assetsDirs;
     }
 }

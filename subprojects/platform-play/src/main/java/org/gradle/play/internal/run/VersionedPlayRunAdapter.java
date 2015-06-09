@@ -24,7 +24,7 @@ import java.io.IOException;
 public interface VersionedPlayRunAdapter {
     void forceReloadNextTime();
 
-    Object getBuildLink(ClassLoader classLoader, File projectPath, File applicationJar, File assetsJar) throws ClassNotFoundException;
+    Object getBuildLink(ClassLoader classLoader, File projectPath, File applicationJar, File assetsJar, Iterable<File> assetsDirs) throws ClassNotFoundException;
 
     Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
 

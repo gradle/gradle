@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -45,7 +46,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
-    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final File assetsJar) throws ClassNotFoundException {
+    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
+        final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         forceReloadNextTime();
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -56,7 +58,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     if (result == null) {
                         return null;
                     } else if (result == Boolean.TRUE) {
-                        URLClassLoader currentClassLoader = new URLClassLoader(new URL[]{applicationJar.toURI().toURL(), assetsJar.toURI().toURL()}, classLoader);
+                        URLClassLoader currentClassLoader = new URLClassLoader(new URL[]{applicationJar.toURI().toURL()}, assetsClassLoader);
                         closePreviousClassLoader();
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
@@ -70,6 +72,10 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 return null;
             }
         });
+    }
+
+    protected ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader) {
+        return new URLClassLoader(new DefaultClassPath(assetsJar).getAsURLArray(), classLoader);
     }
 
     private void storeClassLoader(URLClassLoader currentClassLoader) {

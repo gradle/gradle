@@ -37,6 +37,13 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                     name = "typesafe-maven-release"
                     url = "https://repo.typesafe.com/typesafe/maven-releases"
                 }
+                ivy {
+                    url "https://repo.typesafe.com/typesafe/ivy-releases/"
+                    layout "pattern", {
+                        ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
+                        artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
+                    }
+                }    
             }
         """
     }
