@@ -242,7 +242,7 @@ Util build type: RELEASE
 """
     }
 
-    def "sourceset-variant"() {
+    def sourcesetvariant() {
         given:
         sample sourcesetVariant
 
