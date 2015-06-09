@@ -76,7 +76,6 @@ import java.util.Date;
 
 @Incubating
 public class PlayApplicationPlugin implements Plugin<Project> {
-    private final static String DEFAULT_PLAY_VERSION = "2.3.7";
     public static final int DEFAULT_HTTP_PORT = 9000;
     private static final VersionNumber MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT = VersionNumber.parse("2.3.7");
 
@@ -249,7 +248,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         private PlatformRequirement getTargetPlatform(PlayApplicationSpecInternal playApplicationSpec) {
             if (playApplicationSpec.getTargetPlatforms().isEmpty()) {
-                String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
+                String defaultPlayPlatform = String.format("play-%s", DefaultPlayPlatform.DEFAULT_PLAY_VERSION);
                 return DefaultPlatformRequirement.create(defaultPlayPlatform);
             }
             return playApplicationSpec.getTargetPlatforms().get(0);

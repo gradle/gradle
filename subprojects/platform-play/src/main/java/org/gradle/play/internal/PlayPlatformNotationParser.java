@@ -42,7 +42,7 @@ public class PlayPlatformNotationParser {
     static class MapConverter extends MapNotationConverter<PlatformRequirement> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map defining the platform versions").example("[play: '2.3.7', scala:'2.11.4', java: '1.6']");
+            visitor.candidate("Map defining the platform versions").example("[play: '" + DefaultPlayPlatform.DEFAULT_PLAY_VERSION + "', scala:'2.11.4', java: '1.6']");
         }
 
         protected PlatformRequirement parseMap(@MapKey("play") String playVersion,
@@ -55,7 +55,7 @@ public class PlayPlatformNotationParser {
     static class StringConverter implements NotationConverter<String, PlatformRequirement> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("The name of a Play platform").example("'play-2.3.7'.");
+            visitor.candidate("The name of a Play platform").example("'play-" + DefaultPlayPlatform.DEFAULT_PLAY_VERSION + "'.");
         }
 
         public void convert(String notation, NotationConvertResult<? super PlatformRequirement> result) throws TypeConversionException {

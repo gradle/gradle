@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.play.internal.DefaultPlayPlatform
 
 class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def baseBuildFile = """
@@ -36,7 +37,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
                     ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
                     artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
                 }
-            }    
+            }
         }
     """
 
@@ -58,7 +59,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file("build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion("2.3.7")
+        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:
@@ -82,7 +83,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file("build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion("2.3.7")
+        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:

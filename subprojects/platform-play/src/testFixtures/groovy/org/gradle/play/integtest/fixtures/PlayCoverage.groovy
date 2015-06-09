@@ -16,6 +16,8 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.play.internal.DefaultPlayPlatform
+
 class PlayCoverage {
-    static final String[] DEFAULT = ["2.2.1", "2.2.6", "2.3.1", "2.3.7"]
+    static final String[] DEFAULT = ["2.2.1", "2.2.6", "2.3.1", "2.3.7", DefaultPlayPlatform.DEFAULT_PLAY_VERSION]
 }

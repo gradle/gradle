@@ -19,6 +19,7 @@ package org.gradle.play.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -47,7 +48,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                     ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
                     artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
                 }
-            }    
+            }
         }
 """
     }
@@ -80,7 +81,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})"""))
+        platform: Play Platform (Play ${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})"""))
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {

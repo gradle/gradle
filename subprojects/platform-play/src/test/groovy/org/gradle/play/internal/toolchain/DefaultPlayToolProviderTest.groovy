@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
@@ -84,7 +85,7 @@ class DefaultPlayToolProviderTest extends Specification {
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        _ * playPlatform.getPlayVersion() >> "2.3.7"
+        _ * playPlatform.getPlayVersion() >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION
         playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
 
         when:

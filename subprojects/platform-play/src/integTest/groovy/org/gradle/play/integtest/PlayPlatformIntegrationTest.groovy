@@ -18,6 +18,7 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Unroll
@@ -35,7 +36,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/stage/playBinary/lib").assertContainsDescendants(
-                "play_2.11-2.3.7.jar"
+            "play_2.11-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
         )
     }
 
@@ -67,6 +68,10 @@ model {
         "play: '2.3.6'"                | '2.3.6'     | '2.11'
         "play: '2.3.6', scala: '2.10'" | '2.3.6'     | '2.10'
         "play: '2.3.6', scala: '2.11'" | '2.3.6'     | '2.11'
+
+        "play: '2.3.8'"                | '2.3.8' | '2.11'
+        "play: '2.3.8', scala: '2.10'" | '2.3.8' | '2.10'
+        "play: '2.3.8', scala: '2.11'" | '2.3.8' | '2.11'
     }
 
     def "fails when trying to build a Play 2.2.x application with Scala 2.11.x"() {

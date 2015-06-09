@@ -43,7 +43,7 @@ class DefaultPlayToolChainTest extends Specification {
     def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
 
     def setup() {
-        playPlatform.playVersion >> "2.3.7"
+        playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION
         playPlatform.scalaPlatform >> Stub(ScalaPlatform) {
             getScalaCompatibilityVersion() >> "2.10"
         }
