@@ -71,7 +71,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         ModelRuleDescriptor descriptor = model.getDescriptor();
         StringBuffer buffer = new StringBuffer();
         descriptor.describeTo(buffer);
-        printNodeAttribute(styledTextoutput, "Origin:", buffer.toString());
+        printNodeAttribute(styledTextoutput, "Creator:", buffer.toString());
     }
 
     public void maybePrintType(ModelNode model, StyledTextOutput styledTextoutput) {
