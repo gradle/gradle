@@ -227,7 +227,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         return mainSourceSet;
     }
 
-    public Set<Class<? extends TransformationFileType>> getInputTypes() {
+    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
         return Collections.emptySet();
     }
 

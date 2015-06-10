@@ -26,6 +26,6 @@ public interface ComponentSpecInternal extends ComponentSpec {
 
     FunctionalSourceSet getSources();
 
-    Set<Class<? extends TransformationFileType>> getInputTypes();
+    Set<? extends Class<? extends TransformationFileType>> getInputTypes();
 
 }
