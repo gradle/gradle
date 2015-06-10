@@ -18,14 +18,14 @@ package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
@@ -70,29 +70,24 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
-    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
-        return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, classpathClosureName, scriptClass, ownerScript);
+    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
+        return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, topLevelScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
         private final ClassLoaderScope targetScope;
         private final ClassLoaderScope baseScope;
-        private final String classpathClosureName;
-        private final Class<? extends BasicScript> scriptType;
         private final ScriptHandlerInternal scriptHandler;
-        private final boolean ownerScript;
+        private final boolean topLevelScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
             this.scriptSource = scriptSource;
             this.targetScope = targetScope;
             this.baseScope = baseScope;
-            this.classpathClosureName = classpathClosureName;
             this.scriptHandler = scriptHandler;
-            this.scriptType = scriptType;
-            this.ownerScript = ownerScript;
+            this.topLevelScript = topLevelScript;
         }
-
 
         public ScriptSource getSource() {
             return scriptSource;
@@ -109,13 +104,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
 
+            final ScriptTarget scriptTarget = wrap(target);
+
             final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
             // Pass 1, extract plugin requests and execute buildscript {}, ignoring (i.e. not even compiling) anything else
-
-            boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
+            Class<? extends BasicScript> scriptType = scriptTarget.getScriptClass();
+            boolean supportsPluginsBlock = scriptTarget.getSupportsPluginsBlock();
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
-
+            String classpathClosureName = scriptTarget.getClasspathBlockName();
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
             CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(classpathClosureName, initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
@@ -125,7 +122,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             initialRunner.run();
 
             PluginRequests pluginRequests = initialRunner.getCompiledScript().getData();
-            PluginManagerInternal pluginManager = target instanceof PluginAwareInternal ? ((PluginAwareInternal) target).getPluginManager() : null;
+            PluginManagerInternal pluginManager = scriptTarget.getPluginManager();
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {} and plugin requests, then run
@@ -143,18 +140,28 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 public void run() {
                     BasicScript script = runner.getScript();
                     script.init(target, services);
-                    if (ownerScript && target instanceof ScriptAware) {
-                        ((ScriptAware) target).setScript(script);
-                    }
+                    scriptTarget.attachScript(script);
                     runner.run();
                 }
             };
 
             Boolean hasImperativeStatements = runner.getCompiledScript().getData();
-            if (!hasImperativeStatements && target instanceof ProjectInternal) {
-                ((ProjectInternal) target).addDeferredConfiguration(buildScriptRunner);
+            scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
+        }
+
+        private ScriptTarget wrap(Object target) {
+            if (target instanceof ProjectInternal) {
+                return new ProjectScriptTarget((ProjectInternal) target, topLevelScript);
+            }
+            if (target instanceof GradleInternal && topLevelScript) {
+                // Only use this for top level init scripts
+                return new InitScriptTarget((GradleInternal) target);
+            }
+            if (target instanceof SettingsInternal && topLevelScript) {
+                // Only use this for top level settings scripts
+                return new SettingScriptTarget((SettingsInternal) target);
             } else {
-                buildScriptRunner.run();
+                return new DefaultScriptTarget(target);
             }
         }
     }

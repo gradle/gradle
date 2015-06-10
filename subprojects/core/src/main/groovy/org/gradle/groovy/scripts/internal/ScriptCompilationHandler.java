@@ -29,5 +29,5 @@ public interface ScriptCompilationHandler {
                       Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
     <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                                                           File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass, final ClassLoaderId classLoaderId);
+                                                           File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass, ClassLoaderId classLoaderId);
 }

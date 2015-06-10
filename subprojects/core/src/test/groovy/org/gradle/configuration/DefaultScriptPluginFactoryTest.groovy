@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.*
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
@@ -93,13 +94,13 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, "buildscript", DefaultScript, false)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)
         configurer.apply(target)
     }
 
     void configuresAScriptAwareObjectUsingScript() {
         when:
-        def target = Mock(ScriptAware)
+        def target = Mock(ProjectInternal)
 
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
@@ -116,7 +117,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, "buildscript", DefaultScript, false)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)
         configurer.apply(target)
     }
 }

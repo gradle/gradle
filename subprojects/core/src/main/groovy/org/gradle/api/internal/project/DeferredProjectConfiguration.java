@@ -56,8 +56,12 @@ public class DeferredProjectConfiguration {
                 firedSentinel = new Exception("Project '" + project.getPath() + "' deferred configuration fired");
             }
             fired = true;
-            for (Runnable runnable : configuration) {
-                runnable.run();
+            try {
+                for (Runnable runnable : configuration) {
+                    runnable.run();
+                }
+            } finally {
+                configuration.clear();
             }
         }
     }
