@@ -27,5 +27,5 @@ public interface PlatformAwareComponentSpec extends ComponentSpec {
     /**
      * Specifies a platform that this component should be built be for.
      */
-    public void targetPlatform(String targetPlatform);
+    void targetPlatform(String targetPlatform);
 }
