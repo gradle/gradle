@@ -821,6 +821,45 @@ Existing BuildLink adapter can be used with minor modifications.
   - The BuildLink solution returns a new classloader that contains the "changing" application resources. All other dependencies should be in the higher level classloader.
     However there isn't currently a way to distinguish the changing dependencies (application resources) in a multi-project build.
 
+## Play 2.4.x support
+
+### Story: Add basic support for Play 2.4.x
+
+The Gradle Play support has a structure for supporting multiple Play major versions. Currently 2.2.x and 2.3.x are supported.
+Support for 2.4.x can be done with the same structure.
+- Add PlayMajorVersion enum for 2.4.x
+- Add 2.4.x specific adaptors for
+ - routes compiler
+ - twirl compiler
+ - play run (starting development server)
+
+Test coverage:
+- Add Play 2.4.0 to the target coverage of PlayMultiVersionIntegrationTest so that the same level of test coverage is applied to test Play 2.4.0
+
+### Story: Add support for configuring Play 2.4.x routes compiler type (injected/static)
+
+Play 2.4 introduces a new configuration option `routesGenerator` for the route compiler.
+```
+// Play provides two styles of routers, one expects its actions to be injected, the
+// other, legacy style, accesses its actions statically.
+routesGenerator := InjectedRoutesGenerator
+```
+There are currently two different types of routesGenerators: `play.routes.compiler.InjectedRoutesGenerator` and `play.routes.compiler.StaticRoutesGenerator` .
+StaticRoutesGenerator creates the legacy style access to "object" type Scala controllers. InjectedRoutesGenerator expects controllers to be "class" type in Scala.
+In Play Java, the legacy style uses static methods and the newer injected style uses normal non-static methods.
+Play uses Guice to do autowiring in the new style.
+
+Test coverage:
+- add Play 2.4.x integration test application that uses injected routes compiler and non-static style of controllers in Scala and Java.
+
+### Open Issues
+
+- The routes compiler contains a setting `playAggregateReverseRoutes` in Play 2.4.x. The definition is "A list of projects that reverse routes should be aggregated from.".
+ - Play manual: [Aggregating Reverse routers](https://github.com/playframework/playframework/blob/2.4.x/documentation/manual/detailedTopics/build/AggregatingReverseRouters.md)
+ - [Routes compilation sbt task in 2.3.x](https://github.com/playframework/playframework/blob/2.3.x/framework/src/sbt-plugin/src/main/scala/PlaySourceGenerators.scala#L20)
+ - [Routes compilation sbt task in 2.4.x](https://github.com/playframework/playframework/blob/2.4.x/framework/src/sbt-plugin/src/main/scala/play/sbt/routes/RoutesCompiler.scala#L48)
+
+
 ### Story: Build of pending changes is deferred until reload is requested by Play application
 
 This story aligns the behavior of the Play reload support closer to SBT's implementation.
