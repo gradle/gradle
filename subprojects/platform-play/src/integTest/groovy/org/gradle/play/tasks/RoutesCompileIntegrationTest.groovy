@@ -27,8 +27,18 @@ import org.gradle.util.TextUtil
 class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryRoutes"
     def destinationDir = file(destinationDirPath)
+    def routesJavaFileNameTemplate = { "controllers/${it ? it + '/' :''}routes.java" }
+    def routesReverseFileNameTemplate = { "${it ? it + '/' :''}routes_reverseRouting.scala" }
+    def routesScalaFileNameTemplate = { "${it ? it + '/' :''}routes_routing.scala" }
+    def otherRoutesFilesTemplates = []
 
     def setup() {
+        if (versionNumber.major == 2 && versionNumber.minor >= 4) {
+            routesJavaFileNameTemplate = { "controllers/${it ? it + '/' :''}routes.java" }
+            routesReverseFileNameTemplate = { "controllers/${it ? it + '/' :''}ReverseRoutes.scala" }
+            routesScalaFileNameTemplate = { "${it?:'router'}/Routes.scala" }
+            otherRoutesFilesTemplates = [{ "controllers/${it ? it + '/' :''}javascript/JavaScriptReverseRoutes.scala" }, { "${it?:'router'}/RoutesPrefix.scala" }]
+        }
         settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile <<"""
 plugins {
@@ -55,9 +65,13 @@ repositories{
             ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
             artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
         }
-    }    
+    }
 }
 """
+    }
+
+    def createRouteFileList(String packageName = '') {
+        [routesJavaFileNameTemplate(packageName), routesReverseFileNameTemplate(packageName), routesScalaFileNameTemplate(packageName)] + otherRoutesFilesTemplates.collect { it(packageName) }
     }
 
     def "can run RoutesCompile"() {
@@ -66,7 +80,7 @@ repositories{
         expect:
         succeeds("compilePlayBinaryRoutes")
         and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 
     def "recompiles on changed routes file input"() {
@@ -75,10 +89,10 @@ repositories{
         succeeds("compilePlayBinaryRoutes")
 
         and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        def routesFirstCompileSnapshot = file(destinationDirPath, "controllers/routes.java").snapshot();
-        def revRoutingFirstCompileSnapshot = file(destinationDirPath, "routes_reverseRouting.scala").snapshot();
-        def routingFirstCompileSnapshot = file(destinationDirPath, "routes_routing.scala").snapshot();
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
+        def routesFirstCompileSnapshot = file(destinationDirPath, routesJavaFileNameTemplate()).snapshot();
+        def revRoutingFirstCompileSnapshot = file(destinationDirPath, routesReverseFileNameTemplate()).snapshot();
+        def routingFirstCompileSnapshot = file(destinationDirPath, routesScalaFileNameTemplate()).snapshot();
 
         when:
         templateFile << "\n\n"
@@ -89,9 +103,9 @@ repositories{
         executedAndNotSkipped ":compilePlayBinaryRoutes"
 
         and:
-        file(destinationDirPath, "controllers/routes.java").assertHasChangedSince(routesFirstCompileSnapshot)
-        file(destinationDirPath, "routes_reverseRouting.scala").assertHasChangedSince(revRoutingFirstCompileSnapshot);
-        file(destinationDirPath, "routes_routing.scala").assertHasChangedSince(routingFirstCompileSnapshot);
+        file(destinationDirPath, routesJavaFileNameTemplate()).assertHasChangedSince(routesFirstCompileSnapshot)
+        file(destinationDirPath, routesReverseFileNameTemplate()).assertHasChangedSince(revRoutingFirstCompileSnapshot);
+        file(destinationDirPath, routesScalaFileNameTemplate()).assertHasChangedSince(routingFirstCompileSnapshot);
 
         when:
         succeeds "compilePlayBinaryRoutes"
@@ -106,22 +120,21 @@ repositories{
         then:
         succeeds("compilePlayBinaryRoutes")
         and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
 
         when:
         withRoutesTemplate("foo")
         and:
         succeeds("compilePlayBinaryRoutes")
         then:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala",
-                "controllers/foo/routes.java", "foo/routes_reverseRouting.scala", "foo/routes_routing.scala")
+        destinationDir.assertHasDescendants((createRouteFileList() + createRouteFileList('foo')) as String[])
 
         when:
         file("conf/foo.routes").delete()
         then:
         succeeds("compilePlayBinaryRoutes")
         and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 
     def "compiles multiple Routes source sets as part of play application build" () {
@@ -141,9 +154,9 @@ repositories{
         )
 
         and:
-        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        destinationDir("extraRoutes").assertHasDescendants("controllers/some/pkg/routes.java", "some/pkg/routes_reverseRouting.scala", "some/pkg/routes_routing.scala")
-        destinationDir("otherRoutes").assertHasDescendants("controllers/other/routes.java", "other/routes_reverseRouting.scala", "other/routes_routing.scala")
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
+        destinationDir("extraRoutes").assertHasDescendants(createRouteFileList('some/pkg') as String[])
+        destinationDir("otherRoutes").assertHasDescendants(createRouteFileList('other') as String[])
 
         and:
         jar("build/playBinary/lib/routes-play-app.jar").containsDescendants("controllers/routes.class")

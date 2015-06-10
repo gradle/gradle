@@ -31,6 +31,8 @@ public class RoutesCompilerFactory {
                 return new RoutesCompilerAdapterV22X(playVersion);
             case PLAY_2_3_X:
                 return new RoutesCompilerAdapterV23X(playVersion);
+            case PLAY_2_4_X:
+                return new RoutesCompilerAdapterV24X(playVersion);
             default:
                 throw new RuntimeException("Could not create routes compile spec for Play version: " + playVersion);
         }

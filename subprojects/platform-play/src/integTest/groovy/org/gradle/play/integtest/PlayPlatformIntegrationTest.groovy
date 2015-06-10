@@ -72,7 +72,10 @@ model {
         "play: '2.3.8'"                | '2.3.8' | '2.11'
         "play: '2.3.8', scala: '2.10'" | '2.3.8' | '2.10'
         "play: '2.3.8', scala: '2.11'" | '2.3.8' | '2.11'
-    }
+
+        "play: '2.4.0'"                | '2.4.0' | '2.11'
+        "play: '2.4.0', scala: '2.10'" | '2.4.0' | '2.10'
+        "play: '2.4.0', scala: '2.11'" | '2.4.0' | '2.11'    }
 
     def "fails when trying to build a Play 2.2.x application with Scala 2.11.x"() {
         when:
@@ -109,7 +112,7 @@ model {
         fails "assemble"
 
         and:
-        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.3.x, 2.2.x]."
+        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.4.x, 2.3.x, 2.2.x]."
     }
 
     def "fails when trying to build for an invalid scala platform"() {

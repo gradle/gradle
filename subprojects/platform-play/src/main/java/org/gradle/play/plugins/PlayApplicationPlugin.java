@@ -16,6 +16,7 @@
 package org.gradle.play.plugins;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -72,6 +73,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -82,7 +84,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
     private static final VersionNumber MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT = VersionNumber.parse("2.3.7");
     public static final String RUN_SUPPORT_PLAY_MODULE = "run-support";
-    public static final String SBT_IO_VERSION = "0.13.6";
+
+    private static final Map<PlayMajorVersion, String> PLAY_TO_SBT_IO_VERSION_MAPPING = ImmutableMap.<PlayMajorVersion, String>builder()
+                                                                                                    .put(PlayMajorVersion.PLAY_2_3_X, "0.13.6")
+                                                                                                    .put(PlayMajorVersion.PLAY_2_4_X, "0.13.8")
+                                                                                                    .build();
+
 
     @Override
     public void apply(Project project) {
@@ -297,7 +304,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             String name = scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s", "io", scalaCompatibilityVersion);
             // this dependency is only available in ivy repo that doesn't have a proper default configuration
             // must specify configuration to resolve dependency
-            DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, SBT_IO_VERSION, "runtime");
+            String sbtIoVersion = PLAY_TO_SBT_IO_VERSION_MAPPING.get(PlayMajorVersion.forPlatform(playPlatform));
+            DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, sbtIoVersion, "runtime");
             dependency.setTransitive(false);
             listBuilder.add(dependency);
 

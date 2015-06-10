@@ -37,6 +37,30 @@ model {
     }
 }
 """
+        if (versionNumber.major == 2 && versionNumber.minor >= 4) {
+            buildFile << """
+repositories {
+    maven {
+        name = "scalaz-bintray"
+        url = "https://dl.bintray.com/scalaz/releases"
+    }
+}
+dependencies {
+    playTest 'org.specs2:specs2-junit_2.11:3.6.1'
+    playTest "com.typesafe.play:play-specs2_2.11:${version}"
+}
+"""
+            [file("test/ApplicationSpec.scala"), file("test/FailingApplicationSpec.scala")].each {
+                it.with {
+                    text = text.replace('route(FakeRequest(GET, "/boum")) must beNone', '''route(FakeRequest(GET, "/boum")) must beSome.which { result =>
+          status(result) must equalTo(NOT_FOUND)
+      }
+''')
+                }
+            }
+
+
+        }
     }
 
     def "reports failing run play app tests"() {

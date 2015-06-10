@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.WorkerProcessContext;
-import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.Serializable;
 import java.net.URLClassLoader;
@@ -74,10 +73,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
             ClassLoader docsClassLoader = classLoader;
 
             Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
-            ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
 
             Object buildLink = spec.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
-            runMethod.invoke(buildLink, buildDocHandler, runSpec.getHttpPort());
+            spec.runDevHttpServer(classLoader, docsClassLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {

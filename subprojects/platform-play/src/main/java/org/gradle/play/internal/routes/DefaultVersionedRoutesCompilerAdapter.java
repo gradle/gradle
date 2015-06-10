@@ -45,6 +45,6 @@ abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesC
     }
 
     public List<String> getClassLoaderPackages() {
-        return Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
+        return Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching", "play.routes.compiler");
     }
 }
