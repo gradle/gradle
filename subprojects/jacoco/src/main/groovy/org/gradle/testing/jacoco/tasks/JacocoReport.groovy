@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.jacoco.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -73,7 +74,7 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
 
     protected final PatternFilterable patternSet = new PatternSet()
 
-    boolean ignoreFailure = false
+    boolean ignoreFailures = false
 
     private Closure checkClosure
 
@@ -128,17 +129,21 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
         patternSet.exclude(excludeSpec)
     }
 
+    @Override
     @TaskAction
     void generate() {
+        def task = this
+        String failures = null
         antBuilder.withClasspath(getJacocoClasspath()).execute {
             ant.taskdef(name: 'jacocoReport', classname: 'org.jacoco.ant.ReportTask')
+            String violationsProperty = 'jacoco.violations'
             ant.jacocoReport {
                 executiondata {
                     getExecutionData().addToAntBuilder(ant, 'resources')
                 }
                 structure(name: getProject().getName()) {
                     classfiles {
-                        getAllClassDirs().filter { it.exists() }.addToAntBuilder(ant, 'resources')
+                        getAllClassDirs().filter { it.exists() }.asFileTree.matching(patternSet).addToAntBuilder(ant, 'resources')
                     }
                     sourcefiles {
                         getAllSourceDirs().filter { it.exists() }.addToAntBuilder(ant, 'resources')
@@ -153,25 +158,20 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
                 if(reports.csv.isEnabled()) {
                     csv(destfile: reports.csv.destination)
                 }
-                if(checkClosure!=null) {
-                    def ch = delegate.check(checkClosure).getWrapper()
-                    ch.setAttribute('failonviolation',!ignoreFailure)
-
-                    String includes = patternSet.includes.join(',')
-                    String excludes = patternSet.excludes.join(',')
-                    if (includes!='' || excludes!='') {
-                        ch.children.each {
-                            if (it.elementTag == 'rule') {
-                                if (includes!='') it.setAttribute('includes',includes)
-                                if (excludes!='') it.setAttribute('excludes',excludes)
-                            }
-                        }
-                    }
+                if (task.checkClosure!=null) {
+                    def ch = delegate.check(task.checkClosure).getWrapper()
+                    if (!ignoreFailures) ch.setAttribute('violationsproperty',violationsProperty)
+                    ch.setAttribute('failonviolation',false)
                 }
             }
+            if (!ignoreFailures) {
+                failures = ant.antProject.getProperty(violationsProperty)
+            }
+        }
+        if (failures!=null) {
+            throw new GradleException(failures)
         }
     }
-
     /**
      * Adds execution data files to be used during coverage
      * analysis.
