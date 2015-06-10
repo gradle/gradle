@@ -404,7 +404,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:build"
     }
 
-    void "can replace project dependency with external dependency"()
+    @Unroll
+    void "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"()
     {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
@@ -412,7 +413,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         buildFile << """
             $common
-
+            project(":api") {
+                group = "$projectGroup"
+                version = "$projectVersion"
+            }
             project(":impl") {
                 dependencies {
                     conf project(path: ":api", configuration: "default")
@@ -441,6 +445,13 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         then:
         notExecuted ":api:jar"
+
+        where:
+        projectVersion | projectGroup | scenario
+        "1.5"          | "org.utils"  | "the same as the external dependency"
+        "2.0"          | "org.utils"  | "GAV different, version only"
+        "1.5"          | "my.org.utils"  | "GAV different, group only"
+        "2.0"          | "my.org.utils"  | "GAV different, version and group"
     }
 
     void "can replace transitive external dependency with project dependency"()
