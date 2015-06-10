@@ -52,7 +52,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, String classpathClosureName, final Class<T> scriptBaseClass,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, final Class<T> scriptBaseClass,
                                                               Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
@@ -64,7 +64,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformerId, source.getDisplayName()))
-                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, classpathClosureName, verifier, scriptBaseClass)))
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
                 .open();
 
         // This isn't quite right. The cache will be closed at the end of the build, releasing the shared lock on the classes. Instead, the cache for a script should be
@@ -94,15 +94,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
         private final CompileOperation<?> transformer;
-        private final String classpathClosureName;
         private final ScriptSource source;
 
-        public <T extends Script> CacheInitializer(ScriptSource source, ClassLoader classLoader, CompileOperation<?> transformer, String classpathClosureName,
+        public <T extends Script> CacheInitializer(ScriptSource source, ClassLoader classLoader, CompileOperation<?> transformer,
                                                    Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
             this.source = source;
             this.classLoader = classLoader;
             this.transformer = transformer;
-            this.classpathClosureName = classpathClosureName;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
         }
@@ -110,7 +108,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
             File metadataDir = metadataDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, transformer, classpathClosureName, scriptBaseClass, verifier);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);
         }
     }
 

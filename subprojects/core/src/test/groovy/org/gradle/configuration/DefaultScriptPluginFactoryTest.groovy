@@ -57,7 +57,6 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def loggingManager = Mock(LoggingManagerInternal)
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
-    def classpathClosureName = "buildscript"
     def compiledScript = Mock(CompiledScript)
     def classpathCompiledScript = Mock(CompiledScript)
 
@@ -81,12 +80,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
 
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, classpathClosureName, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * compiledScript.data >> true
@@ -104,12 +103,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
 
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, classpathClosureName, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * compiledScript.data >> true

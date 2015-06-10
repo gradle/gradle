@@ -964,7 +964,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return (ExtensionContainerInternal) getConvention();
     }
 
-
+    // Not part of the public API
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
         ModelSchemaStore modelSchemaStore = getModelSchemaStore();

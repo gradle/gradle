@@ -109,6 +109,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
             // Pass 1, extract plugin requests and execute buildscript {}, ignoring (i.e. not even compiling) anything else
+
             Class<? extends BasicScript> scriptType = scriptTarget.getScriptClass();
             boolean supportsPluginsBlock = scriptTarget.getSupportsPluginsBlock();
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
@@ -117,7 +118,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
             CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(classpathClosureName, initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
 
-            ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), classpathClosureName, Actions.doNothing());
+            ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.getScript().init(target, services);
             initialRunner.run();
 
@@ -134,7 +135,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             }
             CompileOperation<Boolean> operation = new FactoryBackedCompileOperation<Boolean>(operationId, buildScriptTransformer, buildScriptTransformer, BaseSerializerFactory.BOOLEAN_SERIALIZER);
 
-            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {

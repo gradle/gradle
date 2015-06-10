@@ -71,7 +71,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer, String classpathClosureName,
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
@@ -79,7 +79,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier, classpathClosureName);
+            compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
             throw e;
@@ -90,7 +90,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File classesDir, File metadataDir,
-                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
+                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 

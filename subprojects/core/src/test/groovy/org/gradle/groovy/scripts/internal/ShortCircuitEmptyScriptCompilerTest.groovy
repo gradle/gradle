@@ -49,7 +49,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
 
 
         when:
-        def compiledScript = compiler.compile(source, classLoader, loaderId, operation, classpathClosureName, Script, verifier)
+        def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
         def scriptClass = compiledScript.loadClass()
 
         then:
@@ -67,11 +67,11 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         CompiledScript<?> compiledScript = Mock()
 
         when:
-        def result = compiler.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, classpathClosureName, Script, verifier)
+        def result = compiler.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, Script, verifier)
 
         then:
         result == compiledScript
-        1 * target.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, classpathClosureName, Script, verifier) >> compiledScript
+        1 * target.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, Script, verifier) >> compiledScript
         0 * emptyScriptGenerator._
         0 * target._
         0 * classLoaderCache._

@@ -64,7 +64,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "loads classes from cache directory"() {
         when:
-        def result = compiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, Script, verifier).loadClass()
+        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -92,7 +92,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
 
         when:
-        compiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, Script, verifier)
+        compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier)
 
         then:
         1 * cacheBuilder.withValidator(validator) >> cacheBuilder
@@ -106,7 +106,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def metadataDir = new File(cacheDir, "metadata")
 
         when:
-        def result = compiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, Script, verifier).loadClass()
+        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -116,7 +116,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, classpathClosureName, Script, verifier)
+        1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, Script, verifier)
         1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }

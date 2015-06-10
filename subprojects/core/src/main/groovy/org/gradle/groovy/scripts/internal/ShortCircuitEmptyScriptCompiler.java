@@ -34,7 +34,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, final CompileOperation<M> operation, String classpathClosureName,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
@@ -50,7 +50,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
                 }
             });
         }
-        return compiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, scriptBaseClass, verifier);
+        return compiler.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
     }
 
 }

@@ -54,7 +54,7 @@ class BuildScriptTransformerSpec extends Specification {
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
         def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BaseSerializerFactory.BOOLEAN_SERIALIZER)
-        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, classpathClosureName, ProjectScript, Actions.doNothing())
+        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
         scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data
     }
 
