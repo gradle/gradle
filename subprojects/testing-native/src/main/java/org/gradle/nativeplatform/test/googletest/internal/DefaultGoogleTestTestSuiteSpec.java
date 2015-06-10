@@ -22,7 +22,6 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec {
     private NativeComponentSpec testedComponent;
 
-
     public String getDisplayName() {
         return String.format("googleTest test suite '%s'", getName());
     }
