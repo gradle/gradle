@@ -21,6 +21,8 @@ import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
@@ -73,9 +75,36 @@ model {
         "play: '2.3.8', scala: '2.10'" | '2.3.8' | '2.10'
         "play: '2.3.8', scala: '2.11'" | '2.3.8' | '2.11'
 
-        "play: '2.4.0'"                | '2.4.0' | '2.11'
-        "play: '2.4.0', scala: '2.10'" | '2.4.0' | '2.10'
-        "play: '2.4.0', scala: '2.11'" | '2.4.0' | '2.11'    }
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Unroll
+    def "can build play app binary for specified platform on JDK8 [#platform]"() {
+        when:
+        buildFile << """
+model {
+    components {
+        play {
+            platform ${platform}
+        }
+    }
+}
+"""
+
+        succeeds("stage")
+
+        then:
+        file("build/stage/playBinary/lib").assertContainsDescendants(
+            "play_${scalaPlatform}-${playVersion}.jar"
+        )
+
+        where:
+        platform                       | playVersion | scalaPlatform
+        "play: '2.4.0'"                | '2.4.0'     | '2.11'
+        "play: '2.4.0', scala: '2.10'" | '2.4.0'     | '2.10'
+        "play: '2.4.0', scala: '2.11'" | '2.4.0'     | '2.11'
+    }
+
 
     def "fails when trying to build a Play 2.2.x application with Scala 2.11.x"() {
         when:
