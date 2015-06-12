@@ -323,12 +323,11 @@ Similar to `gradleApi()`
 ### API proposal
 
 * new method `newTestLauncher()` to ProjectConnection create test specific long running operation. returns `TestLauncher`
-* `TestLauncher` can be configured to execute specific tests via `TestLauncher#forTests(TestExecutionConfiguration)`
-* `TestExecutionConfiguration` interface contains all information about which tests should be executed.
-* `TestExecutionConfiguration` can be build using fluent API TestExecutionConfigurationBuilder
-* can configure `TestExecutionConfigurationBuilder` via
-	* TestExecutionConfigurationBuilder#withJvmTestClasses(String...)
-	* TestExecutionConfigurationBuilder#withJvmTestMethods(String testClass, String... methods)
+* `TestLauncher` can be configured to execute specific tests via `TestLauncher#withTests(TestOperationDescriptor)`
+* `TestLauncher` interface contains all information about which tests should be executed.
+* can configure `TestLauncher` via
+	* TestLauncher#withJvmTestClasses(String...)
+	* TestLauncher#withJvmTestMethods(String testClass, String... methods)
 
 From a client this API can be used like:
 
@@ -339,13 +338,10 @@ From a client this API can be used like:
 		try {
 		   //run tests
 		   connection.newTestLauncher()
-		     .forTests(TestExecutionConfigurationBuilder.newTestExecutionConfiguration()
-					.withTests(TestOperationDescriptor... testDescriptors)
-					.withJvmTestClasses('example.MyTest')
-					.withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
-					.build()) // this will ensure all tests of MyTest and MyTest2#testMethod1, MyTest2#testMethod2
-							  // will be executed
-		     .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
+			 .withTests(TestOperationDescriptor... testDescriptors)
+			 .withJvmTestClasses('example.MyTest')
+			 .withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
+			 .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
 		     .setStandardOutput(System.out)
 		     .run();
 		} finally {
@@ -357,10 +353,11 @@ From a client this API can be used like:
 
 * Introduce new LongRunningOperation `TestLauncher`
 * Add factory method `ProjectConnection#newTestRunner()`
-* Introduce `TestExecutionConfigurationBuilder`, `TestExecutionConfiguration`
-* add `TestLauncher#forTests(TestExecutionConfiguration)`
+* Introduce `TestLauncher`
+* add `TestLauncher#withTest(TestOperationDescriptor)`
 * change BuildModelActionRunner to run test tasks if TestConfiguration is provided
-* run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied
+* calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
+* execute matching Test tasks
 
 ### Test Coverage
 
@@ -379,13 +376,14 @@ From a client this API can be used like:
 
 * With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
 * We need to improve how we deal with custom test runners, where there isn't a one-to-one mapping between test method and test execution. This is broken in the test progress reporting stuff.
+*
 
 ## Story: Allow force execution of up-to-date test tasks
 
 ### Implementation
 
-* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not)
-* allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
+* add flag to TestLauncher indicating a test tasks should always be executed (not matter of up-to-date or not)
+* allow configuration from client side via `TestLauncher#alwaysRunTests()`
 
 ### Test Coverage
 
@@ -395,8 +393,8 @@ From a client this API can be used like:
 
 ### Implementation
 
-* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not)
-* allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
+* add flag to TestLauncher indicating a test tasks should always be executed (not matter of up-to-date or not)
+* allow configuration from client side via TestLauncher#alwaysRunTests()
 
 ### Test Coverage
 
@@ -414,16 +412,16 @@ TBD
 
 ### API proposal
 
-* TestExecutionConfigurationBuilder#withJvmTestPackages(String... packages)
-* TestExecutionConfigurationBuilder#withTestsByPattern(String...)
-* TestExecutionConfigurationBuilder#excludeJvmTestPackages(String...)
-* TestExecutionConfigurationBuilder#excludeJvmTestMethods(String testClass, String... methods)
-* TestExecutionConfigurationBuilder#excludeTestsByPattern(String... patterns)
-* TestExecutionConfigurationBuilder#excludeJvmTestClasses(String...)
+* TestLauncher#withJvmTestPackages(String... packages)
+* TestLauncher#withTestsByPattern(String...)
+* TestLauncher#excludeJvmTestPackages(String...)
+* TestLauncher#excludeJvmTestMethods(String testClass, String... methods)
+* TestLauncher#excludeTestsByPattern(String... patterns)
+* TestLauncher#excludeJvmTestClasses(String...)
 
 ### Implementation
 
-* add according inclusive pattern declared in TestExecutionConfigurationBuilder to TestExecutionConfiguration#testIncludePatterns / TestExecutionConfiguration#testExcludePatterns
+* add according inclusive pattern declared in TestLauncher to TestLauncher#testIncludePatterns / #testExcludePatterns
 
 ### Test Coverage
 
