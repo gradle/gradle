@@ -356,7 +356,7 @@ From a client this API can be used like:
 * Introduce new LongRunningOperation `TestLauncher`
 * Add factory method `ProjectConnection#newTestRunner()`
 * Introduce `TestExecutionConfigurationBuilder`, `TestExecutionConfiguration`
-* add `BuildLauncher#forTests(TestExecutionConfiguration)`
+* add `TestLauncher#forTests(TestExecutionConfiguration)`
 * change BuildModelActionRunner to run test tasks if TestConfiguration is provided
 * run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied
 
