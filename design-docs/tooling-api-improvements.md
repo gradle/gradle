@@ -376,7 +376,9 @@ From a client this API can be used like:
 
 * With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
 * We need to improve how we deal with custom test runners, where there isn't a one-to-one mapping between test method and test execution. This is broken in the test progress reporting stuff.
-*
+* for staying forwards compatible we can't add arbitrary classes to `ProviderOperationParameters`. That might cause some friction in
+the long run as we e.g. can't keep the test execution stuff maintained in a rich `ProviderOperationParameters#TestExecutionConfiguration` and have to use
+`ProviderOperationParameters#testIncludes`+ `ProviderOperationParameters#testExcludes` instead.
 
 ## Story: Allow force execution of up-to-date test tasks
 
@@ -389,7 +391,7 @@ From a client this API can be used like:
 
 * can force execution of up-to-date test
 
-## Story: Allow force exeuction of up-to-date test tasks
+## Story: Allow force execution of up-to-date test tasks
 
 ### Implementation
 
