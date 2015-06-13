@@ -159,7 +159,9 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
                 }
                 if (task.checkClosure!=null) {
                     def ch = delegate.check(task.checkClosure).getWrapper()
-                    if (!ignoreFailures) ch.setAttribute('violationsproperty',violationsProperty)
+                    if (!ignoreFailures) {
+                        ch.setAttribute('violationsproperty',violationsProperty)
+                    }
                     ch.setAttribute('failonviolation',false)
                 }
             }
