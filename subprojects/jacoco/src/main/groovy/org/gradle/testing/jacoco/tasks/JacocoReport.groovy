@@ -129,7 +129,6 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
         patternSet.exclude(excludeSpec)
     }
 
-    @Override
     @TaskAction
     void generate() {
         def task = this
