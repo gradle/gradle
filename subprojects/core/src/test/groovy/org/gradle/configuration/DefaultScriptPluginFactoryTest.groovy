@@ -22,6 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.*
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
@@ -48,7 +49,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def baseChildClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
-    def scriptHandler = Mock(ScriptHandler)
+    def scriptHandler = Mock(ScriptHandlerInternal)
     def classPathScriptRunner = Mock(ScriptRunner)
     def classPathScript = Mock(BasicScript)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
