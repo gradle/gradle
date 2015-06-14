@@ -57,7 +57,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         RepositoryHandler repositoryHandler = services.getResolveRepositoryHandler();
         ConfigurationContainer configurationContainer = services.getConfigurationContainer();
         DependencyHandler dependencyHandler = services.getDependencyHandler();
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, new ScriptHandlerClassLoaderFactory(scriptSource, classLoaderScope));
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoaderScope);
     }
 
 }
