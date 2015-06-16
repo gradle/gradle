@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r25
-
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -30,7 +29,7 @@ import org.gradle.util.Requires
 @Requires(adhoc = { AvailableJavaHomes.jdk6 })
 class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecification {
 
-    def "client receives appropriate error if continuous build attempted on unsupported platform"() {
+    def "client receives error on unsupported platform"() {
         given:
         toolingApi.requireIsolatedDaemons()
         buildFile.text = "apply plugin: 'java'"

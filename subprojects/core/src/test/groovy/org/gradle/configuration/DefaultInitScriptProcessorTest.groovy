@@ -15,10 +15,10 @@
  */
 package org.gradle.configuration
 
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.InitScript
 import org.gradle.internal.resource.Resource
@@ -39,7 +39,7 @@ class DefaultInitScriptProcessorTest extends Specification {
         }
         def gradleMock = Mock(GradleInternal)
         def siblingScope = Mock(ClassLoaderScope)
-        def scriptHandler = Mock(ScriptHandler)
+        def scriptHandler = Mock(ScriptHandlerInternal)
         def scriptPlugin = Mock(ScriptPlugin)
 
         1 * gradleMock.getClassLoaderScope() >> gradleScope

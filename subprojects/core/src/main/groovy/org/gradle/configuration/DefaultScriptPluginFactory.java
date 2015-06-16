@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -70,7 +71,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
-        return new ScriptPluginImpl(scriptSource, scriptHandler, targetScope, baseScope, classpathClosureName, scriptClass, ownerScript);
+        return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, classpathClosureName, scriptClass, ownerScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
@@ -79,10 +80,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         private final ClassLoaderScope baseScope;
         private final String classpathClosureName;
         private final Class<? extends BasicScript> scriptType;
-        private final ScriptHandler scriptHandler;
+        private final ScriptHandlerInternal scriptHandler;
         private final boolean ownerScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
             this.scriptSource = scriptSource;
             this.targetScope = targetScope;
             this.baseScope = baseScope;

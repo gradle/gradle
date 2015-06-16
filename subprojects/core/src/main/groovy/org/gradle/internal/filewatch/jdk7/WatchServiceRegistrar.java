@@ -83,8 +83,13 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private void watchDir(Path dir) throws IOException {
         try {
             dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
-        } catch (NoSuchFileException ignore) {
-            // directory may have been deleted
+        } catch (IOException e) {
+            // Windows at least will sometimes throw odd exceptions like java.nio.file.AccessDeniedException
+            // if the file gets deleted while the watch is being set up.
+            // So, we just ignore the exception if the dir doesn't exist anymore
+            if (Files.exists(dir)) {
+                throw e;
+            }
         }
     }
 

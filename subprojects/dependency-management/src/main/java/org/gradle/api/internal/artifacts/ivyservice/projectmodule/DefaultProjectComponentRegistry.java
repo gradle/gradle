@@ -32,6 +32,9 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
 
     public LocalComponentMetaData getProject(String projectPath) {
         ProjectInternal project = projectRegistry.getProject(projectPath);
+        if (project == null) {
+            return null;
+        }
         return localComponentFactory.convert(new ComponentConverterSource(project.getConfigurations(), project.getModule()));
     }
 }

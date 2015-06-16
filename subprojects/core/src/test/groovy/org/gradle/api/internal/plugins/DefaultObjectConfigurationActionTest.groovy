@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScript
@@ -32,7 +32,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def resolver = Mock(FileResolver)
     def scriptPluginFactory = Mock(ScriptPluginFactory)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    def scriptHandler = Mock(ScriptHandler)
+    def scriptHandler = Mock(ScriptHandlerInternal)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
     def configurer = Mock(ScriptPlugin)

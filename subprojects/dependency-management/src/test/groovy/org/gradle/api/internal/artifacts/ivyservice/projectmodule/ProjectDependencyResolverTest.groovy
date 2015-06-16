@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
+
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
@@ -23,6 +24,7 @@ import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
@@ -94,6 +96,23 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         0 * registry.getProject(_)
+        0 * _
+    }
+
+    def "adds failure to resolution result if project does not exist"() {
+        def result = Mock(BuildableComponentResolveResult)
+        def componentIdentifier = new DefaultProjectComponentIdentifier(":doesnotexist")
+        def overrideMetaData = Mock(ComponentOverrideMetadata)
+
+        when:
+        registry.getProject(_) >> null
+        and:
+        resolver.resolve(componentIdentifier, overrideMetaData, result)
+
+        then:
+        1 * result.failed(_) >> { ModuleVersionResolveException failure ->
+            assert failure.message == "project ':doesnotexist' not found."
+        }
         0 * _
     }
 }
