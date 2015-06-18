@@ -26,11 +26,13 @@ A set of interfaces/builders will be developed to provide programmatic execution
 
 ### User visible changes
 
-Tp use the test-kit, the build author must declare a dependency on the test-kit:
+To use the test-kit, the build author must declare a dependency on the test-kit:
 
     dependencies {
         testCompile testKit()
     }
+
+Initially, this will be available only as a local dependency.
 
 The test-kit does not have an opinion about the used test framework. It's up to the build logic to choose a test framework and declare its dependency.
 
@@ -49,9 +51,9 @@ As a user, you write your functional test by using the following interfaces:
         List<String> getArguments();
         void setArguments(List<String> string);
         void useTasks(List<String> taskNames);
-        BuildResult succeeds();
-        BuildResult fails();
-        
+        BuildResult succeeds() throws UnexpectedBuildFailure;
+        BuildResult fails() throws UnexpectedBuildSuccess;
+
         public static GradleRunner create() { ... }
     }
 
@@ -74,53 +76,43 @@ A functional test using Spock could look as such:
                 }
             """
 
-            when:
-            def result = GradleRunnerFactory.create().with {
+            expect:
+            def runner = GradleRunner.create().with {
                 workingDir = testProjectDir
                 arguments << "helloWorld"
-                succeed()
             }
-
-            then:
-            result.standardOutput.contains "Hello World!"
+            runner.succeeds()
         }
     }
 
 ### Implementation
 
 * A new module named `test-kit-functional` will be created in Gradle core.
-* The implementation will be backed by the Tooling API.
-* Should use the Gradle installation that is running the test build.
+* The implementation will be backed by the Tooling API. The implementation may use internal parts of the tooling API and is not restricted to the public APIs.
+* A test build should use the Gradle installation that is running the test.
 * No environmental control will be allowed (e.g. setting env vars or sys props).
 
 ### Test coverage
 
 * Execute a build that is expected to succeed.
     * No exception is thrown from `GradleRunner`.
-    * Standard output retrieved from `GradleRunner` contains `println` or log message.
 * Execute a build that is expected to succeed but fails.
-    * A `UnexpectedBuildFailure` is thrown.
+    * A `UnexpectedBuildFailure` is thrown, with some reasonable diagnostics.
+    * Something useful is done with the build standard output and error.
 * Execute a build that is expected to fail.
     * No exception is thrown from `GradleRunner`.
-    * Standard error retrieved from `GradleRunner` contains error message.
 * Execute a build that is expected to fail but succeeds.
-    * A `UnexpectedBuildSuccess` is thrown.
-* A build can be executed with more than one task.
-    * Tasks that are marked SKIPPED, UP-TO-DATE or FAILED can be retrieved as skipped tasks from `GradleRunner`.
-    * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
+    * A `UnexpectedBuildSuccess` is thrown, with some reasonable diagnostics.
+    * Something useful is done with the build standard output and error.
 * A build can be provided with command line arguments. Upon execution the provided options come into effect.
-* A build that has `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
-* The classpath of the tooling API execution is set up properly.
-    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
-        * A plugin class under test can be referenced and tested in build script.
-        * A custom task class under test can be referenced and tested in build script.
-        * Arbitrary classes under test can be referenced and tested in build script.
-    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
+* Reasonable diagnostics when badly formed Gradle arguments or working directory.
 * Tooling API mechanical failures produce good diagnostic messages.
+    * For example, bad java home or jvm args in `gradle.properties`
 
 ### Open issues
 
-* Need specific exceptions thrown by `succeeds()` and `fails()`.
+* Reuse contract? Can `TestRunner` be reused to run multiple builds? Is it reset between builds?
+* Need to do something useful with the build standard output and error when `succeeds()` or `fails()` throw an exception.
 * Thread-safety contract?
 * IDE mapping sets up test execution in IDE to point to correct installation.
 * The Tooling API executes the test in a Daemon JVM. Debugging in the IDE won't work until we allow for executing the tests in the same JVM process. Alternative: Remote debugging
@@ -144,6 +136,16 @@ Add methods to `TestResult` to query the result.
 
 - Executed tasks and skipped tasks should be calculated using progress events generated by the tooling API, rather than scraping the output.
 
+### Test cases
+
+* Change test cases above to verify:
+    * Standard output retrieved from `GradleRunner` contains `println` or log message.
+    * Standard error retrieved from `GradleRunner` contains error message.
+* A build can be executed with more than one task.
+    * Tasks that are marked SKIPPED, UP-TO-DATE or FAILED can be retrieved as skipped tasks from `GradleRunner`.
+    * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
+* A build that has `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
+
 ## Story: JUnit test adapter
 
 An abstract class that simplifies the use of the test-kit through the test framework JUnit.
@@ -153,6 +155,7 @@ An abstract class that simplifies the use of the test-kit through the test frame
 A user will need to declare the dependency on JUnit in the build script.
 
     dependencies {
+        testCompile junitTestKit()
         testCompile 'junit:junit:4.8.2'
     }
 
@@ -203,10 +206,11 @@ The base class implementation could look similar to the following code snippet:
         @Before
         public void setup() {
             testDirectory = temporaryFolder.newFolder("...");
-            gradleRunner = GradleRunnerFactory.create();
+            gradleRunner = GradleRunner.create();
             gradleRunner.setWorkingDir(testDirectory);
         }
 
+        // Perhaps factory method `newGradleRunner()` instead?
         protected GradleRunner getGradleRunner() {
             return gradleRunner;
         }
@@ -229,10 +233,6 @@ The base class implementation could look similar to the following code snippet:
 
         protected BuildResult fails(String... tasks) {
             return gradleRunner.useTasks(Arrays.asList(tasks)).fails();
-        }
-
-        protected void writeToFile(File file, String text) {
-            ...
         }
     }
 
@@ -282,6 +282,17 @@ The `GradleRunner` interface will be extended to provide additional methods.
 ### Open issues
 
 none
+
+## Story: Classes under test are visible to build scripts
+
+When using the plugin development plugin, plugin and task classes and their dependencies are visible to build scripts.
+
+* The classpath of the tooling API execution is set up properly.
+    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
+        * A plugin class under test can be referenced and tested in build script.
+        * A custom task class under test can be referenced and tested in build script.
+        * Arbitrary classes under test can be referenced and tested in build script.
+    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
 
 ## Story: Integration with plugin-development-plugin
 
