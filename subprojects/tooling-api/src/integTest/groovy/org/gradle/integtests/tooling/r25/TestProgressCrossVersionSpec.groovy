@@ -746,7 +746,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         !result.isEmpty()
         [result.first(), result.last()].each { def event ->
             assert event.descriptor.parent instanceof TaskOperationDescriptor
-            assert event.descriptor.parent.name == 'test'
+            assert event.descriptor.parent.name == ':test'
         }
 
         when: 'listening to test progress events and no task listener is attached'

@@ -27,7 +27,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.internal.DefaultOperationDescriptor
 import org.gradle.tooling.events.task.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -175,7 +174,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         compileJavaStartEvent instanceof TaskStartEvent &&
             compileJavaStartEvent.eventTime > 0 &&
             compileJavaStartEvent.displayName == "Task :compileJava started" &&
-            compileJavaStartEvent.descriptor.name == 'compileJava' &&
+            compileJavaStartEvent.descriptor.name == ':compileJava' &&
             compileJavaStartEvent.descriptor.displayName == 'Task :compileJava' &&
             compileJavaStartEvent.descriptor.taskPath == ':compileJava' &&
             compileJavaStartEvent.descriptor.parent == null
@@ -183,7 +182,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         compileJavaFinishEvent instanceof TaskFinishEvent &&
             compileJavaFinishEvent.eventTime > 0 &&
             compileJavaFinishEvent.displayName == "Task :compileJava succeeded" &&
-            compileJavaFinishEvent.descriptor.name == 'compileJava' &&
+            compileJavaFinishEvent.descriptor.name == ':compileJava' &&
             compileJavaFinishEvent.descriptor.displayName == 'Task :compileJava' &&
             compileJavaFinishEvent.descriptor.taskPath == ':compileJava' &&
             compileJavaFinishEvent.descriptor.parent == null &&
@@ -195,7 +194,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         processResourcesStartEvent instanceof TaskStartEvent &&
             processResourcesStartEvent.eventTime > 0 &&
             processResourcesStartEvent.displayName == "Task :processResources started" &&
-            processResourcesStartEvent.descriptor.name == 'processResources' &&
+            processResourcesStartEvent.descriptor.name == ':processResources' &&
             processResourcesStartEvent.descriptor.displayName == 'Task :processResources' &&
             processResourcesStartEvent.descriptor.taskPath == ':processResources' &&
             processResourcesStartEvent.descriptor.parent == null
@@ -203,7 +202,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         processResourcesFinishEvent instanceof TaskFinishEvent &&
             processResourcesFinishEvent.eventTime > 0 &&
             processResourcesFinishEvent.displayName == "Task :processResources succeeded" &&
-            processResourcesFinishEvent.descriptor.name == 'processResources' &&
+            processResourcesFinishEvent.descriptor.name == ':processResources' &&
             processResourcesFinishEvent.descriptor.displayName == 'Task :processResources' &&
             processResourcesFinishEvent.descriptor.taskPath == ':processResources' &&
             processResourcesFinishEvent.descriptor.parent == null &&
@@ -215,7 +214,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         classesStartEvent instanceof TaskStartEvent &&
             classesStartEvent.eventTime > 0 &&
             classesStartEvent.displayName == "Task :classes started" &&
-            classesStartEvent.descriptor.name == 'classes' &&
+            classesStartEvent.descriptor.name == ':classes' &&
             classesStartEvent.descriptor.displayName == 'Task :classes' &&
             classesStartEvent.descriptor.taskPath == ':classes' &&
             classesStartEvent.descriptor.parent == null
@@ -223,7 +222,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         classesFinishEvent instanceof TaskFinishEvent &&
             classesFinishEvent.eventTime > 0 &&
             classesFinishEvent.displayName == "Task :classes skipped" &&
-            classesFinishEvent.descriptor.name == 'classes' &&
+            classesFinishEvent.descriptor.name == ':classes' &&
             classesFinishEvent.descriptor.displayName == 'Task :classes' &&
             classesFinishEvent.descriptor.taskPath == ':classes' &&
             classesFinishEvent.descriptor.parent == null &&
@@ -488,8 +487,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         then: 'the parent of the task events is the root build operation'
         !result.isEmpty()
         result.each { def event ->
-            assert event.descriptor.parent instanceof DefaultOperationDescriptor
-            assert event.descriptor.parent.parent instanceof DefaultOperationDescriptor
+            assert event.descriptor.parent
+            assert event.descriptor.parent.parent
             assert event.descriptor.parent.parent.parent == null
         }
 
@@ -552,11 +551,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
                 if (ordered) {
                     assert event.eventTime >= oldEndTime
                 }
-                if (path.startsWith(':')) {
-                    assert event.descriptor.taskPath == path
-                } else {
-                    assert event.descriptor.name == path
-                }
+                assert event.descriptor.taskPath == ":$path"
+                assert event.descriptor.name == ":$path"
                 switch (state) {
                     case 'started':
                         assert event instanceof TaskStartEvent

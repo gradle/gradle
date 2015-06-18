@@ -184,8 +184,6 @@ public class DefaultGradleLauncherTest {
             finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
             startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
             finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            startEvent(this, BuildOperationType.LOADING_BUILD);
-            finishEvent(this, BuildOperationType.LOADING_BUILD);
             finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
@@ -269,8 +267,6 @@ public class DefaultGradleLauncherTest {
             finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
             startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
             finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            startEvent(this, BuildOperationType.LOADING_BUILD);
-            finishEvent(this, BuildOperationType.LOADING_BUILD);
             startEvent(this, BuildOperationType.CONFIGURING_BUILD);
             finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
             startEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
@@ -335,8 +331,6 @@ public class DefaultGradleLauncherTest {
                 finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
                 startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
                 finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-                startEvent(this, BuildOperationType.LOADING_BUILD);
-                finishEvent(this, BuildOperationType.LOADING_BUILD);
                 startEvent(this, BuildOperationType.CONFIGURING_BUILD);
                 finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
                 if (execute) {

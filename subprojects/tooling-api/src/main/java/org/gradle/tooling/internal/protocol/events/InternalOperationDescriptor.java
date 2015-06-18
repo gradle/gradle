@@ -31,12 +31,14 @@ public interface InternalOperationDescriptor extends InternalProtocolInterface {
     Object getId();
 
     /**
-     * Returns the name of the operation, relative to its parent.
+     * Returns the name of the operation, relative to its parent. This name should generally uniquely identify to
+     * a human each child operation of a given operation.
      */
     String getName();
 
     /**
-     * Returns a human consumable display name for the operation.
+     * Returns a human consumable display name for the operation. This display name should generally provide enough context
+     * to uniquely identify the operation to a human.
      *
      * @return The display name of the operation
      */

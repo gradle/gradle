@@ -138,19 +138,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Evaluate settings script
-        final SettingsInternal settings = runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Factory<SettingsInternal>() {
-            @Override
-            public SettingsInternal create() {
-                SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
-                buildListener.settingsEvaluated(settings);
-                return settings;
-            }
-        });
-
-        // Load build
-        runBuildOperation(BuildOperationType.LOADING_BUILD, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Factory<Void>() {
             @Override
             public Void create() {
+                SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
+                buildListener.settingsEvaluated(settings);
                 buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
                 buildListener.projectsLoaded(gradle);
                 return null;

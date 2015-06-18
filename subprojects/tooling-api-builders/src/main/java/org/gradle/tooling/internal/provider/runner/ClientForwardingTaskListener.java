@@ -54,11 +54,10 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
     private DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
         TaskInternal task = taskOperation.getTask();
         Object id = taskOperation.getId();
-        String name = task.getName();
         String displayName = String.format("Task %s", task.getPath());
         String taskPath = task.getPath();
         Object parentId = getParentId(taskOperation);
-        return new DefaultTaskDescriptor(id, name, displayName, taskPath, parentId);
+        return new DefaultTaskDescriptor(id, taskPath, displayName, parentId);
     }
 
     private Object getParentId(TaskOperationInternal taskOperation) {
