@@ -107,19 +107,15 @@ A functional test using Spock could look as such:
 * A build can be provided with command line arguments. Upon execution the provided options come into effect.
 * Reasonable diagnostics when badly formed Gradle arguments or working directory.
 * Tooling API mechanical failures produce good diagnostic messages.
-    * For example, bad java home or jvm args in `gradle.properties`
+    * For example, bad java home or jvm args in `gradle.properties`.
+    * When daemon dies, say by build script calling `Runtime.halt()`.
+* IDEA and Eclipse projects are configured appropriately to use test-kit. Manually verify that this works as well (in IDEA say).
 
 ### Open issues
 
 * Reuse contract? Can `TestRunner` be reused to run multiple builds? Is it reset between builds?
 * Need to do something useful with the build standard output and error when `succeeds()` or `fails()` throw an exception.
 * Thread-safety contract?
-* IDE mapping sets up test execution in IDE to point to correct installation.
-* The Tooling API executes the test in a Daemon JVM. Debugging in the IDE won't work until we allow for executing the tests in the same JVM process. Alternative: Remote debugging
-* The daemon is known to still have issues. What should happen if one of the daemon crashes or misbehaves?
-* Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. In a later story the work required could be simplified by introducing helper methods.
-* Should we allow for executing a build with a different Gradle version and/or distribution at this point? This is important for organizations that create their own distribution. In the Gradle core
-build the Gradle distribution should be the one built locally from the sources (same as the referenced by `IntegrationTestBuildContext.getGradleHomeDir()`).
 
 ## Story: Functional test queries the build result
 
@@ -186,6 +182,7 @@ As a user, you write your functional test by extending the base class `Functiona
 * A new module named `test-kit-junit` will be created in Gradle core.
 * Temporary directories for test execution per test case will be creates by using the JUnit Rule [TemporaryFolder](http://junit.org/apidocs/org/junit/rules/TemporaryFolder.html).
 * The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with JUnit.
+* After all tests are executed, temporary test files are automatically cleaned up.
 
 The base class implementation could look similar to the following code snippet:
 
@@ -241,18 +238,48 @@ The base class implementation could look similar to the following code snippet:
 * Users can use `FunctionalTest` to write their own functional tests and successfully execute them.
 * Users can create new files and directories with the JUnit Rule accessible from the base class.
 * Users can create an assertion on whether tasks should be executed successfully and whether the execution should fail.
-* Each test method creates a new temporary directory. This temporary test directory is not deleted after test execution.
+* Each test method creates a new temporary directory.
 * A user can create temporary files and directories and files with the provided test rule.
 * A user can configure the `GradleRunner` e.g. to add arguments.
 * Test methods can write a `build.gradle` and `settings.gradle` file.
+* After test execution, temporary test files are deleted independent of the number of exercised tests, or whether the result is successful or failed.
+* IDEA and Eclipse projects are configured to use JUnit test-kit.
 
 ### Open issues
 
-* Potentially expose test fixtures as Gradle plugins so resources can be set up/clean automatically for each test case.
+- Cleanup when running from IDE
 
-## Story: Fine-tuning test execution behavior
+## Story: Test daemons are isolated from the environment they are running in
 
-The first two stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
+The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be improved.
+
+Daemons started by test-kit should be isolated from the machine environment:
+
+- Test-kit uses only daemons started by test-kit.
+- Configuration in ~/.gradle is ignored, such as `init.gradle` and `gradle.properties`
+- Daemons use default JVM arguments that are more appropriate to test daemons. Best option might be to use the JVM defaults.
+- Daemons are reused by tests.
+- Daemons are stopped at the end of the tests.
+
+### Implementation
+
+- Should be possible to implement this by setting the Gradle user home dir to some temporary directory.
+
+### Test cases
+
+* Test are executed in dedicated, isolate daemon instance.
+    * If no daemon process exists, create a new one and use it. Regular Gradle build executions will not use the daemon process dedicated for test execution.
+    * If a daemon process already exists, determine if it is a daemon process dedicated for test execution. Reuse it if possible. Otherwise, create a new one.
+    * A Daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
+
+### Open issues
+
+* Potentially expose test fixtures as Gradle plugins so resources can be set up/cleaned automatically for each test case.
+* Reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration.
+
+## Story: IDE user debugs test build
+
+The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
 
 ### User visible changes
 
@@ -265,18 +292,10 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
 ### Implementation
 
-* After all tests of a project are executed, temporary test files are automatically cleaned up.
-* Daemon instances run isolated from other tests and the user's `~/.gradle` directory.
-* Setting appropriate default daemon JVM arguments for test execution.
 * Daemon process is started with remote debugging JVM parameters.
 
 ### Test coverage
 
-* After test execution, temporary test files are deleted independent of the number of exercised tests, or whether the result is successful or failed.
-* Test are executed in dedicated, isolate daemon instance.
-    * If no daemon process exists, create a new one and use it. Regular Gradle build executions will not use the daemon process dedicated for test execution.
-    * If a daemon process already exists, determine if it is a daemon process dedicated for test execution. Reuse it if possible. Otherwise, create a new one.
-    * A Daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
 * A user can start the `GradleRunner` with remote debugging JVM parameter for debugging purposes. By default the `GradleRunner` does not use the debugging JVM parameters.
 
 ### Open issues
@@ -626,3 +645,7 @@ A functional test using Spock could look as such:
 
 * Execution of tests in parallel for multiple Gradle versions
 * JUnit Runner implementation to simplify definition of Gradle distributions
+
+# Backlog
+
+- Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. The work required could be simplified by introducing helper methods.
