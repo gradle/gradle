@@ -91,6 +91,8 @@ A functional test using Spock could look as such:
 * The implementation will be backed by the Tooling API. The implementation may use internal parts of the tooling API and is not restricted to the public APIs.
 * A test build should use the Gradle installation that is running the test.
 * No environmental control will be allowed (e.g. setting env vars or sys props).
+* Add (or expand) a sample for building and testing a plugin and task implementation.
+* Add some brief user guide material.
 
 ### Test coverage
 
@@ -243,7 +245,7 @@ The base class implementation could look similar to the following code snippet:
 * A user can configure the `GradleRunner` e.g. to add arguments.
 * Test methods can write a `build.gradle` and `settings.gradle` file.
 * After test execution, temporary test files are deleted independent of the number of exercised tests, or whether the result is successful or failed.
-* IDEA and Eclipse projects are configured to use JUnit test-kit.
+* IDEA and Eclipse projects are configured appropriately to use Junit test-kit. Manually verify that this works as well (in IDEA say).
 
 ### Open issues
 
@@ -292,26 +294,40 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
 ### Implementation
 
-* Daemon process is started with remote debugging JVM parameters.
+* When debug is enabled, run the build in embedded mode.
+* Can enable debug via `GradleRunner.enableDebug()`.
+* Debug is automatically enabled when `Test.debug` is true.
+* Debug is automatically enabled when test is being debugged from an IDE.
 
 ### Test coverage
 
 * A user can start the `GradleRunner` with remote debugging JVM parameter for debugging purposes. By default the `GradleRunner` does not use the debugging JVM parameters.
+* All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
+* Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
 
 ### Open issues
 
-none
+* Might be more reliable to use remote debugging instead, so that there is only 1 execution mode instead of 2.
 
 ## Story: Classes under test are visible to build scripts
 
 When using the plugin development plugin, plugin and task classes and their dependencies are visible to build scripts.
 
+### Implementation
+
+- Supported only when using the plugin development plugin.
+- May need to improve the tooling API internal classes and protocol interfaces to allow
+
+### Test coverage
+
 * The classpath of the tooling API execution is set up properly.
     * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
-        * A plugin class under test can be referenced and tested in build script.
-        * A custom task class under test can be referenced and tested in build script.
+        * A plugin class under test can be referenced and tested in build script by type and id.
+        * A custom task class under test can be referenced and tested in build script by type.
         * Arbitrary classes under test can be referenced and tested in build script.
     * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
+* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
+* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
 
 ## Story: Integration with plugin-development-plugin
 
@@ -327,6 +343,7 @@ Users can easily test their Gradle plugins developed using the [plugin-developme
     will be created by the plugin if they don't exist yet.
     * The task name will be `functionalTest`. The `check` task depends on `functionalTest`. The task `functionalTest` must run after `test`.
 * Derive the test adapter that should be applied by the declared dependencies of the project.
+* Add (or expand) sample that shows how to implement and test a plugin or task implementation.
 
 ### Test coverage
 
@@ -336,6 +353,7 @@ Users can easily test their Gradle plugins developed using the [plugin-developme
 
 ### Open issues
 
+* Should use the software model.
 * Should the test suite generation be the responsibility of another plugin?
 * Will there be a `groovy-gradle-plugin` and `scala-gradle-plugin` in the future or will automatic configuration kick in if other plugins are applied e.g. the `groovy` plugin?
 * Do we want to auto-generate a sample functional test case class and method based on JUnit that demonstrates the use of test-kit?
@@ -355,6 +373,7 @@ A Groovy bean that can be mixed in with tests classes written in Groovy or test 
 A Groovy-based test only requires declaring a dependency on Groovy.
 
     dependencies {
+        testCompile groovyTestKit()
         testCompile 'org.codehaus.groovy:groovy:2.4.3'
     }
 
@@ -375,6 +394,7 @@ As a user, you write your Groovy functional test by extending `groovy.util.Groov
 A Spock-based test requires the declaration of a dependency on the Spock framework.
 
     dependencies {
+        testCompile spockTestKit()
         testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     }
 
@@ -412,7 +432,7 @@ The implementation of functional test trait could look similar to the following 
 
     trait FunctionalTest {
         private File testDirectory
-        private final GradleRunner gradleRunner = GradleRunnerFactory.create()
+        private final GradleRunner gradleRunner = GradleRunner.create()
 
         void setup() {
             testDirectory = ... // create test directory
