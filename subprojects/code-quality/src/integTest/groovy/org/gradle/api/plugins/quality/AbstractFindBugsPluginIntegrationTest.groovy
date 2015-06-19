@@ -392,20 +392,24 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         errorOutput.contains 'Caused by: java.lang.NoClassDefFoundError'
     }
 
-    def "valid extraArgs"() {
-        // Test extraArgs using DM_CONVERT_CASE which FindBugs treats as a LOW confidence warning.  We will use
-        // extraArgs to boot the confidence which should make it be reported
+    def "valid adjustPriority extra args"() {
         given:
+        file("src/main/java/org/gradle/ClassUsingCaseConversion.java") <<
+            'package org.gradle; public class ClassUsingCaseConversion { public boolean useConversion() { return "Hi".toUpperCase().equals("HI"); } }'
+
+        expect:
+        succeeds("check")
+
+        when:
+        // Test extraArgs using DM_CONVERT_CASE which FindBugs treats as a LOW confidence warning.  We will use
+        // extraArgs to boost the confidence which should make it be reported
         buildFile << """
             findbugsMain {
-                extraArgs = ['-adjustPriority', 'DM_CONVERT_CASE=raise', 'DM_CONVERT_CASE=raise']
+                extraArgs '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise'
             }
         """
 
-        and:
-        file("src/main/java/org/gradle/ClassUsingCaseConversion.java") << 'package org.gradle; public class ClassUsingCaseConversion { public void useConversion() { String rtn = "Hi".toUpperCase(); } }'
-
-        expect:
+        then:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
         failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at:"))
@@ -414,21 +418,20 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/main.xml").assertContents(containsString("DM_CONVERT_CASE"))
     }
 
-    def "invalid extraArgs"() {
-        // Test extraArgs using DM_CONVERT_CASE which FindBugs treats as a LOW confidence warning.  We will use
-        // extraArgs to boot the confidence which should make it be reported
+    def "fails when given invalid extraArgs"() {
         given:
+        goodCode()
+        and:
         buildFile << """
             findbugsMain {
-                extraArgs = ['gobbledigook']
+                extraArgs 'gobbledygook'
             }
         """
 
-        and:
-        file("src/main/java/org/gradle/ClassUsingCaseConversion.java") << 'package org.gradle; public class ClassUsingCaseConversion { public void useConversion() { String rtn = "Hi".toUpperCase(); } }'
-
         expect:
-        fails "findbugsMain"
+        fails "check"
+        failure.assertHasCause 'FindBugs encountered an error.'
+        failure.assertHasDescription "Execution failed for task ':findbugsMain'."
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {

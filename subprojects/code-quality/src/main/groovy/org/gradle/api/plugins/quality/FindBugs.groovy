@@ -144,7 +144,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      */
     @Input
     @Optional
-    List<String> extraArgs
+    Collection<String> extraArgs = []
 
     @Nested
     private final FindBugsReportsImpl reports
@@ -300,11 +300,11 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         }
     }
 
-    List<String> getExtraArgs() {
+    Collection<String> getExtraArgs() {
         return extraArgs
     }
 
-    void setExtraArgs(List<String> extraArgs) {
+    void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs
     }
 

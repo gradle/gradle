@@ -16,12 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
@@ -29,7 +24,10 @@ import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 
 public class FindBugsSpecBuilder {
     private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
@@ -49,7 +47,7 @@ public class FindBugsSpecBuilder {
     private File excludeFilter;
     private File includeFilter;
     private File excludeBugsFilter;
-    private List<String> extraArgs;
+    private Collection<String> extraArgs;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -142,7 +140,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withExtraArgs(List<String> extraArgs) {
+    public FindBugsSpecBuilder withExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
         return this;
     }
@@ -228,9 +226,7 @@ public class FindBugsSpecBuilder {
         }
 
         if (has(extraArgs)) {
-            for (String extraArg : extraArgs) {
-                args.add( extraArg );
-            }
+            args.addAll(extraArgs);
         }
 
         for (File classFile : classes.getFiles()) {
