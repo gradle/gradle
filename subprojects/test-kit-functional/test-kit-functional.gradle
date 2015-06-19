@@ -1,0 +1,5 @@
+dependencies {
+    compile project(':toolingApi')
+    compile project(':launcher')
+    testCompile libraries.groovy
+}
