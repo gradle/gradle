@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.hash.HashUtil
 import org.junit.Rule
-import spock.lang.Issue
 
-class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
+class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
     @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
 
     def setup() {
         executer.beforeExecute(new WrapperSetup())
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2699")
-    def "concurrent downloads do not stomp over each other"() {
+    def "wrapper execution fails when using bad checksum"() {
         given:
         buildFile << """
     wrapper {
@@ -37,10 +37,33 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
 
         succeeds('wrapper')
 
+        and:
+        file('gradle/wrapper/gradle-wrapper.properties') << 'distributionSha256Sum=bad'
+
         when:
-        def results = [1..4].collect { executer.usingExecutable("gradlew").start() }*.waitForFinish()
+        def failure = executer.usingExecutable("gradlew").withStackTraceChecksDisabled().runWithFailure()
 
         then:
-        results.findAll { it.output.contains("Downloading") }.size() == 1
+        failure.error.contains('hash sum comparison failed')
+    }
+
+    def "wrapper successfully verifies good checksum"() {
+        given:
+        buildFile << """
+    wrapper {
+        distributionUrl = '${server.distUri}'
+    }
+"""
+
+        succeeds('wrapper')
+
+        and:
+        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(server.binZip).asHexString()}"
+
+        when:
+        def success = executer.usingExecutable("gradlew").run()
+
+        then:
+        success.output.contains('BUILD SUCCESSFUL')
     }
 }
