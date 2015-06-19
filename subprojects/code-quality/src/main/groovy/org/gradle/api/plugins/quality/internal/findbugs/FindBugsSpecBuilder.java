@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.gradle.api.InvalidUserDataException;
@@ -48,6 +49,7 @@ public class FindBugsSpecBuilder {
     private File excludeFilter;
     private File includeFilter;
     private File excludeBugsFilter;
+    private List<String> extraArgs;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -93,7 +95,7 @@ public class FindBugsSpecBuilder {
         this.reportLevel = reportLevel;
         return this;
     }
-    
+
     public FindBugsSpecBuilder withMaxHeapSize(String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
         return this;
@@ -136,6 +138,12 @@ public class FindBugsSpecBuilder {
         }
 
         this.excludeBugsFilter = excludeBugsFilter;
+
+        return this;
+    }
+
+    public FindBugsSpecBuilder withExtraArgs(List<String> extraArgs) {
+        this.extraArgs = extraArgs;
         return this;
     }
 
@@ -219,10 +227,16 @@ public class FindBugsSpecBuilder {
             args.add(excludeBugsFilter.getPath());
         }
 
+        if (has(extraArgs)) {
+            for (String extraArg : extraArgs) {
+                args.add( extraArg );
+            }
+        }
+
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
-        
+
         return new FindBugsSpec(args, maxHeapSize, debugEnabled);
     }
 

@@ -83,10 +83,12 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             reportLevel = { extension.reportLevel }
             visitors = { extension.visitors }
             omitVisitors = { extension.omitVisitors }
+
             excludeFilterConfig = { extension.excludeFilterConfig }
             includeFilterConfig = { extension.includeFilterConfig }
             excludeBugsFilterConfig = { extension.excludeBugsFilterConfig }
 
+            extraArgs = { extension.extraArgs }
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

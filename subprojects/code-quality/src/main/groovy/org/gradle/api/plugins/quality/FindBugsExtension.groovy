@@ -145,4 +145,9 @@ class FindBugsExtension extends CodeQualityExtension {
     void setExcludeBugsFilter(File filter) {
         setExcludeBugsFilterConfig(prj.resources.text.fromFile(filter))
     }
+
+    /**
+     * Any additional arguments (not covered here more explicitly) to be passed along to FindBugs
+     */
+    List<String> extraArgs
 }
