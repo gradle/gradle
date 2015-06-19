@@ -66,8 +66,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public void resolve(DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
-            final String selectorProjectPath = selector.getProjectPath();
-            final String libraryName = selector.getLibraryName();
+            final String selectorProjectPath = Strings.nullToEmpty(selector.getProjectPath());
+            final String libraryName = Strings.nullToEmpty(selector.getLibraryName());
             final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
             LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();

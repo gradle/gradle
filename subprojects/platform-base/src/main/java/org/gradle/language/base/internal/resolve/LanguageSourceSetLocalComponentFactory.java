@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.internal.resolve;
 
+import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -62,15 +63,13 @@ public class LanguageSourceSetLocalComponentFactory implements LocalComponentFac
         for (DependencySpec dependency : allDependencies.getDependencies()) {
 
             String projectPath = dependency.getProjectPath();
-            if (projectPath==null) {
+            if (Strings.isNullOrEmpty(projectPath)) {
                 projectPath = defaultProject;
             }
             String libraryName = dependency.getLibraryName();
-            if (libraryName ==null) {
-                libraryName = "";
-            }
             ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
-            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, mvi.getVersion());
+            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(
+                Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
