@@ -28,33 +28,30 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.Collections;
 
-public class LanguageSourceSetLocalComponentFactory implements LocalComponentFactory {
+public class DependentSourceSetLocalComponentFactory implements LocalComponentFactory {
 
     private static final ExcludeRule[] EXCLUDE_RULES = new ExcludeRule[0];
 
     @Override
     public boolean canConvert(Object source) {
-        return source instanceof DefaultLanguageSourceSetResolveContext;
+        return source instanceof DependentSourceSetResolveContext;
     }
 
     @Override
     public DefaultLibraryLocalComponentMetaData convert(Object source) {
-        DefaultLanguageSourceSetResolveContext context = (DefaultLanguageSourceSetResolveContext) source;
+        DependentSourceSetResolveContext context = (DependentSourceSetResolveContext) source;
         String projectPath = context.getProjectPath();
-        LanguageSourceSetInternal sourceSet = context.getSourceSet();
+        DependentSourceSetInternal sourceSet = context.getSourceSet();
         String libraryName = sourceSet.getParentName();
         TaskDependency buildDependencies = context.getSourceSet().getBuildDependencies();
         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, buildDependencies);
-        if (sourceSet instanceof DependentSourceSetInternal) {
-            addDependencies(projectPath, metaData, ((DependentSourceSetInternal) sourceSet).getDependencies());
-        }
+        addDependencies(projectPath, metaData, sourceSet.getDependencies());
         return metaData;
     }
 

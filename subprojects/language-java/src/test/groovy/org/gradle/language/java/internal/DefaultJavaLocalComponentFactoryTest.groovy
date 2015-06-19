@@ -18,7 +18,7 @@ package org.gradle.language.java.internal
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.language.base.internal.resolve.LanguageSourceSetLocalComponentFactory
+import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentFactory
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
 
         when:
-        def factory = new LanguageSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentFactory()
 
         then:
         factory.canConvert(context)
@@ -50,7 +50,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new LanguageSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentFactory()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)
@@ -91,7 +91,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new LanguageSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentFactory()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)

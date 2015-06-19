@@ -19,24 +19,27 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
-import org.gradle.language.base.internal.resolve.DefaultLanguageSourceSetResolveContext;
+import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 
-public class DefaultJavaSourceSetResolveContext extends DefaultLanguageSourceSetResolveContext {
+public class DefaultJavaSourceSetResolveContext extends DependentSourceSetResolveContext {
+
+    private final String libraryName;
 
     public DefaultJavaSourceSetResolveContext(String projectPath, DefaultJavaLanguageSourceSet sourceSet) {
         super(projectPath, sourceSet);
+        this.libraryName = sourceSet.getParentName();
     }
 
     @Override
     public DependencySet getDependencies() {
         DefaultDomainObjectSet<Dependency> backingSet = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        return new DefaultDependencySet(getLibraryName(), backingSet);
+        return new DefaultDependencySet(libraryName, backingSet);
     }
 
 
     @Override
     public DependencySet getAllDependencies() {
-        return new DefaultDependencySet(getLibraryName(), new DefaultDomainObjectSet<Dependency>(Dependency.class));
+        return new DefaultDependencySet(libraryName, new DefaultDomainObjectSet<Dependency>(Dependency.class));
     }
 
 }

@@ -18,7 +18,7 @@ package org.gradle.language.base.internal;
 import org.gradle.api.Action;
 import org.gradle.platform.base.DependencySpecContainer;
 
-public interface DependentSourceSetInternal {
+public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
     DependencySpecContainer getDependencies();
 
     DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
