@@ -45,12 +45,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Steve Ebersole](https://github.com/sebersole) - Support for passing arbitrary arguments to FindBugs tasks
 * [Malte Finsterwalder](https://github.com/finsterwalder) - Fixed resolving of references to `${parent.artifactId}` in POM files (GRADLE-3299)
 * [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
 * [Andrew Shu](https://github.com/talklittle) - Documentation improvements
 * [Dominik Schürmann](https://github.com/dschuermann) - Support for verifying Gradle wrapper distribution download against SHA-256 hash
-
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
