@@ -16,8 +16,12 @@
 
 package org.gradle.testkit.functional.internal;
 
+import java.io.File;
 import java.util.List;
 
 public interface GradleExecutor {
-    GradleExecutionHandle run(List<String> arguments, List<String> taskNames);
+    void withGradleUserHomeDir(File gradleUserHomeDir);
+    void withTasks(List<String> taskNames);
+    void withArguments(List<String> arguments);
+    GradleExecutionHandle run();
 }

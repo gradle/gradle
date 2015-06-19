@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class GradleRunnerIntegrationTest extends Specification {
-    @Shared File gradleHomeDir = new IntegrationTestBuildContext().gradleHomeDir
+    @Shared IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     @Rule TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
     File buildFile
 
@@ -260,9 +260,10 @@ public class MyApp {
     }
 
     private GradleRunner prepareGradleRunner(String... tasks) {
-        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(gradleHomeDir))
+        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
 
         gradleRunner.with {
+            gradleUserHomeDir = buildContext.gradleUserHomeDir
             workingDir = testProjectDir.testDirectory
             setTasks(tasks as List<String>)
         }

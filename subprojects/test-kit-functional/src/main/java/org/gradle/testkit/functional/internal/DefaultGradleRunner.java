@@ -52,7 +52,10 @@ public class DefaultGradleRunner extends GradleRunner {
 
     private BuildResult run(Action<RuntimeException> action) {
         GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, getWorkingDir());
-        GradleExecutionHandle gradleExecutionHandle = gradleExecutor.run(getArguments(), getTasks());
+        gradleExecutor.withGradleUserHomeDir(getGradleUserHomeDir());
+        gradleExecutor.withArguments(getArguments());
+        gradleExecutor.withTasks(getTasks());
+        GradleExecutionHandle gradleExecutionHandle = gradleExecutor.run();
         action.execute(gradleExecutionHandle.getException());
         return new DefaultBuildResult(gradleExecutionHandle.getStandardOutput(), gradleExecutionHandle.getStandardError());
     }

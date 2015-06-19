@@ -33,13 +33,28 @@ import java.util.List;
 public class ToolingApiGradleExecutor implements GradleExecutor {
     private final GradleDistribution gradleDistribution;
     private final File workingDirectory;
+    private File gradleUserHomeDir;
+    private List<String> taskNames;
+    private List<String> arguments;
 
     public ToolingApiGradleExecutor(GradleDistribution gradleDistribution, File workingDirectory) {
         this.gradleDistribution = gradleDistribution;
         this.workingDirectory = workingDirectory;
     }
 
-    public GradleExecutionHandle run(List<String> arguments, List<String> taskNames) {
+    public void withGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
+    }
+
+    public void withTasks(List<String> taskNames) {
+        this.taskNames = taskNames;
+    }
+
+    public void withArguments(List<String> arguments) {
+        this.arguments = arguments;
+    }
+
+    public GradleExecutionHandle run() {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final GradleExecutionHandle gradleExecutionHandle = new GradleExecutionHandle(standardOutput, standardError);
@@ -76,6 +91,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     private GradleConnector buildConnector() {
         GradleConnector gradleConnector = GradleConnector.newConnector();
+
+        if(gradleUserHomeDir != null) {
+            gradleConnector.useGradleUserHomeDir(gradleUserHomeDir);
+        }
+
         gradleConnector.forProjectDirectory(workingDirectory);
         useGradleDistribution(gradleConnector);
         return gradleConnector;

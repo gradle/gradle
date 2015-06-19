@@ -17,11 +17,11 @@
 package org.gradle.testkit.functional;
 
 import org.gradle.api.Incubating;
+import org.gradle.testkit.functional.internal.DefaultGradleRunner;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
-import org.gradle.testkit.functional.internal.DefaultGradleRunner;
 
 import java.io.File;
 import java.util.Collections;
@@ -35,8 +35,27 @@ import java.util.List;
 @Incubating
 public abstract class GradleRunner {
     private File workingDirectory;
+    private File gradleUserHomeDir;
     private List<String> arguments = Collections.emptyList();
     private List<String> taskNames = Collections.emptyList();
+
+    /**
+     * Returns the Gradle user home directory. Default to null which indicated the default location.
+     *
+     * @return Gradle user home directory
+     */
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
+    }
+
+    /**
+     * Sets the Gradle user home directory.
+     *
+     * @param gradleUserHomeDir Gradle user home directory
+     */
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
+    }
 
     /**
      * Returns the working directory for the current build execution.
