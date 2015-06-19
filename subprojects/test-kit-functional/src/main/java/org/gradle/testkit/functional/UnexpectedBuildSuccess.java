@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import org.gradle.api.Incubating;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+/**
+ * Thrown exception for a success build execution that should have failed.
+ *
+ * @since 2.6
+ */
+@Incubating
+public class UnexpectedBuildSuccess extends RuntimeException {
+    public UnexpectedBuildSuccess(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

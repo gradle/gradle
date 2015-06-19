@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional.internal;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import org.gradle.testkit.functional.BuildResult;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+public class DefaultBuildResult implements BuildResult {
+    private final String standardOutput;
+    private final String standardError;
+
+    public DefaultBuildResult(String standardOutput, String standardError) {
+        this.standardOutput = standardOutput;
+        this.standardError = standardError;
+    }
+
+    public String getStandardOutput() {
+        return standardOutput;
+    }
+
+    public String getStandardError() {
+        return standardError;
+    }
 }

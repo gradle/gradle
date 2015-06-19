@@ -10,6 +10,17 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Support for verifying Gradle wrapper distribution download against SHA-256 hash
+
+It is now possible to verify the integrity of the Gradle distribution downloaded by the [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) against
+a known SHA-256 hash.
+
+To enable wrapper verification you need only specify a `distributionSha256Sum` property in your project's `gradle-wrapper.properties` file.
+
+    distributionSha256Sum=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.serialize.SerializerSpec
+import spock.lang.Unroll
 
 public class ComponentSelectorSerializerTest extends SerializerSpec {
     ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
@@ -60,15 +61,21 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == ':myPath'
     }
 
-    def "serializes LibraryComponentSelector"() {
+    @Unroll
+    def "serializes LibraryComponentSelector project #projectPath library #libraryName"() {
         given:
-        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)
 
         when:
         LibraryComponentSelector result = serialize(selection, serializer)
 
         then:
-        result.projectPath == ':myPath'
-        result.libraryName == 'myLib'
+        result.projectPath == projectPath
+        result.libraryName == libraryName
+
+        where:
+        projectPath | libraryName
+        ':myPath'   | null
+        ':myPath'   | 'myLib'
     }
 }

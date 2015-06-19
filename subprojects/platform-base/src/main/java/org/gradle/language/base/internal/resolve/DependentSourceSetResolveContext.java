@@ -19,24 +19,19 @@ import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 
-public abstract class DefaultLanguageSourceSetResolveContext implements ResolveContext {
+public abstract class DependentSourceSetResolveContext implements ResolveContext {
     private final String projectPath;
-    private final LanguageSourceSetInternal sourceSet;
+    private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
 
-    public DefaultLanguageSourceSetResolveContext(String projectPath, BaseLanguageSourceSet sourceSet) {
+    public DependentSourceSetResolveContext(String projectPath, DependentSourceSetInternal sourceSet) {
         this.projectPath = projectPath;
         this.sourceSet = sourceSet;
     }
 
-    protected String getLibraryName() {
-        return sourceSet.getParentName();
-    }
-
-    public LanguageSourceSetInternal getSourceSet() {
+    public DependentSourceSetInternal getSourceSet() {
         return sourceSet;
     }
 

@@ -35,22 +35,24 @@ class DefaultLibraryComponentSelectorTest extends Specification {
         defaultBuildComponentSelector.toString() == /project ':myPath' library 'myLib'/
     }
 
-    def "is instantiated with null project constructor parameter value"() {
+    def "can be instantiated with non constructor library name value"() {
         when:
-        new DefaultLibraryComponentSelector(null, 'foo')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', null)
+
+        then:
+        defaultBuildComponentSelector.projectPath == ':myPath'
+        defaultBuildComponentSelector.libraryName == null
+        defaultBuildComponentSelector.displayName == /project ':myPath'/
+        defaultBuildComponentSelector.toString() == /project ':myPath'/
+    }
+
+    def "cannot be instantiated with null project constructor parameter value"() {
+        when:
+        new DefaultLibraryComponentSelector(null, 'myLib')
 
         then:
         Throwable t = thrown(AssertionError)
         t.message == 'project path cannot be null'
-    }
-
-    def "is instantiated with null library constructor parameter value"() {
-        when:
-        new DefaultLibraryComponentSelector(':foo', null)
-
-        then:
-        Throwable t = thrown(AssertionError)
-        t.message == 'library name cannot be null'
     }
 
     @Unroll

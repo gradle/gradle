@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional.internal;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import java.util.List;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+public interface GradleExecutor {
+    GradleExecutionHandle run(List<String> arguments, List<String> taskNames);
 }

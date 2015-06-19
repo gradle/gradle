@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -27,16 +28,15 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
 
     public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
         assert projectPath != null : "project path cannot be null";
-        assert libraryName != null : "library name cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
     }
 
     @Override
     public String getDisplayName() {
-        if ("".equals(libraryName)) {
+        if (Strings.isNullOrEmpty(libraryName)) {
             return String.format("project '%s'", projectPath);
-        } else if ("".equals(projectPath)) {
+        } else if (Strings.isNullOrEmpty(projectPath)) {
             return String.format("library '%s'", libraryName);
         }
         return DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName);

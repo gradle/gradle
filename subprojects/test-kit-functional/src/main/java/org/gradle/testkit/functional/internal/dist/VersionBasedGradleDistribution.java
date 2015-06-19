@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional.internal.dist;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import org.gradle.util.GradleVersion;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+public final class VersionBasedGradleDistribution implements GradleDistribution<String> {
+    public final static VersionBasedGradleDistribution CURRENT = new VersionBasedGradleDistribution(GradleVersion.current().getVersion());
+
+    private final String version;
+
+    public VersionBasedGradleDistribution(String version) {
+        this.version = version;
+    }
+
+    public String getHandle() {
+        return version;
+    }
 }

@@ -13,13 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import org.gradle.api.Incubating;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+/**
+ * Result of a build execution.
+ *
+ * @since 2.6
+ */
+@Incubating
+public interface BuildResult {
+    /**
+     * Returns the standard output of a build execution.
+     *
+     * @return Standard output
+     */
+    String getStandardOutput();
+
+    /**
+     * Returns the standard error messages of a build execution.
+     *
+     * @return Standard error messages
+     */
+    String getStandardError();
 }

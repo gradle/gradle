@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional.internal.dist;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
+import java.net.URI;
 
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+public final class URILocatedGradleDistribution implements GradleDistribution<URI> {
+    private final URI uri;
+
+    public URILocatedGradleDistribution(URI uri) {
+        this.uri = uri;
+    }
+
+    public URI getHandle() {
+        return uri;
+    }
 }

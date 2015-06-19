@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal;
 
-import org.gradle.api.Action;
-import org.gradle.platform.base.DependencySpecContainer;
+package org.gradle.testkit.functional.internal.dist;
 
-public interface DependentSourceSetInternal extends LanguageSourceSetInternal {
-    DependencySpecContainer getDependencies();
-
-    DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction);
+public interface GradleDistribution<T> {
+    T getHandle();
 }

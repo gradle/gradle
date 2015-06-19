@@ -124,16 +124,12 @@ public class Install {
 
     private void verifyDownloadChecksum(File localZipFile, String distributionSha256Sum) throws Exception {
         // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
-        if (distributionSha256Sum != null) {
-            logger.log("Verifying " + localZipFile.getName() + " via SHA-256 hash sum comparison.");
-
-            if (!distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
-                localZipFile.delete();
-                throw new SignatureException(String.format("Verification of %s"
-                        + " via SHA-256 hash sum comparison failed! This is a serious problem,"
-                        + " it means that you retrieved a different gradle distribution zip than expected."
-                        + " Please inform the maintainer!", localZipFile.getName()));
-            }
+        if (distributionSha256Sum != null && !distributionSha256Sum.equals(calculateSha256Sum(localZipFile))) {
+            localZipFile.delete();
+            throw new SignatureException(String.format("Verification of %s"
+                + " via SHA-256 hash sum comparison failed! This indicates that your wrapper distribution may have been tampered with. Confirm"
+                + " that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper"
+                + " from a trusted source.", localZipFile.getName()));
         }
     }
 
