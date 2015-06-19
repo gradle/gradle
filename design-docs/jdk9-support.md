@@ -60,21 +60,20 @@ In no particular order:
 - Map module namespace to GAV namespace to resolve classpaths
 - Resolve modules for compilation module path
 - Resolve libraries that are packaged as:
-    - jmod
+    - modular jar
     - jar
-    - module library
     - multi-version jar
     - any combination of the above
 - Invoke compiler with module path and other args
 - Deal with single and multi-module source tree layouts
 - Resolve modules for runtime, packaged in various forms.
 - Invoke java for module at runtime (eg for test execution)
-- Build module jmod file
-- Build module library
+- Build modular jar file
+    - May need to build multiple jars for a given project, one module per jar
 - Build runtime image for application
     - Operating specific formats
 - Build multiple variants of a Java component
-    - Any combination of jar, multi-version jar, jmod, module library, runtime image
+    - Any combination of (modular) jar, multi-version jar, runtime image
 - Publish multiple variants of a Java component 
 - Capture module identifier and dependencies in publication meta-data
 - Improve JVM platform definition and toolchains to understand and invoke modular JVMs
@@ -82,6 +81,8 @@ In no particular order:
 Some migration/bridging options:
 
 - Generate modules for non-modular libraries, based on dependency information.
+    - Will require dependencies to also be converted to modules.
+    - Might not be reliable, as semantics of module and jar are somewhat different.
 - Support other JVM languages, generating modules based on dependency information.
 - Allow non-module consumers to consume modules, applying some validation at compile and runtime.
 - Support Gradle plugins packaged as modules
@@ -90,8 +91,7 @@ Abstractly:
 
 - jar is a packaging with a single target JVM platform
 - multi-version jar is a packaging with multiple target JVM platforms
-- jmod is a packaging with a single target JVM platform and embedded meta-data
-- module library is a bundle of jmods (with target platforms and meta-data inferred from those of the modules)
+- modular jar is a packaging with a single target JVM platform and single module
 - runtime image is an executable with a single target native platform
-- runtime image is a bundle of packagings
-- modular JVM is a JVM platform with a single target native platform that can host jars, multi-version jars, jmods and module libraries
+- runtime image is a bundle of modules
+- modular JVM is a JVM platform with a single target native platform that can host jars, multi-version jars, modular jars
