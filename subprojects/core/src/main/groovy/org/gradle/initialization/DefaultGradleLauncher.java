@@ -210,7 +210,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T runBuildOperation(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
         long startTime = System.currentTimeMillis();
-        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operationType, gradle, startTime);
+        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operationType, startTime);
         internalBuildListener.started(startEvent);
 
         T result = null;
@@ -220,12 +220,16 @@ public class DefaultGradleLauncher extends GradleLauncher {
         } catch (Throwable e) {
             error = e;
         }
-
-        BuildOperationInternal endEvent = new BuildOperationInternal(id, parentId, operationType, error != null ? error : result, startTime, System.currentTimeMillis());
+        BuildOperationInternal endEvent;
+        if (error == null && result instanceof BuildResult) {
+            endEvent = new BuildOperationInternal(id, parentId, operationType, ((BuildResult) result).getFailure(), startTime, System.currentTimeMillis());
+        } else {
+            endEvent = new BuildOperationInternal(id, parentId, operationType, error, startTime, System.currentTimeMillis());
+        }
         internalBuildListener.finished(endEvent);
 
         if (error != null) {
-            UncheckedException.throwAsUncheckedException(error);
+            throw UncheckedException.throwAsUncheckedException(error);
         }
         return result;
     }

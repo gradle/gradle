@@ -21,19 +21,19 @@ public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;
     private final BuildOperationType operationType;
-    private final Object payload;
+    private final Throwable failure;
     private final long startTime;
     private final long endTime;
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime) {
-        this(id, parentId, operationType, payload, startTime, 0);
+    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, long startTime) {
+        this(id, parentId, operationType, null, startTime, 0);
     }
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime, long endTime) {
+    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, @Nullable Throwable failure, long startTime, long endTime) {
         this.id = id;
         this.parentId = parentId;
         this.operationType = operationType;
-        this.payload = payload;
+        this.failure = failure;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -51,8 +51,8 @@ public final class BuildOperationInternal {
         return operationType;
     }
 
-    public Object getPayload() {
-        return payload;
+    public Throwable getFailure() {
+        return failure;
     }
 
     public long getStartTime() {

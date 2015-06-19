@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.internal.progress.InternalBuildListener;
@@ -56,29 +55,12 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     private AbstractOperationResult adaptResult(BuildOperationInternal source) {
-        Object result = source.getPayload();
+        Throwable failure = source.getFailure();
         long startTime = source.getStartTime();
         long endTime = source.getEndTime();
-
-        if (result instanceof BuildResult) {
-            return adaptResult((BuildResult) result, startTime, endTime);
-        } else if (result instanceof Throwable) {
-            return adaptResult((Throwable) result, startTime, endTime);
-        } else {
-            return new DefaultSuccessResult(startTime, endTime);
-        }
-    }
-
-    private AbstractOperationResult adaptResult(BuildResult result, long startTime, long endTime) {
-        Throwable failure = result.getFailure();
         if (failure != null) {
             return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
         return new DefaultSuccessResult(startTime, endTime);
     }
-
-    private DefaultFailureResult adaptResult(Throwable error, long startTime, long endTime) {
-        return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(error)));
-    }
-
 }
