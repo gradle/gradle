@@ -57,6 +57,7 @@ class IdeaPlugin extends IdePlugin {
 
         model = project.extensions.create("idea", IdeaModel)
 
+        configureIdeaTargetVersion(project)
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
@@ -76,6 +77,12 @@ class IdeaPlugin extends IdePlugin {
 
     public void makeSureModuleNamesAreUnique() {
         new IdeaNameDeduper().configureRoot(project.rootProject)
+    }
+
+    private void configureIdeaTargetVersion(Project project) {
+        if (project.hasProperty('ideaTargetVersion')) {
+            model.targetVersion = project.ideaTargetVersion.toInteger()
+        }
     }
 
     private configureIdeaWorkspace(Project project) {
@@ -184,7 +191,7 @@ class IdeaPlugin extends IdePlugin {
             project.tasks.ideaModule.dependsOn(project.rootProject.tasks.ideaProject)
         }
         if (isRoot(project)) {
-            new IdeaScalaConfigurer(project).configure()
+            new IdeaScalaConfigurer(project, model.targetVersion).configure()
         }
     }
 

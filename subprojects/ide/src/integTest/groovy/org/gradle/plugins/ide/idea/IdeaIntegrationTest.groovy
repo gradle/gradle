@@ -97,14 +97,23 @@ apply plugin: 'idea'
     }
 
     @Test
-    void addsScalaFacetAndCompilerLibraries() {
+    void addsScalaSdkAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
-        hasProjectLibrary('root.ipr', 'scala-compiler-2.9.2', ['scala-compiler-2.9.2.jar', 'scala-library-2.9.2.jar'], [], [])
-        hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0.jar', 'scala-library-2.10.0.jar', 'scala-reflect-2.10.0.jar'], [], [])
-        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.9.2')
+        hasProjectLibrary('root.ipr', 'scala-sdk', [], [], [], ['scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0'])
+        hasScalaSdk('project1/project1.iml')
+        hasScalaSdk('project2/project2.iml')
+        hasScalaSdk('project3/project3.iml')
+    }
+
+    @Test
+    void addsScalaFacetAndCompilerLibraries() {
+        executer.withTasks('idea').withArgument('-PideaTargetVersion=13').run()
+
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0'], [], [], [])
+        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.10.0')
         hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
-        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.9.2')
+        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.10.0')
     }
 
     @Test
@@ -362,7 +371,7 @@ idea.project {
 }
 """)
 
-        hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"])
+        hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"], [])
     }
 
     private void assertHasExpectedContents(String path) {
@@ -387,7 +396,7 @@ idea.project {
         }
     }
 
-    private void hasProjectLibrary(String iprFileName, String libraryName, List<String> classesLibs, List<String> javadocLibs, List<String> sourcesLibs) {
+    private void hasProjectLibrary(String iprFileName, String libraryName, List<String> classesLibs, List<String> javadocLibs, List<String> sourcesLibs, List<String> compilerClasses) {
         def project = new XmlSlurper().parse(file(iprFileName))
         def libraryTable = project.component.find { it.@name == "libraryTable" }
         assert libraryTable
@@ -412,6 +421,23 @@ idea.project {
         sourcesLibs.each {
             assert sourcesRoots.@url.text().contains(it)
         }
+
+        def compilerClasspathRoots = library.properties[0].'compiler-classpath'[0].root
+        assert compilerClasspathRoots.size() == compilerClasses.size()
+        compilerClasses.each {
+            assert compilerClasspathRoots.@url.text().contains(it)
+        }
+    }
+
+    private void hasScalaSdk(String imlFileName) {
+        def module = new XmlSlurper().parse(file(imlFileName))
+        def newModuleRootManager = module.component.find { it.@name == "NewModuleRootManager" }
+        assert newModuleRootManager
+
+        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk"}
+        assert sdkLibrary
+        assert sdkLibrary.@type == "library"
+        assert sdkLibrary.@level == "project"
     }
 
     private void hasScalaFacet(String imlFileName, String libraryName) {

@@ -42,7 +42,7 @@ class ProjectLibrary {
      */
     Set<File> sources = [] as LinkedHashSet
 
-    void addToNode(Node parentNode, PathFactory pathFactory) {
+    Node addToNode(Node parentNode, PathFactory pathFactory) {
         def builder = new NodeBuilder()
 
         def attributes = [name: name]
@@ -66,6 +66,8 @@ class ProjectLibrary {
         }
 
         parentNode.append(library)
+
+        return library;
     }
 
     boolean equals(Object obj) {
