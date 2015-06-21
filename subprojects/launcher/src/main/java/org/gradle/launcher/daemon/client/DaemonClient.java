@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -108,7 +107,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
-     * @throws ReportedException On failure, when the failure has already been logged/reported.
+     * @throws org.gradle.initialization.ReportedException On failure, when the failure has already been logged/reported.
      */
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters) {
         Object buildId = idGenerator.generateId();
