@@ -16,8 +16,12 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.Action;
+import org.gradle.api.internal.TaskInternal;
 
 public interface TaskPlanExecutor {
-    void process(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener);
+    /**
+     * Supplied worker must be thread-safe.
+     */
+    void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker);
 }

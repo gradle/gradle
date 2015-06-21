@@ -36,7 +36,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = Stub(ListenerManager) {
         _ * createAnonymousBroadcaster(_) >> { Class cl -> new ListenerBroadcast(cl) }
     }
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(Stub(BuildOperationExecutor)), cancellationToken, Stub(TimeProvider))
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken, Stub(TimeProvider), Stub(BuildOperationExecutor))
 
     def "stops running tasks and fails with exception when build is cancelled"() {
         def a = task("a")

@@ -16,12 +16,12 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.Action;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.util.concurrent.Executor;
 
@@ -30,8 +30,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final int executorCount;
     private final ExecutorFactory executorFactory;
 
-    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationExecutor buildOperationExecutor) {
-        super(buildOperationExecutor);
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory) {
         this.executorFactory = executorFactory;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
@@ -40,22 +39,23 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         this.executorCount = numberOfParallelExecutors;
     }
 
-    public void process(final TaskExecutionPlan taskExecutionPlan, final InternalTaskExecutionListener taskListener) {
+    @Override
+    public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
-            startAdditionalWorkers(taskExecutionPlan, taskListener, executor);
-            taskWorker(taskExecutionPlan, taskListener).run();
+            startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
+            taskWorker(taskExecutionPlan, taskWorker).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
         }
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener, Executor executor) {
+    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor) {
         LOGGER.info("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskListener);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker);
             executor.execute(worker);
         }
     }

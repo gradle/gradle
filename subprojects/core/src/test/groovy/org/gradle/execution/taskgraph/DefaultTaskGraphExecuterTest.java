@@ -81,7 +81,7 @@ public class DefaultTaskGraphExecuterTest {
             allowing(cancellationToken).isCancellationRequested();
             allowing(buildOperationExecutor).getCurrentOperationId();
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(buildOperationExecutor), cancellationToken, new TrueTimeProvider());
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken, new TrueTimeProvider(), buildOperationExecutor);
     }
 
     @Test
