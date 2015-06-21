@@ -19,6 +19,9 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 
+/**
+ * Will be merged with {@link org.gradle.internal.operations.BuildOperationProcessor}
+ */
 public interface TaskPlanExecutor {
     /**
      * Supplied worker must be thread-safe.

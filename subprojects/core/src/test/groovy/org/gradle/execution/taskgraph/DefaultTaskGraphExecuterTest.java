@@ -24,15 +24,13 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskOutputs;
-import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factories;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -64,6 +62,7 @@ public class DefaultTaskGraphExecuterTest {
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
+    final TaskExecuter executer = context.mock(TaskExecuter.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -81,7 +80,7 @@ public class DefaultTaskGraphExecuterTest {
             allowing(cancellationToken).isCancellationRequested();
             allowing(buildOperationExecutor).getCurrentOperationId();
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken, new TrueTimeProvider(), buildOperationExecutor);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), Factories.constant(executer), cancellationToken, new TrueTimeProvider(), buildOperationExecutor);
     }
 
     @Test
@@ -290,49 +289,6 @@ public class DefaultTaskGraphExecuterTest {
     }
 
     @Test
-    public void testNotifiesTaskListenerAsTasksAreExecuted() {
-        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
-        final Task a = task("a");
-        final Task b = task("b");
-
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations() {{
-            one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(equalTo(a)), with(notNullValue(TaskState.class)));
-            one(listener).beforeExecute(b);
-            one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskState.class)));
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void testNotifiesTaskListenerWhenTaskFails() {
-        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a));
-
-        context.checking(new Expectations() {{
-            one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(TaskState.class)));
-        }});
-
-        try {
-            taskExecuter.execute();
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure));
-        }
-
-        assertThat(executedTasks, equalTo(toList(a)));
-    }
-
-    @Test
     public void testStopsExecutionOnFirstFailureWhenNoFailureHandlerProvided() {
         final RuntimeException failure = new RuntimeException();
         final Task a = brokenTask("a", failure);
@@ -498,7 +454,7 @@ public class DefaultTaskGraphExecuterTest {
         setExpectations(name, task, state, outputs);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
-            atMost(1).of(task).executeWithoutThrowingTaskFailure();
+            atMost(1).of(executer).execute(with(sameInstance(task)), with(sameInstance(state)), with(notNullValue(TaskExecutionContext.class)));
             will(new ExecuteTaskAction(task));
             allowing(state).getFailure();
             will(returnValue(failure));
@@ -515,7 +471,7 @@ public class DefaultTaskGraphExecuterTest {
         setExpectations(name, task, state, outputs);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
-            atMost(1).of(task).executeWithoutThrowingTaskFailure();
+            atMost(1).of(executer).execute(with(sameInstance(task)), with(sameInstance(state)), with(notNullValue(TaskExecutionContext.class)));
             will(new ExecuteTaskAction(task));
             allowing(state).getFailure();
             will(returnValue(null));
@@ -565,8 +521,6 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(outputs));
             allowing(outputs).getFiles();
             will(returnValue(root.files()));
-            atMost(1).of(state).setStartTime(with(any(long.class)));
-            atMost(1).of(state).setEndTime(with(any(long.class)));
         }});
     }
 

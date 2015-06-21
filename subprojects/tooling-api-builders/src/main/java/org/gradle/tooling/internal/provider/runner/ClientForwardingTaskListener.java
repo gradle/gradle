@@ -21,6 +21,8 @@ import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.*;
 
@@ -42,13 +44,13 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
     }
 
     @Override
-    public void beforeExecute(TaskOperationInternal taskOperation) {
-        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(taskOperation.getTask().getState().getStartTime(), toTaskDescriptor(taskOperation)));
+    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
+        eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(taskOperation)));
     }
 
     @Override
-    public void afterExecute(TaskOperationInternal taskOperation) {
-        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(taskOperation.getTask().getState().getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask())));
+    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
+        eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(result.getEndTime(), toTaskDescriptor(taskOperation), toTaskResult(taskOperation.getTask(), result)));
     }
 
     private DefaultTaskDescriptor toTaskDescriptor(TaskOperationInternal taskOperation) {
@@ -65,10 +67,10 @@ class ClientForwardingTaskListener implements InternalTaskExecutionListener {
         return clientSubscriptions.isSendBuildProgressEvents() ? taskOperation.getParentId() : null;
     }
 
-    private static AbstractTaskResult toTaskResult(TaskInternal task) {
+    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationResult result) {
         TaskStateInternal state = task.getState();
-        long startTime = state.getStartTime();
-        long endTime = state.getEndTime();
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
 
         if (state.getUpToDate()) {
             return new DefaultTaskSuccessResult(startTime, endTime, true);

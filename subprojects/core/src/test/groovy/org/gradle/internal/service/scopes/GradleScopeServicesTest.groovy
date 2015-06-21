@@ -29,8 +29,10 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
@@ -40,7 +42,6 @@ import static org.hamcrest.Matchers.sameInstance
 public class GradleScopeServicesTest extends Specification {
     private GradleInternal gradle = Stub()
     private ServiceRegistry parent = Stub()
-    private ListenerManager listenerManager = Stub()
     private CacheRepository cacheRepository = Stub()
     private GradleScopeServices registry = new GradleScopeServices(parent, gradle)
     private StartParameter startParameter = new StartParameter()
@@ -51,7 +52,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(StartParameter) >> Stub(StartParameter)
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
-        parent.get(ListenerManager) >> listenerManager
+        parent.get(ListenerManager) >> new DefaultListenerManager()
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
@@ -61,6 +62,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         parent.get(TimeProvider) >> Stub(TimeProvider)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        parent.get(Instantiator) >> Stub(Instantiator)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
