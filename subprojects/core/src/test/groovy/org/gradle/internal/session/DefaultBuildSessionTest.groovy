@@ -30,7 +30,7 @@ class DefaultBuildSessionTest extends Specification {
         [ stoppable1, stoppable2, stoppable3 ].each { buildSession.add(it) }
 
         when:
-        buildSession.stop()
+        buildSession.reset()
 
         then:
         1 * stoppable1.stop()
@@ -43,13 +43,13 @@ class DefaultBuildSessionTest extends Specification {
         buildSession.add(stoppable1)
 
         when:
-        buildSession.stop()
+        buildSession.reset()
 
         then:
         1 * stoppable1.stop()
 
         when:
-        buildSession.stop()
+        buildSession.reset()
 
         then:
         1 * stoppable1.stop()

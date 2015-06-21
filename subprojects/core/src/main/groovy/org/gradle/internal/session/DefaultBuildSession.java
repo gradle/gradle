@@ -38,7 +38,7 @@ public class DefaultBuildSession implements BuildSession {
     }
 
     @Override
-    public void stop() {
+    public void reset() {
         lock.lock();
         try {
             CompositeStoppable.stoppable(stoppables).stop();

@@ -73,7 +73,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 return delegate.execute(action, requestContext, actionParameters);
             }
         } finally {
-            buildSession.stop();
+            buildSession.reset();
         }
     }
 

@@ -209,7 +209,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * buildSession.stop()
+        1 * buildSession.reset()
     }
 
     def "closes build session after continuous build"() {
@@ -218,7 +218,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * buildSession.stop()
+        1 * buildSession.reset()
     }
 
     private void singleBuild() {

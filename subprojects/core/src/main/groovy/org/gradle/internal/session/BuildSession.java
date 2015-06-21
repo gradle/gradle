@@ -24,7 +24,12 @@ import org.gradle.internal.concurrent.Stoppable;
  * continuous build invocation.  Any stoppables added to the build session will be stopped at the end of the session.
  */
 @ThreadSafe
-public interface BuildSession extends Stoppable {
+public interface BuildSession {
+    /**
+     * Stop and remove any stoppables in the build session.
+     */
+    void reset();
+
     /**
      * Add a new stoppable object to the build session.  The object will be stopped when the build session completes.
      * @param stoppable
