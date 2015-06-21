@@ -104,7 +104,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
 
         when:
         println "sending ctrl-d"
-        control_D()
+        sendEOT()
 
         then:
         cancelsAndExits()
@@ -126,7 +126,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
 
         when:
         println "sending ctrl-d"
-        control_D()
+        sendEOT()
 
         then:
         buildFinishes()

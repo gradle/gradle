@@ -205,10 +205,11 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void control_D() {
+    void sendEOT() {
         stdinPipe.write(4)
         if (executer.isDaemon()) {
-            // For some reason, this is necessary when running in a daemon
+            // When running a test in a daemon executer, the input is buffered until a
+            // newline char is received
             stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes)
         }
     }
