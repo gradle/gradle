@@ -24,6 +24,8 @@ import org.gradle.internal.Factory;
 public interface BuildOperationExecutor {
     /**
      * Runs the given build operation synchronously. Invokes the given factory in from the current thread and returns the result.
+     *
+     * <p>Rethrows any exception thrown by the factory.</p>
      */
     <T> T run(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory);
 }

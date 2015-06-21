@@ -16,12 +16,10 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -91,19 +89,19 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
 
         public GradleInternal run() {
-            return check(getLauncher().run());
+            try {
+                return (GradleInternal) getLauncher().run().getGradle();
+            } finally {
+                state = State.Completed;
+            }
         }
 
         public GradleInternal configure() {
-            return check(getLauncher().getBuildAnalysis());
-        }
-
-        private GradleInternal check(BuildResult buildResult) {
-            state = State.Completed;
-            if (buildResult.getFailure() != null) {
-                throw new ReportedException(buildResult.getFailure());
+            try {
+                return (GradleInternal) getLauncher().getBuildAnalysis().getGradle();
+            } finally {
+                state = State.Completed;
             }
-            return (GradleInternal) buildResult.getGradle();
         }
     }
 }

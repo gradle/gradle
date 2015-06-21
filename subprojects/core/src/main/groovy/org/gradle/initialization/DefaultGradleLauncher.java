@@ -81,23 +81,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return gradle;
     }
 
-    /**
-     * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails,
-     * the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
-     *
-     * @return The result. Never returns null.
-     */
     @Override
     public BuildResult run() {
         return doBuild(Stage.Build);
     }
 
-    /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
-     *
-     * @return A BuildResult object. Never returns null.
-     */
     @Override
     public BuildResult getBuildAnalysis() {
         return doBuild(Stage.Configure);
@@ -119,6 +107,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
                 }
                 BuildResult buildResult = new BuildResult(gradle, failure);
                 buildListener.buildFinished(buildResult);
+                if (failure != null) {
+                    throw new ReportedException(failure);
+                }
 
                 return buildResult;
             }

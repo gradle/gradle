@@ -52,6 +52,7 @@ import java.io.IOException;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultGradleLauncherTest {
@@ -184,9 +185,12 @@ public class DefaultGradleLauncherTest {
             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
         }});
-        BuildResult buildResult = gradleLauncher.getBuildAnalysis();
-        assertThat(buildResult.getGradle(), sameInstance((Object) gradleMock));
-        assertThat((RuntimeException) buildResult.getFailure(), sameInstance(transformedException));
+        try {
+            gradleLauncher.getBuildAnalysis();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -231,8 +235,12 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
-        BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
+        try {
+            gradleLauncher.run();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -255,8 +263,12 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
-        BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
+        try {
+            gradleLauncher.run();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
