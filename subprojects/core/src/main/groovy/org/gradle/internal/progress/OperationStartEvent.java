@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.progress;
 
-public interface InternalBuildListener {
+public class OperationStartEvent {
+    private final long startTime;
 
-    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent);
+    public OperationStartEvent(long startTime) {
+        this.startTime = startTime;
+    }
 
-    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent);
-
+    public long getStartTime() {
+        return startTime;
+    }
 }

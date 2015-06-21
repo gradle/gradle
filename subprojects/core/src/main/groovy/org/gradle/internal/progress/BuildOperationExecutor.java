@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.progress;
 
-public interface InternalBuildListener {
+import org.gradle.internal.Factory;
 
-    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent);
-
-    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent);
-
+/**
+ * This is to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}.
+ */
+public interface BuildOperationExecutor {
+    /**
+     * Runs the given build operation synchronously. Invokes the given factory in from the current thread and returns the result.
+     */
+    <T> T run(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory);
 }

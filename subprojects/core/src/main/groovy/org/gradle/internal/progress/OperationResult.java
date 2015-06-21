@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
 
-public final class BuildOperationInternal {
-    private final Object id;
-    private final Object parentId;
-    private final BuildOperationType operationType;
+public class OperationResult {
+    private final long startTime;
+    private final long endTime;
+    private final Throwable failure;
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType) {
-        this.id = id;
-        this.parentId = parentId;
-        this.operationType = operationType;
+    public OperationResult(long startTime, long endTime, Throwable failure) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.failure = failure;
     }
 
-    public Object getId() {
-        return id;
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
     }
 
     @Nullable
-    public Object getParentId() {
-        return parentId;
-    }
-
-    public BuildOperationType getOperationType() {
-        return operationType;
+    public Throwable getFailure() {
+        return failure;
     }
 }

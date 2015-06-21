@@ -24,11 +24,9 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationType;
-import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -50,7 +48,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final TasksCompletionListener tasksCompletionListener;
     private final BuildCompletionListener buildCompletionListener;
-    private final InternalBuildListener internalBuildListener;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
 
@@ -61,7 +59,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildCompletionListener buildCompletionListener, InternalBuildListener internalBuildListener,
+                                 BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
@@ -73,10 +71,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
         this.tasksCompletionListener = tasksCompletionListener;
+        this.buildOperationExecutor = operationExecutor;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.internalBuildListener = internalBuildListener;
     }
 
     public GradleInternal getGradle() {
@@ -209,29 +207,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private <T> T runBuildOperation(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
-        long startTime = System.currentTimeMillis();
-        BuildOperationInternal startEvent = new BuildOperationInternal(id, parentId, operationType, startTime);
-        internalBuildListener.started(startEvent);
-
-        T result = null;
-        Throwable error = null;
-        try {
-            result = factory.create();
-        } catch (Throwable e) {
-            error = e;
-        }
-        BuildOperationInternal endEvent;
-        if (error == null && result instanceof BuildResult) {
-            endEvent = new BuildOperationInternal(id, parentId, operationType, ((BuildResult) result).getFailure(), startTime, System.currentTimeMillis());
-        } else {
-            endEvent = new BuildOperationInternal(id, parentId, operationType, error, startTime, System.currentTimeMillis());
-        }
-        internalBuildListener.finished(endEvent);
-
-        if (error != null) {
-            throw UncheckedException.throwAsUncheckedException(error);
-        }
-        return result;
+        return buildOperationExecutor.run(id, parentId, operationType, factory);
     }
 
     /**

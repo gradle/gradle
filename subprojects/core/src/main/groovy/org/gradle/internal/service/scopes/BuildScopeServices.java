@@ -64,6 +64,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.DefaultBuildOperationExecutor;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -116,6 +119,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
+    }
+
+    protected BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider) {
+        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {
