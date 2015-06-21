@@ -20,7 +20,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.TimeProvider
 import spock.lang.Specification
 
-class DefaultBuilderOperationExecutorTest extends Specification {
+class DefaultBuildOperationExecutorTest extends Specification {
     def listener = Mock(InternalBuildListener)
     def timeProvider = Mock(TimeProvider)
     def executor = new DefaultBuildOperationExecutor(listener, timeProvider)
