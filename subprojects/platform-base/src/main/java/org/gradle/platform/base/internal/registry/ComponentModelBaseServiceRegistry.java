@@ -107,7 +107,9 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
         }
 
         DeploymentRegistry createDeploymentRegistry(BuildSession buildSession) {
-            return new DefaultDeploymentRegistry(buildSession);
+            DeploymentRegistry deploymentRegistry = new DefaultDeploymentRegistry();
+            buildSession.add(deploymentRegistry);
+            return deploymentRegistry;
         }
     }
 }

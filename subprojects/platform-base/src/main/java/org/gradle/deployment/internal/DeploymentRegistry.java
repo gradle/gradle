@@ -17,6 +17,7 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
@@ -36,5 +37,6 @@ public interface DeploymentRegistry extends Stoppable {
      *
      * @return the registered deployment handle; null if no deployment is registered with the given id
      */
+    @Nullable
     <T extends DeploymentHandle> T get(Class<T> handleType, String id);
 }

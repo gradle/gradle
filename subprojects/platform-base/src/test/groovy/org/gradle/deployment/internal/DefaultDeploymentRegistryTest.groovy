@@ -16,13 +16,10 @@
 
 package org.gradle.deployment.internal
 
-import org.gradle.internal.session.BuildSession
 import spock.lang.Specification
 
-
 class DefaultDeploymentRegistryTest extends Specification {
-    BuildSession buildSession = Mock(BuildSession)
-    DeploymentRegistry registry = new DefaultDeploymentRegistry(buildSession)
+    DeploymentRegistry registry = new DefaultDeploymentRegistry()
 
     def "can register and retrieve a deployment handle" () {
         DeploymentHandle handle = mockDeployment("test")
@@ -32,16 +29,6 @@ class DefaultDeploymentRegistryTest extends Specification {
 
         then:
         registry.get(DeploymentHandle.class, "test") == handle
-    }
-
-    def "a new deployment registry is added to the build session" () {
-        def newRegistry
-
-        when:
-        newRegistry = new DefaultDeploymentRegistry(buildSession)
-
-        then:
-        1 * buildSession.add(_)
     }
 
     def "can register a duplicate deployment handle" () {

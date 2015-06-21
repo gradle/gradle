@@ -17,10 +17,8 @@
 package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.session.BuildSession;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -29,10 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
-
-    public DefaultDeploymentRegistry(BuildSession buildSession) {
-        buildSession.add(this);
-    }
 
     @Override
     public boolean register(DeploymentHandle handle) {
@@ -49,7 +43,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         }
     }
 
-    @Override @Nullable
+    @Override
     public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
         lock.lock();
         try {
