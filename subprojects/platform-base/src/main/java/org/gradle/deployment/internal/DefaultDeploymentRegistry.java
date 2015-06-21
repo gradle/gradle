@@ -58,8 +58,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         lock.lock();
         try {
             CompositeStoppable.stoppable(handles.values()).stop();
-            handles.clear();
         } finally {
+            handles.clear();
             lock.unlock();
         }
     }
