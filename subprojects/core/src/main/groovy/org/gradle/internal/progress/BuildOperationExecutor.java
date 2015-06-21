@@ -19,13 +19,24 @@ package org.gradle.internal.progress;
 import org.gradle.internal.Factory;
 
 /**
- * This is to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}.
+ * Runs build operations. These are the pieces of work that make up a build.
+ *
+ * <p>Note that the current implementation is not thread safe. This will happen later.</p>
+ *
+ * <p>This is to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}.
  */
 public interface BuildOperationExecutor {
     /**
-     * Runs the given build operation synchronously. Invokes the given factory in from the current thread and returns the result.
+     * Runs the given build operation synchronously. Invokes the given factory from the current thread and returns the result.
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory);
+    <T> T run(Object id, BuildOperationType operationType, Factory<T> factory);
+
+    /**
+     * Runs the given build operation synchronously. Invokes the given action from the current thread.
+     *
+     * <p>Rethrows any exception thrown by the action.</p>
+     */
+    void run(Object id, BuildOperationType operationType, Runnable action);
 }

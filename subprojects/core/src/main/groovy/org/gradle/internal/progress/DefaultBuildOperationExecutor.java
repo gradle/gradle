@@ -16,13 +16,18 @@
 
 package org.gradle.internal.progress;
 
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
 
+import java.util.LinkedList;
+
+// TODO - thread safety
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     private final InternalBuildListener listener;
     private final TimeProvider timeProvider;
+    private LinkedList<Object> operationStack = new LinkedList<Object>();
 
     public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider) {
         this.listener = listener;
@@ -30,26 +35,37 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public <T> T run(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
-        long startTime = timeProvider.getCurrentTime();
-        BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationType);
-        listener.started(operation, new OperationStartEvent(startTime));
+    public void run(Object id, BuildOperationType operationType, Runnable action) {
+        run(id, operationType, Factories.toFactory(action));
+    }
 
-        T result = null;
-        Throwable failure = null;
+    @Override
+    public <T> T run(Object id, BuildOperationType operationType, Factory<T> factory) {
+        Object parentId = operationStack.isEmpty() ? null : operationStack.getFirst();
+        operationStack.addFirst(id);
         try {
-            result = factory.create();
-        } catch (Throwable t) {
-            failure = t;
+            long startTime = timeProvider.getCurrentTime();
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationType);
+            listener.started(operation, new OperationStartEvent(startTime));
+
+            T result = null;
+            Throwable failure = null;
+            try {
+                result = factory.create();
+            } catch (Throwable t) {
+                failure = t;
+            }
+
+            long endTime = timeProvider.getCurrentTime();
+            listener.finished(operation, new OperationResult(startTime, endTime, failure));
+
+            if (failure != null) {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+
+            return result;
+        } finally {
+            operationStack.removeFirst();
         }
-
-        long endTime = timeProvider.getCurrentTime();
-        listener.finished(operation, new OperationResult(startTime, endTime, failure));
-
-        if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
-        }
-
-        return result;
     }
 }

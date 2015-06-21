@@ -29,7 +29,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action = Mock(Factory)
 
         when:
-        def result = executor.run("id", "parent", BuildOperationType.CONFIGURING_BUILD, action)
+        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action)
 
         then:
         result == "result"
@@ -38,7 +38,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             assert operation.id == "id"
-            assert operation.parentId == "parent"
+            assert operation.parentId == null
             assert operation.operationType == BuildOperationType.CONFIGURING_BUILD
             assert start.startTime == 123L
         }
@@ -57,7 +57,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executor.run("id", "parent", BuildOperationType.CONFIGURING_BUILD, action)
+        executor.run("id", BuildOperationType.CONFIGURING_BUILD, action)
 
         then:
         def e = thrown(RuntimeException)
@@ -67,7 +67,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             assert operation.id == "id"
-            assert operation.parentId == "parent"
+            assert operation.parentId == null
             assert operation.operationType == BuildOperationType.CONFIGURING_BUILD
             assert start.startTime == 123L
         }
@@ -78,6 +78,111 @@ class DefaultBuildOperationExecutorTest extends Specification {
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == failure
+        }
+    }
+
+    def "attaches parent id when operation is nested inside another"() {
+        def action1 = Mock(Factory)
+        def action2 = Mock(Factory)
+        def action3 = Mock(Factory)
+
+        when:
+        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+
+        then:
+        result == "result"
+
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id"
+            assert operation.parentId == null
+        }
+        1 * action1.create() >> {
+            return executor.run("id2", BuildOperationType.EVALUATING_INIT_SCRIPTS, action2)
+        }
+
+        and:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id2"
+            assert operation.parentId == "id"
+        }
+        1 * action2.create() >> {
+            return executor.run("id3", BuildOperationType.EXECUTING_TASKS, action3)
+        }
+
+        and:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id3"
+            assert operation.parentId == "id2"
+        }
+        1 * action3.create() >> {
+            return "result"
+        }
+
+        and:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id3"
+        }
+
+        and:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id2"
+        }
+
+        and:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id"
+        }
+    }
+
+    def "attaches parent id when sibling operation fails"() {
+        def action1 = Mock(Factory)
+        def action2 = Mock(Factory)
+        def action3 = Mock(Factory)
+
+        when:
+        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+
+        then:
+        result == "result"
+
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id"
+            assert operation.parentId == null
+        }
+        1 * action1.create() >> {
+            try {
+                executor.run("id2", BuildOperationType.EVALUATING_INIT_SCRIPTS, action2)
+            } catch (RuntimeException) {
+                // Ignore
+            }
+            return executor.run("id3", BuildOperationType.EXECUTING_TASKS, action3)
+        }
+
+        and:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id2"
+            assert operation.parentId == "id"
+        }
+        1 * action2.create() >> { throw new RuntimeException() }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id2"
+        }
+
+        and:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id == "id3"
+            assert operation.parentId == "id"
+        }
+        1 * action3.create() >> {
+            return "result"
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id3"
+        }
+
+        and:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == "id"
         }
     }
 }

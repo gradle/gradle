@@ -118,30 +118,28 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        runBuildOperation(BuildOperationType.EVALUATING_INIT_SCRIPTS, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EVALUATING_INIT_SCRIPTS, new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 initScriptHandler.executeScripts(gradle);
-                return null;
             }
         });
 
         // Evaluate settings script
-        runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
                 buildListener.settingsEvaluated(settings);
                 buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
                 buildListener.projectsLoaded(gradle);
-                return null;
             }
         });
 
         // Configure build
-        runBuildOperation(BuildOperationType.CONFIGURING_BUILD, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.CONFIGURING_BUILD, new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 buildConfigurer.configure(gradle);
 
                 if (!gradle.getStartParameter().isConfigureOnDemand()) {
@@ -149,7 +147,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
                 }
 
                 modelConfigurationListener.onConfigure(gradle);
-                return null;
             }
         });
 
@@ -159,26 +156,23 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        runBuildOperation(BuildOperationType.POPULATING_TASK_GRAPH, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.POPULATING_TASK_GRAPH, new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 buildExecuter.select(gradle);
 
                 if (gradle.getStartParameter().isConfigureOnDemand()) {
                     buildListener.projectsEvaluated(gradle);
                 }
-
-                return null;
             }
         });
 
         // Execute build
-        runBuildOperation(BuildOperationType.EXECUTING_TASKS, new Factory<Void>() {
+        runBuildOperation(BuildOperationType.EXECUTING_TASKS, new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 buildExecuter.execute();
                 tasksCompletionListener.onTasksFinished(gradle);
-                return null;
             }
         });
 
@@ -187,18 +181,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T runRootBuildOperation(BuildOperationType operationType, Factory<T> factory) {
         Object id = OperationIdGenerator.generateId(gradle);
-        Object parentId = OperationIdGenerator.generateId(gradle.getParent());
-        return runBuildOperation(id, parentId, operationType, factory);
+        return buildOperationExecutor.run(id, operationType, factory);
     }
 
-    private <T> T runBuildOperation(BuildOperationType operationType, Factory<T> factory) {
+    private void runBuildOperation(BuildOperationType operationType, Runnable action) {
         Object id = OperationIdGenerator.generateId(operationType, gradle);
-        Object parentId = OperationIdGenerator.generateId(gradle);
-        return runBuildOperation(id, parentId, operationType, factory);
-    }
-
-    private <T> T runBuildOperation(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
-        return buildOperationExecutor.run(id, parentId, operationType, factory);
+        buildOperationExecutor.run(id, operationType, action);
     }
 
     /**

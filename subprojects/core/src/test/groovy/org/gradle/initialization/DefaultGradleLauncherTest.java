@@ -177,7 +177,6 @@ public class DefaultGradleLauncherTest {
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             will(throwException(exception));
@@ -226,7 +225,6 @@ public class DefaultGradleLauncherTest {
         expectLoggingStarted();
         expectInitScriptsExecuted();
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             one(settingsHandlerMock).findAndLoadSettings(gradleMock);
             will(throwException(failure));
@@ -253,7 +251,6 @@ public class DefaultGradleLauncherTest {
         expectDagBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
@@ -307,7 +304,6 @@ public class DefaultGradleLauncherTest {
     private void expectBuildListenerCallbacks() {
         context.checking(new Expectations() {
             {
-                one(gradleMock).getParent();
                 one(buildBroadcaster).buildStarted(gradleMock);
                 one(buildBroadcaster).projectsLoaded(gradleMock);
                 one(buildBroadcaster).projectsEvaluated(gradleMock);
@@ -360,8 +356,13 @@ public class DefaultGradleLauncherTest {
 
     private static class TestBuildOperationExecutor implements BuildOperationExecutor {
         @Override
-        public <T> T run(Object id, Object parentId, BuildOperationType operationType, Factory<T> factory) {
+        public <T> T run(Object id, BuildOperationType operationType, Factory<T> factory) {
             return factory.create();
+        }
+
+        @Override
+        public void run(Object id, BuildOperationType operationType, Runnable action) {
+            action.run();
         }
     }
 }
