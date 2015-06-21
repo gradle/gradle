@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
+import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter

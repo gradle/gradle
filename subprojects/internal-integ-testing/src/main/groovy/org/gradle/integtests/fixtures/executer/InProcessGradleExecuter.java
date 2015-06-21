@@ -49,7 +49,7 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.ReportedException;
+import org.gradle.initialization.ReportedException;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;

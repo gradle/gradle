@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
