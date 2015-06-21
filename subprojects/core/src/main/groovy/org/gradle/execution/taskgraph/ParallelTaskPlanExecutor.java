@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.util.concurrent.Executor;
 
@@ -29,7 +30,8 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final int executorCount;
     private final ExecutorFactory executorFactory;
 
-    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory) {
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationExecutor buildOperationExecutor) {
+        super(buildOperationExecutor);
         this.executorFactory = executorFactory;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);

@@ -16,6 +16,7 @@
 
 package org.gradle.api.execution.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 
 public final class TaskOperationInternal {
@@ -33,6 +34,7 @@ public final class TaskOperationInternal {
         return id;
     }
 
+    @Nullable
     public Object getParentId() {
         return parentId;
     }

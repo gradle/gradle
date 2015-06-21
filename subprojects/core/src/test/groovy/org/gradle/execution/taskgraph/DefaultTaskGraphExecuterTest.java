@@ -33,8 +33,10 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
@@ -61,6 +63,7 @@ public class DefaultTaskGraphExecuterTest {
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
+    final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -76,8 +79,9 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).createAnonymousBroadcaster(InternalTaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<InternalTaskExecutionListener>(InternalTaskExecutionListener.class)));
             allowing(cancellationToken).isCancellationRequested();
+            allowing(buildOperationExecutor).getCurrentOperationId();
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(buildOperationExecutor), cancellationToken, new TrueTimeProvider());
     }
 
     @Test

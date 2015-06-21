@@ -23,8 +23,10 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.TimeProvider
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -34,7 +36,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = Stub(ListenerManager) {
         _ * createAnonymousBroadcaster(_) >> { Class cl -> new ListenerBroadcast(cl) }
     }
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(Stub(BuildOperationExecutor)), cancellationToken, Stub(TimeProvider))
 
     def "stops running tasks and fails with exception when build is cancelled"() {
         def a = task("a")

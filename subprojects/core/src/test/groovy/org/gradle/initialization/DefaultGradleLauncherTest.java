@@ -356,6 +356,11 @@ public class DefaultGradleLauncherTest {
 
     private static class TestBuildOperationExecutor implements BuildOperationExecutor {
         @Override
+        public Object getCurrentOperationId() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public <T> T run(Object id, BuildOperationType operationType, Factory<T> factory) {
             return factory.create();
         }

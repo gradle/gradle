@@ -35,6 +35,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public Object getCurrentOperationId() {
+        if (operationStack.isEmpty()) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return operationStack.getFirst();
+    }
+
+    @Override
     public void run(Object id, BuildOperationType operationType, Runnable action) {
         run(id, operationType, Factories.toFactory(action));
     }

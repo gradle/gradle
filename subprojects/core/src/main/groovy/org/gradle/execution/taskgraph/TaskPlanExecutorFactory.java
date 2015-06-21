@@ -18,21 +18,24 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.progress.BuildOperationExecutor;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
     private final int parallelThreads;
     private final ExecutorFactory executorFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory) {
+    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, BuildOperationExecutor buildOperationExecutor) {
         this.parallelThreads = parallelThreads;
         this.executorFactory = executorFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public TaskPlanExecutor create() {
         if (executeProjectsInParallel()) {
-            return new ParallelTaskPlanExecutor(numberOfParallelThreads(), executorFactory);
+            return new ParallelTaskPlanExecutor(numberOfParallelThreads(), executorFactory, buildOperationExecutor);
         }
-        return new DefaultTaskPlanExecutor();
+        return new DefaultTaskPlanExecutor(buildOperationExecutor);
     }
 
     private boolean executeProjectsInParallel() {

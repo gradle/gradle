@@ -39,4 +39,9 @@ public interface BuildOperationExecutor {
      * <p>Rethrows any exception thrown by the action.</p>
      */
     void run(Object id, BuildOperationType operationType, Runnable action);
+
+    /**
+     * Returns the id of the current operation.
+     */
+    Object getCurrentOperationId();
 }

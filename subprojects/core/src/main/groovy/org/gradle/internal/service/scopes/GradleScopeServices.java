@@ -29,6 +29,7 @@ import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -93,8 +94,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken) {
-        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, cancellationToken);
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, TimeProvider timeProvider) {
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, cancellationToken, timeProvider);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

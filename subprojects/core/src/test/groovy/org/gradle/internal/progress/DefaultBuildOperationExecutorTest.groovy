@@ -81,6 +81,32 @@ class DefaultBuildOperationExecutorTest extends Specification {
         }
     }
 
+    def "can query operation id from inside operation"() {
+        def action1 = Mock(Runnable)
+        def action2 = Mock(Runnable)
+
+        when:
+        executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+
+        then:
+        1 * action1.run() >> {
+            assert executor.currentOperationId == "id"
+            executor.run("id2", BuildOperationType.EXECUTING_TASKS, action2)
+        }
+        1 * action2.run() >> {
+            assert executor.currentOperationId == "id2"
+        }
+    }
+
+    def "cannot query operation id when no operation running"() {
+        when:
+        executor.currentOperationId
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "No operation is currently running."
+    }
+
     def "attaches parent id when operation is nested inside another"() {
         def action1 = Mock(Factory)
         def action2 = Mock(Factory)

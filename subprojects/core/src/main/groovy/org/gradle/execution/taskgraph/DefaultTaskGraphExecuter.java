@@ -28,6 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -47,14 +48,16 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     private final TaskPlanExecutor taskPlanExecutor;
+    private final TimeProvider timeProvider;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, TimeProvider timeProvider) {
         this.taskPlanExecutor = taskPlanExecutor;
+        this.timeProvider = timeProvider;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
@@ -171,7 +174,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         public void beforeExecute(TaskOperationInternal taskOperation) {
             TaskInternal task = taskOperation.getTask();
             TaskStateInternal state = task.getState();
-            state.setStartTime(System.currentTimeMillis());
+            state.setStartTime(timeProvider.getCurrentTime());
             internalTaskListeners.getSource().beforeExecute(taskOperation);
             taskListeners.getSource().beforeExecute(task);
         }
@@ -181,7 +184,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             TaskInternal task = taskOperation.getTask();
             TaskStateInternal state = task.getState();
             taskListeners.getSource().afterExecute(task, state);
-            state.setEndTime(System.currentTimeMillis());
+            state.setEndTime(timeProvider.getCurrentTime());
             internalTaskListeners.getSource().afterExecute(taskOperation);
         }
     }

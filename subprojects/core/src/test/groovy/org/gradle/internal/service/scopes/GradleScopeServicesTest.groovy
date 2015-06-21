@@ -26,10 +26,12 @@ import org.gradle.cache.CacheRepository
 import org.gradle.execution.*
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
@@ -57,6 +59,8 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
+        parent.get(TimeProvider) >> Stub(TimeProvider)
+        parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
