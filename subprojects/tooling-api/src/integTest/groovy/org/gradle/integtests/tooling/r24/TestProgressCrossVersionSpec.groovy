@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.r24
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.test.*
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent
-import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -66,48 +64,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "test progress events must be forwarded to the attached listeners"
         result.size() > 0
-    }
-
-    @LeaksFileHandles
-    def "build aborts if a test listener throws an exception"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.run()
-        }
-
-        then: "build aborts if the test listener throws an exception"
-        thrown(GradleConnectionException)
-    }
-
-    @LeaksFileHandles
-    def "receive current test progress event even if one of multiple test listeners throws an exception"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
-        List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
-                    resultsOfFirstListener.add(event)
-                }.addTestProgressListener { TestProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.addTestProgressListener { TestProgressEvent event ->
-                    resultsOfLastListener.add(event)
-                }.run()
-        }
-
-        then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
-        thrown(GradleConnectionException)
-        resultsOfFirstListener.size() >= 1
-        resultsOfLastListener.size() >= 1
     }
 
     def "receive test progress events for successful test run"() {
@@ -618,6 +574,42 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
     }
 
+    @ToolingApiVersion("=2.4")
+    @TargetGradleVersion(">=2.5")
+    def "stops dispatching events to progress listeners when a listener fails and continues with build"() {
+        given:
+        goodCode()
+
+        when: "launching a build"
+        List<ProgressEvent> resultsOfFirstListener = []
+        List<ProgressEvent> resultsOfLastListener = []
+        def failure = new IllegalStateException("Throwing an exception on purpose")
+        def stdout = new ByteArrayOutputStream()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    resultsOfFirstListener.add(event)
+                }.addTestProgressListener { TestProgressEvent event ->
+                    throw failure
+                }.addTestProgressListener{ TestProgressEvent event ->
+                    resultsOfLastListener.add(event)
+                }.setStandardOutput(stdout).run()
+        }
+
+        then: "build completes with an exception but events are received"
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not execute build using Gradle installation")
+        e.cause.message == "One or more progress listeners failed with an exception."
+        e.cause.cause == failure
+
+        and: "expected events received"
+        resultsOfFirstListener.size() == 1
+        resultsOfLastListener.size() == 1
+
+        and: "build execution is successful"
+        stdout.toString().contains("BUILD SUCCESSFUL")
+    }
+
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
@@ -634,37 +626,5 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-    }
-
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.5")
-    def "receive current build progress event even if one of multiple build listeners throws an exception for older client"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        List<ProgressEvent> resultsOfFirstListener = []
-        List<ProgressEvent> resultsOfLastListener = []
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
-                    resultsOfFirstListener.add(event)
-                }.addTestProgressListener { TestProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.addTestProgressListener{ TestProgressEvent event ->
-                    resultsOfLastListener.add(event)
-                }.run()
-        }
-
-        then: "build completes with an exception but events are received"
-        thrown(GradleConnectionException)
-        resultsOfFirstListener.size() > 1
-        resultsOfLastListener.size() > 1
-
-        and: "build execution is successful"
-        def lastEvent = resultsOfLastListener[-1]
-        lastEvent instanceof DefaultTestFinishEvent
-        lastEvent.displayName == 'Gradle Test Run :test succeeded'
-        lastEvent.result instanceof DefaultTestSuccessResult
     }
 }

@@ -19,11 +19,9 @@ package org.gradle.integtests.tooling.r24
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.tooling.ProjectConnection
 
-@ToolingApiVersion(">=2.4")
 @TargetGradleVersion(">=2.4")
 class DaemonUsageSuggestionCrossVersionTest extends ToolingApiSpecification {
 

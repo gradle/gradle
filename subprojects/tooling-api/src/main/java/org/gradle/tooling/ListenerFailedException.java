@@ -30,8 +30,8 @@ import java.util.List;
 public class ListenerFailedException extends GradleConnectionException {
     private final List<? extends Throwable> listenerFailures;
 
-    public ListenerFailedException(List<? extends Throwable> failures) {
-        super("One or more progress listeners failed with an exception.");
+    public ListenerFailedException(String message, List<? extends Throwable> failures) {
+        super(message);
         listenerFailures = failures;
         if (!failures.isEmpty()) {
             initCause(failures.get(0));
