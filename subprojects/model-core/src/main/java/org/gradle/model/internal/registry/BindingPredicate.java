@@ -34,6 +34,11 @@ public class BindingPredicate extends ModelPredicate {
         return reference;
     }
 
+    @Override
+    public String toString() {
+        return "{type: " + getType() + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
+    }
+
     @Nullable
     @Override
     public ModelPath getPath() {

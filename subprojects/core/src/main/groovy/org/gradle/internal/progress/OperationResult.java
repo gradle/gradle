@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,29 @@
 
 package org.gradle.internal.progress;
 
-/**
- * Enumerates the build operations tracked by the progress event infrastructure.
- */
-public enum BuildOperationType {
+import org.gradle.api.Nullable;
 
-    RUNNING_BUILD("Run build"),
-    EVALUATING_INIT_SCRIPTS("Run init scripts"),
-    EVALUATING_SETTINGS("Load projects"),
-    CONFIGURING_BUILD("Configure build"),
-    POPULATING_TASK_GRAPH("Calculate task graph"),
-    EXECUTING_TASKS("Run tasks");
+public class OperationResult {
+    private final long startTime;
+    private final long endTime;
+    private final Throwable failure;
 
-    private String name;
-
-    BuildOperationType(String name) {
-        this.name = name;
+    public OperationResult(long startTime, long endTime, Throwable failure) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.failure = failure;
     }
 
-    public String getName() {
-        return name;
+    public long getStartTime() {
+        return startTime;
     }
 
-    public String getDisplayName() {
-        return getName();
+    public long getEndTime() {
+        return endTime;
     }
 
+    @Nullable
+    public Throwable getFailure() {
+        return failure;
+    }
 }

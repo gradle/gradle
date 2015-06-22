@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
-
+package org.gradle.execution.taskgraph
 
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import org.gradle.internal.concurrent.ExecutorFactory

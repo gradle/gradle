@@ -17,8 +17,8 @@ package org.gradle.internal.progress;
 
 public interface InternalBuildListener {
 
-    void started(BuildOperationInternal buildOperation);
+    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent);
 
-    void finished(BuildOperationInternal buildOperation);
+    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent);
 
 }

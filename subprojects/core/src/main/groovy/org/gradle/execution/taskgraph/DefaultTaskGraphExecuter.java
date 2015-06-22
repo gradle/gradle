@@ -17,19 +17,28 @@
 package org.gradle.execution.taskgraph;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factory;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.OperationIdGenerator;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
@@ -47,14 +56,22 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     private final TaskPlanExecutor taskPlanExecutor;
+    // This currently needs to be lazy, as it uses state that is not available when the graph is created
+    private final Factory<? extends TaskExecuter> taskExecuter;
+    private final TimeProvider timeProvider;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final Object eventNotificationLock = new Object();
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, TimeProvider timeProvider, BuildOperationExecutor buildOperationExecutor) {
         this.taskPlanExecutor = taskPlanExecutor;
+        this.taskExecuter = taskExecuter;
+        this.timeProvider = timeProvider;
+        this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
@@ -91,7 +108,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new InternalTaskExecutionListenerAdapter());
+            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create()));
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();
@@ -161,28 +178,43 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     /**
-     * This adapter will set the start and end times on the internal task state, and will make sure
+     * This action will set the start and end times on the internal task state, and will make sure
      * that when a task is started, the public listeners are executed after the internal listeners
      * are executed and when a task is finished, the public listeners are executed before the internal
      * listeners are executed. Basically the internal listeners embrace the public listeners.
      */
-    private class InternalTaskExecutionListenerAdapter implements InternalTaskExecutionListener {
-        @Override
-        public void beforeExecute(TaskOperationInternal taskOperation) {
-            TaskInternal task = taskOperation.getTask();
-            TaskStateInternal state = task.getState();
-            state.setStartTime(System.currentTimeMillis());
-            internalTaskListeners.getSource().beforeExecute(taskOperation);
-            taskListeners.getSource().beforeExecute(task);
+    private class EventFiringTaskWorker implements Action<TaskInternal> {
+        private final TaskExecuter taskExecuter;
+
+        public EventFiringTaskWorker(TaskExecuter taskExecuter) {
+            this.taskExecuter = taskExecuter;
         }
 
         @Override
-        public void afterExecute(TaskOperationInternal taskOperation) {
-            TaskInternal task = taskOperation.getTask();
+        public void execute(TaskInternal task) {
+            Object id = OperationIdGenerator.generateId(task);
+            Object parentId = buildOperationExecutor.getCurrentOperationId();
+            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentId, task);
             TaskStateInternal state = task.getState();
-            taskListeners.getSource().afterExecute(task, state);
-            state.setEndTime(System.currentTimeMillis());
-            internalTaskListeners.getSource().afterExecute(taskOperation);
+            long startTime = timeProvider.getCurrentTime();
+            // TODO - move serialization to ListenerManager contract
+            synchronized (eventNotificationLock) {
+                internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
+            }
+            try {
+                synchronized (eventNotificationLock) {
+                    taskListeners.getSource().beforeExecute(task);
+                }
+                taskExecuter.execute(task, task.getState(), new DefaultTaskExecutionContext());
+                synchronized (eventNotificationLock) {
+                    taskListeners.getSource().afterExecute(task, state);
+                }
+            } finally {
+                synchronized (eventNotificationLock) {
+                    long endTime = timeProvider.getCurrentTime();
+                    internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
+                }
+            }
         }
     }
 }

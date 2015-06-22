@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
+package org.gradle.initialization;
 
 /**
  * Wraps an exception which has already been logged, and should not be logged again.

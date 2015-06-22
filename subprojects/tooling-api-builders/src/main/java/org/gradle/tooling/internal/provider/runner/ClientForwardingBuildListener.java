@@ -16,10 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.Collections;
@@ -38,13 +39,13 @@ class ClientForwardingBuildListener implements InternalBuildListener {
     }
 
     @Override
-    public void started(BuildOperationInternal buildOperation) {
-        eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(buildOperation.getStartTime(), toBuildOperationDescriptor(buildOperation)));
+    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
     }
 
     @Override
-    public void finished(BuildOperationInternal buildOperation) {
-        eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(buildOperation.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(buildOperation)));
+    public void finished(BuildOperationInternal buildOperation, OperationResult result) {
+        eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(result)));
     }
 
     private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationInternal buildOperation) {
@@ -55,30 +56,13 @@ class ClientForwardingBuildListener implements InternalBuildListener {
         return new DefaultOperationDescriptor(id, name, displayName, parentId);
     }
 
-    private AbstractOperationResult adaptResult(BuildOperationInternal source) {
-        Object result = source.getPayload();
-        long startTime = source.getStartTime();
-        long endTime = source.getEndTime();
-
-        if (result instanceof BuildResult) {
-            return adaptResult((BuildResult) result, startTime, endTime);
-        } else if (result instanceof Throwable) {
-            return adaptResult((Throwable) result, startTime, endTime);
-        } else {
-            return new DefaultSuccessResult(startTime, endTime);
-        }
-    }
-
-    private AbstractOperationResult adaptResult(BuildResult result, long startTime, long endTime) {
+    private AbstractOperationResult adaptResult(OperationResult result) {
         Throwable failure = result.getFailure();
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
         if (failure != null) {
             return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         }
         return new DefaultSuccessResult(startTime, endTime);
     }
-
-    private DefaultFailureResult adaptResult(Throwable error, long startTime, long endTime) {
-        return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(error)));
-    }
-
 }

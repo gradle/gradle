@@ -26,17 +26,45 @@ import java.util.Collection;
 import java.util.Collections;
 
 class RuleBindings {
+    private final ModelGraph modelGraph;
     private final NodeIndex rulesBySubject;
     private final NodeIndex rulesByInput;
+    private final Multimap<ModelPath, Reference> pathReferences = ArrayListMultimap.create();
+    private final Multimap<ModelPath, Reference> scopeReferences = ArrayListMultimap.create();
 
     public RuleBindings(ModelGraph graph) {
-        rulesBySubject = new NodeIndex(graph);
-        rulesByInput = new NodeIndex(graph);
+        this.modelGraph = graph;
+        rulesBySubject = new NodeIndex();
+        rulesByInput = new NodeIndex();
     }
 
     public void add(ModelNodeInternal node) {
-        rulesBySubject.nodeAdded(node);
-        rulesByInput.nodeAdded(node);
+        Collection<Reference> references = pathReferences.get(node.getPath());
+        for (Reference reference : references) {
+            bound(reference, node);
+        }
+        references = scopeReferences.get(node.getPath());
+        addTypeMatches(node, references);
+        references = scopeReferences.get(node.getPath().getParent());
+        addTypeMatches(node, references);
+    }
+
+    private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
+        for (Reference reference : references) {
+            if (reference.binding.isTypeCompatible(node.getPromise())) {
+                bound(reference, node);
+            }
+        }
+    }
+
+    private void bound(Reference reference, ModelNodeInternal node) {
+        ModelBinding binding = reference.binding;
+        binding.onCreate(node);
+        if (binding.predicate.getState() != null) {
+            reference.index.boundAtState.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
+        } else {
+            reference.index.boundNoState.put(node.getPath(), reference.owner);
+        }
     }
 
     public void remove(ModelNodeInternal node) {
@@ -45,9 +73,35 @@ class RuleBindings {
     }
 
     public void add(RuleBinder ruleBinder) {
-        rulesBySubject.put(subject(ruleBinder), ruleBinder);
+        addRule(ruleBinder, rulesBySubject, subject(ruleBinder));
         for (ModelBinding binding : ruleBinder.getInputBindings()) {
-            rulesByInput.put(binding, ruleBinder);
+            addRule(ruleBinder, rulesByInput, binding);
+        }
+    }
+
+    private void addRule(RuleBinder rule, NodeIndex index, ModelBinding binding) {
+        Reference reference = new Reference(rule, index, binding);
+        BindingPredicate predicate = binding.getPredicate();
+        if (predicate.getPath() != null) {
+            if (predicate.getScope() != null) {
+                throw new UnsupportedOperationException("Currently not implemented");
+            }
+            ModelNodeInternal node = modelGraph.find(predicate.getPath());
+            if (node != null) {
+                bound(reference, node);
+            }
+            // Need to continue to watch to deal with node removal
+            pathReferences.put(predicate.getPath(), reference);
+        } else if (predicate.getScope() != null) {
+            for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
+                if (binding.isTypeCompatible(node.getPromise())) {
+                    bound(reference, node);
+                }
+            }
+            // Need to continue to watch for potential later matches, which will make the binding ambiguous, and node removal
+            scopeReferences.put(predicate.getScope(), reference);
+        } else {
+            throw new UnsupportedOperationException("Currently not implemented");
         }
     }
 
@@ -86,43 +140,19 @@ class RuleBindings {
 
     private static class Reference {
         final ModelBinding binding;
+        final NodeIndex index;
         final RuleBinder owner;
 
-        public Reference(RuleBinder owner, ModelBinding binding) {
+        public Reference(RuleBinder owner, NodeIndex index, ModelBinding binding) {
             this.owner = owner;
+            this.index = index;
             this.binding = binding;
         }
     }
 
     private static class NodeIndex {
-        private final ModelGraph modelGraph;
-        private final Multimap<ModelPath, Reference> rulesByPath = ArrayListMultimap.create();
-        private final Multimap<ModelPath, Reference> rulesByScope = ArrayListMultimap.create();
         private final Multimap<NodeAtState, RuleBinder> boundAtState = LinkedHashMultimap.create();
         private final Multimap<ModelPath, RuleBinder> boundNoState = LinkedHashMultimap.create();
-
-        public NodeIndex(ModelGraph modelGraph) {
-            this.modelGraph = modelGraph;
-        }
-
-        public void nodeAdded(ModelNodeInternal node) {
-            Collection<Reference> references = rulesByPath.get(node.getPath());
-            for (Reference reference : references) {
-                bound(reference.binding, reference.owner, node);
-            }
-            references = rulesByScope.get(node.getPath());
-            addTypeMatches(node, references);
-            references = rulesByScope.get(node.getPath().getParent());
-            addTypeMatches(node, references);
-        }
-
-        private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
-            for (Reference reference : references) {
-                if (reference.binding.isTypeCompatible(node.getPromise())) {
-                    bound(reference.binding, reference.owner, node);
-                }
-            }
-        }
 
         public void nodeRemoved(ModelNodeInternal node) {
             // This could be more efficient; assume that removal happens much less often than addition
@@ -135,40 +165,6 @@ class RuleBindings {
                         binding.onRemove(node);
                     }
                 }
-            }
-        }
-
-        void put(ModelBinding binding, RuleBinder rule) {
-            BindingPredicate predicate = binding.getPredicate();
-            if (predicate.getPath() != null) {
-                if (predicate.getScope() != null) {
-                    throw new UnsupportedOperationException("Currently not implemented");
-                }
-                ModelNodeInternal node = modelGraph.find(predicate.getPath());
-                if (node != null) {
-                    bound(binding, rule, node);
-                }
-                // Need to continue to watch to deal with node removal
-                rulesByPath.put(predicate.getPath(), new Reference(rule, binding));
-            } else if (predicate.getScope() != null) {
-                for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
-                    if (binding.isTypeCompatible(node.getPromise())) {
-                        bound(binding, rule, node);
-                    }
-                }
-                // Need to continue to watch for potential later matches, which will make the binding ambiguous, and node removal
-                rulesByScope.put(predicate.getScope(), new Reference(rule, binding));
-            } else {
-                throw new UnsupportedOperationException("Currently not implemented");
-            }
-        }
-
-        private void bound(ModelBinding binding, RuleBinder rule, ModelNodeInternal node) {
-            binding.onCreate(node);
-            if (binding.predicate.getState() != null) {
-                boundAtState.put(new NodeAtState(node.getPath(), binding.predicate.getState()), rule);
-            } else {
-                boundNoState.put(node.getPath(), rule);
             }
         }
 

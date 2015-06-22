@@ -19,7 +19,7 @@ import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.exec.ReportedException
+import org.gradle.initialization.ReportedException
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification

@@ -114,7 +114,7 @@ public class GradleBuild extends ConventionTask {
     void build() {
         GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter());
         try {
-            launcher.run().rethrowFailure();
+            launcher.run();
         } finally {
             launcher.stop();
         }
