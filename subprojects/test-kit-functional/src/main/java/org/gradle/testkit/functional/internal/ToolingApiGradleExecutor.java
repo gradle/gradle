@@ -16,13 +16,11 @@
 
 package org.gradle.testkit.functional.internal;
 
-import org.gradle.launcher.daemon.client.DaemonDisappearedException;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
@@ -54,10 +52,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         this.arguments = arguments;
     }
 
-    public GradleExecutionHandle run() {
+    public GradleExecutionResult run() {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
-        final GradleExecutionHandle gradleExecutionHandle = new GradleExecutionHandle(standardOutput, standardError);
+        final GradleExecutionResult gradleExecutionResult = new GradleExecutionResult(standardOutput, standardError);
 
         GradleConnector gradleConnector = buildConnector();
         ProjectConnection connection = gradleConnector.connect();
@@ -67,6 +65,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
 
+            arguments.add("--no-search-upward");
             String[] argumentArray = new String[arguments.size()];
             arguments.toArray(argumentArray);
             launcher.withArguments(argumentArray);
@@ -76,17 +75,15 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.forTasks(tasksArray);
 
             launcher.run();
-        } catch(GradleConnectionException t) {
-            gradleExecutionHandle.setException(t);
-        } catch(DaemonDisappearedException e) {
-            gradleExecutionHandle.setException(e);
+        } catch(RuntimeException t) {
+            gradleExecutionResult.setThrowable(t);
         } finally {
             if(connection != null) {
                 connection.close();
             }
         }
 
-        return gradleExecutionHandle;
+        return gradleExecutionResult;
     }
 
     private GradleConnector buildConnector() {

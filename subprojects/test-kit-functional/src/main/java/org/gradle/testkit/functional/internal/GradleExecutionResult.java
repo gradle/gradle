@@ -21,12 +21,12 @@ import org.gradle.api.UncheckedIOException;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
-public class GradleExecutionHandle {
+public class GradleExecutionResult {
     private final ByteArrayOutputStream standardOutput;
     private final ByteArrayOutputStream standardError;
-    private RuntimeException exception;
+    private Throwable throwable;
 
-    public GradleExecutionHandle(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError) {
+    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError) {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
     }
@@ -47,11 +47,15 @@ public class GradleExecutionHandle {
         }
     }
 
-    public void setException(RuntimeException exception) {
-        this.exception = exception;
+    public Throwable getThrowable() {
+        return throwable;
     }
 
-    public RuntimeException getException() {
-        return exception;
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    public boolean isSuccessful() {
+        return throwable == null;
     }
 }

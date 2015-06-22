@@ -17,6 +17,7 @@
 package org.gradle.testkit.functional.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.functional.BuildResult;
 import org.gradle.testkit.functional.GradleRunner;
 import org.gradle.testkit.functional.UnexpectedBuildFailure;
@@ -31,32 +32,57 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public BuildResult succeeds() {
-        return run(new Action<RuntimeException>() {
-            public void execute(RuntimeException exception) {
-                if(exception != null) {
-                    throw new UnexpectedBuildFailure("Unexpected build execution failure", exception);
+        return run(new Action<GradleExecutionResult>() {
+            public void execute(GradleExecutionResult gradleExecutionResult) {
+                if(!gradleExecutionResult.isSuccessful()) {
+                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult));
                 }
             }
         });
     }
 
     public BuildResult fails() {
-        return run(new Action<RuntimeException>() {
-            public void execute(RuntimeException exception) {
-                if(exception == null) {
-                    throw new UnexpectedBuildSuccess("Unexpected build execution success", exception);
+        return run(new Action<GradleExecutionResult>() {
+            public void execute(GradleExecutionResult gradleExecutionResult) {
+                if(gradleExecutionResult.isSuccessful()) {
+                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult));
                 }
             }
         });
     }
 
-    private BuildResult run(Action<RuntimeException> action) {
+    private String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
+        String lineBreak = SystemProperties.getInstance().getLineSeparator();
+        StringBuilder message = new StringBuilder();
+        message.append(trailingMessage);
+        message.append(" in ");
+        message.append(getWorkingDir());
+        message.append(" with tasks ");
+        message.append(getTasks());
+        message.append(" and arguments ");
+        message.append(getArguments());
+        message.append(lineBreak).append(lineBreak);
+        message.append("Output:");
+        message.append(lineBreak);
+        message.append(gradleExecutionResult.getStandardOutput());
+        message.append(lineBreak);
+        message.append("-----");
+        message.append(lineBreak);
+        message.append("Error:");
+        message.append(lineBreak);
+        message.append(gradleExecutionResult.getStandardError());
+        message.append(lineBreak);
+        message.append("-----");
+        return message.toString();
+    }
+
+    private BuildResult run(Action<GradleExecutionResult> action) {
         GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, getWorkingDir());
         gradleExecutor.withGradleUserHomeDir(getGradleUserHomeDir());
         gradleExecutor.withArguments(getArguments());
         gradleExecutor.withTasks(getTasks());
-        GradleExecutionHandle gradleExecutionHandle = gradleExecutor.run();
-        action.execute(gradleExecutionHandle.getException());
-        return new DefaultBuildResult(gradleExecutionHandle.getStandardOutput(), gradleExecutionHandle.getStandardError());
+        GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
+        action.execute(gradleExecutionResult);
+        return new DefaultBuildResult(gradleExecutionResult.getStandardOutput(), gradleExecutionResult.getStandardError());
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.gradle.util.GFileUtils
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -79,7 +80,7 @@ class GradleRunnerIntegrationTest extends Specification {
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        t.message == 'Unexpected build execution failure'
+        t.message.contains('Unexpected build execution failure')
     }
 
     def "execute build for expected failure"() {
@@ -118,7 +119,7 @@ class GradleRunnerIntegrationTest extends Specification {
 
         then:
         Throwable t = thrown(UnexpectedBuildSuccess)
-        t.message == 'Unexpected build execution success'
+        t.message.contains('Unexpected build execution success')
     }
 
     def "execute build for multiple tasks"() {
@@ -237,6 +238,26 @@ public class MyApp {
         ['-PmyProp=hello']       | false           | false          | true
         ['-d', '-PmyProp=hello'] | true            | true           | true
         ['-i', '-PmyProp=hello'] | false           | true           | true
+    }
+
+    @Ignore
+    def "build execution with invalid JVM arguments"() {
+        given:
+        GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        gradleRunner.succeeds()
+
+        then:
+        thrown(UnexpectedBuildFailure)
     }
 
     def "daemon dies during build execution"() {

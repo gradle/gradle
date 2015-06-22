@@ -23,5 +23,5 @@ public interface GradleExecutor {
     void withGradleUserHomeDir(File gradleUserHomeDir);
     void withTasks(List<String> taskNames);
     void withArguments(List<String> arguments);
-    GradleExecutionHandle run();
+    GradleExecutionResult run();
 }

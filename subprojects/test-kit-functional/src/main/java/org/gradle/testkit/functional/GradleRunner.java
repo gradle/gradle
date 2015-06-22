@@ -24,7 +24,7 @@ import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,13 +34,13 @@ import java.util.List;
  */
 @Incubating
 public abstract class GradleRunner {
-    private File workingDirectory;
     private File gradleUserHomeDir;
-    private List<String> arguments = Collections.emptyList();
-    private List<String> taskNames = Collections.emptyList();
+    private File workingDirectory;
+    private List<String> arguments = new ArrayList<String>();
+    private List<String> taskNames = new ArrayList<String>();
 
     /**
-     * Returns the Gradle user home directory. Default to null which indicated the default location.
+     * Returns the Gradle user home directory. Default to null which indicates the default location.
      *
      * @return Gradle user home directory
      */

@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public class UnexpectedBuildFailure extends RuntimeException {
-    public UnexpectedBuildFailure(String message, Throwable cause) {
-        super(message, cause);
+    public UnexpectedBuildFailure(String message) {
+        super(message);
     }
 }
