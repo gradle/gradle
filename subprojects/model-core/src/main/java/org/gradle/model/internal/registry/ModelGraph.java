@@ -67,8 +67,11 @@ class ModelGraph {
             notifyListeners(node, pathListeners.get(node.getPath()));
             notifyListeners(node, parentListeners.get(node.getPath().getParent()));
             notifyListeners(node, listeners);
-            for (ModelPath path = node.getPath().getParent(); path != null; path = path.getParent()) {
-                notifyListeners(node, ancestorListeners.get(path));
+            if (!ancestorListeners.isEmpty()) {
+                // Don't traverse path back to root when there is nothing that can possibly match
+                for (ModelPath path = node.getPath().getParent(); path != null; path = path.getParent()) {
+                    notifyListeners(node, ancestorListeners.get(path));
+                }
             }
         } finally {
             notifying = false;
@@ -126,6 +129,12 @@ class ModelGraph {
     }
 
     private void addAncestorListener(ModelCreationListener listener) {
+        if (listener.getAncestor().equals(ModelPath.ROOT)) {
+            // Don't need to match on path
+            addEverythingListener(listener);
+            return;
+        }
+
         ModelNodeInternal ancestor = flattened.get(listener.getAncestor());
         if (ancestor != null) {
             LinkedList<ModelNodeInternal> queue = new LinkedList<ModelNodeInternal>();
@@ -163,7 +172,6 @@ class ModelGraph {
             }
         }
         pathListeners.put(listener.getPath(), listener);
-        return;
     }
 
     private void flush() {

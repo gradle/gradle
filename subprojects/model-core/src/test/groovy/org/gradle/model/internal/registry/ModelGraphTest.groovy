@@ -267,6 +267,38 @@ class ModelGraphTest extends Specification {
         0 * listener.onCreate(_)
     }
 
+    def "notifies listener of node with root ancestor"() {
+        def listener = Mock(ModelCreationListener)
+
+        def a = node("a")
+        def b = node("a.b")
+        def c = node("a.b.c")
+        def d = node("d")
+
+        given:
+        listener.ancestor >> ModelPath.ROOT
+
+        when:
+        graph.add(a)
+        graph.add(b)
+        graph.addListener(listener)
+
+        then:
+        1 * listener.onCreate(graph.root)
+        1 * listener.onCreate(a)
+        1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(c)
+        graph.add(d)
+
+        then:
+        1 * listener.onCreate(c)
+        1 * listener.onCreate(d)
+        0 * listener.onCreate(_)
+    }
+
     def "listener can add listeners when node added"() {
         def listener1 = Mock(ModelCreationListener)
         def listener2 = Mock(ModelCreationListener)
