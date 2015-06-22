@@ -52,7 +52,16 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
         then:
         Throwable t = thrown(AssertionError)
-        t.message == 'project path cannot be null'
+        t.message == 'project path cannot be null or empty'
+    }
+
+    def "cannot be instantiated with empty project constructor parameter value"() {
+        when:
+        new DefaultLibraryComponentSelector('', 'myLib')
+
+        then:
+        Throwable t = thrown(AssertionError)
+        t.message == 'project path cannot be null or empty'
     }
 
     @Unroll

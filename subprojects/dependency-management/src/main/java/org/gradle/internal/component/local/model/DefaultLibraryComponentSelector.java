@@ -27,19 +27,17 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     private final String libraryName;
 
     public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
-        assert projectPath != null : "project path cannot be null";
+        assert !Strings.isNullOrEmpty(projectPath) : "project path cannot be null or empty";
         this.projectPath = projectPath;
-        this.libraryName = libraryName;
+        this.libraryName = Strings.emptyToNull(libraryName);
     }
 
     @Override
     public String getDisplayName() {
         if (Strings.isNullOrEmpty(libraryName)) {
             return String.format("project '%s'", projectPath);
-        } else if (Strings.isNullOrEmpty(projectPath)) {
-            return String.format("library '%s'", libraryName);
         }
-        return DefaultLibraryComponentIdentifier.libraryToConfigurationName(projectPath, libraryName);
+        return String.format("project '%s' library '%s'", projectPath, libraryName);
     }
 
     @Override

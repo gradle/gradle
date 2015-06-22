@@ -16,20 +16,12 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 
 public class DefaultLibraryComponentIdentifier implements LibraryComponentIdentifier {
     private final String projectPath;
     private final String libraryName;
     private final String displayName;
-
-    public static String libraryToConfigurationName(String projectPath, String libraryName) {
-        if (Strings.isNullOrEmpty(libraryName)) {
-            return String.format("project '%s' default library", projectPath);
-        }
-        return String.format("project '%s' library '%s'", projectPath, libraryName);
-    }
 
     public String getDisplayName() {
         return displayName;
@@ -40,7 +32,7 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
         assert libraryName != null : "library name cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
-        this.displayName = libraryToConfigurationName(projectPath, libraryName);
+        this.displayName = String.format("project '%s' library '%s'", projectPath, libraryName);
     }
 
     @Override
