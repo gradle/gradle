@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
@@ -114,11 +115,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 List<LocalComponentFactory> localComponentFactories = allServices(LocalComponentFactory.class);
                 List<ResolverProvider> resolvers = allServices(ResolverProvider.class, ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));
                 ResolverProviderChain resolverProvider = new ResolverProviderChain(resolvers);
-                WrappingResolverProvider wrappingProvider = new WrappingResolverProvider(
+                ResolverProvider wrappingProvider = DelegatingResolverProvider.of(
+                    createArtifactResolver(resolverProvider.getArtifactResolver()),
                     new DependencySubstitutionResolver(resolverProvider.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule()),
-                    new ClientModuleResolver(resolverProvider.getComponentResolver(), dependencyDescriptorFactory),
-                        createArtifactResolver(resolverProvider.getArtifactResolver())
-                );
+                    new ClientModuleResolver(resolverProvider.getComponentResolver(), dependencyDescriptorFactory));
                 ModuleConflictResolver conflictResolver;
                 if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
                     conflictResolver = new StrictConflictResolver();
@@ -338,33 +338,4 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     }
 
-    private static class WrappingResolverProvider implements ResolverProvider {
-        private final DependencyToComponentIdResolver dependencyToComponentIdResolver;
-        private final ComponentMetaDataResolver componentMetaDataResolver;
-        private final ArtifactResolver artifactResolver;
-
-        private WrappingResolverProvider(
-            DependencyToComponentIdResolver dependencyToComponentIdResolver,
-            ComponentMetaDataResolver componentMetaDataResolver,
-            ArtifactResolver artifactResolver) {
-            this.dependencyToComponentIdResolver = dependencyToComponentIdResolver;
-            this.componentMetaDataResolver = componentMetaDataResolver;
-            this.artifactResolver= artifactResolver;
-        }
-
-        @Override
-        public ArtifactResolver getArtifactResolver() {
-            return artifactResolver;
-        }
-
-        @Override
-        public DependencyToComponentIdResolver getComponentIdResolver() {
-            return dependencyToComponentIdResolver;
-        }
-
-        @Override
-        public ComponentMetaDataResolver getComponentResolver() {
-            return componentMetaDataResolver;
-        }
-    }
 }
