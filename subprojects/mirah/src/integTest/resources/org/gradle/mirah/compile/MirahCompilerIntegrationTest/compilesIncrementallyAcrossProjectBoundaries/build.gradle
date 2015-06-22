@@ -1,0 +1,30 @@
+subprojects {
+    apply plugin: "mirah"
+
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+    
+        dependencies {
+            classpath "org.mirah:mirah:$mirahVersion"
+        }
+    }
+    
+    repositories {
+        mavenCentral()
+    }
+    
+    tasks.withType(MirahCompile) {
+        mirahCompileOptions.with {
+            fork = true
+        }
+    }
+}
+
+project(":prj2") {
+    dependencies {
+        compile project(":prj1")
+    }
+}
+

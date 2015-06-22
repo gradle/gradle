@@ -47,7 +47,7 @@ public class JvmSourceFile {
     }
 
     public JvmSourceFile getClassFile() {
-        return new JvmSourceFile(path, name.replaceAll("(\\.java|\\.scala)", ".class"), null);
+        return new JvmSourceFile(path, name.replaceAll("(\\.java|\\.scala|\\.mirah)", ".class"), null);
     }
 
     public TestFile writeToDir(TestFile base) {

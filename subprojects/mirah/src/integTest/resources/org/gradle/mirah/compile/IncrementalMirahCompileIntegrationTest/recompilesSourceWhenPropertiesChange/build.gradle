@@ -1,0 +1,16 @@
+apply plugin: 'mirah'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:0.1.4'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+

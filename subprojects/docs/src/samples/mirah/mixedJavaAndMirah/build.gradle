@@ -1,0 +1,21 @@
+apply plugin: 'mirah'
+
+version = 1.0
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'org.mirah:mirah:0.1.4'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}

@@ -1,0 +1,21 @@
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJava")
+    compile project(":languageJvm")
+    // keep in sync with MirahLanguagePlugin code
+    provided("org.mirah:mirah:0.1.4")
+
+    testCompile libraries.groovy
+}
+
+strictCompile()
+useTestFixtures()
+useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
+useTestFixtures(project: ":platformBase")

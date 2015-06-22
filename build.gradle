@@ -94,9 +94,9 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
+        'ide', 'announce', 'scala', 'mirah', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
-        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
+        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala', 'languageMirah',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
         'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
         'toolingApiBuilders'

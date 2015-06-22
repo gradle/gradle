@@ -5,6 +5,7 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJvm")
     compile project(":languageScala")
+    compile project(":languageMirah")
     compile project(":javascript")
     compile project(":diagnostics")
 
@@ -13,6 +14,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
+useTestFixtures(project: ":languageMirah", sourceSet: 'integTest')
 useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
 useTestFixtures(project: ":launcher", sourceSet: 'testFixtures')
 

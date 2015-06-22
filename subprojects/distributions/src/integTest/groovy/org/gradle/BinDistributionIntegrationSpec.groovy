@@ -27,7 +27,7 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getLibJarsCount() {
-        157
+        159
     }
 
     def binZipContents() {
