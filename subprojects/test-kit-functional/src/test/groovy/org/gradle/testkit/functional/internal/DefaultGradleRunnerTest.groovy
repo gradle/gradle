@@ -30,19 +30,15 @@ class DefaultGradleRunnerTest extends Specification {
         defaultGradleRunner.setArguments(arguments)
     }
 
-    def "creates diagnostic message for execution result"() {
+    def "creates diagnostic message for execution result without thrown exception"() {
         given:
-        ByteArrayOutputStream standardOutput = new ByteArrayOutputStream()
-        standardOutput.write('This is some output'.bytes)
-        ByteArrayOutputStream standardError = new ByteArrayOutputStream()
-        standardError.write('This is some error'.bytes)
-        GradleExecutionResult gradleExecutionResult = new GradleExecutionResult(standardOutput, standardError)
+        GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()
 
         when:
-        String message = defaultGradleRunner.createDiagnosticsMessage("Gradle build executed", gradleExecutionResult)
+        String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        message.replaceAll('\\r', '') == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+        removeCarriageReturn(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
 
 Output:
 This is some output
@@ -50,5 +46,39 @@ This is some output
 Error:
 This is some error
 -----"""
+    }
+
+    def "creates diagnostic message for execution result with thrown exception"() {
+        given:
+        GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()
+        gradleExecutionResult.setThrowable(new RuntimeException('Something went wrong'))
+
+        when:
+        String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
+
+        then:
+        removeCarriageReturn(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+
+Output:
+This is some output
+-----
+Error:
+This is some error
+-----
+Reason:
+Something went wrong
+-----"""
+    }
+
+    private GradleExecutionResult createGradleExecutionResult() {
+        ByteArrayOutputStream standardOutput = new ByteArrayOutputStream()
+        standardOutput.write('This is some output'.bytes)
+        ByteArrayOutputStream standardError = new ByteArrayOutputStream()
+        standardError.write('This is some error'.bytes)
+        new GradleExecutionResult(standardOutput, standardError)
+    }
+
+    private String removeCarriageReturn(String message) {
+        message.replaceAll('\\r', '')
     }
 }

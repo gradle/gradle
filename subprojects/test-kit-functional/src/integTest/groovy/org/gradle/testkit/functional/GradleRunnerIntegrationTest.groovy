@@ -69,7 +69,7 @@ class GradleRunnerIntegrationTest extends Specification {
         buildFile << """
             task helloWorld {
                 doLast {
-                    throws new GradleException('Unexpected exception')
+                    throw new GradleException('Unexpected exception')
                 }
             }
         """
@@ -81,6 +81,8 @@ class GradleRunnerIntegrationTest extends Specification {
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
         t.message.contains('Unexpected build execution failure')
+        t.message.contains("""Reason:
+Unexpected exception""")
     }
 
     def "execute build for expected failure"() {
@@ -167,7 +169,8 @@ class GradleRunnerIntegrationTest extends Specification {
 
         then:
         noExceptionThrown()
-        result.standardOutput
+        result.standardOutput.contains(':helloWorld UP-TO-DATE')
+        result.standardOutput.contains(':byeWorld SKIPPED')
         !result.standardError
     }
 
@@ -240,6 +243,51 @@ public class MyApp {
         ['-i', '-PmyProp=hello'] | false           | true           | true
     }
 
+    def "build execution with badly formed argument"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        gradleRunner.arguments = ['--unknown']
+        gradleRunner.succeeds()
+
+        then:
+        Throwable t = thrown(UnexpectedBuildFailure)
+        t.message.contains("""Reason:
+Unknown command-line option '--unknown'.""")
+        !t.message.contains(':helloWorld')
+    }
+
+    def "build execution with non-existent working directory"() {
+        given:
+        File workingDir = new File('some/path/that/does/not/exist')
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        gradleRunner.workingDir = workingDir
+        gradleRunner.succeeds()
+
+        then:
+        Throwable t = thrown(UnexpectedBuildFailure)
+        t.message.contains("""Reason:
+Project directory '$workingDir.absolutePath' does not exist.""")
+        !t.message.contains(':helloWorld')
+    }
+
     @Ignore
     def "build execution with invalid JVM arguments"() {
         given:
@@ -277,7 +325,14 @@ public class MyApp {
         gradleRunner.succeeds()
 
         then:
-        thrown(UnexpectedBuildFailure)
+        Throwable t = thrown(UnexpectedBuildFailure)
+        t.message.contains("""Output:
+:helloWorld
+Hello world!""")
+        !t.message.contains('Bye world!')
+        t.message.contains("""Reason:
+Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+""")
     }
 
     private GradleRunner prepareGradleRunner(String... tasks) {

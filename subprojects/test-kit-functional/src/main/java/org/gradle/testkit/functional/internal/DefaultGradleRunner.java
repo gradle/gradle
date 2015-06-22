@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.functional.internal;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.functional.BuildResult;
@@ -73,7 +74,21 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(gradleExecutionResult.getStandardError());
         message.append(lineBreak);
         message.append("-----");
+
+        if(gradleExecutionResult.getThrowable() != null) {
+            message.append(lineBreak);
+            message.append("Reason:");
+            message.append(lineBreak);
+            message.append(determineExceptionMessage(gradleExecutionResult.getThrowable()));
+            message.append(lineBreak);
+            message.append("-----");
+        }
+
         return message.toString();
+    }
+
+    private String determineExceptionMessage(Throwable throwable) {
+        return throwable.getCause() == null ? throwable.getMessage() : ExceptionUtils.getRootCause(throwable).getMessage();
     }
 
     private BuildResult run(Action<GradleExecutionResult> action) {
