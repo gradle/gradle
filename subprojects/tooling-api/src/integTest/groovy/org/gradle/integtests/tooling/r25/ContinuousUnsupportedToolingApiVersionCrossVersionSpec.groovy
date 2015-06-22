@@ -47,7 +47,7 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
 
     @Timeout(30)
     @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
-    @TargetGradleVersion("<2.5")
+    @TargetGradleVersion(GradleVersions.PRE_CONTINUOUS)
     def "client receives appropriate error target Gradle version does not support cancellation"() {
         when:
         buildFile.text = "apply plugin: 'java'"
