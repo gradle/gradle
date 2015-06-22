@@ -812,6 +812,20 @@ Existing BuildLink adapter can be used with minor modifications.
      - controller (java/scala), routes, model (java/scala), views (twirl), javascript, coffeescript, css, lesscss
 - Reload is not triggered if dependency of play run task fails
 
+### Story: Scala compile process is reused across continuous build instances
+
+This is a performance optimization to the implementation of Play reload, that decreases compile times by reusing compiler daemons. 
+This story also supersedes the `BuildSession` concept added in earlier stories with a service registry scope serving the same purpose.
+
+#### Implementation
+
+- Introduce `BuildSessionScopeServices`
+- Move `CompilerDaemonManager` to session scope
+
+#### Test coverage
+
+TBD.
+
 ### Backlog & Open Issues
 
 - Debugging Play application that is run with playRun
