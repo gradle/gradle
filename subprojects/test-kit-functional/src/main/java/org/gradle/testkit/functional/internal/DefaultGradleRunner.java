@@ -56,7 +56,7 @@ public class DefaultGradleRunner extends GradleRunner {
         StringBuilder message = new StringBuilder();
         message.append(trailingMessage);
         message.append(" in ");
-        message.append(getWorkingDir());
+        message.append(getWorkingDir().getAbsolutePath());
         message.append(" with tasks ");
         message.append(getTasks());
         message.append(" and arguments ");
