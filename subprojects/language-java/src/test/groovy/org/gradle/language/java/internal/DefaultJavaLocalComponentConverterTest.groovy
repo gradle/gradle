@@ -18,19 +18,19 @@ package org.gradle.language.java.internal
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentFactory
+import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultJavaLocalComponentFactoryTest extends Specification {
+class DefaultJavaLocalComponentConverterTest extends Specification {
     def "can convert java source set resolve context"() {
         given:
         def context = new DefaultJavaSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
 
         when:
-        def factory = new DependentSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentConverter()
 
         then:
         factory.canConvert(context)
@@ -50,7 +50,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new DependentSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentConverter()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)
@@ -91,7 +91,7 @@ class DefaultJavaLocalComponentFactoryTest extends Specification {
         def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
-        def factory = new DependentSourceSetLocalComponentFactory()
+        def factory = new DependentSourceSetLocalComponentConverter()
 
         then: "the factory can convert the resolve context"
         factory.canConvert(context)

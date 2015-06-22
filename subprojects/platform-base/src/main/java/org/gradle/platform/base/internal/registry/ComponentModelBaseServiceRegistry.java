@@ -28,7 +28,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.session.BuildSession;
-import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentFactory;
+import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.internal.toolchain.DefaultToolResolver;
@@ -64,8 +64,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class BuildScopeServices {
-        DependentSourceSetLocalComponentFactory createLocalComponentFactory() {
-            return new DependentSourceSetLocalComponentFactory();
+        DependentSourceSetLocalComponentConverter createLocalComponentFactory() {
+            return new DependentSourceSetLocalComponentConverter();
         }
 
         ProjectLocator createProjectLocator(ProjectFinder finder) {

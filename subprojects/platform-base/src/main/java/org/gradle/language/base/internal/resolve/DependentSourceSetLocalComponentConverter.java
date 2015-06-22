@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -34,7 +34,7 @@ import org.gradle.platform.base.DependencySpecContainer;
 
 import java.util.Collections;
 
-public class DependentSourceSetLocalComponentFactory implements LocalComponentFactory {
+public class DependentSourceSetLocalComponentConverter implements LocalComponentConverter {
 
     private static final ExcludeRule[] EXCLUDE_RULES = new ExcludeRule[0];
 

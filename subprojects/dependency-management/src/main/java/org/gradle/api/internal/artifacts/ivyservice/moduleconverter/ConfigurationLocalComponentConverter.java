@@ -23,23 +23,23 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.util.Set;
 
-public class ResolveLocalComponentFactory implements LocalComponentFactory {
+public class ConfigurationLocalComponentConverter implements LocalComponentConverter {
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ConfigurationsToArtifactsConverter configurationsToArtifactsConverter;
 
-    public ResolveLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                        DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                        ComponentIdentifierFactory componentIdentifierFactory,
-                                        ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
+    public ConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
+                                                ComponentIdentifierFactory componentIdentifierFactory,
+                                                ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
         this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
         this.componentIdentifierFactory = componentIdentifierFactory;
@@ -48,27 +48,27 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
 
     @Override
     public boolean canConvert(Object source) {
-        return source instanceof ComponentConverterSource || source instanceof Configuration;
+        return source instanceof ConfigurationBackedComponent || source instanceof Configuration;
     }
 
     @Override
     public MutableLocalComponentMetaData convert(Object source) {
-        Set<? extends Configuration> contexts;
         ModuleInternal module;
+        Set<? extends Configuration> configurations;
         if (source instanceof Configuration) {
-            contexts = ((Configuration) source).getAll();
-            module = ((ConfigurationInternal)source).getModule();
+            configurations = ((Configuration) source).getAll();
+            module = ((ConfigurationInternal) source).getModule();
         } else {
-            contexts = ((ComponentConverterSource)source).getConfigurations();
-            module = ((ComponentConverterSource)source).getModule();
+            configurations = ((ConfigurationBackedComponent) source).getConfigurations();
+            module = ((ConfigurationBackedComponent) source).getModule();
         }
-        assert contexts.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
+        assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        configurationsToModuleDescriptorConverter.addConfigurations(metaData, contexts);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, contexts);
-        configurationsToArtifactsConverter.addArtifacts(metaData, contexts);
+        configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
+        configurationsToArtifactsConverter.addArtifacts(metaData, configurations);
         return metaData;
     }
 

@@ -51,11 +51,11 @@ class DependencyManagementGlobalScopeServices {
             descriptorFactory);
     }
 
-    ResolveLocalComponentFactory createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+    ConfigurationLocalComponentConverter createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                     DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                     ExcludeRuleConverter excludeRuleConverter,
                                                                     ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ResolveLocalComponentFactory(
+        return new ConfigurationLocalComponentConverter(
             configurationsToModuleDescriptorConverter,
             new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter),
             componentIdentifierFactory,

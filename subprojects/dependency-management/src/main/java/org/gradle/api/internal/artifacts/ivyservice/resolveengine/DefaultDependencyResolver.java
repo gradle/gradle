@@ -104,7 +104,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             public void execute(Ivy ivy) {
                 ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) resolveContext.getResolutionStrategy();
 
-                List<LocalComponentFactory> localComponentFactories = allServices(LocalComponentFactory.class);
+                List<LocalComponentConverter> localComponentFactories = allServices(LocalComponentConverter.class);
                 List<ResolverProvider> resolvers = allServices(ResolverProvider.class, ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));
                 ResolverProviderChain resolverProvider = new ResolverProviderChain(resolvers);
                 ResolverProvider wrappingProvider = DelegatingResolverProvider.of(
@@ -119,7 +119,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
                 ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-                DefaultResolveContextToComponentResolver moduleResolver = new DefaultResolveContextToComponentResolver(new LocalComponentFactoryChain(localComponentFactories));
+                DefaultResolveContextToComponentResolver moduleResolver = new DefaultResolveContextToComponentResolver(new ChainedLocalComponentConverter(localComponentFactories));
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(wrappingProvider, moduleResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
 
                 StoreSet stores = storeFactory.createStoreSet();
@@ -177,16 +177,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         return artifactResolver;
     }
 
-    private static class LocalComponentFactoryChain implements LocalComponentFactory {
-        private final List<LocalComponentFactory> factories;
+    private static class ChainedLocalComponentConverter implements LocalComponentConverter {
+        private final List<LocalComponentConverter> factories;
 
-        public LocalComponentFactoryChain(List<LocalComponentFactory> factories) {
+        public ChainedLocalComponentConverter(List<LocalComponentConverter> factories) {
             this.factories = factories;
         }
 
         @Override
         public boolean canConvert(Object source) {
-            for (LocalComponentFactory factory : factories) {
+            for (LocalComponentConverter factory : factories) {
                 if (factory.canConvert(source)) {
                     return true;
                 }
@@ -197,7 +197,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         @SuppressWarnings("unchecked")
         public LocalComponentMetaData convert(Object context) {
-            for (LocalComponentFactory factory : factories) {
+            for (LocalComponentConverter factory : factories) {
                 if (factory.canConvert(context)) {
                     return factory.convert(context);
                 }
@@ -207,9 +207,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
-        private final LocalComponentFactoryChain localComponentFactory;
+        private final ChainedLocalComponentConverter localComponentFactory;
 
-        public DefaultResolveContextToComponentResolver(LocalComponentFactoryChain localComponentFactory) {
+        public DefaultResolveContextToComponentResolver(ChainedLocalComponentConverter localComponentFactory) {
             this.localComponentFactory = localComponentFactory;
         }
 

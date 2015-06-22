@@ -20,20 +20,20 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 
 import java.util.Set;
 
-public class ComponentConverterSource {
+public class ConfigurationBackedComponent {
     private final Set<? extends Configuration> configurations;
     private final ModuleInternal module;
 
-    public ComponentConverterSource(Set<? extends Configuration> configurations, ModuleInternal module) {
+    public ConfigurationBackedComponent(ModuleInternal module, Set<? extends Configuration> configurations) {
         this.configurations = configurations;
         this.module = module;
     }
 
-    public Set<? extends Configuration> getConfigurations() {
-        return configurations;
-    }
-
     public ModuleInternal getModule() {
         return module;
+    }
+
+    public Set<? extends Configuration> getConfigurations() {
+        return configurations;
     }
 }

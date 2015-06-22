@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ComponentConverterSource;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationBackedComponent;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
@@ -36,16 +36,16 @@ import java.util.List;
 import java.util.Set;
 
 public class IvyBackedArtifactPublisher implements ArtifactPublisher {
-    private final LocalComponentFactory publishLocalComponentFactory;
+    private final LocalComponentConverter publishLocalComponentConverter;
     private final IvyContextManager ivyContextManager;
     private final IvyDependencyPublisher dependencyPublisher;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public IvyBackedArtifactPublisher(LocalComponentFactory publishLocalComponentFactory,
+    public IvyBackedArtifactPublisher(LocalComponentConverter publishLocalComponentConverter,
                                       IvyContextManager ivyContextManager,
                                       IvyDependencyPublisher dependencyPublisher,
                                       IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
-        this.publishLocalComponentFactory = publishLocalComponentFactory;
+        this.publishLocalComponentConverter = publishLocalComponentConverter;
         this.ivyContextManager = ivyContextManager;
         this.dependencyPublisher = dependencyPublisher;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
@@ -57,14 +57,14 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 Set<Configuration> allConfigurations = configuration.getAll();
                 Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
-                LocalComponentMetaData allConfigurationsComponentMetaData = publishLocalComponentFactory.convert(new ComponentConverterSource(allConfigurations, module));
+                LocalComponentMetaData allConfigurationsComponentMetaData = publishLocalComponentConverter.convert(new ConfigurationBackedComponent(module, allConfigurations));
                 if (descriptor != null) {
                     IvyModulePublishMetaData publishMetaData = allConfigurationsComponentMetaData.toPublishMetaData();
                     ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(), publishMetaData.getArtifacts(), descriptor);
                 }
 
                 // Need to convert a second time, to determine which artifacts to publish (and yes, this isn't a great way to do things...)
-                LocalComponentMetaData componentMetaData = publishLocalComponentFactory.convert(new ComponentConverterSource(configurationsToPublish, module));
+                LocalComponentMetaData componentMetaData = publishLocalComponentConverter.convert(new ConfigurationBackedComponent(module, configurationsToPublish));
                 BuildableIvyModulePublishMetaData publishMetaData = componentMetaData.toPublishMetaData();
                 if (descriptor != null) {
                     Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());

@@ -25,13 +25,13 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
 import spock.lang.Specification
 
-public class ResolveLocalComponentFactoryTest extends Specification {
+public class ConfigurationLocalComponentConverterTest extends Specification {
     def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
     def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def configurationsToArtifactsConverter = Mock(ConfigurationsToArtifactsConverter)
 
-    ResolveLocalComponentFactory resolveModuleDescriptorConverter = new ResolveLocalComponentFactory(
+    ConfigurationLocalComponentConverter resolveModuleDescriptorConverter = new ConfigurationLocalComponentConverter(
             configurationsConverter,
             dependenciesConverter,
             componentIdentifierFactory,
@@ -43,7 +43,7 @@ public class ResolveLocalComponentFactoryTest extends Specification {
         def module = new DefaultModule('group-one', 'name-one', 'version-one')
 
         when:
-        def componentMetaData = resolveModuleDescriptorConverter.convert(new ComponentConverterSource(configurations, module))
+        def componentMetaData = resolveModuleDescriptorConverter.convert(new ConfigurationBackedComponent(module, configurations))
 
         then:
         1 * configurationsConverter.addConfigurations(!null, configurations)
