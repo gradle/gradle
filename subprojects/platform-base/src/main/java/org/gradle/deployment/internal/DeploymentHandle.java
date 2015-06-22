@@ -19,7 +19,5 @@ package org.gradle.deployment.internal;
 import org.gradle.internal.concurrent.Stoppable;
 
 public interface DeploymentHandle extends Stoppable {
-    String getId();
-
     boolean isRunning();
 }

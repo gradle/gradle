@@ -35,11 +35,6 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     }
 
     @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
     public boolean isRunning() {
         return !stopped.get();
     }

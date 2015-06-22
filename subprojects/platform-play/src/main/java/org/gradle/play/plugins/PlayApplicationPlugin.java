@@ -247,7 +247,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     String deploymentId = getDeploymentId(projectIdentifier, playBinary.getName(), chosenPlatform.getName());
                     if (playApplicationRunnerTool.isAvailable()) {
                         // we resolve the runner now so that we we don't carry all of the baggage from PlayToolProvider across builds via the registry
-                        deploymentRegistry.register(new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
+                        deploymentRegistry.register(deploymentId, new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
                     }
                 }
             });

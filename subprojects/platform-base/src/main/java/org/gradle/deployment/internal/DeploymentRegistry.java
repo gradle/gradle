@@ -30,7 +30,7 @@ public interface DeploymentRegistry extends Stoppable {
      *
      * @return true if the given handle was registered; false if it was considered a duplicate (already registered)
      */
-    boolean register(DeploymentHandle handle);
+    boolean register(String id, DeploymentHandle handle);
 
     /**
      * Retrieves a deployment handle from the registry with the given id and type.

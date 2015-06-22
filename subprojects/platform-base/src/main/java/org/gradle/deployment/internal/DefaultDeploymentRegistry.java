@@ -29,11 +29,11 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
 
     @Override
-    public boolean register(DeploymentHandle handle) {
+    public boolean register(String id, DeploymentHandle handle) {
         lock.lock();
         try {
-            if (!handles.containsKey(handle.getId())) {
-                handles.put(handle.getId(), handle);
+            if (!handles.containsKey(id)) {
+                handles.put(id, handle);
                 return true;
             } else {
                 return false;

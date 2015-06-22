@@ -22,27 +22,27 @@ class DefaultDeploymentRegistryTest extends Specification {
     DeploymentRegistry registry = new DefaultDeploymentRegistry()
 
     def "can register and retrieve a deployment handle" () {
-        DeploymentHandle handle = mockDeployment("test")
+        DeploymentHandle handle = Mock(DeploymentHandle)
 
         when:
-        registry.register(handle)
+        registry.register("test", handle)
 
         then:
         registry.get(DeploymentHandle.class, "test") == handle
     }
 
     def "can register a duplicate deployment handle" () {
-        DeploymentHandle handle = mockDeployment("test")
+        DeploymentHandle handle = Mock(DeploymentHandle)
         boolean newRegistration
 
         when:
-        newRegistration = registry.register(handle)
+        newRegistration = registry.register("test", handle)
 
         then:
         assert newRegistration
 
         when:
-        newRegistration = registry.register(handle)
+        newRegistration = registry.register("test", handle)
 
         then:
         noExceptionThrown()
@@ -53,12 +53,12 @@ class DefaultDeploymentRegistryTest extends Specification {
     }
 
     def "stopping registry stops deployment handles" () {
-        DeploymentHandle handle1 = mockDeployment("test1")
-        DeploymentHandle handle2 = mockDeployment("test2")
-        DeploymentHandle handle3 = mockDeployment("test3")
-        registry.register(handle1)
-        registry.register(handle2)
-        registry.register(handle3)
+        DeploymentHandle handle1 = Mock(DeploymentHandle)
+        DeploymentHandle handle2 = Mock(DeploymentHandle)
+        DeploymentHandle handle3 = Mock(DeploymentHandle)
+        registry.register("test1", handle1)
+        registry.register("test2", handle2)
+        registry.register("test3", handle3)
 
         when:
         registry.stop()
@@ -70,12 +70,12 @@ class DefaultDeploymentRegistryTest extends Specification {
     }
 
     def "stopping registry removes deployment handles from registry" () {
-        DeploymentHandle handle1 = mockDeployment("test1")
-        DeploymentHandle handle2 = mockDeployment("test2")
-        DeploymentHandle handle3 = mockDeployment("test3")
-        registry.register(handle1)
-        registry.register(handle2)
-        registry.register(handle3)
+        DeploymentHandle handle1 = Mock(DeploymentHandle)
+        DeploymentHandle handle2 = Mock(DeploymentHandle)
+        DeploymentHandle handle3 = Mock(DeploymentHandle)
+        registry.register("test1", handle1)
+        registry.register("test2", handle2)
+        registry.register("test3", handle3)
 
         when:
         registry.stop()
@@ -84,11 +84,5 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.get(DeploymentHandle.class, "test1") == null
         registry.get(DeploymentHandle.class, "test2") == null
         registry.get(DeploymentHandle.class, "test3") == null
-    }
-
-    def mockDeployment(String id) {
-        return Mock(DeploymentHandle) {
-            _ * getId() >> id
-        }
     }
 }
