@@ -58,7 +58,7 @@ class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
         succeeds('wrapper')
 
         and:
-        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(server.binZip).asHexString()}"
+        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(server.binZip).asZeroPaddedHexString(64)}"
 
         when:
         def success = executer.usingExecutable("gradlew").run()
