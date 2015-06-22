@@ -17,7 +17,6 @@ package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -66,8 +65,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public void resolve(DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
-            final String selectorProjectPath = Strings.nullToEmpty(selector.getProjectPath());
-            final String libraryName = Strings.nullToEmpty(selector.getLibraryName());
+            final String selectorProjectPath = selector.getProjectPath();
+            final String libraryName = selector.getLibraryName();
             final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
             LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
@@ -113,7 +112,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         String libraryName = selector.getLibraryName();
 
         StringBuilder sb = new StringBuilder("Project '").append(projectPath).append("'");
-        if (Strings.isNullOrEmpty(libraryName) || !hasLibraries) {
+        if (libraryName == null || !hasLibraries) {
             if (result.isProjectNotFound()) {
                 sb.append(" not found.");
             } else if (!hasLibraries) {
@@ -268,9 +267,12 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
 
         private void resolve(String libraryName) {
-            boolean findSingleLibrary = "".equals(libraryName);
-            if (findSingleLibrary && getSingleMatchingLibrary() != null) {
-                libraryName = getSingleMatchingLibrary().getName();
+            if (libraryName == null) {
+                LibrarySpec singleMatchingLibrary = getSingleMatchingLibrary();
+                if (singleMatchingLibrary == null) {
+                    return;
+                }
+                libraryName = singleMatchingLibrary.getName();
             }
 
             selectedLibrary = libsMatchingRequirements.get(libraryName);

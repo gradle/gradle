@@ -33,9 +33,10 @@ public interface LibraryComponentSelector extends ComponentSelector {
     String getProjectPath();
 
     /**
-     * Return the library name of the selected library. If the library name is null or empty then
-     * it is expected to find a single library defined in same project as the requesting component or
-     * dependency resolution will fail.
+     * Return the library name of the selected library.
+     * If the library name is null then it is expected to find a single library defined in same project
+     * as the requesting component or dependency resolution will fail.
+     * If not <code>null</code> then the name will never be empty.
      *
      * @return the library name
      */

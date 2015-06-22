@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.resolve
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
@@ -113,12 +114,12 @@ class LocalLibraryDependencyResolverTest extends Specification {
         where:
         lib    | projectPath | rootProjectComponents | subprojects            | failure
         'lib'  | ':'         | ['lib']               | [:]                    | false
-        ''     | ':'         | ['lib']               | [:]                    | false
+        null   | ':'         | ['lib']               | [:]                    | false
         'lib'  | ':'         | ['lib', 'lib2']       | [:]                    | false
         'lib2' | ':'         | ['lib', 'lib2']       | [:]                    | false
         'lib2' | ':'         | ['lib']               | [:]                    | "Did you want to use 'lib'"
         'lib2' | ':'         | ['lib', 'lib3']       | [:]                    | "Did you want to use one of 'lib', 'lib3'"
-        ''     | ':'         | ['lib', 'lib2']       | [:]                    | "Project ':' contains more than one library. Please select one of 'lib', 'lib2'"
+        null   | ':'         | ['lib', 'lib2']       | [:]                    | "Project ':' contains more than one library. Please select one of 'lib', 'lib2'"
         'lib'  | ':foo'      | ['lib']               | [:]                    | "Project ':foo' not found."
         'lib'  | ':'         | null                  | [:]                    | "Project ':' doesn't define any library"
         'lib'  | ':'         | []                    | [:]                    | "Project ':' doesn't define any library"
@@ -126,9 +127,9 @@ class LocalLibraryDependencyResolverTest extends Specification {
         'lib'  | ':foo'      | []                    | [foo: ['lib', 'lib2']] | false
         'lib'  | ':foo'      | []                    | [foo: ['lib2']]        | "Did you want to use 'lib2'"
         'lib2' | ':foo'      | []                    | [foo: ['lib', 'lib3']] | "Did you want to use one of 'lib', 'lib3'"
-        ''     | ':foo'      | []                    | [foo: ['lib', 'lib2']] | "Project ':foo' contains more than one library. Please select one of 'lib', 'lib2'"
-        ''     | ':foo'      | []                    | [foo: null]            | "Project ':foo' doesn't define any library"
-        ''     | ':foo'      | []                    | [foo: []]              | "Project ':foo' doesn't define any library"
+        null   | ':foo'      | []                    | [foo: ['lib', 'lib2']] | "Project ':foo' contains more than one library. Please select one of 'lib', 'lib2'"
+        null   | ':foo'      | []                    | [foo: null]            | "Project ':foo' doesn't define any library"
+        null   | ':foo'      | []                    | [foo: []]              | "Project ':foo' doesn't define any library"
 
     }
 
@@ -203,7 +204,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> it
                 def binaries = Mock(ModelMap)
-                binaries.values() >> {[]}
+                binaries.values() >> { [] }
                 lib.binaries >> binaries
                 lib
             }
