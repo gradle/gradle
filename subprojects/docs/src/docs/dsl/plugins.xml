@@ -103,4 +103,13 @@
         <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerExtension"/>
         <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerRootExtension"/>
     </plugin>
+
+    <plugin id="play" description="Play Plugin">
+    </plugin>
+    <plugin id="play-application" description="Play Application Plugin">
+    </plugin>
+    <plugin id="play-coffeescript" description="Play Coffeescript Plugin">
+    </plugin>
+    <plugin id="play-javascript" description="Play Javascript Plugin">
+    </plugin>
 </plugins>

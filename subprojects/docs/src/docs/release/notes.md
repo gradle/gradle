@@ -10,6 +10,14 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Play Framework Support (i)
+
+Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.
+
+See the new user guide section about using the [`play` plugin](userguide/play_plugin.html).
+
+TBD
+
 ### Support for verifying Gradle wrapper distribution download against SHA-256 hash
 
 It is now possible to verify the integrity of the Gradle distribution downloaded by the [Gradle wrapper](userguide/gradle_wrapper.html) against

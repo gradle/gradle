@@ -1,6 +1,8 @@
+// START SNIPPET use-plugin
 plugins {
     id 'play'
 }
+// END SNIPPET use-plugin
 
 dependencies {
     play 'commons-lang:commons-lang:2.6'
@@ -19,5 +21,5 @@ repositories{
             ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
             artifact "[organisation]/[module]/[revision]/jars/[artifact].[ext]"
         }
-    }    
+    }
 }
