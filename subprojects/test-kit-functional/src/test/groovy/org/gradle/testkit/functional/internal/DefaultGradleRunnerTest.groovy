@@ -42,13 +42,13 @@ class DefaultGradleRunnerTest extends Specification {
         String message = defaultGradleRunner.createDiagnosticsMessage("Gradle build executed", gradleExecutionResult)
 
         then:
-        message == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+        message.replaceAll('\\r', '') == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
 
 Output:
 This is some output
 -----
 Error:
 This is some error
------""".replaceAll('\\r', '')
+-----"""
     }
 }
