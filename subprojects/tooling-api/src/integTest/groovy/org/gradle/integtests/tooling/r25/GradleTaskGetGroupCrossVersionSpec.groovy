@@ -24,10 +24,10 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 
+@ToolingApiVersion(">=2.5")
+@TargetGradleVersion(">=2.5")
 class GradleTaskGetGroupCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "provide getGroup on Task using GradleProject"() {
         file("build.gradle") << '''
 task test1(group:'task group 1')
@@ -46,8 +46,6 @@ task test2(group:'task group 2')
         }
     }
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "provide getGroup on Task using BuildInvocations"() {
         file("build.gradle") << '''
 task test1(group:'task group 1')
@@ -66,8 +64,6 @@ task test2(group:'task group 2')
         }
     }
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "provide getGroup on Task using GradleProject shouldn't fail if group is null"() {
         file("build.gradle") << '''
 task test1()
@@ -86,8 +82,6 @@ task test2()
         }
     }
 
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "provide getGroup on Task using BuildInvocations shouldn't fail if group is null"() {
         file("build.gradle") << '''
 task test1()

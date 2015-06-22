@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.GradleProject
 
 class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
@@ -52,8 +52,8 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         when:
         // take care to not use runBuild which implicitly calls cancel
         // we want to make sure it doesn't need cancellation
-        BuildEnvironment buildEnvironment = withConnection { ProjectConnection connection ->
-            connection.model(BuildEnvironment.class)
+        GradleProject project = withConnection { ProjectConnection connection ->
+            connection.model(GradleProject.class)
                 .withArguments("--continuous")
                 .setStandardOutput(stdout)
                 .setStandardError(stderr)
@@ -61,10 +61,10 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         }
 
         then:
-        buildEnvironment != null
+        project != null
         def logOutput = stdout.toString()
         !logOutput.contains("Continuous build is an incubating feature.")
-        !logOutput.contains("Waiting for changes to input files of tasks...")
+        !logOutput.contains(WAITING_MESSAGE)
         !logOutput.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 

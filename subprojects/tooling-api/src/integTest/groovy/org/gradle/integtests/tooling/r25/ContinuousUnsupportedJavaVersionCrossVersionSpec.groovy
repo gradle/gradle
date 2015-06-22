@@ -45,6 +45,7 @@ class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecifi
 
         then:
         def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not execute build using")
         e.cause.message == 'Continuous build requires Java 7 or later.'
     }
 
