@@ -238,16 +238,19 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
 
-                    ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
-                    final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, chosenPlatform);
                     DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
                     // this doesn't handle a scenario where a binary name changes between builds in the same
                     // session.  We only allow one play component/binary right now, so this isn't an issue, but
                     // it will need to be dealt with if we ever support multiple play binaries in a project.
                     String deploymentId = getDeploymentId(projectIdentifier, playBinary.getName(), chosenPlatform.getName());
-                    if (playApplicationRunnerTool.isAvailable()) {
-                        // we resolve the runner now so that we we don't carry all of the baggage from PlayToolProvider across builds via the registry
-                        deploymentRegistry.register(deploymentId, new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
+                    if (deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId) == null) {
+                        ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
+                        final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, chosenPlatform);
+
+                        if (playApplicationRunnerTool.isAvailable()) {
+                            // we resolve the runner now so that we we don't carry all of the baggage from PlayToolProvider across builds via the registry
+                            deploymentRegistry.register(deploymentId, new PlayApplicationDeploymentHandle(deploymentId, playApplicationRunnerTool.get()));
+                        }
                     }
                 }
             });

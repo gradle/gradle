@@ -31,25 +31,22 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.get(DeploymentHandle.class, "test") == handle
     }
 
-    def "can register a duplicate deployment handle" () {
+    def "cannot register a duplicate deployment handle" () {
         DeploymentHandle handle = Mock(DeploymentHandle)
-        boolean newRegistration
 
         when:
-        newRegistration = registry.register("test", handle)
-
-        then:
-        assert newRegistration
-
-        when:
-        newRegistration = registry.register("test", handle)
+        registry.register("test", handle)
 
         then:
         noExceptionThrown()
-        assert !newRegistration
-
-        and:
         registry.get(DeploymentHandle.class, "test") == handle
+
+        when:
+        registry.register("test", handle)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "A deployment with id 'test' is already registered."
     }
 
     def "stopping registry stops deployment handles" () {

@@ -29,14 +29,13 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
 
     @Override
-    public boolean register(String id, DeploymentHandle handle) {
+    public void register(String id, DeploymentHandle handle) {
         lock.lock();
         try {
             if (!handles.containsKey(id)) {
                 handles.put(id, handle);
-                return true;
             } else {
-                return false;
+                throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
             }
         } finally {
             lock.unlock();

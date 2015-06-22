@@ -27,10 +27,8 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface DeploymentRegistry extends Stoppable {
     /**
      * Registers a given deployment handle in the registry.
-     *
-     * @return true if the given handle was registered; false if it was considered a duplicate (already registered)
      */
-    boolean register(String id, DeploymentHandle handle);
+    void register(String id, DeploymentHandle handle);
 
     /**
      * Retrieves a deployment handle from the registry with the given id and type.
