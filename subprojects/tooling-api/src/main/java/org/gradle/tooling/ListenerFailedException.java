@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Thrown whenever a listener failed with an exception, which in general implies that
+ * Thrown whenever a listener fails with an exception, which in general implies that
  * the build completed like it should, but that one of the listeners failed with an
  * exception.
  *
