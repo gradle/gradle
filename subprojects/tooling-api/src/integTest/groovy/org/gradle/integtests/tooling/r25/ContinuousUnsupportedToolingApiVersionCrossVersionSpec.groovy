@@ -26,7 +26,7 @@ import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import spock.lang.Timeout
 
 class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiSpecification {
-    @Timeout(30)
+    @Timeout(120)
     @ToolingApiVersion(ToolingApiVersions.PRE_CANCELLATION)
     @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
     def "client receives appropriate error if continuous build attempted using client that does not support cancellation"() {
@@ -45,7 +45,7 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
         e.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
     }
 
-    @Timeout(30)
+    @Timeout(120)
     @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
     @TargetGradleVersion(GradleVersions.PRE_CONTINUOUS)
     def "client receives appropriate error target Gradle version does not support cancellation"() {
