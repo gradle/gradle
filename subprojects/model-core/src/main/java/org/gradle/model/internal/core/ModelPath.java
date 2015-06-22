@@ -82,7 +82,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
         ModelPath modelPath = (ModelPath) o;
 
-        return path.equals(modelPath.path);
+        return components.size() == modelPath.components.size() && path.equals(modelPath.path);
     }
 
     @Override
@@ -137,7 +137,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         if (components.size() == 1) {
             return ROOT;
         }
-        return path(components.subList(0, components.size() - 1));
+        // Somewhat optimized implementation
+        List<String> parentComponents = components.subList(0, components.size() - 1);
+        String parentPath = path.substring(0, path.length() - components.get(components.size() - 1).length() - 1);
+        return new ModelPath(parentPath, parentComponents);
     }
 
     public String getName() {
