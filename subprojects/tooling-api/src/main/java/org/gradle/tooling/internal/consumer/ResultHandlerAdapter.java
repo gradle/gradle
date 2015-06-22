@@ -54,7 +54,7 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof ListenerNotificationException) {
-            handler.onFailure(new ListenerFailedException(((ListenerNotificationException) failure).getCauses()));
+            handler.onFailure(new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses()));
         } else {
             handler.onFailure(new GradleConnectionException(connectionFailureMessage(failure), failure));
         }

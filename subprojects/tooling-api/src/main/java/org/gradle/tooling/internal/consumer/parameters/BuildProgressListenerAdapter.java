@@ -74,7 +74,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private void doBroadcast(Object event) {
         if (event instanceof InternalTestProgressEvent) {
-            // Special case for events defined for events defined prior to InternalBuildProgressEvent
+            // Special case for events defined prior to InternalBuildProgressEvent
             InternalTestProgressEvent progressEvent = (InternalTestProgressEvent) event;
             broadcastTestProgressEvent(progressEvent);
         } else if (event instanceof InternalProgressEvent) {

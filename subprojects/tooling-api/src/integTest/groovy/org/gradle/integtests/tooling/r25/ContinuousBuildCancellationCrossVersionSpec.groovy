@@ -60,7 +60,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
 
         then:
         !result.output.contains("ctrl+d to exit")
-        result.output.contains("Waiting for changes to input files of tasks...")
+        result.output.contains(WAITING_MESSAGE)
     }
 
     def "after cancelling a continuous build, we can subsequently run another"() {

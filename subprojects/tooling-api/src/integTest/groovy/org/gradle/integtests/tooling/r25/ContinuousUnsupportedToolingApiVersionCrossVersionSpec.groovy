@@ -22,15 +22,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import spock.lang.Timeout
 
-@ToolingApiVersion(ToolingApiVersions.PRE_CANCELLATION)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiSpecification {
-
-    @Timeout(30)
-    def "client receives appropriate error if continuous build attempted on unsupported platform"() {
+    @Timeout(120)
+    @ToolingApiVersion(ToolingApiVersions.PRE_CANCELLATION)
+    @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
+    def "client receives appropriate error if continuous build attempted using client that does not support cancellation"() {
         when:
         buildFile.text = "apply plugin: 'java'"
         withConnection {
@@ -42,8 +41,27 @@ class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiS
 
         then:
         def e = thrown(GradleConnectionException)
-        e.cause.getClass().name == UnsupportedVersionException.name
+        e.message.startsWith("Could not execute build using")
         e.cause.message == "Continuous build requires Tooling API client version 2.1 or later."
+    }
+
+    @Timeout(120)
+    @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
+    @TargetGradleVersion(GradleVersions.PRE_CONTINUOUS)
+    def "client receives appropriate error target Gradle version does not support cancellation"() {
+        when:
+        buildFile.text = "apply plugin: 'java'"
+        withConnection {
+            newBuild()
+                .withArguments("--continuous")
+                .forTasks("build")
+                .run()
+        }
+
+        then:
+        def e = thrown(UnsupportedBuildArgumentException)
+        e.message.startsWith("Could not execute build using")
+        e.cause.message.contains("Unknown command-line option '--continuous'.")
     }
 
 }
