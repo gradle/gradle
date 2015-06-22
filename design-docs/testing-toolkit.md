@@ -89,7 +89,12 @@ A functional test using Spock could look as such:
 
 * A new module named `test-kit-functional` will be created in Gradle core.
 * The implementation will be backed by the Tooling API. The implementation may use internal parts of the tooling API and is not restricted to the public APIs.
+    * This will mean that daemons are left behind by the tests. This will be addressed in later stories.
 * A test build should use the Gradle installation that is running the test.
+    * When running from a `Test` task, use the Gradle installation that is running the build.
+    * When importing into the IDE, use the Gradle installation that performed the import.
+    * Can infer the location of the Gradle installation based on the code-source of the test kit classes (reuse `GradleDistributionLocator` in some form for this).
+    * Possibly provide some override for our functional tests to use.
 * No environmental control will be allowed (e.g. setting env vars or sys props).
 * Add (or expand) a sample for building and testing a plugin and task implementation.
 * Add some brief user guide material.
@@ -262,17 +267,19 @@ Daemons started by test-kit should be isolated from the machine environment:
 - Daemons use default JVM arguments that are more appropriate to test daemons. Best option might be to use the JVM defaults.
 - Daemons are reused by tests.
 - Daemons are stopped at the end of the tests.
+- Daemons use a short idle timeout, say several minutes.
 
 ### Implementation
 
 - Should be possible to implement this by setting the Gradle user home dir to some temporary directory.
+- Reuse the temporary directory within the test JVM process, so that daemons are reused.
 
 ### Test cases
 
 * Test are executed in dedicated, isolate daemon instance.
     * If no daemon process exists, create a new one and use it. Regular Gradle build executions will not use the daemon process dedicated for test execution.
     * If a daemon process already exists, determine if it is a daemon process dedicated for test execution. Reuse it if possible. Otherwise, create a new one.
-    * A Daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
+    * A daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
 
 ### Open issues
 
@@ -289,15 +296,15 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
     public interface GradleRunner {
         boolean isDebug();
-        void enableDebug();
+        void setDebug(boolean debug);
     }
 
 ### Implementation
 
 * When debug is enabled, run the build in embedded mode.
-* Can enable debug via `GradleRunner.enableDebug()`.
+* Can enable debug via `GradleRunner.setDebug()`.
 * Debug is automatically enabled when `Test.debug` is true.
-* Debug is automatically enabled when test is being debugged from an IDE.
+* Debug is automatically enabled when test is being run or debugged from an IDE.
 
 ### Test coverage
 
@@ -309,14 +316,42 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
 * Might be more reliable to use remote debugging instead, so that there is only 1 execution mode instead of 2.
 
-## Story: Classes under test are visible to build scripts
+## Story: Functional test defines classes under test to make visible to test builds
 
-When using the plugin development plugin, plugin and task classes and their dependencies are visible to build scripts.
+Provide an API for functional tests to define a classpath containing classes under test:
+
+    public interface GradleRunner {
+        List<URI> getClassesUnderTest();
+        void setClassUnderTest(Collection<URI> classpath);
+    }
+
+This classpath is then available to use to locate plugins in a test build, as if they were published at the plugin portal:
+
+    plugins {
+        id 'com.my-org.my-plugin'
+    }
+
+    task someTask(type: MyTaskType) { ... }
+
+    model {
+        tasks {
+            otherTask(MyTaskType) { ... }
+        }
+    }
 
 ### Implementation
 
-- Supported only when using the plugin development plugin.
-- May need to improve the tooling API internal classes and protocol interfaces to allow
+- Add an internal Tooling API mechanism to attach this to a build request.
+
+### Test coverage
+
+## Story: Classes under test are visible to build scripts
+
+When using the plugin development plugin, plugins under test are visible to build scripts.
+
+### Implementation
+
+- Infer the classes under test from the
 
 ### Test coverage
 
@@ -363,6 +398,26 @@ Users can easily test their Gradle plugins developed using the [plugin-developme
 
 The second milestone built on top of the test executing mechanism by exposing other test adapters than JUnit and additional test fixtures for creating file repositories
 and dependencies to emulate dependency management operations for testing purposes.
+
+## Story: plugin author implements plugin using Groovy
+
+Change the plugin development plugin so that any supported JVM language can be used as the implementation language.
+
+## Story: plugin author implements functional tests using Groovy
+
+Change the plugin development plugin so that any supported JVM language can be used as the test implementation language.
+
+## Story: plugin author bootstraps new Gradje plugin project
+
+Allow a plugin author to use the build init plugin:
+
+    gradle --init java-gradle-plugin
+
+Creates a single project build that uses Java to implement and test a Gradle plugin using JUnit.
+
+    gradle --init groovy-gradle-plugin
+
+Creates a single project build that uses Groovy to implement and test a Gradle plugin using Spock.
 
 ## Story: Groovy/Spock framework test adapter
 
