@@ -258,8 +258,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the bootstrap classpath to be used for the compiler process.
-     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
      */
     @Input
     @Optional
@@ -268,16 +267,14 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets the bootstrap classpath to be used for the compiler process.
-     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
      */
     public void setBootClasspath(String bootClasspath) {
         this.bootClasspath = bootClasspath;
     }
 
     /**
-     * Returns the extension dirs to be used for the compiler process.
-     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
     @Input
     @Optional
@@ -286,8 +283,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets the extension dirs to be used for the compiler process.
-     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
     public void setExtensionDirs(String extensionDirs) {
         this.extensionDirs = extensionDirs;
