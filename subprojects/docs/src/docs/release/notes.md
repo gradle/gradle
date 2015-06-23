@@ -46,31 +46,30 @@ Alternatively, an external dependency can be replaced with a project dependency 
         }
     }
 
-It is also possible to substitute a project dependency with another, or a module dependency with another. 
+It is also possible to substitute a project dependency with another, or a module dependency with another.
 (The latter provides the same functionality as `eachDependency`, with a more convenient syntax).
 
 Note: adding a dependency substitution rule to a `Configuration` used as a task input changes the timing of when that configuration is resolved.
-Instead of being resolved on first use, the `Configuration` is instead resolved when the task graph is being constructed. This can have unexpected
-consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during
-execution of another task.
+Instead of being resolved on first use, the `Configuration` is instead resolved when the task graph is being constructed.
+This can have unexpected consequences if the configuration is being further modified during task execution,
+or if the configuration relies on modules that are published during execution of another task.
 
 For more information consult the [User Guide](userguide/dependency_management.html#dependency_substitution_rules)
 and the [DSL Reference](dsl/org.gradle.api.artifacts.DependencySubstitutions.html).
 
 This feature was contributed by [Lóránt Pintér](https://github.com/lptr) and the team at [Prezi](https://prezi.com).
 
-### Specify default dependencies for a Configuration (i)
+### Default dependencies (i)
 
-Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is
-provided by the user. A common mechanism to do this involves using a `beforeResolve` hook to check if the configuration has any
-dependencies, adding the appropriate dependency if not.
+Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is provided by the user.
+A common implementation of this involves using a `beforeResolve()` hook to check if the configuration has any dependencies, adding the default dependency if not.
+The new [`defaultDependencies()`](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:defaultDependencies\(org.gradle.api.Action\))
+method has been introduced to make this simpler and more robust.
 
-This mechanism does not work well with inherited or referenced configurations, so a new `defaultDependencies` method
-has been introduced for supplying default dependencies for a configuration. The use of `beforeResolve` to specify default dependencies
-will continue to work, but will emit a deprecation warning if the configuration has already participated in dependency resolution
-when it is first resolved (see below).
+The use of `beforeResolve()` to specify default dependencies will continue to work,
+but will emit a deprecation warning if the configuration has already participated in dependency resolution when it is first resolved (see below).
 
-Specify default dependency with `beforeResolve` (deprecated):
+Specifying a default dependency with `beforeResolve` (deprecated):
 
     def util = dependencies.create("org.gradle:my-util:1.0")
     conf.incoming.beforeResolve {
@@ -79,7 +78,7 @@ Specify default dependency with `beforeResolve` (deprecated):
         }
     }
 
-Specify default dependency with `defaultDependencies` (recommended):
+Specifying a default dependency with `defaultDependencies` (recommended):
 
     def util = dependencies.create("org.gradle:my-util:1.0")
     conf.defaultDependencies { dependencies ->
