@@ -116,36 +116,35 @@ Please see the [User Guide](userguide/nativeBinaries.html#native_binaries:preCom
 ### Google Test support (i)
 
 The new Gradle `google-test` plugin provides support for compiling and executing [GoogleTest](https://code.google.com/p/googletest/) tests in your native binary project.
-
-You simply need to include your Google Test test sources in a conventional location (src/`component name`Test/cpp).
+You simply need to include your Google Test test sources in a conventional location (i.e. `src/«component name»Test/cpp`).
 
 Gradle will build a test executable and run your tests.
 
 <pre><tt>> gradle -q runFailingOperatorsTest
 
-       [==========] Running 2 tests from 1 test case.
-       [----------] Global test environment set-up.
-       [----------] 2 tests from OperatorTests
-       [ RUN      ] OperatorTests.test_plus
-       src/operatorsTest/cpp/test_plus.cpp:8: Failure
-       Value of: plus(0, -2) == -2
-         Actual: false
-       Expected: true
-       [  FAILED  ] OperatorTests.test_plus (0 ms)
-       [ RUN      ] OperatorTests.test_minus
-       [       OK ] OperatorTests.test_minus (0 ms)
-       [----------] 2 tests from OperatorTests (0 ms total)
+[==========] Running 2 tests from 1 test case.
+[----------] Global test environment set-up.
+[----------] 2 tests from OperatorTests
+[ RUN      ] OperatorTests.test_plus
+src/operatorsTest/cpp/test_plus.cpp:8: Failure
+Value of: plus(0, -2) == -2
+ Actual: false
+Expected: true
+[  FAILED  ] OperatorTests.test_plus (0 ms)
+[ RUN      ] OperatorTests.test_minus
+[       OK ] OperatorTests.test_minus (0 ms)
+[----------] 2 tests from OperatorTests (0 ms total)
 
-       [----------] Global test environment tear-down
-       [==========] 2 tests from 1 test case ran. (0 ms total)
-       [  PASSED  ] 1 test.
-       [  FAILED  ] 1 test, listed below:
-       [  FAILED  ] OperatorTests.test_plus
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test case ran. (0 ms total)
+[  PASSED  ] 1 test.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] OperatorTests.test_plus
 
-        1 FAILED TEST</tt></pre>
+1 FAILED TEST</tt></pre>
 
-See the [user guide chapter](userguide/nativeBinaries.html#native_binaries:google_test) and the google-test sample (`samples/native-binaries/google-test`)
-in the distribution to learn more. Expect deeper integration with Google Test (and other native testing tools) in the future.
+See the [User Guide](userguide/nativeBinaries.html#native_binaries:google_test) to learn more.
+Expect deeper integration with Google Test (and other native testing tools) in the future.
 
 ### Task group accessible from the Tooling API
 
