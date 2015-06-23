@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.functional.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
@@ -29,6 +31,7 @@ import java.io.File;
 import java.util.List;
 
 public class ToolingApiGradleExecutor implements GradleExecutor {
+    private final Logger logger = Logging.getLogger(ToolingApiGradleExecutor.class);
     private final GradleDistribution gradleDistribution;
     private final File workingDirectory;
     private File gradleUserHomeDir;
@@ -99,12 +102,16 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private void useGradleDistribution(GradleConnector gradleConnector) {
+        if(logger.isDebugEnabled()) {
+            logger.debug("Using %s", gradleDistribution.getDisplayName());
+        }
+
         if(gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getVersion());
         } else if(gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleUserHomeDir());
         } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
-            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getURI());
         }
     }
 }

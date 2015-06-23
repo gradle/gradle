@@ -18,14 +18,18 @@ package org.gradle.testkit.functional.internal.dist;
 
 import java.io.File;
 
-public final class InstalledGradleDistribution implements GradleDistribution<File> {
+public final class InstalledGradleDistribution implements GradleDistribution {
     private final File gradleHomeDir;
 
     public InstalledGradleDistribution(File gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
     }
 
-    public File getHandle() {
+    public File getGradleUserHomeDir() {
         return gradleHomeDir;
+    }
+
+    public String getDisplayName() {
+        return String.format("Gradle installation in directory %s", gradleHomeDir);
     }
 }

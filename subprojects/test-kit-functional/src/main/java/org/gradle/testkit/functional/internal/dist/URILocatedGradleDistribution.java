@@ -18,14 +18,18 @@ package org.gradle.testkit.functional.internal.dist;
 
 import java.net.URI;
 
-public final class URILocatedGradleDistribution implements GradleDistribution<URI> {
+public final class URILocatedGradleDistribution implements GradleDistribution {
     private final URI uri;
 
     public URILocatedGradleDistribution(URI uri) {
         this.uri = uri;
     }
 
-    public URI getHandle() {
+    public URI getURI() {
         return uri;
+    }
+
+    public String getDisplayName() {
+        return String.format("Gradle distribution at URL %s", uri);
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.testkit.functional.internal.dist;
 
 import org.gradle.util.GradleVersion;
 
-public final class VersionBasedGradleDistribution implements GradleDistribution<String> {
+public final class VersionBasedGradleDistribution implements GradleDistribution {
     public final static VersionBasedGradleDistribution CURRENT = new VersionBasedGradleDistribution(GradleVersion.current().getVersion());
 
     private final String version;
@@ -27,7 +27,11 @@ public final class VersionBasedGradleDistribution implements GradleDistribution<
         this.version = version;
     }
 
-    public String getHandle() {
+    public String getVersion() {
         return version;
+    }
+
+    public String getDisplayName() {
+        return String.format("Gradle distribution with version %s", version);
     }
 }

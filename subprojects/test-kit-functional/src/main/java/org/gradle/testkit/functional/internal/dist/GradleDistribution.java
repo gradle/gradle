@@ -16,6 +16,6 @@
 
 package org.gradle.testkit.functional.internal.dist;
 
-public interface GradleDistribution<T> {
-    T getHandle();
+public interface GradleDistribution {
+    String getDisplayName();
 }

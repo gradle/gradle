@@ -16,11 +16,11 @@
 
 package org.gradle.testkit.functional
 
+import org.gradle.testkit.functional.internal.DefaultGradleRunner
 import org.gradle.testkit.functional.internal.dist.GradleDistribution
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution
 import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution
-import org.gradle.testkit.functional.internal.DefaultGradleRunner
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -56,9 +56,9 @@ class GradleRunnerTest extends Specification {
         t.message == "Invalid Gradle distribution type: ${MyGradleDistribution.name}"
     }
 
-    private class MyGradleDistribution implements GradleDistribution<String> {
-        String getHandle() {
-            '2.4'
+    private class MyGradleDistribution implements GradleDistribution {
+        String getDisplayName() {
+            'My custom Gradle distribution'
         }
     }
 }
