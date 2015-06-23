@@ -144,7 +144,7 @@ This feature changes the software model to introduce 'managed map' types instead
 - The property `ComponentSpec.sources`, a collection of `LanguageSourceSet`, should allow any `LanguageSourceSet` type registered using a `@LanguageType` rule to be added.
 - The property `ComponentSpec.binaries`, a collection of `BinarySpec`, should allow any `BinarySpec` type registered using a `@BinaryType` rule to be added.
 
-At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component. 
+At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component.
 These rules will be executed as required.
 
 This feature does not require that sources, binaries etc. of the component model are actually deferred under conventional use.
@@ -231,6 +231,8 @@ As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such a
 
 # Feature 5: Managed Model usability
 
+Some candidates:
+
 - Consistent validation when managed type, ModelMap and ModelSet are used as inputs.
 - Consistent validation when managed type, ModelMap and ModelSet are mutated after view is closed.
 - Consistent validation when managed type, ModelMap and ModelSet used on subject that is not mutable.
@@ -239,8 +241,9 @@ As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such a
 - Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
 - Enforce that subject cannot be mutated in a validate rule
 
-# Feature 6: Internal views for managed types 
+# Feature 6: Internal views for managed types
 
+- Model report should not show internal stuff, at least by default.
 
 # Feature 7: Plugin author attaches source sets to managed type
 
@@ -262,7 +265,7 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
 - Allow `FunctionalSourceSet` to be added as a property of a managed type, or created as a top-level element
     - Instances are linked into top level `sources` container
     - Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
-    - Need some convention for which languages are included. Possibly default to no languages 
+    - Need some convention for which languages are included. Possibly default to no languages
 - Change `BinarySpec.sources` and `ComponentSpec.sources` to have type `FunctionalSourceSet`
 
 # Later features
