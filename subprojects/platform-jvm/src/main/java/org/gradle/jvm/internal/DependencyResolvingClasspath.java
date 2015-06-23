@@ -64,7 +64,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public Set<File> getFiles() {
-        assertResolved();
+        ensureResolved();
         Set<File> classpath = new LinkedHashSet<File>();
         classpath.addAll(compileClasspath.getFiles());
         Set<ResolvedArtifact> artifacts = resolverResults.getResolvedArtifacts().getArtifacts();
@@ -80,11 +80,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        assertResolved();
+        ensureResolved();
         return taskDependency;
     }
 
-    private void assertResolved() {
+    private void ensureResolved() {
         if (resolverResults==null) {
             final DefaultTaskDependency result = new DefaultTaskDependency();
             result.add(super.getBuildDependencies());
