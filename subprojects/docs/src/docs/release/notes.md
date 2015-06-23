@@ -163,6 +163,8 @@ Expected: true
 See the [User Guide](userguide/nativeBinaries.html#native_binaries:google_test) to learn more.
 Expect deeper integration with Google Test (and other native testing tools) in the future.
 
+This feature was contributed by [Daniel Lacasse](https://github.com/Shad0w1nk).
+
 ### Obtaining a task's group via the Tooling API
 
 It is now possible to obtain the “group” of a task via [`org.gradle.tooling.model.Task.getGroup()`](javadoc/org/gradle/tooling/model/GradleTask.html#getGroup\(\)).
@@ -263,6 +265,8 @@ The [maven-publish](userguide/publishing_maven.html) and [maven](userguide/maven
 no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts.
 Both plugins now use the newer Maven 3 and Aether libraries.
 Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
+
+This upgrade was contributed by [Mikolaj Izdebski](https://github.com/mizdebsk).
 
 ### Java annotation processing of Groovy code is now disabled by default
 
