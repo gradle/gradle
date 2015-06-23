@@ -148,8 +148,7 @@ Expect deeper integration with Google Test (and other native testing tools) in t
 
 ### Task group accessible from the Tooling API
 
-Tasks in Gradle may define a _group_ attribute, but this group wasn't accessible from the Tooling API before. It is now possible to query the
-group of a task through `org.gradle.tooling.model.Task#getGroup`.
+It is now possible to obtain the “group” of a task via [`org.gradle.tooling.model.Task.getGroup()`](javadoc/org/gradle/tooling/model/GradleTask.html#getGroup\(\)).
 
 ### Progress events for build operations through the Tooling API
 
