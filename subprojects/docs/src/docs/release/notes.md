@@ -21,14 +21,14 @@ For more information, please see the [new User Guide chapter](userguide/continuo
 
 ### Dependency substitution rules (i)
 
-Previous versions of Gradle allowed an external dependency to be replaced with another using a 'Dependency Resolve Rule'.
+Previous versions of Gradle allowed an external dependency to be replaced with another using a ['Dependency Resolve Rule'](https://docs.gradle.org/1.4/release-notes#dependency-resolve-rules).
 With the introduction of 'Dependency Substitution Rules' this behaviour has been enhanced and extended to allow external dependencies and project dependencies to be replaced interchangeably.
 
 When combined with a configurable Gradle settings file, these dependency substitution rules permit some powerful new ways of working with Gradle:
 
 * While developing a patch for an external library, use a local project dependency instead of a module dependency.
 * For a large multi-project build, only develop with a subset of the projects locally, downloading the rest from an external repository.
-* Enhancements to Gradle like [Prezi Pride](https://github.com/prezi/pride) no longer require a custom dependency syntax.
+* Extensions to Gradle such as [Prezi Pride](https://github.com/prezi/pride) no longer require a custom dependency syntax.
 
 Substitute a project dependency with an external module dependency like this:
 
@@ -46,8 +46,8 @@ Alternatively, an external dependency can be replaced with a project dependency 
         }
     }
 
-It is also possible to substitute a project dependency with another, or a module dependency with another. (The latter provides the same functionality
-as `eachDependency`, with a more convenient syntax).
+It is also possible to substitute a project dependency with another, or a module dependency with another. 
+(The latter provides the same functionality as `eachDependency`, with a more convenient syntax).
 
 Note: adding a dependency substitution rule to a `Configuration` used as a task input changes the timing of when that configuration is resolved.
 Instead of being resolved on first use, the `Configuration` is instead resolved when the task graph is being constructed. This can have unexpected
@@ -57,7 +57,7 @@ execution of another task.
 For more information consult the [User Guide](userguide/dependency_management.html#dependency_substitution_rules)
 and the [DSL Reference](dsl/org.gradle.api.artifacts.DependencySubstitutions.html).
 
-Thanks go to Lóránt Pintér and his team at [Prezi](https://prezi.com) for providing much of the implementation of this feature.
+This feature was contributed by [Lóránt Pintér](https://github.com/lptr) and the team at [Prezi](https://prezi.com).
 
 ### Specify default dependencies for a Configuration (i)
 
