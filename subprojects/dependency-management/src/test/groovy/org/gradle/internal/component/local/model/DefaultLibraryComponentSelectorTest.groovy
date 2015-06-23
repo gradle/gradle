@@ -65,19 +65,25 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     }
 
     @Unroll
-    def "can compare with other instance (#projectPath,#libraryName)"() {
+    def "can compare (#projectPath1,#libraryName1) with other instance (#projectPath2,#libraryName2)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(':myProjectPath1', 'myLib1')
-        LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath, libraryName)
+        LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
+        LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath2, libraryName2)
         strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2) == equality
         (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode()) == hashCode
         (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString()) == stringRepresentation
 
         where:
-        projectPath       | libraryName | equality | hashCode | stringRepresentation
-        ':myProjectPath1' | 'myLib1'    | true     | true     | true
-        ':myProjectPath1' | 'myLib2'    | false    | false    | false
-        ':myProjectPath2' | 'myLib1'    | false    | false    | false
+        projectPath1      | libraryName1 | projectPath2      | libraryName2 | equality | hashCode | stringRepresentation
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | true     | true     | true
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | false    | false    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | false    | false    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | null         | false    | false    | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'myLib1'     | false    | false    | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'myLib2'     | false    | false    | false
+        ':myProjectPath1' | null         | ':myProjectPath2' | 'myLib1'     | false    | false    | false
+        ':myProjectPath1' | null         | ':myProjectPath2' | null         | false    | false    | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | null         | true     | true     | true
     }
 
     def "prevents matching of null id"() {
@@ -102,14 +108,17 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#projectPath,#libraryName)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myProjectPath1', 'myLib')
-        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
+        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath2, libraryName2)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:
-        projectPath       | libraryName | matchesId
-        ':myProjectPath1' | 'myLib'     | true
-        ':myProjectPath2' | 'myLib'     | false
-        ':myProjectPath1' | 'myLib2'    | false
+        projectPath1      | libraryName1 | projectPath2      | libraryName2 | matchesId
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | true
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | false
+        ':myProjectPath1' | null         | ':myProjectPath2' | 'foo'        | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | false
     }
 }

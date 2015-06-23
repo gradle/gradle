@@ -55,7 +55,7 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
 
         if (identifier instanceof LibraryComponentIdentifier) {
             LibraryComponentIdentifier projectComponentIdentifier = (LibraryComponentIdentifier) identifier;
-            return projectPath.equals(projectComponentIdentifier.getProjectPath()) && libraryName.equals(projectComponentIdentifier.getLibraryName());
+            return projectPath.equals(projectComponentIdentifier.getProjectPath()) && projectComponentIdentifier.getLibraryName().equals(libraryName);
         }
 
         return false;
