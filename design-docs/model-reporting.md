@@ -69,12 +69,13 @@ Two problems:
 1. Use of `mutable` & `immutable`: should be `subject`, `inputs`
 1. Use of `+` for “did bind” and `-` for “did not bind” is too subtle - needs to be clearer what is happening
 
+# Backlog
+
 # Story: Model report shows hidden nodes
 
 Add a 'show hidden elements' command-line option to show hidden nodes.
 
 `--all`
-
 
 # Story: Add report that shows dependencies between model elements
 
