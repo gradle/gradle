@@ -47,13 +47,7 @@ class GradleRunnerIntegrationTest extends Specification {
 
     def "execute build for expected success"() {
         given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -109,13 +103,7 @@ Unexpected exception""")
 
     def "execute build for expected failure but succeeds"() {
         given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -128,13 +116,8 @@ Unexpected exception""")
 
     def "execute build for multiple tasks"() {
         given:
+        buildFile << helloWorldTask()
         buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-
             task byeWorld {
                 doLast {
                     println 'Bye world!'
@@ -189,13 +172,7 @@ public class MyApp {
 """, new File(buildSrcJavaSrcDir, 'MyApp.java'))
 
 
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -247,13 +224,7 @@ public class MyApp {
 
     def "build execution with badly formed argument"() {
         given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -271,13 +242,7 @@ Unknown command-line option '--unknown'.""")
     def "build execution with non-existent working directory"() {
         given:
         File workingDir = new File('some/path/that/does/not/exist')
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -296,13 +261,7 @@ Project directory '$workingDir.absolutePath' does not exist.""")
     def "build execution with invalid JVM arguments"() {
         given:
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
@@ -351,5 +310,15 @@ Gradle build daemon disappeared unexpectedly (it may have been killed or may hav
 
         assert gradleRunner.workingDir == testProjectDir.testDirectory
         gradleRunner
+    }
+
+    private String helloWorldTask() {
+        """
+        task helloWorld {
+            doLast {
+                println 'Hello world!'
+            }
+        }
+        """
     }
 }

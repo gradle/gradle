@@ -16,8 +16,10 @@
 
 package org.gradle.testkit.functional.internal
 
+import org.gradle.api.GradleException
 import org.gradle.util.TextUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
     DefaultGradleRunner defaultGradleRunner = new DefaultGradleRunner()
@@ -49,10 +51,11 @@ This is some error
 -----"""
     }
 
-    def "creates diagnostic message for execution result with thrown exception"() {
+    @Unroll
+    def "creates diagnostic message for execution result for thrown #description"() {
         given:
         GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()
-        gradleExecutionResult.setThrowable(new RuntimeException('Something went wrong'))
+        gradleExecutionResult.setThrowable(exception)
 
         when:
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
@@ -67,8 +70,14 @@ Error:
 This is some error
 -----
 Reason:
-Something went wrong
+$expectedReason
 -----"""
+
+        where:
+        exception                                                                                                                     | expectedReason                | description
+        new RuntimeException('Something went wrong')                                                                                  | 'Something went wrong'        | 'exception having no parent cause'
+        new RuntimeException('Something went wrong', new GradleException('Unknown command line option'))                              | 'Unknown command line option' | 'exception having single parent cause'
+        new RuntimeException('Something went wrong', new GradleException('Unknown command line option', new Exception('Total fail'))) | 'Total fail'                  | 'exception having multiple parent causes'
     }
 
     private GradleExecutionResult createGradleExecutionResult() {
