@@ -94,7 +94,7 @@ A functional test using Spock could look as such:
     * When running from a `Test` task, use the Gradle installation that is running the build.
     * When importing into the IDE, use the Gradle installation that performed the import.
     * Can infer the location of the Gradle installation based on the code-source of the test kit classes (reuse `GradleDistributionLocator` in some form for this).
-    * Possibly provide some override for our functional tests to use.
+    * Possibly provide some override for our functional tests to use, to run from the classpath.
 * No environmental control will be allowed (e.g. setting env vars or sys props).
 * Add (or expand) a sample for building and testing a plugin and task implementation.
 * Add some brief user guide material.
@@ -148,113 +148,6 @@ Add methods to `TestResult` to query the result.
     * Tasks that are marked SKIPPED, UP-TO-DATE or FAILED can be retrieved as skipped tasks from `GradleRunner`.
     * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
 * A build that has `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
-
-## Story: JUnit test adapter
-
-An abstract class that simplifies the use of the test-kit through the test framework JUnit.
-
-### User visible changes
-
-A user will need to declare the dependency on JUnit in the build script.
-
-    dependencies {
-        testCompile junitTestKit()
-        testCompile 'junit:junit:4.8.2'
-    }
-
-As a user, you write your functional test by extending the base class `FunctionalTest`.
-
-    import org.gradle.testkit.functional.junit.FunctionalTest;
-
-    import java.util.List;
-    import java.util.ArrayList;
-    import org.junit.Test;
-    import static org.junit.Assert.assertTrue;
-
-    public class UserFunctionalTest extends FunctionalTest {
-        @Test
-        public void canExecuteBuildFileUsingTheJavaPlugin() {
-            writeToFile(getBuildFile(), "apply plugin: 'java'");
-            BuildResult result = succeeds("build")
-            List<String> expectedTaskNames = new ArrayList<String>();
-            expectedTaskNames.add("classes");
-            expectedTaskNames.add("test");
-            expectedTaskNames.add("check");
-            assertTrue(result.getExecutedTasks().containsAll(expectedTaskNames));
-        }
-    }
-
-### Implementation
-
-* A new module named `test-kit-junit` will be created in Gradle core.
-* Temporary directories for test execution per test case will be creates by using the JUnit Rule [TemporaryFolder](http://junit.org/apidocs/org/junit/rules/TemporaryFolder.html).
-* The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with JUnit.
-* After all tests are executed, temporary test files are automatically cleaned up.
-
-The base class implementation could look similar to the following code snippet:
-
-    package org.gradle.testkit.functional.junit;
-
-    import org.gradle.testkit.functional.*;
-
-    import java.io.File;
-    import org.junit.Before;
-    import org.junit.Rule;
-    import org.junit.rules.TemporaryFolder;
-
-    public abstract class FunctionalTest {
-        @Rule private final TemporaryFolder temporaryFolder = new TemporaryFolder("build/tmp/test-files");
-        private File testDirectory;
-        private GradleRunner gradleRunner;
-
-        @Before
-        public void setup() {
-            testDirectory = temporaryFolder.newFolder("...");
-            gradleRunner = GradleRunner.create();
-            gradleRunner.setWorkingDir(testDirectory);
-        }
-
-        // Perhaps factory method `newGradleRunner()` instead?
-        protected GradleRunner getGradleRunner() {
-            return gradleRunner;
-        }
-
-        protected File getTestDirectory() {
-            return testDirectory;
-        }
-
-        protected File getBuildFile() {
-            return new File(testDirectory, "build.gradle");
-        }
-
-        protected File getSettingsFile() {
-            return new File(testDirectory, "settings.gradle");
-        }
-
-        protected BuildResult succeeds(String... tasks) {
-            return gradleRunner.useTasks(Arrays.asList(tasks)).succeeds();
-        }
-
-        protected BuildResult fails(String... tasks) {
-            return gradleRunner.useTasks(Arrays.asList(tasks)).fails();
-        }
-    }
-
-### Test coverage
-
-* Users can use `FunctionalTest` to write their own functional tests and successfully execute them.
-* Users can create new files and directories with the JUnit Rule accessible from the base class.
-* Users can create an assertion on whether tasks should be executed successfully and whether the execution should fail.
-* Each test method creates a new temporary directory.
-* A user can create temporary files and directories and files with the provided test rule.
-* A user can configure the `GradleRunner` e.g. to add arguments.
-* Test methods can write a `build.gradle` and `settings.gradle` file.
-* After test execution, temporary test files are deleted independent of the number of exercised tests, or whether the result is successful or failed.
-* IDEA and Eclipse projects are configured appropriately to use Junit test-kit. Manually verify that this works as well (in IDEA say).
-
-### Open issues
-
-- Cleanup when running from IDE
 
 ## Story: Test daemons are isolated from the environment they are running in
 
@@ -418,6 +311,113 @@ Creates a single project build that uses Java to implement and test a Gradle plu
     gradle --init groovy-gradle-plugin
 
 Creates a single project build that uses Groovy to implement and test a Gradle plugin using Spock.
+
+## Story: JUnit test adapter
+
+An abstract class that simplifies the use of the test-kit through the test framework JUnit.
+
+### User visible changes
+
+A user will need to declare the dependency on JUnit in the build script.
+
+    dependencies {
+        testCompile junitTestKit()
+        testCompile 'junit:junit:4.8.2'
+    }
+
+As a user, you write your functional test by extending the base class `FunctionalTest`.
+
+    import org.gradle.testkit.functional.junit.FunctionalTest;
+
+    import java.util.List;
+    import java.util.ArrayList;
+    import org.junit.Test;
+    import static org.junit.Assert.assertTrue;
+
+    public class UserFunctionalTest extends FunctionalTest {
+        @Test
+        public void canExecuteBuildFileUsingTheJavaPlugin() {
+            writeToFile(getBuildFile(), "apply plugin: 'java'");
+            BuildResult result = succeeds("build")
+            List<String> expectedTaskNames = new ArrayList<String>();
+            expectedTaskNames.add("classes");
+            expectedTaskNames.add("test");
+            expectedTaskNames.add("check");
+            assertTrue(result.getExecutedTasks().containsAll(expectedTaskNames));
+        }
+    }
+
+### Implementation
+
+* A new module named `test-kit-junit` will be created in Gradle core.
+* Temporary directories for test execution per test case will be creates by using the JUnit Rule [TemporaryFolder](http://junit.org/apidocs/org/junit/rules/TemporaryFolder.html).
+* The functional test implementation uses the `GradleRunner` and provides methods to simplify the creation of tests with JUnit.
+* After all tests are executed, temporary test files are automatically cleaned up.
+
+The base class implementation could look similar to the following code snippet:
+
+    package org.gradle.testkit.functional.junit;
+
+    import org.gradle.testkit.functional.*;
+
+    import java.io.File;
+    import org.junit.Before;
+    import org.junit.Rule;
+    import org.junit.rules.TemporaryFolder;
+
+    public abstract class FunctionalTest {
+        @Rule private final TemporaryFolder temporaryFolder = new TemporaryFolder("build/tmp/test-files");
+        private File testDirectory;
+        private GradleRunner gradleRunner;
+
+        @Before
+        public void setup() {
+            testDirectory = temporaryFolder.newFolder("...");
+            gradleRunner = GradleRunner.create();
+            gradleRunner.setWorkingDir(testDirectory);
+        }
+
+        // Perhaps factory method `newGradleRunner()` instead?
+        protected GradleRunner getGradleRunner() {
+            return gradleRunner;
+        }
+
+        protected File getTestDirectory() {
+            return testDirectory;
+        }
+
+        protected File getBuildFile() {
+            return new File(testDirectory, "build.gradle");
+        }
+
+        protected File getSettingsFile() {
+            return new File(testDirectory, "settings.gradle");
+        }
+
+        protected BuildResult succeeds(String... tasks) {
+            return gradleRunner.useTasks(Arrays.asList(tasks)).succeeds();
+        }
+
+        protected BuildResult fails(String... tasks) {
+            return gradleRunner.useTasks(Arrays.asList(tasks)).fails();
+        }
+    }
+
+### Test coverage
+
+* Users can use `FunctionalTest` to write their own functional tests and successfully execute them.
+* Users can create new files and directories with the JUnit Rule accessible from the base class.
+* Users can create an assertion on whether tasks should be executed successfully and whether the execution should fail.
+* Each test method creates a new temporary directory.
+* A user can create temporary files and directories and files with the provided test rule.
+* A user can configure the `GradleRunner` e.g. to add arguments.
+* Test methods can write a `build.gradle` and `settings.gradle` file.
+* After test execution, temporary test files are deleted independent of the number of exercised tests, or whether the result is successful or failed.
+* IDEA and Eclipse projects are configured appropriately to use Junit test-kit. Manually verify that this works as well (in IDEA say).
+
+### Open issues
+
+- Cleanup when running from IDE
 
 ## Story: Groovy/Spock framework test adapter
 
