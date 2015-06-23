@@ -17,7 +17,7 @@ The test-kit will be agnostic of the test framework preferred by the user (e.g. 
 
 # Milestone 1
 
-The first milestone lays the foundation for defining and executing functional tests. The goal should be a solid implementation based on the tooling API, support for JUnit and the integration
+The first milestone lays the foundation for defining and executing functional tests. The goal should be a solid implementation based on the tooling API and integration
 with the plugin development plugin.
 
 ## Story: User creates and executes a functional test using the test-kit
@@ -151,9 +151,7 @@ Add methods to `TestResult` to query the result.
 
 ## Story: Test daemons are isolated from the environment they are running in
 
-The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be improved.
-
-Daemons started by test-kit should be isolated from the machine environment:
+The previous stories set up the basic mechanics for the test-kit. Daemons started by test-kit should be isolated from the machine environment:
 
 - Test-kit uses only daemons started by test-kit.
 - Configuration in ~/.gradle is ignored, such as `init.gradle` and `gradle.properties`
@@ -164,8 +162,9 @@ Daemons started by test-kit should be isolated from the machine environment:
 
 ### Implementation
 
-- Should be possible to implement this by setting the Gradle user home dir to some temporary directory.
-- Reuse the temporary directory within the test JVM process, so that daemons are reused.
+- Should be possible to implement this by setting the Gradle user home dir to some temporary directory, and defining some system properties.
+- Reuse the temporary directory within the test JVM process, so that daemons are reused for multiple tests.
+- Kill off the daemons when the JVM exits (See `DefaultGradleConnector#close()`). If required, split out another internal method to stop the daemons.
 
 ### Test cases
 
@@ -173,11 +172,7 @@ Daemons started by test-kit should be isolated from the machine environment:
     * If no daemon process exists, create a new one and use it. Regular Gradle build executions will not use the daemon process dedicated for test execution.
     * If a daemon process already exists, determine if it is a daemon process dedicated for test execution. Reuse it if possible. Otherwise, create a new one.
     * A daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
-
-### Open issues
-
-* Potentially expose test fixtures as Gradle plugins so resources can be set up/cleaned automatically for each test case.
-* Reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration.
+    * Daemons are stopped at the end of the test.
 
 ## Story: IDE user debugs test build
 
@@ -205,10 +200,6 @@ The `GradleRunner` interface will be extended to provide additional methods.
 * All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
 * Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
 
-### Open issues
-
-* Might be more reliable to use remote debugging instead, so that there is only 1 execution mode instead of 2.
-
 ## Story: Functional test defines classes under test to make visible to test builds
 
 Provide an API for functional tests to define a classpath containing classes under test:
@@ -218,7 +209,7 @@ Provide an API for functional tests to define a classpath containing classes und
         void setClassUnderTest(Collection<URI> classpath);
     }
 
-This classpath is then available to use to locate plugins in a test build, as if they were published at the plugin portal:
+This classpath is then available to use to locate plugins in a test build, as if they were published to the plugin portal:
 
     plugins {
         id 'com.my-org.my-plugin'
@@ -234,9 +225,29 @@ This classpath is then available to use to locate plugins in a test build, as if
 
 ### Implementation
 
-- Add an internal Tooling API mechanism to attach this to a build request.
+- Add an internal Tooling API mechanism to attach this to a build request:
+    - Provide the plugin classpath when configuring the `BuildLauncher`. Perhaps add an internal subtype with the appropriate methods.
+    - Pass the plugin classpath from Tooling API consumer to provider. Add to `ConsumerOperationParameters` and `ProviderOperationParameters`.
+    - Send the classpath between provider and daemon. Add to `BuildActionParameters` (or perhaps `BuildModelAction`).
+- Based on this, add another internal plugin resolver that uses the supplied classpath to locate plugins:
+    - Perhaps have `InProcessBuildActionExecuter` talk to some service to pass this classpath through to the plugin resolution mechanics, or pass this
+      through when creating the `GradleLauncher`.
+    - Define a new `PluginResolver` implementation that loads the plugins in a ClassLoader scope whose parent is the Gradle API scope.
+
+This diagram shows the intended ClassLoader hierarchy. The piece to be added is shaded blue:
+
+<img src="img/plugins-under-test-classloaders.png">
 
 ### Test coverage
+
+- Test build can apply a plugin by id.
+- Plugin code can use Gradle API classes.
+- Build script can use plugin classes, when applied. Cannot use plugin classes when not applied.
+- Diagnostic message for 'plugin not found' failure includes some details of the classpath it searched.
+
+### Open issues
+
+- How can a plugin under test apply another plugin under test programmatically, say in its `apply()` method?
 
 ## Story: Classes under test are visible to build scripts
 
@@ -244,7 +255,11 @@ When using the plugin development plugin, plugins under test are visible to buil
 
 ### Implementation
 
-- Infer the classes under test from the
+- Infer the classpath for classes under test classpath
+    - When running from the plugin dev plugin, use the main source set's runtime classpath.
+    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
+- Add or expand sample to demonstrate this feature.
+- Add some brief user guide material.
 
 ### Test coverage
 
@@ -724,3 +739,5 @@ A functional test using Spock could look as such:
 # Backlog
 
 - Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. The work required could be simplified by introducing helper methods.
+- Potentially when running under the plugin dev plugin, defer clean up of test daemons to some finalizer task
+- Have test daemons reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration files there.
