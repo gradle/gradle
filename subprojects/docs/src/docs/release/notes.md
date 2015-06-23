@@ -2,6 +2,23 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Continuous build (i)
+
+The new continuous build support allows Gradle to automatically start building in response to file system changes.
+When you run with the `--continuous` or `-t` command line options, Gradle will not exit at the end of a build.
+Instead, Gradle will wait for files that are processed by the build to change.
+When changes are detected, Gradle will re-run the previous build with the same task selection.
+
+For instance, if you run `gradle -t build` in a typical Java project, main and test sources will be built and tests will be run.
+If changes are made to the project's main sources, Gradle will rebuild the main Java sources and re-run the project's tests.
+If changes are made to the project's test sources, Gradle will only rebuild the test Java sources and re-run the project's tests.
+
+This is just the initial iteration of this feature, which will improve in coming releases.
+Future releases will increase the scope of “changes” to include more than just local input files.
+For example, the scope of considered “changes” may expand in the future to encompass dependencies in remote repositories along with other types of inputs that affect the build result.
+
+For more information, please see the [new User Guide chapter](userguide/continuous_build.html).
+
 ### Dependency substitution rules (i)
 
 Previous versions of Gradle allowed an external dependency to be replaced with another using a 'Dependency Resolve Rule'.
@@ -128,19 +145,6 @@ Gradle will build a test executable and run your tests.
 
 See the [user guide chapter](userguide/nativeBinaries.html#native_binaries:google_test) and the google-test sample (`samples/native-binaries/google-test`)
 in the distribution to learn more. Expect deeper integration with Google Test (and other native testing tools) in the future.
-
-### Continuous build (i)
-
-The new continuous build support allows Gradle to automatically start building in response to file system changes.
-When you run with the `--continuous` command line option, Gradle will not exit at the end of a build.
-Instead, Gradle will wait for something to change.
-When changes are detected, Gradle will re-run the previous build with the same task selection.
-
-For instance, if you run `gradle --continuous build` in a typical Java project, main and test sources will be built and tests will be run.
-If changes are made to the project's main sources, Gradle will rebuild the main Java sources and re-run the project's tests.
-If changes are made to the project's test sources, Gradle will only rebuild the test Java sources and re-run the project's tests.
-
-For more information, please see the [new User Guide chapter](userguide/continuous_build.html).
 
 ### Task group accessible from the Tooling API
 
