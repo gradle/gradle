@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.functional.internal
 
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class DefaultGradleRunnerTest extends Specification {
@@ -38,7 +39,7 @@ class DefaultGradleRunnerTest extends Specification {
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        removeCarriageReturn(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+        TextUtil.normaliseLineSeparators(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
 
 Output:
 This is some output
@@ -57,7 +58,7 @@ This is some error
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        removeCarriageReturn(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+        TextUtil.normaliseLineSeparators(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
 
 Output:
 This is some output
@@ -76,9 +77,5 @@ Something went wrong
         ByteArrayOutputStream standardError = new ByteArrayOutputStream()
         standardError.write('This is some error'.bytes)
         new GradleExecutionResult(standardOutput, standardError)
-    }
-
-    private String removeCarriageReturn(String message) {
-        message.replaceAll('\\r', '')
     }
 }

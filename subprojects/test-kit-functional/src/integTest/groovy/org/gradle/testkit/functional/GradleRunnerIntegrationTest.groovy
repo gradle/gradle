@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.gradle.util.GFileUtils
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -80,8 +81,9 @@ class GradleRunnerIntegrationTest extends Specification {
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        t.message.contains('Unexpected build execution failure')
-        t.message.contains("""Reason:
+        String message = TextUtil.normaliseLineSeparators(t.message)
+        message.contains('Unexpected build execution failure')
+        message.contains("""Reason:
 Unexpected exception""")
     }
 
@@ -260,9 +262,10 @@ public class MyApp {
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        t.message.contains("""Reason:
+        String message = TextUtil.normaliseLineSeparators(t.message)
+        message.contains("""Reason:
 Unknown command-line option '--unknown'.""")
-        !t.message.contains(':helloWorld')
+        !message.contains(':helloWorld')
     }
 
     def "build execution with non-existent working directory"() {
@@ -283,9 +286,10 @@ Unknown command-line option '--unknown'.""")
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        t.message.contains("""Reason:
+        String message = TextUtil.normaliseLineSeparators(t.message)
+        message.contains("""Reason:
 Project directory '$workingDir.absolutePath' does not exist.""")
-        !t.message.contains(':helloWorld')
+        !message.contains(':helloWorld')
     }
 
     @Ignore
@@ -326,11 +330,12 @@ Project directory '$workingDir.absolutePath' does not exist.""")
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        t.message.contains("""Output:
+        String message = TextUtil.normaliseLineSeparators(t.message)
+        message.contains("""Output:
 :helloWorld
 Hello world!""")
-        !t.message.contains('Bye world!')
-        t.message.contains("""Reason:
+        !message.contains('Bye world!')
+        message.contains("""Reason:
 Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
 """)
     }
