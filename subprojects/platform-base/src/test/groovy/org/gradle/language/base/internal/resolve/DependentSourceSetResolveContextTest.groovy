@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.java.internal
+package org.gradle.language.base.internal.resolve
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
+import org.gradle.language.base.internal.DependentSourceSetInternal
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultJavaSourceSetResolveContextTest extends Specification {
+class DependentSourceSetResolveContextTest extends Specification {
     def "resolve context can be created from a java source set"() {
         given:
         def project = ':foo'
-        def sourceset = Mock(DefaultJavaLanguageSourceSet)
+        def sourceset = Mock(DependentSourceSetInternal)
 
         when:
-        def context = new DefaultJavaSourceSetResolveContext(project, sourceset)
+        def context = new DependentSourceSetResolveContext(project, sourceset)
 
         then:
         context.projectPath == project
@@ -38,11 +39,11 @@ class DefaultJavaSourceSetResolveContextTest extends Specification {
     def "context name for project #path and library #library is #contextName"() {
         // keeping this test in case we need to change the context name again
         given:
-        def sourceset = Mock(DefaultJavaLanguageSourceSet)
+        def sourceset = Mock(DependentSourceSetInternal)
 
         when:
         sourceset.parentName >> library
-        def context = new DefaultJavaSourceSetResolveContext(path, sourceset)
+        def context = new DependentSourceSetResolveContext(path, sourceset)
 
         then:
         context.projectPath == path

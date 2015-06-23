@@ -35,11 +35,11 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
+import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
-import org.gradle.language.java.internal.DefaultJavaSourceSetResolveContext;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
@@ -168,8 +168,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return classpath;
         }
 
-        private DefaultJavaSourceSetResolveContext createResolveContext() {
-            return new DefaultJavaSourceSetResolveContext(projectPath, (DefaultJavaLanguageSourceSet) sourceSet);
+        private DependentSourceSetResolveContext createResolveContext() {
+            return new DependentSourceSetResolveContext(projectPath, (DefaultJavaLanguageSourceSet) sourceSet);
         }
 
         @Override

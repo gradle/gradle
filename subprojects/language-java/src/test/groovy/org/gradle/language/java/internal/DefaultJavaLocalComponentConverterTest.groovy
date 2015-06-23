@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter
+import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
@@ -27,7 +28,7 @@ import spock.lang.Unroll
 class DefaultJavaLocalComponentConverterTest extends Specification {
     def "can convert java source set resolve context"() {
         given:
-        def context = new DefaultJavaSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
+        def context = new DependentSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -47,7 +48,7 @@ class DefaultJavaLocalComponentConverterTest extends Specification {
         sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
+        def context = new DependentSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -88,7 +89,7 @@ class DefaultJavaLocalComponentConverterTest extends Specification {
         sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DefaultJavaSourceSetResolveContext(project, sourceSet)
+        def context = new DependentSourceSetResolveContext(project, sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()

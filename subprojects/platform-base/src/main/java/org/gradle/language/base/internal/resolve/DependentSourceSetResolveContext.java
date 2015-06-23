@@ -15,13 +15,17 @@
  */
 package org.gradle.language.base.internal.resolve;
 
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
 
-public abstract class DependentSourceSetResolveContext implements ResolveContext {
+public class DependentSourceSetResolveContext implements ResolveContext {
     private final String projectPath;
     private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
@@ -47,5 +51,17 @@ public abstract class DependentSourceSetResolveContext implements ResolveContext
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
+    }
+
+    @Override
+    public DependencySet getDependencies() {
+        DefaultDomainObjectSet<Dependency> backingSet = new DefaultDomainObjectSet<Dependency>(Dependency.class);
+        return new DefaultDependencySet(String.format("%s dependencies", this.getName()), backingSet);
+    }
+
+
+    @Override
+    public DependencySet getAllDependencies() {
+        return new DefaultDependencySet(String.format("%s dependencies", this.getName()), new DefaultDomainObjectSet<Dependency>(Dependency.class));
     }
 }
