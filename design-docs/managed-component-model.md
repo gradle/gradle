@@ -229,7 +229,20 @@ individual nodes.
 
 As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
 
-# Feature 5: Plugin author attaches source sets to managed type
+# Feature 5: Managed Model usability
+
+- Consistent validation when managed type, ModelMap and ModelSet are used as inputs.
+- Consistent validation when managed type, ModelMap and ModelSet are mutated after view is closed.
+- Consistent validation when managed type, ModelMap and ModelSet used on subject that is not mutable.
+- Consistent usage of ModelMap and ModelSet with reference properties.
+- Consistent mutation methods on ModelMap and ModelSet.
+- Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
+- Enforce that subject cannot be mutated in a validate rule
+
+# Feature 6: Internal views for managed types 
+
+
+# Feature 7: Plugin author attaches source sets to managed type
 
 This feature allows source sets to be added to arbitrary locations in the model. For example, it should be possible to model Android
 build types and flavors each with an associated source set.
@@ -252,14 +265,16 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
     - Need some convention for which languages are included. Possibly default to no languages 
 - Change `BinarySpec.sources` and `ComponentSpec.sources` to have type `FunctionalSourceSet`
 
-# Feature 6: Key component model elements are not realized until required
+# Later features
+
+# Feature: Key component model elements are not realized until required
 
 This feature continues earlier work to make key properties of `BinarySpec` managed.
 
 - `BinarySpec.source`
 - `BinarySpec.tasks`
 
-# Feature 7: Build logic defines tasks for generated source sets and intermediate outputs
+# Feature: Build logic defines tasks for generated source sets and intermediate outputs
 
 This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
 and intermediate outputs.
@@ -307,7 +322,7 @@ The implementation would be responsible for invoking the rules when assembling t
 - When a physical thing is used as input, the tasks that build its inputs, if any, should be determined and attached as dependencies of those tasks
 that take the physical thing as input.
 
-# Feature 8: Plugin author uses managed types to define intermediate outputs
+# Feature: Plugin author uses managed types to define intermediate outputs
 
 This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
@@ -320,7 +335,7 @@ kind of JVM classpath component.
 One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
 of a buildable thing.
 
-# Feature 9: Build logic defines tasks that run executable things
+# Feature: Build logic defines tasks that run executable things
 
 This feature generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
 
@@ -339,7 +354,7 @@ The implementation would be responsible for building the executable things, and 
 
 The `components` report should show details of the executable things, which as the entry point task to run the thing.
 
-# Feature 10: References between key objects in the software model are visible to rules
+# Feature: References between key objects in the software model are visible to rules
 
 The relationships exposed in the first feature represent ownership, where the relationship is one between a parent and child.
 This feature exposes other key 'non-ownership' relationships present in the software model.
