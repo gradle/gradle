@@ -16,27 +16,22 @@
 
 package org.gradle.language.java.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
-import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
-import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
@@ -49,7 +44,8 @@ import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -115,7 +111,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(new DependencyResolvingClasspath(project.getPath(), binarySpec, javaSourceSet, dependencyResolver));
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(
+                        project.getPath(),
+                        binarySpec,
+                        (DependentSourceSetInternal) javaSourceSet,
+                        dependencyResolver,
+                        ((JavaSourceSet) sourceSet).getCompileClasspath().getFiles());
+                    compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -131,87 +133,4 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         }
     }
 
-    private static class DependencyResolvingClasspath extends AbstractFileCollection {
-        private final String projectPath;
-        private final JavaSourceSet sourceSet;
-        private final BinarySpec binary;
-        private final ArtifactDependencyResolver dependencyResolver;
-
-        private ResolverResults resolverResults;
-        private TaskDependency taskDependency;
-
-        private DependencyResolvingClasspath(
-            String projectPath,
-            BinarySpec binarySpec,
-            JavaSourceSet sourceSet,
-            ArtifactDependencyResolver dependencyResolver) {
-            this.projectPath = projectPath;
-            this.binary = binarySpec;
-            this.sourceSet = sourceSet;
-            this.dependencyResolver = dependencyResolver;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Classpath for " + sourceSet.getDisplayName();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            assertResolved();
-            Set<File> classpath = new LinkedHashSet<File>();
-            classpath.addAll(sourceSet.getCompileClasspath().getFiles().getFiles());
-            Set<ResolvedArtifact> artifacts = resolverResults.getResolvedArtifacts().getArtifacts();
-            for (ResolvedArtifact resolvedArtifact : artifacts) {
-                classpath.add(resolvedArtifact.getFile());
-            }
-            return classpath;
-        }
-
-        private DependentSourceSetResolveContext createResolveContext() {
-            return new DependentSourceSetResolveContext(projectPath, (DefaultJavaLanguageSourceSet) sourceSet);
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            assertResolved();
-            return taskDependency;
-        }
-
-        private void assertResolved() {
-            if (resolverResults==null) {
-                final DefaultTaskDependency result = new DefaultTaskDependency();
-                result.add(super.getBuildDependencies());
-                final List<Throwable> notFound = new LinkedList<Throwable>();
-                resolve(createResolveContext(), new Action<DefaultResolverResults>() {
-                    @Override
-                    public void execute(DefaultResolverResults resolverResults) {
-                        if (!resolverResults.hasError()) {
-                            ResolvedLocalComponentsResult resolvedLocalComponents = resolverResults.getResolvedLocalComponents();
-                            result.add(resolvedLocalComponents.getComponentBuildDependencies());
-                        }
-                        resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                            @Override
-                            public void execute(DependencyResult dependencyResult) {
-                                if (dependencyResult instanceof UnresolvedDependencyResult) {
-                                    UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
-                                    notFound.add(unresolved.getFailure());
-                                }
-                            }
-                        });
-                    }
-                });
-                if (!notFound.isEmpty()) {
-                    throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
-                }
-                taskDependency = result;
-            }
-        }
-
-        public void resolve(ResolveContext resolveContext, Action<DefaultResolverResults> onResolve) {
-            resolverResults = new DefaultResolverResults();
-            dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), GlobalDependencyResolutionRules.NO_OP, (DefaultResolverResults) resolverResults);
-            onResolve.execute((DefaultResolverResults) resolverResults);
-        }
-    }
 }
