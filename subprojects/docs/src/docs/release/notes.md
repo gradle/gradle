@@ -59,7 +59,24 @@ and the [DSL Reference](dsl/org.gradle.api.artifacts.DependencySubstitutions.htm
 
 This feature was contributed by [Lóránt Pintér](https://github.com/lptr) and the team at [Prezi](https://prezi.com).
 
-### Default dependencies (i)
+### Progress events via the Tooling API (i)
+
+It is now possible to receive progress events for various build operations.
+Listeners can be provided to the [`BuildLauncher`](javadoc/org/gradle/tooling/BuildLauncher.html) via the
+[`addProgressListener(ProgressListener)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener\)) method.
+Events are fired when the task graph is being populated, when each task is executed, when tests are executed, etc.
+
+All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via
+[`ProgressEvent.getDescriptor()`](javadoc/org/gradle/tooling/events/ProgressEvent.html#getDescriptor\(\)) and
+[`OperationDescriptor.getParent()`](javadoc/org/gradle/tooling/events/OperationDescriptor.html#getParent\(\)).
+
+If you are only interested in the progress events for a sub-set of all available operations, you can use
+[`LongRunningOperation.addProgressListener(ProgressListener, Set<OperationType>)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener,%20java.util.Set\)).
+For example, you may elect to only receive events for the execution of tasks.
+
+One potential use of this new capability would be to provide interesting visualisations of the build execution.
+
+### Simpler default dependencies (i)
 
 Many Gradle plugins allow the user to specify a dependency for a particular tool, supplying a default version only if none is provided by the user.
 A common implementation of this involves using a `beforeResolve()` hook to check if the configuration has any dependencies, adding the default dependency if not.
@@ -87,7 +104,7 @@ Specifying a default dependency with `defaultDependencies` (recommended):
 
 See the <a href="dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:defaultDependencies(org.gradle.api.Action)">DSL reference</a> for more details.
 
-### Support for Precompiled Headers (i)
+### Precompiled header support (i)
 
 Precompiled headers are a performance optimization for native builds that allows commonly used headers to be parsed only once rather than for each file that includes the headers.
 Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
@@ -146,40 +163,21 @@ Expected: true
 See the [User Guide](userguide/nativeBinaries.html#native_binaries:google_test) to learn more.
 Expect deeper integration with Google Test (and other native testing tools) in the future.
 
-### Task group accessible from the Tooling API
+### Obtaining a task's group via the Tooling API
 
 It is now possible to obtain the “group” of a task via [`org.gradle.tooling.model.Task.getGroup()`](javadoc/org/gradle/tooling/model/GradleTask.html#getGroup\(\)).
 
-### Progress events for build operations through the Tooling API
-
-It is now possible to receive progress events for various build operations.
-Listeners can be provided to the [`BuildLauncher`](javadoc/org/gradle/tooling/BuildLauncher.html) via the
-[`addProgressListener(ProgressListener)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener\)) method.
-Events are fired when the task graph is being populated, when each task is executed, when tests are executed, etc.
-
-All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via
-[`ProgressEvent.getDescriptor()`](javadoc/org/gradle/tooling/events/ProgressEvent.html#getDescriptor\(\)) and
-[`OperationDescriptor.getParent()`](javadoc/org/gradle/tooling/events/OperationDescriptor.html#getParent\(\)).
-
-If you are only interested in the progress events for a sub-set of all available operations, you can use
-[`LongRunningOperation.addProgressListener(ProgressListener, Set<OperationType>)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener,%20java.util.Set\)).
-For example, you may elect to only receive events for the execution of tasks.
-
-One potential use of this new capability would be to provide interesting visualisations of the build execution.
-
 ### New model improvements
 
-- The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display string representations of some values.
+The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display string representations of some values.
 This allows the effective values of the build model to be visualised, not just the structure as was the case previously.
 
-- [`@Managed`](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
+[`@Managed`](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
 
 [`@Managed`](javadoc/org/gradle/model/Managed.html) types can now implement the [`Named`](javadoc/org/gradle/api/Named.html) interface.
 The `name` property will be automatically populated based on the objects location in the model graph.
 
-It is now possible for [`@Managed`] types to declare properties of type [`ModelMap<T>`](javadoc/org/gradle/model/ModelMap.html).
-
-- TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
+It is now possible for [`@Managed`](javadoc/org/gradle/model/Managed.html) types to declare properties of type [`ModelMap<T>`](javadoc/org/gradle/model/ModelMap.html).
 
 ## Fixed issues
 
