@@ -99,7 +99,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
         'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
-        'toolingApiBuilders', 'testKitFunctional'
+        'toolingApiBuilders'
     ].collect {
         project(it)
     }
@@ -181,6 +181,7 @@ dependencies {
     sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
+    gradlePlugins project(':testKitFunctional')
 }
 
 task verifyIsProductionBuildEnvironment << {
