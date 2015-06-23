@@ -39,10 +39,12 @@ class GradleRunnerIntegrationTest extends Specification {
     def "execute build without providing a task runs the help task"() {
         when:
         GradleRunner gradleRunner = prepareGradleRunner()
-        gradleRunner.succeeds()
+        BuildResult result = gradleRunner.succeeds()
 
         then:
         noExceptionThrown()
+        result.standardOutput.contains(':help')
+        !result.standardError
     }
 
     def "execute build for expected success"() {
@@ -55,6 +57,7 @@ class GradleRunnerIntegrationTest extends Specification {
 
         then:
         noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
     }
@@ -97,7 +100,7 @@ Unexpected exception""")
 
         then:
         noExceptionThrown()
-        result.standardOutput
+        result.standardOutput.contains(':helloWorld')
         result.standardError.contains('Expected exception')
     }
 
@@ -131,7 +134,9 @@ Unexpected exception""")
 
         then:
         noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
+        result.standardOutput.contains(':byeWorld')
         result.standardOutput.contains('Bye world!')
         !result.standardError
     }
@@ -182,6 +187,7 @@ public class MyApp {
         noExceptionThrown()
         result.standardOutput.contains(':buildSrc:compileJava')
         result.standardOutput.contains(':buildSrc:build')
+        result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
     }
@@ -210,6 +216,7 @@ public class MyApp {
 
         then:
         noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains(debugMessage) == hasDebugMessage
         result.standardOutput.contains(infoMessage) == hasInfoMessage
         result.standardOutput.contains(quietMessage) == hasQuietMessage

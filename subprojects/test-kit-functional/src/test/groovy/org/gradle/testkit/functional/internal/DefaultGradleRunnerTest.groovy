@@ -41,14 +41,7 @@ class DefaultGradleRunnerTest extends Specification {
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        TextUtil.normaliseLineSeparators(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
-
-Output:
-This is some output
------
-Error:
-This is some error
------"""
+        TextUtil.normaliseLineSeparators(message) == basicDiagnosticsMessage
     }
 
     @Unroll
@@ -61,14 +54,7 @@ This is some error
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
 
         then:
-        TextUtil.normaliseLineSeparators(message) == """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
-
-Output:
-This is some output
------
-Error:
-This is some error
------
+        TextUtil.normaliseLineSeparators(message) == """$basicDiagnosticsMessage
 Reason:
 $expectedReason
 -----"""
@@ -86,5 +72,16 @@ $expectedReason
         ByteArrayOutputStream standardError = new ByteArrayOutputStream()
         standardError.write('This is some error'.bytes)
         new GradleExecutionResult(standardOutput, standardError)
+    }
+
+    private String getBasicDiagnosticsMessage() {
+        """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+
+Output:
+This is some output
+-----
+Error:
+This is some error
+-----"""
     }
 }
