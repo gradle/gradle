@@ -40,7 +40,7 @@ class HashUtilTest extends Specification {
         HashUtil.createHash(file, "MD5").asHexString() == md5HashString
 
         cleanup:
-        file.delete()
+        file?.delete()
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
@@ -105,7 +105,7 @@ class HashUtilTest extends Specification {
         HashUtil.sha1(file).asHexString() == sha1HashString
 
         cleanup:
-        file.delete()
+        file?.delete()
     }
 
     def "sha256 from byteArray returns SHA-256 hash" () {
@@ -127,6 +127,6 @@ class HashUtilTest extends Specification {
         HashUtil.sha256(file).asHexString() == sha256HashString
 
         cleanup:
-        file.delete()
+        file?.delete()
     }
 }

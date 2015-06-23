@@ -95,11 +95,26 @@
             This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
         </para>
         <para>
-            To enable this feature, download your Gradle distribution manually and calculate the SHA-256 hash sum of it, e.g.,
-            via <command>sha256sum gradle-2.3-bin.zip</command>.
-            Add the returned hash sum to <literal>gradle-wrapper.properties</literal> using the <literal>distributionSha256Sum</literal> property, e.g.,
-            <literal>distributionSha256Sum=010dd9f31849abc3d5644e282943b1c1c355f8e2635c5789833979ce590a3774</literal>
+            To enable this feature you'll want to first calculate the SHA-256 hash of a known Gradle distribution. You can generate a SHA-256 hash from Linux and
+            OSX or Windows (via <ulink url="https://www.cygwin.com/">Cygwin</ulink>) with the <command>shasum</command> command.
         </para>
+        <example>
+            <title>Generating a SHA-256 hash</title>
+            <programlisting><![CDATA[
+> shasum -a 256 gradle-2.4-all.zip
+371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10  gradle-2.4-all.zip
+]]></programlisting>
+        </example>
+        <para>
+            Add the returned hash sum to the <literal>gradle-wrapper.properties</literal> using the <literal>distributionSha256Sum</literal> property.
+        </para>
+        <example>
+            <title>Configuring SHA-256 checksum verification</title>
+            <para><filename>gradle-wrapper.properties</filename></para>
+            <programlisting><![CDATA[
+distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
+]]></programlisting>
+        </example>
     </section>
     <section id='sec:unix_file_permissions'>
         <title>Unix file permissions</title>

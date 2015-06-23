@@ -18,20 +18,23 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
-    @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
+    @Rule HttpServer server = new HttpServer()
 
     def setup() {
         executer.beforeExecute(new WrapperSetup())
+        server.allowGetOrHead('/gradle-bin.zip', distribution.binDistribution)
+        server.start()
     }
 
     def "wrapper execution fails when using bad checksum"() {
         given:
         buildFile << """
     wrapper {
-        distributionUrl = '${server.distUri}'
+        distributionUrl = '${server.address}/gradle-bin.zip'
     }
 """
 
@@ -51,14 +54,14 @@ class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
     wrapper {
-        distributionUrl = '${server.distUri}'
+        distributionUrl = '${server.address}/gradle-bin.zip'
     }
 """
 
         succeeds('wrapper')
 
         and:
-        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(server.binZip).asZeroPaddedHexString(64)}"
+        file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}"
 
         when:
         def success = executer.usingExecutable("gradlew").run()

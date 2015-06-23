@@ -16,8 +16,18 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+import org.junit.rules.ExternalResource
+import org.mortbay.jetty.Connector
+import org.mortbay.jetty.Server
+import org.mortbay.jetty.bio.SocketConnector
+import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
+
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
     @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
@@ -42,5 +52,37 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
 
         then:
         results.findAll { it.output.contains("Downloading") }.size() == 1
+    }
+
+    static class BlockingDownloadHttpServer extends ExternalResource {
+        private final Server server = new Server()
+        private final TestFile binZip
+
+        BlockingDownloadHttpServer(TestFile binZip) {
+            this.binZip = binZip
+        }
+
+        URI getDistUri() {
+            return new URI("http://localhost:${server.connectors[0].localPort}/gradle-bin.zip")
+        }
+
+        @Override
+        protected void before() throws Throwable {
+            server.connectors = [new SocketConnector()] as Connector[]
+            server.addHandler(new AbstractHandler() {
+                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
+                    binZip.withInputStream { instr ->
+                        IOUtils.copy(instr, response.outputStream)
+                    }
+                    request.handled = true
+                }
+            })
+            server.start()
+        }
+
+        @Override
+        protected void after() {
+            server.stop()
+        }
     }
 }
