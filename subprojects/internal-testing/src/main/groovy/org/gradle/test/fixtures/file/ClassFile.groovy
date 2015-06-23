@@ -29,34 +29,38 @@ class ClassFile {
     }
 
     ClassFile(InputStream inputStream) {
-        def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
-            @Override
-            void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-                hasLocalVars = true
-            }
+        try {
+            def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
+                @Override
+                void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+                    hasLocalVars = true
+                }
 
-            @Override
-            void visitLineNumber(int line, Label start) {
-                hasLineNumbers = true
+                @Override
+                void visitLineNumber(int line, Label start) {
+                    hasLineNumbers = true
+                }
             }
+            def visitor = new ClassVisitor(Opcodes.ASM5) {
+                @Override
+                void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                    classFileVersion = version
+                }
+
+                @Override
+                MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                    return methodVisitor
+                }
+
+                @Override
+                void visitSource(String source, String debug) {
+                    hasSourceFile = true
+                }
+            }
+            new ClassReader(inputStream).accept(visitor, 0)
+        } finally {
+            inputStream.close()
         }
-        def visitor = new ClassVisitor(Opcodes.ASM5) {
-            @Override
-            void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                classFileVersion = version
-            }
-
-            @Override
-            MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                return methodVisitor
-            }
-
-            @Override
-            void visitSource(String source, String debug) {
-                hasSourceFile = true
-            }
-        }
-        new ClassReader(inputStream).accept(visitor, 0)
     }
 
     boolean getDebugIncludesSourceFile() {

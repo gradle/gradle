@@ -20,7 +20,6 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -87,7 +86,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
-    @LeaksFileHandles
     def compilesWithSpecifiedDebugSettings() {
         given:
         goodCode()
@@ -234,7 +232,6 @@ class Main {
         return new ClassFile(file(path))
     }
 
-    @LeaksFileHandles
     def "can use annotation processor"() {
         when:
         buildFile << """
