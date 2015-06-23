@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
@@ -45,9 +46,20 @@ class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
 
         when:
         def failure = executer.usingExecutable("gradlew").withStackTraceChecksDisabled().runWithFailure()
+        def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
         then:
-        failure.error.contains('hash sum comparison failed')
+        failure.error.startsWith(TextUtil.normaliseLineSeparators("""
+Verification of Gradle distribution failed!
+
+Your Gradle distribution may have been tampered with.
+Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.
+
+ Distribution Url: ${server.address}/gradle-bin.zip
+Download Location: $f.absolutePath
+Expected checksum: 'bad'
+  Actual checksum: '${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}'
+""".trim()))
     }
 
     def "wrapper successfully verifies good checksum"() {

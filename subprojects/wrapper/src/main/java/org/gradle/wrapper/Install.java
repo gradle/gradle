@@ -23,7 +23,6 @@ import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.security.MessageDigest;
-import java.security.SignatureException;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -38,7 +37,7 @@ public class Install {
         this.pathAssembler = pathAssembler;
     }
 
-    public File createDist(WrapperConfiguration configuration) throws Exception {
+    public File createDist(final WrapperConfiguration configuration) throws Exception {
         final URI distributionUrl = configuration.getDistribution();
         final String distributionSha256Sum = configuration.getDistributionSha256Sum();
 
@@ -50,7 +49,7 @@ public class Install {
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
-                    verifyDownloadChecksum(localZipFile, distributionSha256Sum);
+                    verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
                     return getAndVerifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
@@ -70,7 +69,7 @@ public class Install {
                     deleteDir(dir);
                 }
 
-                verifyDownloadChecksum(localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
 
                 logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
@@ -122,15 +121,24 @@ public class Install {
         return dirs.get(0);
     }
 
-    private void verifyDownloadChecksum(File localZipFile, String expectedSum) throws Exception {
+    private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
         // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
         String actualSum = calculateSha256Sum(localZipFile);
         if (expectedSum != null && !expectedSum.equals(actualSum)) {
             localZipFile.delete();
-            throw new SignatureException(String.format("Verification of %s"
-                + " via SHA-256 hash sum comparison failed! Expected value: '%s', actual: '%s'. This indicates that your wrapper distribution may have"
-                + " been tampered with. Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you"
-                + " are downloading the wrapper from a trusted source.", localZipFile.getName(), expectedSum, actualSum));
+            String message = String.format("Verification of Gradle distribution failed!%n"
+                + "%n"
+                + "Your Gradle distribution may have been tampered with.%n"
+                + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
+                + "%n"
+                + " Distribution Url: %s%n"
+                + "Download Location: %s%n"
+                + "Expected checksum: '%s'%n"
+                + "  Actual checksum: '%s'%n",
+                sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
+            );
+            System.err.println(message);
+            System.exit(1);
         }
     }
 
