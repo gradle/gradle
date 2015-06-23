@@ -243,7 +243,10 @@ Some candidates:
 
 # Feature 6: Internal views for managed types
 
-- Model report should not show internal stuff, at least by default.
+- Open question: should we introduce some concept of internal model elements as well? That is, elements whose path (and existence) are an internal implementation detail
+  for a plugin. These may or may not have view types which are public or internal.
+    - To some degree this could be inferred, such that an element reachable only via properties of internal views could be considered an internal element.
+- Model report should not show internal types or internal model elements, at least by default.
 
 # Feature 7: Plugin author attaches source sets to managed type
 
