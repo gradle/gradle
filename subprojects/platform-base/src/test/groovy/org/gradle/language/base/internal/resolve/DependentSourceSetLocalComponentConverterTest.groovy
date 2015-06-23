@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.java.internal
+package org.gradle.language.base.internal.resolve
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter
-import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext
+import org.gradle.language.base.internal.DependentSourceSetInternal
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultJavaLocalComponentConverterTest extends Specification {
-    def "can convert java source set resolve context"() {
+class DependentSourceSetLocalComponentConverterTest extends Specification {
+    def "can convert dependent source set resolve context"() {
         given:
-        def context = new DependentSourceSetResolveContext(':foo', Mock(DefaultJavaLanguageSourceSet))
+        def context = new DependentSourceSetResolveContext(':foo', Mock(DependentSourceSetInternal))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -37,9 +36,9 @@ class DefaultJavaLocalComponentConverterTest extends Specification {
         factory.canConvert(context)
     }
 
-    def "can convert a simple java component"() {
-        given: "a java sourceset that doesn't define any dependency"
-        def sourceSet = Mock(DefaultJavaLanguageSourceSet)
+    def "can convert a simple component"() {
+        given: "a dependent sourceset that doesn't define any dependency"
+        def sourceSet = Mock(DependentSourceSetInternal)
         def dependencySpecs = Mock(DependencySpecContainer)
         dependencySpecs.dependencies >> { [] as Set }
         def project = ':myPath'
@@ -80,9 +79,9 @@ class DefaultJavaLocalComponentConverterTest extends Specification {
     }
 
     @Unroll
-    def "can convert a java component with #dependenciesDescriptor"() {
-        given: "a java sourceset that defines dependencies"
-        def sourceSet = Mock(DefaultJavaLanguageSourceSet)
+    def "can convert a dependent component with #dependenciesDescriptor"() {
+        given: "a dependent sourceset that defines dependencies"
+        def sourceSet = Mock(DependentSourceSetInternal)
         def dependencySpecs = Mock(DependencySpecContainer)
         def project = ':myPath'
 
