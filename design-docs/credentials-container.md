@@ -1,5 +1,5 @@
 This specification is a proposal for the introduction of a top-level credentials container and some fundamental changes to
-how repository transports, and they're authentication mechanisms, are modeled
+how repository transports, and authentication mechanisms, are modeled
 
 # Why?
 
@@ -37,7 +37,7 @@ When a repository transport is configured with more than one authentication prot
 
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the public key is located at ~/.ssh/id_rsa.pub'
-* `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories and they're credentials.
+* `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories.
 
 
 ## Proposed DSL
