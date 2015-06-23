@@ -89,11 +89,11 @@ See the <a href="dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.
 
 ### Support for Precompiled Headers (i)
 
-Precompiled headers are a performance optimization for native builds that allows commonly used headers to be parsed only once rather than for
-each file that includes the headers.  Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
+Precompiled headers are a performance optimization for native builds that allows commonly used headers to be parsed only once rather than for each file that includes the headers.
+Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
 
-To use a precompiled header, a header file needs to created containing all of the headers that should be precompiled.  This header file is
-then declared in the build script as a precompiled header.
+To use a precompiled header, a header file needs to created containing all of the headers that should be precompiled.
+This header file is then declared in the build script as a precompiled header.
 
     model {
         components {
@@ -107,9 +107,11 @@ then declared in the build script as a precompiled header.
         }
     }
 
-Each source set can have a single precompiled header defined.  Any source file that includes this header file as the first header will
-be compiled using the precompiled header.  Otherwise, the precompiled header will be ignored and the source file will be compiled in the
-normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_binaries:preCompiledHeaders) for further information.
+Each source set can have a single precompiled header defined.
+Any source file that includes this header file as the first header will be compiled using the precompiled header.
+Otherwise, the precompiled header will be ignored and the source file will be compiled in the normal manner.
+
+Please see the [User Guide](userguide/nativeBinaries.html#native_binaries:preCompiledHeaders) for further information.
 
 ### Google Test support (i)
 
