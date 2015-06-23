@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
