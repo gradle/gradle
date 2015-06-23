@@ -19,11 +19,14 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.TextUtil
 import org.junit.Rule
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
-    @Rule HttpServer server = new HttpServer()
+    @Rule
+    HttpServer server = new HttpServer()
 
     def setup() {
         executer.beforeExecute(new WrapperSetup())
@@ -49,7 +52,7 @@ class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
         then:
-        failure.error.startsWith(TextUtil.normaliseLineSeparators("""
+        normaliseFileSeparators(failure.error).startsWith(normaliseLineSeparators("""
 Verification of Gradle distribution failed!
 
 Your Gradle distribution may have been tampered with.
