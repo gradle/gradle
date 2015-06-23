@@ -99,7 +99,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
         'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
-        'toolingApiBuilders'
+        'toolingApiBuilders', 'testKitFunctional'
     ].collect {
         project(it)
     }
