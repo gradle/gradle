@@ -152,17 +152,20 @@ It is now possible to obtain the “group” of a task via [`org.gradle.tooling.
 
 ### Progress events for build operations through the Tooling API
 
-You can now listen to progress events for various build operations through `org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener)`. You
-will receive all available events as the Gradle build being executed goes through its life-cycle. For example, you will receive events when the
-settings are being loaded, when the task graph is being populated, when the tasks are being executed, when each task is executed, when the tests
-are executed, etc. All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via `org.gradle.tooling.events.ProgressEvent#getDescriptor`
-and `org.gradle.tooling.events.OperationDescriptor#getParent`.
+It is now possible to receive progress events for various build operations.
+Listeners can be provided to the [`BuildLauncher`](javadoc/org/gradle/tooling/BuildLauncher.html) via the
+[`addProgressListener(ProgressListener)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener\)) method.
+Events are fired when the task graph is being populated, when each task is executed, when tests are executed, etc.
+
+All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via
+[`ProgressEvent.getDescriptor()`](javadoc/org/gradle/tooling/events/ProgressEvent.html#getDescriptor\(\)) and
+[`OperationDescriptor.getParent()`](javadoc/org/gradle/tooling/events/OperationDescriptor.html#getParent\(\)).
 
 If you are only interested in the progress events for a sub-set of all available operations, you can use
-`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.Set<org.gradle.tooling.events.OperationType>)`. For example, you
-can configure to only receive events for the execution of task operations.
+[`LongRunningOperation.addProgressListener(ProgressListener, Set<OperationType>)`](javadoc/org/gradle/tooling/LongRunningOperation.html#addProgressListener\(org.gradle.tooling.events.ProgressListener,%20java.util.Set\)).
+For example, you may elect to only receive events for the execution of tasks.
 
-Progress events for more fine-grained operations will be added in future releases of Gradle.
+One potential use of this new capability would be to provide interesting visualisations of the build execution.
 
 ### New model improvements
 
