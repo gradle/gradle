@@ -17,23 +17,11 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 
-import java.util.Set;
-
 public interface BinarySpecInternal extends BinarySpec {
     ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
-    
-    /**
-     * Return all language source sets.
-     * This method is overridden by NativeTestSuiteBinarySpec to include the source sets from the tested binary.
-     *
-     * @deprecated Use {@link BinarySpec#getInputs()} instead.
-     */
-    @Deprecated
-    Set<LanguageSourceSet> getAllSources();
 
     void setBinarySources(FunctionalSourceSet sources);
 

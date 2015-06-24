@@ -34,7 +34,6 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -141,11 +140,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     public ModelMap<LanguageSourceSet> getSources() {
         // TODO:LPTR This should return something usable
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<LanguageSourceSet> getAllSources() {
-        return getInputs();
     }
 
     @Override
