@@ -15,7 +15,8 @@
  */
 package org.gradle.nativeplatform.test.internal;
 
-import com.google.common.collect.Sets;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
@@ -30,7 +31,7 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
@@ -56,9 +57,10 @@ public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBin
     }
 
     @Override
-    public Set<LanguageSourceSet> getAllSources() {
-        Set<LanguageSourceSet> sources = Sets.newLinkedHashSet(super.getAllSources());
-        sources.addAll(testedBinary.getAllSources());
+    public DomainObjectSet<LanguageSourceSet> getInputs() {
+        // TODO:LPTR Fix this with non-owned inputs instead
+        DomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, new LinkedHashSet<LanguageSourceSet>(super.getInputs()));
+        sources.addAll(testedBinary.getInputs());
         return sources;
     }
 

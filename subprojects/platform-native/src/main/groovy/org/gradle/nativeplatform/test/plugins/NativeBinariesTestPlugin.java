@@ -81,7 +81,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             for (NativeTestSuiteBinarySpecInternal testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpecInternal.class)) {
                 NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) testSuiteBinary.getTestedBinary();
                 for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
-                    testSource.lib(testedBinary.getAllSources());
+                    testSource.lib(testedBinary.getInputs());
                 }
             }
         }

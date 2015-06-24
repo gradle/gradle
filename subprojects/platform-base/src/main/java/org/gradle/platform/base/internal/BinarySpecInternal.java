@@ -29,7 +29,10 @@ public interface BinarySpecInternal extends BinarySpec {
     /**
      * Return all language source sets.
      * This method is overridden by NativeTestSuiteBinarySpec to include the source sets from the tested binary.
+     *
+     * @deprecated Use {@link BinarySpec#getInputs()} instead.
      */
+    @Deprecated
     Set<LanguageSourceSet> getAllSources();
 
     void setBinarySources(FunctionalSourceSet sources);

@@ -32,6 +32,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -51,8 +52,8 @@ import java.util.Set;
  */
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private FunctionalSourceSet mainSources;
-    private ModelMap<LanguageSourceSet> ownedSources;
+    private ModelMap<LanguageSourceSet> ownedSourceSets;
+    private final Set<LanguageSourceSet> referencedSourceSets = Sets.newHashSet();
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
@@ -112,14 +113,17 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return getBuildAbility().isBuildable();
     }
 
-    public void setBinarySources(FunctionalSourceSet sources) {
-        mainSources = sources;
-        ownedSources = DomainObjectCollectionBackedModelMap.wrap(LanguageSourceSet.class, sources, sources.getEntityInstantiator(), sources.getNamer(), Actions.doNothing());
+    // TODO:DAZ This is really doing 2 things: 1) copying the referenced source sets, and 2) providing the factories for creating new owned source sets
+    public void setBinarySources(FunctionalSourceSet componentSources) {
+        NamedEntityInstantiator<LanguageSourceSet> sourceSetInstantiator = componentSources.getEntityInstantiator();
+        ownedSourceSets = new DomainObjectCollectionBackedModelMap<LanguageSourceSet>(LanguageSourceSet.class, new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class), sourceSetInstantiator, new Namer(), Actions.doNothing());
+
+        referencedSourceSets.addAll(componentSources);
     }
 
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSources);
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, ownedSourceSets.values());
     }
 
     public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
@@ -127,13 +131,22 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Set<LanguageSourceSet> getAllSources() {
-        return Sets.newLinkedHashSet(mainSources);
+        return getInputs();
+    }
+
+    @Override
+    public DomainObjectSet<LanguageSourceSet> getInputs() {
+        DomainObjectSet<LanguageSourceSet> inputs = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+        inputs.addAll(referencedSourceSets);
+        inputs.addAll(ownedSourceSets.values());
+        return inputs;
     }
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMapGroovyDecorator.wrap(ownedSources);
+        return ModelMapGroovyDecorator.wrap(ownedSourceSets);
     }
 
     public BinaryTasksCollection getTasks() {

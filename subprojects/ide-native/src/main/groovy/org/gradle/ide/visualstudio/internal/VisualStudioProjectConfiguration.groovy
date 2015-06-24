@@ -92,7 +92,7 @@ class VisualStudioProjectConfiguration {
 
     List<File> getIncludePaths() {
         def includes = [] as Set
-        binary.allSources.each { sourceSet ->
+        binary.inputs.each { sourceSet ->
             if (sourceSet instanceof HeaderExportingSourceSet) {
                 includes.addAll sourceSet.exportedHeaders.srcDirs
             }

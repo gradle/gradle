@@ -38,10 +38,19 @@ public interface BinarySpec extends BuildableModelElement, Named {
 
     /**
      * The source sets used to compile this binary.
+     *
+     * @deprecated Use {@link #getSources()} or {@link #getInputs()} instead.
      */
     DomainObjectSet<LanguageSourceSet> getSource();
 
+    /**
+     * The sources owned by this binary.
+     *
+     * @return the sources owned by the binary.
+     */
     ModelMap<LanguageSourceSet> getSources();
+
+    DomainObjectSet<LanguageSourceSet> getInputs();
 
     /**
      * Configures the source sets used to build this binary.
