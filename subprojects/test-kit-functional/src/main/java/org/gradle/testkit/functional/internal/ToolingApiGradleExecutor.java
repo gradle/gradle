@@ -25,10 +25,12 @@ import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistributio
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ToolingApiGradleExecutor implements GradleExecutor {
     private final Logger logger = Logging.getLogger(ToolingApiGradleExecutor.class);
@@ -68,7 +70,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
 
-            arguments.add("--no-search-upward");
             String[] argumentArray = new String[arguments.size()];
             arguments.toArray(argumentArray);
             launcher.withArguments(argumentArray);
@@ -90,13 +91,15 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private GradleConnector buildConnector() {
-        GradleConnector gradleConnector = GradleConnector.newConnector();
+        DefaultGradleConnector gradleConnector = (DefaultGradleConnector)GradleConnector.newConnector();
 
         if(gradleUserHomeDir != null) {
             gradleConnector.useGradleUserHomeDir(gradleUserHomeDir);
         }
 
         gradleConnector.forProjectDirectory(workingDirectory);
+        gradleConnector.searchUpwards(false);
+        gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         useGradleDistribution(gradleConnector);
         return gradleConnector;
     }

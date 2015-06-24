@@ -22,7 +22,6 @@ import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -294,7 +293,6 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         !message.contains(':helloWorld')
     }
 
-    @Ignore
     def "build execution with invalid JVM arguments"() {
         given:
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
