@@ -27,6 +27,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -162,6 +163,11 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
     @Override
     public Collection<I> values() {
         return delegate.values();
+    }
+
+    @Override
+    public Iterator<I> iterator() {
+        return delegate.iterator();
     }
 
     // TODO - mix this in and validate closure parameters

@@ -34,7 +34,7 @@ import java.util.Set;
  */
 @SuppressWarnings("deprecation")
 @Incubating
-public interface ModelMap<T> extends CollectionBuilder<T> {
+public interface ModelMap<T> extends CollectionBuilder<T>, Iterable<T> {
 
     /**
      * {@inheritDoc}

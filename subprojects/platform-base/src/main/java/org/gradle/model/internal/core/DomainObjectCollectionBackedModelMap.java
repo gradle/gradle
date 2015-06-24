@@ -29,6 +29,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -190,6 +191,11 @@ public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
     @Override
     public Collection<T> values() {
         return collection;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return collection.iterator();
     }
 
     @Override

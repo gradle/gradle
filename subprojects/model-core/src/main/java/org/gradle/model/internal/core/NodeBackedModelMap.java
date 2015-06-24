@@ -18,6 +18,7 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -33,6 +34,7 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -287,6 +289,17 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             }
         });
         return Lists.newArrayList(values);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        viewState.assertCanReadChildren();
+        return Iterators.transform(keySet().iterator(), new Function<String, T>() {
+            @Override
+            public T apply(@Nullable String name) {
+                return get(name);
+            }
+        });
     }
 
     @Override
