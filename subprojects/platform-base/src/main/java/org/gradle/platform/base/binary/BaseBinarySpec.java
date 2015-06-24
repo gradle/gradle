@@ -120,7 +120,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, ownedSourceSets.values());
+        return getInputs();
     }
 
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
