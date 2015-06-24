@@ -25,9 +25,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependentSourceSetLocalComponentConverterTest extends Specification {
+
     def "can convert dependent source set resolve context"() {
         given:
-        def context = new DependentSourceSetResolveContext(':foo', Mock(DependentSourceSetInternal))
+        def context = new DependentSourceSetResolveContext(':foo', 'myLib', Mock(DependentSourceSetInternal))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -44,10 +45,9 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         def project = ':myPath'
 
         dependencySpecs.iterator() >> { [].iterator() }
-        sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, sourceSet)
+        def context = new DependentSourceSetResolveContext(project, 'myLib', sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -85,10 +85,9 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         def dependencySpecs = Mock(DependencySpecContainer)
         def project = ':myPath'
 
-        sourceSet.parentName >> 'myLib'
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, sourceSet)
+        def context = new DependentSourceSetResolveContext(project, 'myLib', sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()

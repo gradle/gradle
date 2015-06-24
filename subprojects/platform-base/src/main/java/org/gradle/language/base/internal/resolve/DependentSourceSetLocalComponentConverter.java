@@ -48,9 +48,9 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
         DependentSourceSetResolveContext context = (DependentSourceSetResolveContext) source;
         String projectPath = context.getProjectPath();
         DependentSourceSetInternal sourceSet = context.getSourceSet();
-        String libraryName = sourceSet.getParentName();
+        String componentName = context.getComponentName();
         TaskDependency buildDependencies = context.getSourceSet().getBuildDependencies();
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, libraryName, buildDependencies);
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, componentName, buildDependencies);
         addDependencies(projectPath, metaData, sourceSet.getDependencies());
         return metaData;
     }

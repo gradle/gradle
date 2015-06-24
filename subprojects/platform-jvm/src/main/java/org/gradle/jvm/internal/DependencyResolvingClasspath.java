@@ -36,6 +36,7 @@ import java.util.*;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final String projectPath;
+    private final String componentName;
     private final DependentSourceSetInternal sourceSet;
     private final BinarySpec binary;
     private final ArtifactDependencyResolver dependencyResolver;
@@ -46,11 +47,13 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     public DependencyResolvingClasspath(
         String projectPath,
+        String componentName,
         BinarySpec binarySpec,
         DependentSourceSetInternal sourceSet,
         ArtifactDependencyResolver dependencyResolver,
         FileCollection compileClasspath) {
         this.projectPath = projectPath;
+        this.componentName = componentName;
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
@@ -75,7 +78,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     private DependentSourceSetResolveContext createResolveContext() {
-        return new DependentSourceSetResolveContext(projectPath, sourceSet);
+        return new DependentSourceSetResolveContext(projectPath, componentName, sourceSet);
     }
 
     @Override

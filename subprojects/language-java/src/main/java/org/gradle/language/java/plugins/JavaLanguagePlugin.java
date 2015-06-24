@@ -33,6 +33,7 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
@@ -113,10 +114,10 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setSource(javaSourceSet.getSource());
                     DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(
                         project.getPath(),
+                        ((BaseLanguageSourceSet)javaSourceSet).getParentName(),
                         binarySpec,
                         (DependentSourceSetInternal) javaSourceSet,
-                        dependencyResolver,
-                        ((JavaSourceSet) sourceSet).getCompileClasspath().getFiles());
+                        dependencyResolver, javaSourceSet.getCompileClasspath().getFiles());
                     compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());

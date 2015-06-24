@@ -21,13 +21,15 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependentSourceSetResolveContextTest extends Specification {
+    private final static String COMPONENT_NAME = 'lib'
+
     def "resolve context can be created from a java source set"() {
         given:
         def project = ':foo'
         def sourceset = Mock(DependentSourceSetInternal)
 
         when:
-        def context = new DependentSourceSetResolveContext(project, sourceset)
+        def context = new DependentSourceSetResolveContext(project, COMPONENT_NAME, sourceset)
 
         then:
         context.projectPath == project
@@ -43,7 +45,7 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         when:
         sourceset.parentName >> library
-        def context = new DependentSourceSetResolveContext(path, sourceset)
+        def context = new DependentSourceSetResolveContext(path, COMPONENT_NAME, sourceset)
 
         then:
         context.projectPath == path

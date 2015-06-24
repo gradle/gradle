@@ -49,10 +49,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return fullName;
     }
 
-    public String getParentName() {
-        return parentName;
-    }
-
     @Override
     public void builtBy(Object... tasks) {
         generated = true;

@@ -35,5 +35,4 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
 
     Task getGeneratorTask();
 
-    String getParentName();
 }
