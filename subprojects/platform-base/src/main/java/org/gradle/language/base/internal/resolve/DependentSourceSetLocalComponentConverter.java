@@ -66,7 +66,7 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
             }
             String libraryName = dependency.getLibraryName();
             // currently we use "null" as variant value, because there's only one variant: API
-            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, null);
+            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
             DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(
                 Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(

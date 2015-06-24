@@ -38,7 +38,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
+            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
@@ -64,7 +64,6 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryComponentSelector.getProjectPath());
             encoder.writeNullableString(libraryComponentSelector.getLibraryName());
-            encoder.writeNullableString(libraryComponentSelector.getVariant());
         } else {
             throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }

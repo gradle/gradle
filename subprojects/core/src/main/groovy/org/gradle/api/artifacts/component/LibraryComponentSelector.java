@@ -43,13 +43,4 @@ public interface LibraryComponentSelector extends ComponentSelector {
     @Nullable
     String getLibraryName();
 
-    /**
-     * Return the variant of the library that must be selected. Using null as the variant means that the
-     * consumer doesn't require any specific variant, hence the dependency engine is allowed to return
-     * any matching library.
-     *
-     * @return the name of the variant
-     */
-    @Nullable
-    String getVariant();
 }

@@ -64,7 +64,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes LibraryComponentSelector project #projectPath library #libraryName variant #variant"() {
         given:
-        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName, variant)
+        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)
 
         when:
         LibraryComponentSelector result = serialize(selection, serializer)
@@ -72,13 +72,12 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.projectPath == projectPath
         result.libraryName == libraryName
-        result.variant == variant
 
         where:
-        projectPath | libraryName | variant
-        ':myPath'   | null        | null
-        ':myPath'   | 'myLib'     | null
-        ':myPath'   | null        | 'api'
-        ':myPath'   | 'myLib'     | 'api'
+        projectPath | libraryName
+        ':myPath'   | null
+        ':myPath'   | 'myLib'
+        ':myPath'   | null
+        ':myPath'   | 'myLib'
     }
 }

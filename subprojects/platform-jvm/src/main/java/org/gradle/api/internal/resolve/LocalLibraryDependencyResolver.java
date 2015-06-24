@@ -67,23 +67,19 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             final String selectorProjectPath = selector.getProjectPath();
             final String libraryName = selector.getLibraryName();
-            String variant = selector.getVariant();
             final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
             LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
                 DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                 Collection<BinarySpec> variants = selectedLibrary.getBinaries().values();
+                if (variants.size() > 1) {
+                    result.failed(new ModuleVersionResolveException(selector, String.format("Multiple binaries available for library '%s' : %s", libraryName, variants)));
+                }
                 for (BinarySpec spec : variants) {
-                    if (variant==null) {
-                        variant = spec.getName();
-                    }
-                    if (variant.equals(spec.getName())) {
-                        buildDependencies.add(spec.getBuildTask());
-                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), variant, buildDependencies);
-                        result.resolved(metaData.toResolveMetaData());
-                        break;
-                    }
+                    buildDependencies.add(spec.getBuildTask());
+                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
+                    result.resolved(metaData.toResolveMetaData());
                 }
             }
             if (!result.hasResult()) {
@@ -132,7 +128,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             }
         } else {
             LibrarySpec notMatchingRequirements = result.getNonMatchingLibrary();
-            if (notMatchingRequirements!=null) {
+            if (notMatchingRequirements != null) {
                 sb.append(" contains a library named '").append(libraryName)
                   .append("' but it is not a ")
                   .append(JvmLibrarySpec.class.getSimpleName());
@@ -224,8 +220,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     /**
-     * Intermediate data structure used to store the result of a resolution and help at building
-     * an understandable error message in case resolution fails.
+     * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.
      */
     private static class LibraryResolutionResult {
         private static final LibraryResolutionResult EMPTY = new LibraryResolutionResult();
@@ -289,7 +284,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
 
         public boolean isProjectNotFound() {
-            return PROJECT_NOT_FOUND==this;
+            return PROJECT_NOT_FOUND == this;
         }
 
         public boolean hasLibraries() {
