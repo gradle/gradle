@@ -38,7 +38,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentIdentifier(decoder.readString(), decoder.readString());
+            return new DefaultLibraryComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
         throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
@@ -64,6 +64,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryIdentifier.getProjectPath());
             encoder.writeString(libraryIdentifier.getLibraryName());
+            encoder.writeString(libraryIdentifier.getVariant());
         } else {
             throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }

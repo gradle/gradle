@@ -28,7 +28,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
     def "can convert dependent source set resolve context"() {
         given:
-        def context = new DependentSourceSetResolveContext(':foo', 'myLib', Mock(DependentSourceSetInternal))
+        def context = new DependentSourceSetResolveContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -47,7 +47,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         dependencySpecs.iterator() >> { [].iterator() }
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, 'myLib', sourceSet)
+        def context = new DependentSourceSetResolveContext(project, 'myLib', 'api', sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -71,10 +71,10 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
         metadata.componentId instanceof LibraryComponentIdentifier
-        metadata.componentId.displayName == /project ':myPath' library 'myLib'/
+        metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
         metadata.dependencies.empty
         !metadata.changing
-        metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
+        metadata.configurationNames == [LibraryComponentIdentifier.CONFIGURATION_NAME] as Set
         metadata.source == null
     }
 
@@ -87,7 +87,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, 'myLib', sourceSet)
+        def context = new DependentSourceSetResolveContext(project, 'myLib', 'api', sourceSet)
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -112,9 +112,9 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         then: "metadata reflects the appropriate library information"
         metadata instanceof ComponentResolveMetaData
         metadata.componentId instanceof LibraryComponentIdentifier
-        metadata.componentId.displayName == /project ':myPath' library 'myLib'/
+        metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
         !metadata.changing
-        metadata.configurationNames == [LibraryComponentIdentifier.API_CONFIGURATION_NAME] as Set
+        metadata.configurationNames == [LibraryComponentIdentifier.CONFIGURATION_NAME] as Set
         metadata.source == null
 
         and: "component metadata dependencies correspond to the defined dependencies"

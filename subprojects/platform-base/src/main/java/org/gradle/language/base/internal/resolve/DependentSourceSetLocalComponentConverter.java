@@ -49,8 +49,9 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
         String projectPath = context.getProjectPath();
         DependentSourceSetInternal sourceSet = context.getSourceSet();
         String componentName = context.getComponentName();
+        String variant = context.getVariant();
         TaskDependency buildDependencies = context.getSourceSet().getBuildDependencies();
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, componentName, buildDependencies);
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, componentName, variant, buildDependencies);
         addDependencies(projectPath, metaData, sourceSet.getDependencies());
         return metaData;
     }
@@ -64,14 +65,15 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
                 projectPath = defaultProject;
             }
             String libraryName = dependency.getLibraryName();
-            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+            // currently we use "null" as variant value, because there's only one variant: API
+            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, null);
             DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(
                 Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
-                LibraryComponentIdentifier.API_CONFIGURATION_NAME,
-                LibraryComponentIdentifier.API_CONFIGURATION_NAME,
+                LibraryComponentIdentifier.CONFIGURATION_NAME,
+                LibraryComponentIdentifier.CONFIGURATION_NAME,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false,

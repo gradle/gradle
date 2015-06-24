@@ -28,12 +28,14 @@ import org.gradle.language.base.internal.DependentSourceSetInternal;
 public class DependentSourceSetResolveContext implements ResolveContext {
     private final String projectPath;
     private final String componentName;
+    private final String variant;
     private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
 
-    public DependentSourceSetResolveContext(String projectPath, String componentName, DependentSourceSetInternal sourceSet) {
+    public DependentSourceSetResolveContext(String projectPath, String componentName, String variant, DependentSourceSetInternal sourceSet) {
         this.projectPath = projectPath;
         this.componentName = componentName;
+        this.variant = variant;
         this.sourceSet = sourceSet;
     }
 
@@ -43,7 +45,7 @@ public class DependentSourceSetResolveContext implements ResolveContext {
 
     @Override
     public String getName() {
-        return LibraryComponentIdentifier.API_CONFIGURATION_NAME;
+        return LibraryComponentIdentifier.CONFIGURATION_NAME;
     }
 
     public String getComponentName() {
@@ -52,6 +54,10 @@ public class DependentSourceSetResolveContext implements ResolveContext {
 
     public String getProjectPath() {
         return projectPath;
+    }
+
+    public String getVariant() {
+        return variant;
     }
 
     @Override

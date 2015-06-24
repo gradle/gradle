@@ -51,7 +51,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes LibraryIdentifier"() {
         given:
-        LibraryComponentIdentifier selection = new DefaultLibraryComponentIdentifier(':project', 'lib')
+        LibraryComponentIdentifier selection = new DefaultLibraryComponentIdentifier(':project', 'lib', 'variant')
 
         when:
         LibraryComponentIdentifier result = serialize(selection, serializer)

@@ -78,7 +78,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     private DependentSourceSetResolveContext createResolveContext() {
-        return new DependentSourceSetResolveContext(projectPath, componentName, sourceSet);
+        return new DependentSourceSetResolveContext(projectPath, componentName, binary.getName(), sourceSet);
     }
 
     @Override

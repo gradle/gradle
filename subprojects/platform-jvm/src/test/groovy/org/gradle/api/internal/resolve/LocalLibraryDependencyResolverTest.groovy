@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resolve
 
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
@@ -32,6 +33,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.LibrarySpec
 import spock.lang.Specification
@@ -204,7 +206,12 @@ class LocalLibraryDependencyResolverTest extends Specification {
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> it
                 def binaries = Mock(ModelMap)
-                binaries.values() >> { [] }
+                binaries.values() >> {
+                    def binary = Mock(BinarySpec)
+                    binary.name >> 'api'
+                    binary.buildTask >> Mock(Task)
+                    [binary]
+                }
                 lib.binaries >> binaries
                 lib
             }

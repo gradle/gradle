@@ -33,17 +33,17 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         super(id, componentIdentifier, Project.DEFAULT_STATUS);
     }
 
-    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName, TaskDependency buildDependencies) {
+    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName, String variant, TaskDependency buildDependencies) {
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
             projectPath, libraryName, VERSION
         );
-        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName);
+        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName, variant);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
         metaData.addConfiguration(
-            LibraryComponentIdentifier.API_CONFIGURATION_NAME,
-            String.format("Configuration for %s", libraryName),
+            LibraryComponentIdentifier.CONFIGURATION_NAME,
+            String.format("Configuration for '%s' variant '%s'", libraryName, variant),
             Collections.<String>emptySet(),
-            Collections.singleton(LibraryComponentIdentifier.API_CONFIGURATION_NAME),
+            Collections.singleton(LibraryComponentIdentifier.CONFIGURATION_NAME),
             true,
             true,
             buildDependencies);

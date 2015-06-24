@@ -26,7 +26,29 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultLibraryComponentSelectorTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib', 'api')
+
+        then:
+        defaultBuildComponentSelector.projectPath == ':myPath'
+        defaultBuildComponentSelector.libraryName == 'myLib'
+        defaultBuildComponentSelector.displayName == /project ':myPath' library 'myLib' variant 'api'/
+        defaultBuildComponentSelector.toString() == /project ':myPath' library 'myLib' variant 'api'/
+    }
+
+    def "can be instantiated with null constructor library name value"() {
+        when:
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', null, 'api')
+
+        then:
+        defaultBuildComponentSelector.projectPath == ':myPath'
+        defaultBuildComponentSelector.libraryName == null
+        defaultBuildComponentSelector.displayName == /project ':myPath' variant 'api'/
+        defaultBuildComponentSelector.toString() == /project ':myPath' variant 'api'/
+    }
+
+    def "can be instantiated with null constructor variant value"() {
+        when:
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib', null)
 
         then:
         defaultBuildComponentSelector.projectPath == ':myPath'
@@ -35,20 +57,9 @@ class DefaultLibraryComponentSelectorTest extends Specification {
         defaultBuildComponentSelector.toString() == /project ':myPath' library 'myLib'/
     }
 
-    def "can be instantiated with non constructor library name value"() {
-        when:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', null)
-
-        then:
-        defaultBuildComponentSelector.projectPath == ':myPath'
-        defaultBuildComponentSelector.libraryName == null
-        defaultBuildComponentSelector.displayName == /project ':myPath'/
-        defaultBuildComponentSelector.toString() == /project ':myPath'/
-    }
-
     def "cannot be instantiated with null project constructor parameter value"() {
         when:
-        new DefaultLibraryComponentSelector(null, 'myLib')
+        new DefaultLibraryComponentSelector(null, 'myLib', 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -57,7 +68,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "cannot be instantiated with empty project constructor parameter value"() {
         when:
-        new DefaultLibraryComponentSelector('', 'myLib')
+        new DefaultLibraryComponentSelector('', 'myLib', 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -65,30 +76,32 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     }
 
     @Unroll
-    def "can compare (#projectPath1,#libraryName1) with other instance (#projectPath2,#libraryName2)"() {
+    def "can compare (#projectPath1,#libraryName1,#variant1) with other instance (#projectPath2,#libraryName2, #variant2)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
-        LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath2, libraryName2)
+        LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant1)
+        LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath2, libraryName2, variant2)
         strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2) == equality
         (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode()) == hashCode
         (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString()) == stringRepresentation
 
         where:
-        projectPath1      | libraryName1 | projectPath2      | libraryName2 | equality | hashCode | stringRepresentation
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | true     | true     | true
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | false    | false    | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | false    | false    | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | null         | false    | false    | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'myLib1'     | false    | false    | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'myLib2'     | false    | false    | false
-        ':myProjectPath1' | null         | ':myProjectPath2' | 'myLib1'     | false    | false    | false
-        ':myProjectPath1' | null         | ':myProjectPath2' | null         | false    | false    | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | null         | true     | true     | true
+        projectPath1      | libraryName1 | variant1 | projectPath2      | libraryName2 | variant2 | equality | hashCode | stringRepresentation
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath1' | 'myLib1'     | 'api'    | true     | true     | true
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath1' | 'myLib2'     | 'api'    | false    | false    | false
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath2' | 'myLib1'     | 'api'    | false    | false    | false
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath2' | null         | 'api'    | false    | false    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath1' | 'myLib1'     | 'api'    | false    | false    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath1' | 'myLib2'     | 'api'    | false    | false    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath2' | 'myLib1'     | 'api'    | false    | false    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath2' | null         | 'api'    | false    | false    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath1' | null         | 'api'    | true     | true     | true
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath1' | 'myLib1'     | 'impl'   | false    | false    | false
+        ':myProjectPath1' | 'myLib1'     | 'impl'   | ':myProjectPath1' | 'myLib1'     | 'impl'   | true     | true     | true
     }
 
     def "prevents matching of null id"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib', 'api')
         defaultBuildComponentSelector.matchesStrictly(null)
 
         then:
@@ -98,7 +111,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib', 'api')
         boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
 
         then:
@@ -108,17 +121,21 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#projectPath,#libraryName)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
-        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath2, libraryName2)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant1)
+        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(projectPath2, libraryName2, variant2)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:
-        projectPath1      | libraryName1 | projectPath2      | libraryName2 | matchesId
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | true
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | false
-        ':myProjectPath1' | null         | ':myProjectPath2' | 'foo'        | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | false
+        projectPath1      | libraryName1 | variant1 | projectPath2      | libraryName2 | variant2 | matchesId
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath1' | 'myLib1'     | 'api'    | true
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath2' | 'myLib1'     | 'impl'   | false
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath2' | 'myLib1'     | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | 'api'    | ':myProjectPath1' | 'myLib2'     | 'api'    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath1' | 'foo'        | 'api'    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath2' | 'foo'        | 'api'    | false
+        ':myProjectPath1' | null         | 'api'    | ':myProjectPath1' | 'foo'        | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | null     | ':myProjectPath2' | 'myLib1'     | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | null     | ':myProjectPath2' | 'myLib1'     | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | null     | ':myProjectPath1' | 'myLib2'     | 'api'    | false
     }
 }

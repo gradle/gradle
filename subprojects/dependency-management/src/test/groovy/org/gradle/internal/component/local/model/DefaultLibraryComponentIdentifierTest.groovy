@@ -24,18 +24,19 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultLibraryComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(':myPath', 'myLib')
+        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(':myPath', 'myLib', 'api')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
         defaultBuildComponentIdentifier.libraryName == 'myLib'
-        defaultBuildComponentIdentifier.displayName == /project ':myPath' library 'myLib'/
-        defaultBuildComponentIdentifier.toString() == /project ':myPath' library 'myLib'/
+        defaultBuildComponentIdentifier.variant == 'api'
+        defaultBuildComponentIdentifier.displayName == /project ':myPath' library 'myLib' variant 'api'/
+        defaultBuildComponentIdentifier.toString() == /project ':myPath' library 'myLib' variant 'api'/
     }
 
     def "is instantiated with null project constructor parameter value"() {
         when:
-        new DefaultLibraryComponentIdentifier(null, 'foo')
+        new DefaultLibraryComponentIdentifier(null, 'foo', 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -44,26 +45,36 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
 
     def "is instantiated with null library constructor parameter value"() {
         when:
-        new DefaultLibraryComponentIdentifier('foo', null)
+        new DefaultLibraryComponentIdentifier('foo', null, 'api')
 
         then:
         Throwable t = thrown(AssertionError)
         t.message == 'library name cannot be null'
     }
 
+    def "is instantiated with null variant constructor parameter value"() {
+        when:
+        new DefaultLibraryComponentIdentifier('foo', 'bar', null)
+
+        then:
+        Throwable t = thrown(AssertionError)
+        t.message == 'variant cannot be null'
+    }
+
     @Unroll
-    def "can compare with other instance (#projectPath,#libraryName)"() {
+    def "can compare with other instance (#projectPath,#libraryName,#variant)"() {
         expect:
-        LibraryComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryComponentIdentifier(':myProjectPath1', 'myLib')
-        LibraryComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryComponentIdentifier(projectPath, libraryName)
+        LibraryComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryComponentIdentifier(':myProjectPath1', 'myLib', 'api')
+        LibraryComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryComponentIdentifier(projectPath, libraryName, variant)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation
 
         where:
-        projectPath       | libraryName | equality | hashCode | stringRepresentation
-        ':myProjectPath1' | 'myLib'     | true     | true     | true
-        ':myProjectPath2' | 'myLib'     | false    | false    | false
-        ':myProjectPath1' | 'myLib2'    | false    | false    | false
+        projectPath       | libraryName | variant | equality | hashCode | stringRepresentation
+        ':myProjectPath1' | 'myLib'     | 'api'   | true     | true     | true
+        ':myProjectPath2' | 'myLib'     | 'api'   | false    | false    | false
+        ':myProjectPath1' | 'myLib2'    | 'api'   | false    | false    | false
+        ':myProjectPath1' | 'myLib'     | 'impl'  | false    | false    | false
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface LibraryComponentIdentifier extends ComponentIdentifier {
-    String API_CONFIGURATION_NAME = "Component API";
+    String CONFIGURATION_NAME = "Component configuration";
 
     /**
      * The project path of the library.
@@ -36,4 +36,10 @@ public interface LibraryComponentIdentifier extends ComponentIdentifier {
      * @return the name of the library
      */
     String getLibraryName();
+
+    /**
+     * The variant of the library.
+     * @return the variant identifier of the library.
+     */
+    String getVariant();
 }

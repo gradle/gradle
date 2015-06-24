@@ -22,17 +22,20 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
     private final String projectPath;
     private final String libraryName;
     private final String displayName;
+    private final String variant;
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public DefaultLibraryComponentIdentifier(String projectPath, String libraryName) {
+    public DefaultLibraryComponentIdentifier(String projectPath, String libraryName, String variant) {
         assert projectPath != null : "project path cannot be null";
         assert libraryName != null : "library name cannot be null";
+        assert variant != null : "variant cannot be null";
         this.projectPath = projectPath;
         this.libraryName = libraryName;
-        this.displayName = String.format("project '%s' library '%s'", projectPath, libraryName);
+        this.variant = variant;
+        this.displayName = String.format("project '%s' library '%s' variant '%s'", projectPath, libraryName, variant);
     }
 
     @Override
@@ -46,6 +49,11 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
     }
 
     @Override
+    public String getVariant() {
+        return variant;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -55,12 +63,13 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
         }
         DefaultLibraryComponentIdentifier that = (DefaultLibraryComponentIdentifier) o;
         return Objects.equal(projectPath, that.projectPath)
-            && Objects.equal(libraryName, that.libraryName);
+            && Objects.equal(libraryName, that.libraryName)
+            && Objects.equal(variant, that.variant);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(projectPath, libraryName);
+        return Objects.hashCode(projectPath, libraryName, variant);
     }
 
     @Override

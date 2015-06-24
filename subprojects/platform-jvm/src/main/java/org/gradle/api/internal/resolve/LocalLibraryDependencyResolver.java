@@ -67,17 +67,26 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             final String selectorProjectPath = selector.getProjectPath();
             final String libraryName = selector.getLibraryName();
+            String variant = selector.getVariant();
             final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
             LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
                 DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-                for (BinarySpec spec : selectedLibrary.getBinaries().values()) {
-                    buildDependencies.add(spec.getBuildTask());
+                Collection<BinarySpec> variants = selectedLibrary.getBinaries().values();
+                for (BinarySpec spec : variants) {
+                    if (variant==null) {
+                        variant = spec.getName();
+                    }
+                    if (variant.equals(spec.getName())) {
+                        buildDependencies.add(spec.getBuildTask());
+                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), variant, buildDependencies);
+                        result.resolved(metaData.toResolveMetaData());
+                        break;
+                    }
                 }
-                DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), buildDependencies);
-                result.resolved(metaData.toResolveMetaData());
-            } else {
+            }
+            if (!result.hasResult()) {
                 String message = prettyErrorMessage(selector, resolutionResult);
                 ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, new LibraryResolveException(message));
                 result.failed(failure);

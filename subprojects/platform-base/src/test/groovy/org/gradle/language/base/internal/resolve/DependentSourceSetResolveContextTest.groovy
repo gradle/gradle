@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 class DependentSourceSetResolveContextTest extends Specification {
     private final static String COMPONENT_NAME = 'lib'
+    private final static String VARIANT = 'api'
 
     def "resolve context can be created from a java source set"() {
         given:
@@ -29,7 +30,7 @@ class DependentSourceSetResolveContextTest extends Specification {
         def sourceset = Mock(DependentSourceSetInternal)
 
         when:
-        def context = new DependentSourceSetResolveContext(project, COMPONENT_NAME, sourceset)
+        def context = new DependentSourceSetResolveContext(project, COMPONENT_NAME, VARIANT, sourceset)
 
         then:
         context.projectPath == project
@@ -45,7 +46,7 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         when:
         sourceset.parentName >> library
-        def context = new DependentSourceSetResolveContext(path, COMPONENT_NAME, sourceset)
+        def context = new DependentSourceSetResolveContext(path, COMPONENT_NAME, VARIANT, sourceset)
 
         then:
         context.projectPath == path
@@ -53,8 +54,8 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         where:
         path       | library  | contextName
-        ':myPath'  | 'myLib'  | LibraryComponentIdentifier.API_CONFIGURATION_NAME
-        ':myPath'  | 'myLib2' | LibraryComponentIdentifier.API_CONFIGURATION_NAME
-        ':myPath2' | 'myLib'  | LibraryComponentIdentifier.API_CONFIGURATION_NAME
+        ':myPath'  | 'myLib'  | LibraryComponentIdentifier.CONFIGURATION_NAME
+        ':myPath'  | 'myLib2' | LibraryComponentIdentifier.CONFIGURATION_NAME
+        ':myPath2' | 'myLib'  | LibraryComponentIdentifier.CONFIGURATION_NAME
     }
 }
