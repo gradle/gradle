@@ -164,6 +164,36 @@ Unexpected exception""")
         !result.standardError
     }
 
+    def "execute plugin and custom task logic as part of the build script"() {
+        given:
+        buildFile << """
+            apply plugin: HelloWorldPlugin
+
+            class HelloWorldPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorld', type: HelloWorld)
+                }
+            }
+
+            class HelloWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        BuildResult result = gradleRunner.succeeds()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
+    }
+
     def "execute build with buildSrc project"() {
         given:
         File buildSrcJavaSrcDir = testProjectDir.createDir('buildSrc', 'src', 'main', 'java', 'org', 'gradle', 'test')
@@ -248,19 +278,19 @@ Unknown command-line option '--unknown'.""")
 
     def "build execution with non-existent working directory"() {
         given:
-        File workingDir = new File('some/path/that/does/not/exist')
+        File nonExistentWorkingDir = new File('some/path/that/does/not/exist')
         buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.workingDir = workingDir
+        gradleRunner.workingDir = nonExistentWorkingDir
         gradleRunner.succeeds()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
         String message = TextUtil.normaliseLineSeparators(t.message)
         message.contains("""Reason:
-Project directory '$workingDir.absolutePath' does not exist.""")
+Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         !message.contains(':helloWorld')
     }
 
@@ -275,7 +305,13 @@ Project directory '$workingDir.absolutePath' does not exist.""")
         gradleRunner.succeeds()
 
         then:
-        thrown(UnexpectedBuildFailure)
+        Throwable t = thrown(UnexpectedBuildFailure)
+        String message = TextUtil.normaliseLineSeparators(t.message)
+        message.contains("""Reason:
+Unable to start the daemon process.
+This problem might be caused by incorrect configuration of the daemon.
+For example, an unrecognized jvm option is used.""")
+        !message.contains(':helloWorld')
     }
 
     def "daemon dies during build execution"() {
