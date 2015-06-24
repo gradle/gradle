@@ -18,6 +18,10 @@ package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
 
@@ -62,9 +66,50 @@ class BaseBinarySpecTest extends Specification {
         e.cause.message.startsWith "Could not find any public constructor for class"
     }
 
+    def "can own source sets"() {
+        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def functionalSourceSet = new DefaultFunctionalSourceSet("main", instantiator, Stub(ProjectSourceSet))
+        binary.binarySources = functionalSourceSet
+        def sourceSet1 = Stub(LanguageSourceSet) {
+            getName() >> "ss1"
+        }
+        def sourceSet2 = Stub(LanguageSourceSet) {
+            getName() >> "ss2"
+        }
+        def sourceSet3 = Stub(LanguageSourceSet) {
+            getName() >> "ss3"
+        }
+
+        when:
+        functionalSourceSet.add(sourceSet1)
+
+        then:
+        functionalSourceSet*.name == ["ss1"]
+        binary.sources.values()*.name == ["ss1"]
+        binary.inputs*.name == ["ss1"]
+
+        when:
+        binary.addSourceSet(sourceSet2)
+
+        then:
+        functionalSourceSet*.name == ["ss1", "ss2"]
+        binary.sources.values()*.name == ["ss1", "ss2"]
+        binary.inputs*.name == ["ss1", "ss2"]
+
+        when:
+        binary.inputs.add(sourceSet3)
+
+        then:
+        functionalSourceSet*.name == ["ss1", "ss2"]
+        binary.sources.values()*.name == ["ss1", "ss2"]
+        binary.inputs*.name == ["ss1", "ss2", "ss3"]
+    }
+
     static class MySampleBinary extends BaseBinarySpec {
     }
     static class MyConstructedBinary extends BaseBinarySpec {
         MyConstructedBinary(String arg) {}
     }
+
+    static class CustomSourceSet extends BaseLanguageSourceSet {}
 }
