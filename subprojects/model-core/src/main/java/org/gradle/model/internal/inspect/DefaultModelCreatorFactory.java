@@ -58,14 +58,14 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, Action<? super T> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        ModelAction<T> modelAction = new NoInputsModelAction<T>(modelReference, descriptor, initializer);
+        ModelAction<T> modelAction = NoInputsModelAction.of(modelReference, descriptor, initializer);
         return creator(descriptor, path, schema, modelAction);
     }
 
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        ModelAction<T> modelAction = new InputUsingModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
+        ModelAction<T> modelAction = InputUsingModelAction.of(modelReference, descriptor, initializerInputs, initializer);
         return creator(descriptor, path, schema, modelAction);
     }
 
@@ -198,7 +198,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
             ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
             NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator(elementType));
-            return new InstanceModelView<ManagedSet<T>>(modelNode.getPath(), setType, set, state.closer());
+            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
         @Override
@@ -233,7 +233,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
             ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
             NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator(elementType));
-            return new InstanceModelView<ModelSet<T>>(modelNode.getPath(), setType, set, state.closer());
+            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
         @Override
