@@ -81,7 +81,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
         } else if (schema instanceof ModelStructSchema) {
             ModelStructSchema<T> structSchema = (ModelStructSchema<T>) schema;
             builder = ModelCreators.of(path, new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this))
-                .withProjection(new ManagedModelProjection<T>(structSchema, schemaStore, proxyFactory));
+                                   .withProjection(new ManagedModelProjection<T>(structSchema, schemaStore, proxyFactory));
         } else {
             throw new IllegalArgumentException("Don't know how to create model element from schema for " + type);
         }
@@ -119,11 +119,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     }
 
     private <T> ModelProjection modelMapProjection(ModelType<T> elementType) {
-        return ModelMapModelProjection.managed(elementType, childCreator());
-    }
-
-    private <T> ChildNodeCreatorStrategy<T> childCreator() {
-        return Cast.uncheckedCast(managedChildCreatorStrategy);
+        return ModelMapModelProjection.managed(elementType, childCreator(elementType));
     }
 
     private <T> ChildNodeCreatorStrategy<T> childCreator(@SuppressWarnings("UnusedParameters") ModelType<T> modelType) {
