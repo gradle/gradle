@@ -21,10 +21,15 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 /**
- * Definition of a play framework software component that is built by Gradle.
+ * Definition of a Play Framework software component that is built by Gradle.
  */
 @Incubating @HasInternalProtocol
 public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
 
+    /**
+     * Specifies a {@link org.gradle.play.platform.PlayPlatform} with a given set of requirements that this
+     * component should be built be for.
+     * @param platformRequirements Map of Play requirements or the name of an Play platform.
+     */
     void platform(Object platformRequirements);
 }

@@ -61,7 +61,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Returns the tool chain that will be used to compile the javascript source.
+     * Returns the tool chain that will be used to compile the JavaScript source.
      *
      * @return The tool chain.
      */
@@ -72,7 +72,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Returns the output directory that processed javascript is written to.
+     * Returns the output directory that processed JavaScript is written to.
      *
      * @return The output directory.
      */
@@ -82,7 +82,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Sets the output directory where processed javascript should be written.
+     * Sets the output directory where processed JavaScript should be written.
      *
      * @param destinationDir The output directory.
      */
@@ -95,9 +95,9 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * The fork options to be applied to the javascript compiler.
+     * The fork options to be applied to the JavaScript compiler.
      *
-     * @return The fork options for the javascript compiler.
+     * @return The fork options for the JavaScript compiler.
      */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {

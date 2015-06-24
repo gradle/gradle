@@ -36,7 +36,7 @@ public interface AntlrSourceVirtualDirectory {
     public SourceDirectorySet getAntlr();
 
     /**
-     * Configures the Antlr source for this set. The given closure is used to configure the {@code SourceDirectorySet} (see
+     * Configures the Antlr source for this set. The given closure is used to configure the {@link org.gradle.api.file.SourceDirectorySet} (see
      * {@link #getAntlr}) which contains the Antlr source.
      *
      * @param configureClosure The closure to use to configure the Antlr source.

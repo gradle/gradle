@@ -24,7 +24,7 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
 
 /**
- * Task for compiling CoffeeScript sources
+ * Task for compiling CoffeeScript sources into JavaScript.
  */
 @Incubating
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {

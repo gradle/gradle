@@ -23,6 +23,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>outputDirectory</td>
+            </tr>
+            <tr>
+                <td>forkOptions</td>
+            </tr>
         </table>
     </section>
     <section>

@@ -23,6 +23,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>forkOptions</td>
+            </tr>
+            <tr>
+                <td>httpPort</td>
+            </tr>
         </table>
     </section>
     <section>

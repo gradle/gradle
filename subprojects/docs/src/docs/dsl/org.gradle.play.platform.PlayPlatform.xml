@@ -23,6 +23,15 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>playVersion</td>
+            </tr>
+            <tr>
+                <td>scalaPlatform</td>
+            </tr>
+            <tr>
+                <td>javaPlatform</td>
+            </tr>
         </table>
     </section>
     <section>

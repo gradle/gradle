@@ -28,13 +28,17 @@ import java.io.File;
 import java.util.Map;
 
 /**
- * Represents a binary artifact that is the result of building a play component.
+ * Represents a binary artifact that is the result of building a Play application software component.
  */
 @Incubating
 @HasInternalProtocol
 public interface PlayApplicationBinarySpec extends BinarySpec {
     PlayApplicationSpec getApplication();
 
+    /**
+     * The PlayPlatform this binary is built for.
+     * @return platform for this binary
+     */
     PlayPlatform getTargetPlatform();
 
     File getJarFile();

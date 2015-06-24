@@ -33,6 +33,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>platform</td>
+            </tr>
         </table>
     </section>
 </section>

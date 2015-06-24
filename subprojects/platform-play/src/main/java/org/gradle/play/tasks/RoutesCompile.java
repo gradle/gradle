@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Task for compiling routes templates
+ * Task for compiling routes templates into Scala code.
  */
 @Incubating
 public class RoutesCompile extends SourceTask {
@@ -115,6 +115,11 @@ public class RoutesCompile extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * The fork options to be applied to the Routes compiler.
+     *
+     * @return The fork options for the Routes compiler.
+     */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
             forkOptions = new BaseForkOptions();

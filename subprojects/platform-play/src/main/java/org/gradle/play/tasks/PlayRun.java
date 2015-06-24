@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * A Task to run a play application.
+ * Task to run a play application.
  */
 @Incubating
 public class PlayRun extends ConventionTask {
@@ -118,6 +118,13 @@ public class PlayRun extends ConventionTask {
         }
     }
 
+    /**
+     * The HTTP port listened to by the Play application.
+     *
+     * This port should be available.  The Play application will fail to start if the port is already in use.
+     *
+     * @return HTTP port
+     */
     public int getHttpPort() {
         return httpPort;
     }

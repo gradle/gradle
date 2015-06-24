@@ -503,10 +503,10 @@
     </section>
 
     <section>
-        <title>Native binary core types</title>
-        <para>Used to configure components developed with native code.</para>
+        <title>Native binary model types</title>
+        <para>Used to configure software components developed with native code.</para>
         <table>
-            <title>Native component core types</title>
+            <title>Native software component model types</title>
             <tr>
                 <td>org.gradle.nativeplatform.NativeExecutable</td>
             </tr>
@@ -610,7 +610,7 @@
     </section>
     <section>
         <title>Native binary task types</title>
-        <para>Tasks used to build native binary components.</para>
+        <para>Tasks used to build native binaries.</para>
         <table>
             <title>Native component task types</title>
             <tr>
@@ -650,21 +650,15 @@
     </section>
 
     <section>
-        <title>Play Application core types</title>
-        <para>Used to configure components developed with the Play Framework.</para>
+        <title>Play Framework model types</title>
+        <para>Used to configure software components developed with the Play Framework.</para>
         <table>
-            <title>Play application core types</title>
-            <tr>
-                <td>org.gradle.play.JvmClasses</td>
-            </tr>
+            <title>Play Framework model types</title>
             <tr>
                 <td>org.gradle.play.PlayApplicationBinarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.play.PlayApplicationSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.PublicAssets</td>
             </tr>
             <tr>
                 <td>org.gradle.play.platform.PlayPlatform</td>
@@ -676,10 +670,10 @@
     </section>
 
     <section>
-        <title>Play Application task types</title>
+        <title>Play Framework task types</title>
         <para>Tasks used to build applications using the Play Framework.</para>
         <table>
-            <title>Play Application task types</title>
+            <title>Play Framework task types</title>
             <tr>
                 <td>org.gradle.play.tasks.JavaScriptMinify</td>
             </tr>
