@@ -25,7 +25,7 @@ public final class InstalledGradleDistribution implements GradleDistribution {
         this.gradleHomeDir = gradleHomeDir;
     }
 
-    public File getGradleUserHomeDir() {
+    public File getGradleHomeDir() {
         return gradleHomeDir;
     }
 

@@ -112,7 +112,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         if(gradleDistribution instanceof VersionBasedGradleDistribution) {
             gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getVersion());
         } else if(gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleUserHomeDir());
+            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHomeDir());
         } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
             gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getURI());
         }
