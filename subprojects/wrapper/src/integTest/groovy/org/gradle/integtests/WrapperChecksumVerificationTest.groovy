@@ -21,8 +21,7 @@ import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
     @Rule
@@ -51,8 +50,10 @@ class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
         def failure = executer.usingExecutable("gradlew").withStackTraceChecksDisabled().runWithFailure()
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
+
         then:
-        normaliseFileSeparators(failure.error).startsWith(normaliseLineSeparators("""
+        def errorOutput = normaliseFileAndLineSeparators(failure.error)
+        errorOutput.startsWith(normaliseFileAndLineSeparators("""
 Verification of Gradle distribution failed!
 
 Your Gradle distribution may have been tampered with.
