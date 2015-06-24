@@ -33,9 +33,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
         then:
         appIsRunningAndDeployed()
 
-        and: "the build is waiting for changes"
-        doesntExit()
-
         cleanup: "stopping gradle"
         stopGradle()
         appIsStopped()
