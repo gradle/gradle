@@ -16,13 +16,10 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.launcher.continuous.AbstractContinuousIntegrationTest
+import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
-abstract class AbstractPlayContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
+abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     abstract PlayApp getPlayApp()
     abstract RunningPlayApp getRunningApp()
 
