@@ -54,8 +54,9 @@ public interface BinarySpec extends BuildableModelElement, Named {
 
     /**
      * Configures the source sets used to build this binary.
+     * @param action The configuration action to execute for each owned source set.
      */
-    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
+    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
 
     /**
      * The set of tasks associated with this binary.

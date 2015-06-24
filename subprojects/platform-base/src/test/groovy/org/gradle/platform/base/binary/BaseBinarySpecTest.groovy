@@ -105,6 +105,35 @@ class BaseBinarySpecTest extends Specification {
         binary.inputs*.name == ["ss1", "ss2", "ss3"]
     }
 
+    def "owned sources can be configured, but not input sources"() {
+        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def functionalSourceSet = new DefaultFunctionalSourceSet("main", instantiator, Stub(ProjectSourceSet))
+        binary.binarySources = functionalSourceSet
+        def ownedSourceSet1 = Stub(LanguageSourceSet) {
+            getName() >> "owned1"
+        }
+        def ownedSourceSet2 = Stub(LanguageSourceSet) {
+            getName() >> "owned2"
+        }
+        def inputSourceSet = Stub(LanguageSourceSet) {
+            getName() >> "input"
+        }
+
+        functionalSourceSet.add ownedSourceSet1
+        binary.addSourceSet ownedSourceSet2
+        binary.inputs.add inputSourceSet
+
+        def configuredSourceSets = []
+
+        when:
+        binary.sources { sources ->
+            configuredSourceSets.addAll sources.values()
+        }
+
+        then:
+        configuredSourceSets*.name == ["owned1", "owned2"]
+    }
+
     static class MySampleBinary extends BaseBinarySpec {
     }
     static class MyConstructedBinary extends BaseBinarySpec {

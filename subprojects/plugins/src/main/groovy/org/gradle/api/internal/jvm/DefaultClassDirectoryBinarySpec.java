@@ -17,7 +17,6 @@ package org.gradle.api.internal.jvm;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -127,7 +126,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
-    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
         throw new UnsupportedOperationException();
     }
 

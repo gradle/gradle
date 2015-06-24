@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -126,14 +125,8 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, ownedSourceSets.values());
     }
 
-    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
-        action.execute(mainSources);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public Set<LanguageSourceSet> getAllSources() {
-        return getInputs();
+    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
+        action.execute(getSources());
     }
 
     @Override
