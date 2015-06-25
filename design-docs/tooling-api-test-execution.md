@@ -43,6 +43,8 @@ From a client this API can be used like:
 * Introduce new `TestLauncher`
 * Add factory method `ProjectConnection#newTestRunner()`
 * Add a new protocol interface with a method that will accept a test execution request. The provider connection will implement this interface.
+    * For example see `InternalCancellableConnection`.
+    * Also update the docs on `ConnectionVersion4`.
 * Add a new `BuildModelAction` subtype to represent a test execution request.
 * Add a new `BuildActionRunner` subtype to handle this request.
 * Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.
