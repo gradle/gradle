@@ -29,28 +29,41 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 
 @ThreadSafe
 class ModelSchemaExtractor {
 
-    private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
-        public String create() {
-            return getSupportedTypesDescription();
-        }
-    };
-    private final List<ModelSchemaExtractionStrategy> strategies = ImmutableList.of(
-        new PrimitiveStrategy(),
-        new EnumStrategy(),
-        new JdkValueTypeStrategy(),
-        new ModelSetStrategy(supportedTypeDescriptions),
-        new ManagedSetStrategy(supportedTypeDescriptions),
-        new StructStrategy(supportedTypeDescriptions),
-        new SpecializedMapStrategy(),
-        new ModelMapStrategy(),
-        new UnmanagedStrategy()
-    );
+    private final List<? extends ModelSchemaExtractionStrategy> strategies;
+
+    public ModelSchemaExtractor() {
+        this(Collections.<ModelSchemaExtractionStrategy>emptyList());
+    }
+
+    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
+        Factory<String> supportedTypeDescriptions = new Factory<String>() {
+            public String create() {
+                return getSupportedTypesDescription();
+            }
+        };
+
+        this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
+            .add(
+                new PrimitiveStrategy(),
+                new EnumStrategy(),
+                new JdkValueTypeStrategy(),
+                new ModelSetStrategy(supportedTypeDescriptions),
+                new ManagedSetStrategy(supportedTypeDescriptions),
+                new StructStrategy(supportedTypeDescriptions),
+                new SpecializedMapStrategy(),
+                new ModelMapStrategy()
+            )
+            .addAll(strategies)
+            .add(new UnmanagedStrategy())
+            .build();
+    }
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);

@@ -895,4 +895,25 @@ interface Managed${typeName} {
 }
 """)
     }
+
+    static class CustomThing {}
+    static class UnmanagedThing {}
+
+    def "can register custom strategy"() {
+        when:
+        def strategy = Mock(ModelSchemaExtractionStrategy) {
+            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaCache schemaCache ->
+                if (extractionContext.type.rawClass == CustomThing) {
+                    return new ModelSchemaExtractionResult(ModelSchema.value(extractionContext.type))
+                } else {
+                    return null
+                }
+            }
+        }
+        def extractor = new ModelSchemaExtractor([strategy])
+
+        then:
+        extractor.extract(ModelType.of(CustomThing), cache).kind == ModelSchema.Kind.VALUE
+        extractor.extract(ModelType.of(UnmanagedThing), cache).kind == ModelSchema.Kind.UNMANAGED
+    }
 }
