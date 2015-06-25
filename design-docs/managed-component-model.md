@@ -22,6 +22,44 @@ individual nodes.
 
 As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
 
+## Story: Custom JarBinarySpec type is implemented as a @Managed type
+
+Specific support will be added for specialisations of `JarBinarySpec`.
+This is being targeted first as it is needed to continue the dependency management stream.
+
+### Implementation
+
+(unordered)
+
+- Allow plugins to register schema extraction strategies via our plugin service registry mechanism
+- Have the platformJvm module register a strategy for `JarBinarySpec` subtypes
+- Change `@BinaryType` rule to have some understanding of `@Managed` types so that `defaultImplementation` is not required or allowed for managed binary types.
+- Add support for having managed types be somehow backed by a “real object”
+
+> For this story, the simplest approach may be to do this via delegation.
+> First we create a `JarBinarySpecInternal` using the existing machinery, then create a managed subtype wrapper that delegates
+> all `JarBinarySpecInternal` to the manually created unmanaged instance.
+> This will require opening up the type generation mechanics to some extent.
+
+- Open up managed node creation mechanics to allow “custom” strategies
+
+> The schema extraction strategy may be the link here.
+> That is, the strategy for creating the _node_ may be part of the schema.
+
+- Implementation of `@BinaryType` rule WRT interaction with `BinarySpecFactory` will need to be “managed aware”
+- Move `baseName` property from `JarBinarySpecInternal` to `JarBinarySpec`
+
+### Tests
+
+- Illegal managed subtype registered via `@BinaryType` yields error at rule execution time (i.e. when the binary types are being discovered)
+- Attempt to call `binaryTypeBuilder.defaultImplementation` fails eagerly if public type is `@Managed`
+- Subtype can have `@Unmanaged` properties
+- Subtype can have further subtypes
+- Subtype exhibits managed impl behaviour WRT immutability when realised
+- Subtype can be cast and used as `BinarySpecInternal`
+- Subtype cannot be created via `BinaryContainer` (i.e. top level `binaries` node) - (requires node backing)
+- Can successfully create binary represented by `JarBinarySpec` subtype
+
 # Feature 5: Managed Model usability
 
 Some candidates:
