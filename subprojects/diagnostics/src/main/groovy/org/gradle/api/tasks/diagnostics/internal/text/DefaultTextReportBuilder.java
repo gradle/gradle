@@ -75,6 +75,16 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.style(Normal).println();
     }
 
+    public <T> void itemCollection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+        StyledTextOutput original = textOutput;
+        try {
+            textOutput = new LinePrefixingStyledTextOutput(original, "    ");
+            collection(title + ":", items, renderer, elementsPlural);
+        } finally {
+            textOutput = original;
+        }
+    }
+
     public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
         textOutput.println(title);
         if (items.isEmpty()) {

@@ -19,7 +19,9 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -47,6 +49,8 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         renderOutputs(specialized, builder);
 
         renderBuildAbility(specialized, builder);
+
+        renderOwnedSourceSets(specialized, builder);
     }
 
     public abstract Class<T> getTargetType();
@@ -66,6 +70,14 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
             TreeFormatter formatter = new TreeFormatter();
             buildAbility.explain(formatter);
             builder.item(formatter.toString());
+        }
+    }
+
+    protected void renderOwnedSourceSets(T binary, TextReportBuilder builder) {
+        ModelMap<LanguageSourceSet> sources = binary.getSources();
+        if (!sources.isEmpty()) {
+            SourceSetRenderer sourceSetRenderer = new SourceSetRenderer();
+            builder.itemCollection("source sets", sources.values(), sourceSetRenderer, "owned source sets");
         }
     }
 }

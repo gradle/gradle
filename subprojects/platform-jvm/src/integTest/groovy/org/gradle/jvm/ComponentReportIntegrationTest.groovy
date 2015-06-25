@@ -197,4 +197,59 @@ Binaries
         Disabled by user
 """
     }
+
+    def "shows owned sources of a Jar binary"() {
+        given:
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        someLib(JvmLibrarySpec) {
+            binaries {
+                all {
+                    sources {
+                        java2(JavaSourceSet) {
+                            source.srcDir "src/main/java2"
+                            dependencies {
+                                library 'some-library'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+JVM library 'someLib'
+---------------------
+
+Source sets
+    Java source 'someLib:java'
+        srcDir: src/someLib/java
+    JVM resources 'someLib:resources'
+        srcDir: src/someLib/resources
+
+Binaries
+    Jar 'someLibJar'
+        build using task: :someLibJar
+        platform: $currentJava
+        tool chain: $currentJdk
+        Jar file: build/jars/someLibJar/someLib.jar
+        source sets:
+            Java source 'someLib:java2'
+                srcDir: src/main/java2
+                dependencies
+                    library 'some-library'
+"""
+    }
 }
