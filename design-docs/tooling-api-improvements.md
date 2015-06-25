@@ -316,7 +316,7 @@ just the build directory and the `.gradle` directory. This can be improved later
 
 Similar to `gradleApi()`
 
-# Open issues
+# Backlog
 
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
 * Change the tooling API protocol to allow the provider to inform the consumer that it is deprecated and/or no longer supported, and fix the exception
