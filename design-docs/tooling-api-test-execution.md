@@ -1,6 +1,6 @@
 ## Feature: Test Execution
 
-## Story: Add ability to launch tests
+## Story: Add ability to launch JVM tests by class
 
 ### API proposal
 
@@ -15,7 +15,6 @@ The API:
 
     interface TestLauncher extends LongRunningOperation {
 	    TestLauncher withJvmTestClasses(String...);
-	    TestLauncher withJvmTestMethods(String testClass, String... methods);
 
 	    void run(); // Run synchronously
         void run(ResultHandler<? super Void> handler); // Start asynchronously
@@ -47,7 +46,9 @@ From a client this API can be used like:
 * Add a new `BuildModelAction` subtype to represent a test execution request.
 * Add a new `BuildActionRunner` subtype to handle this request.
 * Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.
-* Add internal filter interfaces to allow test class and test method filters to be applied. Do not use patterns.
+	* Ensure that listener failures are rethrown on the client side, as is done for the other kinds of operations. Refactor this on the client side so that the logic
+	  is in one place, rather than ad hoc per operation.
+* Change filter interfaces for `Test` to allow test class filters to be applied. Do not use patterns.
 * Run all `Test` tasks with filters applied.
 
 ### Test Coverage
@@ -55,8 +56,6 @@ From a client this API can be used like:
 * can execute
 	* single JVM test class
 	* multiple specific JVM test classes
-	* single test method of JVM test class
-	* multiple test methods of JVM test class
 * handles more than one test task
 	* class included in multiple test tasks is executed multiple times, once for each test task
 	* class included in multiple projects is executed multiple times, once for each test task
@@ -65,10 +64,34 @@ From a client this API can be used like:
 	* when configure-on-demand is being used with a multi-project build
 * test will not execute when test task is up-to-date
 * tooling api operation fails with meaningful error message when no matching tests can be found
+	* class does not exist
+	* class does not define any tests or is not a test class
 * build should not fail if filter matches a single test task
 * expected test progress events are received in each case
 * reasonable error message when target Gradle version does not support test execution
 * does something reasonable when continuous build is used.
+
+## Story: Add ability to launch JVM tests by method
+
+    interface TestLauncher extends LongRunningOperation {
+	    TestLauncher withJvmTestMethods(String testClass, String... methods);
+	}
+
+### Implementation
+
+* change filter interfaces for `Test` to allow test class and test method filters to be applied. Do not use patterns.
+
+### Test cases
+
+* can execute
+	* single test method of JVM test class
+	* multiple test methods of JVM test class
+* methods that do not match are not executed.
+* expected test progress events are received in each case
+* tooling api operation fails with meaningful error message when no matching tests can be found
+	* class does not exist
+	* class does not define any tests
+	* class does not define any matching test methods
 
 ## Story: Run only those test tasks that match the test execution request
 
@@ -76,10 +99,19 @@ Running all `Test` tasks with a filter has a serious downside: all the dependenc
 For example, when a functional test suite requires some service to be provisioned and a data store of some kind to be created, this work will be on
 every invocation of the test launcher, say when running unit tests, even when not required.
 
+Instead, detect which `Test` task instances to run based on their inputs.
+
 ### Implementation
 
-* calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
-* execute matching Test tasks only
+* Ideally, we should cache the result of test detection during `Test` execution, so that it can be reused to determine which `Test` instances to run.
+	* Recalculate this when inputs have changed.
+	* Will need to run the tasks that build the input classpaths.
+	* Apply test detection.
+	* Determine which `Test` tasks to run
+	* Run these tasks and their dependencies and finalizers.
+	* Do not run `Test` tasks that do no match, nor their dependencies or finalizers.
+* Calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
+* Execute matching Test tasks only
 
 ## Story: Rerun a failed test
 
