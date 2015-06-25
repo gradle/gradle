@@ -60,27 +60,6 @@
     </section>
 
     <section>
-        <title>Project Layout</title>
-        <para>The Play plugin follows the typical Play application layout.  You can configure <link linkend="">additional directories or change the defaults.</link></para>
-        <screen>
-├── app                 <lineannotation>→ Application source code.</lineannotation>
-│   ├── assets          <lineannotation>→ Assets that require compilation.</lineannotation>
-│   │   ├── javascripts <lineannotation>→ Typically CoffeeScript source code.</lineannotation>
-│   │   └── stylesheets <lineannotation>→ Typically LESS source code.</lineannotation>
-│   ├── controllers     <lineannotation>→ Application controller source code.</lineannotation>
-│   ├── models          <lineannotation>→ Application business source code.</lineannotation>
-│   └── views           <lineannotation>→ Application UI templates.</lineannotation>
-├── build.gradle        <lineannotation>→ Your project's build script.</lineannotation>
-├── conf                <lineannotation>→ Main application configuration file and routes files.</lineannotation>
-├── public              <lineannotation>→ Public assets.</lineannotation>
-│   ├── images          <lineannotation>→ Application image files.</lineannotation>
-│   ├── javascripts     <lineannotation>→ Typically JavaScript source code.</lineannotation>
-│   └── stylesheets     <lineannotation>→ Typically CSS source code.</lineannotation>
-└── test                <lineannotation>→ Test source code.</lineannotation>
-        </screen>
-    </section>
-
-    <section>
         <title>Software Component Model</title>
 
         <para>
@@ -116,6 +95,27 @@
             You can inspect the list of tasks with <literal>gradle tasks</literal>, but the software component model also provides additional reports for understanding the build.
         </para>
         <para>Learn more about the <link linkend="new_model">Software Component Model</link> and how it fits into Gradle's future.</para>
+    </section>
+
+    <section>
+        <title>Project Layout</title>
+        <para>The Play plugin follows the typical Play application layout.  You can configure <link linkend="">additional directories or change the defaults.</link></para>
+        <screen>
+            ├── app                 <lineannotation>→ Application source code.</lineannotation>
+            │   ├── assets          <lineannotation>→ Assets that require compilation.</lineannotation>
+            │   │   ├── javascripts <lineannotation>→ Typically CoffeeScript source code.</lineannotation>
+            │   │   └── stylesheets <lineannotation>→ Typically LESS source code.</lineannotation>
+            │   ├── controllers     <lineannotation>→ Application controller source code.</lineannotation>
+            │   ├── models          <lineannotation>→ Application business source code.</lineannotation>
+            │   └── views           <lineannotation>→ Application UI templates.</lineannotation>
+            ├── build.gradle        <lineannotation>→ Your project's build script.</lineannotation>
+            ├── conf                <lineannotation>→ Main application configuration file and routes files.</lineannotation>
+            ├── public              <lineannotation>→ Public assets.</lineannotation>
+            │   ├── images          <lineannotation>→ Application image files.</lineannotation>
+            │   ├── javascripts     <lineannotation>→ Typically JavaScript source code.</lineannotation>
+            │   └── stylesheets     <lineannotation>→ Typically CSS source code.</lineannotation>
+            └── test                <lineannotation>→ Test source code.</lineannotation>
+        </screen>
     </section>
 
     <section>
@@ -172,50 +172,47 @@
             </tr>
         </table>
 
-        <para>For each source set you add to the project, the Play plugin adds the following compilation tasks:</para>
+        <para>For the different types of sources in a Play application, the plugin adds the following compilation tasks:</para>
         <table id="play_source_set_tasks">
             <title>Play plugin - source set tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
-                    <td>Depends on</td>
+                    <td>Source Type</td>
                     <td>Type</td>
                     <td>Description</td>
                 </tr>
             </thead>
-            <task><title>TODO: </title></task>
-            <!-- Figure out what the plugin actually does...
             <tr>
                 <td>
-                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
+                    <literal>compilePlayBinaryScala</literal>
                 </td>
                 <td>
-                    All tasks which produce the source set's compile classpath.
+                    Scala and Java
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
-                <td>Compiles the given source set's Java source files using javac.</td>
+                <td><apilink class="org.gradle.language.scala.tasks.PlatformScalaCompile"/></td>
+                <td>Compiles all Scala and Java sources defined by the Play application.</td>
             </tr>
             <tr>
                 <td>
-                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
+                    <literal>compilePlayBinaryTwirlTemplates</literal>
                 </td>
-                <td>-</td>
-                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies the given source set's resources into the classes directory.</td>
+                <td>
+                    Twirl HTML templates
+                </td>
+                <td><apilink class="org.gradle.play.tasks.TwirlCompile"/></td>
+                <td>Compiles HTML templates with the Twirl compiler.</td>
             </tr>
             <tr>
                 <td>
-                    <literal><replaceable>sourceSet</replaceable>Classes</literal>
+                    <literal>compilePlayBinaryRoutes</literal>
                 </td>
                 <td>
-                    The <literal>compile<replaceable>SourceSet</replaceable>Java</literal> task and
-                    the <literal>process<replaceable>SourceSet</replaceable>Resources</literal> task.
-                    Some plugins add additional compilation tasks for the source set.
+                    Play Route files
                 </td>
-                <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the given source set's classes directory.</td>
+                <td><apilink class="org.gradle.play.tasks.RoutesCompile"/></td>
+                <td>Compiles routes files into Scala sources.</td>
             </tr>
-            -->
         </table>
     </section>
 
@@ -234,31 +231,69 @@
     <section>
         <title>Configuring a Play application</title>
         <section>
+            <title>Targeting a certain version of Play</title>
+            <para>
+                By default, Gradle uses Play 2.3.9, Scala 2.10 and the version of Java used to start the build.
+                A Play application can select a different version by supplying a a target PlayPlatform.
+            </para>
+            <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">
+                <sourcefile file="build.gradle" snippet="play-platform"/>
+            </sample>
+        </section>
+        <section>
             <title>Adding dependencies</title>
-            <task><title>TODO: </title></task>
+            <para>
+                You can add compile, test and runtime dependencies to a Play application through Configurations created by the Play plugin.
+                This is the same way dependencies are added in regular Java projects, so you can use the same dependency notations.
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <literal>play</literal> is used for compile time dependencies.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>playTest</literal> is used for compile time dependencies.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>playRun</literal> is used for compile time dependencies.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <sample id="addPlayDependencies" dir="play/advanced" title="Adding dependencies to a Play application">
+                <sourcefile file="build.gradle" snippet="play-dependencies"/>
+            </sample>
+        </section>
+
+        <section>
+            <title>Adding Java/Scala source sets</title>
+            <task><title>TODO: WIP</title></task>
         </section>
         <section>
             <title>Adding Routes</title>
-            <task><title>TODO: </title></task>
+            <task><title>TODO: WIP</title></task>
         </section>
         <section>
             <title>Adding Twirl templates</title>
-            <task><title>TODO: </title></task>
+            <task><title>TODO: WIP</title></task>
         </section>
-        <section>
-            <title>Adding Java/Scala source sets</title>
-            <task><title>TODO: </title></task>
-        </section>
+
     </section>
 
     <section>
         <title>Multi-project Play applications</title>
-        <task><title>TODO: </title></task>
+        <para>
+            Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subproject.
+        </para>
+        <task><title>TODO: Expand with example from samples</title></task>
     </section>
 
     <section>
         <title>Extending the Play Software Model</title>
-        <task><title>TODO: </title></task>
+        <task><title>TODO: Base this on what we've done for play-coffeescript?</title></task>
     </section>
 
     <section>
@@ -270,7 +305,7 @@
         <itemizedlist>
             <listitem>
                 <para>
-                    Take a look at the Play types in the Gradle DSL Guide
+                    Take a look at the Play types in the Gradle DSL Guide.
                 </para>
             </listitem>
             <listitem>

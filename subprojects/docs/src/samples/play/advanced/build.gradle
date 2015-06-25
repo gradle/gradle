@@ -1,8 +1,11 @@
+// START SNIPPET play-coffeescript
 plugins {
     id 'play'
     id 'play-coffeescript'
 }
+// END SNIPPET play-coffeescript
 
+// START SNIPPET play-platform
 model {
     components {
         play {
@@ -10,10 +13,13 @@ model {
         }
     }
 }
+// END SNIPPET play-platform
 
+// START SNIPPET play-dependencies
 dependencies {
     play "commons-lang:commons-lang:2.6"
 }
+// END SNIPPET play-dependencies
 
 repositories{
     jcenter()
