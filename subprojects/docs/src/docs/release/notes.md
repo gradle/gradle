@@ -1,6 +1,6 @@
 Gradle 2.5 delivers some big features and plenty of internal improvements and optimizations.
 
-The new “Continuous Build” support brings capability to have Gradle automatically initiate a build in response to file system changes.
+The new “Continuous build” support brings capability to have Gradle automatically initiate a build in response to file system changes.
 This works with any build and has many applications. For example, it can be used to get continuously compile and test, giving more immediate feedback.
 As it works with _any_ Gradle task, it is equally applicable to documentation generation tasks and more.
 Upcoming versions of Gradle will build on this capability to facilitate reloading applications and the like under development in response to changes,
@@ -39,7 +39,7 @@ For more information, please see the [new User Guide chapter](userguide/continuo
 ### Dependency substitution rules (i)
 
 Previous versions of Gradle allowed an external dependency to be replaced with another using a ['Dependency Resolve Rule'](https://docs.gradle.org/1.4/release-notes#dependency-resolve-rules).
-With the introduction of 'Dependency Substitution Rules' this behaviour has been enhanced and extended to allow external dependencies and project dependencies to be replaced interchangeably.
+With the introduction of 'Dependency substitution rules' this behaviour has been enhanced and extended to allow external dependencies and project dependencies to be replaced interchangeably.
 
 When combined with a configurable Gradle settings file, these dependency substitution rules permit some powerful new ways of working with Gradle:
 
@@ -186,10 +186,15 @@ This feature was contributed by [Daniel Lacasse](https://github.com/Shad0w1nk).
 
 It is now possible to obtain the “group” of a task via [`org.gradle.tooling.model.Task.getGroup()`](javadoc/org/gradle/tooling/model/GradleTask.html#getGroup\(\)).
 
-### New model improvements
+### New managed model improvements
+
+A number of improvements have been made to the experimental managed model feature. This feature is currently used by the native plugins and will evolve into
+a general purpose feature for describing Gradle builds:
 
 The model report for [Rule based model configuration](userguide/new_model.html) has been enhanced to display string representations of some values.
 This allows the effective values of the build model to be visualised, not just the structure as was the case previously.
+
+More of the new software model is now visible to the model report and to configuration rules.
 
 [`@Managed`](javadoc/org/gradle/model/Managed.html) models can now have managed model properties of type `java.io.File`.
 
@@ -247,34 +252,34 @@ As part of the changes in the IDE classpath generation, the following properties
 
 ## Potential breaking changes
 
-### Changes to the new configuration and component model
+### Changes to the new software model
 
-As work continues on the new configuration and component model for Gradle, many changes to the new incubating plugins and types
+As work continues on the new software model for Gradle, many changes to the new incubating plugins and types
 are required. These changes should have no impact on builds that do not leverage these new features.
 
 #### Removal of `componentSpec` project extension
 
-As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
-Currently component container can be only accessed using model rules.
+As part of work on exposing more of the component model as managed types, the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
+The `components` container can now only be accessed using configuration rules.
 
 #### Changes to `ComponentSpecContainer`
 
 - `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`.
 - `ComponentSpecContainer` now implements `ModelMap<ComponentSpec>`.
-- All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
+- All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle this configuration was eager.
 
 #### Changes to `ComponentSpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-- `getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `DomainObjectSet<BinarySpec>`
-- `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super DomainObjectSet<BinarySpec>>`
-- Source sets and binaries cannot be removed
+- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
+- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
+- `getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `DomainObjectSet<BinarySpec>`.
+- `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super DomainObjectSet<BinarySpec>>`.
+- Source sets and binaries cannot be removed from these collections.
 
-#### Changes in NativeBinariesTestPlugin
+#### Changes in `TestSuiteContainer`
 
 - `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
 - `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
-- All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle it was eager.
+- All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle this configuration was eager.
 
 ### Maven publishing
 
