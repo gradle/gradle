@@ -33,6 +33,7 @@ import java.util.*;
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
     private final Map<String, Iterable<? extends PublishArtifact>> allArtifacts = Maps.newHashMap();
+    private final Set<ComponentArtifactMetaData> artifactsMetaData = Sets.newHashSet();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -51,6 +52,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         allArtifacts.put(configuration, artifacts);
+    }
+
+    @Override
+    public void addArtifact(ComponentArtifactMetaData artifactMetaData) {
+        artifactsMetaData.add(artifactMetaData);
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
@@ -260,7 +266,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, getHierarchy(), allArtifacts);
+            return Sets.union(DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, getHierarchy(), allArtifacts), artifactsMetaData);
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {

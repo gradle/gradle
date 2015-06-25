@@ -75,11 +75,17 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 Collection<BinarySpec> variants = selectedLibrary.getBinaries().values();
                 if (variants.size() > 1) {
                     result.failed(new ModuleVersionResolveException(selector, String.format("Multiple binaries available for library '%s' : %s", libraryName, variants)));
-                }
-                for (BinarySpec spec : variants) {
-                    buildDependencies.add(spec.getBuildTask());
-                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
-                    result.resolved(metaData.toResolveMetaData());
+                } else {
+                    for (BinarySpec spec : variants) {
+                        buildDependencies.add(spec.getBuildTask());
+                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
+                        ComponentResolveMetaData resolveMetaData = metaData.toResolveMetaData();
+                        result.resolved(resolveMetaData);
+                        BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(spec);
+                        if (factory != null) {
+                            metaData.addArtifact(factory.convertArtifact((LibraryComponentIdentifier) resolveMetaData.getComponentId(), spec));
+                        }
+                    }
                 }
             }
             if (!result.hasResult()) {
@@ -171,6 +177,14 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
+            ConfigurationMetaData configuration = component.getConfiguration(usage.getConfigurationName());
+            if (configuration!=null) {
+                Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
+                if (!artifacts.isEmpty()) {
+                    result.resolved(artifacts);
+                    return;
+                }
+            }
             doConvertArtifact(result, (LibraryComponentIdentifier) componentId);
         }
     }
