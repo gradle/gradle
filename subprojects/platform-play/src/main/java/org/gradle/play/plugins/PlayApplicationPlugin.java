@@ -490,6 +490,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 final String deploymentId = getDeploymentId(projectIdentifier, binary.getName(), binary.getTargetPlatform().getName());
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
+                        playRun.setDescription("Runs the Play application for local development.");
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
                         playRun.setDeploymentRegistry(deploymentRegistry);
                         playRun.setDeploymentId(deploymentId);

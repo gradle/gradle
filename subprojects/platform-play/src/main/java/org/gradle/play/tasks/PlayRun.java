@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * Task to run a play application.
+ * Task to run a Play application.
  */
 @Incubating
 public class PlayRun extends ConventionTask {
@@ -66,7 +66,7 @@ public class PlayRun extends ConventionTask {
     private String deploymentId;
 
     /**
-     * fork options for the running a play application.
+     * fork options for the running a Play application.
      */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
