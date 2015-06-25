@@ -67,6 +67,7 @@ Some candidates:
 - Consistent validation when managed type, ModelMap and ModelSet are used as inputs.
 - Consistent validation when managed type, ModelMap and ModelSet are mutated after view is closed.
 - Consistent validation when managed type, ModelMap and ModelSet used on subject that is not mutable.
+- Consistent error message for ModelMap<T> and ModelSet<T> where T is not managed.
 - Consistent usage of ModelMap and ModelSet with reference properties.
 - Consistent mutation methods on ModelMap and ModelSet.
 - Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
@@ -75,6 +76,7 @@ Some candidates:
   they are intended to be used to define mutation rules that are invoked later. For example `all { }` or `withType(T) { }` could have better names.
 - Add methods (or a view) that allows iteration over collection when it is immutable.
 - Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
+- Allow empty managed subtypes of ModelSet and ModelMap. This is currently available internally, eg for `ComponentSpecContainer`.
 
 # Feature 6: Internal views for managed types
 
