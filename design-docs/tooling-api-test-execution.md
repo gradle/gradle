@@ -42,9 +42,13 @@ From a client this API can be used like:
 
 ### Implementation
 
-* Introduce new LongRunningOperation `TestLauncher`
+* Introduce new `TestLauncher`
 * Add factory method `ProjectConnection#newTestRunner()`
-* Change BuildModelActionRunner to run test tasks if TestConfiguration is provided
+* Add a new protocol interface with a method that will accept a test execution request. The provider connection will implement this interface.
+* Add a new `BuildModelAction` subtype to represent a test execution request.
+* Add a new `BuildActionRunner` subtype to handle this request.
+* Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.
+* Add internal filter interfaces to allow test class and test method filters to be applied. Do not use patterns.
 * Run all `Test` tasks with filters applied.
 
 ### Test Coverage
@@ -54,25 +58,24 @@ From a client this API can be used like:
 	* multiple specific JVM test classes
 	* single test method of JVM test class
 	* multiple test methods of JVM test class
-    * test methods specified using a test descriptor
-* test will not execute if test task is up-to-date
-* class included in multiple test tasks are executed multiple times (for each test task)
-* tooling api operation fails with meaningful error message when no matching tests can be found.
+* handles more than one test task
+	* class included in multiple test tasks is executed multiple times, once for each test task
+	* class included in multiple projects is executed multiple times, once for each test task
+	* request class A and class B, where class A is included in task A, class B is included in task B
+	* request class A, where class A is included in task A and not included in task B
+	* when configure-on-demand is being used with a multi-project build
+* test will not execute when test task is up-to-date
+* tooling api operation fails with meaningful error message when no matching tests can be found
 * build should not fail if filter matches a single test task
 * expected test progress events are received in each case
-
-### Open Issues
-
-* With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
-* For staying forwards compatible we can't add arbitrary classes to `ProviderOperationParameters`. That might cause some friction in
-the long run as we e.g. can't keep the test execution stuff maintained in a rich `ProviderOperationParameters#TestExecutionConfiguration` and have to use
-`ProviderOperationParameters#testIncludes`+ `ProviderOperationParameters#testExcludes` instead.
+* reasonable error message when target Gradle version does not support test execution
+* does something reasonable when continuous build is used.
 
 ## Story: Run only those test tasks that match the test execution request
 
 Running all `Test` tasks with a filter has a serious downside: all the dependencies and finalizers for these tasks are run, even when not required.
 For example, when a functional test suite requires some service to be provisioned and a data store of some kind to be created, this work will be on
-every invocation of the test launcher, say when running unit tests.
+every invocation of the test launcher, say when running unit tests, even when not required.
 
 ### Implementation
 
@@ -89,7 +92,15 @@ Add a method to `TestLauncher` to allow a `TestOperationDescriptor` to be provid
 
 ### Implementation
 
-- Given a `TestOperationDescriptor`, it is possible to calculate which test task to run.
+- Given a `TestOperationDescriptor`, it is possible to calculate exactly which test task to run.
+
+### Test cases
+
+- only the target test task is executed.
+	- class is included in multiple test tasks.
+- build fails when the target test no longer exists.
+- does something reasonable when the target test task no longer exists, but the test still exists.
+- does something reasonable when the target test is no longer part of the target test task.
 
 ## Story: Rerun a failed JUnit test that uses a custom test runner
 
