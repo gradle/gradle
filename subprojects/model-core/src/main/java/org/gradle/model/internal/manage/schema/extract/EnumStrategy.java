@@ -20,8 +20,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-
 public class EnumStrategy implements ModelSchemaExtractionStrategy {
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
@@ -31,10 +29,6 @@ public class EnumStrategy implements ModelSchemaExtractionStrategy {
         } else {
             return null;
         }
-    }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton("enum types");
     }
 
 }

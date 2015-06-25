@@ -19,14 +19,8 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 
-import java.util.Collections;
-
 public class UnmanagedStrategy implements ModelSchemaExtractionStrategy {
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         return new ModelSchemaExtractionResult<T>(ModelSchema.unmanaged(extractionContext.getType()));
-    }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.emptyList();
     }
 }

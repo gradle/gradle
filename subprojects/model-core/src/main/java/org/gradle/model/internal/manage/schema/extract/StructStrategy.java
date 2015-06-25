@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
@@ -40,7 +39,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -50,25 +48,18 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
     private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    private final Factory<String> supportedTypeDescriptions;
     private final MethodSignatureEquivalence equivalence = new MethodSignatureEquivalence();
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
 
-    public StructStrategy(Factory<String> supportedTypeDescriptions) {
-        this.supportedTypeDescriptions = supportedTypeDescriptions;
-
+    public StructStrategy() {
         Iterable<Method> ignoredMethods = Iterables.concat(Arrays.asList(Object.class.getMethods()), Arrays.asList(GroovyObject.class.getMethods()));
         this.ignoredMethods = ImmutableSet.copyOf(Iterables.transform(ignoredMethods, new Function<Method, Equivalence.Wrapper<Method>>() {
             public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
                 return equivalence.wrap(input);
             }
         }));
-    }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton("interfaces and abstract classes annotated with " + Managed.class.getName());
     }
 
     public <R> ModelSchemaExtractionResult<R> extract(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaCache cache) {
@@ -225,15 +216,15 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
                 if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                        "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",
-                        property.getName(), property.getType(), supportedTypeDescriptions.create()
+                        "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n",
+                        property.getName(), property.getType()
                     ));
                 }
 
                 if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
-                        property.getType(), property.getName(), supportedTypeDescriptions.create()
+                        property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
                     ));
                 }
 
@@ -253,11 +244,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 }
 
                 if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-                        if (property.isWritable()) {
-                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "property '%s' cannot have a setter (%s properties must be read only).",
-                                property.getName(), property.getType().toString()));
-                        }
+                    if (property.isWritable()) {
+                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                            "property '%s' cannot have a setter (%s properties must be read only).",
+                            property.getName(), property.getType().toString()));
+                    }
                 }
             }
         });

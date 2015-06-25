@@ -23,12 +23,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.model.Managed;
+import org.gradle.model.ModelMap;
+import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -43,20 +46,14 @@ class ModelSchemaExtractor {
     }
 
     public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
-        Factory<String> supportedTypeDescriptions = new Factory<String>() {
-            public String create() {
-                return getSupportedTypesDescription();
-            }
-        };
-
         this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .add(
                 new PrimitiveStrategy(),
                 new EnumStrategy(),
                 new JdkValueTypeStrategy(),
-                new ModelSetStrategy(supportedTypeDescriptions),
-                new ManagedSetStrategy(supportedTypeDescriptions),
-                new StructStrategy(supportedTypeDescriptions),
+                new ModelSetStrategy(),
+                new ManagedSetStrategy(),
+                new StructStrategy(),
                 new SpecializedMapStrategy(),
                 new ModelMapStrategy()
             )
@@ -114,7 +111,7 @@ class ModelSchemaExtractor {
         throw new IllegalStateException("No extraction strategy found for type: " + type);
     }
 
-    private String getSupportedTypesDescription() {
+    public static String getManageablePropertyTypesDescription() {
         return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
             public String apply(String input) {
                 return " - " + input;
@@ -122,12 +119,18 @@ class ModelSchemaExtractor {
         }));
     }
 
-    private Iterable<String> getSupportedTypes() {
-        return Iterables.concat(Iterables.transform(strategies, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
-            public Iterable<String> apply(ModelSchemaExtractionStrategy input) {
-                return input.getSupportedManagedTypes();
-            }
-        }));
+    private static Iterable<String> getSupportedTypes() {
+        return Arrays.asList(
+            "interfaces and abstract classes annotated with " + Managed.class.getName(),
+            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(JdkValueTypeStrategy.TYPES, new Function<ModelType<?>, Object>() {
+                public Object apply(ModelType<?> input) {
+                    return input.getRawClass().getSimpleName();
+                }
+            })),
+            "Enum types",
+            ModelMap.class.getName() + " of a managed type",
+            ModelSet.class.getName() + " of a managed type"
+        );
     }
 
 }

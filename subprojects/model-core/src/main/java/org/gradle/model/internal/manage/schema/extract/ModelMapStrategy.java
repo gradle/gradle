@@ -25,7 +25,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.List;
 
 @ThreadSafe
@@ -77,7 +76,4 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton(MODEL_MAP_MODEL_TYPE + " of a managed type");
-    }
 }

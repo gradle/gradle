@@ -22,8 +22,6 @@ import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 public interface ModelSchemaExtractionStrategy {
 
     @Nullable
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
-
-    Iterable<String> getSupportedManagedTypes();
+    <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
 
 }

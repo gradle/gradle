@@ -17,22 +17,15 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
 
 @ThreadSafe
 public class ManagedSetStrategy extends SetStrategy {
 
-    public ManagedSetStrategy(Factory<String> supportedTypeDescriptions) {
+    public ManagedSetStrategy() {
         super(new ModelType<ManagedSet<?>>() {
-        }, supportedTypeDescriptions);
+        });
     }
 
-    @Override
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.emptySet();
-    }
 }

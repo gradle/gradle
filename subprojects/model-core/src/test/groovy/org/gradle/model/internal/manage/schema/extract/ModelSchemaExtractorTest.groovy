@@ -513,13 +513,7 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ModelSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
-Supported types:
- - enum types
- - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File
- - org.gradle.model.ModelSet<?> of a managed type
- - interfaces and abstract classes annotated with org.gradle.model.Managed
- - org.gradle.model.ModelMap<?> of a managed type""")
+        e.message == "Invalid managed model type ${new ModelType<ModelSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type. Only @Managed types are allowed."
     }
 
     def "type argument of a managed set has to be a valid managed type"() {

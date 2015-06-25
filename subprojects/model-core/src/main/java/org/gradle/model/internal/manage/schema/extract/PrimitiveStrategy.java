@@ -20,21 +20,19 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 
     private final static Map<ModelType<?>, Class<?>> BOXED_REPLACEMENTS = ImmutableMap.<ModelType<?>, Class<?>>builder()
-            .put(ModelType.of(Boolean.TYPE), Boolean.class)
-            .put(ModelType.of(Character.TYPE), Character.class)
-            .put(ModelType.of(Float.TYPE), Double.class)
-            .put(ModelType.of(Integer.TYPE), Integer.class)
-            .put(ModelType.of(Long.TYPE), Long.class)
-            .put(ModelType.of(Short.TYPE), Integer.class)
-            .put(ModelType.of(Double.TYPE), Double.class)
-            .build();
-
+        .put(ModelType.of(Boolean.TYPE), Boolean.class)
+        .put(ModelType.of(Character.TYPE), Character.class)
+        .put(ModelType.of(Float.TYPE), Double.class)
+        .put(ModelType.of(Integer.TYPE), Integer.class)
+        .put(ModelType.of(Long.TYPE), Long.class)
+        .put(ModelType.of(Short.TYPE), Integer.class)
+        .put(ModelType.of(Double.TYPE), Double.class)
+        .build();
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         ModelType<T> type = extractionContext.getType();
@@ -46,10 +44,6 @@ public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
         }
 
         return null;
-    }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.emptySet();
     }
 
 }

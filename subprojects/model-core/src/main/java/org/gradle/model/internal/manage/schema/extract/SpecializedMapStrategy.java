@@ -25,7 +25,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collections;
 
 /**
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
@@ -60,8 +59,4 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
         return new ModelSchemaExtractionResult<T>(ModelSchema.specializedMap(extractionContext.getType(), elementType, proxyImpl));
     }
 
-    @Override
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.emptySet();
-    }
 }

@@ -18,22 +18,18 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.List;
 
 public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
 
     private final ModelType<?> modelType;
-    protected final Factory<String> supportedTypeDescriptions;
 
-    public SetStrategy(ModelType<?> modelType, Factory<String> supportedTypeDescriptions) {
+    public SetStrategy(ModelType<?> modelType) {
         this.modelType = modelType;
-        this.supportedTypeDescriptions = supportedTypeDescriptions;
     }
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache) {
@@ -64,8 +60,8 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
 
                     if (!typeParamSchema.getKind().isManaged()) {
                         throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                            "cannot create a managed set of type %s as it is an unmanaged type.%nSupported types:%n%s",
-                            context.getType(), supportedTypeDescriptions.create()
+                            "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
+                            context.getType()
                         ));
                     }
                 }
@@ -76,7 +72,4 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton(modelType + " of a managed type");
-    }
 }
