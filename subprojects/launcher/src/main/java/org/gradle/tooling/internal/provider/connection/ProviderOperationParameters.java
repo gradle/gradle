@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Defines what information is needed on the provider side regarding the build operation.
+ *
+ * This is used as an adapter over the {@link org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters} instance provided by the consumer.
  */
 public interface ProviderOperationParameters {
     boolean getVerboseLogging(boolean defaultValue);
