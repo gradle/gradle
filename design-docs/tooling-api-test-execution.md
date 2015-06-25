@@ -6,7 +6,6 @@
 
 * new method `newTestLauncher()` to ProjectConnection create test specific long running operation. returns `TestLauncher`
 * `TestLauncher` interface contains all information about which tests should be executed.
-* can configure `TestLauncher` via
 
 The API:
 
@@ -118,6 +117,10 @@ method and test execution. Fix the test descriptors to honour this contract.
 
 * can force execution of up-to-date test
 
+## Story: Add ability to launch tests in debug mode
+
+Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.
+
 ## Story: Allow specification of tests from candidate invocations of a given test
 
 A test class or method can run more than once. For example, the test class might be included by several different `Test` tasks,
@@ -135,10 +138,6 @@ TBD
 * TestLauncher#excludeJvmTestMethods(String testClass, String... methods)
 * TestLauncher#excludeJvmTestClasses(String...)
 
-### Implementation
-
-* add according inclusive pattern declared in TestLauncher to TestLauncher#testIncludePatterns / #testExcludePatterns
-
 ### Test Coverage
 
 * can execute
@@ -148,7 +147,3 @@ TBD
 	* single test with an exclude pattern"
 	* tests from specific package
 	* tests from a single package using package exclude
-
-## Story: Add ability to launch tests in debug mode
-
-Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.
