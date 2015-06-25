@@ -70,7 +70,11 @@ Some candidates:
 - Consistent usage of ModelMap and ModelSet with reference properties.
 - Consistent mutation methods on ModelMap and ModelSet.
 - Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
-- Enforce that subject cannot be mutated in a validate rule
+- Enforce that subject cannot be mutated in a validate rule.
+- Rename (via add-deprecate-remove) the mutation methods on ModelMap and ModelSet to make more explicit that
+  they are intended to be used to define mutation rules that are invoked later. For example `all { }` or `withType(T) { }` could have better names.
+- Add methods (or a view) that allows iteration over collection when it is immutable.
+- Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
 
 # Feature 6: Internal views for managed types
 
