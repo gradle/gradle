@@ -26,15 +26,6 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
 
         buildScript """
-            import org.gradle.api.internal.rules.*
-            import org.gradle.internal.service.*
-            import org.gradle.api.internal.project.*
-            import org.gradle.internal.reflect.*
-            import org.gradle.model.internal.core.rule.describe.*
-            import org.gradle.platform.base.internal.*
-            import org.gradle.language.base.internal.*
-            import org.gradle.api.internal.file.*
-
             apply type: NativeBinariesTestPlugin
 
             interface CustomTestSuite extends TestSuiteSpec {}
@@ -50,23 +41,14 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestSuiteTypeRules extends RuleSource {
-                @Mutate
-                public void registerCustomTestSuiteFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry, ServiceRegistry serviceRegistry,
-                                                            final ProjectSourceSet projectSourceSet, final ProjectIdentifier projectIdentifier) {
-                    final Instantiator instantiator = serviceRegistry.get(Instantiator.class)
-                    final FileResolver fileResolver = serviceRegistry.get(FileResolver.class)
-                    factoryRegistry.registerFactory(CustomTestSuite, new NamedDomainObjectFactory<CustomTestSuite>() {
-                        public CustomTestSuite create(String suiteName) {
-                            FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet, suiteName, instantiator, projectSourceSet)
-                            functionalSourceSet.registerFactory(CustomLanguageSourceSet.class, new NamedDomainObjectFactory<CustomLanguageSourceSet>() {
-                                public CustomLanguageSourceSet create(String name) {
-                                    return BaseLanguageSourceSet.create(DefaultCustomLanguageSourceSet.class, name, suiteName, fileResolver, instantiator);
-                                }
-                            });
-                            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), suiteName)
-                            return BaseComponentSpec.create(DefaultCustomTestSuite, id, functionalSourceSet, instantiator)
-                        }
-                    }, new SimpleModelRuleDescriptor("TestSuiteTypeRules.registerCustomTestSuiteFactory()"))
+                @ComponentType
+                void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+                    builder.defaultImplementation(DefaultCustomTestSuite)
+                }
+
+                @LanguageType
+                void registerCustomLanguageType(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                    builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }
 
@@ -108,13 +90,9 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestBinaryTypeRules extends RuleSource {
-                @Defaults
-                public void registerCustomTestBinaryFactory(TestSuiteContainer testSuites, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-                    testSuites.beforeEach { testSuite ->
-                        testSuite.binariesContainer.registerFactory(CustomTestBinary) { name ->
-                            BaseBinarySpec.create(DefaultCustomTestBinary, name, serviceRegistry.get(Instantiator), taskFactory)
-                        }
-                    }
+                @BinaryType
+                public void registerCustomTestBinaryFactory(BinaryTypeBuilder<CustomTestBinary> builder) {
+                    builder.defaultImplementation(DefaultCustomTestBinary)
                 }
             }
 
@@ -124,7 +102,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "test suite sources and binaries containers are visible in model report"() {
         when:
-        succeeds "model"
+        run "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -143,7 +121,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     create("printSourceNames") {
                         def sources = $("testSuites.main.sources")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${sources.values()*.name}"
                         }
                     }
                 }
@@ -183,7 +161,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "model"
+        run "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -191,16 +169,16 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         foo
             binaries
             sources
-                bar
+                bar = DefaultCustomLanguageSourceSet 'foo:bar'
         main
             binaries
             sources
-                main
-                test
+                main = DefaultCustomLanguageSourceSet 'main:main'
+                test = DefaultCustomLanguageSourceSet 'main:test'
         secondary
             binaries
             sources
-                test"""))
+                test = DefaultCustomLanguageSourceSet 'secondary:test'"""))
     }
 
     def "can reference sources container elements in a rule"() {
@@ -293,7 +271,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         '''
 
         when:
-        succeeds "model"
+        run "model"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
@@ -301,9 +279,9 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         main
             binaries
                 first
-                    tasks
+                    tasks = []
                 second
-                    tasks"""))
+                    tasks = []"""))
     }
 
     def "can reference binaries container for a test suite in a rule"() {
@@ -323,7 +301,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     create("printBinaryNames") {
                         def binaries = $("testSuites.main.binaries")
                         doLast {
-                            println "names: ${binaries*.name}"
+                            println "names: ${binaries.values().name}"
                         }
                     }
                 }
@@ -352,7 +330,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("testSuites.main.binaries.main") DefaultCustomTestBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("testSuites.main.binaries.main") CustomTestBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -371,38 +349,4 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "binary data: foo"
     }
 
-    def "cannot remove binaries"() {
-        given:
-        withTestBinaryFactory()
-        buildFile << '''
-            model {
-                testSuites {
-                    main {
-                        binaries {
-                            main(CustomTestBinary)
-                        }
-                    }
-                }
-            }
-
-            class BinariesRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("testSuites.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                    binaries.clear()
-                }
-
-                @Mutate
-                void closeMainComponentBinariesForTasks(ModelMap<Task> tasks, @Path("testSuites.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                }
-            }
-
-            apply type: BinariesRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
-    }
 }

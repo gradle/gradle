@@ -49,7 +49,7 @@ model {
                 assert project.sources as Set == myLib.sources as Set
 
                 project.binaries.withType(JarBinarySpec) { jvmBinary ->
-                    assert jvmBinary.source.values() == myLib.source.values()
+                    assert jvmBinary.source.toList() == myLib.source.values().toList()
                 }
             }
         }

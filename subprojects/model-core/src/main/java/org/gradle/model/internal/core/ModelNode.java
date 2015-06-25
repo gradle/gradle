@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -28,11 +29,11 @@ public interface ModelNode {
 
     boolean hasLink(String name, ModelType<?> type);
 
-    // Note: order is crucial here
+    // Note: order is crucial here. Nodes are traversed through these states in the order defined below
     public enum State {
-        Known(true),
-        Created(true),
-        DefaultsApplied(true),
+        Known(true), // Initial state. Only type info is available here
+        Created(true), // Private data has been created, initial rules discovered
+        DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),
         Finalized(false),
@@ -75,4 +76,16 @@ public interface ModelNode {
      * Should this node be hidden from the model report.
      */
     boolean isHidden();
+
+    /**
+     * The number of link this node has.
+     */
+    int getLinkCount();
+
+    /**
+     * Gets the value represented by this node.
+     *
+     * Calling this method may create or transition the node.
+     */
+    Optional<String> getValueDescription();
 }

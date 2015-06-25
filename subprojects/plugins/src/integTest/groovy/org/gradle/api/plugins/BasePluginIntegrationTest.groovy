@@ -15,12 +15,14 @@
  */
 package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
+    @LeaksFileHandles
     def "clean failure message indicates file"() {
         given:
         executer.requireGradleHome()

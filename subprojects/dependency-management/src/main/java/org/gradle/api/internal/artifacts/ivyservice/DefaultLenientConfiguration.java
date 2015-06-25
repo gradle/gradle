@@ -19,12 +19,12 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -60,7 +60,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             for (UnresolvedDependency unresolvedDependency : graphResults.getUnresolvedDependencies()) {
                 failures.add(unresolvedDependency.getProblem());
             }
-            throw new ResolveException(configuration, failures);
+            throw new ResolveException((ResolveContext) configuration, failures);
         }
     }
 

@@ -57,8 +57,7 @@ public class JdkTools {
                 throw new IllegalStateException("Could not find tools.jar");
             }
             DefaultClassPath defaultClassPath = new DefaultClassPath(toolsJar);
-            MutableURLClassLoader mutableURLClassLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
-            isolatedToolsLoader = mutableURLClassLoader;
+            isolatedToolsLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
         } else {
             filteringClassLoader.allowPackage("com.sun.tools");
             isolatedToolsLoader = filteringClassLoader;

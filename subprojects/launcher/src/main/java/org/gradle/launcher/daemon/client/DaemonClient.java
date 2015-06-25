@@ -107,7 +107,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
-     * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
+     * @throws org.gradle.initialization.ReportedException On failure, when the failure has already been logged/reported.
      */
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters) {
         Object buildId = idGenerator.generateId();

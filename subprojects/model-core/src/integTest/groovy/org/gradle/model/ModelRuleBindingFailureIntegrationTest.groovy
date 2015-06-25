@@ -44,10 +44,8 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                         new MyThing1()
                     }
 
-
                     @Mutate
                     void mutateThing2(MyThing2 thing2, MyThing3 thing3) {
-
                     }
                 }
             }

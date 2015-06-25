@@ -15,7 +15,6 @@
  */
 
 package org.gradle.performance
-
 import org.gradle.performance.fixture.BuildExperimentSpec
 import spock.lang.Unroll
 

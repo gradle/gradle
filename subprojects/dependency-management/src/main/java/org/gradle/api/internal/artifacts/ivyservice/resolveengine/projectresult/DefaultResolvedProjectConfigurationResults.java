@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-import java.util.Set;
+import java.util.Collection;
 
 public class DefaultResolvedProjectConfigurationResults implements ResolvedProjectConfigurationResults {
-    private final Set<ResolvedProjectConfigurationResult> results;
+    private final Collection<ResolvedProjectConfiguration> results;
 
-    public DefaultResolvedProjectConfigurationResults(Set<ResolvedProjectConfigurationResult> results) {
+    public DefaultResolvedProjectConfigurationResults(Collection<ResolvedProjectConfiguration> results) {
         this.results = results;
     }
 
     @Override
-    public Set<ResolvedProjectConfigurationResult> getAllProjectConfigurationResults() {
+    public Iterable<ResolvedProjectConfiguration> get() {
         return results;
     }
 }

@@ -281,6 +281,18 @@ class JavaReflectionUtilTest extends Specification {
         !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
     }
 
+    def "default toString methods"() {
+        expect:
+        hasDefaultToString(clazz)
+
+        where:
+        clazz << [new Object(), new Root()]
+    }
+
+    def "should not have a default toString"() {
+        expect:
+        !hasDefaultToString(new ClassWithToString())
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -322,3 +334,10 @@ class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
 class SuperWithInterface implements RootInterface {}
 
 class InheritsInterface extends SuperWithInterface {}
+
+class ClassWithToString {
+    @Override
+    public String toString() {
+        return "ClassWithToString{}";
+    }
+}

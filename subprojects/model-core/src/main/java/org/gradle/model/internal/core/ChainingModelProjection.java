@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
@@ -104,6 +105,11 @@ public class ChainingModelProjection implements ModelProjection {
         ChainingModelProjection that = (ChainingModelProjection) o;
 
         return projections.equals(that.projections);
+    }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
     }
 
     @Override

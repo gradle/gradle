@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
-import java.util.Arrays;
+import java.util.Set;
 
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
     public void addConfigurations(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
@@ -29,8 +29,8 @@ public class DefaultConfigurationsToModuleDescriptorConverter implements Configu
     }
 
     private void addConfiguration(MutableLocalComponentMetaData metaData, Configuration configuration) {
-        String[] superConfigs = Configurations.getNames(configuration.getExtendsFrom()).toArray(new String[configuration.getExtendsFrom().size()]);
-        Arrays.sort(superConfigs);
-        metaData.addConfiguration(configuration.getName(), configuration.isVisible(), configuration.getDescription(), superConfigs, configuration.isTransitive());
+        Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
+        Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
+        metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive());
     }
 }

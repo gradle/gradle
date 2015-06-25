@@ -293,5 +293,10 @@ public interface GradleExecuter {
      */
     GradleExecuter withDebug(boolean flag);
 
+    /**
+     * Forces Gradle to consider the build to be interactive
+     */
+    GradleExecuter withForceInteractive(boolean flag);
+
     boolean isDebug();
 }

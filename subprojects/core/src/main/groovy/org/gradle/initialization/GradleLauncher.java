@@ -26,20 +26,21 @@ import org.gradle.internal.concurrent.Stoppable;
 public abstract class GradleLauncher implements Stoppable {
 
     /**
-     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result. Note that when the build
-     * fails, the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
+     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
      *
      * @return The result. Never returns null.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    public abstract BuildResult run();
+    public abstract BuildResult run() throws ReportedException;
 
     /**
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
      * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
      *
      * @return The result. Never returns null.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    public abstract BuildResult getBuildAnalysis();
+    public abstract BuildResult getBuildAnalysis() throws ReportedException;
 
     /**
      * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of

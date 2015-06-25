@@ -22,6 +22,7 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     String className = "ClassName"
     boolean composite = false
     TestDescriptorInternal parent = null
+    Object ownerBuildOperationId = null
     Object getId() {
         "${parent?.id}$className$name" as String
     }

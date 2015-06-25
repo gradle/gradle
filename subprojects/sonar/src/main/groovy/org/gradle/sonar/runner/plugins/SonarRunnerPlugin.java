@@ -327,7 +327,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setTransitive(false)
                 .setDescription("The SonarRunner configuration to use to run analysis")
-                .whenEmpty(new Action<DependencySet>() {
+                .defaultDependencies(new Action<DependencySet>() {
                     @Override
                     public void execute(DependencySet dependencies) {
                         String toolVersion = rootExtension.getToolVersion();

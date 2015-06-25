@@ -40,6 +40,7 @@ public class WatchServiceFileWatcherBacking {
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
+    private final AtomicBoolean stopped = new AtomicBoolean();
 
     private final Action<? super Throwable> onError;
     private final FileWatcherListener listener;
@@ -70,18 +71,20 @@ public class WatchServiceFileWatcherBacking {
             final ListenableFuture<?> runLoopFuture = executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    running.set(true);
-                    try {
+                    if (!stopped.get()) {
+                        running.set(true);
                         try {
-                            pumpEvents();
-                        } catch (InterruptedException e) {
-                            // just stop
-                        } catch (Throwable t) {
+                            try {
+                                pumpEvents();
+                            } catch (InterruptedException e) {
+                                // just stop
+                            } catch (Throwable t) {
+                                stop();
+                                onError.execute(t);
+                            }
+                        } finally {
                             stop();
-                            onError.execute(t);
                         }
-                    } finally {
-                        stop();
                     }
                 }
             });
@@ -134,13 +137,15 @@ public class WatchServiceFileWatcherBacking {
     }
 
     private void stop() {
-        if (running.compareAndSet(true, false)) {
-            try {
-                watchService.close();
-            } catch (IOException e) {
-                // ignore exception in shutdown
-            } catch (ClosedWatchServiceException e) {
-                // ignore
+        if (stopped.compareAndSet(false, true)) {
+            if (running.compareAndSet(true, false)) {
+                try {
+                    watchService.close();
+                } catch (IOException e) {
+                    // ignore exception in shutdown
+                } catch (ClosedWatchServiceException e) {
+                    // ignore
+                }
             }
         }
     }

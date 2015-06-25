@@ -15,12 +15,8 @@
  */
 package org.gradle.language.base;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.BuildableModelElement;
 import org.gradle.internal.HasInternalProtocol;
 
 /**

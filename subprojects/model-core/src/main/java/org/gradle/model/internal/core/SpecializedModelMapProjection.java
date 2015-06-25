@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -37,11 +38,11 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final Class<? extends P> viewImpl;
     private final ChildNodeCreatorStrategy<E> creatorStrategy;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeCreatorStrategy<E> creatorStrategy) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
-        this.creatorStrategy = DefaultModelMap.createUsingParentNode(elementType);
+        this.creatorStrategy = creatorStrategy;
     }
 
     @Override
@@ -58,7 +59,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsReadOnly(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
             return null;
         }
@@ -68,17 +69,18 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
         if (canBeViewedAsWritable(type)) {
-            return Cast.uncheckedCast(toView(node, ruleDescriptor));
+            return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
             return null;
         }
     }
 
-    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        ModelMap<E> rawView = new DefaultModelMap<E>(elementType, ruleDescriptor, modelNode, creatorStrategy);
-        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor);
-        P instance = DirectInstantiator.instantiate(viewImpl, publicType.getSimpleName() + " '" + modelNode.getPath() + "'", rawView, state);
-        return new ModelMapModelView<P>(modelNode.getPath(), publicType, instance, state);
+    private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
+        String description = publicType.getSimpleName() + " '" + modelNode.getPath() + "'";
+        ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
+        P instance = DirectInstantiator.instantiate(viewImpl, rawView);
+        return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }
 
     @Override
@@ -113,5 +115,10 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     @Override
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
         return canBeViewedAsWritable(targetType);
+    }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
     }
 }

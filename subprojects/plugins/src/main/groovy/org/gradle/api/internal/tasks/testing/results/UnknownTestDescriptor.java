@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
 public class UnknownTestDescriptor implements TestDescriptorInternal {
@@ -36,6 +37,12 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     public TestDescriptorInternal getParent() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Object getOwnerBuildOperationId() {
         return null;
     }
 }

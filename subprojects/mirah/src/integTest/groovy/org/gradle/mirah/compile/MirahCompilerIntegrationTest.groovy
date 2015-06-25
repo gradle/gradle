@@ -18,10 +18,12 @@ package org.gradle.mirah.compile
 import org.gradle.integtests.fixtures.MirahCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
-@TargetCoverage({MirahCoverage.DEFAULT})
-class MirahCompilerIntegrationTest extends BasicMirahCompilerIntegrationTest {
+@TargetCoverage({ScalaCoverage.DEFAULT})
+@LeaksFileHandles // does it? our ancestor ZincScalaCompilerIntegrationTest does at least.
+class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     String compilerConfiguration() {

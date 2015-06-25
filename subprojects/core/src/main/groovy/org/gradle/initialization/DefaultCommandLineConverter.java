@@ -50,6 +50,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
+    private static final String CONTINUOUS = "continuous";
+    private static final String CONTINUOUS_SHORT_FLAG = "t";
+
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
@@ -84,6 +87,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
                 deprecated("Please use --parallel, optionally in conjunction with --max-workers.").incubating();
         parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
+        parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
         parser.allowOneOf(MAX_WORKERS, PARALLEL_THREADS);
     }
 
@@ -191,6 +195,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CONFIGURE_ON_DEMAND)) {
             startParameter.setConfigureOnDemand(true);
+        }
+
+        if (options.hasOption(CONTINUOUS)) {
+            startParameter.setContinuous(true);
         }
 
         return startParameter;

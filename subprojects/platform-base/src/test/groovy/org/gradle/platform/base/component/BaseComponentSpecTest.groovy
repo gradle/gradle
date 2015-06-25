@@ -15,19 +15,23 @@
  */
 
 package org.gradle.platform.base.component
+
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
-    def componentId = Mock(ComponentSpecIdentifier)
-    FunctionalSourceSet functionalSourceSet;
+    def componentId = new DefaultComponentSpecIdentifier("p", "c")
+    FunctionalSourceSet functionalSourceSet
+
+    def modelRegistry = new ModelRegistryHelper()
 
     def setup() {
         functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
@@ -44,31 +48,32 @@ class BaseComponentSpecTest extends Specification {
 
     def "cannot create instance of base class"() {
         when:
-        BaseComponentSpec.create(BaseComponentSpec, componentId, functionalSourceSet, instantiator)
+        create(BaseComponentSpec)
 
         then:
         def e = thrown ModelInstantiationException
         e.message == "Cannot create instance of abstract class BaseComponentSpec."
     }
 
-    def "library has name, path and sensible display name"() {
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
+    private <T extends BaseComponentSpec> T create(Class<T> type) {
+        BaseComponentFixtures.create(type, modelRegistry, componentId, functionalSourceSet, instantiator)
+    }
 
+    def "library has name, path and sensible display name"() {
         when:
-        _ * componentId.name >> "jvm-lib"
-        _ * componentId.projectPath >> ":project-path"
+        def component = create(MySampleComponent)
 
         then:
         component.class == MySampleComponent
-        component.name == "jvm-lib"
-        component.projectPath == ":project-path"
-        component.displayName == "MySampleComponent 'jvm-lib'"
+        component.name == componentId.name
+        component.projectPath == componentId.projectPath
+        component.displayName == "MySampleComponent '$componentId.name'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        BaseComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
+        create(MyConstructedComponent)
 
         then:
         def e = thrown ModelInstantiationException
@@ -82,7 +87,7 @@ class BaseComponentSpecTest extends Specification {
         def lss1 = languageSourceSet("lss1")
         functionalSourceSet.add(lss1)
 
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
+        def component = create(MySampleComponent)
 
         and:
         def lss2 = languageSourceSet("lss2")
@@ -99,6 +104,7 @@ class BaseComponentSpecTest extends Specification {
     }
 
     static class MySampleComponent extends BaseComponentSpec {}
+
     static class MyConstructedComponent extends BaseComponentSpec {
         MyConstructedComponent(String arg) {}
     }

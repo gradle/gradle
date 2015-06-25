@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
@@ -27,7 +28,35 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
-    def "can create elements"() {
+    def "can create and initialize elements"() {
+        when:
+        buildScript """
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            model {
+                thing1(Thing) {
+                    name = "foo"
+                }
+                tasks {
+                    create("echo") {
+                        doLast {
+                            println "thing1.name: " + \$("thing1.name")
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing1.name: foo"
+    }
+
+    def "creator closure can reference inputs"() {
         when:
         buildScript """
             @Managed
@@ -47,6 +76,38 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                     create("echo") {
                         doLast {
                             println "thing2.name: " + \$("thing2.name")
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing2.name: foo bar"
+    }
+
+    @NotYetImplemented
+    def "creator closure can reference inputs using relative property reference"() {
+        when:
+        buildScript """
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            model {
+                thing1(Thing) {
+                    name = "foo"
+                }
+                thing2(Thing) {
+                    name = "\${thing1.name} bar" // reference in a gstring
+                }
+                tasks {
+                    create("echo") {
+                        doLast {
+                            println "thing2.name: " + thing2.name
                         }
                     }
                 }
@@ -82,6 +143,43 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "echo"
         output.contains "thing1.name: null"
+    }
+
+    def "can apply defaults before creator closure is invoked"() {
+        when:
+        buildScript """
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            class MyPlugin extends RuleSource {
+                @Defaults
+                void applyDefaults(Thing thing) {
+                    thing.name = "default"
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                thing1(Thing) {
+                    name = "\$name foo"
+                }
+                tasks {
+                    create("echo") {
+                        doLast {
+                            println "thing1.name: " + \$("thing1.name")
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing1.name: default foo"
     }
 
     def "cannot create non managed types"() {

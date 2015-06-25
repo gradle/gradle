@@ -24,13 +24,13 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-    private final ConsumerListenerConfiguration consumerListenerConfiguration;
+    private final BuildClientSubscriptions clientSubscriptions;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
-        this.consumerListenerConfiguration = consumerListenerConfiguration;
+        this.clientSubscriptions = clientSubscriptions;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class BuildModelAction implements BuildAction, Serializable {
         return runTasks;
     }
 
-    public ConsumerListenerConfiguration getConsumerListenerConfiguration() {
-        return consumerListenerConfiguration;
+    public BuildClientSubscriptions getClientSubscriptions() {
+        return clientSubscriptions;
     }
 }

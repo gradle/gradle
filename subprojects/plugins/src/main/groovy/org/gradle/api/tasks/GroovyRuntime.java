@@ -30,18 +30,26 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Provides information related to the Groovy runtime(s) used in a project. Added by the {@link org.gradle.api.plugins.GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
+ * Provides information related to the Groovy runtime(s) used in a project. Added by the
+ * {@link org.gradle.api.plugins.GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
  *
  * <p>Example usage:
  *
- * <pre autoTested=""> apply plugin: "groovy"
+ * <pre autoTested="">
+ *     apply plugin: "groovy"
  *
- * repositories { mavenCentral() }
+ *     repositories {
+ *         mavenCentral()
+ *     }
  *
- * dependencies { compile "org.codehaus.groovy:groovy-all:2.1.2" }
+ *     dependencies {
+ *         compile "org.codehaus.groovy:groovy-all:2.1.2"
+ *     }
  *
- * def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile) // The returned class path can be used to configure the 'groovyClasspath' property of tasks
- * // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly. </pre>
+ *     def groovyClasspath = groovyRuntime.inferGroovyClasspath(configurations.compile)
+ *     // The returned class path can be used to configure the 'groovyClasspath' property of tasks
+ *     // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly.
+ * </pre>
  */
 @Incubating
 public class GroovyRuntime {

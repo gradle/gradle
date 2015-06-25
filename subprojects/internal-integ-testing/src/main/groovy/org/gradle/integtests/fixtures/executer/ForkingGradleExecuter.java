@@ -61,7 +61,17 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         args.add("--stacktrace");
+        addPropagatedSystemProperties(args);
         return args;
+    }
+
+    private void addPropagatedSystemProperties(List<String> args) {
+        for (String propName : propagatedSystemProperties) {
+            String propValue = System.getProperty(propName);
+            if (propValue != null) {
+                args.add("-D" + propName + "=" + propValue);
+            }
+        }
     }
 
     private ExecHandleBuilder createExecHandleBuilder() {
@@ -120,23 +130,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected ExecutionFailure doRunWithFailure() {
         return start().waitForFailure();
-    }
-
-    @Override
-    protected List<String> getGradleOpts() {
-        List<String> gradleOpts = new ArrayList<java.lang.String>(super.getGradleOpts());
-        for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            gradleOpts.add(String.format("-D%s=%s", key, value));
-        }
-        gradleOpts.add("-ea");
-
-        if (isDebug()) {
-            gradleOpts.addAll(DEBUG_ARGS);
-        }
-
-        return gradleOpts;
     }
 
     private interface ExecHandlerConfigurer {

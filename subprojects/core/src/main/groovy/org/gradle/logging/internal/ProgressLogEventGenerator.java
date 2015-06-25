@@ -17,9 +17,11 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.util.GUtil;
 
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.gradle.logging.StyledTextOutput.Style;
 
@@ -32,7 +34,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
 
     private final OutputEventListener listener;
     private final boolean deferHeader;
-    private final LinkedList<Operation> operations = new LinkedList<Operation>();
+    private final Map<OperationIdentifier, Operation> operations = new LinkedHashMap<OperationIdentifier, Operation>();
 
     public ProgressLogEventGenerator(OutputEventListener listener, boolean deferHeader) {
         this.listener = listener;
@@ -52,7 +54,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void doOutput(RenderableOutputEvent event) {
-        for (Operation operation : operations) {
+        for (Operation operation : operations.values()) {
             operation.completeHeader();
         }
         listener.onOutput(event);
@@ -60,7 +62,12 @@ public class ProgressLogEventGenerator implements OutputEventListener {
 
     private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
         assert !operations.isEmpty();
-        Operation operation = operations.removeLast();
+        Operation operation = operations.remove(progressCompleteEvent.getOperationId());
+        assert operation!=null;
+        completeOperation(progressCompleteEvent, operation);
+    }
+
+    private void completeOperation(ProgressCompleteEvent progressCompleteEvent, Operation operation) {
         operation.status = progressCompleteEvent.getStatus();
         operation.completeTime = progressCompleteEvent.getTimestamp();
         operation.complete();
@@ -68,7 +75,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
 
     private void onStart(ProgressStartEvent progressStartEvent) {
         Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp());
-        operations.add(operation);
+        operations.put(progressStartEvent.getOperationId(), operation);
 
         if (!deferHeader || !(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
             operation.startHeader();
@@ -90,11 +97,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;
-            hasLoggingHeader = GUtil.isTrue(loggingHeader);
+            this.hasLoggingHeader = GUtil.isTrue(loggingHeader);
         }
 
         private void doOutput(RenderableOutputEvent event) {
-            for (Operation pending : operations) {
+            for (Operation pending : operations.values()) {
                 if (pending == this) {
                     break;
                 }
@@ -114,10 +121,9 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         }
 
         public void completeHeader() {
-            boolean hasDescription = GUtil.isTrue(loggingHeader);
             switch (state) {
                 case None:
-                    if (hasDescription) {
+                    if (hasLoggingHeader) {
                         listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, loggingHeader + EOL));
                     }
                     break;
@@ -127,7 +133,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
                 case HeaderCompleted:
                     return;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException("state is " + state);
             }
             state = State.HeaderCompleted;
         }
@@ -165,7 +171,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
                     }
                     break;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException("state is " + state);
             }
             state = State.Completed;
         }

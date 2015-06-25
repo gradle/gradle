@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -55,8 +56,13 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addConfiguration(Configuration configuration) {
-        moduleDescriptor.addConfiguration(configuration);
+    public void addConfiguration(LocalConfigurationMetaData configuration) {
+        Set<String> extendsFrom = configuration.getExtendsFrom();
+        String[] superConfigs = extendsFrom.toArray(new String[extendsFrom.size()]);
+        Arrays.sort(superConfigs);
+        Configuration.Visibility visibility = configuration.isVisible() ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE;
+        Configuration conf = new Configuration(configuration.getName(), visibility, configuration.getDescription(), superConfigs, configuration.isTransitive(), null);
+        moduleDescriptor.addConfiguration(conf);
     }
 
     @Override

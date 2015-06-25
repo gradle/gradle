@@ -54,5 +54,8 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+
+        cleanup:
+        store.close()
     }
 }

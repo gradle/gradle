@@ -46,12 +46,7 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
@@ -169,7 +164,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private boolean isAnnotationProcessingDisabled(GroovyJavaJointCompileSpec spec) {
         List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
-        return compilerArgs.contains("-proc:none");
+        return !spec.getGroovyCompileOptions().isJavaAnnotationProcessing() || compilerArgs.contains("-proc:none");
     }
 
     private boolean isAnnotationProcessorOnClasspath(ClassLoader classLoader) {

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.*
-import org.gradle.tooling.events.task.internal.TaskProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalFailure
 import org.gradle.tooling.internal.protocol.events.*
@@ -33,7 +33,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         adapter.subscribedOperations == []
 
         when:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         adapter = createAdapter(listener)
 
         then:
@@ -42,11 +42,11 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "only TaskProgressEventX instances are processed if a task listener is added"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
-        adapter.onEvent(new Object())
+        adapter.onEvent(Mock(InternalProgressEvent))
 
         then:
         0 * listener.statusChanged(_)
@@ -54,11 +54,11 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "only TaskProgressEventX instances of known type are processed"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
-        def unknownEvent = Mock(InternalTaskProgressEvent)
+        def unknownEvent = Mock(InternalProgressEvent)
         adapter.onEvent(unknownEvent)
 
         then:
@@ -67,7 +67,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "conversion of start events throws exception if previous start event with same task descriptor exists"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -76,7 +76,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getName() >> 'some task'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -90,7 +90,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "conversion of non-start events throws exception if no previous start event with same task descriptor exists"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -99,7 +99,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getName() >> 'some task'
         _ * taskDescriptor.getParentId() >> null
 
-        def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
+        def skippedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDescriptor() >> taskDescriptor
 
@@ -112,7 +112,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "looking up parent operation throws exception if no previous event for parent operation exists"() {
         given:
-        final TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -121,7 +121,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> 1
 
-        def childEvent = Mock(InternalTaskStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getDisplayName() >> 'child event'
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
@@ -134,7 +134,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "conversion of child events expects parent event exists"() {
         given:
-        final TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -143,7 +143,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * parentTaskDescriptor.getName() >> 'some parent'
         _ * parentTaskDescriptor.getParentId() >> null
 
-        def parentEvent = Mock(InternalTaskStartedProgressEvent)
+        def parentEvent = Mock(InternalOperationStartedProgressEvent)
         _ * parentEvent.getEventTime() >> 999
         _ * parentEvent.getDescriptor() >> parentTaskDescriptor
 
@@ -152,7 +152,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * childTaskDescriptor.getName() >> 'some child'
         _ * childTaskDescriptor.getParentId() >> parentTaskDescriptor.getId()
 
-        def childEvent = Mock(InternalTaskStartedProgressEvent)
+        def childEvent = Mock(InternalOperationStartedProgressEvent)
         _ * childEvent.getEventTime() >> 999
         _ * childEvent.getDescriptor() >> childTaskDescriptor
 
@@ -165,7 +165,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "convert all InternalTaskDescriptor attributes"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -176,7 +176,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDisplayName() >> 'task started'
         _ * startEvent.getDescriptor() >> taskDescriptor
@@ -196,7 +196,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "convert to TaskStartEvent"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -206,7 +206,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDisplayName() >> 'task started'
         _ * startEvent.getDescriptor() >> taskDescriptor
@@ -225,7 +225,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "convert to TaskSkippedEvent"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -235,7 +235,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -244,7 +244,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.getSkipMessage() >> 'SKIPPED'
 
-        def skippedEvent = Mock(InternalTaskFinishedProgressEvent)
+        def skippedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * skippedEvent.getEventTime() >> 999
         _ * skippedEvent.getDisplayName() >> 'task skipped'
         _ * skippedEvent.getDescriptor() >> taskDescriptor
@@ -269,7 +269,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "convert to TaskSucceededEvent"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -279,7 +279,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -288,7 +288,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.isUpToDate() >> true
 
-        def succeededEvent = Mock(InternalTaskFinishedProgressEvent)
+        def succeededEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * succeededEvent.getEventTime() >> 999
         _ * succeededEvent.getDisplayName() >> 'task succeeded'
         _ * succeededEvent.getDescriptor() >> taskDescriptor
@@ -313,7 +313,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
 
     def "convert to TaskFailedEvent"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
+        def listener = Mock(ProgressListener)
         def adapter = createAdapter(listener)
 
         when:
@@ -323,7 +323,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> null
 
-        def startEvent = Mock(InternalTaskStartedProgressEvent)
+        def startEvent = Mock(InternalOperationStartedProgressEvent)
         _ * startEvent.getEventTime() >> 999
         _ * startEvent.getDescriptor() >> taskDescriptor
 
@@ -332,7 +332,7 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
         _ * testResult.getEndTime() >> 2
         _ * testResult.getFailures() >> [Stub(InternalFailure)]
 
-        def failedEvent = Mock(InternalTaskFinishedProgressEvent)
+        def failedEvent = Mock(InternalOperationFinishedProgressEvent)
         _ * failedEvent.getEventTime() >> 999
         _ * failedEvent.getDisplayName() >> 'task failed'
         _ * failedEvent.getDescriptor() >> taskDescriptor
@@ -356,11 +356,11 @@ class BuildProgressListenerAdapterForTaskOperationsTest extends Specification {
     }
 
     private static BuildProgressListenerAdapter createAdapter() {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [], []))
+        new BuildProgressListenerAdapter([], [], [])
     }
 
-    private static BuildProgressListenerAdapter createAdapter(TaskProgressListener taskListener) {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration([], [taskListener], []))
+    private static BuildProgressListenerAdapter createAdapter(ProgressListener taskListener) {
+        new BuildProgressListenerAdapter([], [taskListener], [])
     }
 
 }

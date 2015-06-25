@@ -20,6 +20,7 @@ import org.gradle.api.Transformer
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking
+import org.gradle.model.dsl.internal.transform.InputReferences
 import org.gradle.model.dsl.internal.transform.SourceLocation
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
@@ -47,7 +48,7 @@ class TransformedModelDslBackingTest extends Specification {
     def "can add rules via dsl"() {
         given:
         register("foo", [])
-        referenceExtractor.transform(_) >> []
+        referenceExtractor.transform(_) >> new InputReferences()
         locationExtractor.transform(_) >> Mock(SourceLocation) {
             asDescriptor(_) >> new SimpleModelRuleDescriptor("foo")
         }
@@ -70,7 +71,7 @@ class TransformedModelDslBackingTest extends Specification {
 
     def "can add creator via dsl"() {
         given:
-        referenceExtractor.transform(_) >> []
+        referenceExtractor.transform(_) >> new InputReferences()
         locationExtractor.transform(_) >> Mock(SourceLocation) {
             asDescriptor(_) >> new SimpleModelRuleDescriptor("foo")
         }
@@ -86,7 +87,7 @@ class TransformedModelDslBackingTest extends Specification {
 
     def "can only create top level"() {
         given:
-        referenceExtractor.transform(_) >> []
+        referenceExtractor.transform(_) >> new InputReferences()
         locationExtractor.transform(_) >> Mock(SourceLocation) {
             asDescriptor(_) >> new SimpleModelRuleDescriptor("foo")
         }
@@ -102,9 +103,11 @@ class TransformedModelDslBackingTest extends Specification {
 
     def "can registers extracted references"() {
         given:
+        def inputs = new InputReferences()
+        inputs.absolutePath("value", 123)
         register("foo", [])
         register("value", "123")
-        referenceExtractor.transform(_) >> [ModelReference.of("value", Object)]
+        referenceExtractor.transform(_) >> inputs
         locationExtractor.transform(_) >> Mock(SourceLocation) {
             asDescriptor(_) >> new SimpleModelRuleDescriptor("foo")
         }

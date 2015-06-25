@@ -27,23 +27,62 @@ class DefaultScriptHandlerTest extends Specification {
     def repositoryHandler = Mock(RepositoryHandler)
     def dependencyHandler = Mock(DependencyHandler)
     def configurationContainer = Mock(ConfigurationContainer)
-    def configuration = Stub(Configuration)
+    def configuration = Mock(Configuration)
     def scriptSource = Stub(ScriptSource)
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
+    def handler = new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoaderScope)
 
-    def "adds classpath configuration"() {
+    def "adds classpath configuration when configuration container is queried"() {
         when:
-        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, new ScriptHandlerClassLoaderFactory(scriptSource, classLoaderScope))
+        handler.configurations
+        handler.configurations
 
         then:
-        1 * configurationContainer.create('classpath')
+        1 * configurationContainer.create('classpath') >> configuration
+        0 * configurationContainer._
+    }
+
+    def "adds classpath configuration when dependencies container is queried"() {
+        when:
+        handler.dependencies
+        handler.dependencies
+
+        then:
+        1 * configurationContainer.create('classpath') >> configuration
+        0 * configurationContainer._
+    }
+
+    def "does not resolve classpath configuration if configuration container has not been queried"() {
+        when:
+        def classpath = handler.scriptClassPath
+
+        then:
+        0 * configuration._
+
+        and:
+        classpath.empty
+    }
+
+    def "resolves classpath configuration if configuration container has been queried"() {
+        def file = new File("thing.jar")
+        def uri = file.toURI()
+
+        when:
+        handler.configurations
+        def classpath = handler.scriptClassPath
+
+        then:
+        1 * configurationContainer.create('classpath') >> configuration
+        1 * configuration.files >> [file]
+
+        and:
+        classpath.asURIs == [uri]
     }
 
     def "can configure repositories"() {
-        def handler = handler()
         def configure = {
             mavenCentral()
         }
@@ -57,8 +96,6 @@ class DefaultScriptHandlerTest extends Specification {
     }
 
     def "can configure dependencies"() {
-        def handler = handler()
-
         when:
         handler.dependencies {
             add('config', 'dep')
@@ -66,10 +103,5 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         1 * dependencyHandler.add('config', 'dep')
-    }
-
-    private DefaultScriptHandler handler() {
-        1 * configurationContainer.create('classpath') >> configuration
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, new ScriptHandlerClassLoaderFactory(scriptSource, classLoaderScope))
     }
 }

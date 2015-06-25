@@ -48,6 +48,14 @@ public interface ExternalDependency extends Dependency {
     File getJavadoc();
 
     /**
+     * Marks this dependency as exported.
+     *
+     * @return whether this dependency needs to be exported.
+     * @since 2.5
+     */
+    boolean isExported();
+
+    /**
      * Returns the Gradle module information for this dependency, or {@code null} if the dependency does not
      * originate from a remote repository.
      *

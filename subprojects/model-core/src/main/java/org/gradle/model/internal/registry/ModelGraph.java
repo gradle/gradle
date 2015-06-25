@@ -31,7 +31,7 @@ class ModelGraph {
     private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelCreationListener> parentListeners = LinkedHashMultimap.create();
-    private final SetMultimap<ModelPath, ModelCreationListener> scopeListeners = LinkedHashMultimap.create();
+    private final SetMultimap<ModelPath, ModelCreationListener> ancestorListeners = LinkedHashMultimap.create();
     private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
     private boolean notifying;
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
@@ -66,9 +66,13 @@ class ModelGraph {
         try {
             notifyListeners(node, pathListeners.get(node.getPath()));
             notifyListeners(node, parentListeners.get(node.getPath().getParent()));
-            notifyListeners(node, scopeListeners.get(node.getPath()));
-            notifyListeners(node, scopeListeners.get(node.getPath().getParent()));
             notifyListeners(node, listeners);
+            if (!ancestorListeners.isEmpty()) {
+                // Don't traverse path back to root when there is nothing that can possibly match
+                for (ModelPath path = node.getPath().getParent(); path != null; path = path.getParent()) {
+                    notifyListeners(node, ancestorListeners.get(path));
+                }
+            }
         } finally {
             notifying = false;
         }
@@ -98,45 +102,76 @@ class ModelGraph {
         notifying = true;
         try {
             if (listener.getPath() != null) {
-                ModelNodeInternal node = flattened.get(listener.getPath());
-                if (node != null) {
-                    if (maybeNotify(node, listener)) {
-                        return;
-                    }
-                }
-                pathListeners.put(listener.getPath(), listener);
+                addPathListener(listener);
                 return;
             }
             if (listener.getParent() != null) {
-                ModelNodeInternal parent = flattened.get(listener.getParent());
-                if (parent != null) {
-                    for (ModelNodeInternal node : parent.getLinks()) {
-                        if (maybeNotify(node, listener)) {
-                            return;
-                        }
-                    }
-                }
-                parentListeners.put(listener.getParent(), listener);
+                addParentListener(listener);
                 return;
             }
-            if (listener.getScope() != null) {
-                for (ModelNodeInternal node : findAllInScope(listener.getScope())) {
+            if (listener.getAncestor() != null) {
+                addAncestorListener(listener);
+                return;
+            }
+            addEverythingListener(listener);
+        } finally {
+            notifying = false;
+        }
+    }
+
+    private void addEverythingListener(ModelCreationListener listener) {
+        for (ModelNodeInternal node : flattened.values()) {
+            if (maybeNotify(node, listener)) {
+                return;
+            }
+        }
+        listeners.add(listener);
+    }
+
+    private void addAncestorListener(ModelCreationListener listener) {
+        if (listener.getAncestor().equals(ModelPath.ROOT)) {
+            // Don't need to match on path
+            addEverythingListener(listener);
+            return;
+        }
+
+        ModelNodeInternal ancestor = flattened.get(listener.getAncestor());
+        if (ancestor != null) {
+            LinkedList<ModelNodeInternal> queue = new LinkedList<ModelNodeInternal>();
+            queue.add(ancestor);
+            while (!queue.isEmpty()) {
+                ModelNodeInternal parent = queue.removeFirst();
+                for (ModelNodeInternal node : parent.getLinks()) {
                     if (maybeNotify(node, listener)) {
                         return;
                     }
+                    queue.addFirst(node);
                 }
-                scopeListeners.put(listener.getScope(), listener);
-                return;
             }
-            for (ModelNodeInternal node : flattened.values()) {
+        }
+        ancestorListeners.put(listener.getAncestor(), listener);
+    }
+
+    private void addParentListener(ModelCreationListener listener) {
+        ModelNodeInternal parent = flattened.get(listener.getParent());
+        if (parent != null) {
+            for (ModelNodeInternal node : parent.getLinks()) {
                 if (maybeNotify(node, listener)) {
                     return;
                 }
             }
-            listeners.add(listener);
-        } finally {
-            notifying = false;
         }
+        parentListeners.put(listener.getParent(), listener);
+    }
+
+    private void addPathListener(ModelCreationListener listener) {
+        ModelNodeInternal node = flattened.get(listener.getPath());
+        if (node != null) {
+            if (maybeNotify(node, listener)) {
+                return;
+            }
+        }
+        pathListeners.put(listener.getPath(), listener);
     }
 
     private void flush() {

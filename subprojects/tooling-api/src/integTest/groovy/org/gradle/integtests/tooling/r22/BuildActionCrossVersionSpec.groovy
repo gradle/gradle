@@ -24,8 +24,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @ToolingApiVersion(">=1.8")
+@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {
@@ -66,8 +68,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         when:
         // Discard the impl jar from the jvm's jar file cache
         forceJarClose(implJar)
-        workDir.deleteDir()
-        builder.sourceFile('ActionImpl.java') << """
+        builder.sourceFile('ActionImpl.java').text = """
 public class ActionImpl implements ${BuildAction.name}<String> {
     public String execute(${BuildController.name} controller) {
         return getClass().getProtectionDomain().getCodeSource().getLocation().toString();

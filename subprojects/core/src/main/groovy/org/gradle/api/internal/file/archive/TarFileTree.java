@@ -19,6 +19,7 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -39,11 +40,13 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
+    private final File tarFile;
     private final ReadableResource resource;
     private final Chmod chmod;
     private final File tmpDir;
 
-    public TarFileTree(ReadableResource resource, File tmpDir, Chmod chmod) {
+    public TarFileTree(@Nullable File tarFile, ReadableResource resource, File tmpDir, Chmod chmod) {
+        this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
         String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
@@ -172,6 +175,8 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        // TODO: fix this
+        if (tarFile != null) {
+            builder.add(tarFile);
+        }
     }
 }

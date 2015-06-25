@@ -20,15 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
 
-    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<ModelBinding> bindAction) {
-        super(descriptor, reference, writable);
+    public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
+        super(descriptor, predicate, writable);
         this.bindAction = bindAction;
     }
 
@@ -37,7 +36,7 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
         ModelPath path = node.getPath();
         if (boundTo != null) {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                    new AmbiguousBindingReporter(reference, boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
+                    new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
             ));
         } else {
             boundTo = node;

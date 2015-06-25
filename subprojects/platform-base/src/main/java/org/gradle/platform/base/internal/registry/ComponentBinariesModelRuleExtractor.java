@@ -17,25 +17,15 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Named;
-import org.gradle.api.PolymorphicDomainObjectContainer;
-import org.gradle.internal.Actions;
 import org.gradle.internal.TriAction;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.List;
-
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
@@ -78,26 +68,17 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
 
         public void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
-            TriAction<MutableModelNode, C, List<ModelView<?>>> action = new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode componentModelNode, C component, List<ModelView<?>> componentRuleInputs) {
-                    ComponentSpecInternal componentSpecInternal = uncheckedCast(componentModelNode.getPrivateData());
-                    MutableModelNode binariesNode = componentModelNode.getLink("binaries");
-                    DefaultModelViewState binariesState = new DefaultModelViewState(DefaultModelMap.modelMapTypeOf(binaryType), getDescriptor());
-                    ModelMap<BinarySpec> binarySpecs = new ModelMapGroovyDecorator<BinarySpec>(
-                        new PolymorphicDomainObjectContainerBackedModelMap<BinarySpec>(
-                            componentSpecInternal.getBinariesContainer(), ModelType.of(BinarySpec.class), binariesNode, getDescriptor()
-                        ),
-                        binariesState
-                    );
-                    try {
-                        invoke(componentRuleInputs, binarySpecs.withType(binaryType), componentSpecInternal);
-                    } finally {
-                        binariesState.close();
+            modelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeInputUsingModelAction.of(
+                ModelReference.of(ModelType.of(componentType)),
+                getDescriptor(),
+                getInputs(),
+                new TriAction<MutableModelNode, C, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode componentModelNode, C component, final List<ModelView<?>> componentRuleInputs) {
+                        invoke(componentRuleInputs, component.getBinaries().withType(binaryType), component);
                     }
                 }
-            };
-            modelNode.applyToAllLinks(ModelActionRole.Mutate, TriActionBackedModelAction.of(ModelReference.of(ModelType.of(componentType)), getDescriptor(), getInputs(), action));
+            ));
         }
     }
 
@@ -108,71 +89,4 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private static class PolymorphicDomainObjectContainerBackedModelMap<T extends Named> extends AbstractModelMap<T> {
-
-        private final PolymorphicDomainObjectContainer<T> container;
-        private Class<T> elementClass;
-
-        private PolymorphicDomainObjectContainerBackedModelMap(PolymorphicDomainObjectContainer<T> container, ModelType<T> elementType, MutableModelNode modelNode,
-                                                               ModelRuleDescriptor sourceDescriptor) {
-            super(elementType, modelNode, sourceDescriptor);
-            this.container = container;
-            this.elementClass = elementType.getConcreteClass();
-        }
-
-        @Override
-        public <S> ModelMap<S> withType(Class<S> type) {
-            if (type.equals(elementClass)) {
-                return uncheckedCast(this);
-            }
-
-            if (elementClass.isAssignableFrom(type)) {
-                Class<? extends T> castType = uncheckedCast(type);
-                ModelMap<? extends T> subType = toSubtype(castType);
-                return uncheckedCast(subType);
-            }
-
-            return new DefaultModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, new ChildNodeCreatorStrategy<S>() {
-                @Override
-                public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
-                    throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
-                }
-            });
-        }
-
-        private <S extends T> ModelMap<S> toSubtype(Class<S> itemSubtype) {
-            PolymorphicDomainObjectContainer<S> castContainer = uncheckedCast(container);
-            return new PolymorphicDomainObjectContainerBackedModelMap<S>(castContainer, ModelType.of(itemSubtype), modelNode, sourceDescriptor);
-        }
-
-        @Override
-        public boolean containsValue(Object item) {
-            //noinspection SuspiciousMethodCalls
-            return container.contains(item);
-        }
-
-        @Override
-        public void create(String name) {
-            create(name, elementClass);
-        }
-
-        @Override
-        public void create(String name, Action<? super T> configAction) {
-            create(name, elementClass, configAction);
-        }
-
-        @Override
-        public <S extends T> void create(String name, Class<S> type) {
-            create(name, type, Actions.doNothing());
-        }
-
-        @Override
-        public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-            ModelPath childPath = modelNode.getPath().child(name);
-            ModelReference<S> childReference = ModelReference.of(childPath, type);
-            ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
-            modelNode.applyToLink(ModelActionRole.Defaults, ActionBackedModelAction.of(childReference, descriptor, configAction));
-            container.create(name, type);
-        }
-    }
 }

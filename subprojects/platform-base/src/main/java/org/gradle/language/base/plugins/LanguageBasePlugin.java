@@ -90,15 +90,15 @@ public class LanguageBasePlugin implements Plugin<Project> {
             )
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, DefaultModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, NodeBackedModelMap.createUsingParentNode(binarySpecModelType)))
                 .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
                 .build()
         );
 
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, BiActionBackedModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
                     @Override
                     public void execute(BinarySpec binary, ITaskFactory taskFactory) {
                         if (!((BinarySpecInternal) binary).isLegacyBinary()) {
@@ -119,7 +119,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             .build());
 
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
-            DirectNodeModelAction.of(
+            DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
                 new SimpleModelRuleDescriptor(descriptor),
                 ComponentSpecInitializer.binaryAction()));

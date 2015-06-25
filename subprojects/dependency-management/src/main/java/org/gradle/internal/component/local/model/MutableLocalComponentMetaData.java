@@ -17,13 +17,15 @@
 package org.gradle.internal.component.local.model;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.internal.component.model.DependencyMetaData;
 
-public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
-    void addArtifacts(String configuration, PublishArtifactSet artifacts);
+import java.util.Set;
 
-    void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive);
+public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
+    void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
+
+    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive);
 
     void addDependency(DependencyMetaData dependency);
 

@@ -43,16 +43,16 @@ public class OperationsHierarchy {
         return id;
     }
 
-    public long currentOperationId() {
+    public OperationIdentifier currentOperationId() {
         assertOperationStarted();
-        return id.getId();
+        return id;
     }
 
-    public long completeCurrentOperation() {
-        assertOperationStarted();
+    public OperationIdentifier completeCurrentOperation() {
+        OperationIdentifier currentOp = currentOperationId();
         assertHierarchyNotEmpty();
         Long last = hierarchy.getLast();
-        if (id.getId() == last) {
+        if (currentOp.getId() == last) {
             //typical scenario
             hierarchy.removeLast();
         } else {
@@ -60,11 +60,10 @@ public class OperationsHierarchy {
             //this is not strictly correct, we might fail fast here
             //however, this needs some discussion and making sure child operations are always completed before the parent
             //(even in internal error conditions)
-            hierarchy.remove(id.getId());
+            hierarchy.remove(currentOp.getId());
         }
-        long out = id.getId();
         id = null;
-        return out;
+        return currentOp;
     }
 
     private void assertOperationStarted() {

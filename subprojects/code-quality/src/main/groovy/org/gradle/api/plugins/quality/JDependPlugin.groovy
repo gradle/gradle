@@ -60,9 +60,9 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     @Override
     protected void configureTaskDefaults(JDepend task, String baseName) {
         def config = project.configurations['jdepend']
-        config.whenEmpty { dependencies ->
-            project.dependencies {
-                jdepend "jdepend:jdepend:$extension.toolVersion"
+        config.defaultDependencies { dependencies ->
+            this.project.dependencies {
+                jdepend "jdepend:jdepend:${this.extension.toolVersion}"
                 jdepend("org.apache.ant:ant-jdepend:1.9.4")
             }
         }

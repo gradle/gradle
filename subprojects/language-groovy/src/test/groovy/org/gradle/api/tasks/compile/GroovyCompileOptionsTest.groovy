@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile
 
 import org.junit.Before
@@ -40,6 +40,7 @@ class GroovyCompileOptionsTest {
         assertEquals('UTF-8', compileOptions.encoding)
         assertNotNull(compileOptions.forkOptions)
         assertNull(compileOptions.configurationScript)
+        assertFalse(compileOptions.javaAnnotationProcessing)
     }
 
     @Test public void testOptionMapForForkOptions() {

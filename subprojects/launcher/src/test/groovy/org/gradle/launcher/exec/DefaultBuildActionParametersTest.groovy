@@ -25,7 +25,7 @@ public class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {
         given:
-        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, IMPLICITLY_DISABLED, false)
+        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, IMPLICITLY_DISABLED, false, true)
         ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
         when:

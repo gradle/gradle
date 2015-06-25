@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -45,4 +47,13 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
         return InstanceModelView.of(modelNode.getPath(), getType(), instance);
     }
 
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        ModelView<?> modelView = this.asReadOnly(ModelType.untyped(), modelNodeInternal, null);
+        Object instance = modelView.getInstance();
+        if (null != instance && !JavaReflectionUtil.hasDefaultToString(instance)) {
+            return Optional.fromNullable(instance.toString());
+        }
+        return Optional.absent();
+    }
 }

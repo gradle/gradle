@@ -18,6 +18,8 @@ package org.gradle.model.dsl.internal.inputs;
 
 public interface RuleInputAccess {
 
-    public Object input(String modelPath);
+    Object input(String modelPath);
+
+    boolean has(String modelPath);
 
 }

@@ -98,7 +98,6 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.run() >> buildResult
-        _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
         _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.run() == gradle
@@ -120,7 +119,6 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.getBuildAnalysis() >> buildResult
-        _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
         _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.configure() == gradle
@@ -149,23 +147,61 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * launcher.stop()
     }
 
-    def "wraps build failure and cleans up"() {
+    def "forwards build failure and cleans up"() {
         def failure = new RuntimeException()
-
-        given:
-        buildResult.failure >> failure
 
         when:
         executer.execute(action, buildRequestContext, param)
 
         then:
-        ReportedException e = thrown()
-        e.cause == failure
+        RuntimeException e = thrown()
+        e == failure
 
         and:
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
-        1 * launcher.run() >> buildResult
-        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        1 * launcher.run() >> { throw failure }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            controller.run()
+        }
+        1 * launcher.stop()
+    }
+
+    def "forwards configure failure and cleans up"() {
+        def failure = new RuntimeException()
+
+        when:
+        executer.execute(action, buildRequestContext, param)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
+        1 * launcher.buildAnalysis >> { throw failure }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            controller.configure()
+        }
+        1 * launcher.stop()
+    }
+
+    def "cannot run after configuration failure"() {
+        when:
+        executer.execute(action, buildRequestContext, param)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use launcher after build has completed.'
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
+        1 * launcher.buildAnalysis >> { throw new RuntimeException() }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            try {
+                controller.configure()
+            } catch (RuntimeException) {
+                // Ignore
+            }
             controller.run()
         }
         1 * launcher.stop()

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.projection;
 
+import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.ModelPath;
@@ -163,6 +164,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     @Override
     public boolean equals(Object o) {
         return this == o || !(o == null || getClass() != o.getClass()) && super.equals(o);
+    }
+
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        return Optional.absent();
     }
 
     @Override

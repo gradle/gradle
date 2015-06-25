@@ -26,13 +26,16 @@ import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
 
-    // Node type param is just for type safety, as getCreatableTypes() requires the backing node to be of this type
-    public static <T> ModelProjection of(ModelType<T> itemType, @SuppressWarnings("UnusedParameters") ModelType<? extends PolymorphicNamedEntityInstantiator<T>> nodeType, ChildNodeCreatorStrategy creatorStrategy) {
-        return new PolymorphicModelMapProjection<T>(itemType, creatorStrategy);
+    public static <T> ModelProjection ofEager(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        return new PolymorphicModelMapProjection<T>(itemType, true, creatorStrategy);
     }
 
-    private PolymorphicModelMapProjection(ModelType<T> baseItemType, ChildNodeCreatorStrategy creatorStrategy) {
-        super(baseItemType, creatorStrategy);
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        return new PolymorphicModelMapProjection<T>(itemType, false, creatorStrategy);
+    }
+
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, boolean eager, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+        super(baseItemType, eager, false, creatorStrategy);
     }
 
     @Override

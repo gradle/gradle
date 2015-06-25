@@ -29,6 +29,6 @@ class BlockTarget {
 
     def getProperty(String name) {
         instants.waitFor(name)
-        return null
+        true
     }
 }

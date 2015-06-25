@@ -16,29 +16,14 @@
 
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows replacing dependencies with other dependencies.
- *
- * <pre>
- * // add dependency substitution rules
- * dependencySubstitution {
- *   //specifying a fixed version for all libraries with 'org.gradle' group
- *   eachModule { ModuleDependencySubstitution details ->
- *     if (details.requested.group == 'org.gradle') {
- *       details.useVersion '2.4'
- *     }
- *     //changing 'groovy-all' into 'groovy':
- *     if (details.requested.name == 'groovy-all') {
- *       details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
- *     }
- *   }
- * }
- * </pre>
+ * @since 2.5
  */
 @HasInternalProtocol
 @Incubating
@@ -47,120 +32,71 @@ public interface DependencySubstitutions {
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
+     * <p/>
+     * Example:
+     * <pre autoTested=''>
+     * configurations { main }
+     * // add dependency substitution rules
+     * configurations.main.resolutionStrategy.dependencySubstitution {
+     *   // Use a rule to change the dependency module while leaving group + version intact
+     *   all { DependencySubstitution dependency ->
+     *     if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.name == 'groovy-all') {
+     *       dependency.useTarget details.requested.group + ':groovy:' + details.requested.version
+     *     }
+     *   }
+     *   // Use a rule to replace all missing projects with module dependencies
+     *   all { DependencySubstitution dependency ->
+     *    if (dependency.requested instanceof ProjectComponentSelector) {
+     *       def targetProject = findProject(":${dependency.requested.path}")
+     *       if (targetProject == null) {
+     *         dependency.useTarget "org.myorg:" + dependency.requested.path + ":+"
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
      *
      * @return this
-     * @since 2.4
      */
-    // TODO:PREZI Perhaps we should call this eachDependency(), as we do it for example in ResolutionRules?
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
-     * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link DependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     * Create a ModuleComponentSelector from the provided input string. Strings must be in the format "{group}:{module}:{version}".
      */
-    DependencySubstitutions all(Closure<?> rule);
+    ComponentSelector module(String notation);
 
     /**
-     * Adds a dependency substitution rule that is triggered for every module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     * Create a ProjectComponentSelector from the provided input string. Strings must be in the format ":path".
      */
-    DependencySubstitutions eachModule(Action<? super ModuleDependencySubstitution> rule);
+    ComponentSelector project(String path);
 
     /**
-     * Adds a dependency substitution rule that is triggered for every module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
+     * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * configurations { main }
+     * configurations.main.resolutionStrategy.dependencySubstitution {
+     *   // Substitute project and module dependencies
+     *   substitute module('org.gradle:api') with project(':api')
+     *   substitute project(':util') with module('org.gradle:util:3.0')
      *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     *   // Substitute one module dependency for another
+     *   substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     * }
+     * </pre>
      */
-    DependencySubstitutions eachModule(Closure<?> rule);
+    Substitution substitute(ComponentSelector substitutedDependency);
 
     /**
-     * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
+     * Provides a DSL-friendly mechanism for specifying the target of a substitution.
      */
-    DependencySubstitutions withModule(Object id, Action<? super ModuleDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for a given module dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ModuleDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions withModule(Object id, Closure<?> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for every project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachProject(Action<? super ProjectDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for every project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions eachProject(Closure<?> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions withProject(Object id, Action<? super ProjectDependencySubstitution> rule);
-
-    /**
-     * Adds a dependency substitution rule that is triggered for a given project dependency (including transitive)
-     * when the configuration is being resolved. The action receives an instance of {@link ProjectDependencySubstitution}
-     * that can be used to find out what dependency is being resolved and to influence the resolution process.
-     *
-     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
-     *
-     * @return this
-     * @since 2.4
-     */
-    DependencySubstitutions withProject(Object id, Closure<?> rule);
+    interface Substitution {
+        /**
+         * Specify the target of the substitution.
+         */
+        void with(ComponentSelector notation);
+    }
 }

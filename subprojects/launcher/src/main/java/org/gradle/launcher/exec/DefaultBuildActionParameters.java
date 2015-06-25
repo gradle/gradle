@@ -30,18 +30,20 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
     private final DaemonUsage daemonUsage;
-    private final boolean continuousModeEnabled;
+    private final boolean continuous;
+    private final boolean interactive;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuousModeEnabled) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
-        this.continuousModeEnabled = continuousModeEnabled;
+        this.continuous = continuous;
         assert systemProperties != null;
         assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
         this.daemonUsage = daemonUsage;
+        this.interactive = interactive;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -68,7 +70,8 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", envVariables size=" + envVariables.size()
                 + ", logLevel=" + logLevel
                 + ", daemonUsage=" + daemonUsage
-                + ", continuousModeEnabled=" + continuousModeEnabled
+                + ", continuous=" + continuous
+                + ", interactive=" + interactive
                 + '}';
     }
 
@@ -77,7 +80,11 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         return daemonUsage;
     }
 
-    public boolean isContinuousModeEnabled() {
-        return continuousModeEnabled;
+    public boolean isContinuous() {
+        return continuous;
+    }
+
+    public boolean isInteractive() {
+        return interactive;
     }
 }

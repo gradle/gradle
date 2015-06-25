@@ -49,7 +49,7 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.ReportedException;
+import org.gradle.initialization.ReportedException;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -76,11 +76,11 @@ import static org.junit.Assert.*;
 
 class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-            .displayName("Global services")
-            .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
-            .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(true))
-            .build();
+        .displayName("Global services")
+        .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
+        .parent(NativeServicesTestFixture.getInstance())
+        .provider(new GlobalScopeServices(true))
+        .build();
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
@@ -107,7 +107,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-                new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
+            new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
     }
 
     @Override
@@ -120,7 +120,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                    new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
+                new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
         }
     }
 
@@ -137,6 +137,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 builder.workingDir(getWorkingDir());
                 Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
                 builder.classpath(classpath);
+                builder.jvmArgs(getGradleOpts());
                 builder.setMain(Main.class.getName());
                 builder.args(getAllArgs());
                 builder.setStandardInput(getStdin());
@@ -173,7 +174,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         CommandLineParser parser = new CommandLineParser();
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
-        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
+        parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
@@ -184,18 +185,20 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // TODO: Reuse more of BuildActionsFactory
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
-                    System.getProperties(),
-                    System.getenv(),
-                    SystemProperties.getInstance().getCurrentDir(),
-                    startParameter.getLogLevel(),
-                    DaemonUsage.EXPLICITLY_DISABLED,
-                    parameters.getContinuousModeParameters().isEnabled());
+                System.getProperties(),
+                System.getenv(),
+                SystemProperties.getInstance().getCurrentDir(),
+                startParameter.getLogLevel(),
+                DaemonUsage.EXPLICITLY_DISABLED,
+                startParameter.isContinuous(),
+                interactive
+            );
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
-                    new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
-                            ManagementFactory.getRuntimeMXBean().getStartTime()),
-                    new FixedBuildCancellationToken(),
-                    new NoOpBuildEventConsumer(),
-                    outputListener, errorListener);
+                new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
+                    ManagementFactory.getRuntimeMXBean().getStartTime()),
+                new DefaultBuildCancellationToken(),
+                new NoOpBuildEventConsumer(),
+                outputListener, errorListener);
             actionExecuter.execute(action, buildRequestContext, buildActionParameters);
             return new BuildResult(null, null);
         } catch (ReportedException e) {
@@ -318,6 +321,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
             outputResult.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertOutputContains(String expectedOutput) {
+            outputResult.assertOutputContains(expectedOutput);
             return this;
         }
 

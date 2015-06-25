@@ -65,7 +65,7 @@ public interface ComponentSelectionRules {
      * @param selectionAction the Action that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction);
+    ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction);
 
     /**
      * Adds a component selection rule that will apply to all resolved components.
@@ -79,7 +79,7 @@ public interface ComponentSelectionRules {
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules all(Closure<?> closure);
+    ComponentSelectionRules all(Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to all resolved components.
@@ -96,7 +96,7 @@ public interface ComponentSelectionRules {
      * @param ruleSource an instance providing a rule implementation
      * @return this
      */
-    public ComponentSelectionRules all(Object ruleSource);
+    ComponentSelectionRules all(Object ruleSource);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -106,7 +106,7 @@ public interface ComponentSelectionRules {
      * @param selectionAction the Action that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction);
+    ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -121,7 +121,7 @@ public interface ComponentSelectionRules {
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules withModule(Object id, Closure<?> closure);
+    ComponentSelectionRules withModule(Object id, Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to the specified module.
@@ -139,5 +139,5 @@ public interface ComponentSelectionRules {
      * @param ruleSource an instance providing a rule implementation
      * @return this
      */
-    public ComponentSelectionRules withModule(Object id, Object ruleSource);
+    ComponentSelectionRules withModule(Object id, Object ruleSource);
 }

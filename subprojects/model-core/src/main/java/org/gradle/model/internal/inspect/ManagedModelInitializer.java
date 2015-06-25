@@ -29,25 +29,20 @@ import org.gradle.model.internal.type.ModelType;
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Object> {
 
     private final ModelStructSchema<T> modelSchema;
-    private final ModelAction<T> initializer;
     private final ModelRuleDescriptor descriptor;
     private final ModelSchemaStore schemaStore;
     private final ModelCreatorFactory modelCreatorFactory;
 
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, ModelAction<T> initializer) {
+    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory) {
         this.descriptor = descriptor;
         this.schemaStore = schemaStore;
         this.modelCreatorFactory = modelCreatorFactory;
         this.modelSchema = modelSchema;
-        this.initializer = initializer;
     }
 
     public void execute(MutableModelNode modelNode, Object object) {
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
-        }
-        if (initializer != null) {
-            modelNode.applyToSelf(ModelActionRole.Initialize, initializer);
         }
     }
 
@@ -62,15 +57,15 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Ob
             } else {
                 ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
-                        .withProjection(projection)
-                        .descriptor(descriptor).build();
+                    .withProjection(projection)
+                    .descriptor(descriptor).build();
                 modelNode.addReference(creator);
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
+                .withProjection(projection)
+                .descriptor(descriptor).build();
             modelNode.addLink(creator);
         }
     }

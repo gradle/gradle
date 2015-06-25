@@ -17,11 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -38,20 +34,21 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public void resolve(ConfigurationInternal configuration,
+    public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
-        resolver.resolve(configuration, repositories, metadataHandler, results);
+        resolver.resolve(resolveContext, repositories, metadataHandler, results);
     }
 
-    public void resolveArtifacts(ConfigurationInternal configuration,
+    public void resolveArtifacts(ResolveContext contextInternal,
                                  List<? extends ResolutionAwareRepository> repositories,
                                  GlobalDependencyResolutionRules metadataHandler,
                                  ResolverResults results) throws ResolveException {
-        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
+        resolver.resolveArtifacts(contextInternal, repositories, metadataHandler, results);
 
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
+        Configuration configuration = (Configuration) contextInternal;
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);

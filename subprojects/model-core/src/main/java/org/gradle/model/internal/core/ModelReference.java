@@ -33,7 +33,7 @@ import org.gradle.model.internal.type.ModelType;
  * @param <T> the type of the reference.
  */
 @ThreadSafe
-public class ModelReference<T> extends ModelPredicate {
+public class ModelReference<T> {
     @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
@@ -108,13 +108,16 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     @Nullable
-    @Override
     public ModelPath getPath() {
         return path;
     }
 
+    /**
+     * Return the path of the scope of the node to select, or null if scope is not relevant.
+     *
+     * <p>A node will be selected if its path or its parent's path equals the specified path.</p>
+     */
     @Nullable
-    @Override
     public ModelPath getScope() {
         return scope;
     }
@@ -124,7 +127,6 @@ public class ModelReference<T> extends ModelPredicate {
         return description;
     }
 
-    @Override
     public ModelType<T> getType() {
         return type;
     }

@@ -16,11 +16,13 @@
 
 package org.gradle.language.mirah;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a Mirah Platform.
  */
+@Incubating
 public interface MirahPlatform extends Platform {
     String getMirahVersion();
 

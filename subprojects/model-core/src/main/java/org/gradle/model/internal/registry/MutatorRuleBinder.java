@@ -17,9 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelReference;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,18 +26,18 @@ class MutatorRuleBinder<T> extends RuleBinder {
     private ModelBinding subjectBinding;
     private final ModelAction<T> action;
 
-    public MutatorRuleBinder(final ModelReference<T> subjectReference, List<ModelReference<?>> inputs, ModelAction<T> action, Collection<RuleBinder> binders) {
+    public MutatorRuleBinder(final BindingPredicate subjectReference, List<BindingPredicate> inputs, ModelAction<T> action, Collection<RuleBinder> binders) {
         super(subjectReference, inputs, action.getDescriptor(), binders);
         subjectBinding = binding(subjectReference, true, new Action<ModelBinding>() {
             @Override
             public void execute(ModelBinding modelBinding) {
                 ModelNodeInternal node = modelBinding.getNode();
-                ModelReference<?> reference = modelBinding.getReference();
-                if (node.getState().compareTo(reference.getState()) >= 0) {
+                BindingPredicate predicate = modelBinding.getPredicate();
+                if (predicate.getState() != null && node.getState().compareTo(predicate.getState()) >= 0) {
                     throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
                         modelBinding.referrer,
                         node.getPath(),
-                        reference.getState().previous(),
+                        predicate.getState().previous(),
                         node.getState()
                     ));
                 }
@@ -51,10 +49,6 @@ class MutatorRuleBinder<T> extends RuleBinder {
 
     public ModelAction<T> getAction() {
         return action;
-    }
-
-    public ModelReference<T> getSubjectReference() {
-        return Cast.uncheckedCast(super.getSubjectReference());
     }
 
     public ModelBinding getSubjectBinding() {

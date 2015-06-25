@@ -16,7 +16,9 @@
 
 package org.gradle.launcher.continuous
 
-class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+import org.gradle.internal.environment.GradleBuildEnvironment
+
+class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def "basic smoke test"() {
         when:
@@ -33,7 +35,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds("echo")
-        output.contains "Continuous mode is an incubating feature."
+        output.contains "Continuous build is an incubating feature."
         output.contains "value: original"
 
         when:
@@ -116,20 +118,40 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         noBuildTriggered()
     }
 
-    def "exits when build fails before any tasks execute"() {
+    def "exits when build fails with compile error"() {
         when:
-
         buildFile << """
-            task a {
-              doLast { }
-            }
-
             'script error
         """
 
         then:
         fails("a")
-        !(":a" in executedTasks)
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when build fails with configuration error"() {
+        when:
+        buildFile << """
+            throw new Exception("!")
+        """
+
+        then:
+        fails("a")
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when no executed tasks have file system inputs"() {
+        when:
+        buildFile << """
+            task a
+        """
+
+        then:
+        succeeds("a")
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
     def "reuses build script classes"() {
@@ -163,6 +185,21 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "value: changed"
         output.contains "reuse: true"
 
+    }
+
+    def "considered to be long lived process"() {
+        when:
+        buildFile << """
+            task echo {
+              doLast {
+                println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
+              }
+            }
+        """
+
+        then:
+        succeeds("echo")
+        output.contains "isLongLivingProcess: true"
     }
 
     def "failure to determine inputs has a reasonable message"() {
@@ -210,4 +247,40 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         then:
         succeeds()
     }
+
+    def "project directory can be used as input"() {
+        given:
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when:
+        file("A").text = "A"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when: "file is changed"
+        file("A").text = "B"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when:
+        file("A").delete()
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+    }
+
 }

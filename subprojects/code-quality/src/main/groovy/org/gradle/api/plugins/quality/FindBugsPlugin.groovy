@@ -73,8 +73,8 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             pluginClasspath = project.configurations['findbugsPlugins']
         }
         def config = project.configurations['findbugs']
-        config.whenEmpty { dependencies ->
-            dependencies.add(project.dependencies.create("com.google.code.findbugs:findbugs:$extension.toolVersion"))
+        config.defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("com.google.code.findbugs:findbugs:${this.extension.toolVersion}"))
         }
         task.conventionMapping.with {
             findbugsClasspath = { config }
@@ -86,7 +86,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             excludeFilterConfig = { extension.excludeFilterConfig }
             includeFilterConfig = { extension.includeFilterConfig }
             excludeBugsFilterConfig = { extension.excludeBugsFilterConfig }
- 
+
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

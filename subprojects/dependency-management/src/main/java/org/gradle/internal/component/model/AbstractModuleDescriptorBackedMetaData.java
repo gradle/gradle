@@ -208,7 +208,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
             return descriptor.isTransitive();
         }
 
-        public boolean isPublic() {
+        public boolean isVisible() {
             return descriptor.getVisibility() == Configuration.Visibility.PUBLIC;
         }
 

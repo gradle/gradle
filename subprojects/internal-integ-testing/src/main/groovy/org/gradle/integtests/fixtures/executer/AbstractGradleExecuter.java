@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -23,6 +24,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.process.internal.JvmOptions;
@@ -42,6 +44,11 @@ import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+    protected static Set<String> propagatedSystemProperties = Sets.newHashSet();
+
+    public static void propagateSystemProperty(String name) {
+        propagatedSystemProperties.add(name);
+    }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
 
@@ -93,6 +100,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
+    protected boolean interactive;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -127,6 +135,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
+        interactive = false;
         return this;
     }
 
@@ -239,6 +248,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.withDebug(debug);
+        executer.withForceInteractive(interactive);
         return executer;
     }
 
@@ -283,6 +293,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Returns the gradle opts set with withGradleOpts() (does not consider any set via withEnvironmentVars())
      */
     protected List<String> getGradleOpts() {
+        List<String> gradleOpts = new ArrayList<String>(this.gradleOpts);
+        for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            gradleOpts.add(String.format("-D%s=%s", key, value));
+        }
+        gradleOpts.add("-ea");
+
+        if (isDebug()) {
+            gradleOpts.addAll(DEBUG_ARGS);
+        }
+
         return gradleOpts;
     }
 
@@ -567,6 +589,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
         }
 
+        if (interactive) {
+            properties.put(DaemonParameters.INTERACTIVE_TOGGLE, "true");
+        }
+
         return properties;
     }
 
@@ -727,6 +753,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withDebug(boolean flag) {
         debug = flag;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withForceInteractive(boolean flag) {
+        interactive = flag;
         return this;
     }
 

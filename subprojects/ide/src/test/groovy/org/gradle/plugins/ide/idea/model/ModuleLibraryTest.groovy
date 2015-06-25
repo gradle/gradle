@@ -40,12 +40,12 @@ class ModuleLibraryTest extends Specification {
         new ModuleLibrary([] as Set, [] as Set, [] as Set, [] as Set, scope)
     }
 
-    def shouldExportForCompileAndRuntimeScope() {
+    def shouldNotExportDependencies() {
         expect:
-        createModuleLibraryWithScope("COMPILE").exported
-        createModuleLibraryWithScope("RUNTIME").exported
-        createModuleLibraryWithScope("").exported
-        createModuleLibraryWithScope(null).exported
+        !(createModuleLibraryWithScope("COMPILE").exported)
+        !(createModuleLibraryWithScope("RUNTIME").exported)
+        !(createModuleLibraryWithScope("").exported)
+        !(createModuleLibraryWithScope(null).exported)
         !(createModuleLibraryWithScope("TEST").exported)
     }
 }

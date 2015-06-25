@@ -32,5 +32,7 @@ public interface BuildActionParameters {
 
     DaemonUsage getDaemonUsage();
 
-    boolean isContinuousModeEnabled();
+    boolean isContinuous();
+
+    boolean isInteractive();
 }

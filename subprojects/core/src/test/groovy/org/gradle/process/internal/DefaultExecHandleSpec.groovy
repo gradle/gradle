@@ -22,6 +22,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
@@ -32,6 +33,7 @@ import java.util.concurrent.Callable
 
 @UsesNativeServices
 @Timeout(60)
+@LeaksFileHandles
 class DefaultExecHandleSpec extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 

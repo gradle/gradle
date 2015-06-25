@@ -19,11 +19,14 @@ import java.io.Serializable;
 
 public class DefaultEclipseProjectDependency implements Serializable {
     private final String path;
+
+    private final boolean exported;
     private final DefaultEclipseProject target;
 
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target) {
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target, boolean exported) {
         this.target = target;
         this.path = path;
+        this.exported = exported;
     }
 
     public DefaultEclipseProject getTargetProject() {
@@ -32,6 +35,10 @@ public class DefaultEclipseProjectDependency implements Serializable {
 
     public String getPath() {
         return path;
+    }
+
+    public boolean isExported() {
+        return exported;
     }
 
     @Override

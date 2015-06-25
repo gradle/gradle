@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.continuous
 
-import spock.lang.Ignore
+import spock.lang.Unroll
 
-class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
-    def "creating zips in continuous mode"() {
+    def "creating zips"() {
         given:
         def sourceDir = file("src")
         def subDir = sourceDir.file("subdir")
@@ -33,12 +33,13 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         sourceDir.file("README").text = "README"
         subDir.file("A").text = "A"
         buildFile << """
-    apply plugin: 'base'
-    task zip(type: Zip) {
-        archiveName = "zip.zip"
-        from("src")
-    }
-"""
+            apply plugin: 'base'
+            task zip(type: Zip) {
+                archiveName = "zip.zip"
+                from("src")
+            }
+        """
+
         then:
         succeeds("zip")
         executedAndNotSkipped(":zip")
@@ -49,6 +50,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         when:
         subDir.file("B").text = "B"
+
         then:
         succeeds()
         executedAndNotSkipped(":zip")
@@ -58,49 +60,43 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         when:
         sourceDir.file("newdir").createDir()
+
         then:
         succeeds()
-        // TODO: This triggers a build, but we still consider the zip task
-        // up-to-date even though there's a new directory.  This is a bug
-        skipped(":zip")
+        skipped(":zip") // GRADLE-2827 - current behaviour, not desired
     }
 
-    @Ignore("source files for compressed inputs are not considered")
-    def "using compressed files as inputs"() {
+    @Unroll
+    def "using compressed files as inputs - #source"() {
         given:
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
-        // TODO: this fixes the test
-        // inputs.files("${sourceFile.toURI()}")
+
         buildFile << """
-    task unpack(type: Sync) {
-        from($type("${sourceFile.toURI()}"))
-        into("unpack")
-    }
-"""
+            task unpack(type: Sync) {
+                from($type("${sourceFile.toURI()}"))
+                into("unpack")
+            }
+        """
+
         when:
         packDir.file("A").text = "original"
-        packDir.file("subdir").createDir().file("B").text = "B"
-        packDir.file("subdir2").createDir()
         packDir."$packType"(sourceFile)
+
         then:
         succeeds("unpack")
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original"
-        outputDir.file("subdir/B").exists()
-        outputDir.file("subdir2").exists()
 
         when:
-        packDir.file("A").text = "changed"
+        packDir.file("A") << "-changed"
         packDir."$packType"(sourceFile)
+
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
-        outputDir.file("A").text == "changed"
-
-        cleanup:
-        packDir.deleteDir()
+        outputDir.file("A").text == "original-changed"
 
         where:
         type      | packType | source

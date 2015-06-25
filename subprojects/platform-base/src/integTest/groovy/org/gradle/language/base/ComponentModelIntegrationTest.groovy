@@ -181,7 +181,8 @@ class Rules extends RuleSource {
     @Defaults
     void verifyAsContainer(ComponentSpecContainer c) {
         assert c.toString() == "ComponentSpecContainer 'components'"
-        assert c.toString() == c.withType(CustomComponent).toString()
+        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert !(c.withType(CustomComponent) instanceof ComponentSpecContainer)
     }
 
     @Defaults
@@ -245,7 +246,7 @@ model {
                     create("printSourceNames") {
                         def sources = $("components.main.sources")
                         doLast {
-                            println "names: ${sources*.name}"
+                            println "names: ${sources.values()*.name}"
                         }
                     }
                 }
@@ -293,16 +294,16 @@ model {
         foo
             binaries
             sources
-                bar
+                bar = DefaultCustomLanguageSourceSet 'foo:bar'
         main
             binaries
             sources
-                main
-                test
+                main = DefaultCustomLanguageSourceSet 'main:main'
+                test = DefaultCustomLanguageSourceSet 'main:test'
         test
             binaries
             sources
-                test"""))
+                test = DefaultCustomLanguageSourceSet 'test:test'"""))
     }
 
     def "can reference sources container elements in a rule"() {
@@ -430,8 +431,8 @@ model {
         main
             binaries
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
     }
 
     def "plugin can apply component beforeEach / afterEach"() {
@@ -488,8 +489,8 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
 
     }
 
@@ -506,7 +507,8 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "model"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""someCustomComponent
+        output.contains(TextUtil.toPlatformLineSeparators("""
+        someCustomComponent
             binaries
             sources"""))
 
@@ -537,8 +539,8 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
             sources
-                bar
-                main
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'
         test
             binaries
             sources
@@ -599,8 +601,8 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
             sources
-                bar
-                main"""))
+                bar = DefaultCustomLanguageSourceSet 'main:bar'
+                main = DefaultCustomLanguageSourceSet 'main:main'"""))
 
     }
 
@@ -693,7 +695,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         when:
         fails "tasks"
         then:
-        failureHasCause "Cannot add rule ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified) > all() for model element 'components.main' at state Initialized"
+        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified)'"
 
         where:
         projectionType                     | fullQualified
@@ -715,16 +717,16 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         main
             binaries
                 main
-                    tasks
+                    tasks = []
                 test
-                    tasks
+                    tasks = []
             sources
         test
             binaries
                 main
-                    tasks
+                    tasks = []
                 test
-                    tasks
+                    tasks = []
             sources"""))
     }
 
@@ -737,7 +739,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                     create("printBinaryNames") {
                         def binaries = $("components.main.binaries")
                         doLast {
-                            println "names: ${binaries*.name}"
+                            println "names: ${binaries.keySet().toList()}"
                         }
                     }
                 }
@@ -757,7 +759,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") DefaultCustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -774,31 +776,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         then:
         output.contains "binary data: bar"
-    }
-
-    def "cannot remove binaries"() {
-        given:
-        withBinaries()
-        buildFile << '''
-            class BinariesRemovalRules extends RuleSource {
-                @Mutate
-                void clearSourceSets(@Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                    binaries.clear()
-                }
-
-                @Mutate
-                void closeMainComponentBinariesForTasks(ModelMap<Task> tasks, @Path("components.main.binaries") NamedDomainObjectCollection<BinarySpec> binaries) {
-                }
-            }
-
-            apply type: BinariesRemovalRules
-        '''
-
-        when:
-        fails()
-
-        then:
-        failureHasCause("This collection does not support element removal.")
     }
 
     def "can reference task container of a binary in a rule"() {

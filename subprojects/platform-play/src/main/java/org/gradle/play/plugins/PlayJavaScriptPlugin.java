@@ -72,7 +72,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
         ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool = toolResolver.resolveCompiler(JavaScriptCompileSpec.class, binary.getTargetPlatform());
-        for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class).values()) {
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
                 createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, compilerTool, buildDir);
             }
@@ -84,7 +84,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     void createJavaScriptMinifyTask(ModelMap
-                                        <Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, final ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool,  @Path("buildDir") final File buildDir) {
+                                        <Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, final ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool, @Path("buildDir") final File buildDir) {
         final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
         final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

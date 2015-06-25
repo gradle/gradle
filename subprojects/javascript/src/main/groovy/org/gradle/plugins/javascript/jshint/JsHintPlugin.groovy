@@ -59,7 +59,7 @@ class JsHintPlugin implements Plugin<Project> {
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, JsHintExtension extension) {
         Configuration configuration = configurations.create(JsHintExtension.CONFIGURATION_NAME)
-        configuration.whenEmpty(new Action<DependencySet>() {
+        configuration.defaultDependencies(new Action<DependencySet>() {
             @Override
             void execute(DependencySet configDependencies) {
                 String notation = "${DEFAULT_DEPENDENCY_GROUP}:${DEFAULT_DEPENDENCY_MODULE}:${extension.version}@js"

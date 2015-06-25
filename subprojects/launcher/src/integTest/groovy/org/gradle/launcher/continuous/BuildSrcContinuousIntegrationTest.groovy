@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def "can build and reload a project with buildSrc"() {
         when:
@@ -54,7 +54,7 @@ class BuildSrcContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         then:
         succeeds()
-        output.contains "value: original"
+        output.contains "value: changed"
     }
 
 }

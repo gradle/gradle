@@ -82,11 +82,25 @@ public interface MutableModelNode extends ModelNode {
      */
     <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
 
+    /**
+     * Applies the given rules to a node linked from this node.
+     */
     void applyToLink(String name, Class<? extends RuleSource> rules);
 
+    /**
+     * Applies the given rules to this node.
+     */
     void applyToSelf(Class<? extends RuleSource> rules);
 
-    <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules);
+    /**
+     * Applies the given rules to all nodes of the given type linked from this node.
+     */
+    void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules);
+
+    /**
+     * Applies the given rules to all nodes of the given type transitively linked from this node.
+     */
+    void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules);
 
     @Nullable
     MutableModelNode getLink(String name);
@@ -97,7 +111,11 @@ public interface MutableModelNode extends ModelNode {
 
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
+    <T> void setPrivateData(Class<? super T> type, T object);
+
     <T> void setPrivateData(ModelType<? super T> type, T object);
+
+    <T> T getPrivateData(Class<T> type);
 
     <T> T getPrivateData(ModelType<T> type);
 
@@ -112,6 +130,8 @@ public interface MutableModelNode extends ModelNode {
      * Ensure that the views are available, with default values applied.
      */
     void ensureUsable();
+
+    void realize();
 
     void setHidden(boolean hidden);
 

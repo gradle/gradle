@@ -38,6 +38,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.model.internal.registry.UnboundModelRulesException;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,6 +69,14 @@ public class ModelRegistryHelper implements ModelRegistry {
         this.modelRegistry = modelRegistry;
     }
 
+    public ModelRuleDescriptor desc(String p) {
+        return new SimpleModelRuleDescriptor(p);
+    }
+
+    public ModelPath path(String p) {
+        return ModelPath.path(p);
+    }
+
     @Override
     public <T> T realize(ModelPath path, ModelType<T> type) {
         return modelRegistry.realize(path, type);
@@ -75,18 +84,18 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     @Override
     @Nullable
-    public ModelNode atState(ModelPath path, ModelNode.State state) {
-        return modelRegistry.atState(path, state);
+    public MutableModelNode atState(ModelPath path, ModelNode.State state) {
+        return (MutableModelNode) modelRegistry.atState(path, state);
     }
 
-    public ModelNode atState(String path, ModelNode.State state) {
+    public MutableModelNode atState(String path, ModelNode.State state) {
         return atState(ModelPath.path(path), state);
     }
 
     @Override
     @Nullable
-    public ModelNode atStateOrLater(ModelPath path, ModelNode.State state) {
-        return modelRegistry.atStateOrLater(path, state);
+    public MutableModelNode atStateOrLater(ModelPath path, ModelNode.State state) {
+        return (MutableModelNode) modelRegistry.atStateOrLater(path, state);
     }
 
     @Override
@@ -240,7 +249,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return mutate(new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> builder) {
-                return builder.path(path).type(DefaultModelMap.modelMapTypeOf(itemType)).action(action);
+                return builder.path(path).type(ModelTypes.modelMap(itemType)).action(action);
             }
         });
     }
@@ -326,6 +335,10 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     public void realize(String path) {
         modelRegistry.realize(nonNullValidatedPath(path), ModelType.UNTYPED);
+    }
+
+    public <T> T realize(String path, Class<T> type) {
+        return modelRegistry.realize(nonNullValidatedPath(path), ModelType.of(type));
     }
 
     public static <C> ModelCreator creator(String path, Class<C> type, String inputPath, final Transformer<? extends C, Object> action) {
@@ -453,7 +466,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
-            return TriActionBackedModelAction.of(ModelReference.of(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
+            return DirectNodeInputUsingModelAction.of(ModelReference.of(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {
                     action.execute(modelNode, t, inputs);

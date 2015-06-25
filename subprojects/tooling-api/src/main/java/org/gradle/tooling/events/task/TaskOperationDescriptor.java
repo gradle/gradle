@@ -25,5 +25,8 @@ import org.gradle.tooling.events.OperationDescriptor;
  */
 @Incubating
 public interface TaskOperationDescriptor extends OperationDescriptor {
+    /**
+     * Returns the path of the task.
+     */
     String getTaskPath();
 }

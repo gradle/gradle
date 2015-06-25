@@ -62,8 +62,9 @@ tasks.withType(ScalaCompile) {
 <% if (binding.hasVariable("resolveDependenciesTask")) { %>
 task resolveDependencies {
     dependsOn configurations.testRuntime
+    // Need this to ensure that configuration is actually resolved
     doLast {
-        configurations.testRuntime.size()
+        configurations.testRuntime.files.size()
     }
 }
 <% } %>

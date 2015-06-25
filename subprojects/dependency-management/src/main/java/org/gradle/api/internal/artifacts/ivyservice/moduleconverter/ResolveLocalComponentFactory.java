@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
@@ -45,14 +46,30 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
     }
 
-    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
-        assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
+    @Override
+    public boolean canConvert(Object source) {
+        return source instanceof ComponentConverterSource || source instanceof Configuration;
+    }
+
+    @Override
+    public MutableLocalComponentMetaData convert(Object source) {
+        Set<? extends Configuration> contexts;
+        ModuleInternal module;
+        if (source instanceof Configuration) {
+            contexts = ((Configuration) source).getAll();
+            module = ((ConfigurationInternal)source).getModule();
+        } else {
+            contexts = ((ComponentConverterSource)source).getConfigurations();
+            module = ((ComponentConverterSource)source).getModule();
+        }
+        assert contexts.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
-        configurationsToArtifactsConverter.addArtifacts(metaData, configurations);
+        configurationsToModuleDescriptorConverter.addConfigurations(metaData, contexts);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, contexts);
+        configurationsToArtifactsConverter.addArtifacts(metaData, contexts);
         return metaData;
     }
+
 }

@@ -16,16 +16,22 @@
 
 package org.gradle.launcher.continuous
 
+import com.google.common.util.concurrent.SimpleTimeLimiter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.streams.SafeStreams
+import org.gradle.util.RedirectStdIn
+import org.gradle.util.TextUtil
+import org.junit.Rule
 import org.spockframework.runtime.SpockTimeoutError
 import spock.util.concurrent.PollingConditions
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
-abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
+import java.util.concurrent.TimeUnit
+
+abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
+    private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
 
     GradleHandle gradle
 
@@ -33,22 +39,57 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
+    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
+    boolean expectBuildFailure = false
+    boolean killToStop
+
+    @Rule
+    RedirectStdIn redirectStdIn = new RedirectStdIn()
+    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
+
+    String waitingMessage = "Waiting for changes to input files of tasks... (ctrl+d to exit)\n"
 
     public void turnOnDebug() {
         executer.withDebug(true)
-        buildTimeout = buildTimeout*100
+        executer.withArgument("--no-daemon")
+        buildTimeout *= 100
+        shutdownTimeout *= 100
     }
 
-    public void cleanup() {
+    public void cleanupWhileTestFilesExist() {
         stopGradle()
+        if (OperatingSystem.current().isWindows()) {
+            // needs delay to release file handles
+            sleep(500L)
+        }
+    }
+
+    def setup() {
+        // this is here to ensure that the lastModified() timestamps actually change in between builds.
+        // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
+        executer.beforeExecute {
+            def initScript = file("init.gradle")
+            initScript.text = """
+                def startAt = System.currentTimeMillis()
+                gradle.buildFinished {
+                    def sinceStart = System.currentTimeMillis() - startAt
+                    if (sinceStart < 2000) {
+                      sleep 2000 - sinceStart
+                    }
+                }
+            """
+            withArgument("-I").withArgument(initScript.absolutePath)
+        }
     }
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         if (tasks) {
             runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
         }
-        if (gradle==null) {
+        if (gradle == null) {
             throw new UnexpectedBuildFailure("Gradle never started")
         }
         waitForBuild()
@@ -61,6 +102,8 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     ExecutionFailure fails(String... tasks) {
         if (tasks) {
             runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
         }
         waitForBuild()
         if (!(result instanceof ExecutionFailure)) {
@@ -74,16 +117,25 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
-        gradle = executer.withTasks(tasks).withArgument("--watch").start()
 
+        executer.withStdIn(System.in)
+        gradle = executer.withTasks(tasks).withForceInteractive(true).withArgument("--continuous").start()
     }
 
     private void waitForBuild() {
-        // TODO: change this to 'tick' on any output change rather than waiting for the hold build to complete
-        //       to be more adaptable to slow build environments without using huge timeouts
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
-            assert gradle.isRunning()
-            assert buildOutputSoFar().contains("Waiting for a trigger. To exit 'continuous mode', use Ctrl+D.\n")
+        def lastOutput = buildOutputSoFar()
+        def lastActivity = System.currentTimeMillis()
+
+        while (gradle.isRunning() && System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
+            sleep 100
+            def lastLength = lastOutput.size()
+            lastOutput = buildOutputSoFar()
+
+            if (lastOutput.endsWith(TextUtil.toPlatformLineSeparators(waitingMessage))) {
+                break
+            } else if (lastOutput.size() > lastLength) {
+                lastActivity = System.currentTimeMillis()
+            }
         }
 
         def out = buildOutputSoFar()
@@ -96,7 +148,24 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
     }
 
     void stopGradle() {
-        gradle?.abort()
+        if (gradle && gradle.isRunning()) {
+            if (killToStop) {
+                gradle.abort()
+            } else {
+                closeStdIn()
+                new SimpleTimeLimiter().callWithTimeout(
+                    { expectBuildFailure ? gradle.waitForFailure() : gradle.waitForFinish() },
+                    shutdownTimeout, TimeUnit.SECONDS, false
+                )
+            }
+        }
+    }
+
+    void closeStdIn() {
+        stdinPipe.close()
+        executer.withStdIn(SafeStreams.emptyInput())
+        redirectStdIn.resetStdinPipe()
+        stdinPipe = redirectStdIn.getStdinPipe()
     }
 
     void noBuildTriggered(int waitSeconds = 3) {
@@ -111,14 +180,29 @@ abstract public class AbstractContinuousIntegrationTest extends AbstractIntegrat
         }
     }
 
-    void expectOutput(int waitSeconds = 3, Closure<?> checkOutput) {
-        new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
-            assert checkOutput(gradle.standardOutput)
-        }
-    }
-
     // should be private, but is accessed by closures in this class
     protected String buildOutputSoFar() {
         gradle.standardOutput.substring(standardOutputBuildMarker)
     }
+
+    void cancelsAndExits() {
+        waitForNotRunning()
+        assert buildOutputSoFar().contains("Build cancelled.")
+    }
+
+    void doesntExit() {
+        try {
+            waitForNotRunning()
+            assert gradle.running
+        } catch (AssertionError ignore) {
+
+        }
+    }
+
+    private waitForNotRunning() {
+        new PollingConditions().within(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
+            assert !gradle.running
+        }
+    }
+
 }

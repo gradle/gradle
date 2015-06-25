@@ -57,6 +57,8 @@ class ConcurrentSpec extends Specification {
      */
     final TestThread thread = new TestThread(instant)
 
+    final BlockTarget waitFor = new BlockTarget(instant)
+
     private final TestExecutor executor = new TestExecutor(logger)
     private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 

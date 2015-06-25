@@ -18,14 +18,31 @@ package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
+
     def "displays basic structure of an empty project"() {
+        given:
+        buildFile
+
         when:
         run "model"
 
         then:
-        // just check that it doesn't blow up for now
-        output.contains("tasks")
+        output.contains(toPlatformLineSeparators(
+            """model
+    tasks
+        components = task ':components'
+        dependencies = task ':dependencies'
+        dependencyInsight = task ':dependencyInsight'
+        help = task ':help'
+        init = task ':init'
+        model = task ':model'
+        projects = task ':projects'
+        properties = task ':properties'
+        tasks = task ':tasks'
+"""))
     }
 
     def "displays basic structure of a polyglot project"() {
@@ -45,13 +62,137 @@ model {
     }
 }
 """
-
+        buildFile
         when:
         run "model"
 
         then:
-        // just check that it doesn't blow up for now
-        output.contains("components")
-        output.contains("tasks")
+        def report = new ConsoleReportOutput(output)
+        report.hasTitle('Root project')
+        report.hasRootNode('model')
+        report.hasNodeStructure(
+            """model
+    binaries
+        jvmLibJar
+            tasks
+        nativeLibSharedLibrary
+            tasks
+        nativeLibStaticLibrary
+            tasks
+    binaryNamingSchemeBuilder
+    binarySpecFactory
+    buildTypes
+    componentSpecFactory
+    components
+        jvmLib
+            binaries
+                jvmLibJar
+                    tasks
+            sources
+                java
+                resources
+        nativeLib
+            binaries
+                nativeLibSharedLibrary
+                    tasks
+                nativeLibStaticLibrary
+                    tasks
+            sources
+                c
+                cpp
+    flavors
+    javaToolChain
+    jvm
+    languageTransforms
+    languages
+    platformResolver
+    platforms
+    repositories
+    sources
+    tasks
+        assemble
+        build
+        check
+        clean
+        components
+        createJvmLibJar
+        createNativeLibStaticLibrary
+        dependencies
+        dependencyInsight
+        help
+        init
+        jvmLibJar
+        linkNativeLibSharedLibrary
+        model
+        nativeLibSharedLibrary
+        nativeLibStaticLibrary
+        projects
+        properties
+        tasks
+        wrapper
+    toolChains"""
+        )
+    }
+
+    def "displays basic values of a simple model graph with values"() {
+        given:
+        buildFile << """
+
+@Managed
+public interface PasswordCredentials {
+    String getUsername()
+    String getPassword()
+    void setUsername(String s)
+    void setPassword(String s)
+}
+
+
+@Managed
+public interface Numbers {
+    Integer getValue()
+    void setValue(Integer i)
+}
+
+model {
+    primaryCredentials(PasswordCredentials){
+        username = 'uname'
+        password = 'hunter2'
+    }
+
+    nullCredentials(PasswordCredentials) { }
+    numbers(Numbers){
+        value = 5
+    }
+}
+
+"""
+        buildFile
+        when:
+        run "model"
+
+        then:
+
+        output.contains(toPlatformLineSeparators(
+            """model
+    nullCredentials
+        password
+        username
+    numbers
+        value = 5
+    primaryCredentials
+        password = hunter2
+        username = uname
+    tasks
+        components = task ':components'
+        dependencies = task ':dependencies'
+        dependencyInsight = task ':dependencyInsight'
+        help = task ':help'
+        init = task ':init'
+        model = task ':model'
+        projects = task ':projects'
+        properties = task ':properties'
+        tasks = task ':tasks'
+"""))
+
     }
 }

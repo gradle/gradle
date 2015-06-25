@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -67,6 +68,7 @@ sonar.embeddedDatabase.port=$databasePort
         container.start()
     }
 
+    @LeaksFileHandles
     def "can run Sonar analysis"() {
         executer.requireIsolatedDaemons()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.

@@ -22,6 +22,8 @@ public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);
 
+    <T> ModelSchema<T> getSchema(Class<T> type);
+
     /**
      * Remove any cached information for types that have been GC'd.
      */

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
-import java.util.Set;
-
 public interface ResolvedProjectConfigurationResults {
-    Set<ResolvedProjectConfigurationResult> getAllProjectConfigurationResults();
+    Iterable<ResolvedProjectConfiguration> get();
 }

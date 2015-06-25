@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -33,6 +34,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
         portal.start()
     }
 
+    @LeaksFileHandles
     def "plugin declared in plugins {} block gets resolved and applied"() {
         portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("org.my.myplugin", "my", "plugin", "1.0")

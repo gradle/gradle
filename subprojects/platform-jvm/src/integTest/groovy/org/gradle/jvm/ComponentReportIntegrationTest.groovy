@@ -35,7 +35,17 @@ plugins {
 
 model {
     components {
-        someLib(JvmLibrarySpec)
+        someLib(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'library-only'
+                        project 'project-only'
+                        library 'some-library' project 'some-project'
+                    }
+                }
+            }
+        }
     }
 }
 """
@@ -50,6 +60,10 @@ JVM library 'someLib'
 Source sets
     Java source 'someLib:java'
         srcDir: src/someLib/java
+        dependencies
+            library 'library-only'
+            project 'project-only'
+            project 'some-project' library 'some-library'
     JVM resources 'someLib:resources'
         srcDir: src/someLib/resources
 

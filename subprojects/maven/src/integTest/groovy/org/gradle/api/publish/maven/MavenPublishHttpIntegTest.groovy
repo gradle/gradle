@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Unroll
 
+@LeaksFileHandles
 class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule HttpServer server

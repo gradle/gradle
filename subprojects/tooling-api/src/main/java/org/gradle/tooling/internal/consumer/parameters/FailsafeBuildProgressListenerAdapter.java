@@ -18,24 +18,27 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgressListener {
     private final InternalBuildProgressListener delegate;
-    private final List<Throwable> listenerFailures;
+    private Throwable listenerFailure;
 
     public FailsafeBuildProgressListenerAdapter(InternalBuildProgressListener delegate) {
         this.delegate = delegate;
-        this.listenerFailures = new ArrayList<Throwable>();
     }
 
     @Override
     public void onEvent(Object event) {
+        if (listenerFailure != null) {
+            // Discard event
+            return;
+        }
         try {
             delegate.onEvent(event);
         } catch (Throwable t) {
-            listenerFailures.add(t);
+            listenerFailure = t;
         }
     }
 
@@ -45,8 +48,8 @@ public class FailsafeBuildProgressListenerAdapter implements InternalBuildProgre
     }
 
     public void rethrowErrors() {
-        if (!listenerFailures.isEmpty()) {
-            throw new ListenerNotificationException("One or more progress listeners failed with an exception.", listenerFailures);
+        if (listenerFailure != null) {
+            throw new ListenerNotificationException("One or more progress listeners failed with an exception.", Collections.singletonList(listenerFailure));
         }
     }
 }

@@ -37,8 +37,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-import static org.gradle.api.artifacts.Configuration.State.RESOLVED
-import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
+import static org.gradle.api.artifacts.Configuration.State.*
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -286,11 +285,37 @@ class DefaultConfigurationSpec extends Specification {
         resolvedConfiguration.rethrowFailure() >> { throw failure }
 
         when:
+        configuration.getResolvedConfiguration()
+
+        then:
+        configuration.getState() == RESOLVED_WITH_FAILURES
+
+        when:
         configuration.resolve()
 
         then:
         def t = thrown(RuntimeException)
         t == failure
+    }
+
+    def "state indicates failure resolving graph"() {
+        given:
+        def configuration = conf()
+        def failure = new ResolveException(configuration, new RuntimeException())
+
+        and:
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+            resolverResults.failed(failure)
+        }
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
+        when:
+        configuration.getBuildDependencies()
+
+        then:
+        def t = thrown(ResolveException)
+        t == failure
+        configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
     def fileCollectionWithDependencies() {
@@ -405,7 +430,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolutionResults = Mock(ResolutionResult)
         def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
 
-        _ * projectConfigurationResults.allProjectConfigurationResults >> Collections.emptySet()
+        _ * projectConfigurationResults.get() >> Collections.emptySet()
         _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
             resolverResults.resolved(resolutionResults, projectConfigurationResults)
             resolverResults.withResolvedConfiguration(resolvedConfiguration)
@@ -774,11 +799,12 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         _ * resolvedConfiguration.hasError() >> false
         _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
         }
-        _ * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
+        _ * projectConfigurationResults.get() >> []
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
@@ -898,13 +924,13 @@ class DefaultConfigurationSpec extends Specification {
 
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
         def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        projectConfigurationResults.get() >> []
         resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.resolved(resolutionResult, projectConfigurationResults)
         }
         resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
             res.withResolvedConfiguration(resolvedConfiguration)
         }
-        projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
     }
 
     def "resolving configuration for task dependencies puts it into the right state"() {
@@ -913,11 +939,27 @@ class DefaultConfigurationSpec extends Specification {
         resolves(config, result, Mock(ResolvedConfiguration))
 
         when:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
+    }
+
+    def "can determine task dependencies without resolution"() {
+        def config = conf("conf")
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.state == UNRESOLVED
+
+        and:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
+        0 * _._
     }
 
     def "resolving configuration marks parent configuration as observed"() {
@@ -931,7 +973,7 @@ class DefaultConfigurationSpec extends Specification {
         config.resolve()
 
         then:
-        parent.internalState == ConfigurationInternal.InternalState.RESULTS_OBSERVED
+        parent.observedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -951,10 +993,10 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        1 * listenerBroadcaster.getSource() >> listener
+        _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * listener.afterResolve(config.incoming)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -963,11 +1005,14 @@ class DefaultConfigurationSpec extends Specification {
         def result = Mock(ResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
 
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
         when:
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -975,7 +1020,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -983,12 +1028,15 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
 
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
         when:
         resolves(config, result, Mock(ResolvedConfiguration))
         config.incoming.getResolutionResult()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -996,7 +1044,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1015,7 +1063,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1026,7 +1074,7 @@ class DefaultConfigurationSpec extends Specification {
         then:
         0 * resolver.resolve(_)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1056,7 +1104,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
         copy.state == UNRESOLVED
     }
 
@@ -1098,10 +1146,10 @@ class DefaultConfigurationSpec extends Specification {
         exArtifact.message == "Cannot change artifacts of configuration ':conf' after it has been resolved."
     }
 
-    def "whenEmpty action does not trigger when config has dependencies"() {
+    def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
-        conf.whenEmpty whenEmptyAction
+        def defaultDependencyAction = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction
         conf.dependencies.add(Mock(Dependency))
 
         when:
@@ -1111,55 +1159,55 @@ class DefaultConfigurationSpec extends Specification {
         0 * _
     }
 
-    def "second whenEmpty action does not trigger if first one already added dependencies"() {
+    def "second defaultDependencies action does not trigger if first one already added dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction1 = Mock(Action)
-        def whenEmptyAction2 = Mock(Action)
-        conf.whenEmpty whenEmptyAction1
-        conf.whenEmpty whenEmptyAction2
+        def defaultDependencyAction1 = Mock(Action)
+        def defaultDependencyAction2 = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction1
+        conf.defaultDependencies defaultDependencyAction2
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction1.execute(conf.dependencies) >> {
+        1 * defaultDependencyAction1.execute(conf.dependencies) >> {
             conf.dependencies.add(Mock(Dependency))
         }
         0 * _
     }
 
-    def "whenEmpty action is called even if parent config has dependencies"() {
+    def "defaultDependencies action is called even if parent config has dependencies"() {
         def parent = conf("parent", ":parent")
         parent.dependencies.add(Mock(Dependency))
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
         0 * _
     }
 
-    def "whenEmpty action is called on self first, then on parent"() {
+    def "defaultDependencies action is called on self first, then on parent"() {
         def parentWhenEmptyAction = Mock(Action)
         def parent = conf("parent", ":parent")
-        parent.whenEmpty parentWhenEmptyAction
+        parent.defaultDependencies parentWhenEmptyAction
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
 
         then:
         1 * parentWhenEmptyAction.execute(parent.dependencies)

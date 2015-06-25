@@ -25,6 +25,7 @@ import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -650,7 +651,7 @@ class DefaultModelRegistryTest extends Specification {
         thing.value == "input value"
 
         where:
-        targetRole << ModelActionRole.values()
+        targetRole << ModelActionRole.values().find { it.targetState != null }
     }
 
     def "can add action for #targetRole mutation when in #fromState state"() {
@@ -744,7 +745,7 @@ class DefaultModelRegistryTest extends Specification {
     def "getting self closed collection defines all links but does not realise them until graph closed"() {
         given:
         def events = []
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = ModelTypes.modelMap(Bean)
 
         registry
                 .modelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
@@ -936,7 +937,7 @@ class DefaultModelRegistryTest extends Specification {
 
     def "only rules that actually have unbound inputs are reported as unbound"() {
         given:
-        def mmType = DefaultModelMap.modelMapTypeOf(Bean)
+        def mmType = ModelTypes.modelMap(Bean)
 
         registry
                 .createInstance("foo", new Bean())

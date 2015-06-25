@@ -16,15 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.events.internal.BuildOperationProgressListener
+import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.events.task.internal.TaskProgressListener
-import org.gradle.tooling.events.test.internal.TestProgressListener
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
-import org.gradle.tooling.internal.protocol.events.InternalBuildDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalBuildOperationStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
-import org.gradle.tooling.internal.protocol.events.InternalTaskStartedProgressEvent
 import spock.lang.Specification
 
 class BuildProgressListenerAdapterTest extends Specification {
@@ -37,19 +34,19 @@ class BuildProgressListenerAdapterTest extends Specification {
         adapter.subscribedOperations == []
 
         when: 'we register a new test listener'
-        adapter = createAdapter(Mock(TestProgressListener), null, null)
+        adapter = createAdapter(Mock(ProgressListener), null, null)
 
         then: 'test execution becomes a subscribed operation'
         adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION] as Set
 
         when: 'we register a new task listener'
-        adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), null)
+        adapter = createAdapter(Mock(ProgressListener), Mock(ProgressListener), null)
 
         then: 'task execution becomes a subscribed operation'
         adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION] as Set
 
         when: 'we register a new build listener'
-        adapter = createAdapter(Mock(TestProgressListener), Mock(TaskProgressListener), Mock(BuildOperationProgressListener))
+        adapter = createAdapter(Mock(ProgressListener), Mock(ProgressListener), Mock(ProgressListener))
 
         then: 'build execution becomes a subscribed operation'
         adapter.subscribedOperations as Set == [InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION, InternalBuildProgressListener.BUILD_EXECUTION] as Set
@@ -57,11 +54,11 @@ class BuildProgressListenerAdapterTest extends Specification {
 
     def "parent descriptor of a descriptor can be of a different type"() {
         given:
-        TaskProgressListener listener = Mock(TaskProgressListener)
-        def adapter = createAdapter(listener)
+        def listener = Mock(ProgressListener)
+        def adapter = createAdapter(null, listener, null)
 
         when:
-        def buildDescriptor = Mock(InternalBuildDescriptor)
+        def buildDescriptor = Mock(InternalOperationDescriptor)
         _ * buildDescriptor.getId() >> 1
         _ * buildDescriptor.getName() >> 'my build'
         _ * buildDescriptor.getParentId() >> null
@@ -72,12 +69,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         _ * taskDescriptor.getTaskPath() >> ':some:path'
         _ * taskDescriptor.getParentId() >> buildDescriptor.getId()
 
-        def buildStartEvent = Mock(InternalBuildOperationStartedProgressEvent)
+        def buildStartEvent = Mock(InternalOperationStartedProgressEvent)
         _ * buildStartEvent.getEventTime() >> 999
         _ * buildStartEvent.getDisplayName() >> 'build started'
         _ * buildStartEvent.getDescriptor() >> buildDescriptor
 
-        def taskStartEvent = Mock(InternalTaskStartedProgressEvent)
+        def taskStartEvent = Mock(InternalOperationStartedProgressEvent)
         _ * taskStartEvent.getEventTime() >> 1001
         _ * taskStartEvent.getDisplayName() >> 'task started'
         _ * taskStartEvent.getDescriptor() >> taskDescriptor
@@ -100,20 +97,12 @@ class BuildProgressListenerAdapterTest extends Specification {
         createAdapter(null, null, null)
     }
 
-    BuildProgressListenerAdapter createAdapter(TestProgressListener testListener) {
+    BuildProgressListenerAdapter createAdapter(ProgressListener testListener) {
         createAdapter(testListener, null, null)
     }
 
-    BuildProgressListenerAdapter createAdapter(TaskProgressListener taskListener) {
-        createAdapter(null, taskListener, null)
-    }
-
-    BuildProgressListenerAdapter createAdapter(BuildOperationProgressListener buildListener) {
-        createAdapter(null, null, buildListener)
-    }
-
-    BuildProgressListenerAdapter createAdapter(TestProgressListener testListener, TaskProgressListener taskListener, BuildOperationProgressListener buildListener) {
-        new BuildProgressListenerAdapter(new BuildProgressListenerConfiguration(testListener ? [testListener] : [], taskListener ? [taskListener] : [], buildListener ? [buildListener] : []))
+    BuildProgressListenerAdapter createAdapter(ProgressListener testListener, ProgressListener taskListener, ProgressListener buildListener) {
+        new BuildProgressListenerAdapter(testListener ? [testListener] : [], taskListener ? [taskListener] : [], buildListener ? [buildListener] : [])
     }
 
 }

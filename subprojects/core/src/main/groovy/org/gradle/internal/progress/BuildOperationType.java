@@ -21,13 +21,12 @@ package org.gradle.internal.progress;
  */
 public enum BuildOperationType {
 
-    RUNNING_BUILD("Running build"),
-    EVALUATING_INIT_SCRIPTS("Evaluating init scripts"),
-    EVALUATING_SETTINGS("Evaluating settings"),
-    LOADING_BUILD("Loading build"),
-    CONFIGURING_BUILD("Configuring build"),
-    POPULATING_TASK_GRAPH("Populating task graph"),
-    EXECUTING_TASKS("Executing tasks");
+    RUNNING_BUILD("Run build"),
+    EVALUATING_INIT_SCRIPTS("Run init scripts"),
+    EVALUATING_SETTINGS("Load projects"),
+    CONFIGURING_BUILD("Configure build"),
+    POPULATING_TASK_GRAPH("Calculate task graph"),
+    EXECUTING_TASKS("Run tasks");
 
     private String name;
 

@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import spock.lang.Specification
 
@@ -49,6 +51,19 @@ class ResolverResultsSpec extends Specification {
         then:
         results.resolvedConfiguration == resolvedConfiguration
         results.resolutionResult == resolutionResult
-        results.resolvedProjectConfigurationResults == projectConfigurationResult
+    }
+
+    def "performs action for each resolved project configuration"() {
+        Action<ResolvedProjectConfiguration> action = Mock(Action)
+        def projectConfiguration = Mock(ResolvedProjectConfiguration)
+
+        projectConfigurationResult.get() >> [projectConfiguration]
+
+        when:
+        results.resolved(resolutionResult, projectConfigurationResult)
+        results.eachResolvedProject(action)
+
+        then:
+        1 * action.execute(projectConfiguration)
     }
 }

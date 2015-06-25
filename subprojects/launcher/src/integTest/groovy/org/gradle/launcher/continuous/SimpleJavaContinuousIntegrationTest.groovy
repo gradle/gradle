@@ -16,58 +16,41 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.jvm.JvmSourceFile
-import org.gradle.integtests.fixtures.jvm.TestJvmComponent
-import org.gradle.language.fixtures.TestJavaComponent
-import org.gradle.test.fixtures.file.TestFile
-
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    TestJvmComponent app = new TestJavaComponent()
-
-    // TODO: Fold test sources into TestJvmComponent?
-    List<JvmSourceFile> testSources = [
-        new JvmSourceFile("compile/test", "PersonTest.java", '''
-package compile.test;
-
-public class PersonTest {
-    void testIt() {
-        assert true;
-    }
-}''')
-    ]
-
-    TestFile sourceDir = file("src/main")
-    TestFile testSourceDir = file("src/test/java")
-    TestFile resourceDir = file("src/main/resources")
+// NB: there's nothing specific about Java support and continuous.
+//     this spec just lays out some more practical use cases than the other targeted tests.
+class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {
         buildFile << """
-    apply plugin: 'java'
-"""
+            apply plugin: 'java'
+        """
+        executer.withStackTraceChecksDisabled() // some tests fail compilation
     }
 
-    def "can build in continuous mode when no source dir present"() {
+    def "can build when no source dir present"() {
         when:
-        assert !sourceDir.exists()
+        assert !file("src/main/java").exists()
+
         then:
         succeeds("build")
         ":compileJava" in skippedTasks
         ":build" in executedTasks
     }
 
-    def "can build in continuous mode when source dir is removed"() {
+    def "can build when source dir is removed"() {
         when:
-        app.writeSources(sourceDir)
+        file("src/main/java/Thing.java") << "class Thing {}"
+
         then:
-        sourceDir.exists()
         succeeds("build")
         executedAndNotSkipped ":compileJava", ":build"
+
         when:
-        sourceDir.deleteDir()
-        assert !sourceDir.exists()
+        assert !file("src/main/java").deleteDir().exists()
+
         then:
         succeeds()
         ":compileJava" in skippedTasks
@@ -76,60 +59,61 @@ public class PersonTest {
 
     def "build is not triggered when a new directory is created in the source inputs"() {
         when:
-        app.writeSources(sourceDir)
+        file("src/main/java/Thing.java") << "class Thing {}"
+
         then:
-        sourceDir.exists()
         succeeds("build")
-        executedAndNotSkipped ":compileJava", ":build"
+
         when:
-        sourceDir.file("newdirectory").createDir()
+        file("src/main/java/foo").createDir()
+
         then:
         noBuildTriggered()
     }
 
     def "after compilation failure, fixing file retriggers build"() {
-        given:
-        def sourceFiles = app.writeSources(sourceDir)
-        def sourceFile = sourceFiles.get(0)
         when:
-        sourceFile << "/* Broken compile"
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing {} /* broken compile "
+
         then:
         fails("build")
+
         when:
         sourceFile << "*/"
+
         then:
         succeeds()
-        executedAndNotSkipped(":compileJava", ":build")
     }
 
-    def "running test in continuous mode"() {
+    def "can run tests"() {
         when:
-        def resourceFiles = app.writeResources(resourceDir)
-        def testSourceFiles = testSources*.writeToDir(testSourceDir)
-        def sourceFiles = app.writeSources(sourceDir)
-        def sourceFile = sourceFiles.get(0)
-        def testSourceFile = testSourceFiles.get(0)
-        def resourceFile = resourceFiles.get(0)
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
+        def testFile = file("src/test/java/TestThing.java") << "class TestThing {}"
+        def resourceFile = file("src/main/resources/thing.text") << "thing"
+
         then:
         succeeds("test")
         executedAndNotSkipped(":compileJava", ":processResources", ":compileTestJava", ":test")
 
-        when: "Change to source file causes execution of tests"
-        sourceFile << "class Change {}"
+        when:
+        sourceFile.text = "class Thing { static public int FLAG = 1; }"
+
         then:
         succeeds()
         executedAndNotSkipped(":compileJava", ":compileTestJava", ":test")
         skipped(":processResources")
 
-        when: "Change to test file causes execution of tests"
-        testSourceFile << "class Change2 {}"
+        when:
+        testFile.text = "class TestThing { static public int FLAG = 1; }"
+
         then:
         succeeds()
         executedAndNotSkipped(":compileTestJava", ":test")
         skipped(":processResources", ":compileJava")
 
-        when: "Change to resource file (src/main/resources)"
+        when:
         resourceFile << "# another change"
+
         then:
         succeeds()
         executedAndNotSkipped(":processResources", ":compileTestJava", ":test")
@@ -138,72 +122,97 @@ public class PersonTest {
 
     def "failing main source build ignores changes to test source"() {
         when:
-        def testSourceFiles = testSources*.writeToDir(testSourceDir)
-        def sourceFiles = app.writeSources(sourceDir)
-        def sourceFile = sourceFiles.get(0)
-        def testSourceFile = testSourceFiles.get(0)
-        sourceFile << "/* Broken build"
-        then:
-        fails("test")
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
+        def testSourceFile = file("src/test/java/ThingTest.java") << "class ThingTest {}"
 
-        when: "Change to test source file does not cause rebuild"
-        testSourceFile << "// some change"
+        then:
+        succeeds("test")
+
+        when:
+        testSourceFile << " broken "
+
+        then:
+        fails()
+        failureDescriptionStartsWith("Execution failed for task ':compileTestJava'.")
+
+        when:
+        sourceFile << " broken "
+
+        then:
+        fails()
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+
+        when:
+        testSourceFile.text = "class ThingTest {}"
+
         then:
         noBuildTriggered()
-    }
-
-    def "can resolve dependencies from remote repository in continuous mode"() {
-        when:
-        app.writeSources(sourceDir)
-        def sourceFile = sourceDir.file("java/Another.java")
-        buildFile << """
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        compile "log4j:log4j:1.2.17"
-    }
-"""
-        then:
-        succeeds("build")
-        executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        sourceFile << """
-    // just adding a real dependency on log4j to the compilation
-    import org.apache.log4j.LogManager;
-    public class Another {}
-"""
+        sourceFile.text = "class Thing {}"
+
         then:
         succeeds()
-        executedAndNotSkipped ":compileJava", ":build"
+    }
+
+    // Just exercises the dependency management layers to shake out any weirdness
+    def "can resolve dependencies from remote repository"() {
+        when:
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                compile "log4j:log4j:1.2.17"
+            }
+        """
+
+        then:
+        succeeds("build")
+        executedAndNotSkipped ":compileJava"
+
+        when:
+        sourceFile.text = "import org.apache.log4j.LogManager; class Thing {}"
+
+        then:
+        succeeds()
+        executedAndNotSkipped ":compileJava"
     }
 
     def "dependencies as inputs from local filesystem"() {
         when:
         def somelib = file("lib/somelib.jar")
         somelib.parentFile.mkdir()
-        app.writeSources(sourceDir)
+        file("src/main/java/Thing.java") << "class Thing {}"
         buildFile << """
-    dependencies {
-        compile files("lib/somelib.jar")
-    }
-"""
+            dependencies {
+                compile files("lib/somelib.jar")
+            }
+        """
+
         then:
         succeeds("build")
         executedAndNotSkipped ":compileJava", ":build"
-        when: "dependency is created"
+
+        when:
         createJar(somelib, "META-INF/")
+
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
-        when: "dependency is changed"
+
+        when:
         createJar(somelib, "META-INF/", "another-dir/")
+
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
-        when: "dependency is removed"
+
+        when:
         somelib.delete()
+
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
@@ -213,17 +222,20 @@ public class PersonTest {
         when:
         def libDir = file('libs').createDir()
         createJar(libDir.file("somelib.jar"), "META-INF/")
-        app.writeSources(sourceDir)
+        file("src/main/java/Thing.java") << "class Thing {}"
         buildFile << """
-    dependencies {
-        compile fileTree("libs/")
-    }
-"""
+            dependencies {
+                compile fileTree("libs/")
+            }
+        """
+
         then:
         succeeds("build")
         executedAndNotSkipped ":compileJava", ":build"
-        when: "another dependency is created"
+
+        when:
         createJar(libDir.file("anotherlib.jar"), "META-INF/")
+
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
@@ -236,47 +248,20 @@ public class PersonTest {
         ":build" in executedTasks
 
         when:
-        app.writeSources(sourceDir)
+        file("src/main/java/Thing.java") << "class Thing {}"
 
         then:
         succeeds()
-        executedAndNotSkipped ":compileJava", ":jar", ":build"
+        executedAndNotSkipped ":compileJava"
     }
 
-    private def createJar(jarFile, String... entries) throws IOException {
+    static void createJar(File jarFile, String... entries) throws IOException {
         def jarOutputStream = new JarOutputStream(new FileOutputStream(jarFile))
-        entries.each {
-            // put some empty directories in the jar
-            jarOutputStream.putNextEntry(new ZipEntry(it))
+        jarOutputStream.withCloseable {
+            entries.each {
+                jarOutputStream.putNextEntry(new ZipEntry(it))
+            }
         }
-        jarOutputStream.close()
     }
 
-    def "Task can specify project directory as a task input; changes are respected"() {
-        given:
-        buildFile << """
-task a {
-    inputs.dir projectDir
-    doLast {}
-}
-"""
-        expect:
-        succeeds("a")
-        executedAndNotSkipped(":a")
-        when: "new file created"
-        file("A").text = "A"
-        then:
-        succeeds()
-        executedAndNotSkipped(":a")
-        when: "file is changed"
-        file("A").text = "B"
-        then:
-        succeeds()
-        executedAndNotSkipped(":a")
-        when: "file is deleted"
-        file("A").delete()
-        then:
-        succeeds()
-        executedAndNotSkipped(":a")
-    }
 }

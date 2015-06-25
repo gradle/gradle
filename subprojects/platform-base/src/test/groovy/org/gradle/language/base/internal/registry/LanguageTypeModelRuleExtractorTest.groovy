@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.base.internal.registry
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
@@ -122,7 +121,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @Override
         void generatedBy(Task generatorTask) {
-            }
+        }
 
         @Override
         String getName() {

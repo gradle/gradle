@@ -15,13 +15,18 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.Action;
 import org.gradle.jvm.Classpath;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
+import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
-public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implements JavaSourceSet {
+public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implements JavaSourceSet, DependentSourceSetInternal {
     private final Classpath compileClasspath = new EmptyClasspath();
+    private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override
     protected String getTypeName() {
@@ -30,5 +35,16 @@ public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implemen
 
     public Classpath getCompileClasspath() {
         return compileClasspath;
+    }
+
+    @Override
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
+    }
+
+    @Override
+    public DependencySpecContainer dependencies(Action<? super DependencySpecContainer> configureAction) {
+        configureAction.execute(getDependencies());
+        return getDependencies();
     }
 }

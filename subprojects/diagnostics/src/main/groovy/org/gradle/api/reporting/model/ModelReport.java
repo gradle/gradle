@@ -19,11 +19,11 @@ package org.gradle.api.reporting.model;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.reporting.model.internal.ModelReportRenderer;
+import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
+import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
@@ -34,6 +34,7 @@ import javax.inject.Inject;
  */
 @Incubating
 public class ModelReport extends DefaultTask {
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
@@ -47,18 +48,13 @@ public class ModelReport extends DefaultTask {
     @TaskAction
     public void report() {
         Project project = getProject();
-
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelReportRenderer renderer = new ModelReportRenderer();
-        renderer.setOutput(textOutput);
-
-        renderer.startProject(project);
-
-        // Configure the world
-        ModelNode rootNode = getModelRegistry().realizeNode(ModelPath.ROOT);
-        renderer.render(rootNode);
-
-        renderer.completeProject(project);
-        renderer.complete();
+        ModelNodeRenderer renderer = new ModelNodeRenderer();
+        TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
+        textModelReportRenderer.setOutput(textOutput);
+        textModelReportRenderer.startProject(project);
+        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+        textModelReportRenderer.completeProject(project);
+        textModelReportRenderer.complete();
     }
 }

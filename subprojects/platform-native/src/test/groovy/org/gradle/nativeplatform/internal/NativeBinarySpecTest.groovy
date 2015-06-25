@@ -22,6 +22,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
@@ -30,8 +31,7 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -42,7 +42,7 @@ class NativeBinarySpecTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
-    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, sourceSet, instantiator)
+    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, sourceSet, instantiator)
 
     def toolChain1 = Stub(NativeToolChainInternal) {
         getName() >> "ToolChain1"
@@ -64,7 +64,7 @@ class NativeBinarySpecTest extends Specification {
         def binary = testBinary(component)
 
         then:
-        binary.source.containsValue(sourceSet)
+        binary.source.contains(sourceSet)
     }
 
     def "binary uses all source sets from a functional source set"() {
@@ -86,8 +86,8 @@ class NativeBinarySpecTest extends Specification {
         binary.source functionalSourceSet
 
         then:
-        binary.source.containsValue(sourceSet1)
-        binary.source.containsValue(sourceSet2)
+        binary.source.contains(sourceSet1)
+        binary.source.contains(sourceSet2)
     }
 
     def "uses resolver to resolve lib to dependency"() {
@@ -186,8 +186,8 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1,
-                Stub(PlatformToolProvider), platform1, buildType1, flavor)
+        TestNativeBinariesFactory.create(TestNativeBinarySpec, "test", instantiator, Mock(ITaskFactory), owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver
+            , platform1, buildType1, flavor)
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {

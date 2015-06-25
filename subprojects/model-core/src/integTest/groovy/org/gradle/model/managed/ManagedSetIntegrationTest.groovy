@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
+/**
+ * This whole test can be deleted with ManagedSet is removed.
+ * {@link ModelSetIntegrationTest} duplicates this for ModelSet.
+ */
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -542,5 +546,31 @@ configure p3
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'model.tasks @ build file")
+    }
+
+    def "cannot view managed set as model set"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void people(ManagedSet<Person> people) {
+                }
+
+                @Mutate
+                void tasks(ModelMap<Task> tasks, ModelSet<Person> people) {}
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("The following model rules are unbound")
     }
 }

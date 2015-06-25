@@ -30,7 +30,6 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.launcher.daemon.server.exec.StopHandlingCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -84,20 +83,22 @@ public class DaemonServices extends DefaultServiceRegistry {
 
     protected Daemon createDaemon(BuildExecuter buildActionExecuter) {
         return new Daemon(
-                new DaemonTcpServerConnector(
-                    get(ExecutorFactory.class),
-                    get(MessagingServices.class).get(InetAddressFactory.class)),
-                get(DaemonRegistry.class),
-                get(DaemonContext.class),
-                "password",
-                new StopHandlingCommandExecuter(
-                        new DefaultDaemonCommandExecuter(
-                                buildActionExecuter,
-                                get(ProcessEnvironment.class),
-                                loggingManager,
-                                getDaemonLogFile(),
-                                get(DaemonHealthServices.class))),
-                get(ExecutorFactory.class));
+            new DaemonTcpServerConnector(
+                get(ExecutorFactory.class),
+                get(MessagingServices.class).get(InetAddressFactory.class)
+            ),
+            get(DaemonRegistry.class),
+            get(DaemonContext.class),
+            "password",
+            new DefaultDaemonCommandExecuter(
+                buildActionExecuter,
+                get(ProcessEnvironment.class),
+                loggingManager,
+                getDaemonLogFile(),
+                get(DaemonHealthServices.class)
+            ),
+            get(ExecutorFactory.class)
+        );
     }
 
 }

@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Thrown whenever a listener failed with an exception, which in general implies that
+ * Thrown whenever a listener fails with an exception, which in general implies that
  * the build completed like it should, but that one of the listeners failed with an
  * exception.
  *
@@ -30,9 +30,12 @@ import java.util.List;
 public class ListenerFailedException extends GradleConnectionException {
     private final List<? extends Throwable> listenerFailures;
 
-    public ListenerFailedException(List<? extends Throwable> failures) {
-        super("One or more progress listeners failed with an exception.");
+    public ListenerFailedException(String message, List<? extends Throwable> failures) {
+        super(message);
         listenerFailures = failures;
+        if (!failures.isEmpty()) {
+            initCause(failures.get(0));
+        }
     }
 
     public List<? extends Throwable> getCauses() {

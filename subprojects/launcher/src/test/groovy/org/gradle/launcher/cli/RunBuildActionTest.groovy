@@ -19,7 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.initialization.FixedBuildCancellationToken
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class RunBuildActionTest extends Specification {
         startParameter.logLevel >> LogLevel.ERROR
         1 * client.execute({!null}, {!null}, {!null}) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build ->
             assert action.startParameter == startParameter
-            assert context.cancellationToken instanceof FixedBuildCancellationToken
+            assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
             assert context.buildTimeClock.startTime == startTime
             assert build == parameters

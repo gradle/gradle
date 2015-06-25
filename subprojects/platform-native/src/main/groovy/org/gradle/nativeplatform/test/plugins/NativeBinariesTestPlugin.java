@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.rules.ModelMapCreators;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
@@ -27,6 +27,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
@@ -41,6 +42,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecFactory;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
@@ -48,7 +50,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
- * A plugin that sets up the infrastructure for testing native binaries with CUnit.
+ * A plugin that sets up the infrastructure for testing native binaries.
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
@@ -66,7 +68,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         ModelMapSchema<TestSuiteContainer> schema = (ModelMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), descriptor);
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), ModelReference.of(ComponentSpecFactory.class), descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }
@@ -78,10 +80,10 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                testSuiteBinary.source(testedBinary.getSource().values());
+                testSuiteBinary.source(testedBinary.getSource());
 
-                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class).values()) {
-                    testSource.lib(testedBinary.getSource().values());
+                for (DependentSourceSet testSource : testSuiteBinary.getSource().withType(DependentSourceSet.class)) {
+                    testSource.lib(testedBinary.getSource());
                 }
             }
         }
@@ -102,6 +104,13 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
 
                 testBinary.getTasks().add(runTask);
+            }
+        }
+
+        @Mutate
+        public void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
+            for (final TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
+                binaries.addAll(testSuite.getBinaries().values());
             }
         }
 

@@ -18,10 +18,8 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
@@ -36,6 +34,7 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.jvm.internal.DefaultJvmResourceLanguageSourceSet;
 import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
@@ -152,8 +151,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     javaSources.getSource().include("**/*.java");
                     sources.add(javaSources);
 
-                    DefaultSourceDirectorySet resourcesDirectorySet = new DefaultSourceDirectorySet("resources", fileResolver);
-                    JvmResourceSet appResources = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", playComponent.getName(), resourcesDirectorySet);
+                    JvmResourceSet appResources = BaseLanguageSourceSet.create(DefaultJvmResourceLanguageSourceSet.class, "resources", playComponent.getName(), fileResolver, instantiator);
                     appResources.getSource().srcDirs("conf");
                     sources.add(appResources);
                 }
@@ -284,7 +282,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             binaries.all(new Action<PlayApplicationBinarySpec>() {
                 @Override
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
-                    for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getSource().withType(languageSourceSetType).values()) {
+                    for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getSource().withType(languageSourceSetType)) {
                         ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, String.format("%sScalaSources", languageSourceSet.getName()), playApplicationBinarySpec.getName(), fileResolver, instantiator);
                         playApplicationBinarySpec.getGeneratedScala().put(languageSourceSet, twirlScalaSources);
                     }
@@ -296,7 +294,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void createTwirlCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool = toolResolver.resolveCompiler(TwirlCompileSpec.class, binary.getTargetPlatform());
-            for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class).values()) {
+            for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
                 final String twirlCompileTaskName = String.format("twirlCompile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
 
@@ -319,7 +317,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void createRoutesCompileTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
             final ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
             final ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool = toolResolver.resolveCompiler(RoutesCompileSpec.class, binary.getTargetPlatform());
-            for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class).values()) {
+            for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class)) {
                 final String routesCompileTaskName = String.format("routesCompile%s%s", StringUtils.capitalize(routesSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
 
@@ -354,12 +352,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
-                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class).values()) {
+                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
 
-                    for (LanguageSourceSet appSources : binary.getSource().withType(JavaSourceSet.class).values()) {
+                    for (LanguageSourceSet appSources : binary.getSource().withType(JavaSourceSet.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
@@ -369,7 +367,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         scalaCompile.dependsOn(generatedSourceSet.getBuildDependencies());
                     }
 
-                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal)binary).getClasspath());
+                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
 
                     binary.getClasses().builtBy(scalaCompile);
                 }

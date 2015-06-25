@@ -316,6 +316,114 @@ just the build directory and the `.gradle` directory. This can be improved later
 
 Similar to `gradleApi()`
 
+## Feature: Test Execution
+
+## Story: Add ability to launch tests
+
+### API proposal
+
+* BuildLauncher can be configured to execute specific tests via `BuildLauncher#forTests(TestExecutionConfiguration)`
+* `TestExecutionConfiguration` interface contains all information about which tests should be executed.
+* `TestExecutionConfiguration` can be build using fluent API TestExecutionConfigurationBuilder
+* can configure `TestExecutionConfigurationBuilder` via
+	* TestExecutionConfigurationBuilder#withJvmTestClasses(String...)
+	* TestExecutionConfigurationBuilder#withJvmTestMethods(String testClass, String... methods)
+
+From a client this API can be used like:
+
+		ProjectConnection connection = GradleConnector.newConnector()
+		   	.forProjectDirectory(new File("someFolder"))
+		   	.connect();
+		
+		try {
+		   //run tests
+		   connection.newBuild()
+		     .forTests(TestExecutionConfigurationBuilder.newTestExecutionConfiguration()
+					.withJvmTestClasses('example.MyTest')
+					.withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
+					.build()) // this will ensure all tests of MyTest and MyTest2#testMethod1, MyTest2#testMethod2
+							  // will be executed
+		     .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
+		     .setStandardOutput(System.out)
+		     .run();	
+		} finally {
+		   connection.close();
+	} 
+
+### Implementation
+
+TBD
+
+* Introduce `TestExecutionConfigurationBuilder`, `TestExecutionConfiguration`
+* add `BuildLauncher#forTests(TestExecutionConfiguration)`
+* change BuildModelActionRunner to run test tasks if TestConfiguration is provided
+* run all tasks of type `org.gradle.api.tasks.testing.Test` with pattern applied
+* add ability to force execution of up-to-date test tasks
+
+### Test Coverage
+
+* can execute
+	* single JVM test class
+	* multiple specific JVM test classes
+	* single test method of JVM test class
+	* multiple test methods of JVM test class
+* test will not execute if test task is up-to-date
+* build should not fail if filter matches a single test task
+
+### Open Issues
+
+* With the current implementation all tasks of type `org.gradle.api.tasks.testing.Test` are executed with the pattern provided, even if those tasks have no matching tests declared.
+
+## Story: Allow specification of tests to run via package, patterns, TestDiscriptor inclusion/exclusion
+
+### API proposal
+
+* TestExecutionConfigurationBuilder#withJvmTestPackages(String... packages)
+* TestExecutionConfigurationBuilder#withTestsByPattern(String...)
+* TestExecutionConfigurationBuilder#withTests(TestOperationDescriptor...)
+* TestExecutionConfigurationBuilder#excludeJvmTestPackages(String...)
+* TestExecutionConfigurationBuilder#excludeJvmTestMethods(String testClass, String... methods)
+* TestExecutionConfigurationBuilder#excludeTestsByPattern(String... patterns)
+* TestExecutionConfigurationBuilder#excludeJvmTestClasses(String...)
+
+### Implementation
+
+* add according inclusive pattern declared in TestExecutionConfigurationBuilder to TestExecutionConfiguration#testIncludePatterns / TestExecutionConfiguration#testExcludePatterns
+
+### Test Coverage
+
+* can execute 
+	* all tests from specific package
+ 	* tests from a multiple packages
+	* single test with regex include pattern
+	* single test with an exclude pattern"
+	* tests from specific package
+	* tests from a single package using package exclude
+	* test class using a test descriptor
+	* test method using a test descriptor
+
+## Story: Allow force execution of up-to-date test tasks
+
+### Implementation
+
+* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not) 
+* allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
+
+### Test Coverage
+
+* can force execution of up-to-date test
+
+## Story: Allow force exeuction of up-to-date test tasks
+
+### Implementation
+
+* add flag to TestExecutionConfiguration indicating a test tasks should always be executed (not matter of up-to-date or not) 
+* allow configuration from client side via TestExecutionConfigurationBuilder#alwaysRunTests()
+
+### Test Coverage
+
+* can force execution of up-to-date test
+
 ## Story: Add ability to launch tests in debug mode
 
 Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.

@@ -27,12 +27,15 @@ public class DefaultEclipseExternalDependency implements ExternalDependencyVersi
     private final File file;
     private final File javadoc;
     private final File source;
+
+    private final boolean exported;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier) {
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported) {
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
+        this.exported = exported;
         moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
     }
 
@@ -50,5 +53,9 @@ public class DefaultEclipseExternalDependency implements ExternalDependencyVersi
 
     public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
+    }
+
+    public boolean isExported() {
+        return exported;
     }
 }

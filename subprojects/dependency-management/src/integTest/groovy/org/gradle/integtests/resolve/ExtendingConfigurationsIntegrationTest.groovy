@@ -16,8 +16,11 @@
 package org.gradle.integtests.resolve;
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.junit.runner.RunWith
 import spock.lang.Issue;
 
+@RunWith(FluidDependenciesResolveRunner)
 public class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")

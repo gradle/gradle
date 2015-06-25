@@ -49,6 +49,12 @@ public abstract class RuleInputAccessBacking {
     public static RuleInputAccess getAccess() {
         final Map<String, Object> inputs = INPUT.get();
         return new RuleInputAccess() {
+
+            @Override
+            public boolean has(String modelPath) {
+                return inputs.containsKey(modelPath);
+            }
+
             public Object input(String modelPath) {
                 return inputs.get(modelPath);
             }

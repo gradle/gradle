@@ -20,8 +20,8 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ public class ResolveLocalComponentFactoryTest extends Specification {
         def module = new DefaultModule('group-one', 'name-one', 'version-one')
 
         when:
-        def componentMetaData = resolveModuleDescriptorConverter.convert(configurations, module);
+        def componentMetaData = resolveModuleDescriptorConverter.convert(new ComponentConverterSource(configurations, module))
 
         then:
         1 * configurationsConverter.addConfigurations(!null, configurations)

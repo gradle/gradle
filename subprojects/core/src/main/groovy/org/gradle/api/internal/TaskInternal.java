@@ -40,8 +40,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void execute();
 
-    void executeWithoutThrowingTaskFailure();
-
     StandardOutputCapture getStandardOutputCapture();
 
     TaskExecuter getExecuter();

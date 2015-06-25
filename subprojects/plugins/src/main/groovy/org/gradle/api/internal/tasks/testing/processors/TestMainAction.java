@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
@@ -62,7 +63,9 @@ public class TestMainAction implements Runnable {
             this.testTaskOperationId = testTaskOperationId;
         }
 
-        public Object getTestTaskOperationId() {
+        @Nullable
+        @Override
+        public Object getOwnerBuildOperationId() {
             return testTaskOperationId;
         }
 

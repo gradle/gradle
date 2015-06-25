@@ -30,10 +30,7 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
-import org.gradle.internal.progress.InternalBuildListener;
-import org.gradle.internal.progress.LoggerProvider;
+import org.gradle.internal.progress.*;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -81,7 +78,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             buildEventConsumer = services.get(BuildEventConsumer.class);
         } else {
             requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
-            cancellationToken = new FixedBuildCancellationToken();
+            cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer);
@@ -144,7 +141,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.getBroadcaster(ModelConfigurationListener.class),
             listenerManager.getBroadcaster(TasksCompletionListener.class),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
-            listenerManager.getBroadcaster(InternalBuildListener.class),
+            serviceRegistry.get(BuildOperationExecutor.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry
         );

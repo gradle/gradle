@@ -64,7 +64,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
         modelRegistry.createOrReplace(
             creatorBuilder
-                .withProjection(ModelMapModelProjection.of(Task.class, DefaultModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
+                .withProjection(ModelMapModelProjection.unmanaged(Task.class, NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override
                     public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {
                         return modelNode.getPrivateData(ModelType.of(DefaultTaskContainer.class)).getEntityInstantiator();
@@ -83,7 +83,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
 
         // Add tasks created through rules to the actual task container
-        mutableModelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeModelAction.of(ModelReference.of(Task.class), new SimpleModelRuleDescriptor("copyToTaskContainer"), new BiAction<MutableModelNode, Task>() {
+        mutableModelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeNoInputsModelAction.of(ModelReference.of(Task.class), new SimpleModelRuleDescriptor("copyToTaskContainer"), new BiAction<MutableModelNode, Task>() {
             @Override
             public void execute(MutableModelNode modelNode, Task task) {
                 TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);

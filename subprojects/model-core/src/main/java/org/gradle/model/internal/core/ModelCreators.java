@@ -16,11 +16,14 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.internal.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.ArrayList;
@@ -32,27 +35,37 @@ import java.util.List;
 abstract public class ModelCreators {
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
-        return bridgedInstance(modelReference, instance, Actions.doNothing());
-    }
-
-    public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance, Action<? super MutableModelNode> initializer) {
-        return unmanagedInstance(modelReference, Factories.constant(instance), initializer);
+        return unmanagedInstance(modelReference, Factories.constant(instance), Actions.doNothing());
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
         return unmanagedInstance(modelReference, factory, Actions.doNothing());
     }
 
-    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, Action<? super MutableModelNode> initializer) {
-        @SuppressWarnings("unchecked")
-        Action<? super MutableModelNode> initializers = Actions.composite(new Action<MutableModelNode>() {
-            public void execute(MutableModelNode modelNode) {
-                modelNode.setPrivateData(modelReference.getType(), factory.create());
+    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, final Action<? super MutableModelNode> initializer) {
+        return unmanagedInstanceOf(modelReference, new Transformer<T, MutableModelNode>() {
+            @Override
+            public T transform(MutableModelNode modelNode) {
+                T t = factory.create();
+                initializer.execute(modelNode);
+                return t;
             }
-        }, initializer);
+        });
+    }
 
-        return of(modelReference.getPath(), initializers)
+    public static <T> Builder unmanagedInstanceOf(final ModelReference<T> modelReference, final Transformer<? extends T, ? super MutableModelNode> factory) {
+        return of(modelReference.getPath(), new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode modelNode) {
+                T t = factory.transform(modelNode);
+                modelNode.setPrivateData(modelReference.getType(), t);
+            }
+        })
             .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
+    }
+
+    public static Builder of(ModelPath path) {
+        return new Builder(path, BiActions.doNothing());
     }
 
     public static Builder of(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
@@ -78,6 +91,7 @@ abstract public class ModelCreators {
         private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
         private final ModelPath path;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
+        private final List<Pair<? extends ModelActionRole, ? extends ModelAction<?>>> actions = Lists.newArrayList();
         private boolean ephemeral;
         private boolean hidden;
 
@@ -96,6 +110,21 @@ abstract public class ModelCreators {
 
         public Builder descriptor(ModelRuleDescriptor descriptor) {
             this.modelRuleDescriptor = descriptor;
+            return this;
+        }
+
+        public Builder descriptor(ModelRuleDescriptor parent, ModelRuleDescriptor child) {
+            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, child);
+            return this;
+        }
+
+        public Builder descriptor(ModelRuleDescriptor parent, String child) {
+            this.modelRuleDescriptor = new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(child));
+            return this;
+        }
+
+        public Builder action(ModelActionRole role, ModelAction<?> action) {
+            this.actions.add(Pair.of(role, action));
             return this;
         }
 
@@ -125,9 +154,22 @@ abstract public class ModelCreators {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public ModelCreator build() {
             ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, initializer);
+
+            BiAction<? super MutableModelNode, ? super List<ModelView<?>>> effectiveInitializer = initializer;
+            if (!actions.isEmpty()) {
+                effectiveInitializer = BiActions.composite(initializer, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                        for (Pair<? extends ModelActionRole, ? extends ModelAction<?>> action : actions) {
+                            modelNode.applyToSelf(action.getLeft(), action.getRight());
+                        }
+                    }
+                });
+            }
+            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, effectiveInitializer);
         }
     }
 

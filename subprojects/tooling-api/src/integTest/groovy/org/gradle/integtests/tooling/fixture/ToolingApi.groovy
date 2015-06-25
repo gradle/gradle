@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -42,13 +42,12 @@ class ToolingApi implements TestRule {
     private TestFile gradleUserHomeDir
     private TestFile daemonBaseDir
     private boolean useSeparateDaemonBaseDir
-    private boolean inProcess;
+    private boolean inProcess
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
-    List<DefaultGradleConnector> connectors = new ArrayList<DefaultGradleConnector>();
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this.dist = dist
@@ -132,7 +131,7 @@ class ToolingApi implements TestRule {
     private <T> T withConnectionRaw(GradleConnector connector, Closure<T> cl) {
         ProjectConnection connection = connector.connect()
         try {
-            return cl.call(connection)
+            return connection.with(cl)
         } catch (Throwable t) {
             validate(t)
             throw t
@@ -153,7 +152,7 @@ class ToolingApi implements TestRule {
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }
-        if (!requiresDaemon && GradleVersion.current() == dist.version) {
+        if (isEmbedded()) {
             println("Using embedded tooling API provider from ${GradleVersion.current().version} to classpath (${dist.version.version})")
             connector.useClasspathDistribution()
             connector.embedded(true)
@@ -163,9 +162,13 @@ class ToolingApi implements TestRule {
             connector.embedded(false)
         }
         connectorConfigurers.each {
-            it.call(connector)
+            connector.with(it)
         }
         return connector
+    }
+
+    boolean isEmbedded() {
+        !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override

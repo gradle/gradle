@@ -118,7 +118,7 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency.buildDependencies.resolve(context)
 
         then:
-        1 * context.add(conf.allDependencies)
+        1 * context.add(conf)
         1 * context.add({it.is(conf.allArtifacts)})
         1 * listener.beforeResolvingProjectDependency(project)
         0 * _

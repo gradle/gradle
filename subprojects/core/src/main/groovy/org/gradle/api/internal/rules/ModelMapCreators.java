@@ -17,6 +17,7 @@
 package org.gradle.api.internal.rules;
 
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
@@ -27,30 +28,20 @@ import org.gradle.model.internal.type.ModelType;
 public class ModelMapCreators {
 
     public static <T, C extends ModelMap<T>> ModelCreator specialized(ModelPath path,
-                                                                      final Class<T> typeClass,
-                                                                      final Class<C> containerClass,
-                                                                      final Class<? extends C> viewClass,
+                                                                      Class<T> typeClass,
+                                                                      Class<C> containerClass,
+                                                                      Class<? extends C> viewClass,
+                                                                      ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
                                                                       ModelRuleDescriptor descriptor) {
 
-        final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = instantiatorType(typeClass);
+        ChildNodeCreatorStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
 
         ModelType<C> containerType = ModelType.of(containerClass);
         ModelType<T> modelType = ModelType.of(typeClass);
-        return ModelCreators.of(
-            ModelReference.of(path, instantiatorType),
-            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-                @Override
-                public RuleAwarePolymorphicNamedEntityInstantiator<T> create() {
-                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(
-                        new DefaultPolymorphicNamedEntityInstantiator<T>(typeClass, "this collection")
-                    );
-                }
-            }
-        )
+        return ModelCreators.of(ModelReference.of(path, containerType), Factories.<C>constantNull())
             .descriptor(descriptor)
-            .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass))
-            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, DefaultModelMap.createUsingParentNode(modelType)))
-            .withProjection(UnmanagedModelProjection.of(instantiatorType))
+            .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass, childFactory))
+            .withProjection(PolymorphicModelMapProjection.of(modelType, childFactory))
             .build();
     }
 
@@ -70,7 +61,7 @@ public class ModelMapCreators {
                 }
             }
         )
-            .withProjection(PolymorphicModelMapProjection.of(modelType, instantiatorType, DefaultModelMap.createUsingParentNode(modelType)))
+            .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
             .withProjection(UnmanagedModelProjection.of(instantiatorType));
     }
 

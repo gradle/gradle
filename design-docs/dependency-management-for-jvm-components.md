@@ -63,7 +63,7 @@ Add a basic DSL to declare the required libraries of a Java source set:
 Model `JavaSourceSet.dependencies` as a mutable collection of library requirements (that is libraries that are required, not the requirements of a library),
 with conveniences to add items to the collection.
 
-It should be possible to query the set of requirements. For example, model `JavaSourceSet.dependencies` as a `ManagedSet`.
+It should be possible to query the set of requirements. For example, model `JavaSourceSet.dependencies` as a `ModelSet`.
 
 Out of scope:
 

@@ -19,9 +19,8 @@ package org.gradle.internal.filewatch;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -32,25 +31,8 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     private final ExecutorService executor;
     private final JavaVersion javaVersion;
     private final ClassLoader classLoader;
-    private final FileWatcherFactory fileWatcherFactory;
-    private final static Logger LOG = Logging.getLogger(DefaultFileWatcherFactory.class);
 
-    private static class NoOpFileWatcherFactory implements FileWatcherFactory {
-        @Override
-        public FileWatcher watch(FileSystemSubset fileSystemSubset, Action<? super Throwable> onError, FileWatcherListener listener) {
-            return new FileWatcher() {
-                @Override
-                public void stop() {
-
-                }
-
-                @Override
-                public boolean isRunning() {
-                    return false;
-                }
-            };
-        }
-    }
+    private FileWatcherFactory fileWatcherFactory;
 
     public DefaultFileWatcherFactory(ExecutorFactory executorFactory) {
         this(JavaVersion.current(), DefaultFileWatcherFactory.class.getClassLoader(), executorFactory);
@@ -60,22 +42,19 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
         this.javaVersion = javaVersion;
         this.classLoader = classLoader;
         this.executor = executorFactory.create("filewatcher");
-        this.fileWatcherFactory = createFileWatcherFactory();
     }
 
     protected FileWatcherFactory createFileWatcherFactory() {
         if (javaVersion.isJava7Compatible()) {
-            Class clazz;
             try {
-                clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
+                Class clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
             } catch (ClassNotFoundException e) {
-                LOG.error("Could not load JDK7 class with a JDK7+ JVM, falling back to no-op implementation.");
+                throw UncheckedException.throwAsUncheckedException(e);
             }
+        } else {
+            throw new UnsupportedOperationException("File watching requires Java 7 or later.");
         }
-        LOG.debug("Using no-op file watcher service.");
-        // TODO: Maybe we'll eventually support Java 6
-        return new NoOpFileWatcherFactory();
     }
 
     @Override
@@ -85,6 +64,9 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     @Override
     public FileWatcher watch(FileSystemSubset systemSubset, Action<? super Throwable> onError, FileWatcherListener listener) {
+        if (fileWatcherFactory == null) {
+            fileWatcherFactory = createFileWatcherFactory();
+        }
         return fileWatcherFactory.watch(systemSubset, onError, listener);
     }
 }

@@ -16,6 +16,8 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -26,10 +28,6 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.DomainObjectSetBackedModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
@@ -143,23 +141,14 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         throw new UnsupportedOperationException();
     }
 
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
+    @Override
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ModelMap<LanguageSourceSet> getSource() {
-        return ModelMapGroovyDecorator.alwaysMutable(
-            DomainObjectSetBackedModelMap.ofNamed(
-                LanguageSourceSet.class,
-                sourceSets,
-                new NamedEntityInstantiator<LanguageSourceSet>() {
-                    public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
-                        throw new UnsupportedOperationException();
-                    }
-                }
-            )
-        );
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets;
     }
 
     public void source(Object source) {

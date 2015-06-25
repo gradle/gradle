@@ -39,7 +39,7 @@ public class RunBuildAction implements Runnable {
     public void run() {
         executer.execute(
                 new ExecuteBuildAction(startParameter),
-                new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new FixedBuildCancellationToken(), new NoOpBuildEventConsumer()),
+                new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
                 buildActionParameters);
     }
 }

@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -214,8 +212,6 @@ project(':api') {
         assert moduleFileNames.contains("master.iml")
     }
 
-    // TODO:DAZ Fix this
-    @Ignore("Deadlocking")
     @Test
     void handlesModuleDependencyCycles() {
         def settingsFile = file("master/settings.gradle")
@@ -256,16 +252,79 @@ project(':three') {
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
-        assert dependencies.modules.size() == 1
+        assert dependencies.modules.size() == 2
         dependencies.assertHasModule("COMPILE", "two")
-
-        dependencies = parseIml("master/two/two.iml").dependencies
-        assert dependencies.modules.size() == 1
         dependencies.assertHasModule("COMPILE", "three")
 
-        dependencies = parseIml("master/three/three.iml").dependencies
-        assert dependencies.modules.size() == 1
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "three")
         dependencies.assertHasModule("COMPILE", "one")
+
+        dependencies = parseIml("master/three/three.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "one")
+        dependencies.assertHasModule("COMPILE", "two")
+    }
+
+    @Test
+    void classpathContainsConflictResolvedDependencies() {
+        def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
+        def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << """
+include 'one'
+include 'two'
+        """
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+project(':one') {
+    dependencies {
+        compile ('someGroup:someLib:1.0') {
+            force = project.hasProperty("forceDeps")
+        }
+        compile project(':two')
+    }
+}
+
+project(':two') {
+    dependencies {
+        compile 'someGroup:someLib:2.0'
+    }
+}
+
+"""
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then
+        def dependencies = parseIml("master/one/one.iml").dependencies
+        dependencies.assertHasModule("COMPILE", "two")
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
+
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
+
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
+
+        //then
+        dependencies = parseIml("master/one/one.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("COMPILE", "two")
+        assert dependencies.libraries*.jarName == [someLib1Jar.name]
+
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
     }
 
     @Test

@@ -19,10 +19,10 @@ package org.gradle.nativeplatform.plugins
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
@@ -115,7 +115,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeExecutableSpec
+        NativeExecutableSpec executable = one(realizeModelElement("components", ModelTypes.modelMap(ComponentSpec)).values()) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
@@ -127,7 +127,7 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        executable.binaries.values() == [executableBinary] as Set
+        executable.binaries.values() == [executableBinary]
     }
 
     def "creates binaries for library"() {
@@ -149,7 +149,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeLibrarySpec library = one(realizeModelElement("components", DefaultModelMap.modelMapTypeOf(ComponentSpec)).values()) as NativeLibrarySpec
+        NativeLibrarySpec library = one(realizeModelElement("components", ModelTypes.modelMap(ComponentSpec)).values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'
@@ -174,8 +174,8 @@ class NativeComponentModelPluginTest extends Specification {
         }
 
         and:
-        library.binaries.containsValue(sharedLibraryBinary)
-        library.binaries.containsValue(staticLibraryBinary)
+        library.binaries.values().contains(sharedLibraryBinary)
+        library.binaries.values().contains(staticLibraryBinary)
     }
 
     def "creates lifecycle task for each binary"() {

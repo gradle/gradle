@@ -64,6 +64,12 @@ sourceSets.each {
         scala.include "org/gradle/$name/**"
     }
 }
+
+if(!JavaVersion.current().isJava8Compatible()) {
+   tasks.withType(ScalaCompile) {
+     scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+   }
+}
 '''
         file('src/org/gradle/main/resource.txt') << 'some text'
         file('src/org/gradle/test/resource.txt') << 'some text'

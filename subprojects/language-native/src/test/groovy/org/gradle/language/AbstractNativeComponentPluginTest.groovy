@@ -24,8 +24,8 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultModelMap
 import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -47,7 +47,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     abstract String getPluginName();
 
     ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), DefaultModelMap.modelMapTypeOf(ComponentSpec))
+        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
     }
 
     def "creates source set with conventional locations for components"() {

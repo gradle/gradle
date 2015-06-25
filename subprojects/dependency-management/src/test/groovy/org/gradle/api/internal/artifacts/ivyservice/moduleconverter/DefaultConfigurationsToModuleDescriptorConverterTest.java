@@ -92,6 +92,9 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
 
             allowing(configurationStub).getExtendsFrom();
             will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
+
+            allowing(configurationStub).getHierarchy();
+            will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
         }});
         return configurationStub;
     }

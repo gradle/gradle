@@ -200,7 +200,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         Date expiry = new Date(waitUntil);
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
-            cancellationToken.doCancel();
+            cancellationToken.cancel();
         } catch (Exception ex) {
             LOGGER.error("Cancel processing failed. Will continue.", ex);
         }

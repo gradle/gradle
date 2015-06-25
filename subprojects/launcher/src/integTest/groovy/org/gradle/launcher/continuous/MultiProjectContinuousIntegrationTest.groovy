@@ -16,108 +16,145 @@
 
 package org.gradle.launcher.continuous
 
-class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+
     def upstreamSource, downstreamSource
 
     def setup() {
+        executer.noExtraLogging().withStackTraceChecksDisabled()
         settingsFile << "include 'upstream', 'downstream'"
         buildFile << """
-subprojects { apply plugin: 'java' }
-project(':downstream') {
-    dependencies {
-        compile project(":upstream")
-    }
-}
-"""
-        upstreamSource = file("upstream/src/main/java/upstream/A.java").createFile()
-        upstreamSource << """
-package upstream;
+            subprojects {
+                apply plugin: 'java'
+                repositories { mavenCentral() }
+            }
 
-public class A { }
-"""
-        downstreamSource = file("downstream/src/main/java/downstream/B.java").createFile()
-        downstreamSource << """
-package downstream;
-import upstream.A;
+            project(':downstream') {
+                dependencies {
+                    compile project(":upstream")
+                }
+            }
+        """
 
-class B { }
-"""
+        upstreamSource = file("upstream/src/main/java/Upstream.java") << "class Upstream {}"
+        downstreamSource = file("downstream/src/main/java/Downstream.java").createFile() << "class Downstream {}"
     }
 
     def "changes to upstream project triggers build of downstream"() {
         expect:
-        succeeds("build")
-        executedAndNotSkipped(":upstream:compileJava", ":upstream:build", ":downstream:compileJava", ":downstream:build")
+        succeeds "build"
+        executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
 
-        when: "change to upstream builds both up and down stream"
-        upstreamSource << """
-class Change {}
-"""
+        when:
+        upstreamSource.text = "class Upstream { int change = 1; }"
+
         then:
         succeeds()
-        executedAndNotSkipped(":upstream:compileJava", ":downstream:compileJava", ":upstream:build")
+        executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
 
-        when: "change to downstream doesn't build upstream"
-        downstreamSource << """
-class Change2 {}
-"""
+        when:
+        downstreamSource.text = "class Downstream { int change = 1; }"
+
         then:
         succeeds()
-        executedAndNotSkipped(":downstream:compileJava", ":downstream:build")
-        skipped(":upstream:compileJava", ":upstream:build")
+        executedAndNotSkipped ":downstream:compileJava"
+        skipped ":upstream:compileJava"
 
-        when: "broken change to downstream fails the build"
-        upstreamSource << "class BrokenChange { "
+        when:
+        upstreamSource.text = "class Upstream {"
+
         then:
         fails()
 
-        when: "fixing broken change builds up and down stream"
-        upstreamSource << "} "
+        when:
+        downstreamSource.text = "class Downstream { int change = 11; }"
+
+        then:
+        noBuildTriggered()
+
+        when:
+        downstreamSource.text = "class Downstream {}"
+        upstreamSource.text = "class Upstream {}"
+
         then:
         succeeds()
-        executedAndNotSkipped(":upstream:compileJava", ":upstream:build", ":downstream:compileJava")
+        executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
     }
 
-    def "Task can specify root directory of multi project build as a task input; changes are respected"() {
+    def "can specify root directory of multi project build as a task input; changes are respected"() {
         given:
         buildFile << """
-allprojects {
-    task a {
-        inputs.dir rootDir
-        doLast {
-        }
-    }
-}
-"""
-        expect: "executing all tasks"
-        succeeds("a")
+            allprojects {
+                task a {
+                    inputs.dir rootDir
+                    doLast {
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "a"
         executedAndNotSkipped(":a", ":upstream:a", ":downstream:a")
+
         when:
         file("A").text = "A"
+
         then:
         succeeds()
         executedAndNotSkipped(":a", ":upstream:a", ":downstream:a")
 
-        expect: "executing a subproject task"
+        expect:
         succeeds(":downstream:a")
         executedAndNotSkipped(":downstream:a")
         notExecuted(":a", ":upstream:a")
+
         when:
         file("B").text = "B"
+
         then:
         succeeds()
         executedAndNotSkipped(":downstream:a")
+    }
 
-        expect: "executing two tasks"
-        succeeds(":upstream:a", ":a")
-        executedAndNotSkipped(":upstream:a", ":a")
-        notExecuted(":downstream:a")
+    // here to put more stress on parallel execution
+    def "reasonable sized multi-project"() {
+        given:
+        def extraProjectNames = (0..100).collect { "project$it" }
+        extraProjectNames.each {
+            settingsFile << "\n include '$it' \n"
+            buildFile << "\n project(':$it') { dependencies { compile project(':upstream') } } \n"
+            file("${it}/src/main/java/${it}/Thing.java").createFile() << """
+                package ${it};
+                class Thing {}
+            """
+        }
+
+        String[] extraCompileTasks = extraProjectNames.collect { ":$it:compileJava" }*.toString().toArray()
+        def anExtraProjectName = extraProjectNames[(extraProjectNames.size() / 2).toInteger()]
+
+        expect:
+        succeeds("build")
+
         when:
-        file("C").text = "C"
+        downstreamSource.text = "class Downstream { int change = 1; }"
+
         then:
         succeeds()
-        executedAndNotSkipped(":upstream:a", ":a")
-        notExecuted(":downstream:a")
+        skipped extraCompileTasks
 
+        when:
+        upstreamSource.text = "class Upstream { int change = 1; }"
+
+        then:
+        succeeds()
+        executedAndNotSkipped extraCompileTasks
+
+        when:
+        file("${anExtraProjectName}/src/main/java/Thing.java").text = "class Thing { int change = 1; }"
+
+        then:
+        succeeds()
+        executedAndNotSkipped ":$anExtraProjectName:compileJava"
     }
 }

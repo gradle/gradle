@@ -18,10 +18,12 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class PluginApplicationErrorIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
+    @LeaksFileHandles
     def "reports failure to apply plugin by id"() {
         given:
         pluginBuilder.addPlugin("throw new Exception('throwing plugin')", "broken")

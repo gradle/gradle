@@ -117,7 +117,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     void addConfiguration(NativeBinarySpec nativeBinary, VisualStudioProjectConfiguration configuration) {
         configurations[nativeBinary] = configuration
-        source nativeBinary.source.values()
+        source nativeBinary.source
     }
 
     VisualStudioProjectConfiguration getConfiguration(NativeBinarySpec nativeBinary) {

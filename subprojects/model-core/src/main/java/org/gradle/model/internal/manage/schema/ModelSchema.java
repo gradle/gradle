@@ -22,21 +22,21 @@ import org.gradle.model.internal.type.ModelType;
 @ThreadSafe
 public class ModelSchema<T> {
 
-    public static enum Kind {
+    public enum Kind {
         VALUE(false, true), // at the moment we are conflating this with unstructured primitives
         COLLECTION,
-        MAP(false, false), // not quite
+        SPECIALIZED_MAP(false, false), // not quite
         STRUCT,
         UNMANAGED(false, false); // some type we know nothing about
 
         private final boolean isManaged;
         private final boolean isAllowedPropertyTypeOfManagedType;
 
-        private Kind() {
+        Kind() {
             this(true, true);
         }
 
-        private Kind(boolean isManaged, boolean isAllowedPropertyTypeOfManagedType) {
+        Kind(boolean isManaged, boolean isAllowedPropertyTypeOfManagedType) {
             this.isManaged = isManaged;
             this.isAllowedPropertyTypeOfManagedType = isAllowedPropertyTypeOfManagedType;
         }
@@ -65,7 +65,7 @@ public class ModelSchema<T> {
         return new ModelCollectionSchema<T>(type, elementType);
     }
 
-    public static <T> ModelMapSchema<T> map(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
+    public static <T> ModelMapSchema<T> specializedMap(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
         return new ModelMapSchema<T>(type, elementType, managedImpl);
     }
 

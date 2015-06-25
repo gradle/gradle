@@ -19,6 +19,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
@@ -30,7 +31,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
         when:
         sample sample
         run 'clean', 'assemble'
-        
+
         then:
         TestFile tmpDir = file('unjar')
         sample.dir.file("build/libs/customized-1.0.war").unzipTo(tmpDir)
@@ -50,6 +51,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 'webapp.html')
     }
 
+    @LeaksFileHandles
     def "can execute servlet"() {
         given:
         // Inject some int test stuff

@@ -18,9 +18,12 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.junit.runner.RunWith
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@RunWith(FluidDependenciesResolveRunner)
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
     /**

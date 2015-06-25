@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 /**
@@ -27,19 +26,19 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  */
 abstract class ModelBinding {
 
-    final ModelReference<?> reference;
+    final BindingPredicate predicate;
     final ModelRuleDescriptor referrer;
     final boolean writable;
     protected ModelNodeInternal boundTo;
 
-    protected ModelBinding(ModelRuleDescriptor referrer, ModelReference<?> reference, boolean writable) {
-        this.reference = reference;
+    protected ModelBinding(ModelRuleDescriptor referrer, BindingPredicate predicate, boolean writable) {
+        this.predicate = predicate;
         this.referrer = referrer;
         this.writable = writable;
     }
 
-    public ModelReference<?> getReference() {
-        return reference;
+    public BindingPredicate getPredicate() {
+        return predicate;
     }
 
     public boolean isBound() {
@@ -54,12 +53,12 @@ abstract class ModelBinding {
     }
 
     boolean isTypeCompatible(ModelPromise promise) {
-        return promise.canBeViewedAsWritable(reference.getType()) || promise.canBeViewedAsReadOnly(reference.getType());
+        return promise.canBeViewedAsWritable(predicate.getType()) || promise.canBeViewedAsReadOnly(predicate.getType());
     }
 
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", node=" + boundTo + '}';
+        return "ModelBinding{predicate=" + predicate + ", node=" + boundTo + '}';
     }
 
     public abstract void onCreate(ModelNodeInternal node);

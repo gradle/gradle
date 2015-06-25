@@ -81,7 +81,16 @@ class WatchServiceRegistrar implements FileWatcherListener {
     }
 
     private void watchDir(Path dir) throws IOException {
-        dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+        try {
+            dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+        } catch (IOException e) {
+            // Windows at least will sometimes throw odd exceptions like java.nio.file.AccessDeniedException
+            // if the file gets deleted while the watch is being set up.
+            // So, we just ignore the exception if the dir doesn't exist anymore
+            if (Files.exists(dir)) {
+                throw e;
+            }
+        }
     }
 
     private boolean inUnfilteredSubsetOrAncestorOfAnyRoot(File file) {
@@ -128,17 +137,20 @@ class WatchServiceRegistrar implements FileWatcherListener {
         if (!watcher.isRunning()) {
             return;
         }
+        if (dir.exists()) {
+            watchDir(dir.toPath());
+            File[] contents = dir.listFiles();
+            if (contents != null) {
+                for (File file : contents) {
+                    maybeFire(watcher, FileWatcherEvent.create(file));
+                    if (!watcher.isRunning()) {
+                        return;
+                    }
 
-        watchDir(dir.toPath());
-        File[] contents = dir.listFiles();
-        for (File file : contents) {
-            maybeFire(watcher, FileWatcherEvent.create(file));
-            if (!watcher.isRunning()) {
-                return;
-            }
-
-            if (file.isDirectory()) {
-                newDirectory(watcher, file);
+                    if (file.isDirectory()) {
+                        newDirectory(watcher, file);
+                    }
+                }
             }
         }
     }

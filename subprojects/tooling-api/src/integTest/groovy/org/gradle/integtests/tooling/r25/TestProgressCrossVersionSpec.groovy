@@ -22,15 +22,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressEventType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -48,7 +47,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener({
                     throw new RuntimeException()
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then:
@@ -67,7 +66,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addProgressListener({ ProgressEvent event ->
                     result << (event as TestProgressEvent)
-                }, EnumSet.of(ProgressEventType.TEST)).get()
+                }, EnumSet.of(OperationType.TEST)).get()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
@@ -89,32 +88,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: "test progress events must be forwarded to the attached listeners"
         result.size() > 0
-    }
-
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.4")
-    def "build aborts if a test listener throws an exception"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
-                    @Override
-                    void statusChanged(ProgressEvent event) {
-                        throw new IllegalStateException("Throwing an exception on purpose")
-                    }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
-        }
-
-        then: "build aborts if the test listener throws an exception"
-        thrown(GradleConnectionException)
     }
 
     @ToolingApiVersion(">=2.5")
@@ -126,6 +104,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         when: "launching a build"
         List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
         List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
+        def stdout = new ByteArrayOutputStream()
+        def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
@@ -133,28 +113,30 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         resultsOfFirstListener << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).addProgressListener(new ProgressListener() {
+                }, EnumSet.of(OperationType.TEST)).addProgressListener(new ProgressListener() {
                     @Override
                     void statusChanged(ProgressEvent event) {
-                        throw new IllegalStateException("Throwing an exception on purpose")
+                        throw failure
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).addProgressListener(new ProgressListener() {
+                }, EnumSet.of(OperationType.TEST)).addProgressListener(new ProgressListener() {
                     @Override
                     void statusChanged(ProgressEvent event) {
                         resultsOfLastListener << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).setStandardOutput(stdout).run()
         }
 
-        then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
-        thrown(GradleConnectionException)
-        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version('2.5')) {
-            assert resultsOfFirstListener.size() > 1
-            assert resultsOfLastListener.size() > 1
-        } else {
-            resultsOfFirstListener.size() == 1
-            resultsOfLastListener.size() == 1
-        }
+        then: "listener exception is wrapped"
+        ListenerFailedException ex = thrown()
+        ex.message.startsWith("Could not execute build using")
+        ex.causes == [failure]
+
+        and: "expected events received"
+        resultsOfFirstListener.size() == 1
+        resultsOfLastListener.size() == 1
+
+        and: "build execution is successful"
+        stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     @ToolingApiVersion(">=2.5")
@@ -187,7 +169,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then:
@@ -311,7 +293,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then:
@@ -440,7 +422,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then:
@@ -593,7 +575,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: "start and end event is sent for each node in the test tree"
@@ -672,7 +654,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).withArguments('--parallel').run()
+                }, EnumSet.of(OperationType.TEST)).withArguments('--parallel').run()
         }
 
         then: "start and end event is sent for each node in the test tree"
@@ -715,7 +697,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection { ProjectConnection connection ->
             connection.newBuild().forTasks('dummy').addProgressListener({ ProgressEvent event ->
                 result << (event as TestProgressEvent)
-            }, EnumSet.of(ProgressEventType.TEST)).run()
+            }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then:
@@ -739,14 +721,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                             result << event
                         }
                     }
-                }, EnumSet.of(ProgressEventType.TASK, ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TASK, OperationType.TEST)).run()
         }
 
         then: 'the parent of the root test progress event is the test task that triggered the tests'
         !result.isEmpty()
         [result.first(), result.last()].each { def event ->
             assert event.descriptor.parent instanceof TaskOperationDescriptor
-            assert event.descriptor.parent.name == 'test'
+            assert event.descriptor.parent.name == ':test'
         }
 
         when: 'listening to test progress events and no task listener is attached'
@@ -758,7 +740,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         result << (event as TestProgressEvent)
                     }
-                }, EnumSet.of(ProgressEventType.TEST)).run()
+                }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: 'the parent of the root test progress event is null'

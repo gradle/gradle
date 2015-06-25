@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation initializes the rule subject with default values.
  * <p>
- * Default rules execute after {@link Model} rules (i.e. after the element is created), but before {@link Mutate} rules.
+ * Default rules execute first for a given subject, just after the subject has been created but before {@link Model} rules and {@link Mutate} rules.
  * The first parameter of the rule is the rule subject, which is mutable for the duration of the rule.
  * <p>
  * Please see {@link RuleSource} for more information on method rules.

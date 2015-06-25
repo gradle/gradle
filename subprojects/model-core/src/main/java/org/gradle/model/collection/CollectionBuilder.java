@@ -17,7 +17,6 @@
 package org.gradle.model.collection;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 
@@ -31,7 +30,6 @@ import java.util.Set;
  *
  * @deprecated use {@link org.gradle.model.ModelMap} instead
  */
-@Incubating
 @Deprecated
 public interface CollectionBuilder<T> {
     /**

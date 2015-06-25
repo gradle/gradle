@@ -17,10 +17,7 @@
 package org.gradle.tooling.events.task;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
-
-import java.util.List;
 
 /**
  * Describes how a task operation finished with failures.
@@ -29,11 +26,4 @@ import java.util.List;
  */
 @Incubating
 public interface TaskFailureResult extends TaskOperationResult, FailureResult {
-    /**
-     * Returns the exceptions that occurred while running the task, if any.
-     *
-     * @return the exceptions, empty if the task failed without any exceptions
-     */
-    @Override
-    List<? extends Failure> getFailures();
 }

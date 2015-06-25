@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.file;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.os.OperatingSystem;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -25,6 +26,7 @@ import org.junit.runners.model.Statement;
 
 import java.io.File;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 
 /**
@@ -35,8 +37,9 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
     private String prefix;
     protected static TestFile root;
     private static final Random RANDOM = new Random();
-    public static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
+    private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
+    private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -49,28 +52,46 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
     }
 
     protected Statement doApply(final Statement base, FrameworkMethod method, Object target) {
-        init(method.getName(), target.getClass().getSimpleName());
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                base.evaluate();
-                getTestDirectory().deleteDir();
-                // Don't delete on failure
-            }
-        };
+        Class<?> testClass = target.getClass();
+        init(method.getName(), testClass.getSimpleName());
+        boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || method.getAnnotation(LeaksFileHandles.class) != null;
+        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles);
     }
 
     public Statement apply(final Statement base, Description description) {
-        init(description.getMethodName(), description.getTestClass().getSimpleName());
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                base.evaluate();
-                // TODO force deletion by calling 'deleteDir' once we fixed stalling processes
-                getTestDirectory().maybeDeleteDir();
-                // Don't delete on failure
+        Class<?> testClass = description.getTestClass();
+        init(description.getMethodName(), testClass.getSimpleName());
+        boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || description.getAnnotation(LeaksFileHandles.class) != null;
+        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles);
+    }
+
+    private static class TestDirectoryCleaningStatement extends Statement {
+
+        private final Statement base;
+        private final TestFile testDirectory;
+        private final boolean leaksHandles;
+
+        private TestDirectoryCleaningStatement(Statement base, TestFile testDirectory, boolean leaksHandles) {
+            this.base = base;
+            this.testDirectory = testDirectory;
+            this.leaksHandles = leaksHandles;
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            base.evaluate();
+            // Don't delete on failure
+            try {
+                testDirectory.deleteDir();
+            } catch (Exception e) {
+                boolean suppressException = leaksHandles && OperatingSystem.current().isWindows();
+                if (suppressException) {
+                    e.printStackTrace();
+                } else {
+                    throw e;
+                }
             }
-        };
+        }
     }
 
     protected void init(String methodName, String className) {
@@ -96,7 +117,11 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             }
             while (true) {
                 // Use a random prefix to avoid reusing test directories
-                dir = root.file(prefix, Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX));
+                String prefix = Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX);
+                if (WINDOWS_RESERVED_NAMES.matcher(prefix).matches()) {
+                    continue;
+                }
+                dir = root.file(this.prefix, prefix);
                 if (dir.mkdirs()) {
                     break;
                 }

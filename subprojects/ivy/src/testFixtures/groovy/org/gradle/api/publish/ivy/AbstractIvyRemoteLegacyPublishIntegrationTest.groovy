@@ -22,8 +22,10 @@ import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
+@LeaksFileHandles
 public abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractIntegrationSpec {
     abstract RepositoryServer getServer()
 

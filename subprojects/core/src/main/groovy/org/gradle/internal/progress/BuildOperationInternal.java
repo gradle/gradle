@@ -21,21 +21,11 @@ public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;
     private final BuildOperationType operationType;
-    private final Object payload;
-    private final long startTime;
-    private final long endTime;
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime) {
-        this(id, parentId, operationType, payload, startTime, 0);
-    }
-
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, Object payload, long startTime, long endTime) {
+    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType) {
         this.id = id;
         this.parentId = parentId;
         this.operationType = operationType;
-        this.payload = payload;
-        this.startTime = startTime;
-        this.endTime = endTime;
     }
 
     public Object getId() {
@@ -49,17 +39,5 @@ public final class BuildOperationInternal {
 
     public BuildOperationType getOperationType() {
         return operationType;
-    }
-
-    public Object getPayload() {
-        return payload;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public long getEndTime() {
-        return endTime;
     }
 }

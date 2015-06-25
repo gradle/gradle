@@ -18,7 +18,7 @@ package org.gradle.model.dsl.internal
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
-import org.gradle.model.collection.ManagedSet
+import org.gradle.model.ModelSet
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -64,7 +64,7 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     @Managed
     interface Foo {
-        ManagedSet<Thing> getBar()
+        ModelSet<Thing> getBar()
     }
 
     interface Unmanaged {}
