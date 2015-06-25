@@ -30,6 +30,11 @@ public class DefaultScriptTarget implements ScriptTarget {
     }
 
     @Override
+    public String getId() {
+        return "dsl";
+    }
+
+    @Override
     public PluginManagerInternal getPluginManager() {
         return target instanceof PluginAwareInternal ? ((PluginAwareInternal) target).getPluginManager() : null;
     }

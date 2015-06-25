@@ -58,12 +58,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         properties.put("source.filename", source.getFileName());
         properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
 
-        String transformerId = operation.getId();
-        String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformerId);
+        String dslId = operation.getId();
+        String cacheName = String.format("scripts/%s/%s", source.getClassName(), dslId);
         PersistentCache cache = cacheRepository.cache(cacheName)
                 .withProperties(properties)
                 .withValidator(validator)
-                .withDisplayName(String.format("%s class cache for %s", transformerId, source.getDisplayName()))
+                .withDisplayName(String.format("%s class cache for %s", dslId, source.getDisplayName()))
                 .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
                 .open();
 

@@ -26,6 +26,11 @@ public class InitScriptTarget extends DefaultScriptTarget {
     }
 
     @Override
+    public String getId() {
+        return "init";
+    }
+
+    @Override
     public Class<? extends BasicScript> getScriptClass() {
         return InitScript.class;
     }

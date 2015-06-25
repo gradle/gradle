@@ -26,6 +26,11 @@ public class SettingScriptTarget extends DefaultScriptTarget {
     }
 
     @Override
+    public String getId() {
+        return "settings";
+    }
+
+    @Override
     public Class<? extends BasicScript> getScriptClass() {
         return SettingsScript.class;
     }

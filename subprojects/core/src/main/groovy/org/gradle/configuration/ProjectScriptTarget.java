@@ -21,20 +21,22 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.BasicScript;
-import org.gradle.groovy.scripts.DefaultScript;
 
 public class ProjectScriptTarget implements ScriptTarget {
     private final ProjectInternal target;
-    private final boolean topLevelScript;
 
-    public ProjectScriptTarget(ProjectInternal target, boolean topLevelScript) {
+    public ProjectScriptTarget(ProjectInternal target) {
         this.target = target;
-        this.topLevelScript = topLevelScript;
     }
 
     @Override
     public PluginManagerInternal getPluginManager() {
         return target.getPluginManager();
+    }
+
+    @Override
+    public String getId() {
+        return "proj";
     }
 
     @Override
@@ -44,19 +46,17 @@ public class ProjectScriptTarget implements ScriptTarget {
 
     @Override
     public boolean getSupportsPluginsBlock() {
-        return topLevelScript;
+        return true;
     }
 
     @Override
     public Class<? extends BasicScript> getScriptClass() {
-        return topLevelScript ? ProjectScript.class : DefaultScript.class;
+        return ProjectScript.class;
     }
 
     @Override
     public void attachScript(Script script) {
-        if (topLevelScript) {
-            target.setScript(script);
-        }
+        target.setScript(script);
     }
 
     @Override

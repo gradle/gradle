@@ -31,7 +31,6 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.configuration.ImportsReader;
@@ -48,7 +47,9 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -143,25 +144,20 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
             return;
         }
-        GFileUtils.mkdirs(metadataDir);
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
-        FileOutputStream outputStream;
         try {
-            outputStream = new FileOutputStream(metadataFile);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException("Could not create or open build script metadata file " + metadataFile.getAbsolutePath(), e);
-        }
-        KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream);
-        Serializer<M> serializer = extractingTransformer.getDataSerializer();
-        try {
-            serializer.write(encoder, extractingTransformer.getExtractedData());
+            GFileUtils.mkdirs(metadataDir);
+            KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile));
+            try {
+                Serializer<M> serializer = extractingTransformer.getDataSerializer();
+                serializer.write(encoder, extractingTransformer.getExtractedData());
+            } finally {
+                encoder.close();
+            }
         } catch (Exception e) {
             String transformerName = extractingTransformer.getTransformer().getClass().getName();
             throw new IllegalStateException(String.format("Failed to serialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
-        } finally {
-            encoder.close();
         }
-
     }
 
     private void wrapCompilationFailure(ScriptSource source, MultipleCompilationErrorsException e) {
@@ -232,25 +228,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             return null;
         }
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
-        FileInputStream inputStream;
         try {
-            inputStream = new FileInputStream(metadataFile);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException("Could not open build script metadata file " + metadataFile.getAbsolutePath(), e);
-        }
-        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
-        Serializer<M> serializer = extractingTransformer.getDataSerializer();
-        try {
-            return serializer.read(decoder);
+            KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
+            try {
+                Serializer<M> serializer = extractingTransformer.getDataSerializer();
+                return serializer.read(decoder);
+            } finally {
+                decoder.close();
+            }
         } catch (Exception e) {
             String transformerName = extractingTransformer.getTransformer().getClass().getName();
             throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
-        } finally {
-            try {
-                decoder.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to close script metadata file decoder backed by " + metadataFile.getAbsolutePath(), e);
-            }
         }
     }
 

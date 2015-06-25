@@ -116,7 +116,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String classpathClosureName = scriptTarget.getClasspathBlockName();
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
-            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(classpathClosureName, initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
+            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>("cp_" + scriptTarget.getId(), initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.getScript().init(target, services);
@@ -129,7 +129,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // Pass 2, compile everything except buildscript {} and plugin requests, then run
 
             BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(classpathClosureName, scriptSource);
-            String operationId = "no_" + classpathClosureName;
+            String operationId = scriptTarget.getId();
             if (ModelBlockTransformer.isEnabled()) {
                 operationId = "m_".concat(operationId);
             }
@@ -151,8 +151,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         }
 
         private ScriptTarget wrap(Object target) {
-            if (target instanceof ProjectInternal) {
-                return new ProjectScriptTarget((ProjectInternal) target, topLevelScript);
+            if (target instanceof ProjectInternal && topLevelScript) {
+                // Only use this for top level project scripts
+                return new ProjectScriptTarget((ProjectInternal) target);
             }
             if (target instanceof GradleInternal && topLevelScript) {
                 // Only use this for top level init scripts

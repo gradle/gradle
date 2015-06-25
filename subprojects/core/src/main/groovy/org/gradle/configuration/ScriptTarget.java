@@ -21,9 +21,14 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.groovy.scripts.BasicScript;
 
 /**
- * A view over the target of a script.
+ * A view over the target of a script. Represents the DSL that will be applied to the target.
  */
 public interface ScriptTarget {
+    /**
+     * Returns a unique id for the DSL, used in paths and such.
+     */
+    String getId();
+
     /**
      * Attaches the target's main script to the target, if it needs it
      */
