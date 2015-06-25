@@ -1,0 +1,283 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='play_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Play Plugin</title>
+    <note>
+        <para>
+            The Gradle support for building Play applications is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>
+        <ulink url="https://www.playframework.com/">Play</ulink> is a modern web application framework.
+        The Play plugin adds support for building, testing and running Play applications with Gradle.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Play plugin, include the following in your build script:</para>
+        <sample id="usePlayPlugin" dir="play/basic" title="Using the Play plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Limitations</title>
+        <para>The Play plugin currently has a few limitations.</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Support is limited to Play 2.2.x and 2.3.x applications.
+                    Future Gradle versions will add support for Play 2.4.x and 3.0.x.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A project may only define a single Play application.
+                    A multi-project build can have as many Play applications as desired.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Play applications can only target a single “platform” (combination of Play, Scala and Java version) at this time.
+                    This limitation may be lifted in future Gradle versions.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+
+    <section>
+        <title>Project Layout</title>
+        <para>The Play plugin follows the typical Play application layout.  You can configure <link linkend="">additional directories or change the defaults.</link></para>
+        <screen>
+├── app                 <lineannotation>→ Application source code.</lineannotation>
+│   ├── assets          <lineannotation>→ Assets that require compilation.</lineannotation>
+│   │   ├── javascripts <lineannotation>→ Typically CoffeeScript source code.</lineannotation>
+│   │   └── stylesheets <lineannotation>→ Typically LESS source code.</lineannotation>
+│   ├── controllers     <lineannotation>→ Application controller source code.</lineannotation>
+│   ├── models          <lineannotation>→ Application business source code.</lineannotation>
+│   └── views           <lineannotation>→ Application UI templates.</lineannotation>
+├── build.gradle        <lineannotation>→ Your project's build script.</lineannotation>
+├── conf                <lineannotation>→ Main application configuration file and routes files.</lineannotation>
+├── public              <lineannotation>→ Public assets.</lineannotation>
+│   ├── images          <lineannotation>→ Application image files.</lineannotation>
+│   ├── javascripts     <lineannotation>→ Typically JavaScript source code.</lineannotation>
+│   └── stylesheets     <lineannotation>→ Typically CSS source code.</lineannotation>
+└── test                <lineannotation>→ Test source code.</lineannotation>
+        </screen>
+    </section>
+
+    <section>
+        <title>Software Component Model</title>
+
+        <para>
+            The Play plugin uses a <link linkend="new_model">software component model</link> to describe how to build a Play application.
+            Components are abstract software products that are built into “binary” forms.  Most configuration will be done to the software component.
+            A Play application is represented by a PlayApplicationSpec component type.  The plugin automatically creates a single PlayApplicationSpec when it is applied.
+            A project can only have one PlayApplicationSpec component defined at this time.
+        </para>
+
+        <figure>
+            <title>Play plugin - software component model</title>
+            <imageobject>
+                <imagedata fileref="img/playPluginModel.png"/>
+            </imageobject>
+        </figure>
+
+        <para>
+            A Play application consists of several source sets, which are just logical groupings of files of a particular type.
+            The Play plugin defines source sets on a PlayApplicationSpec for Java, Scala, JavaScript, and non-source code.
+            Additional source sets can be configured in the build script and in other plugins.
+            The PlayApplicationBinarySpec is the output of all of these source sets.
+        </para>
+        <para>
+            A Play application requires a particular version of Play, Scala and Java to build and run.
+            The Play plugin models this requirement as a PlayPlatform.  A PlayPlatform consists of a Play version, Scala Platform and Java Platform.
+            Gradle assumes a default version of Play, Scala and Java if none are specified.
+            Only a single PlayPlatform can be specified for a given PlayApplicationSpec component.
+        </para>
+        <para>
+            A PlayApplicationBinarySpec is created for a given PlayPlatform to represent the binary form.
+            The Play plugin will use configuration from the PlayApplicationSpec to select tools from the PlayToolChain to create the Play application binary.
+            In the end, the transformation from source code to binary is still expressed as a list of tasks with dependencies.
+            You can inspect the list of tasks with <literal>gradle tasks</literal>, but the software component model also provides additional reports for understanding the build.
+        </para>
+        <para>Learn more about the <link linkend="new_model">Software Component Model</link> and how it fits into Gradle's future.</para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>
+            The Play plugin adds a number of tasks to your project, as shown below.
+        </para>
+        <table>
+            <title>Play plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>playBinary</literal>
+                </td>
+                <td>All compile tasks for source sets added to the Play application.
+                </td>
+                <td><apilink class="org.gradle.api.Task">Lifecycle Task</apilink></td>
+                <td>Performs a build of just the Play application.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>createPlayBinaryDist</literal>
+                </td>
+                <td>Staging task for the Play application.</td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td>Bundles the Play application as a distribution.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>stagePlayBinaryDist</literal>
+                </td>
+                <td>
+                    All compile tasks, jar building tasks, and start script script generating tasks.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies all compiled classes and public assets into a staging directory.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>runPlayBinary</literal>
+                </td>
+                <td>
+                    <literal>playBinary</literal> to build Play application.
+                </td>
+                <td><apilink class="org.gradle.play.tasks.PlayRun"/></td>
+                <td>Runs the Play application for local development.</td>
+            </tr>
+        </table>
+
+        <para>For each source set you add to the project, the Play plugin adds the following compilation tasks:</para>
+        <table id="play_source_set_tasks">
+            <title>Play plugin - source set tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <task><title>TODO: </title></task>
+            <!-- Figure out what the plugin actually does...
+            <tr>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
+                </td>
+                <td>
+                    All tasks which produce the source set's compile classpath.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
+                <td>Compiles the given source set's Java source files using javac.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies the given source set's resources into the classes directory.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>Classes</literal>
+                </td>
+                <td>
+                    The <literal>compile<replaceable>SourceSet</replaceable>Java</literal> task and
+                    the <literal>process<replaceable>SourceSet</replaceable>Resources</literal> task.
+                    Some plugins add additional compilation tasks for the source set.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles the given source set's classes directory.</td>
+            </tr>
+            -->
+        </table>
+    </section>
+
+    <section>
+        <title>Finding out more about your project</title>
+        <para>
+            Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your
+            project produces. To use this report, just run <userinput>gradle components</userinput>. Below is an example of running this report for
+            one of the sample projects:
+        </para>
+        <sample id="playComponentReport" dir="play/basic" title="The components report">
+            <output args='components'/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Configuring a Play application</title>
+        <section>
+            <title>Adding dependencies</title>
+            <task><title>TODO: </title></task>
+        </section>
+        <section>
+            <title>Adding Routes</title>
+            <task><title>TODO: </title></task>
+        </section>
+        <section>
+            <title>Adding Twirl templates</title>
+            <task><title>TODO: </title></task>
+        </section>
+        <section>
+            <title>Adding Java/Scala source sets</title>
+            <task><title>TODO: </title></task>
+        </section>
+    </section>
+
+    <section>
+        <title>Multi-project Play applications</title>
+        <task><title>TODO: </title></task>
+    </section>
+
+    <section>
+        <title>Extending the Play Software Model</title>
+        <task><title>TODO: </title></task>
+    </section>
+
+    <section>
+        <title>Resources</title>
+        <para>
+            For additional information about developing Play applications:
+        </para>
+
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Take a look at the Play types in the Gradle DSL Guide
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <ulink url="https://www.playframework.com/documentation">Play Framework Documentation</ulink>.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+</chapter>

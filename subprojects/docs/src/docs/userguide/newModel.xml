@@ -17,7 +17,8 @@
     <title>Rule based model configuration</title>
     <para>
         This chapter describes and documents what is essentially the foundation for the Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream and is in use for <link linkend="nativeBinaries">Gradle's support for building native binaries</link>.
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for <link linkend="nativeBinaries">building native applications</link> and
+        <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
     </para>
     <para>
         All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> (i.e. not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).

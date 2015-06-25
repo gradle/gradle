@@ -60,7 +60,7 @@ public class PlayDistributionPlugin extends RuleSource {
         tasks.create("dist", new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.setDescription("Assembles all play distributions.");
+                task.setDescription("Assembles all Play distributions.");
                 task.setGroup(DISTRIBUTION_GROUP);
             }
         });
@@ -68,7 +68,7 @@ public class PlayDistributionPlugin extends RuleSource {
         tasks.create("stage", new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.setDescription("Stages all play distributions.");
+                task.setDescription("Stages all Play distributions.");
                 task.setGroup(DISTRIBUTION_GROUP);
             }
         });
@@ -117,7 +117,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
-                    createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
+                    createStartScripts.setDescription("Creates OS specific scripts to run the Play application.");
                     createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(binary.getName());
@@ -172,7 +172,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
-                    zip.setDescription("Bundles the play binary as a distribution.");
+                    zip.setDescription("Bundles the Play binary as a distribution.");
                     zip.setGroup(DISTRIBUTION_GROUP);
                     zip.setArchiveName(String.format("%s.zip", baseName));
                     zip.setDestinationDir(new File(buildDir, "distributions"));
