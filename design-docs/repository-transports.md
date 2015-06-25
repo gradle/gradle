@@ -25,14 +25,6 @@ This would involve adding support for dependency resolution, as well as for publ
     - Should include specific transport tests, together with some publish/resolve smoke tests
 - Remove coverage of different transports from dependency management integration suite
 
-## All repository transports support using `sha1` resources to avoid downloads
-
-Currently only the HTTP transports support using for a `.sha1` resource.
-
-### Test cases
-
-- Verify artifact reuse when checksum is or is not present.
-
 ## Support 'scp' scheme for ivy and maven repository URL
 
 ## Use public key authentication when accessing sftp/scp/https repository
