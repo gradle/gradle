@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
-public class Bzip2Archiver implements ReadableResource {
+public class Bzip2Archiver implements CompressedReadableResource {
 
     private final ReadableResource resource;
     private final URI uri;
