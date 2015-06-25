@@ -84,10 +84,24 @@ model {
 
     }
 
-    def "can define a cyclic dependency"() {
-        given:
+    def "can define a cyclic dependency but building fails"() {
+        given: "a build file that defines a cyclic dependency"
         applyJavaPlugin(buildFile)
         buildFile << '''
+class DependencyResolutionObserver extends RuleSource {
+    @Validate
+    void checkThatCyclicDependencyIsDefined(CollectionBuilder<Task> tasks) {
+        def mainJar =  tasks.get('compileMainJarMainJava')
+        def main2Jar = tasks.get('compileMain2JarMain2Java')
+        assert mainJar.dependsOn(main2Jar)
+        assert main2Jar.dependsOn(mainJar)
+        assert mainJar.dependsOn(mainJar)
+        assert main2Jar.dependsOn(main2Jar)
+    }
+}
+
+apply plugin: DependencyResolutionObserver
+
 model {
     components {
         main(JvmLibrarySpec) {
@@ -114,8 +128,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
         file('src/main2/java/TestApp2.java') << 'public class TestApp2 {}'
 
-        expect:
+        when: 'Try to compile main Jar'
         fails ':mainJar'
+
+        then: 'A cyclic dependency is found'
         failure.assertHasDescription('Circular dependency between the following tasks')
 
     }
