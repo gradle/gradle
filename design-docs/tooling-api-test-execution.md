@@ -1,6 +1,6 @@
 ## Feature: Test Execution
 
-## Story: Add ability to launch JVM tests by class
+## Story: Rerun a previously run test
 
 ### API proposal
 
@@ -14,7 +14,7 @@ The API:
     }
 
     interface TestLauncher extends LongRunningOperation {
-	    TestLauncher withJvmTestClasses(String...);
+        TestLauncher withTests(TestOperationDescriptor... testDescriptors);
 
 	    void run(); // Run synchronously
         void run(ResultHandler<? super Void> handler); // Start asynchronously
@@ -29,14 +29,35 @@ From a client this API can be used like:
 		try {
 		   //run tests
 		   connection.newTestLauncher()
-			 .withJvmTestClasses('example.MyTest')
-			 .withJvmTestMethods('example.MyTest2', "testMethod1", "testMethod2")
+			 .withTests(descriptor1, descriptor2)
 			 .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
 		     .setStandardOutput(System.out)
 		     .run();
 		} finally {
 		   connection.close();
 	}
+
+### Implementation
+
+- Given a `TestOperationDescriptor`, it is possible to calculate exactly which test task to run.
+
+### Test cases
+
+- only the target test task is executed.
+	- class is included in multiple test tasks.
+- build fails when the target test no longer exists.
+- does something reasonable when the target test task no longer exists, but the test still exists.
+- does something reasonable when the target test is no longer part of the target test task.
+
+## Story: Add ability to launch JVM tests by class
+
+### API proposal
+
+Add methods to `TestLauncher` to request specific JVM test classes be executed.
+
+    interface TestLauncher extends LongRunningOperation {
+	    TestLauncher withJvmTestClasses(String...);
+    }
 
 ### Implementation
 
@@ -113,26 +134,6 @@ Instead, detect which `Test` task instances to run based on their inputs.
 * Calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
 * Execute matching Test tasks only
 
-## Story: Rerun a failed test
-
-Add a method to `TestLauncher` to allow a `TestOperationDescriptor` to be provided to identify a particular test to run:
-
-    interface TestLauncher {
-        TestLauncher withTests(TestOperationDescriptor... testDescriptors);
-    }
-
-### Implementation
-
-- Given a `TestOperationDescriptor`, it is possible to calculate exactly which test task to run.
-
-### Test cases
-
-- only the target test task is executed.
-	- class is included in multiple test tasks.
-- build fails when the target test no longer exists.
-- does something reasonable when the target test task no longer exists, but the test still exists.
-- does something reasonable when the target test is no longer part of the target test task.
-
 ## Story: Rerun a failed JUnit test that uses a custom test runner
 
 For example, a Spock test with `@Unroll`, or a Gradle cross-version test. In general, there is not a one-to-one mapping between test
@@ -142,7 +143,7 @@ method and test execution. Fix the test descriptors to honour this contract.
 
 ### Implementation
 
-* add flag to TestLauncher indicating a test tasks should always be executed (not matter of up-to-date or not)
+* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
 * allow configuration from client side via `TestLauncher#alwaysRunTests()`
 
 ### Test Coverage
