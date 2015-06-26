@@ -47,13 +47,13 @@ class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
                 destinationDir,
                 ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
-                isGenerateReverseRoute(),
-                isNamespaceReverseRouter()
+                generateReverseRoutes,
+                namespaceReverseRouter
         };
     }
 }

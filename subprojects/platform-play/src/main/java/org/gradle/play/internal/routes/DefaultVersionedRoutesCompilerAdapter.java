@@ -28,14 +28,6 @@ abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesC
         this.scalaVersion = scalaVersion;
     }
 
-    protected boolean isGenerateReverseRoute() {
-        return true;
-    }
-
-    protected boolean isNamespaceReverseRouter() {
-        return false;
-    }
-
     protected boolean isGenerateRefReverseRouter() {
         return false;
     }

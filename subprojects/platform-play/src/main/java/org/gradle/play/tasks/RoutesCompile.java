@@ -51,6 +51,7 @@ public class RoutesCompile extends SourceTask {
 
     private boolean javaProject;
     private boolean namespaceReverseRouter;
+    private boolean generateReverseRoutes = true;
     private BaseForkOptions forkOptions;
     private ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool;
 
@@ -92,7 +93,7 @@ public class RoutesCompile extends SourceTask {
 
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject());
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes());
         new CleaningPlayToolCompiler<RoutesCompileSpec>(compilerTool.get(), getOutputs()).execute(spec);
     }
 
@@ -125,5 +126,35 @@ public class RoutesCompile extends SourceTask {
             forkOptions = new BaseForkOptions();
         }
         return forkOptions;
+    }
+
+    /**
+     * Whether the reverse router should be namespaced.
+     */
+    public boolean isNamespaceReverseRouter() {
+        return namespaceReverseRouter;
+    }
+
+    /**
+     * Sets whether or not the reverse router should be namespaced.
+     * @param namespaceReverseRouter
+     */
+    public void setNamespaceReverseRouter(boolean namespaceReverseRouter) {
+        this.namespaceReverseRouter = namespaceReverseRouter;
+    }
+
+    /**
+     * Whether a reverse router should be generated.
+     */
+    public boolean isGenerateReverseRoutes() {
+        return generateReverseRoutes;
+    }
+
+    /**
+     * Sets whether or not a reverse router should be generated.
+     * @param generateReverseRoutes
+     */
+    public void setGenerateReverseRoutes(boolean generateReverseRoutes) {
+        this.generateReverseRoutes = generateReverseRoutes;
     }
 }

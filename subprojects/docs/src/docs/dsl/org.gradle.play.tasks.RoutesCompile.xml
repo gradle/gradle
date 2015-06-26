@@ -29,6 +29,12 @@
             <tr>
                 <td>forkOptions</td>
             </tr>
+            <tr>
+                <td>generateReverseRoutes</td>
+            </tr>
+            <tr>
+                <td>namespaceReverseRouter</td>
+            </tr>
         </table>
     </section>
     <section>

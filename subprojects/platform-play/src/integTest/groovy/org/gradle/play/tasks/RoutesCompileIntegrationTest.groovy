@@ -27,6 +27,7 @@ import org.gradle.util.TextUtil
 class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryRoutes"
     def destinationDir = file(destinationDirPath)
+    def namespaceReverseRoutesJavaFileNameTemplate = { "${it ? it + '/' :''}controllers/${it ? it + '/' :''}routes.java" }
     def routesJavaFileNameTemplate = { "controllers/${it ? it + '/' :''}routes.java" }
     def routesReverseFileNameTemplate = { "${it ? it + '/' :''}routes_reverseRouting.scala" }
     def routesScalaFileNameTemplate = { "${it ? it + '/' :''}routes_routing.scala" }
@@ -68,10 +69,6 @@ repositories{
     }
 }
 """
-    }
-
-    def createRouteFileList(String packageName = '') {
-        [routesJavaFileNameTemplate(packageName), routesReverseFileNameTemplate(packageName), routesScalaFileNameTemplate(packageName)] + otherRoutesFilesTemplates.collect { it(packageName) }
     }
 
     def "can run RoutesCompile"() {
@@ -135,6 +132,7 @@ repositories{
         succeeds("compilePlayBinaryRoutes")
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
+        createRouteFileList('foo').each { destinationDir.file(it).assertDoesNotExist() }
     }
 
     def "compiles multiple Routes source sets as part of play application build" () {
@@ -199,6 +197,26 @@ Binaries
 """))
     }
 
+    def "can run RoutesCompile with namespaceReverseRouter set"() {
+        given:
+        withRoutesTemplate("org.gradle.test")
+        buildFile << """
+            model {
+                components {
+                    play {
+                        tasks.withType(RoutesCompile) {
+                            namespaceReverseRouter = true
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds("compilePlayBinaryRoutes")
+        and:
+        destinationDir.assertHasDescendants(createNamespaceReverseRouteFileList("org/gradle/test") as String[])
+    }
+
     def destinationDir(String sourceSetName) {
         return file("build/playBinary/src/compilePlayBinary${StringUtils.capitalize(sourceSetName)}")
     }
@@ -239,6 +257,14 @@ object Application extends Controller {
         def routesFile = packageName.isEmpty() ? file("conf", "routes") : file("conf", packageName + ".routes")
         def packageId = packageName.isEmpty() ? "" : ".$packageName"
         withRoutesSource(routesFile, packageId)
+    }
+
+    def createRouteFileList(String packageName = '') {
+        [routesJavaFileNameTemplate(packageName), routesReverseFileNameTemplate(packageName), routesScalaFileNameTemplate(packageName)] + otherRoutesFilesTemplates.collect { it(packageName) }
+    }
+
+    def createNamespaceReverseRouteFileList(String packageName = '') {
+        [namespaceReverseRoutesJavaFileNameTemplate(packageName), routesReverseFileNameTemplate(packageName), routesScalaFileNameTemplate(packageName)] + otherRoutesFilesTemplates.collect { it(packageName) }
     }
 
     def withExtraSourceSets() {

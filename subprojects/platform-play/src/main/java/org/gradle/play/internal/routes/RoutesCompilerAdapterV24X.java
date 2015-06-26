@@ -48,13 +48,13 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Object routesCompilerTask = DirectInstantiator.instantiate(cl.loadClass("play.routes.compiler.RoutesCompiler$RoutesCompilerTask"),
             file,
             ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
             isGenerateForwardsRouter(),
-            isGenerateReverseRoute(),
-            isNamespaceReverseRouter()
+            generateReverseRoutes,
+            namespaceReverseRouter
         );
 
         return new Object[]{

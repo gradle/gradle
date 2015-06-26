@@ -28,7 +28,7 @@ public interface VersionedRoutesCompilerAdapter extends Serializable {
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
     List<String> getClassLoaderPackages();
 }
