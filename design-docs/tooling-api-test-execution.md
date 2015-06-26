@@ -50,9 +50,9 @@ From a client this API can be used like:
 * Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.
 	* Ensure that listener failures are rethrown on the client side, as is done for the other kinds of operations. Refactor this on the client side so that the logic
 	  is in one place, rather than ad hoc per operation.
-* Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns.
-* Run appropriate `Test` tasks based on the descriptor.
-* Test will not execute when test task is up-to-date
+* Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).
+* Run appropriate `Test` tasks based on the descriptors.
+* Tests will not execute when test task is up-to-date.
 
 ### Test cases
 
@@ -67,6 +67,12 @@ From a client this API can be used like:
 * expected test progress events are received in each case
 * reasonable error message when target Gradle version does not support test execution
 * does something reasonable when continuous build is used.
+* `StartParameter.taskNames` returns something reasonable.
+
+### Open questions
+
+* Behaviour with continuous build.
+* Behaviour when task no longer exists or no longer contains the requested test, but the test still exists (eg it has moved)
 
 ## Story: Add ability to launch JVM tests by class
 
