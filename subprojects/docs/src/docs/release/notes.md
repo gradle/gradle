@@ -326,6 +326,12 @@ To avoid the situation just described, the IDE classpath generation now more clo
     - Different versions of a library are resolved by Gradle conflict resolution.
 - All dependencies in projects are marked as `exported = false`.
 
+### Dependency Substitution
+
+Gradle 2.4 included some of the new dependency substitution interfaces and classes, but they were unannounced. Build scripts written to use these interfaces in 2.4 will likely not work in 2.5.
+Please take a look at the dependency substitution sample and [User Guide chapter](userguide/dependency_management.html#dependency_substitution_rules) to understand the changes that were made
+while getting dependency substitution ready for the Gradle 2.5 release.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
