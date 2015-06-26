@@ -313,7 +313,7 @@ model {
                 sources {
                     variant(CSourceSet) {
                         source.srcDir "src/variant/c"
-                        lib sources.c
+                        lib hello.sources.c
                     }
                 }
             }
@@ -345,8 +345,8 @@ model {
                 sources {
                     variant(CSourceSet) {
                         source.srcDir "src/variantTest/c"
-                        lib sources.c
-                        lib sources.cunitLauncher
+                        lib helloTest.sources.c
+                        lib helloTest.sources.cunitLauncher
                     }
                 }
             }

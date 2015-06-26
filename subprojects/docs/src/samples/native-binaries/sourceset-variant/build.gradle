@@ -8,17 +8,17 @@ model {
                     if (targetPlatform.operatingSystem.windows) {
                         platformWindows(CSourceSet) {
                             source.srcDir "src/main/windows"
-                            lib sources.c
+                            lib main.sources.c
                         }
                     } else if (targetPlatform.operatingSystem.linux) {
                         platformLinux(CSourceSet) {
                             source.srcDir "src/main/linux"
-                            lib sources.c
+                            lib main.sources.c
                         }
                     } else if (targetPlatform.operatingSystem.macOsX) {
                         platformMacOSX(CSourceSet) {
                             source.srcDir "src/main/mac"
-                            lib sources.c
+                            lib main.sources.c
                         }
                     }
                 }

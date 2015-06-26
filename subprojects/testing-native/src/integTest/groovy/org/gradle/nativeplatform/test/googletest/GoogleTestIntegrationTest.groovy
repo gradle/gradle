@@ -280,7 +280,7 @@ model {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variant/cpp"
-                        lib sources.cpp
+                        lib hello.sources.cpp
                     }
                 }
             }
@@ -309,7 +309,7 @@ model {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variantTest/cpp"
-                        lib sources.cpp
+                        lib helloTest.sources.cpp
                     }
                 }
             }
