@@ -93,10 +93,6 @@ class DependencyResolutionObserver extends RuleSource {
     void checkThatCyclicDependencyIsDefined(CollectionBuilder<Task> tasks) {
         def mainJar =  tasks.get('compileMainJarMainJava')
         def main2Jar = tasks.get('compileMain2JarMain2Java')
-        assert mainJar.dependsOn(main2Jar)
-        assert main2Jar.dependsOn(mainJar)
-        assert mainJar.dependsOn(mainJar)
-        assert main2Jar.dependsOn(main2Jar)
     }
 }
 
