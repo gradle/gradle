@@ -59,7 +59,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         }
         locator = new DefaultProjectLocator(finder)
         rootProject = mockProject(':')
-        resolver = new LocalLibraryDependencyResolver(locator, Mock(BinarySpecToArtifactConverterRegistry))
+        resolver = new LocalLibraryDependencyResolver(locator)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

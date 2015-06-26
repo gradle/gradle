@@ -23,7 +23,6 @@ import org.gradle.api.internal.resolve.DefaultProjectLocator;
 import org.gradle.api.internal.resolve.ProjectLocator;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -81,9 +80,6 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             };
         }
 
-        BinarySpecToArtifactConverterRegistry createBinaryToArtifactRegistry(ServiceRegistry serviceRegistry) {
-            return new BinarySpecToArtifactConverterRegistry(serviceRegistry);
-        }
     }
 
     private static class GlobalScopeServices {

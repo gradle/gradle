@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolve
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectLocator;
-import org.gradle.internal.component.model.BinarySpecToArtifactConverterRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
@@ -40,16 +39,12 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        LocalLibraryDependencyResolver createLibraryResolver(ProjectLocator projectLocator, BinarySpecToArtifactConverterRegistry registry) {
-            return new LocalLibraryDependencyResolver(projectLocator, registry);
+        LocalLibraryDependencyResolver createLibraryResolver(ProjectLocator projectLocator) {
+            return new LocalLibraryDependencyResolver(projectLocator);
         }
 
         ResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {
             return DelegatingResolverProvider.of(resolver);
-        }
-
-        public JvmBinarySpecToArtifactConverter createConverter() {
-            return new JvmBinarySpecToArtifactConverter();
         }
 
     }

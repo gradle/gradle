@@ -20,9 +20,11 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -37,7 +39,9 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
@@ -54,11 +58,9 @@ import java.util.*;
 // point, and for now it is hardcoded to JVM libraries
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectLocator projectLocator;
-    private final BinarySpecToArtifactConverterRegistry binarySpecToArtifactConverterRegistry;
 
-    public LocalLibraryDependencyResolver(ProjectLocator projectLocator, BinarySpecToArtifactConverterRegistry registry) {
+    public LocalLibraryDependencyResolver(ProjectLocator projectLocator) {
         this.projectLocator = projectLocator;
-        this.binarySpecToArtifactConverterRegistry = registry;
     }
 
     @Override
@@ -81,9 +83,10 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
                         ComponentResolveMetaData resolveMetaData = metaData.toResolveMetaData();
                         result.resolved(resolveMetaData);
-                        BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(spec);
-                        if (factory != null) {
-                            metaData.addArtifact(factory.convertArtifact((LibraryComponentIdentifier) resolveMetaData.getComponentId(), spec));
+                        if (spec instanceof JvmBinarySpec) {
+                            Jar jar = ((JvmBinarySpec)spec).getTasks().getJar();
+                            PublishArtifact publishArtifact = new ArchivePublishArtifact(jar);
+                            metaData.addArtifacts(LibraryComponentIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
                         }
                     }
                 }
@@ -180,12 +183,11 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             ConfigurationMetaData configuration = component.getConfiguration(usage.getConfigurationName());
             if (configuration!=null) {
                 Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
-                if (!artifacts.isEmpty()) {
-                    result.resolved(artifacts);
-                    return;
-                }
+                result.resolved(artifacts);
             }
-            doConvertArtifact(result, (LibraryComponentIdentifier) componentId);
+            if (!result.hasResult()) {
+                result.failed(new ArtifactResolveException(String.format("Unable to resolve artifact for %s", componentId)));
+            }
         }
     }
 
@@ -204,32 +206,6 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             } else {
                 result.failed(new ArtifactResolveException("Unsupported artifact metadata type: " + artifact));
             }
-        }
-    }
-
-    private void doConvertArtifact(final BuildableArtifactSetResolveResult result, LibraryComponentIdentifier componentId) {
-        String projectPath = componentId.getProjectPath();
-        final String libraryName = componentId.getLibraryName();
-        ProjectInternal project = projectLocator.locateProject(projectPath);
-        LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
-        LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
-        if (selectedLibrary != null) {
-            List<ComponentArtifactMetaData> artifacts = new LinkedList<ComponentArtifactMetaData>();
-            Collection<BinarySpec> binaries = selectedLibrary.getBinaries().values();
-            if (binaries.size() > 1) {
-                result.failed(new ArtifactResolveException(String.format("Multiple binaries available for library '%s' : %s", libraryName, binaries)));
-            } else {
-                for (BinarySpec binary : binaries) {
-                    BinarySpecToArtifactConverter<BinarySpec> factory = binarySpecToArtifactConverterRegistry.getConverter(binary);
-                    if (factory != null) {
-                        artifacts.add(factory.convertArtifact(componentId, binary));
-                    }
-                }
-                result.resolved(artifacts);
-            }
-        }
-        if (!result.hasResult()) {
-            result.failed(new ArtifactResolveException("Unable to resolve artifact for " + componentId));
         }
     }
 
