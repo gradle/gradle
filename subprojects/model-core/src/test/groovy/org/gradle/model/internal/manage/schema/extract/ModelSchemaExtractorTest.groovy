@@ -23,6 +23,7 @@ import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
+import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -35,9 +36,10 @@ import java.util.regex.Pattern
 class ModelSchemaExtractorTest extends Specification {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    def store = new ModelSchemaExtractor()
     @Shared
-    def cache = new ModelSchemaCache()
+    def extractor = new ModelSchemaExtractor()
+    @Shared
+    def store = new DefaultModelSchemaStore(extractor)
 
     static interface NotAnnotatedInterface {}
 
@@ -813,7 +815,7 @@ $type
     }
 
     private ModelSchema<?> extract(ModelType<?> modelType) {
-        store.extract(modelType, cache)
+        store.getSchema(modelType)
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
@@ -891,12 +893,13 @@ interface Managed${typeName} {
     }
 
     static class CustomThing {}
+
     static class UnmanagedThing {}
 
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaCache schemaCache ->
+            extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store, ModelSchemaCache schemaCache ->
                 if (extractionContext.type.rawClass == CustomThing) {
                     return new ModelSchemaExtractionResult(ModelSchema.value(extractionContext.type))
                 } else {
@@ -905,9 +908,10 @@ interface Managed${typeName} {
             }
         }
         def extractor = new ModelSchemaExtractor([strategy])
+        def store = new DefaultModelSchemaStore(extractor)
 
         then:
-        extractor.extract(ModelType.of(CustomThing), cache).kind == ModelSchema.Kind.VALUE
-        extractor.extract(ModelType.of(UnmanagedThing), cache).kind == ModelSchema.Kind.UNMANAGED
+        store.getSchema(CustomThing).kind == ModelSchema.Kind.VALUE
+        store.getSchema(UnmanagedThing).kind == ModelSchema.Kind.UNMANAGED
     }
 }

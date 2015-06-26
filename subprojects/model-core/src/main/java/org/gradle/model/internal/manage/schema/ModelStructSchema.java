@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
@@ -24,9 +26,11 @@ import java.lang.ref.WeakReference;
 public class ModelStructSchema<T> extends ModelSchema<T> {
     private final WeakReference<Class<? extends T>> managedImpl;
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
+    private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl) {
+    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
         super(type, Kind.STRUCT);
+        this.nodeInitializer = nodeInitializer.apply(this);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
             builder.put(property.getName(), property);
@@ -41,5 +45,10 @@ public class ModelStructSchema<T> extends ModelSchema<T> {
 
     public Class<? extends T> getManagedImpl() {
         return managedImpl.get();
+    }
+
+    @Override
+    public NodeInitializer getNodeInitializer() {
+        return nodeInitializer;
     }
 }

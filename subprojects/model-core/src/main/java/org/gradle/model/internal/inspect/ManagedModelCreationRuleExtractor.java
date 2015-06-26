@@ -31,11 +31,9 @@ import java.util.List;
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private final ModelSchemaStore schemaStore;
-    private final ModelCreatorFactory modelCreatorFactory;
 
-    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory) {
+    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.modelCreatorFactory = modelCreatorFactory;
     }
 
     public String getDescription() {
@@ -81,7 +79,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        return modelCreatorFactory.creator(descriptor, modelPath, modelSchema, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker()));
+        return ManagedModelCreators.creator(descriptor, modelPath, modelSchema, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker()));
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {

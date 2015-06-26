@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
@@ -57,12 +59,12 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.VALUE);
     }
 
-    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl) {
-        return new ModelStructSchema<T>(type, properties, managedImpl);
+    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+        return new ModelStructSchema<T>(type, properties, managedImpl, nodeInitializer);
     }
 
-    public static <T> ModelCollectionSchema<T> collection(ModelType<T> type, ModelType<?> elementType) {
-        return new ModelCollectionSchema<T>(type, elementType);
+    public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
+        return new ModelCollectionSchema<T, E>(type, elementType, nodeInitializer);
     }
 
     public static <T> ModelMapSchema<T> specializedMap(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
@@ -76,6 +78,11 @@ public class ModelSchema<T> {
     protected ModelSchema(ModelType<T> type, Kind kind) {
         this.type = type;
         this.kind = kind;
+    }
+
+    // intended to be overridden
+    public NodeInitializer getNodeInitializer() {
+        throw new UnsupportedOperationException("Don't know how to create model element from schema for " + type);
     }
 
     public ModelType<T> getType() {

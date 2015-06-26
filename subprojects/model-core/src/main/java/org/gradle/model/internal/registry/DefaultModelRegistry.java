@@ -553,7 +553,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private List<BindingPredicate> mapInputs(List<ModelReference<?>> inputs, ModelPath scope) {
+    private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs, ModelPath scope) {
         if (inputs.isEmpty()) {
             return Collections.emptyList();
         }

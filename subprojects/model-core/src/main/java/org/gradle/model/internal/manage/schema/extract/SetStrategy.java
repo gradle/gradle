@@ -16,9 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -32,7 +36,7 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
         this.modelType = modelType;
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache) {
+    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, final ModelSchemaCache cache) {
         ModelType<T> type = extractionContext.getType();
         if (modelType.isAssignableFrom(type)) {
             if (!type.getRawClass().equals(modelType.getConcreteClass())) {
@@ -49,27 +53,33 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
 
             ModelType<?> elementType = typeVariables.get(0);
 
-            if (modelType.isAssignableFrom(elementType)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
-            }
-
-            ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType(), elementType);
-            ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-                public void execute(ModelSchemaExtractionContext<?> context) {
-                    ModelSchema<?> typeParamSchema = cache.get(context.getType());
-
-                    if (!typeParamSchema.getKind().isManaged()) {
-                        throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                            "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
-                            context.getType()
-                        ));
-                    }
-                }
-            });
-            return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
+            return gettModelSchemaExtractionResult(extractionContext, cache, elementType, store);
         } else {
             return null;
         }
     }
+
+    private <T, E> ModelSchemaExtractionResult<T> gettModelSchemaExtractionResult(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, ModelType<E> elementType, ModelSchemaStore store) {
+        if (modelType.isAssignableFrom(elementType)) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
+        }
+
+        ModelCollectionSchema<T, E> schema = ModelSchema.collection(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
+        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
+            public void execute(ModelSchemaExtractionContext<?> context) {
+                ModelSchema<?> typeParamSchema = cache.get(context.getType());
+
+                if (!typeParamSchema.getKind().isManaged()) {
+                    throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
+                        "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
+                        context.getType()
+                    ));
+                }
+            }
+        });
+        return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
+    }
+
+    protected abstract <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(ModelSchemaStore store);
 
 }

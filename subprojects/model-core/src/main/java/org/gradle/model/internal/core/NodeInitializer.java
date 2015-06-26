@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.List;
 
-public interface ModelCreator extends ModelRule {
-    ModelRuleDescriptor getDescriptor();
-
-    ModelPath getPath();
-
-    ModelPromise getPromise();
-
-    ModelAdapter getAdapter();
-
-    void create(MutableModelNode node, List<ModelView<?>> inputs);
-
-    boolean isEphemeral();
+/**
+ * A standalone strategy for initializing a node.
+ * <p>
+ * Differs from {@link ModelCreator} in that it's more of a template for a creator.
+ * It does not say anything about the actual entity (e.g. its path) or the identity of the creation rule.
+ *
+ * @see ModelCreators
+ */
+public interface NodeInitializer {
 
     List<? extends ModelReference<?>> getInputs();
+
+    void execute(MutableModelNode modelNode, List<ModelView<?>> inputs);
+
+    List<? extends ModelProjection> getProjections();
+
 }

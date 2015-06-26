@@ -19,14 +19,14 @@ package org.gradle.model.internal.manage.projection
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
 import org.gradle.model.Managed
-import org.gradle.model.ModelViewClosedException
 import org.gradle.model.ModelSet
+import org.gradle.model.ModelViewClosedException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
+import org.gradle.model.internal.inspect.ManagedModelCreators
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -47,13 +47,12 @@ class ModelSetModelProjectionTest extends Specification {
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ModelSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
-    def factory = new DefaultModelCreatorFactory(schemaStore)
     def registry = new ModelRegistryHelper()
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 
     def setup() {
         registry.create(
-                factory.creator(
+                ManagedModelCreators.creator(
                         new SimpleModelRuleDescriptor("define collection"),
                         collectionPath,
                         schemaStore.getSchema(collectionType),

@@ -32,6 +32,7 @@ import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ManagedModelCreators;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -63,17 +64,15 @@ public class TransformedModelDslBacking {
     private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
-    private final ModelCreatorFactory modelCreatorFactory;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory) {
-        this(modelRegistry, schemaStore, modelCreatorFactory, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor,
+    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor,
                                Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
-        this.modelCreatorFactory = modelCreatorFactory;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -93,7 +92,7 @@ public class TransformedModelDslBacking {
         if (!schema.getKind().isManaged()) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
-        ModelCreator creator = modelCreatorFactory.creator(descriptor, modelPath, schema);
+        ModelCreator creator = ManagedModelCreators.creator(descriptor, modelPath, schema);
         modelRegistry.create(creator);
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }

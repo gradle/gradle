@@ -17,10 +17,11 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 
 public class UnmanagedStrategy implements ModelSchemaExtractionStrategy {
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         return new ModelSchemaExtractionResult<T>(ModelSchema.unmanaged(extractionContext.getType()));
     }
 }

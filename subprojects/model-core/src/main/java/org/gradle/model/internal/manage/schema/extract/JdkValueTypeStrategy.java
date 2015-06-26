@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -46,7 +47,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
         ModelType.of(BigDecimal.class)
     );
 
-    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         ModelType<R> type = extractionContext.getType();
         if (TYPES.contains(type)) {
             return new ModelSchemaExtractionResult<R>(ModelSchema.value(type));

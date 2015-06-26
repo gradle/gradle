@@ -28,6 +28,7 @@ import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -37,7 +38,7 @@ import java.util.List;
 import java.util.Queue;
 
 @ThreadSafe
-class ModelSchemaExtractor {
+public class ModelSchemaExtractor {
 
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
@@ -62,7 +63,7 @@ class ModelSchemaExtractor {
             .build();
     }
 
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
@@ -70,7 +71,7 @@ class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, cache);
+            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, store, cache);
             Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
@@ -92,7 +93,7 @@ class ModelSchemaExtractor {
         }));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
@@ -100,7 +101,7 @@ class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, cache);
+            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store, cache);
             if (result != null) {
                 cache.set(type, result.getSchema());
                 return result;

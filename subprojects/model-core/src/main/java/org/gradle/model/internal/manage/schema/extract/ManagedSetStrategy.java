@@ -16,9 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.collection.ManagedSet;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
+import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 
 @ThreadSafe
 public class ManagedSetStrategy extends SetStrategy {
@@ -27,5 +35,58 @@ public class ManagedSetStrategy extends SetStrategy {
         super(new ModelType<ManagedSet<?>>() {
         });
     }
+
+    @Override
+    protected <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(final ModelSchemaStore store) {
+        return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
+            @Override
+            public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
+                return new ProjectionOnlyNodeInitializer(
+                    TypedModelProjection.of(
+                        ModelTypes.managedSet(schema.getElementType()),
+                        new ManagedSetModelViewFactory<E>(schema.getElementType(), store)
+                    )
+                );
+            }
+        };
+    }
+
+    private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {
+        private final ModelType<T> elementType;
+        private final ModelSchemaStore store;
+
+        public ManagedSetModelViewFactory(ModelType<T> elementType, ModelSchemaStore store) {
+            this.elementType = elementType;
+            this.store = store;
+        }
+
+        @Override
+        public ModelView<ManagedSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+            ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
+            DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(store));
+            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ManagedSetModelViewFactory<?> that = (ManagedSetModelViewFactory<?>) o;
+            return elementType.equals(that.elementType);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return elementType.hashCode();
+        }
+    }
+
 
 }

@@ -68,6 +68,17 @@ abstract public class ModelCreators {
         return new Builder(path, BiActions.doNothing());
     }
 
+    public static Builder of(ModelPath path, final NodeInitializer initializer) {
+        return of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> views) {
+                initializer.execute(modelNode, views);
+            }
+        })
+            .inputs(initializer.getInputs())
+            .withProjections(initializer.getProjections());
+    }
+
     public static Builder of(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
         return new Builder(path, initializer);
     }
@@ -96,7 +107,7 @@ abstract public class ModelCreators {
         private boolean hidden;
 
         private ModelRuleDescriptor modelRuleDescriptor;
-        private List<ModelReference<?>> inputs = Collections.emptyList();
+        private List<? extends ModelReference<?>> inputs = Collections.emptyList();
 
         private Builder(ModelPath path, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
             this.path = path;
@@ -128,7 +139,7 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder inputs(List<ModelReference<?>> inputs) {
+        public Builder inputs(List<? extends ModelReference<?>> inputs) {
             this.inputs = inputs;
             return this;
         }
@@ -170,6 +181,13 @@ abstract public class ModelCreators {
                 });
             }
             return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, effectiveInitializer);
+        }
+
+        public Builder withProjections(Iterable<? extends ModelProjection> projections) {
+            for (ModelProjection projection : projections) {
+                withProjection(projection);
+            }
+            return this;
         }
     }
 

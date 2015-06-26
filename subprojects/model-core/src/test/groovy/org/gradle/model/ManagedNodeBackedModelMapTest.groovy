@@ -24,7 +24,7 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
+import org.gradle.model.internal.inspect.ManagedModelCreators
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -43,10 +43,9 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
     def schemaStore = DefaultModelSchemaStore.instance
-    def modelCreatorFactory = new DefaultModelCreatorFactory(schemaStore)
 
     def setup() {
-        registry.create(modelCreatorFactory.creator(new SimpleModelRuleDescriptor("creator"), path, schemaStore.getSchema(modelMapType)))
+        registry.create(ManagedModelCreators.creator(new SimpleModelRuleDescriptor("creator"), path, schemaStore.getSchema(modelMapType)))
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<?> action) {
@@ -845,6 +844,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
     abstract static class Invalid<T> implements SpecialNamedThingInterface {
 
     }
+
     def "cannot create invalid subtype"() {
         when:
         mutate {

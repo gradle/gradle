@@ -29,7 +29,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final boolean ephemeral;
     private final boolean hidden;
     private final ModelProjection projection;
-    private final List<ModelReference<?>> inputs;
+    private final List<? extends ModelReference<?>> inputs;
     private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
 
     public ProjectionBackedModelCreator(
@@ -37,7 +37,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         ModelRuleDescriptor descriptor,
         boolean ephemeral,
         boolean hidden,
-        List<ModelReference<?>> inputs,
+        List<? extends ModelReference<?>> inputs,
         ModelProjection projection,
         BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
     ) {
@@ -72,7 +72,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return ephemeral;
     }
 
-    public List<ModelReference<?>> getInputs() {
+    public List<? extends ModelReference<?>> getInputs() {
         return inputs;
     }
 

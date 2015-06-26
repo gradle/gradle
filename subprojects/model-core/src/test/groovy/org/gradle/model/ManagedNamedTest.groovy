@@ -18,7 +18,7 @@ package org.gradle.model
 
 import org.gradle.api.Named
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
+import org.gradle.model.internal.inspect.ManagedModelCreators
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import spock.lang.Specification
@@ -27,18 +27,16 @@ class ManagedNamedTest extends Specification {
 
     def r = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.getInstance()
-    def creatorFactory = new DefaultModelCreatorFactory(schemaStore)
-
 
     def "named struct has name name property populated"() {
         when:
-        r.create(creatorFactory.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NamedThingInterface)))
+        r.create(ManagedModelCreators.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NamedThingInterface)))
 
         then:
         r.realize("foo", NamedThingInterface).name == "foo"
 
         when:
-        r.create(creatorFactory.creator(r.desc("bar"), r.path("bar"), schemaStore.getSchema(NamedThingInterface)))
+        r.create(ManagedModelCreators.creator(r.desc("bar"), r.path("bar"), schemaStore.getSchema(NamedThingInterface)))
 
         then:
         r.realize("bar", NamedThingInterface).name == "bar"
@@ -47,12 +45,13 @@ class ManagedNamedTest extends Specification {
     @Managed
     static abstract class NonNamedThing {
         abstract String getName()
+
         abstract void setName(String name)
     }
 
     def "named struct does not have name populated if does not implement named"() {
         when:
-        r.create(creatorFactory.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NonNamedThing)))
+        r.create(ManagedModelCreators.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NonNamedThing)))
 
         then:
         r.realize("foo", NonNamedThing).name == null
@@ -74,6 +73,7 @@ class ManagedNamedTest extends Specification {
     @Managed
     static abstract class NamedThingWithSetter implements Named {
         abstract String getName()
+
         abstract void setName(String name)
     }
 
