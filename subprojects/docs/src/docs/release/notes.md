@@ -12,11 +12,11 @@ Add-->
 
 ### Play Framework Support (i)
 
-Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.
+Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.  This is the initial iteration of the plugin.
 
-See the new user guide section about using the [`play` plugin](userguide/play_plugin.html).
+Future releases will increase the support for other features and versions of the Play Framework.  The Gradle distribution comes with several sample builds using Play for you to try out.
 
-TBD
+See the new User Guide section about using the [`play` plugin](userguide/play_plugin.html).
 
 ### Support for verifying Gradle wrapper distribution download against SHA-256 hash
 
@@ -27,7 +27,7 @@ To enable wrapper verification you need only specify a `distributionSha256Sum` p
 
     distributionSha256Sum=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 
-Please see section [62.2. Verification of downloaded Gradle distributions](userguide/gradle_wrapper.html#sec:verification) of the User Guide for more information.
+Please see section [Verification of downloaded Gradle distributions](userguide/gradle_wrapper.html#sec:verification) of the User Guide for more information.
 
 This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
 
