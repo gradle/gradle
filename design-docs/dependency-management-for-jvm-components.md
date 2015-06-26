@@ -256,6 +256,10 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
 - Change base plugins to add component source sets as inputs to its binaries, rather than owned by the binary.
 - Remove special case for inputs from `DefaultNativeTestSuiteBinarySpec` and reuse general mechanism.
 
+### Notes
+
+- Need to method breaking changes in the release notes
+
 ## Story: Plugin author defines a custom component built from Java source
 
 Define a custom component that produces a Jar binary from Java source and resources. When the Jar is built, the compile time
@@ -272,7 +276,7 @@ dependencies of the source are also built and the source compiled.
 
 ### Test cases
 
-- Given a custom component: 
+- Given a custom component that creates a `JarBinarySpec`, using the `jvm-component` plugin:
     - Source set `a` depends on Java library `lib1`
     - Source set `b` depends on Java library `lib2`
     - Resources set `res-a` and `res-b`
@@ -281,11 +285,15 @@ dependencies of the source are also built and the source compiled.
         - Source from `b` is compiled against the API of `lib2` only and the compiled classes end up in the Jar.
         - Resources from `res-a` and `res-b` end up in the Jar.
         - Jar contains only the above items.
+- Plugin with custom component and custom rule for creating task for `JarBinarySpec`, not using `jvm-component` plugin:
+    - Probably want to add a new sample under `customModel` that demonstrates a custom jvm-based component
 - Error cases above.
 
 ### Implementation
 
-- Need to replace `ComponentSpecInternal.getInputTypes()`, possibly by moving to `BinarySpecInternal` for now.
+- May need to replace `ComponentSpecInternal.getInputTypes()`, possibly by moving to `BinarySpecInternal` for now.
+    - This is only used to determine the default source sets for a component, so may not be required unless we want this to
+      automatically work for custom components based on configured binary types.
 - Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
 - Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
 
@@ -301,7 +309,7 @@ this library, the Jar binary is built and made available to the consuming compon
 - Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
 - Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
 
-## Story: Plugin author defines variants for custom component
+## Story: Plugin author defines variants for custom Jar binary
 
 Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
 
@@ -328,7 +336,7 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 - Meta-data must be extracted once and cached as part of the `ModelSchema` associated with the type.
 - Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
 
-## Story: Plugin author defines variants for custom library
+## Story: Java sources of custom component are compiled against matching binary variant
 
 Change dependency resolution to honor the variant dimensions for a custom component.
 
