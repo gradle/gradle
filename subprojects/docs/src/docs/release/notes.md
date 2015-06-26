@@ -1,7 +1,7 @@
 Gradle 2.5 delivers some big features and plenty of internal improvements and optimizations.
 
 The new “Continuous build” support brings capability to have Gradle automatically initiate a build in response to file system changes.
-This works with any build and has many applications. For example, it can be used to get continuously compile and test, giving more immediate feedback.
+This works with any build and has many applications. For example, it can be used to get continuous compile and test, giving more immediate feedback.
 As it works with _any_ Gradle task, it is equally applicable to documentation generation tasks and more.
 Upcoming versions of Gradle will build on this capability to facilitate reloading applications and the like under development in response to changes,
 providing a fast feedback local development loop.
@@ -13,7 +13,7 @@ Dependency substitution rules are a powerful new addition to Gradle's arsenal fo
 The Tooling API (i.e. the mechanism for [embedding Gradle](userguide/embedding.html)) now provides rich event information during the execution of the build to specified listeners.
 This mechanism can be used by IDEs and other tools wanting to provide visualisations or extra progress information during build execution.
 
-There are also notable improvements to Gradle's support for native code, include support for [GoogleTest](https://code.google.com/p/googletest/) and precompiled headers.
+There are also notable improvements to Gradle's support for native code, including support for [GoogleTest](https://code.google.com/p/googletest/) and precompiled headers.
 
 ## New and noteworthy
 
