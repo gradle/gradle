@@ -867,7 +867,7 @@
                 <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
-            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests">
+            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="configure-test-binary"/>
             </sample>
             <note>

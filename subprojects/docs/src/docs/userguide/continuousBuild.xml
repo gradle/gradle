@@ -142,11 +142,13 @@
         <section>
             <title>Changes to symbolic links</title>
             <para>
-                Creating or removing symbolic link to files will initiate a build.
-                Modifying the target of a symbolic link will not cause a rebuild.
-                Creating or removing symbolic links to directories will not cause rebuilds.
-                Creating new files in the target directory of a symbolic link will not cause a rebuild.
-                Deleting the target directory will not cause a rebuild.
+                <itemizedlist>
+                    <listitem><para>Creating or removing symbolic link to files will initiate a build.</para></listitem>
+                    <listitem><para>Modifying the target of a symbolic link will not cause a rebuild.</para></listitem>
+                    <listitem><para>Creating or removing symbolic links to directories will not cause rebuilds.</para></listitem>
+                    <listitem><para>Creating new files in the target directory of a symbolic link will not cause a rebuild.</para></listitem>
+                    <listitem><para>Deleting the target directory will not cause a rebuild.</para></listitem>
+                </itemizedlist>
             </para>
         </section>
         <section>

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -103,6 +104,44 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         "zipTree" | "zipTo"  | "source.zip"
         "tarTree" | "tarTo"  | "source.tar"
         "tarTree" | "tgzTo"  | "source.tgz"
+        "tarTree" | "tbzTo"  | "source.tbz2"
     }
 
+    @Ignore("inputs from resources are ignored")
+    def "using compressed files as inputs from resources - #source"() {
+        given:
+        def packDir = file("pack").createDir()
+        def outputDir = file("unpack")
+        def sourceFile = file(source)
+
+        buildFile << """
+            task unpack(type: Sync) {
+                from($type(resources.$resourceType("${sourceFile.toURI()}")))
+                into("unpack")
+            }
+        """
+
+        when:
+        packDir.file("A").text = "original"
+        packDir."$packType"(sourceFile)
+
+        then:
+        succeeds("unpack")
+        executedAndNotSkipped(":unpack")
+        outputDir.file("A").text == "original"
+
+        when:
+        packDir.file("A") << "-changed"
+        packDir."$packType"(sourceFile)
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":unpack")
+        outputDir.file("A").text == "original-changed"
+
+        where:
+        type      | packType | resourceType | source
+        "tarTree" | "tgzTo"  | "gzip"       | "source.tgz"
+        "tarTree" | "tbzTo"  | "bzip2"      | "source.tbz2"
+    }
 }
