@@ -39,6 +39,7 @@ import java.util.jar.JarFile;
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
     private final AtomicReference<Object> reloadObject = new AtomicReference<Object>();
     private volatile SoftReference<URLClassLoader> previousClassLoaderReference;
+    private volatile SoftReference<URLClassLoader> currentClassLoaderReference;
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -54,12 +55,12 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
+                    closePreviousClassLoader();
                     Object result = reloadObject.getAndSet(null);
                     if (result == null) {
                         return null;
                     } else if (result == Boolean.TRUE) {
                         URLClassLoader currentClassLoader = new URLClassLoader(new URL[]{applicationJar.toURI().toURL()}, assetsClassLoader);
-                        closePreviousClassLoader();
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {
@@ -79,7 +80,11 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     private void storeClassLoader(URLClassLoader currentClassLoader) {
-        previousClassLoaderReference = new SoftReference<URLClassLoader>(currentClassLoader);
+        URLClassLoader previousClassLoader = currentClassLoaderReference != null ? currentClassLoaderReference.get() : null;
+        if (previousClassLoader != null) {
+            previousClassLoaderReference = new SoftReference<URLClassLoader>(previousClassLoader);
+        }
+        currentClassLoaderReference = new SoftReference<URLClassLoader>(currentClassLoader);
     }
 
     private void closePreviousClassLoader() throws IOException {
