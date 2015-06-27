@@ -654,6 +654,7 @@
         <para>Used to configure software components developed with the Play Framework.</para>
         <table>
             <title>Play Framework model types</title>
+            <!-- TODO: public assets -->
             <tr>
                 <td>org.gradle.play.PlayApplicationBinarySpec</td>
             </tr>
@@ -663,9 +664,7 @@
             <tr>
                 <td>org.gradle.play.platform.PlayPlatform</td>
             </tr>
-            <tr>
-                <td>org.gradle.play.toolchain.PlayToolChain</td>
-            </tr>
+            <!-- TODO: add play distribution container back -->
         </table>
     </section>
 
@@ -678,6 +677,7 @@
                 <td>org.gradle.play.tasks.JavaScriptMinify</td>
             </tr>
             <tr>
+                <!-- TODO: Overriding coffeescript compiler -->
                 <td>org.gradle.play.tasks.PlayCoffeeScriptCompile</td>
             </tr>
             <tr>
@@ -689,6 +689,7 @@
             <tr>
                 <td>org.gradle.play.tasks.TwirlCompile</td>
             </tr>
+            <!-- add PlatformScalaCompile -->
         </table>
     </section>
 </book>

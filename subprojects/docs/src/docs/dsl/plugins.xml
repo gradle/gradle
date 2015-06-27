@@ -105,21 +105,7 @@
     </plugin>
 
     <plugin id="play" description="Play Plugin">
-        <!-- TODO: Enable these when we expose these types.
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="sources.java" extensionClass="org.gradle.language.java.JavaSourceSet"/>
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="sources.scala" extensionClass="org.gradle.language.scala.ScalaLanguageSourceSet"/>
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="sources.resources" extensionClass="org.gradle.language.jvm.JvmResourceSet"/>
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="binaries.play" extensionClass="org.gradle.play.PlayApplicationBinarySpec"/>
-        -->
     </plugin>
     <plugin id="play-coffeescript" description="Play Coffeescript Plugin">
-        <!--
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="sources.coffeeScript" extensionClass="org.gradle.language.coffeescript.CoffeeScriptSourceSet"/>
-        -->
-    </plugin>
-    <plugin id="play-javascript" description="Play Javascript Plugin">
-        <!--
-        <extends targetClass="org.gradle.play.PlayApplicationSpec" id="sources.javaScript" extensionClass="org.gradle.language.javascript.JavaScriptSourceSet"/>
-        -->
     </plugin>
 </plugins>

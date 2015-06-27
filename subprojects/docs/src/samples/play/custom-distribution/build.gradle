@@ -1,4 +1,3 @@
-// START SNIPPET use-plugin
 plugins {
     id 'play'
 }
@@ -15,9 +14,20 @@ repositories {
         layout "ivy"
     }
 }
-// END SNIPPET use-plugin
 
 dependencies {
     play 'commons-lang:commons-lang:2.6'
     playTest "com.google.guava:guava:17.0"
 }
+
+// START SNIPPET play-custom-distribution
+model {
+    distributions {
+        play {
+            contents {
+                from("README")
+            }
+        }
+    }
+}
+// END SNIPPET play-custom-distribution

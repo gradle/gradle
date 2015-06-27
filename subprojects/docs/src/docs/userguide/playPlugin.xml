@@ -28,7 +28,7 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the Play plugin, include the following in your build script:</para>
+        <para>To use the Play plugin, include the following in your build script to apply the <literal>play</literal> plugin and add the Typesafe repositories:</para>
         <sample id="usePlayPlugin" dir="play/basic" title="Using the Play plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
@@ -65,7 +65,7 @@
         <para>
             The Play plugin uses a <link linkend="new_model">software component model</link> to describe how to build a Play application.
             Components are abstract software products that are built into “binary” forms.  Most configuration will be done to the software component.
-            A Play application is represented by a PlayApplicationSpec component type.  The plugin automatically creates a single PlayApplicationSpec when it is applied.
+            A Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> when it is applied.
             A project can only have one PlayApplicationSpec component defined at this time.
         </para>
 
@@ -84,13 +84,13 @@
         </para>
         <para>
             A Play application requires a particular version of Play, Scala and Java to build and run.
-            The Play plugin models this requirement as a PlayPlatform.  A PlayPlatform consists of a Play version, Scala Platform and Java Platform.
+            The Play plugin models this requirement as a <apilink class="org.gradle.play.platform.PlayPlatform"/>.  A PlayPlatform consists of a Play version, Scala Platform and Java Platform.
             Gradle assumes a default version of Play, Scala and Java if none are specified.
             Only a single PlayPlatform can be specified for a given PlayApplicationSpec component.
         </para>
         <para>
             A PlayApplicationBinarySpec is created for a given PlayPlatform to represent the binary form.
-            The Play plugin will use configuration from the PlayApplicationSpec to select tools from the PlayToolChain to create the Play application binary.
+            The Play plugin will use configuration from the PlayApplicationSpec to select the appropriate version of the Scala, Twirl and Routes compilers to create the Play application binary.
             In the end, the transformation from source code to binary is still expressed as a list of tasks with dependencies.
             You can inspect the list of tasks with <literal>gradle tasks</literal>, but the software component model also provides additional reports for understanding the build.
         </para>
@@ -120,11 +120,11 @@
 
     <section>
         <title>Tasks</title>
-        <para>
-            The Play plugin adds a number of tasks to your project, as shown below.
-        </para>
-        <table>
-            <title>Play plugin - tasks</title>
+
+        <para>The Play plugin also adds a number of tasks which form a lifecycle for the project:</para>
+
+        <table id="play_lifecycle_tasks">
+            <title>Play plugin - lifecycle tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -137,10 +137,63 @@
                 <td>
                     <literal>playBinary</literal>
                 </td>
-                <td>All compile tasks for source sets added to the Play application.
+                <td>
+                    All compile tasks for source sets added to the Play application.
                 </td>
-                <td><apilink class="org.gradle.api.Task">Lifecycle Task</apilink></td>
+                <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Performs a build of just the Play application.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>dist</literal>
+                </td>
+                <td>
+                    <literal>createPlayBinaryDist</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles all Play distributions.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>stage</literal>
+                </td>
+                <td>
+                    <literal>stagePlayBinaryDist</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Stages all Play distributions.</td>
+            </tr>
+        </table>
+        <para>The plugin also provides tasks for running and testing your Play application:</para>
+        <table>
+            <title>Play plugin - running and testing tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>runPlayBinary</literal>
+                </td>
+                <td>
+                    <literal>playBinary</literal> to build Play application.
+                </td>
+                <td><apilink class="org.gradle.play.tasks.PlayRun"/></td>
+                <td>Runs the Play application for local development.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>testPlayBinary</literal>
+                </td>
+                <td>
+                    <literal>playBinary</literal> to build Play application and <literal>compilePlayBinaryTests</literal>.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
+                <td>Runs JUnit/TestNG tests for the Play application.</td>
             </tr>
             <tr>
                 <td>
@@ -160,18 +213,7 @@
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
                 <td>Copies all compiled classes and public assets into a staging directory.</td>
             </tr>
-            <tr>
-                <td>
-                    <literal>runPlayBinary</literal>
-                </td>
-                <td>
-                    <literal>playBinary</literal> to build Play application.
-                </td>
-                <td><apilink class="org.gradle.play.tasks.PlayRun"/></td>
-                <td>Runs the Play application for local development.</td>
-            </tr>
         </table>
-
         <para>For the different types of sources in a Play application, the plugin adds the following compilation tasks:</para>
         <table id="play_source_set_tasks">
             <title>Play plugin - source set tasks</title>
@@ -234,7 +276,7 @@
             <title>Targeting a certain version of Play</title>
             <para>
                 By default, Gradle uses Play 2.3.9, Scala 2.10 and the version of Java used to start the build.
-                A Play application can select a different version by supplying a a target PlayPlatform.
+                A Play application can select a different version by supplying a target PlayPlatform.
             </para>
             <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">
                 <sourcefile file="build.gradle" snippet="play-platform"/>
@@ -269,33 +311,47 @@
         </section>
 
         <section>
-            <title>Adding Java/Scala source sets</title>
-            <task><title>TODO: WIP</title></task>
+            <title>Adding extra source sets</title>
+            <para>
+                If your Play application has additional sources that exist in non-standard directories, you can add extra source sets that Gradle will automatically add to the appropriate compile tasks.
+            </para>
+            <sample id="addExtraPlaySourcesets" dir="play/extra-sourcesets" title="Adding extra source sets to a Play application">
+                <sourcefile file="build.gradle" snippet="play-extra-sourcesets"/>
+            </sample>
         </section>
         <section>
-            <title>Adding Routes</title>
-            <task><title>TODO: WIP</title></task>
+            <title>Configuring compiler options</title>
+            <para>
+                If your Play application requires additional Scala compiler flags, you can add these arguments directly to the Scala compiler task.
+            </para>
+            <sample id="configureScalaCompiler" dir="play/configure-compiler" title="Configuring Scala compiler options">
+                <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
+            </sample>
         </section>
         <section>
-            <title>Adding Twirl templates</title>
-            <task><title>TODO: WIP</title></task>
+            <title>Adding additional files to your Play application distribution</title>
+            <para>
+                If your Play application needs to include additional files into your distribution zip, you can add these files like any other <apilink class="org.gradle.api.distribution.Distribution"/>.
+            </para>
+            <sample id="addFilesToPlayDistribution" dir="play/custom-distribution" title="Add extra files to Play application zip">
+                <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
+            </sample>
         </section>
-
     </section>
 
     <section>
         <title>Multi-project Play applications</title>
         <para>
             Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subproject.
+            See the sample provided in the Gradle distribution for a working example.
         </para>
-        <task><title>TODO: Expand with example from samples</title></task>
     </section>
-
+<!--
+    TODO: Create asset pipeline sample
     <section>
         <title>Extending the Play Software Model</title>
-        <task><title>TODO: Base this on what we've done for play-coffeescript?</title></task>
     </section>
-
+-->
     <section>
         <title>Resources</title>
         <para>

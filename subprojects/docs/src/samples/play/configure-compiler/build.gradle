@@ -1,4 +1,3 @@
-// START SNIPPET use-plugin
 plugins {
     id 'play'
 }
@@ -15,9 +14,22 @@ repositories {
         layout "ivy"
     }
 }
-// END SNIPPET use-plugin
 
 dependencies {
     play 'commons-lang:commons-lang:2.6'
     playTest "com.google.guava:guava:17.0"
 }
+
+// START SNIPPET play-configure-compiler
+model {
+    components {
+        play {
+            binaries.all {
+                tasks.withType(PlatformScalaCompile) {
+                    scalaCompileOptions.additionalParameters = ["-feature", "-language:implicitConversions"]
+                }
+            }
+        }
+    }
+}
+// END SNIPPET play-configure-compiler

@@ -23,6 +23,8 @@ import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
+ *
+ * TODO: example of specifying play platform
  */
 @Incubating
 public interface PlayPlatform extends Platform {

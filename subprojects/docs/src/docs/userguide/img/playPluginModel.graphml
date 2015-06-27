@@ -15,14 +15,13 @@
   <graph edgedefault="directed" id="G">
     <data key="d0"/>
     <node id="n0">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.big_entity">
           <y:Geometry height="87.3866666666667" width="140.4" x="-281.4" y="-149.4666666666667"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" backgroundColor="#B7C9E3" configuration="com.yworks.entityRelationship.label.name" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasLineColor="false" height="18.1328125" modelName="internal" modelPosition="t" textColor="#000000" visible="true" width="119.716796875" x="10.341601562499989" y="4.0">PlayApplicationSpec</y:NodeLabel>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" configuration="com.yworks.entityRelationship.label.attributes" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="46.3984375" modelName="custom" textColor="#000000" visible="true" width="98.62890625" x="2.0" y="30.1328125">target platforms
+          <y:NodeLabel alignment="left" autoSizePolicy="content" configuration="com.yworks.entityRelationship.label.attributes" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="46.3984375" modelName="custom" textColor="#000000" visible="true" width="94.69140625" x="2.0" y="30.1328125">Target Platform
 binaries
 sources<y:LabelModel>
               <y:ErdAttributesNodeLabelModel/>
@@ -38,10 +37,9 @@ sources<y:LabelModel>
       </data>
     </node>
     <node id="n1">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.small_entity">
-          <y:Geometry height="30.0" width="140.4" x="-44.0" y="-120.77333333333334"/>
+          <y:Geometry height="30.0" width="140.4" x="96.0" y="-120.77333333333334"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" modelName="custom" textColor="#000000" visible="true" width="97.5859375" x="21.407031250000003" y="5.93359375">Scala Source Set<y:LabelModel>
@@ -58,10 +56,9 @@ sources<y:LabelModel>
       </data>
     </node>
     <node id="n2">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.small_entity">
-          <y:Geometry height="30.0" width="140.4" x="-44.0" y="-77.08"/>
+          <y:Geometry height="30.0" width="140.4" x="96.0" y="-70.30666666666664"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" modelName="custom" textColor="#000000" visible="true" width="91.451171875" x="24.474414062500003" y="5.93359375">Java Source Set<y:LabelModel>
@@ -78,10 +75,9 @@ sources<y:LabelModel>
       </data>
     </node>
     <node id="n3">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.small_entity">
-          <y:Geometry height="30.0" width="140.4" x="-44.0" y="-33.386666666666656"/>
+          <y:Geometry height="30.0" width="140.4" x="96.0" y="-18.34666666666665"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" modelName="custom" textColor="#000000" visible="true" width="127.322265625" x="6.538867187500003" y="5.93359375">Resources Source Set<y:LabelModel>
@@ -98,7 +94,6 @@ sources<y:LabelModel>
       </data>
     </node>
     <node id="n4">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.big_entity">
           <y:Geometry height="77.0" width="140.4" x="-281.4" y="-13.386666666666656"/>
@@ -121,10 +116,9 @@ Target Platform<y:LabelModel>
       </data>
     </node>
     <node id="n5">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.entityRelationship.small_entity">
-          <y:Geometry height="30.0" width="140.4" x="-44.0" y="13.519999999999925"/>
+          <y:Geometry height="30.0" width="140.4" x="96.0" y="33.613333333333344"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" modelName="custom" textColor="#000000" visible="true" width="124.48046875" x="7.959765625000003" y="5.93359375">JavaScript Source Set<y:LabelModel>
@@ -141,66 +135,71 @@ Target Platform<y:LabelModel>
       </data>
     </node>
     <edge id="e0" source="n0" target="n4">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
-          <y:Arrows source="crows_foot_one_mandatory" target="none"/>
+          <y:Arrows source="crows_foot_one_mandatory" target="crows_foot_one_mandatory"/>
           <y:BendStyle smoothed="false"/>
         </y:PolyLineEdge>
       </data>
     </edge>
     <edge id="e1" source="n0" target="n1">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
-          <y:Arrows source="crows_foot_many_mandatory" target="none"/>
+          <y:Arrows source="crows_foot_one_mandatory" target="crows_foot_many_mandatory"/>
           <y:BendStyle smoothed="false"/>
         </y:PolyLineEdge>
       </data>
     </edge>
     <edge id="e2" source="n0" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
-            <y:Point x="-104.0" y="-105.77333333333334"/>
-            <y:Point x="-104.0" y="-18.386666666666656"/>
+            <y:Point x="-22.499999999999986" y="-105.77333333333334"/>
+            <y:Point x="-22.499999999999986" y="-3.34666666666665"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
-          <y:Arrows source="crows_foot_many_mandatory" target="none"/>
-          <y:BendStyle smoothed="false"/>
+          <y:Arrows source="crows_foot_one_mandatory" target="crows_foot_many_mandatory"/>
+          <y:BendStyle smoothed="true"/>
         </y:PolyLineEdge>
       </data>
     </edge>
     <edge id="e3" source="n0" target="n2">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
-            <y:Point x="-104.0" y="-105.77333333333334"/>
-            <y:Point x="-104.0" y="-62.08"/>
+            <y:Point x="-22.499999999999986" y="-105.77333333333334"/>
+            <y:Point x="-22.499999999999986" y="-55.30666666666664"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
-          <y:Arrows source="crows_foot_many_mandatory" target="none"/>
-          <y:BendStyle smoothed="false"/>
+          <y:Arrows source="crows_foot_one_mandatory" target="crows_foot_many_mandatory"/>
+          <y:BendStyle smoothed="true"/>
         </y:PolyLineEdge>
       </data>
     </edge>
-    <edge id="e4" source="n0" target="n5">
+    <edge id="e4" source="n5" target="n0">
       <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
-            <y:Point x="-104.0" y="-105.77333333333334"/>
-            <y:Point x="-104.0" y="28.519999999999925"/>
+          <y:Path sx="0.0" sy="0.0" tx="70.21416015625002" ty="0.0">
+            <y:Point x="-22.499999999999986" y="48.613333333333344"/>
+            <y:Point x="-22.499999999999986" y="-105.77333333333334"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="crows_foot_many" target="none"/>
-          <y:BendStyle smoothed="false"/>
+          <y:EdgeLabel alignment="center" configuration="AutoFlippingLabel" distance="2.0" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="custom" preferredPlacement="anywhere" ratio="0.5" textColor="#000000" visible="true" width="4.0" x="-61.28639984130859" y="-32.000001322428375">
+            <y:LabelModel>
+              <y:SmartEdgeLabelModel autoRotationEnabled="false" defaultAngle="0.0" defaultDistance="10.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartEdgeLabelModelParameter angle="0.0" distance="30.0" distanceToCenter="true" position="right" ratio="0.5" segment="0"/>
+            </y:ModelParameter>
+            <y:PreferredPlacementDescriptor angle="0.0" angleOffsetOnRightSide="0" angleReference="absolute" angleRotationOnRightSide="co" distance="-1.0" frozen="true" placement="anywhere" side="anywhere" sideReference="relative_to_edge_flow"/>
+          </y:EdgeLabel>
+          <y:BendStyle smoothed="true"/>
         </y:PolyLineEdge>
       </data>
     </edge>
