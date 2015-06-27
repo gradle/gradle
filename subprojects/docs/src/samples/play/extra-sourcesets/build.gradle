@@ -26,16 +26,16 @@ model {
         play {
             sources {
                 extraJava(JavaSourceSet) {
-                    srcDir "extra/java"
+                    source.srcDir "extra/java"
                 }
                 extraScala(ScalaLanguageSourceSet) {
-                    srcDir "extra/scala"
+                    source.srcDir "extra/scala"
                 }
                 extraTwirl(TwirlSourceSet) {
-                    srcDir "extra/twirl"
+                    source.srcDir "extra/twirl"
                 }
                 extraRoutes(RoutesSourceSet) {
-                    srcDir "extra/routes"
+                    source.srcDir "extra/routes"
                 }
             }
         }

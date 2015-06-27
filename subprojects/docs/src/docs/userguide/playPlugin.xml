@@ -328,6 +328,7 @@
                 <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
             </sample>
         </section>
+        <!-- TODO: This doesn't work
         <section>
             <title>Adding additional files to your Play application distribution</title>
             <para>
@@ -337,6 +338,7 @@
                 <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
             </sample>
         </section>
+        -->
     </section>
 
     <section>
