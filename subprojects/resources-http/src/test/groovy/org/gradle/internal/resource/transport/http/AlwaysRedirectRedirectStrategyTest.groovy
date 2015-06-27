@@ -20,20 +20,21 @@ import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import org.apache.http.RequestLine
 import org.apache.http.message.BasicHeader
+import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AlwaysRedirectRedirectStrategyTest extends Specification {
 
-    static final String[] methods = ['GET', 'POST', 'PUT', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
+    static final String[] HTTP_METHODS = ['GET', 'POST', 'PUT', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
 
     def "should consider all requests redirectable"() {
         expect:
         new AlwaysRedirectRedirectStrategy().isRedirectable(method)
 
         where:
-        method << methods
+        method << HTTP_METHODS
     }
 
 
@@ -47,6 +48,7 @@ class AlwaysRedirectRedirectStrategyTest extends Specification {
         request.getRequestLine() >> Mock(RequestLine) {
             getMethod() >> httpMethod
         }
+        request.getParams() >> Mock(HttpParams)
 
         when:
         def redirect = new AlwaysRedirectRedirectStrategy().getRedirect(request, response, context)
@@ -55,6 +57,6 @@ class AlwaysRedirectRedirectStrategyTest extends Specification {
         redirect.getClass() == Class.forName("org.apache.http.client.methods.Http${httpMethod.toLowerCase().capitalize()}")
 
         where:
-        httpMethod << methods + methods.collect{it.toLowerCase()}
+        httpMethod << HTTP_METHODS + HTTP_METHODS.collect{it.toLowerCase()}
     }
 }
