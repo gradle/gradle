@@ -9,17 +9,32 @@ how repository transports, and authentication mechanisms, are modeled
 * Currently, the notion of credentials in Gradle are tied to repository implementations (`org.gradle.api.artifacts.repositories.AuthenticationSupported`), separating the mechanisms
  for providing credentials from the components that reply on credentials is going to allow more flexibility in terms of independently changing and implementing repository implementations.
 
-* There is on-going work in progress to improve and encourage the re-use of `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport`'s. One of the goals of this work is to
-make it easier to contribute new `RepositoryTransport`'s from both within Gradle and via community plugins. A unified approach to modeling and configuring credentials will help achieve this goal.
+* There is on-going work in progress to improve and encourage the re-use of `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport` implementations. One of the goals of this work is to
+make it easier to contribute new transport implementations from both within Gradle and via community plugins. A unified approach to modeling and configuring credentials will help achieve this goal.
+
+# Use cases 
+
+There are many use cases where credentials and other secure information must be made available to Gradle: 
+
+* Resolving and downloading a Gradle runtime from a secure repository.
+* Resolving dependencies from a secure repository.
+* Publishing to a secure repository, including publishing plugins to `plugins.gradle.org`.
+* Downloading script plugins from a secure repository. 
+* Signing artifacts. Often the signing material is encrypted in some form.
+* Release automation that makes VCS changes.
+* Release automation that pushes artifacts or makes changes to remote systems. 
+* Any custom task or build logic that uses a secure service in some form.
+
+Currently out of scope for this specification is any verification of artifacts received from some source, such as validating the signatures of the artifacts.
 
 # Stories
+
 * A repository transport is configured with zero or more authentication protocols. An 'authentication protocol' represents how authentication is carried out. e.g.
  - Use EC2'S instance metadata service to authenticate with an AWS S3 repository.
  - Use basic, preemptive auth to authenticate with a repository over HTTPS.
  - Use public key authentication to authenticate with a repository over SFTP.
 An authentication protocol is __not__ a transport protocol (HTTP, FTP, etc.)
 When a repository transport is configured with more than one authentication protocol each protocol should be attempted until one succeeds.
-
 
 * An authentication protocol may accept zero or more __types of credentials__.
  - When the protocol does not accept any credential types it implies that the protocol implementation knows how to authenticate without any build configuration. e.g. AWS Instance Metadata.
@@ -32,13 +47,35 @@ When a repository transport is configured with more than one authentication prot
 * Implement an authentications protocol to facilitate preemptive basic authentication with HTTP repositories
 * Implement an authentications protocol to facilitate public key authentication with SFTP repositories
 
+## Transport details
+
+* S3 transport:
+    - Credentials: access key + secret key.
+    - Use static credentials. 
+    - Use AWS credentials file.
+    - Use EC2 instance credentials.
+    - Use SDK defaults.
+    - All use the same type of credentials, are different providers. 
+    - Can be implemented using various combinations of `AWSCredentialsProvider`.
+* HTTP/HTTPS transport:
+    - Basic auth: username + password.
+    - Digest auth: username + password.
+    - Kerberos: client-to-server ticket + client-to-server session key.
+    - NTLM: domain, username, password.
+    - Should replace existing username parsing with a public NTLMCredentials type.
+    - Kerberos and NTML credentials can usually be provided by the environment (using native APIs or experimental support in http-client)
+* SFTP transport:
+    - Credentials: username + password.
+    - Credentials: private-public key. May in turn require a password credential to use.
+    - Authorized host keys.
+* Plugin portal transport:
+    - Credentials: api key + secret key.
 
 # Implementation Plan
 
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the public key is located at ~/.ssh/id_rsa.pub'
 * `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories.
-
 
 ## Proposed DSL
 
