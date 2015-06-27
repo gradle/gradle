@@ -1,5 +1,5 @@
 This specification is a proposal for the introduction of a top-level credentials container and some fundamental changes to
-how repository transports, and authentication mechanisms, are modeled
+how repository transports and authentication mechanisms are modeled.
 
 # Why?
 
@@ -41,11 +41,11 @@ When a repository transport is configured with more than one authentication prot
  - When the protocol is configured with more than one type of credentials the protocol should attempt to authenticate using each type of credentials until one succeeds.
 
 * An authentication protocol may accept zero or more __instances of__ the same type of credentials.
- - When an authentication protocol is configured with multiple instances of the same type of credentials the protocol should attempt to use each instance until one succeeds
+ - When an authentication protocol is configured with multiple instances of the same type of credentials the protocol should attempt to use each instance until one succeeds.
 
-* Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata
-* Implement an authentications protocol to facilitate preemptive basic authentication with HTTP repositories
-* Implement an authentications protocol to facilitate public key authentication with SFTP repositories
+* Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
+* Implement an authentication protocol to facilitate preemptive basic authentication with HTTP repositories.
+* Implement an authentication protocol to facilitate public key authentication with SFTP repositories.
 
 ## Transport details
 
