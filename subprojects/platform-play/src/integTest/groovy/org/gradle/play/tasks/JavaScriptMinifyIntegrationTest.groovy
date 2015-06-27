@@ -39,7 +39,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 }
                 ivy {
                     name "typesafe-ivy-release"
-                    url "https://repo.typesafe.com/typesafe/ivy-releases/"
+                    url "https://repo.typesafe.com/typesafe/ivy-releases"
                     layout "ivy"
                 }
             }
