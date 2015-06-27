@@ -21,31 +21,48 @@ There are many use cases where credentials and other secure information must be 
 * Publishing to a secure repository, including publishing plugins to `plugins.gradle.org`.
 * Downloading script plugins from a secure repository. 
 * Signing artifacts. Often the signing material is encrypted in some form.
-* Release automation that makes VCS changes.
-* Release automation that pushes artifacts or makes changes to remote systems. 
-* Any custom task or build logic that uses a secure service in some form.
+* Any custom task or build logic that uses a secure service in some form, for example:
+    * Release automation that makes VCS changes.
+    * Release automation that pushes artifacts or makes changes to remote systems. 
 
 Currently out of scope for this specification is any verification of artifacts received from some source, such as validating the signatures of the artifacts.
+Also out of scope is any management of key material, though this of course could be automated by a plugin.
 
-# Stories
+# Model
 
-* A repository transport is configured with zero or more authentication protocols. An 'authentication protocol' represents how authentication is carried out. e.g.
- - Use EC2'S instance metadata service to authenticate with an AWS S3 repository.
- - Use basic, preemptive auth to authenticate with a repository over HTTPS.
- - Use public key authentication to authenticate with a repository over SFTP.
+* A repository uses a _transport protocol_. This is the communications mechanism through which the resources of the repository are accessed, such as HTTP or SFTP.
+
+* A transport protocol supports zero or more _authentication protocols_. An 'authentication protocol' represents how authentication is carried out. e.g.
+    - Use EC2'S instance metadata service to authenticate with an AWS S3 repository.
+    - Use basic, preemptive auth to authenticate with a repository over HTTPS.
+    - Use public key authentication to authenticate with a repository over SFTP.
+
 An authentication protocol is __not__ a transport protocol (HTTP, FTP, etc.)
-When a repository transport is configured with more than one authentication protocol each protocol should be attempted until one succeeds.
 
-* An authentication protocol may accept zero or more __types of credentials__.
- - When the protocol does not accept any credential types it implies that the protocol implementation knows how to authenticate without any build configuration. e.g. AWS Instance Metadata.
- - When the protocol is configured with more than one type of credentials the protocol should attempt to authenticate using each type of credentials until one succeeds.
+* A particular repository will accept some subset of the authentication protocols supported by the transport protocol. For example, an SFTP server may be configured
+to accept only public key authentication, and disallow password based authentication.
 
-* An authentication protocol may accept zero or more __instances of__ the same type of credentials.
- - When an authentication protocol is configured with multiple instances of the same type of credentials the protocol should attempt to use each instance until one succeeds.
+* A Gradle build user will accept some subset of the authentication protocols supported by the transport. For example, a user or build agent may require that basic HTTP auth
+must not be used. Often, build users are not particularly opinionated regarding specific protocols - 'whatever works' is probably the most common opinion.
 
-* Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
-* Implement an authentication protocol to facilitate preemptive basic authentication with HTTP repositories.
-* Implement an authentication protocol to facilitate public key authentication with SFTP repositories.
+* Given this, a repository definition has associated with it a sequence of one or more authentication protocols in priority order.
+    - When a repository transport is configured with more than one authentication protocol, each protocol should be attempted until one succeeds.
+
+* An authentication protocol may accept zero or more _types of credentials_.
+    - For our purposes, credentials are the input data provided by the build logic to the authentication protocol.
+    - When the protocol does not accept any credentials it implies that the protocol implementation knows how to authenticate without any build configuration. e.g. AWS Instance Metadata.
+    - When the protocol is configured with more than one type of credentials the protocol should attempt to authenticate using each type of credentials until one succeeds.
+
+* An authentication protocol may accept zero or more _instances of_ the same type of credentials.
+    - When an authentication protocol is configured with multiple instances of the same type of credentials the protocol should attempt to use each instance until one succeeds.
+
+* A given type of credentials may be supplied from one or more sources, or _providers_. For example:
+    - Encoded as data in the repository definition, eg username and password
+    - Loaded from the `~/.ssh`
+    - Provided by the operating system, eg the user's kerberos ticket or NTLM credentials.
+    - Passed in to the build as system properties
+    - User prompts in the IDE
+    - Loaded from a Java keystore
 
 ## Transport details
 
@@ -62,6 +79,7 @@ When a repository transport is configured with more than one authentication prot
     - Digest auth: username + password.
     - Kerberos: client-to-server ticket + client-to-server session key.
     - NTLM: domain, username, password.
+    - Basic, Kerberos and NTLM can be performce preemptively.
     - Should replace existing username parsing with a public NTLMCredentials type.
     - Kerberos and NTML credentials can usually be provided by the environment (using native APIs or experimental support in http-client)
 * SFTP transport:
@@ -72,6 +90,12 @@ When a repository transport is configured with more than one authentication prot
     - Credentials: api key + secret key.
 
 # Implementation Plan
+
+## Stories
+
+* Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
+* Implement an authentication protocol to facilitate preemptive basic authentication with HTTP repositories.
+* Implement an authentication protocol to facilitate public key authentication with SFTP repositories.
 
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the public key is located at ~/.ssh/id_rsa.pub'
