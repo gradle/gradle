@@ -371,6 +371,13 @@ class HttpServer extends ServerWithExpectations {
         expectRedirected('HEAD', path, location)
     }
 
+    /**
+     * Expects one PUT request for the given URL, responding with a redirect.
+     */
+    void expectPutRedirected(String path, String location) {
+        expectRedirected('PUT', path, location)
+    }
+
     private void expectRedirected(String method, String path, String location) {
         expect(path, false, [method], new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {

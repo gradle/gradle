@@ -21,7 +21,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.DecompressingHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
@@ -41,8 +44,8 @@ public class HttpClientHelper {
 
     public HttpClientHelper(HttpSettings settings) {
         alwaysUseKeepAliveConnections();
-
         DefaultHttpClient client = new SystemDefaultHttpClient();
+        client.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
         new HttpClientConfigurer(settings).configure(client);
         this.client = new DecompressingHttpClient(client);
     }
@@ -55,9 +58,9 @@ public class HttpClientHelper {
     }
 
     public HttpResponse performRawHead(String source) {
-        return performRequest(new HttpHead(source));        
+        return performRequest(new HttpHead(source));
     }
-    
+
     public HttpResponse performHead(String source) {
         return processResponse(source, "HEAD", performRawHead(source));
     }
@@ -100,13 +103,12 @@ public class HttpClientHelper {
 
     public boolean wasSuccessful(HttpResponse response) {
         int statusCode = response.getStatusLine().getStatusCode();
-        return statusCode >= 200 && statusCode < 300;
+        return statusCode >= 200 && statusCode < 400;
     }
 
     public HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(DefaultRedirectStrategy.REDIRECT_LOCATIONS);
-
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
         return client.execute(request, httpContext);
     }
@@ -119,11 +121,9 @@ public class HttpClientHelper {
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", method, response.getStatusLine(), source);
             throw new UncheckedIOException(String.format("Could not %s '%s'. Received status code %s from server: %s",
-                    method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
+                method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
 
         return response;
     }
-
-
 }
