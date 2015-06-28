@@ -83,7 +83,7 @@ import java.util.Map;
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
     private static final VersionNumber MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT = VersionNumber.parse("2.3.7");
-    public static final String RUN_SUPPORT_PLAY_MODULE = "run-support";
+    private static final String RUN_SUPPORT_PLAY_MODULE = "run-support";
 
     private static final Map<PlayMajorVersion, String> PLAY_TO_SBT_IO_VERSION_MAPPING = ImmutableMap.<PlayMajorVersion, String>builder()
                                                                                                     .put(PlayMajorVersion.PLAY_2_3_X, "0.13.6")
@@ -208,7 +208,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     playBinaryInternal.setApplication(componentSpec);
                     final File binaryBuildDir = new File(buildDir, binaryName);
 
-                    final PlayPlatform chosenPlatform = resolveTargetPlatform(componentSpec, platforms, configurations);
+                    final PlayPlatform chosenPlatform = resolveTargetPlatform(componentSpec, platforms);
                     initialiseConfigurations(configurations, chosenPlatform);
 
                     playBinaryInternal.setTargetPlatform(chosenPlatform);
@@ -256,7 +256,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             });
         }
 
-        private PlayPlatform resolveTargetPlatform(PlayApplicationSpec componentSpec, final PlatformResolvers platforms, PlayPluginConfigurations configurations) {
+        private PlayPlatform resolveTargetPlatform(PlayApplicationSpec componentSpec, final PlatformResolvers platforms) {
             PlatformRequirement targetPlatform = getTargetPlatform((PlayApplicationSpecInternal) componentSpec);
             return platforms.resolve(PlayPlatform.class, targetPlatform);
         }

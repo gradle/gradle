@@ -16,8 +16,6 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.Factory;
@@ -45,8 +43,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
     private final CompilerDaemonManager compilerDaemonManager;
-    private final ConfigurationContainer configurationContainer;
-    private final DependencyHandler dependencyHandler;
     private final PlayPlatform targetPlatform;
     private final PlayMajorVersion playMajorVersion;
     private Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
@@ -54,13 +50,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer,
-                                   DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform,
+    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager,
+                                   Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
-        this.configurationContainer = configurationContainer;
-        this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.targetPlatform = targetPlatform;
         this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
