@@ -93,6 +93,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
             // use Closeable interface to find close method to prevent Java 1.7 specific method access
             ((Closeable) previousClassLoader).close();
         }
+        previousClassLoaderReference = null;
     }
 
     @Override
