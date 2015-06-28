@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -29,7 +30,6 @@ import org.spockframework.lang.ConditionBlock
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
-import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
@@ -45,7 +45,6 @@ class DefaultFileWatcherFactoryTest extends Specification {
 
     @AutoCleanup("stop")
     FileWatcher fileWatcher
-    private PollingConditions poll = new PollingConditions()
 
     Throwable thrownInWatchExecution
     Action<? super Throwable> onError = {
@@ -252,7 +251,7 @@ class DefaultFileWatcherFactoryTest extends Specification {
 
     @ConditionBlock
     private void await(Closure<?> closure) {
-        poll.within(waitForEventsMillis / 1000, closure)
+        ConcurrentTestUtil.poll(waitForEventsMillis / 1000 as int, closure)
     }
 
     private <T> BlockingVariable<T> blockingVar() {

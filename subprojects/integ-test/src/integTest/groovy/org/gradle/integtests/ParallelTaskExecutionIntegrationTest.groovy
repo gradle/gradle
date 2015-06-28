@@ -20,10 +20,10 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.util.concurrent.PollingConditions
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
@@ -115,7 +115,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         GradleHandle handle
         def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
         blockingServer.expectConcurrentExecution([":aPing"]) {
-            new PollingConditions().eventually {
+            ConcurrentTestUtil.poll(1) {
                 assert handle.standardOutput.contains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
             }
         }
@@ -137,7 +137,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         GradleHandle handle
         def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
         blockingServer.expectConcurrentExecution([":aPing"]) {
-            new PollingConditions().eventually {
+            ConcurrentTestUtil.poll(1) {
                 assert handle.standardOutput.contains("Unable to parallelize task :bPing due to presence of custom actions (e.g. doFirst()/doLast())")
             }
         }

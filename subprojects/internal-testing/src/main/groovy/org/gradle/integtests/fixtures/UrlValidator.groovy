@@ -17,16 +17,16 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 import org.junit.Assert
-import spock.util.concurrent.PollingConditions
 
 class UrlValidator {
 
     static void available(String theUrl, String application = null, int timeout = 30) {
         URL url = new URL(theUrl)
         try {
-            new PollingConditions().within(timeout) {
+            ConcurrentTestUtil.poll(timeout) {
                 assert urlIsAvailable(url)
             }
         } catch(AssertionError e) {

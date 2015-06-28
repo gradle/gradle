@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.*
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
@@ -27,7 +28,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
-import spock.util.concurrent.PollingConditions
 
 @Timeout(180)
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -139,7 +139,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        new PollingConditions(initialDelay: 0.5).within(buildTimeout) {
+        ConcurrentTestUtil.poll(buildTimeout) {
             assert stdout.toString().contains(WAITING_MESSAGE)
         }
 

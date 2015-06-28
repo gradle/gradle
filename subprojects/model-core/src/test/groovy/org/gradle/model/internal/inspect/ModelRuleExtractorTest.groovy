@@ -28,10 +28,10 @@ import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElemen
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.PollingConditions
 
 import java.beans.Introspector
 
@@ -511,7 +511,7 @@ ${ManagedWithNonManageableParents.name}
         source = null
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             extractor.cache.cleanUp()
             extractor.cache.size() == 0

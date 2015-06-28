@@ -20,7 +20,7 @@ import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegration
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import spock.util.concurrent.PollingConditions
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
@@ -133,7 +133,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
     }
 
     def buildFinishes() {
-        new PollingConditions().within(shutdownTimeout) {
+        ConcurrentTestUtil.poll(shutdownTimeout) {
             assert !gradle.running
         }
         true

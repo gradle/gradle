@@ -24,10 +24,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
-import spock.util.concurrent.PollingConditions
 
 @Timeout(120)
 @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -74,7 +74,7 @@ class PlayContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpeci
     }
 
     def appIsStopped() {
-        new PollingConditions().within(shutdownTimeout) {
+        ConcurrentTestUtil.poll(shutdownTimeout) {
             runningApp.verifyStopped()
         }
         true

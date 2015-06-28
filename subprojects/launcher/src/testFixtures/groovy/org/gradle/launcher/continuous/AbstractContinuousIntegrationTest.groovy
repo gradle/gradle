@@ -21,11 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import org.spockframework.runtime.SpockTimeoutError
-import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.TimeUnit
 
@@ -171,11 +170,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     void noBuildTriggered(int waitSeconds = 3) {
         // TODO - change this general strategy to positively detect changes we are ignoring instead of asserting that a build doesn't happen in some time frame
         try {
-            new PollingConditions(initialDelay: 0.5).within(waitSeconds) {
+            ConcurrentTestUtil.poll(waitSeconds) {
+                // force the poll to continue while there is no output
                 assert !buildOutputSoFar().empty
             }
-            throw new AssertionError("Expected build not to start, but started with output: " + buildOutputSoFar())
-        } catch (SpockTimeoutError e) {
+            // if we get here it means that there was build output at some point while polling
+            throw new UnexpectedBuildStartedException("Expected build not to start, but started with output: " + buildOutputSoFar())
+        } catch (AssertionError e) {
             // ok, what we want
         }
     }
@@ -200,7 +201,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     private waitForNotRunning() {
-        new PollingConditions().within(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
+        ConcurrentTestUtil.poll(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
             assert !gradle.running
         }
     }
@@ -211,6 +212,12 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
             // When running a test in a daemon executer, the input is buffered until a
             // newline char is received
             stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes)
+        }
+    }
+
+    private static class UnexpectedBuildStartedException extends Exception {
+        UnexpectedBuildStartedException(String message) {
+            super(message)
         }
     }
 }

@@ -22,9 +22,9 @@ import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.type.ModelType
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.PollingConditions
 
 import java.beans.Introspector
 
@@ -54,7 +54,7 @@ class DefaultModelSchemaStoreTest extends Specification {
         cl.clearCache()
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             store.cleanUp()
             store.size() == 0
@@ -84,7 +84,7 @@ class DefaultModelSchemaStoreTest extends Specification {
         forcefullyClearReferences(schema)
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             store.cleanUp()
             store.size() == 0
