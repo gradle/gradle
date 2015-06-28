@@ -24,15 +24,10 @@ import org.gradle.api.internal.resolve.ProjectLocator;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.session.BuildSession;
 import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
-import org.gradle.platform.base.Platform;
-import org.gradle.platform.base.internal.toolchain.DefaultToolResolver;
-import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
@@ -48,18 +43,6 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new ProjectScopeServices());
-    }
-
-    private static class ProjectScopeServices {
-        ToolResolver createToolResolver(ServiceRegistry services) {
-            DefaultToolResolver toolResolver = new DefaultToolResolver();
-            for (ToolChainInternal<?> toolChain : services.getAll(ToolChainInternal.class)) {
-                @SuppressWarnings("unchecked") ToolChainInternal<? extends Platform> converted = toolChain;
-                toolResolver.registerToolChain(converted);
-            }
-            return toolResolver;
-        }
     }
 
     private static class BuildScopeServices {

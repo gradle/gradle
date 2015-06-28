@@ -91,7 +91,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         return converted;
     }
 
-    public PlayApplicationRunner newApplicationRunner() {
+    private PlayApplicationRunner newApplicationRunner() {
         VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
         return new PlayApplicationRunner(workerProcessBuilderFactory, playRunAdapter);
     }

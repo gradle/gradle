@@ -35,7 +35,6 @@ import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -55,14 +54,12 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final JavaToolChain toolChain;
     private final ITaskFactory taskFactory;
-    private final ToolResolver toolResolver;
 
     @Inject
-    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain, ITaskFactory taskFactory, ToolResolver toolResolver) {
+    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.toolChain = toolChain;
         this.taskFactory = taskFactory;
-        this.toolResolver = toolResolver;
     }
 
     public void apply(final Project target) {
@@ -71,7 +68,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()), instantiator, taskFactory, toolResolver);
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()), instantiator, taskFactory);
             }
         });
 

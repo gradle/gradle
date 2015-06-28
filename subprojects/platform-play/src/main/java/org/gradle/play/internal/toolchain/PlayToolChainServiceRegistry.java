@@ -42,6 +42,7 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
+
     private static class ProjectScopeCompileServices {
         PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
             return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory);

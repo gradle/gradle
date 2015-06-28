@@ -18,9 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.tasks.WorkResult
+import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.platform.base.internal.toolchain.ResolvedTool
-import org.gradle.platform.base.internal.toolchain.ToolResolver
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
+import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -28,23 +29,24 @@ import spock.lang.Specification
 
 class JavaCompileTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def toolResolver = Mock(ToolResolver)
-    def resolvedTool = Mock(ResolvedTool)
+    def toolChain = Mock(JavaToolChainInternal)
+    def platform = Mock(JavaPlatform)
+    def toolProvider = Mock(ToolProvider)
     def compiler = Mock(Compiler)
     def task = TestUtil.createTask(JavaCompile)
 
-    def "uses specified ToolResolver to create a Compiler to do the work"() {
+    def "uses specified ToolChain to create a Compiler to do the work"() {
         given:
         task.outputs.history = Stub(TaskExecutionHistory)
         task.destinationDir = tmpDir.file("classes")
-        task.toolResolver = toolResolver
+        task.toolChain = toolChain
 
         when:
         task.compile()
 
         then:
-        1 * toolResolver.resolveCompiler(_, {!null}) >> resolvedTool
-        1 * resolvedTool.get() >> compiler
+        1 * toolChain.select(_) >> toolProvider
+        1 * toolProvider.newCompiler(!null) >> compiler
         1 * compiler.execute(!null) >> Stub(WorkResult)
     }
 }

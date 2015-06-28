@@ -109,6 +109,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
+                    compile.setToolChain(binary.getToolChain());
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());

@@ -23,6 +23,7 @@ import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
 import java.util.Map;
@@ -40,6 +41,8 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
      * @return platform for this binary
      */
     PlayPlatform getTargetPlatform();
+
+    PlayToolChain getToolChain();
 
     File getJarFile();
 

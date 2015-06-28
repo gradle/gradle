@@ -20,25 +20,21 @@ import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
-import org.gradle.platform.base.internal.toolchain.ResolvedTool
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.twirl.TwirlCompileSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import org.gradle.language.base.internal.compile.Compiler
 
 class TwirlCompileTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
     TwirlCompile compile = project.tasks.create("compile", TwirlCompile)
     Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
-    ResolvedTool<Compiler<TwirlCompileSpec>> twirlCompilerTool = Mock(ResolvedTool) {
-        get() >> twirlCompiler
-    }
     IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
 
     def "invokes twirl compiler"(){
         given:
         def outputDir = Mock(File);
-        compile.compilerTool = twirlCompilerTool
+        compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
         compile.outputs.history = Stub(TaskExecutionHistory)
         when:
@@ -55,7 +51,7 @@ class TwirlCompileTest extends Specification {
     def "deletes stale output files"(){
         given:
         def outputDir = new File("outputDir");
-        compile.compilerTool = twirlCompilerTool
+        compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
         def outputCleaner = Spy(TwirlCompile.TwirlStaleOutputCleaner, constructorArgs: [outputDir])
         compile.setCleaner(outputCleaner)

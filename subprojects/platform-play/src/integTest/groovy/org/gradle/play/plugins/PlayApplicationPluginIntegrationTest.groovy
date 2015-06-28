@@ -79,7 +79,8 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: Play Platform (Play ${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})"""))
+        platform: Play Platform (Play ${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})
+        tool chain: Default Play Toolchain"""))
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {

@@ -18,9 +18,9 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.platform.base.internal.toolchain.ResolvedTool
-import org.gradle.platform.base.internal.toolchain.ToolResolver
+import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -38,8 +38,8 @@ public class JavadocTest extends Specification {
     def destDir = new File(testDir, "dest");
     def srcDir = new File(testDir, "srcdir");
     def classpath = WrapUtil.toSet(new File("classpath"));
-    def toolResolver = Mock(ToolResolver)
-    def resolvedTool = Mock(ResolvedTool)
+    def toolChain = Mock(JavaToolChainInternal);
+    def toolProvider = Mock(ToolProvider);
     def generator = Mock(Compiler);
     def configurationMock = new SimpleFileCollection(classpath);
     def executable = "somepath";
@@ -48,7 +48,7 @@ public class JavadocTest extends Specification {
     public void setup() {
         task.setClasspath(configurationMock);
         task.setExecutable(executable);
-        task.setToolResolver(toolResolver);
+        task.setToolChain(toolChain);
         GFileUtils.touch(new File(srcDir, "file.java"));
     }
 
@@ -61,8 +61,8 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolResolver.resolveCompiler(_,_) >> resolvedTool
-        1 * resolvedTool.get() >> generator
+        1 * toolChain.select(_) >> toolProvider
+        1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
 
@@ -77,8 +77,8 @@ public class JavadocTest extends Specification {
         task.execute()
 
         then:
-        1 * toolResolver.resolveCompiler(_,_) >> resolvedTool
-        1 * resolvedTool.get() >> generator
+        1 * toolChain.select(_) >> toolProvider
+        1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
 
@@ -91,8 +91,8 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolResolver.resolveCompiler(_,_) >> resolvedTool
-        1 * resolvedTool.get() >> generator
+        1 * toolChain.select(_) >> toolProvider
+        1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
 
         and:

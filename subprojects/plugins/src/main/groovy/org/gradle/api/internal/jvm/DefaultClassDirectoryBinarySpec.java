@@ -24,13 +24,13 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -42,18 +42,16 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final DefaultJvmBinaryTasks tasks;
-    private final ToolResolver toolResolver;
     private File classesDir;
     private File resourcesDir;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory, ToolResolver toolResolver) {
+    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
         this.name = name;
         this.toolChain = toolChain;
         this.platform = platform;
         this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
         this.tasks = instantiator.newInstance(DefaultJvmBinaryTasks.class, new DefaultBinaryTasksCollection(this, taskFactory));
-        this.toolResolver = toolResolver;
     }
 
     private String removeClassesSuffix(String name) {
@@ -85,16 +83,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public void setToolChain(JavaToolChain toolChain) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ToolResolver getToolResolver() {
-        return toolResolver;
-    }
-
-    @Override
-    public void setToolResolver(ToolResolver toolResolver) {
         throw new UnsupportedOperationException();
     }
 
@@ -175,6 +163,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         if (!buildable) {
             return new FixedBuildAbility(false);
         }
-        return new ToolSearchBuildAbility(toolResolver.checkToolAvailability(getTargetPlatform()));
+        return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
 }

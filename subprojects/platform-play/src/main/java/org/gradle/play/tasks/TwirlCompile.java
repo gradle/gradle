@@ -30,11 +30,16 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.platform.base.internal.toolchain.ResolvedTool;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.twirl.DefaultTwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
@@ -50,10 +55,12 @@ public class TwirlCompile extends SourceTask {
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
+
     private BaseForkOptions forkOptions;
-    private ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool;
     private TwirlStaleOutputCleaner cleaner;
-    private Object dependencyNotation;
+    private PlayPlatform platform;
+
+    private Compiler<TwirlCompileSpec> compiler;
 
     /**
      * fork options for the twirl compiler.
@@ -65,8 +72,8 @@ public class TwirlCompile extends SourceTask {
         return forkOptions;
     }
 
-    public void setCompilerTool(ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool) {
-        this.compilerTool = compilerTool;
+    void setCompiler(Compiler<TwirlCompileSpec> compiler) {
+        this.compiler = compiler;
     }
 
     /**
@@ -81,11 +88,7 @@ public class TwirlCompile extends SourceTask {
 
     @Input
     public Object getDependencyNotation() {
-        return dependencyNotation;
-    }
-
-    public void setDependencyNotation(Object dependencyNotation) {
-        this.dependencyNotation = dependencyNotation;
+        return TwirlCompilerFactory.createAdapter(platform).getDependencyNotation();
     }
 
     /**
@@ -103,7 +106,7 @@ public class TwirlCompile extends SourceTask {
         getSource().visit(relativeFileCollector);
         TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), useJavaDefaults());
         if (!inputs.isIncremental()) {
-            new CleaningPlayToolCompiler<TwirlCompileSpec>(compilerTool.get(), getOutputs()).execute(spec);
+            new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
             inputs.outOfDate(new Action<InputFileDetails>() {
@@ -122,8 +125,16 @@ public class TwirlCompile extends SourceTask {
                 cleaner = new TwirlStaleOutputCleaner(getOutputDirectory());
             }
             cleaner.execute(staleOutputFiles);
-            compilerTool.get().execute(spec);
+            getCompiler().execute(spec);
         }
+    }
+
+    private Compiler<TwirlCompileSpec> getCompiler() {
+        if (compiler != null) {
+            return compiler;
+        }
+        ToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(platform);
+        return toolProvider.newCompiler(TwirlCompileSpec.class);
     }
 
     private boolean useJavaDefaults() {
@@ -132,6 +143,22 @@ public class TwirlCompile extends SourceTask {
 
     void setCleaner(TwirlStaleOutputCleaner cleaner) {
         this.cleaner = cleaner;
+    }
+
+    public void setPlatform(PlayPlatform platform) {
+        this.platform = platform;
+    }
+
+    /**
+     * Returns the tool chain that will be used to compile the twirl source.
+     *
+     * @return The tool chain.
+     */
+    @Incubating
+    @Inject
+    public PlayToolChain getToolChain() {
+        // Implementation is generated
+        throw new UnsupportedOperationException();
     }
 
     private static class TwirlStaleOutputCleaner {

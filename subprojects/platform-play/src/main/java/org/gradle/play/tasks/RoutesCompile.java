@@ -22,10 +22,12 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.platform.base.internal.toolchain.ResolvedTool;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DefaultRoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 import javax.inject.Inject;
@@ -52,8 +54,9 @@ public class RoutesCompile extends SourceTask {
     private boolean javaProject;
     private boolean namespaceReverseRouter;
     private boolean generateReverseRoutes = true;
+    private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-    private ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool;
+    private Compiler<RoutesCompileSpec> compiler;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -94,15 +97,23 @@ public class RoutesCompile extends SourceTask {
     @TaskAction
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes());
-        new CleaningPlayToolCompiler<RoutesCompileSpec>(compilerTool.get(), getOutputs()).execute(spec);
+        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
-    public void setCompilerTool(ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool) {
-        this.compilerTool = compilerTool;
+    private Compiler<RoutesCompileSpec> getCompiler() {
+        if (compiler != null) {
+            return compiler;
+        }
+        ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
+        return select.newCompiler(RoutesCompileSpec.class);
     }
 
     public boolean isJavaProject() {
         return javaProject;
+    }
+
+    public void setPlatform(PlayPlatform platform) {
+        this.platform = platform;
     }
 
     /**

@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
-import org.gradle.platform.base.internal.toolchain.ToolResolver
 import spock.lang.Specification
 
 public class DefaultClassDirectoryBinarySpecTest extends Specification {
@@ -86,6 +85,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain, platform, DirectInstantiator.INSTANCE, Mock(ITaskFactory), Mock(ToolResolver))
+        new DefaultClassDirectoryBinarySpec(name, toolChain, platform, DirectInstantiator.INSTANCE, Mock(ITaskFactory))
     }
 }

@@ -66,6 +66,10 @@ class PlayTestPluginTest extends Specification {
         def fileResolver = Mock(FileResolver)
         1 * fileResolver.resolve('test') >> new File('test')
 
+        1 * binary.getTargetPlatform() >> playPlatform
+        1 * binary.getToolChain() >> playToolChain
+        1 * playToolChain.select(playPlatform) >> playToolProvider
+
         when:
         plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
 

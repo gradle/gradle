@@ -17,12 +17,12 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
 
@@ -34,7 +34,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private String baseName;
-    private ToolResolver toolResolver;
 
     @Override
     protected String getTypeName() {
@@ -59,14 +58,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
-    }
-
-    public ToolResolver getToolResolver() {
-        return toolResolver;
-    }
-
-    public void setToolResolver(ToolResolver toolResolver) {
-        this.toolResolver = toolResolver;
     }
 
     public JavaPlatform getTargetPlatform() {
@@ -103,6 +94,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     protected BinaryBuildAbility getBinaryBuildAbility() {
-        return new ToolSearchBuildAbility(getToolResolver().checkToolAvailability(getTargetPlatform()));
+        return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
 }
