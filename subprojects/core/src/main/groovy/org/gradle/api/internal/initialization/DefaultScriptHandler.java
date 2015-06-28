@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -35,21 +36,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
     private final ScriptSource scriptSource;
-    private final RepositoryHandler repositoryHandler;
-    private final DependencyHandler dependencyHandler;
-    private final ConfigurationContainer configContainer;
     private final ClassLoaderScope classLoaderScope;
+    private final DependencyResolutionServices dependencyResolutionServices;
+    // The following values are relatively expensive to create, so defer creation until required
+    private RepositoryHandler repositoryHandler;
+    private DependencyHandler dependencyHandler;
+    private ConfigurationContainer configContainer;
     private Configuration classpathConfiguration;
 
-    public DefaultScriptHandler(
-            ScriptSource scriptSource, RepositoryHandler repositoryHandler,
-            DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-            ClassLoaderScope classLoaderScope
-    ) {
-        this.repositoryHandler = repositoryHandler;
-        this.dependencyHandler = dependencyHandler;
+    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope) {
+        this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptSource = scriptSource;
-        this.configContainer = configContainer;
         this.classLoaderScope = classLoaderScope;
     }
 
@@ -72,15 +69,21 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     public DependencyHandler getDependencies() {
         defineConfiguration();
+        if (dependencyHandler == null) {
+            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+        }
         return dependencyHandler;
     }
 
     public RepositoryHandler getRepositories() {
+        if (repositoryHandler == null) {
+            repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
+        }
         return repositoryHandler;
     }
 
     public void repositories(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, repositoryHandler);
+        ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     public ConfigurationContainer getConfigurations() {
@@ -90,6 +93,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
+        if (configContainer == null) {
+            configContainer = dependencyResolutionServices.getConfigurationContainer();
+        }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
         }
