@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.StandardOutputCapture;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -50,6 +51,8 @@ public class DefaultScriptRunnerFactoryTest {
     private final ScriptSource scriptSourceDummy = context.mock(ScriptSource.class);
     private final ScriptExecutionListener scriptExecutionListenerMock = context.mock(ScriptExecutionListener.class);
     private final Instantiator instantiatorMock = context.mock(Instantiator.class);
+    private final Object target = new Object();
+    private final ServiceRegistry scriptServices = context.mock(ServiceRegistry.class);
     private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptExecutionListenerMock, instantiatorMock);
 
     @Before
@@ -84,6 +87,9 @@ public class DefaultScriptRunnerFactoryTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
+            one(scriptMock).init(target, scriptServices);
+            inSequence(sequence);
+
             one(scriptExecutionListenerMock).beforeScript(scriptMock);
             inSequence(sequence);
 
@@ -113,7 +119,7 @@ public class DefaultScriptRunnerFactoryTest {
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         assertThat(originalClassLoader, not(sameInstance(classLoaderDummy)));
 
-        scriptRunner.run();
+        scriptRunner.run(target, scriptServices);
 
         assertThat(Thread.currentThread().getContextClassLoader(), sameInstance(originalClassLoader));
     }
@@ -126,6 +132,9 @@ public class DefaultScriptRunnerFactoryTest {
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
+
+            one(scriptMock).init(target, scriptServices);
+            inSequence(sequence);
 
             one(scriptExecutionListenerMock).beforeScript(scriptMock);
             inSequence(sequence);
@@ -148,7 +157,7 @@ public class DefaultScriptRunnerFactoryTest {
         assertThat(originalClassLoader, not(sameInstance(classLoaderDummy)));
 
         try {
-            scriptRunner.run();
+            scriptRunner.run(target, scriptServices);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getMessage(), equalTo("A problem occurred evaluating <script-to-string>."));

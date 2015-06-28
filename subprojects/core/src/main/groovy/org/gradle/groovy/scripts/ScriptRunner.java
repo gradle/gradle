@@ -15,27 +15,29 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
 import org.gradle.api.GradleScriptException;
-import org.gradle.groovy.scripts.internal.CompiledScript;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Executes a script of type T.
  */
-public interface ScriptRunner<T extends Script, M> extends Runnable {
+public interface ScriptRunner<T extends Script, M> {
     /**
-     * Returns the script which will be executed by this runner.
+     * Returns the script which will be executed by this runner. This method is relatively expensive.
      *
      * @return the script.
      */
     T getScript();
 
-    CompiledScript<T, M> getCompiledScript();
+    /**
+     * Returns the data extracted at compilation time.
+     */
+    M getData();
 
     /**
-     * Executes the script.
+     * Executes the script. This is generally more efficient than using {@link #getScript()}.
      *
      * @throws GradleScriptException On execution failure.
      */
-    void run() throws GradleScriptException;
+    void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException;
 }

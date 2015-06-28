@@ -119,10 +119,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>("cp_" + scriptTarget.getId(), initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
-            initialRunner.getScript().init(target, services);
-            initialRunner.run();
+            initialRunner.run(target, services);
 
-            PluginRequests pluginRequests = initialRunner.getCompiledScript().getData();
+            PluginRequests pluginRequests = initialRunner.getData();
             PluginManagerInternal pluginManager = scriptTarget.getPluginManager();
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
@@ -140,13 +139,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
                     BasicScript script = runner.getScript();
-                    script.init(target, services);
                     scriptTarget.attachScript(script);
-                    runner.run();
+                    runner.run(target, services);
                 }
             };
 
-            Boolean hasImperativeStatements = runner.getCompiledScript().getData();
+            Boolean hasImperativeStatements = runner.getData();
             scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
         }
 

@@ -25,7 +25,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.*
-import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
@@ -52,13 +51,10 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
     def scriptHandler = Mock(ScriptHandlerInternal)
     def classPathScriptRunner = Mock(ScriptRunner)
-    def classPathScript = Mock(BasicScript)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
     def loggingManager = Mock(LoggingManagerInternal)
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
-    def compiledScript = Mock(CompiledScript)
-    def classpathCompiledScript = Mock(CompiledScript)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
             documentationRegistry, new ModelRuleSourceDetector())
@@ -81,16 +77,11 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
         1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
-        1 * classPathScriptRunner.getScript() >> classPathScript
-        1 * classPathScript.init(target, _ as ServiceRegistry)
-        1 * classPathScriptRunner.run()
-        1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
+        1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
-        1 * scriptRunner.getScript() >> script
-        1 * scriptRunner.compiledScript >> compiledScript
-        1 * compiledScript.data >> true
-        1 * script.init(target, _ as ServiceRegistry)
-        1 * scriptRunner.run()
+        1 * scriptRunner.script >> script
+        1 * scriptRunner.data >> true
+        1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:
         ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)
@@ -104,16 +95,11 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
         1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
-        1 * classPathScriptRunner.getScript() >> classPathScript
-        1 * classPathScript.init(target, _ as ServiceRegistry)
-        1 * classPathScriptRunner.run()
-        1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
+        1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
-        1 * scriptRunner.getScript() >> script
-        1 * scriptRunner.compiledScript >> compiledScript
-        1 * compiledScript.data >> true
-        1 * script.init(target, _ as ServiceRegistry)
-        1 * scriptRunner.run()
+        1 * scriptRunner.script >> script
+        1 * scriptRunner.data >> true
+        1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:
         ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)

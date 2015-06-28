@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptExecutionListener listener;
@@ -58,14 +59,15 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         }
 
         @Override
-        public CompiledScript<T, M> getCompiledScript() {
-            return compiledScript;
+        public M getData() {
+            return compiledScript.getData();
         }
 
         @Override
-        public void run() throws GradleScriptException {
+        public void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();
+            script.init(target, scriptServices);
             listener.beforeScript(script);
             GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
