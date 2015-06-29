@@ -831,9 +831,6 @@ TBD.
 - Debugging Play application that is run with playRun
   - currently there isn't a way to add debugging JVM arguments to the worker process
 - PlayRun uses org.gradle.api.tasks.compile.BaseForkOptions for forkOptions. That class is documented to hold forked compiler JVM arguments.
-- Reloading doesn't support multi-project builds
-  - The BuildLink solution returns a new classloader that contains the "changing" application resources. All other dependencies should be in the higher level classloader.
-    However there isn't currently a way to distinguish the changing dependencies (application resources) in a multi-project build.
 
 ## Play 2.4.x support
 
