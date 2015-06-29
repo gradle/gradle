@@ -247,23 +247,58 @@ This feature allows a plugin author to define a component type that is built fro
 
 Allow multiple Jar binaries to be built from multiple Java source and resource sets, to somewhat approximate the Jars built for Android components.
 
-- A source set may be input to multiple binaries.
-    - These are not owned by the binary, they are inputs to the binary.
-    - A binary may also own some source sets, these are also implicit inputs to the binary.
-- A binary may be built from multiple input source sets
-- A Jar binary can be built from one or more input Java and resource source sets.
+- Component-level source sets are implicit inputs to each binary of a component
+- A binary can have additional source sets, which are also part of its inputs
+- A source set may be input to multiple binaries
+    - These are not owned by the binary, they are inputs to the binary
+    - A binary may also own some source sets, these are also implicit inputs to the binary
+- The definition order of source sets is maintained, binary-owned source sets preceding external inputs
+- A Jar binary can be built from one or more input Java and resource source sets
 - Error cases:
     - Fail at configuration time when there is no language rule available to build the binary from a given input source set.
 
+### User visible changes
+
+```groovy
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                componentSource(JavaSourceSet) {
+                    source.srcDir "src/main/component"
+                }
+            }
+            binaries {
+                all {
+                    sources {
+                        binarySource(JavaSourceSet) {
+                            source.srcDir "src/main/binary"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+* `BinarySpec.getSource()` is replaced with `getSources()`
+* `ComponentSpec.getSource()` is replaced with `getSources()`
+* `BinarySpec.getInputs()` returns all source sets, e.g. source sets owned by the binary and source sets inherited from the component.
+
 ### Test cases
 
-- Given a custom component:
-    - Java Source set `a` and `b`
-    - Resources set `res-a` and `res-b`
-    - Binaries `jar-a` and `jar-b`
-    - Can build binaries with `a`, `b`, `res-a` and `res-b` as inputs, plus a source set owned by the binary.
-        - Only the expected compiled classes and resources end up in each jar.
-- Error cases above.
+- Given a Java library component:
+    - Platforms `java6` and `java7`
+    - Java Source sets `main` and `java7`
+    - Resources sets `resources` and `java7-resources`
+    - Can build `java6` platform binary with only `main` and `resources`, with only the expected compiled classes and resources end up in each jar
+    - Can build `java7` platform binary with `main`, `resources`, `java7` and `java7-resources`
+- Given a component and its binary
+    - Component source set `ca`, `cb` and `cc`
+    - Binary source set `ba`, `bb` and `bc`
+    - The binary's inputs should be in the order `ba`, `bb`, `bc`, `ca`, `cb`, `cc`
+- Error cases above
 
 ### Implementation
 
@@ -274,8 +309,10 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
     - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
     - Any source set instance can be added to `BinarySpec.inputs`.
     - Remove internal `Set<LanguageSourceSet> getAllSources()`, this is replaced by `getInputs()`.
+- Changes to `ComponentSpec`
+    - Rename `getSources()` to `getFunctionalSourceSet()`
+    - Rename `getSource()` to `getSources()`
 - Change component report to report on all inputs for a binary.
-- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
 - Change base plugins to add component source sets as inputs to its binaries, rather than owned by the binary.
 - Remove special case for inputs from `DefaultNativeTestSuiteBinarySpec` and reuse general mechanism.
 
@@ -384,6 +421,7 @@ Change dependency resolution to honor the variant dimensions for a custom compon
 - Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
 - Expose a way to query the resolved compile classpath for a Java source set.
 - Plugin author defines target Java platform for Jar binary
+- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
 
 # Feature 3: TBD
 
