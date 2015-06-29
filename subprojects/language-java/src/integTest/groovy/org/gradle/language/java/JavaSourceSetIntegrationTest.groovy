@@ -16,6 +16,9 @@
 package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -236,6 +239,54 @@ model {
 
         then:
         noExceptionThrown()
+    }
+
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "can build JAR from multiple source sets"() {
+        given:
+        file("src/main/java/Main.java") << "public class Main {}"
+        file("src/main/resources/main.properties") << "java=6"
+        file("src/main/java7/Java7.java") << "public class Java7 {}"
+        file("src/main/java7-resources/java7.properties") << "java=7"
+
+        buildFile << '''
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            binaries {
+                withType(JarBinarySpec) { binary ->
+                    if (binary.targetPlatform.name == "java7") {
+                        sources {
+                            java7(JavaSourceSet) {
+                                source.srcDir "src/main/java7"
+                            }
+                            java7Resources(JvmResourceSet) {
+                                source.srcDir "src/main/java7-resources"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+
+        when:
+        succeeds "assemble"
+
+        then:
+        new JarTestFixture(file("build/jars/java6MainJar/main.jar")).hasDescendants(
+            "Main.class", "main.properties");
+        new JarTestFixture(file("build/jars/java7MainJar/main.jar")).hasDescendants(
+            "Main.class", "main.properties", "Java7.class", "java7.properties");
     }
 
 }
