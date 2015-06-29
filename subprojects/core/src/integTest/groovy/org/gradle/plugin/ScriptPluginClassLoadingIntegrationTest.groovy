@@ -245,7 +245,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in sub"
     }
 
-    def "script plugin cannot access classed added by buildscript in applying script"() {
+    def "script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
         pluginBuilder.addPlugin("project.task('hello')")
