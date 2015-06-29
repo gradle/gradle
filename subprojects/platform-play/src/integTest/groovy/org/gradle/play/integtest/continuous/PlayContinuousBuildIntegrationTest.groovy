@@ -20,11 +20,14 @@ import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegration
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp()
+
+    def cleanup() {
+        appIsStopped()
+    }
 
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
@@ -32,10 +35,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
 
         then:
         appIsRunningAndDeployed()
-
-        cleanup: "stopping gradle"
-        stopGradle()
-        appIsStopped()
     }
 
     def "can run play app multiple times with continuous build" () {
@@ -62,10 +61,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
 
         then:
         succeeds()
-
-        cleanup: "stopping gradle"
-        stopGradle()
-        appIsStopped()
     }
 
     def "build failure prior to launch does not prevent launch on subsequent build" () {
@@ -86,10 +81,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
 
         and:
         appIsRunningAndDeployed()
-
-        cleanup: "stopping gradle"
-        stopGradle()
-        appIsStopped()
     }
 
     def "play application is stopped when build is cancelled" () {
@@ -100,49 +91,13 @@ class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildInte
         appIsRunningAndDeployed()
 
         when:
-        println "sending ctrl-d"
-        sendEOT()
+        cancelBuild()
 
         then:
         cancelsAndExits()
-
-        and:
-        appIsStopped()
     }
 
-    def "play run task blocks when not using continuous build" () {
-        when:
-        executer.withStdIn(System.in)
-        gradle = executer.withTasks("runPlayBinary").withForceInteractive(true).start()
-
-        then:
-        appIsRunningAndDeployed()
-
-        and:
-        buildIsBlocked()
-
-        when:
-        println "sending ctrl-d"
-        sendEOT()
-
-        then:
-        buildFinishes()
-
-        and:
-        appIsStopped()
-    }
-
-    def buildFinishes() {
-        ConcurrentTestUtil.poll(shutdownTimeout) {
-            assert !gradle.running
-        }
-        true
-    }
-
-    def buildIsBlocked() {
-        doesntExit()
-        assert ! buildOutputSoFar().contains("BUILD SUCCESSFUL")
-        assert ! buildOutputSoFar().contains("BUILD FAILED")
-        true
+    def cancelBuild() {
+        closeStdIn()
     }
 }
