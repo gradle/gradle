@@ -59,6 +59,9 @@ public class PlayRun extends ConventionTask {
     @InputFiles
     private FileCollection runtimeClasspath;
 
+    @InputFiles
+    private FileCollection changingClasspath;
+
     private BaseForkOptions forkOptions;
 
     private DeploymentRegistry deploymentRegistry;
@@ -87,7 +90,7 @@ public class PlayRun extends ConventionTask {
                 .start("Start Play server", "Starting Play");
 
         int httpPort = getHttpPort();
-        PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+        PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
 
         try {
             deploymentHandle.start(spec);
@@ -147,6 +150,10 @@ public class PlayRun extends ConventionTask {
 
     public void setRuntimeClasspath(FileCollection runtimeClasspath) {
         this.runtimeClasspath = runtimeClasspath;
+    }
+
+    public void setChangingClasspath(FileCollection changingClasspath) {
+        this.changingClasspath = changingClasspath;
     }
 
     public void setDeploymentRegistry(DeploymentRegistry deploymentRegistry) {

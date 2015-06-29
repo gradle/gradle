@@ -491,7 +491,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
-                        playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());
+                        playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingFiles());
+                        playRun.setChangingClasspath(configurations.getPlayRun().getChangingFiles());
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });

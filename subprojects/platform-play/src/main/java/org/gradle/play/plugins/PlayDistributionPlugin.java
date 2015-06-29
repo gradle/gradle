@@ -17,6 +17,7 @@
 package org.gradle.play.plugins;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.file.CopySpec;
@@ -38,6 +39,7 @@ import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -203,7 +205,8 @@ public class PlayDistributionPlugin extends RuleSource {
 
         @Override
         public String toString() {
-            Set<File> classpathFiles = playConfiguration.getFileCollection().getFiles();
+            Set<File> classpathFiles = new LinkedHashSet<File>();
+            classpathFiles.addAll(Sets.newLinkedHashSet(playConfiguration.getFileCollection()));
             classpathFiles.add(assetsJarFile);
             Set<String> classpathFileNames = CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
                 @Override

@@ -18,6 +18,7 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     abstract PlayApp getPlayApp()
@@ -28,7 +29,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
         buildTimeout = 90
     }
 
-    def getPlayRunBuildFile() {
+    TestFile getPlayRunBuildFile() {
         buildFile
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -30,7 +31,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,7 +47,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
-    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
+    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         forceReloadNextTime();
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
@@ -60,7 +60,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     if (result == null) {
                         return null;
                     } else if (result == Boolean.TRUE) {
-                        URLClassLoader currentClassLoader = new URLClassLoader(new URL[]{applicationJar.toURI().toURL()}, assetsClassLoader);
+                        ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
+                        URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {

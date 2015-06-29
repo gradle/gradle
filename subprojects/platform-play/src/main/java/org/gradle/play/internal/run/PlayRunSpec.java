@@ -26,6 +26,8 @@ public interface PlayRunSpec {
 
     Iterable<File> getClasspath();
 
+    Iterable<File> getChangingClasspath();
+
     File getApplicationJar();
 
     File getAssetsJar();
