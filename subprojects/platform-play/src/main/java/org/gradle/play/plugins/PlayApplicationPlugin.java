@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -55,10 +54,7 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
-import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
-import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
@@ -237,20 +233,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
                     playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
-
-                    DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
-                    // this doesn't handle a scenario where a binary name changes between builds in the same
-                    // session.  We only allow one play component/binary right now, so this isn't an issue, but
-                    // it will need to be dealt with if we ever support multiple play binaries in a project.
-                    String deploymentId = getDeploymentId(projectIdentifier, playBinary.getName(), chosenPlatform.getName());
-                    if (deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId) == null) {
-                        PlayToolProvider playToolProvider = playToolChainInternal.select(chosenPlatform);
-
-                        if (playToolProvider.isAvailable()) {
-                            // we resolve the runner now so that we we don't carry all of the baggage from PlayToolProvider across builds via the registry
-                            deploymentRegistry.register(deploymentId, new PlayApplicationDeploymentHandle(deploymentId, playToolProvider.get(PlayApplicationRunner.class)));
-                        }
-                    }
                 }
             });
         }
@@ -477,17 +459,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier) {
-            final DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
+        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
-                final String deploymentId = getDeploymentId(projectIdentifier, binary.getName(), binary.getTargetPlatform().getName());
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setDescription("Runs the Play application for local development.");
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setDeploymentRegistry(deploymentRegistry);
-                        playRun.setDeploymentId(deploymentId);
+                        playRun.setPlayToolProvider(playToolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
@@ -501,10 +480,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
             return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
-        }
-
-        private String getDeploymentId(ProjectIdentifier projectIdentifier, String binaryName, String platformName) {
-            return projectIdentifier.getPath().concat(":").concat(binaryName).concat(":").concat(platformName);
         }
     }
 }

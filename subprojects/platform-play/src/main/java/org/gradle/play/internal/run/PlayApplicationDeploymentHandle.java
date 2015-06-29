@@ -20,23 +20,19 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     private final String id;
-    private final PlayApplicationRunner runner;
-    private final AtomicBoolean stopped = new AtomicBoolean(true);
-    private PlayApplicationRunnerToken runnerToken;
+    private final PlayApplicationRunnerToken runnerToken;
     private static Logger logger = Logging.getLogger(PlayApplicationDeploymentHandle.class);
 
-    public PlayApplicationDeploymentHandle(String id, PlayApplicationRunner runner) {
+    public PlayApplicationDeploymentHandle(String id, PlayApplicationRunnerToken runnerToken) {
         this.id = id;
-        this.runner = runner;
+        this.runnerToken = runnerToken;
     }
 
     @Override
     public boolean isRunning() {
-        return !stopped.get();
+        return runnerToken.isRunning();
     }
 
     @Override
@@ -44,17 +40,14 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
         if (isRunning()) {
             logger.info("Stopping Play deployment handle for " + id);
             runnerToken.stop();
-            stopped.set(true);
         }
     }
 
-    public void start(PlayRunSpec spec) {
-        if (stopped.get()) {
-            logger.info("Starting Play deployment handle for " + id);
-            runnerToken = runner.start(spec);
-            stopped.set(false);
-        } else {
+    public void reload() {
+        if (isRunning()) {
             runnerToken.rebuildSuccess();
+        } else {
+            throw new IllegalStateException("Cannot reload a deployment handle that has already been stopped.");
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.play.tasks;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
@@ -30,10 +29,14 @@ import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
+import org.gradle.play.internal.run.PlayApplicationRunner;
+import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
+import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -64,9 +67,7 @@ public class PlayRun extends ConventionTask {
 
     private BaseForkOptions forkOptions;
 
-    private DeploymentRegistry deploymentRegistry;
-
-    private String deploymentId;
+    private PlayToolProvider playToolProvider;
 
     /**
      * fork options for the running a Play application.
@@ -80,24 +81,31 @@ public class PlayRun extends ConventionTask {
 
     @TaskAction
     public void run() {
-        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
-        if (deploymentHandle == null) {
-            throw new GradleException("There are no deployment handles registered with id '".concat(deploymentId).concat("'"));
-        }
-
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
+        String deploymentId = getPath();
+        PlayApplicationDeploymentHandle deploymentHandle = getDeploymentRegistry().get(PlayApplicationDeploymentHandle.class, deploymentId);
+
+        if (deploymentHandle == null) {
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Start Play server", "Starting Play");
 
-        int httpPort = getHttpPort();
-        PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+            try {
+                int httpPort = getHttpPort();
+                PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
+                PlayApplicationRunnerToken runnerToken = playToolProvider.get(PlayApplicationRunner.class).start(spec);
+                deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId, runnerToken);
+                getDeploymentRegistry().register(deploymentId, deploymentHandle);
+            } finally {
+                progressLogger.completed();
+            }
+        } else {
+            deploymentHandle.reload();
+        }
 
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
+                .start(String.format("Run Play App at http://localhost:%d/", httpPort),
+                    String.format("Running at http://localhost:%d/", httpPort));
         try {
-            deploymentHandle.start(spec);
-            progressLogger.completed();
-            progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                    .start(String.format("Run Play App at http://localhost:%d/", httpPort),
-                            String.format("Running at http://localhost:%d/", httpPort));
             if (!getProject().getGradle().getStartParameter().isContinuous()) {
                 waitForCtrlD();
             }
@@ -156,11 +164,16 @@ public class PlayRun extends ConventionTask {
         this.changingClasspath = changingClasspath;
     }
 
-    public void setDeploymentRegistry(DeploymentRegistry deploymentRegistry) {
-        this.deploymentRegistry = deploymentRegistry;
+    @Inject
+    public DeploymentRegistry getDeploymentRegistry() {
+        throw new UnsupportedOperationException();
     }
 
-    public void setDeploymentId(String deploymentId) {
-        this.deploymentId = deploymentId;
+    public void setDeploymentRegistry(DeploymentRegistry deploymentRegistry) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setPlayToolProvider(PlayToolProvider playToolProvider) {
+        this.playToolProvider = playToolProvider;
     }
 }

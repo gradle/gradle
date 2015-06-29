@@ -20,29 +20,36 @@ import spock.lang.Specification
 
 
 class PlayApplicationDeploymentHandleTest extends Specification {
-    def PlayApplicationRunner runner = Mock(PlayApplicationRunner)
-    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", runner)
+    def PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
+    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", runnerToken)
 
-    def "starting deployment handle starts runner" () {
-        PlayRunSpec spec = Mock(PlayRunSpec)
-
+    def "reloading deployment handle reloads runner" () {
         when:
-        deploymentHandle.start(spec)
+        deploymentHandle.reload()
 
         then:
-        1 * runner.start({ it == spec })
+        1 * runnerToken.isRunning() >> true
+        1 * runnerToken.rebuildSuccess()
     }
 
     def "stopping deployment handle stops runner" () {
-        PlayRunSpec spec = Mock(PlayRunSpec)
-        PlayApplicationRunnerToken token = Mock(PlayApplicationRunnerToken)
-
         when:
-        deploymentHandle.start(spec)
         deploymentHandle.stop()
 
         then:
-        1 * runner.start(_) >> token
-        1 * token.stop()
+        1 * runnerToken.isRunning() >> true
+        1 * runnerToken.stop()
+    }
+
+    def "cannot reload a stopped deployment handle" () {
+        given:
+        1 * runnerToken.isRunning() >> false
+
+        when:
+        deploymentHandle.reload()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot reload a deployment handle that has already been stopped."
     }
 }

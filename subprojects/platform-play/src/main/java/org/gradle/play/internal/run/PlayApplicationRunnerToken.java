@@ -18,26 +18,35 @@ package org.gradle.play.internal.run;
 
 import org.gradle.process.internal.WorkerProcess;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class PlayApplicationRunnerToken {
 
     private final PlayWorkerClient clientCallBack;
     private final PlayRunWorkerServerProtocol workerServer;
     private final WorkerProcess process;
+    private final AtomicBoolean stopped;
 
     public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack, WorkerProcess process) {
         this.workerServer = workerServer;
         this.clientCallBack = clientCallBack;
         this.process = process;
+        this.stopped = new AtomicBoolean(false);
     }
 
     public PlayAppLifecycleUpdate stop() {
         workerServer.stop();
         PlayAppLifecycleUpdate update = clientCallBack.waitForStop();
         process.waitForStop();
+        stopped.set(true);
         return update;
     }
 
     public void rebuildSuccess() {
         workerServer.rebuildSuccess();
+    }
+
+    public boolean isRunning() {
+        return !stopped.get();
     }
 }
