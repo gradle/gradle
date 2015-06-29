@@ -186,18 +186,41 @@ When a Java library has multiple target Java platforms, select a compatible vari
     - Fail when there is no Jar binary with compatible target platform. For example, when building for Java 7, fail if a required library has target platform Java 9.
       Error message should include information about which target platforms are available.
 
+### Implementation
+
+The implementation should continue to build on the dependency resolution engine.
+
+- Create a `Factory` which allows dependency resolver providers to be instantiated on a request basis.
+    - A request in this context is a single dependency resolution, that is
+to say a call to `DefaultDependencyResolver#resolve`.
+    - The factory should accept a `ResolveContext` instance
+    - The factory should create an instance of a `ResolverProvider` based on a `Query` object
+    - The `Query` represents contextual information necessary to instantiate a `ResolverProvider`. In particular, it wraps the `ResolveContext` instance.
+- Update `DefaultDependencyResolver` to use the factory to instantiate a new `ResolverProvider`, providing it with a `ResolveContext`.
+- Replace direct instantiation of `LocalLibraryDependencyResolver` in `BuildScopeServices` with a call to the factory
+    - Create a `JavaLibraryResolverProvider` which accepts a `ResolveContext` as a constructor argument and delegates to a `LocalLibraryDependencyResolver`
+    - Update `LocalLibraryDependencyResolver` to accept a `JvmBinarySpec` as a constructor argument. This spec provides information to the resolver about the usage of the library
+- Update `LocalLibraryDependencyResolver` to use the `JavaPlatform` from the usage information to select the appropriate version of the dependency
+- Update `LocalLibraryDependencyResolver` to provide a meaningful error message in case no appropriate variant is applicable
+- `LocalLibraryDependencyResolver` should *not* store the `ResolveContext` instance. It is the responsibility of the plugin `ResolverProvider` to extract the appropriate
+information from `ResolveContext` to create the `LocalLibraryDependencyResolver`
+
 ### Test cases
 
 - Given library `a` requires library `b`
     - When `a` targets Java 6 and Java 7, and `b` targets Java 6, then both binaries of `a` are built against `b` Java 6.
-    - When `a` targets Java 6 and Java 7, and `b` targets Java 6 and Java 7, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7. 
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 6 and Java 7, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7.
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 6, Java 7 and Java 8, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7.
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 6 and Java 7, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7 and the order
+    of declaration of the platforms on `b` doesn't matter
+
 - Error cases as above.
 
 ## Story: Resolution failures explain why library selector was attempted
 
 The goal is parity with the error reporting for `Configuration` resolution failures.
 
-- Show the path through the graph from the consumer to the problematic selector 
+- Show the path through the graph from the consumer to the problematic selector
 - Give a reasonable display name for the consumer, nodes in the graph and the selectors
 - Collect all selector resolve failures
 
@@ -205,9 +228,9 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 
 - documentation
 - resolve libraries from binary repositories, for libraries with a single variant
-    - Maven repo: assume API dependencies are defined by `compile` scope. 
+    - Maven repo: assume API dependencies are defined by `compile` scope.
     - Ivy repo: look for a particular configuration, if not present assume no API dependencies (or perhaps use `default` configuration)
-    - Assume no target platform, and assume compatible with all target platforms. 
+    - Assume no target platform, and assume compatible with all target platforms.
 - declare transitive API dependencies
 - use component model terminology in error messages and exception class names.
 - reporting
@@ -220,25 +243,25 @@ The goal is parity with the error reporting for `Configuration` resolution failu
 
 This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
 
-## Story: Jar binary is built from input source sets 
+## Story: Jar binary is built from input source sets
 
 Allow multiple Jar binaries to be built from multiple Java source and resource sets, to somewhat approximate the Jars built for Android components.
 
 - A source set may be input to multiple binaries.
     - These are not owned by the binary, they are inputs to the binary.
-    - A binary may also own some source sets, these are also implicit inputs to the binary. 
+    - A binary may also own some source sets, these are also implicit inputs to the binary.
 - A binary may be built from multiple input source sets
 - A Jar binary can be built from one or more input Java and resource source sets.
 - Error cases:
-    - Fail at configuration time when there is no language rule available to build the binary from a given input source set. 
+    - Fail at configuration time when there is no language rule available to build the binary from a given input source set.
 
 ### Test cases
 
-- Given a custom component: 
+- Given a custom component:
     - Java Source set `a` and `b`
     - Resources set `res-a` and `res-b`
     - Binaries `jar-a` and `jar-b`
-    - Can build binaries with `a`, `b`, `res-a` and `res-b` as inputs, plus a source set owned by the binary.  
+    - Can build binaries with `a`, `b`, `res-a` and `res-b` as inputs, plus a source set owned by the binary.
         - Only the expected compiled classes and resources end up in each jar.
 - Error cases above.
 
@@ -246,7 +269,7 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
 
 - Changes to `BinarySpec`
     - Add `ModelMap <LanguageSourceSet> getSources()` and deprecate `getSource()`.
-    - Change implementation of `sources(Action)` to execute the action against the return value of `getSources()`. 
+    - Change implementation of `sources(Action)` to execute the action against the return value of `getSources()`.
     - Add `Set<LanguagesSourceSet> getInputs()`.
     - Every source set created in `BinarySpec.sources` should also appear in `BinarySpec.inputs`.
     - Any source set instance can be added to `BinarySpec.inputs`.
@@ -276,7 +299,7 @@ dependencies of the source are also built and the source compiled.
 
 ### Test cases
 
-- Given a custom component that creates a `JarBinarySpec`, using the `jvm-component` plugin:
+- Given a custom component that creates a `JarBinarySpec`, using
     - Source set `a` depends on Java library `lib1`
     - Source set `b` depends on Java library `lib2`
     - Resources set `res-a` and `res-b`
@@ -314,10 +337,10 @@ this library, the Jar binary is built and made available to the consuming compon
 Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
 
     @Managed
-    interface CustomBinarySpec extends JarBinarySpec { 
+    interface CustomBinarySpec extends JarBinarySpec {
         @Variant
         String getFlavor()
-        
+
         @Variant
         BuildType getBuildType() // Must extend `Named`
     }
@@ -341,28 +364,28 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 Change dependency resolution to honor the variant dimensions for a custom component.
 
 - When resolving dependencies of a binary with variant dimensions `D` with values `d`:
-    - Match any binary with variant dimensions `E` and values `e` where the intersection of `D` and `E` is not empty, and the values of `e` from the intersection are compatible. 
+    - Match any binary with variant dimensions `E` and values `e` where the intersection of `D` and `E` is not empty, and the values of `e` from the intersection are compatible.
       with the values from `d`.
     - Fail when there is not exactly one such binary.
 - To determine whether the variant values are compatible:
-    - Exact match on name 
+    - Exact match on name
     - Special case compatibility for `JavaPlatform`.
 - For example:
     - Resolving for a binary with `(platform, buildType, screenSize)` from a library with binaries with `(platform)`, select all candidates with compatible `platform` and
       ignore the other dimensions.
-    - Resolving for a binary with `(platform)` from a library with binaries with `(platform, buildType, screenSize)`, select all candidates with compatible `platform`.      
-    - Resolving for a binary with `(platform, screenSize)` from a library with binaries with `(platform, buildType)`, select all candidates with compatible `platform`.      
+    - Resolving for a binary with `(platform)` from a library with binaries with `(platform, buildType, screenSize)`, select all candidates with compatible `platform`.
+    - Resolving for a binary with `(platform, screenSize)` from a library with binaries with `(platform, buildType)`, select all candidates with compatible `platform`.
 
 ## Feature backlog
 
-- Allow library to expose Jar, classes dir or any combination as its Java API.  
+- Allow library to expose Jar, classes dir or any combination as its Java API.
 - Allow plugin to use compiled classes from a Java source set to build a custom binary.
 - Plugin declares Jar or classes as intermediate output rather than final output.
 - Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
 - Expose a way to query the resolved compile classpath for a Java source set.
 - Plugin author defines target Java platform for Jar binary
 
-# Feature 3: TBD 
+# Feature 3: TBD
 
 # Later work
 
