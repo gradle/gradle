@@ -60,8 +60,6 @@ public class TwirlCompile extends SourceTask {
     private TwirlStaleOutputCleaner cleaner;
     private PlayPlatform platform;
 
-    private Compiler<TwirlCompileSpec> compiler;
-
     /**
      * fork options for the twirl compiler.
      */
@@ -70,10 +68,6 @@ public class TwirlCompile extends SourceTask {
             forkOptions = new BaseForkOptions();
         }
         return forkOptions;
-    }
-
-    void setCompiler(Compiler<TwirlCompileSpec> compiler) {
-        this.compiler = compiler;
     }
 
     /**
@@ -130,9 +124,6 @@ public class TwirlCompile extends SourceTask {
     }
 
     private Compiler<TwirlCompileSpec> getCompiler() {
-        if (compiler != null) {
-            return compiler;
-        }
         ToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(platform);
         return toolProvider.newCompiler(TwirlCompileSpec.class);
     }
@@ -157,6 +148,17 @@ public class TwirlCompile extends SourceTask {
     @Incubating
     @Inject
     public PlayToolChain getToolChain() {
+        // Implementation is generated
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the tool chain that will be used to compile the twirl source.
+     *
+     * @param toolChain The tool chain.
+     */
+    @Incubating
+    public void setToolChain(PlayToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
     }

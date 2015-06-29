@@ -56,7 +56,6 @@ public class RoutesCompile extends SourceTask {
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-    private Compiler<RoutesCompileSpec> compiler;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -101,9 +100,6 @@ public class RoutesCompile extends SourceTask {
     }
 
     private Compiler<RoutesCompileSpec> getCompiler() {
-        if (compiler != null) {
-            return compiler;
-        }
         ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
         return select.newCompiler(RoutesCompileSpec.class);
     }

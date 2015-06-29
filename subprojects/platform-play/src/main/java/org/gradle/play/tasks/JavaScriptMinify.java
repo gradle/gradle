@@ -51,7 +51,6 @@ import java.util.List;
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
     private PlayPlatform playPlatform;
-    private Compiler<JavaScriptCompileSpec> compiler;
     private BaseForkOptions forkOptions;
 
     public JavaScriptMinify() {
@@ -103,9 +102,6 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     private Compiler<JavaScriptCompileSpec> getCompiler() {
-        if (compiler != null) {
-            return compiler;
-        }
         ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
         return select.newCompiler(JavaScriptCompileSpec.class);
     }
