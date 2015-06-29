@@ -258,6 +258,46 @@ public class MyApp {
         ['-i', '-PmyProp=hello'] | false           | true           | true
     }
 
+    def "build execution for script with invalid Groovy syntax"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    'Hello world!"
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        BuildResult result = gradleRunner.fails()
+
+        then:
+        noExceptionThrown()
+        !result.standardOutput.contains(':helloWorld')
+        result.standardError.contains('Could not compile build file')
+    }
+
+    def "build execution for script with unknown Gradle API method class"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doSomething {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        BuildResult result = gradleRunner.fails()
+
+        then:
+        noExceptionThrown()
+        !result.standardOutput.contains(':helloWorld')
+        result.standardError.contains('Could not find method doSomething()')
+    }
+
     def "build execution with badly formed argument"() {
         given:
         buildFile << helloWorldTask()
