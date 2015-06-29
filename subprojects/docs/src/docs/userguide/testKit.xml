@@ -31,12 +31,12 @@
     <section>
         <title>Usage</title>
         <para>To use the test-kit, include the following in your build script:</para>
-        <sample id="testKitDependency" dir="testKit/testKitJUnit" title="Declaring the test-kit dependency">
+        <sample id="testKitDependency" dir="testKit/testKitJunit" title="Declaring the test-kit dependency">
             <sourcefile file="build.gradle" snippet="declare-testkit-dependency"/>
         </sample>
         <para>The test-kit does not have an opinion about the used test framework. It's up to the build logic to choose a test framework and declare its dependency. The following build script
             declares a dependency on <ulink url="http://junit.org/">JUnit</ulink>:</para>
-        <sample id="junitDependency" dir="testKit/testKitJUnit" title="Declaring the JUnit dependency">
+        <sample id="junitDependency" dir="testKit/testKitJunit" title="Declaring the JUnit dependency">
             <sourcefile file="build.gradle" snippet="declare-junit-dependency"/>
         </sample>
     </section>
@@ -64,7 +64,7 @@
             <literal>succeeds()</literal> or <literal>fails()</literal> on the <literal>GradleRunner</literal> instance. The return type of these method calls is a
             <apilink class="org.gradle.testkit.functional.BuildResult"/>. The <literal>BuildResult</literal> can be used for assertions on the expected outcome of a build.</para>
         <para>The following code snippet of a functional test implementation demonstrates the use of the GradleRunner API:</para>
-        <sample id="testKitFunctionalTestJUnit" dir="testKit/testKitJUnit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test">
+        <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJUnit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test">
             <sourcefile file="UserFunctionalTest.java" snippet="functional-test-junit"/>
         </sample>
     </section>
