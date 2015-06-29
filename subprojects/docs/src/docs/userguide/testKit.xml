@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id="test_kit">
+    <title>The Gradle test-kit</title>
+    <note>
+        <para>
+            The Gradle test-kit is currently <link linkend="feature_lifecycle">incubating</link>.
+            Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>
+        The Gradle test-kit is used to write functional tests for custom build logic. Tests written with the test-kit are testing framework agnostic and executed with the help of the
+        <link linkend="embedding">Tooling API</link>.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the test-kit, include the following in your build script:</para>
+        <sample id="testKitDependency" dir="testKit/testKitJUnit" title="Declaring the test-kit dependency">
+            <sourcefile file="build.gradle" snippet="declare-testkit-dependency"/>
+        </sample>
+        <para>The test-kit does not have an opinion about the used test framework. It's up to the build logic to choose a test framework and declare its dependency. The following build script
+            declares a dependency on <ulink url="http://junit.org/">JUnit</ulink>:</para>
+        <sample id="junitDependency" dir="testKit/testKitJUnit" title="Declaring the JUnit dependency">
+            <sourcefile file="build.gradle" snippet="declare-junit-dependency"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Using the GradleRunner API</title>
+        <para>After adding the dependency on the test-kit, its API becomes available to the functional test classes of the relevant <literal>SourceSet</literal>. The main entry point for executing a
+            build script with the help of the test-kit is the interface <apilink class="org.gradle.testkit.functional.GradleRunner"/>. <literal>GradleRunner</literal> exposes a method named
+            <literal>create()</literal> for instantiating a default implementation.</para>
+        <para>
+            The default implementation is determined based on the following rules:
+        </para>
+        <itemizedlist>
+            <listitem>When running from a <literal>Test</literal> task, use the Gradle installation that is running the build.</listitem>
+            <listitem>When importing into the IDE, use the Gradle installation that performed the import.</listitem>
+        </itemizedlist>
+        <para>Before executing build logic with the GradleRunner instance two parameters need to be provided:</para>
+        <itemizedlist>
+            <listitem>The working directory containing the project's <literal>build.gradle</literal> file.</listitem>
+            <listitem>The task names used to execute the build script.</listitem>
+        </itemizedlist>
+        <para>The are more options that can be provided for a build execution. Please refer to the API to discover more options.</para>
+        <para>A build execution is assumed to be successful or failing based on the build script logic. The root cause of a failing build could be invalid syntax of the build script logic, a thrown
+            exception, a failed task or a mechanical issue with the test execution originating from the Tooling API. The execution of build logic is initiated by calling the methods
+            <literal>succeeds()</literal> or <literal>fails()</literal> on the <literal>GradleRunner</literal> instance. The return type of these method calls is a
+            <apilink class="org.gradle.testkit.functional.BuildResult"/>. The <literal>BuildResult</literal> can be used for assertions on the expected outcome of a build.</para>
+        <para>The following code snippet of a functional test implementation demonstrates the use of the GradleRunner API:</para>
+        <sample id="testKitFunctionalTestJUnit" dir="testKit/testKitJUnit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test">
+            <sourcefile file="UserFunctionalTest.java" snippet="functional-test-junit"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Limitations and future direction</title>
+        <para>Currently, the Gradle test-kit has limited functionality. Future versions of Gradle will add more features such as:</para>
+        <itemizedlist>
+            <listitem>Test framework adapters (e.g. JUnit, Spock framework) for a more convenient usage.</listitem>
+            <listitem>Adding external classes under test (e.g. plugins, custom tasks) to the classpath of the test-kit.</listitem>
+            <listitem>Integration with the <link linkend="javaGradlePlugin">Java Gradle Plugin Development Plugin</link>.</listitem>
+            <listitem>Programmatic creation of a repositories and published dependencies as part of the test setup.</listitem>
+            <listitem>Test build code against different Gradle versions.</listitem>
+        </itemizedlist>
+    </section>
+</chapter>

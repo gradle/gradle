@@ -31,6 +31,13 @@ Please see section [Verification of downloaded Gradle distributions](userguide/g
 
 This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
 
+### Gradle test-kit
+
+Gradle now supports a test-kit for writing and executing functional tests for custom build logic. This is the initial iteration of the functionality. Future releases will increase the support for
+other features.
+
+See the new User Guide section about using the [test-kit](userguide/test_kit.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
