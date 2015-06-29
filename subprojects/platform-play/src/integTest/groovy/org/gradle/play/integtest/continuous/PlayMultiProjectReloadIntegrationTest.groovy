@@ -129,4 +129,38 @@ dependencies {
 }
 '''
     }
+
+    def "can add javascript file to primary project"() {
+        when:
+        succeeds(":primary:runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("primary/public/helloworld.js") << '''
+var message = "Hello JS";
+'''
+
+        then:
+        succeeds()
+        runningApp.playUrl('assets/helloworld.js').text.contains('Hello JS')
+    }
+
+    def "can add javascript file to sub module"() {
+        when:
+        succeeds(":primary:runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("submodule/public/helloworld.js") << '''
+var message = "Hello from submodule";
+'''
+
+        then:
+        succeeds()
+        runningApp.playUrl('assets/helloworld.js').text.contains('Hello from submodule')
+    }
 }
