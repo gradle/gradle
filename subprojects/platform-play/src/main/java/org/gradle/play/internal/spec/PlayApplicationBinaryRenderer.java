@@ -29,6 +29,5 @@ public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayAp
     @Override
     protected void renderDetails(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
         builder.item("platform", binary.getTargetPlatform().getDisplayName());
-        builder.item("tool chain", binary.getToolChain().getDisplayName());
     }
 }
