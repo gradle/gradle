@@ -59,7 +59,6 @@ import java.util.List;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
-    private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
@@ -134,29 +133,26 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
                     StringUtils.capitalize(source.getDisplayName())));
         }
-        if (emptyScriptDetector.isEmptyScript()) {
-            GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
-        }
-        serializeMetadata(source, extractingTransformer, metadataDir);
+        serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript());
     }
 
-    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir) {
-        if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
-            return;
-        }
+    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript) {
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
             GFileUtils.mkdirs(metadataDir);
             KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile));
             try {
-                Serializer<M> serializer = extractingTransformer.getDataSerializer();
-                serializer.write(encoder, extractingTransformer.getExtractedData());
+                byte flags = (byte)(emptyScript ? 1 : 0);
+                encoder.writeByte(flags);
+                if (extractingTransformer != null && extractingTransformer.getDataSerializer() != null) {
+                    Serializer<M> serializer = extractingTransformer.getDataSerializer();
+                    serializer.write(encoder, extractingTransformer.getExtractedData());
+                }
             } finally {
                 encoder.close();
             }
         } catch (Exception e) {
-            String transformerName = extractingTransformer.getTransformer().getClass().getName();
-            throw new IllegalStateException(String.format("Failed to serialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
+            throw new GradleException(String.format("Failed to serialize script metadata extracted for %s", scriptSource.getDisplayName()), e);
         }
     }
 
@@ -192,57 +188,27 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
                                                                   File metadataCacheDir, final CompileOperation<M> transformer, final Class<T> scriptBaseClass, final ClassLoaderId classLoaderId) {
-
-        final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
-        final boolean isEmpty = new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile();
-        return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
-            @Override
-            public boolean isEmpty() {
-                return isEmpty;
-            }
-
-            @Override
-            public Class<? extends T> loadClass() {
-                if (isEmpty) {
-                    classLoaderCache.remove(classLoaderId);
-                    return emptyScriptGenerator.generate(scriptBaseClass);
-                }
-
-                try {
-                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
-                    return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
-                } catch (Exception e) {
-                    File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
-                    if (!expectedClassFile.exists()) {
-                        throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
-                    }
-                    throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
-                }
-            }
-
-            @Override
-            public M getData() {
-                return metadata;
-            }
-        });
-    }
-
-    private <M> M deserializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataCacheDir) {
-        if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
-            return null;
-        }
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
             KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
             try {
-                Serializer<M> serializer = extractingTransformer.getDataSerializer();
-                return serializer.read(decoder);
+                byte flags = decoder.readByte();
+                boolean isEmpty = (flags & 1) != 0;
+                if (isEmpty) {
+                    classLoaderCache.remove(classLoaderId);
+                }
+                M data;
+                if (transformer != null && transformer.getDataSerializer() != null) {
+                    data = transformer.getDataSerializer().read(decoder);
+                } else {
+                    data = null;
+                }
+                return new ClassCachingCompiledScript<T, M>(new ClassesDirCompiledScript<T, M>(isEmpty, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data));
             } finally {
                 decoder.close();
             }
         } catch (Exception e) {
-            String transformerName = extractingTransformer.getTransformer().getClass().getName();
-            throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
+            throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
         }
     }
 
@@ -321,6 +287,54 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     return super.toByteArray();
                 }
             };
+        }
+    }
+
+    private class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
+        private final boolean isEmpty;
+        private final ClassLoaderId classLoaderId;
+        private final Class<T> scriptBaseClass;
+        private final File scriptCacheDir;
+        private final ClassLoader classLoader;
+        private final ScriptSource source;
+        private final M metadata;
+
+        public ClassesDirCompiledScript(boolean isEmpty, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoader classLoader, ScriptSource source, M metadata) {
+            this.isEmpty = isEmpty;
+            this.classLoaderId = classLoaderId;
+            this.scriptBaseClass = scriptBaseClass;
+            this.scriptCacheDir = scriptCacheDir;
+            this.classLoader = classLoader;
+            this.source = source;
+            this.metadata = metadata;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return isEmpty;
+        }
+
+        @Override
+        public M getData() {
+            return metadata;
+        }
+
+        @Override
+        public Class<? extends T> loadClass() {
+            if (isEmpty) {
+                return emptyScriptGenerator.generate(scriptBaseClass);
+            }
+
+            try {
+                ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
+                return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+            } catch (Exception e) {
+                File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
+                if (!expectedClassFile.exists()) {
+                    throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+                }
+                throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+            }
         }
     }
 }

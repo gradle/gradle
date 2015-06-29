@@ -40,6 +40,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.resource.Resource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -89,10 +90,6 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         scriptFileName = "script-file-name"
         cachedFile = new File(scriptCacheDir, scriptClassName + ".class")
         expectedScriptClass = TestBaseScript.class
-    }
-
-    private ScriptSource scriptSource() {
-        return scriptSource(scriptText)
     }
 
     private ScriptSource scriptSource(final String scriptText) {
@@ -362,16 +359,28 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     private void checkScriptClassesInCache() {
         assertTrue(scriptCacheDir.isDirectory())
         assertTrue(cachedFile.isFile())
-        assertFalse(new File(scriptCacheDir, "emptyScript.txt").exists())
+        checkEmptyScriptFlagSet(false)
     }
 
     private void checkEmptyScriptInCache() {
         assertTrue(scriptCacheDir.isDirectory())
-        assertTrue(new File(scriptCacheDir, "emptyScript.txt").isFile())
+        checkEmptyScriptFlagSet(true)
     }
 
     private void checkScriptCacheEmpty() {
         assertFalse(scriptCacheDir.exists())
+    }
+
+    private void checkEmptyScriptFlagSet(boolean flag) {
+        assertTrue(metadataCacheDir.isDirectory())
+        def metaDataFile = new File(metadataCacheDir, "metadata.bin")
+        assertTrue(metaDataFile.isFile())
+        def decoder = new KryoBackedDecoder(new FileInputStream(metaDataFile))
+        try {
+            assertEquals(decoder.readByte(), flag ? 1 : 0)
+        } finally {
+            decoder.close()
+        }
     }
 
     private void evaluateScript(Script script) {
