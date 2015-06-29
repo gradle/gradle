@@ -34,7 +34,6 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final Action verifier = Mock()
     final classLoaderCache = Mock(ClassLoaderCache)
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator, classLoaderCache)
-    String classpathClosureName = "buildscript"
     def loaderId = ClassLoaderIds.buildScript(source.getFileName(), operation.getId())
 
     def setup() {
@@ -50,15 +49,36 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
 
         when:
         def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
+
+        then:
+        compiledScript.empty
+        compiledScript.data == metadata
+
+        and:
+        0 * target._
+    }
+
+    def "loads empty script class lazily"() {
+        given:
+        _ * resource.text >> '  \n\t'
+
+        when:
+        def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
+
+        then:
+        0 * classLoaderCache._
+        0 * emptyScriptGenerator._
+
+        when:
         def scriptClass = compiledScript.loadClass()
 
         then:
         scriptClass == TestScript
-        compiledScript.data == metadata
-        1 * emptyScriptGenerator.generate(Script) >> TestScript
-        0 * emptyScriptGenerator._
-        0 * target._
+
+        and:
         1 * classLoaderCache.remove(loaderId)
+        1 * emptyScriptGenerator.generate(Script) >> TestScript
+        0 * _
     }
 
     def "compiles script when script contains anything other than whitespace"() {

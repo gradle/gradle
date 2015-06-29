@@ -194,12 +194,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                                                                   File metadataCacheDir, final CompileOperation<M> transformer, final Class<T> scriptBaseClass, final ClassLoaderId classLoaderId) {
 
         final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
-
+        final boolean isEmpty = new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile();
         return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
+            @Override
+            public boolean isEmpty() {
+                return isEmpty;
+            }
 
             @Override
             public Class<? extends T> loadClass() {
-                if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
+                if (isEmpty) {
                     classLoaderCache.remove(classLoaderId);
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }

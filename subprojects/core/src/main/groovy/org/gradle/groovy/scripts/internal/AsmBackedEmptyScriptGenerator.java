@@ -16,8 +16,8 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -48,7 +48,7 @@ public class AsmBackedEmptyScriptGenerator implements EmptyScriptGenerator {
 
         // Constructor
 
-        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[0]);
+        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE);
         MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", constructorDescriptor, null,
                 new String[0]);
         methodVisitor.visitCode();
@@ -64,7 +64,7 @@ public class AsmBackedEmptyScriptGenerator implements EmptyScriptGenerator {
 
         // run() method
 
-        String runDesciptor = Type.getMethodDescriptor(Type.getType(Object.class), new Type[0]);
+        String runDesciptor = Type.getMethodDescriptor(Type.getType(Object.class));
         methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "run", runDesciptor, null, new String[0]);
         methodVisitor.visitCode();
 

@@ -34,7 +34,7 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         Key key = new Key(source.getClassName(), classLoader, operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {

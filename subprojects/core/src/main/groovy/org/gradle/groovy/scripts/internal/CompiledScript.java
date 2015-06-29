@@ -19,6 +19,7 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 
 public interface CompiledScript<T extends Script, D> {
+    boolean isEmpty();
 
     Class<? extends T> loadClass();
 
