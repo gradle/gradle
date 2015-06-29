@@ -66,6 +66,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
 
         then:
+        1 * classLoaderCache.remove(loaderId)
         0 * classLoaderCache._
         0 * emptyScriptGenerator._
 
@@ -76,7 +77,6 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         scriptClass == TestScript
 
         and:
-        1 * classLoaderCache.remove(loaderId)
         1 * emptyScriptGenerator.generate(Script) >> TestScript
         0 * _
     }

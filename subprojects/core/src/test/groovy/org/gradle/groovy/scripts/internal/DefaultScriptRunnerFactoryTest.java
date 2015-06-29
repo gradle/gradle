@@ -58,34 +58,38 @@ public class DefaultScriptRunnerFactoryTest {
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(compiledScriptMock).loadClass();
-            will(returnValue(Script.class));
-            allowing(instantiatorMock).newInstance(Script.class);
-            will(returnValue(scriptMock));
-            allowing(scriptMock).getStandardOutputCapture();
-            will(returnValue(standardOutputCaptureMock));
-            allowing(scriptMock).getScriptSource();
-            will(returnValue(scriptSourceDummy));
-            allowing(scriptMock).getContextClassloader();
-            will(returnValue(classLoaderDummy));
-            allowing(scriptMock).setScriptSource(scriptSourceDummy);
-            allowing(scriptMock).setContextClassloader(classLoaderDummy);
             ignoring(scriptSourceDummy);
         }});
     }
 
     @Test
-    public void createsScriptRunner() {
+    public void doesNotLoadScriptWhenScriptRunnerCreated() {
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
-        assertThat(scriptRunner.getScript(), sameInstance(scriptRunner.getScript()));
+        assertThat(scriptRunner, notNullValue());
     }
 
     @Test
-    public void redirectsStandardOutputAndSetsContextClassLoaderWhenScriptIsRun() {
+    public void runDoesNothingWhenEmptyScriptIsRun() {
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
         context.checking(new Expectations() {{
+            allowing(compiledScriptMock).isEmpty();
+            will(returnValue(true));
+        }});
+
+        scriptRunner.run(target, scriptServices);
+    }
+
+    @Test
+    public void redirectsStandardOutputAndSetsContextClassLoaderWhenNonEmptyScriptIsRun() {
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+
+        expectScriptInstantiated();
+        context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
+
+            allowing(compiledScriptMock).isEmpty();
+            will(returnValue(false));
 
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
@@ -130,8 +134,12 @@ public class DefaultScriptRunnerFactoryTest {
 
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
+        expectScriptInstantiated();
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
+
+            allowing(compiledScriptMock).isEmpty();
+            will(returnValue(false));
 
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
@@ -166,4 +174,22 @@ public class DefaultScriptRunnerFactoryTest {
 
         assertThat(Thread.currentThread().getContextClassLoader(), sameInstance(originalClassLoader));
     }
+
+    void expectScriptInstantiated() {
+        context.checking(new Expectations() {{
+            allowing(compiledScriptMock).loadClass();
+            will(returnValue(Script.class));
+            allowing(instantiatorMock).newInstance(Script.class);
+            will(returnValue(scriptMock));
+            allowing(scriptMock).getStandardOutputCapture();
+            will(returnValue(standardOutputCaptureMock));
+            allowing(scriptMock).getScriptSource();
+            will(returnValue(scriptSourceDummy));
+            allowing(scriptMock).getContextClassloader();
+            will(returnValue(classLoaderDummy));
+            allowing(scriptMock).setScriptSource(scriptSourceDummy);
+            allowing(scriptMock).setContextClassloader(classLoaderDummy);
+        }});
+    }
+
 }

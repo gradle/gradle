@@ -65,6 +65,10 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         @Override
         public void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException {
+            if (compiledScript.isEmpty()) {
+                return;
+            }
+
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();
             script.init(target, scriptServices);

@@ -205,7 +205,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         assertCacheDidNotGrow()
     }
 
-    def "cache shrinks when buildscript disappears"() {
+    def "cache shrinks as buildscript disappears"() {
         addIsCachedCheck()
         file("foo.jar") << "foo"
         buildFile << """
@@ -232,6 +232,29 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         buildFile.delete()
         run()
         assertCacheSizeChange(-1)
+    }
+
+    def "cache shrinks when script with buildscript block is removed"() {
+        addIsCachedCheck()
+        file("foo.jar") << "foo"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") } }
+
+            task foo
+        """
+
+        when:
+        run()
+        run()
+
+        then:
+        isCached()
+        assertCacheSizeChange(0)
+
+        then:
+        buildFile.delete()
+        run()
+        assertCacheSizeChange(-3)
     }
 
     def "refreshes when root project buildscript classpath changes"() {

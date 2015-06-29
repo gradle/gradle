@@ -37,6 +37,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
+            classLoaderCache.remove(classLoaderId);
             return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
                 @Override
                 public boolean isEmpty() {
@@ -44,7 +45,6 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
                 }
 
                 public Class<? extends T> loadClass() {
-                    classLoaderCache.remove(classLoaderId);
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }
 
