@@ -64,7 +64,7 @@
             <literal>succeeds()</literal> or <literal>fails()</literal> on the <literal>GradleRunner</literal> instance. The return type of these method calls is a
             <apilink class="org.gradle.testkit.functional.BuildResult"/>. The <literal>BuildResult</literal> can be used for assertions on the expected outcome of a build.</para>
         <para>The following code snippet of a functional test implementation demonstrates the use of the GradleRunner API:</para>
-        <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJUnit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test">
+        <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJunit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test">
             <sourcefile file="UserFunctionalTest.java" snippet="functional-test-junit"/>
         </sample>
     </section>
