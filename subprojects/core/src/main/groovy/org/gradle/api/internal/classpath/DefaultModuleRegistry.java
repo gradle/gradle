@@ -17,25 +17,16 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -60,6 +51,10 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
 
     public DefaultModuleRegistry() {
         this(DefaultModuleRegistry.class.getClassLoader(), findDistDir());
+    }
+
+    public DefaultModuleRegistry(Class<?> clazz) {
+        this(clazz.getClassLoader(), findDistDir(clazz));
     }
 
     DefaultModuleRegistry(ClassLoader classLoader, File distDir) {
@@ -91,18 +86,46 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
     }
 
     private static File findDistDir() {
-        File codeSource = ClasspathUtil.getClasspathForClass(DefaultModuleRegistry.class);
+        return findDistDir(DefaultModuleRegistry.class);
+    }
+
+    private static File findDistDir(Class<?> clazz) {
+        File codeSource = ClasspathUtil.getClasspathForClass(clazz);
         if (codeSource.isFile()) {
-            // Loaded from a JAR - let's see if its in the lib directory, and there's a lib/plugins directory
-            File libDir = codeSource.getParentFile();
-            if (!libDir.getName().equals("lib") || !new File(libDir, "plugins").isDirectory()) {
-                return null;
-            }
-            return libDir.getParentFile();
+            return determineDistRootDir(codeSource);
         } else {
             // Loaded from a classes dir - assume we're running from the ide or tests
             return null;
         }
+    }
+
+    /**
+     * Returns the root directory of a distribution based on the code source of a JAR file. The JAR can either sit in the lib or plugins subdirectory. Returns null if distribution doesn't have
+     * expected directory layout.
+     *
+     * The expected directory layout for JARs of a distribution looks as such:
+     *
+     * dist-root
+     *    |_ lib
+     *       |_ plugins
+     *
+     * @param codeSource Code source of JAR file
+     * @return Distribution root directory
+     */
+    private static File determineDistRootDir(File codeSource) {
+        File parentDir = codeSource.getParentFile();
+
+        if(parentDir.getName().equals("lib")) {
+            File pluginsDir = new File(parentDir, "plugins");
+            return parentDir.isDirectory() && pluginsDir.exists() && pluginsDir.isDirectory() ? parentDir.getParentFile() : null;
+        }
+
+        if(parentDir.getName().equals("plugins")) {
+            File libDir = parentDir.getParentFile();
+            return parentDir.isDirectory() && libDir.exists() && libDir.isDirectory() && libDir.getName().equals("lib") ? libDir.getParentFile() : null;
+        }
+
+        return null;
     }
 
     /**

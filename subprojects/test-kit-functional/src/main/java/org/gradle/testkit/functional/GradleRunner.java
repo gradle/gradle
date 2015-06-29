@@ -17,6 +17,7 @@
 package org.gradle.testkit.functional;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.testkit.functional.internal.DefaultGradleRunner;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
@@ -126,12 +127,17 @@ public abstract class GradleRunner {
     public abstract BuildResult fails();
 
     /**
-     * Creates and returns a default implementation of a {@link GradleRunner}. The implementation uses the current Gradle version to execute the build.
+     * Creates and returns a default implementation of a {@link GradleRunner}. The default implementation is determined based on the following rules:
+     *
+     * - When running from a {@code Test} task, use the Gradle installation that is running the build.
+     * - When importing into the IDE, use the Gradle installation that performed the import.
      *
      * @return Default implementation
      */
     public static GradleRunner create() {
-        return create(VersionBasedGradleDistribution.CURRENT);
+        DefaultModuleRegistry registry = new DefaultModuleRegistry(GradleRunner.class);
+        File gradleHome = registry.getGradleHome();
+        return create(new InstalledGradleDistribution(gradleHome));
     }
 
     static GradleRunner create(GradleDistribution gradleDistribution) {
