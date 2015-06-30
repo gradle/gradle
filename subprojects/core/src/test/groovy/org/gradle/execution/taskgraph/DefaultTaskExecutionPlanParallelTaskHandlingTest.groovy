@@ -91,7 +91,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
         def thread = new Thread(target)
 
         thread.start()
-        ConcurrentTestUtil.poll(3) {
+        ConcurrentTestUtil.poll(3, 0.01) {
             assert thread.state == Thread.State.WAITING
         }
         thread

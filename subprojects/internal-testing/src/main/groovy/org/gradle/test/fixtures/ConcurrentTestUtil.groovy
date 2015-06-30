@@ -66,8 +66,10 @@ class ConcurrentTestUtil extends ExternalResource {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    static void poll(int timeout = 10, Closure assertion) {
-        def expiry = System.currentTimeMillis() + timeout * 1000 // convert to ms
+    static void poll(double timeout = 10, double initialDelay = 0, Closure assertion) {
+        def start = System.currentTimeMillis()
+        Thread.sleep(toMillis(initialDelay))
+        def expiry = start + toMillis(timeout) // convert to ms
         long sleepTime = 100
         while(true) {
             try {
@@ -81,6 +83,10 @@ class ConcurrentTestUtil extends ExternalResource {
                 Thread.sleep(sleepTime);
             }
         }
+    }
+
+    static long toMillis(double seconds) {
+        return (long) (seconds * 1000);
     }
 
     void setShortTimeout(int millis) {
@@ -358,13 +364,13 @@ interface TestParticipant extends LongRunningAction {
 }
 
 abstract class AbstractAction implements LongRunningAction {
-    
+
     Date defaultExpiry
 
     AbstractAction(Date defaultExpiry) {
         this.defaultExpiry = defaultExpiry
     }
-    
+
     void completed() {
         completesBefore(defaultExpiry)
     }

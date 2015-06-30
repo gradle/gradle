@@ -170,7 +170,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     void noBuildTriggered(int waitSeconds = 3) {
         // TODO - change this general strategy to positively detect changes we are ignoring instead of asserting that a build doesn't happen in some time frame
         try {
-            ConcurrentTestUtil.poll(waitSeconds) {
+            ConcurrentTestUtil.poll(waitSeconds, 0.5) {
                 // force the poll to continue while there is no output
                 assert !buildOutputSoFar().empty
             }

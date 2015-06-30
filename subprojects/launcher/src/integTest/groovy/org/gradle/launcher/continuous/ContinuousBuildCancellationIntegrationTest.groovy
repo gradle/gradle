@@ -47,7 +47,7 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         sendEOT()
 
         then:
-        ConcurrentTestUtil.poll(buildTimeout) {
+        ConcurrentTestUtil.poll(buildTimeout, 0.5) {
             assert !gradle.isRunning()
         }
 
@@ -95,7 +95,7 @@ class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuou
         sendEOT()
 
         then:
-        ConcurrentTestUtil.poll(buildTimeout) {
+        ConcurrentTestUtil.poll(buildTimeout, 0.5) {
             assert !gradle.isRunning()
         }
     }

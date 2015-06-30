@@ -139,7 +139,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        ConcurrentTestUtil.poll(buildTimeout) {
+        ConcurrentTestUtil.poll(buildTimeout, 0.5) {
             assert stdout.toString().contains(WAITING_MESSAGE)
         }
 
