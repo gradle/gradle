@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.classpath
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.jvm.JavaInfo
@@ -80,7 +81,8 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
             public class MyClass {}
         """
-        new AntBuilder().javac(destdir: contents, includeantruntime: true, fork: 'yes', executable: javacExecutable) {
+        String compatibilityVersion = JavaVersion.VERSION_1_6.toString()
+        new AntBuilder().javac(destdir: contents, includeantruntime: true, source: compatibilityVersion, target: compatibilityVersion, fork: 'yes', executable: javacExecutable) {
             src(path: contents)
         }
 
