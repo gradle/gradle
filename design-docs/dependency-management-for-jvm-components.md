@@ -216,14 +216,6 @@ information from `ResolveContext` to create the `LocalLibraryDependencyResolver`
 
 - Error cases as above.
 
-## Story: Resolution failures explain why library selector was attempted
-
-The goal is parity with the error reporting for `Configuration` resolution failures.
-
-- Show the path through the graph from the consumer to the problematic selector
-- Give a reasonable display name for the consumer, nodes in the graph and the selectors
-- Collect all selector resolve failures
-
 ## Feature backlog
 
 - documentation
