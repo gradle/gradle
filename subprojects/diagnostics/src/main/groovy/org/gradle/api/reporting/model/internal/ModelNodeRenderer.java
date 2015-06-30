@@ -112,8 +112,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
 
     public void printNodeAttribute(StyledTextOutput styledTextoutput, String label, String value) {
         styledTextoutput.withStyle(Identifier).format("      | %s", attributeLabel(label));
-        styledTextoutput.withStyle(Description).format(" \t%s |", value);
-        //Ideally the closing '|' would be the same style as the opening one but somehow it ends up placed in the middle of the line when we style for a 3rd time.
+        styledTextoutput.withStyle(Description).format(" \t%s", value);
         styledTextoutput.println();
     }
 

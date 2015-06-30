@@ -101,7 +101,7 @@ class ModelReportParser {
     @VisibleForTesting
     static void setNodeProperties(String line, ReportNode reportNode) {
         NODE_ATTRIBUTES.each { String pattern, String prop ->
-            def matcher = (line =~ /\| ${pattern}: (.+)\|$/)
+            def matcher = (line =~ /\| ${pattern}: (.+)$/)
             if (matcher) {
                 String val = matcher[0][1]
                 if (val) {

@@ -85,7 +85,7 @@ BUILD SUCCESSFUL
         modelReport.reportNode.children() == []
     }
 
-    def "should parse a model report with child nodes and vules"() {
+    def "should parse a model report with child nodes and values"() {
         setup:
         def modelReport = ModelReportParser.parse(""":model
 
@@ -95,24 +95,24 @@ My Report
 
 + model
     + nullCredentials
-          | Type: \t PasswordCredentials |
+          | Type: \t PasswordCredentials
         + password
-              | Type: \t java.lang.String |
+              | Type: \t java.lang.String
         + username
-              | Type: \t java.lang.String |
+              | Type: \t java.lang.String
     + numbers
-          | Type: \t Numbers |
+          | Type: \t Numbers
         + value
-              | Value: \t 5 |
-              | Type: \t java.lang.Integer |
+              | Value: \t 5
+              | Type: \t java.lang.Integer
     + primaryCredentials
-          | Type: \t PasswordCredentials |
+          | Type: \t PasswordCredentials
         + password
-              | Value: \t hunter2 |
-              | Type: \t java.lang.String |
+              | Value: \t hunter2
+              | Type: \t java.lang.String
         + username
-              | Value: \t uname |
-              | Type: \t java.lang.String |
+              | Value: \t uname
+              | Type: \t java.lang.String
 
 BUILD SUCCESSFUL
 """)
@@ -131,7 +131,7 @@ BUILD SUCCESSFUL
         reportNode.attribute(expectedAttribute) == expectedValue
         where:
         line                       | expectedAttribute | expectedValue
-        '| Value: \t some value |' | 'nodeValue'       | 'some value'
-        '| Type: \t some type |'   | 'type'            | 'some type'
+        '| Value: \t some value' | 'nodeValue'       | 'some value'
+        '| Type: \t some type'   | 'type'            | 'some type'
     }
 }

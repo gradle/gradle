@@ -160,125 +160,125 @@ model {
         modelReportOutput.nodeContentEquals('''
 + model
     + nullCredentials
-          | Type:   \tPasswordCredentials |
-          | Creator: \tmodel.nullCredentials |
-          | Rules:  |
+          | Type:   \tPasswordCredentials
+          | Creator: \tmodel.nullCredentials
+          | Rules:
              ⤷ model.nullCredentials
              ⤷ model.nullCredentials
         + password
-              | Type:   \tjava.lang.String |
-              | Creator: \tmodel.nullCredentials |
-              | Rules:  |
+              | Type:   \tjava.lang.String
+              | Creator: \tmodel.nullCredentials
+              | Rules:
                  ⤷ model.nullCredentials
         + username
-              | Type:   \tjava.lang.String |
-              | Creator: \tmodel.nullCredentials |
-              | Rules:  |
+              | Type:   \tjava.lang.String
+              | Creator: \tmodel.nullCredentials
+              | Rules:
                  ⤷ model.nullCredentials
     + numbers
-          | Type:   \tNumbers |
-          | Creator: \tmodel.numbers |
-          | Rules:  |
+          | Type:   \tNumbers
+          | Creator: \tmodel.numbers
+          | Rules:
              ⤷ model.numbers
              ⤷ model.numbers
         + value
-              | Type:   \tjava.lang.Integer |
-              | Creator: \tmodel.numbers |
-              | Value:  \t5 |
-              | Rules:  |
+              | Type:   \tjava.lang.Integer
+              | Creator: \tmodel.numbers
+              | Value:  \t5
+              | Rules:
                  ⤷ model.numbers
     + primaryCredentials
-          | Type:   \tPasswordCredentials |
-          | Creator: \tmodel.primaryCredentials |
-          | Rules:  |
+          | Type:   \tPasswordCredentials
+          | Creator: \tmodel.primaryCredentials
+          | Rules:
              ⤷ model.primaryCredentials
              ⤷ model.primaryCredentials
         + password
-              | Type:   \tjava.lang.String |
-              | Creator: \tmodel.primaryCredentials |
-              | Value:  \thunter2 |
-              | Rules:  |
+              | Type:   \tjava.lang.String
+              | Creator: \tmodel.primaryCredentials
+              | Value:  \thunter2
+              | Rules:
                  ⤷ model.primaryCredentials
         + username
-              | Type:   \tjava.lang.String |
-              | Creator: \tmodel.primaryCredentials |
-              | Value:  \tuname |
-              | Rules:  |
+              | Type:   \tjava.lang.String
+              | Creator: \tmodel.primaryCredentials
+              | Value:  \tuname
+              | Rules:
                  ⤷ model.primaryCredentials
     + tasks
-          | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task> |
-          | Creator: \tProject.<init>.tasks() |
-          | Rules:  |
+          | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
+          | Creator: \tProject.<init>.tasks()
+          | Rules:
              ⤷ Project.<init>.tasks()
         + components
-              | Type:   \torg.gradle.api.reporting.components.ComponentReport |
-              | Creator: \ttasks.addPlaceholderAction(components) |
-              | Value:  \ttask ':components' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.reporting.components.ComponentReport
+              | Creator: \ttasks.addPlaceholderAction(components)
+              | Value:  \ttask ':components'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(components)
                  ⤷ copyToTaskContainer
         + dependencies
-              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask |
-              | Creator: \ttasks.addPlaceholderAction(dependencies) |
-              | Value:  \ttask ':dependencies' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask
+              | Creator: \ttasks.addPlaceholderAction(dependencies)
+              | Value:  \ttask ':dependencies'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencies)
                  ⤷ copyToTaskContainer
         + dependencyInsight
-              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask |
-              | Creator: \ttasks.addPlaceholderAction(dependencyInsight) |
-              | Value:  \ttask ':dependencyInsight' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask
+              | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
+              | Value:  \ttask ':dependencyInsight'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencyInsight)
                  ⤷ org.gradle.api.plugins.HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration(org.gradle.api.tasks.diagnostics.DependencyInsightReportTask, org.gradle.internal.service.ServiceRegistry)
                  ⤷ copyToTaskContainer
         + help
-              | Type:   \torg.gradle.configuration.Help |
-              | Creator: \ttasks.addPlaceholderAction(help) |
-              | Value:  \ttask ':help' |
-              | Rules:  |
+              | Type:   \torg.gradle.configuration.Help
+              | Creator: \ttasks.addPlaceholderAction(help)
+              | Value:  \ttask ':help'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(help)
                  ⤷ copyToTaskContainer
         + init
-              | Type:   \torg.gradle.buildinit.tasks.InitBuild |
-              | Creator: \ttasks.addPlaceholderAction(init) |
-              | Value:  \ttask ':init' |
-              | Rules:  |
+              | Type:   \torg.gradle.buildinit.tasks.InitBuild
+              | Creator: \ttasks.addPlaceholderAction(init)
+              | Value:  \ttask ':init'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(init)
                  ⤷ copyToTaskContainer
         + model
-              | Type:   \torg.gradle.api.reporting.model.ModelReport |
-              | Creator: \ttasks.addPlaceholderAction(model) |
-              | Value:  \ttask ':model' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.reporting.model.ModelReport
+              | Creator: \ttasks.addPlaceholderAction(model)
+              | Value:  \ttask ':model'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(model)
                  ⤷ copyToTaskContainer
         + projects
-              | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask |
-              | Creator: \ttasks.addPlaceholderAction(projects) |
-              | Value:  \ttask ':projects' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask
+              | Creator: \ttasks.addPlaceholderAction(projects)
+              | Value:  \ttask ':projects'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(projects)
                  ⤷ copyToTaskContainer
         + properties
-              | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask |
-              | Creator: \ttasks.addPlaceholderAction(properties) |
-              | Value:  \ttask ':properties' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
+              | Creator: \ttasks.addPlaceholderAction(properties)
+              | Value:  \ttask ':properties'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(properties)
                  ⤷ copyToTaskContainer
         + tasks
-              | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask |
-              | Creator: \ttasks.addPlaceholderAction(tasks) |
-              | Value:  \ttask ':tasks' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
+              | Creator: \ttasks.addPlaceholderAction(tasks)
+              | Value:  \ttask ':tasks'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(tasks)
                  ⤷ copyToTaskContainer
         + wrapper
-              | Type:   \torg.gradle.api.tasks.wrapper.Wrapper |
-              | Creator: \ttasks.addPlaceholderAction(wrapper) |
-              | Value:  \ttask ':wrapper' |
-              | Rules:  |
+              | Type:   \torg.gradle.api.tasks.wrapper.Wrapper
+              | Creator: \ttasks.addPlaceholderAction(wrapper)
+              | Value:  \ttask ':wrapper'
+              | Rules:
                  ⤷ tasks.addPlaceholderAction(wrapper)
                  ⤷ copyToTaskContainer
 ''')
