@@ -815,7 +815,7 @@ Existing BuildLink adapter can be used with minor modifications.
      - ~~routes~~
      - ~~model (java/scala)~~
      - ~~views (twirl)~~
-     - ~~javascript~~ TODO: Minification test fails
+     - ~~javascript~~
      - ~~coffeescript~~
      - ~~css~~
 - Reload is not triggered if dependency of play run task fails

@@ -20,7 +20,6 @@ import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegration
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import spock.lang.Ignore
 
 class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
@@ -81,30 +80,6 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         runningApp.playUrl('java/hello').text == 'Hello world from Java'
     }
 
-    @Ignore
-    def "should reload modified javascript and minify changes"() {
-        when:
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
-        !runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
-        !runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
-
-        when:
-        stopGradle()
-        file("app/assets/javascripts/test.coffee") << '''
-message = "Hello coffeescript"
-'''
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
-        runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
-        runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
-    }
-
-
     def "should reload modified coffeescript"() {
         when:
         succeeds("runPlayBinary")
@@ -117,13 +92,13 @@ message = "Hello coffeescript"
         when:
         file("app/assets/javascripts/test.coffee") << '''
 message = "Hello coffeescript"
+alert message
 '''
 
         then:
         succeeds()
         runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
-        // TODO: fix bug in minify task first
-        //runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
+        runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
 
     def "should detect new javascript files"() {
