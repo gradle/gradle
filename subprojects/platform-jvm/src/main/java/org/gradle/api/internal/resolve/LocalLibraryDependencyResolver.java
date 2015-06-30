@@ -78,7 +78,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     result.failed(new ModuleVersionResolveException(selector, String.format("Multiple binaries available for library '%s' : %s", libraryName, variants)));
                 } else {
                     for (BinarySpec spec : variants) {
-                        buildDependencies.add(spec.getBuildTask());
+                        buildDependencies.add(spec);
                         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
                         ComponentResolveMetaData resolveMetaData = metaData.toResolveMetaData();
                         result.resolved(resolveMetaData);
