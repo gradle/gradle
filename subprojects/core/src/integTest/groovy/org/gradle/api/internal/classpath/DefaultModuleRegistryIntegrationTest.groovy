@@ -80,7 +80,7 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
             public class MyClass {}
         """
-        new AntBuilder().javac(destdir: contents, includeantruntime: true, executable: javacExecutable) {
+        new AntBuilder().javac(destdir: contents, includeantruntime: true, fork: 'yes', executable: javacExecutable) {
             src(path: contents)
         }
 
