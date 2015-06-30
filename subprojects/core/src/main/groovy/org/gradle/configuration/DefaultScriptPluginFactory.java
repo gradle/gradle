@@ -31,7 +31,6 @@ import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -51,6 +50,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final FileLookup fileLookup;
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -106,7 +106,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             final ScriptTarget scriptTarget = wrap(target);
 
-            final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
+            ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
             // Pass 1, extract plugin requests and execute buildscript {}, ignoring (i.e. not even compiling) anything else
 
@@ -132,9 +132,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             if (ModelBlockTransformer.isEnabled()) {
                 operationId = "m_".concat(operationId);
             }
-            CompileOperation<Boolean> operation = new FactoryBackedCompileOperation<Boolean>(operationId, buildScriptTransformer, buildScriptTransformer, BaseSerializerFactory.BOOLEAN_SERIALIZER);
+            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
-            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
@@ -144,7 +144,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 }
             };
 
-            Boolean hasImperativeStatements = runner.getData();
+            boolean hasImperativeStatements = runner.getData().getHasImperativeStatements();
             scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
         }
 

@@ -26,7 +26,7 @@ import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import java.util.Arrays;
 import java.util.List;
 
-public class BuildScriptTransformer implements Transformer, Factory<Boolean> {
+public class BuildScriptTransformer implements Transformer, Factory<BuildScriptData> {
 
     private final Spec<? super Statement> filter;
     private final ScriptSource scriptSource;
@@ -55,7 +55,7 @@ public class BuildScriptTransformer implements Transformer, Factory<Boolean> {
     }
 
     @Override
-    public Boolean create() {
-        return imperativeStatementDetectingTransformer.create();
+    public BuildScriptData create() {
+        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected());
     }
 }

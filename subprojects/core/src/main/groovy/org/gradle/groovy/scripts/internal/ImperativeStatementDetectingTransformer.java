@@ -24,12 +24,11 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.internal.Factory;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
 import java.util.List;
 
-public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer implements Factory<Boolean>, GroovyCodeVisitor {
+public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer implements GroovyCodeVisitor {
 
     private boolean imperativeStatementDetected;
 
@@ -43,8 +42,7 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
         return Phases.CANONICALIZATION;
     }
 
-    @Override
-    public Boolean create() {
+    public boolean isImperativeStatementDetected() {
         return imperativeStatementDetected;
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.*
+import org.gradle.groovy.scripts.internal.BuildScriptData
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
@@ -80,7 +81,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.script >> script
-        1 * scriptRunner.data >> true
+        1 * scriptRunner.data >> new BuildScriptData(true)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:
@@ -88,7 +89,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         configurer.apply(target)
     }
 
-    void configuresAScriptAwareObjectUsingScript() {
+    void configuresAProjectObjectUsingScript() {
         when:
         def target = Mock(ProjectInternal)
 
@@ -98,7 +99,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.script >> script
-        1 * scriptRunner.data >> true
+        1 * scriptRunner.data >> new BuildScriptData(true)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:
