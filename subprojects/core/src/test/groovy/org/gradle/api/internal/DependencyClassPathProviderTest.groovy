@@ -41,9 +41,9 @@ class DependencyClassPathProviderTest extends Specification {
         1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 
-    def "uses modules to determine test-kit classpath"() {
+    def "uses modules to determine Gradle test-kit classpath"() {
         when:
-        def classpath = provider.findClassPath("TEST_KIT")
+        def classpath = provider.findClassPath("GRADLE_TEST_KIT")
 
         then:
         classpath.asFiles.collect{it.name} == ["gradle-test-kit-functional-runtime"]

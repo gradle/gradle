@@ -228,7 +228,7 @@ import java.util.Map;
  *   compile gradleApi()
  *
  *   //we will use the Gradle test-kit to test build logic:
- *   testCompile testKit()
+ *   testCompile gradleTestKit()
  * }
  * </pre>
  *
@@ -325,7 +325,7 @@ public interface DependencyHandler {
      * @since 2.6
      */
     @Incubating
-    Dependency testKit();
+    Dependency gradleTestKit();
 
     /**
      * Creates a dependency on the Groovy that is distributed with the current version of Gradle.

@@ -31,8 +31,8 @@
     <section>
         <title>Usage</title>
         <para>To use the test-kit, include the following in your build script:</para>
-        <sample id="testKitDependency" dir="testKit/testKitJunit" title="Declaring the test-kit dependency">
-            <sourcefile file="build.gradle" snippet="declare-testkit-dependency"/>
+        <sample id="testKitDependency" dir="testKit/testKitJunit" title="Declaring the Gradle test-kit dependency">
+            <sourcefile file="build.gradle" snippet="declare-gradle-testkit-dependency"/>
         </sample>
         <para>The test-kit does not have an opinion about the used test framework. It's up to the build logic to choose a test framework and declare its dependency. The following build script
             declares a dependency on <ulink url="http://junit.org/">JUnit</ulink>:</para>

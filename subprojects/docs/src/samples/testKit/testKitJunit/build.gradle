@@ -1,10 +1,10 @@
 apply plugin: 'java'
 
-// START SNIPPET declare-testkit-dependency
+// START SNIPPET declare-gradle-testkit-dependency
 dependencies {
-    testCompile testKit()
+    testCompile gradleTestKit()
 }
-// END SNIPPET declare-testkit-dependency
+// END SNIPPET declare-gradle-testkit-dependency
 
 // START SNIPPET declare-junit-dependency
 dependencies {

@@ -39,11 +39,11 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
         """
     }
 
-    def "testKit dependency API adds test-kit classes"() {
+    def "gradleTestKit dependency API adds test-kit classes"() {
         when:
         buildFile << """
             dependencies {
-                libs testKit()
+                libs gradleTestKit()
             }
 
             check {
