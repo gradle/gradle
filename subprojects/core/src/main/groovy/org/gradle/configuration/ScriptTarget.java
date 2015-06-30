@@ -40,6 +40,8 @@ public interface ScriptTarget {
 
     boolean getSupportsPluginsBlock();
 
+    boolean getSupportsMethodInheritance();
+
     PluginManagerInternal getPluginManager();
 
     /**

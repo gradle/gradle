@@ -23,31 +23,43 @@ class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'child1'"
         buildFile << """
 def doSomething(def value) {
-    return value.toString()
+    return "{" + value + "}"
+}
+private String doSomethingElse(def value) {
+    return "[" + value + "]"
 }
 println "root: " + doSomething(10)
+println "root: " + doSomethingElse(10)
 """
         file("child1/build.gradle") << """
 println "child: " + doSomething(11)
+println "child: " + doSomethingElse(11)
 """
 
         expect:
         // Invoke twice to exercise script caching
         succeeds()
-        outputContains("root: 10")
-        outputContains("child: 11")
+        outputContains("root: {10}")
+        outputContains("root: [10]")
+        outputContains("child: {11}")
+        outputContains("child: [11]")
 
         and:
         succeeds()
-        outputContains("root: 10")
-        outputContains("child: 11")
+        outputContains("root: {10}")
+        outputContains("root: [10]")
+        outputContains("child: {11}")
+        outputContains("child: [11]")
     }
 
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         settingsFile << "include 'child1'"
         buildFile << """
 def doSomething(def value) {
-    return value.toString()
+    return "{" + value + "}"
+}
+private String doSomethingElse(def value) {
+    return "[" + value + "]"
 }
 apply from: 'script.gradle'
 """
@@ -56,18 +68,23 @@ apply from: '../script.gradle'
 """
         file("script.gradle") << """
 println project.path + " - " + doSomething(12)
+println project.path + " - " + doSomethingElse(12)
 """
 
         expect:
         // Invoke twice to exercise script caching
         succeeds()
-        outputContains(": - 12")
-        outputContains(":child1 - 12")
+        outputContains(": - {12}")
+        outputContains(": - [12]")
+        outputContains(":child1 - {12}")
+        outputContains(":child1 - [12]")
 
         and:
         succeeds()
-        outputContains(": - 12")
-        outputContains(":child1 - 12")
+        outputContains(": - {12}")
+        outputContains(": - [12]")
+        outputContains(":child1 - {12}")
+        outputContains(":child1 - [12]")
     }
 
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
@@ -110,11 +127,11 @@ println "child: " + doSomething(11)
 
         expect:
         // Invoke twice to exercise script caching
-        succeeds()
+        succeeds("hello")
         outputContains("child: 11")
 
         and:
-        succeeds()
+        succeeds("hello")
         outputContains("child: 11")
     }
 
@@ -128,10 +145,17 @@ def getProp1() {
 @groovy.transform.Field
 String prop2
 
+@groovy.transform.Field
+String prop3 = "abc"
+
+int prop4 = 12
+
 prop2 = prop1
 
 assert prop1 == "abc"
 assert prop2 == "abc"
+assert prop3 == "abc"
+assert prop4 == 12
 """
         file("child1/build.gradle") << """
 try {
@@ -145,6 +169,18 @@ try {
     assert false
 } catch(MissingPropertyException e) {
     assert e.property == 'prop2'
+}
+try {
+    prop3
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop3'
+}
+try {
+    prop4
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop4'
 }
 println "child1 ok"
 """

@@ -50,6 +50,11 @@ public class ProjectScriptTarget implements ScriptTarget {
     }
 
     @Override
+    public boolean getSupportsMethodInheritance() {
+        return true;
+    }
+
+    @Override
     public Class<? extends BasicScript> getScriptClass() {
         return ProjectScript.class;
     }

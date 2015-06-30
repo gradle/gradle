@@ -45,7 +45,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         public ScriptRunnerImpl(CompiledScript<T, M> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
             this.compiledScript = compiledScript;
             this.source = source;
-            this.contextClassLoader= contextClassLoader;
+            this.contextClassLoader = contextClassLoader;
         }
 
         @Override
@@ -61,6 +61,11 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         @Override
         public M getData() {
             return compiledScript.getData();
+        }
+
+        @Override
+        public boolean runDoesSomething() {
+            return !compiledScript.isEmpty();
         }
 
         @Override

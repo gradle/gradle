@@ -54,9 +54,7 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
         if (!source.getAST().getMethods().isEmpty()) {
-            imperativeStatementDetected = true;
             methodsDetected = true;
-            return;
         }
 
         BlockStatement statementBlock = source.getAST().getStatementBlock();

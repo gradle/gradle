@@ -136,11 +136,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            if (scriptTarget.getSupportsMethodInheritance() && runner.getData().getHasMethods()) {
+                scriptTarget.attachScript(runner.getScript());
+            }
+            if (!runner.runDoesSomething()) {
+                return;
+            }
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
-                    BasicScript script = runner.getScript();
-                    scriptTarget.attachScript(script);
                     runner.run(target, services);
                 }
             };

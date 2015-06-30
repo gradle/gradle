@@ -55,8 +55,13 @@ public class DefaultScriptTarget implements ScriptTarget {
     }
 
     @Override
+    public boolean getSupportsMethodInheritance() {
+        return false;
+    }
+
+    @Override
     public void attachScript(Script script) {
-        // Ignore
+        throw new UnsupportedOperationException();
     }
 
     @Override

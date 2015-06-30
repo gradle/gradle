@@ -35,6 +35,11 @@ public interface ScriptRunner<T extends Script, M> {
     M getData();
 
     /**
+     * Returns true when the script will run some code when executed. Returns false for a script whose `run()` method is effectively empty.
+     */
+    boolean runDoesSomething();
+
+    /**
      * Executes the script. This is generally more efficient than using {@link #getScript()}.
      *
      * @throws GradleScriptException On execution failure.

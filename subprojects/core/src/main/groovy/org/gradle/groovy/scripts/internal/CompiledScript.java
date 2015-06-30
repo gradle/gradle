@@ -19,6 +19,9 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 
 public interface CompiledScript<T extends Script, D> {
+    /**
+     * Returns true if the `run()` method of this script is effectively empty and can be safely skipped.
+     */
     boolean isEmpty();
 
     Class<? extends T> loadClass();

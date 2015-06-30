@@ -48,20 +48,21 @@ class BuildScriptTransformerSpec extends Specification {
         metadataCacheDir = new File(testProjectDir, "metadata");
     }
 
-    private BuildScriptData parse(String script) {
+    private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data
+        return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }
 
     def "empty script does not contain any code"() {
         expect:
         def scriptData = parse(script)
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
 
         where:
         script         | _
@@ -82,8 +83,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
     def "property declarations are not considered imperative code"() {
@@ -95,8 +97,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        !scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
     def "field declarations are not considered imperative code"() {
@@ -108,8 +111,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        !scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
     def "extracted script blocks are not considered imperative code"() {
@@ -128,8 +132,9 @@ buildscript {
 """)
 
         expect:
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
     def "model blocks are not considered imperative code"() {
@@ -141,29 +146,32 @@ model {
 """)
 
         expect:
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        !scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
     def "imports are not considered imperative code"() {
         expect:
         def scriptData = parse("import java.lang.String")
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
     }
 
-    def "method declarations are considered imperative code"() {
+    def "method declarations are not considered imperative code"() {
         expect:
         def scriptData = parse("def method() { println 'hi' }")
-        scriptData.hasImperativeStatements
-        scriptData.hasMethods
+        !scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        scriptData.data.hasMethods
     }
 
     def "constant expressions and constant return are not imperative"() {
         expect:
         def scriptData = parse(script)
-        !scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        !scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
 
         where:
         script         | _
@@ -183,8 +191,9 @@ return 12
     def "imperative code is detected"() {
         expect:
         def scriptData = parse(script)
-        scriptData.hasImperativeStatements
-        !scriptData.hasMethods
+        !scriptData.empty
+        scriptData.data.hasImperativeStatements
+        !scriptData.data.hasMethods
 
         where:
         script                        | _
