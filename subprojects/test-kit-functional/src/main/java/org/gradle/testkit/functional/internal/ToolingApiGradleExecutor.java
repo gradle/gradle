@@ -63,9 +63,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         final GradleExecutionResult gradleExecutionResult = new GradleExecutionResult(standardOutput, standardError);
 
         GradleConnector gradleConnector = buildConnector();
-        ProjectConnection connection = gradleConnector.connect();
+        ProjectConnection connection = null;
 
         try {
+            connection = gradleConnector.connect();
             BuildLauncher launcher = connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);

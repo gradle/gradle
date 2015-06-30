@@ -19,7 +19,7 @@ package org.gradle.testkit.functional;
 import org.gradle.api.Incubating;
 
 /**
- * Thrown exception for a success build execution that should have failed.
+ * Thrown exception for a successful build execution that should have failed.
  *
  * @since 2.6
  */

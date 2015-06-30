@@ -41,7 +41,7 @@ public abstract class GradleRunner {
     private List<String> taskNames = new ArrayList<String>();
 
     /**
-     * Returns the Gradle user home directory. Default to null which indicates the default location.
+     * Returns the Gradle user home directory. Defaults to null which indicates the default location.
      *
      * @return Gradle user home directory
      */
@@ -113,14 +113,14 @@ public abstract class GradleRunner {
     }
 
     /**
-     * Executes a build and expects it to finish successfully. Throws a {@link UnexpectedBuildFailure} if build fails unexpectedly.
+     * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.
      *
      * @return Result of the build
      */
     public abstract BuildResult succeeds();
 
     /**
-     * Executes a build and expects it to fail. Throws a {@link UnexpectedBuildSuccess} if build succeeds unexpectedly.
+     * Executes a build and expects it to fail. Throws an {@link UnexpectedBuildSuccess} exception if build succeeds unexpectedly.
      *
      * @return Result of the build
      */
@@ -129,8 +129,10 @@ public abstract class GradleRunner {
     /**
      * Creates and returns a default implementation of a {@link GradleRunner}. The default implementation is determined based on the following rules:
      *
-     * - When running from a {@code Test} task, use the Gradle installation that is running the build.
+     * <p>
+     * - When running from a {@code Test} task, use the Gradle installation that is running the build.<br>
      * - When importing into the IDE, use the Gradle installation that performed the import.
+     * </p>
      *
      * @return Default implementation
      */
