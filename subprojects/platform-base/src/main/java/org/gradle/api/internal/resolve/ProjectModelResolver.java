@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.resolve;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.UnknownProjectException;
+import org.gradle.model.internal.registry.ModelRegistry;
 
-public interface ProjectLocator {
-    ProjectInternal locateProject(String path);
+/**
+ * Locates another project within the multi-project build, and provides access to it's model registry in a usable state.
+ */
+public interface ProjectModelResolver {
+    ModelRegistry resolveProjectModel(String path) throws UnknownProjectException;
 }

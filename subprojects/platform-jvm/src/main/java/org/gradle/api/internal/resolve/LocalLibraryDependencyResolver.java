@@ -20,13 +20,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
@@ -57,10 +57,10 @@ import java.util.*;
 // TODO: This should really live in platform-base, however we need to inject the library requirements at some
 // point, and for now it is hardcoded to JVM libraries
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-    private final ProjectLocator projectLocator;
+    private final ProjectModelResolver projectModelResolver;
 
-    public LocalLibraryDependencyResolver(ProjectLocator projectLocator) {
-        this.projectLocator = projectLocator;
+    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver) {
+        this.projectModelResolver = projectModelResolver;
     }
 
     @Override
@@ -69,8 +69,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             final String selectorProjectPath = selector.getProjectPath();
             final String libraryName = selector.getLibraryName();
-            final ProjectInternal project = projectLocator.locateProject(selectorProjectPath);
-            LibraryResolutionResult resolutionResult = doResolve(project, libraryName);
+            LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
                 DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
@@ -99,11 +98,11 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private LibraryResolutionResult doResolve(ProjectInternal project,
+    private LibraryResolutionResult doResolve(String projectPath,
                                               String libraryName) {
-        if (project != null) {
-            ModelRegistry modelRegistry = project.getModelRegistry();
-            ComponentSpecContainer components = modelRegistry.find(
+        try {
+            ModelRegistry projectModel = projectModelResolver.resolveProjectModel(projectPath);
+            ComponentSpecContainer components = projectModel.find(
                 ModelPath.path("components"),
                 ModelType.of(ComponentSpecContainer.class));
             if (components != null) {
@@ -112,7 +111,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             } else {
                 return LibraryResolutionResult.empty();
             }
-        } else {
+        } catch (UnknownProjectException e) {
             return LibraryResolutionResult.projectNotFound();
         }
     }

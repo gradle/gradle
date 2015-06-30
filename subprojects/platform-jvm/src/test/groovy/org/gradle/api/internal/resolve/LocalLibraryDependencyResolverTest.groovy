@@ -15,16 +15,15 @@
  */
 
 package org.gradle.api.internal.resolve
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryComponentIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
@@ -42,8 +41,8 @@ import spock.lang.Unroll
 class LocalLibraryDependencyResolverTest extends Specification {
 
     Map<String, Project> projects
-    ProjectLocator locator
-    ProjectFinder finder
+    ProjectRegistry<ProjectInternal> projectRegistry
+    ProjectModelResolver projectModelResolver
     Project rootProject
     LocalLibraryDependencyResolver resolver
     DependencyMetaData metadata
@@ -52,14 +51,14 @@ class LocalLibraryDependencyResolverTest extends Specification {
 
     def setup() {
         projects = [:]
-        finder = Mock(ProjectFinder)
-        finder.getProject(_) >> {
+        projectRegistry = Mock(ProjectRegistry)
+        projectRegistry.getProject(_) >> {
             String name = it[0]
             projects[name]
         }
-        locator = new DefaultProjectLocator(finder)
+        projectModelResolver = new DefaultProjectModelResolver(projectRegistry)
         rootProject = mockProject(':')
-        resolver = new LocalLibraryDependencyResolver(locator)
+        resolver = new LocalLibraryDependencyResolver(projectModelResolver)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

@@ -16,9 +16,10 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.resolve.DefaultProjectLocator;
-import org.gradle.api.internal.resolve.ProjectLocator;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
 import java.util.ArrayList;
@@ -26,15 +27,15 @@ import java.util.List;
 
 public class NativeDependencyResolverServices {
 
-    public ProjectLocator createProjectLocator(ProjectFinder projectFinder, DependencyMetaDataProvider metaDataProvider) {
+    public ProjectModelResolver createProjectLocator(ProjectRegistry<ProjectInternal> projectRegistry, DependencyMetaDataProvider metaDataProvider) {
         String currentProjectPath = metaDataProvider.getModule().getProjectPath();
-        return new DelegatingProjectLocator(currentProjectPath, new DefaultProjectLocator(projectFinder), projectFinder);
+        return new CurrentProjectModelResolver(currentProjectPath, new DefaultProjectModelResolver(projectRegistry));
     }
 
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator) {
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(projectLocator));
-        locators.add(new PrebuiltLibraryBinaryLocator(projectLocator));
+        locators.add(new ProjectLibraryBinaryLocator(projectModelResolver));
+        locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
         return new ChainedLibraryBinaryLocator(locators);
     }
 

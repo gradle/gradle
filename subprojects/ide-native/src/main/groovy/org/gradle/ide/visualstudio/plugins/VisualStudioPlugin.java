@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.resolve.ProjectLocator;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -56,10 +56,10 @@ public class VisualStudioPlugin implements Plugin<Project> {
         @Model
         public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            ProjectLocator projectLocator = serviceRegistry.get(ProjectLocator.class);
+            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectLocator, fileResolver);
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectModelResolver, fileResolver);
         }
 
         @Mutate

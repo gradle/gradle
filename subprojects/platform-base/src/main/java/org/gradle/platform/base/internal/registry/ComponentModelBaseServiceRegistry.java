@@ -16,11 +16,10 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.resolve.DefaultProjectLocator;
-import org.gradle.api.internal.resolve.ProjectLocator;
+import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -50,19 +49,9 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new DependentSourceSetLocalComponentConverter();
         }
 
-        ProjectLocator createProjectLocator(ProjectFinder finder) {
-            return new DefaultProjectLocator(finder);
+        ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
+            return new DefaultProjectModelResolver(projectRegistry);
         }
-
-        ProjectFinder createProjectFinder(final ProjectRegistry<ProjectInternal> projectRegistry) {
-            return new ProjectFinder() {
-                @Override
-                public ProjectInternal getProject(String path) {
-                    return projectRegistry.getProject(path);
-                }
-            };
-        }
-
     }
 
     private static class GlobalScopeServices {

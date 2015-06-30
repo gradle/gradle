@@ -19,7 +19,7 @@ package org.gradle.jvm.internal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
-import org.gradle.api.internal.resolve.ProjectLocator;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
@@ -39,8 +39,8 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        LocalLibraryDependencyResolver createLibraryResolver(ProjectLocator projectLocator) {
-            return new LocalLibraryDependencyResolver(projectLocator);
+        LocalLibraryDependencyResolver createLibraryResolver(ProjectModelResolver projectModelResolver) {
+            return new LocalLibraryDependencyResolver(projectModelResolver);
         }
 
         ResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {

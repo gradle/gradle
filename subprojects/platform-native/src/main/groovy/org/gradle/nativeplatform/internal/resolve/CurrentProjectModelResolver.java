@@ -16,26 +16,24 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.resolve.ProjectLocator;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.model.internal.registry.ModelRegistry;
 
-public class DelegatingProjectLocator implements ProjectLocator {
+public class CurrentProjectModelResolver implements ProjectModelResolver {
     private final String projectPath;
-    private final ProjectLocator delegate;
-    private final ProjectFinder finder;
+    private final ProjectModelResolver delegate;
 
-    public DelegatingProjectLocator(String projectPath, ProjectLocator delegate, ProjectFinder finder) {
+    public CurrentProjectModelResolver(String projectPath, ProjectModelResolver delegate) {
         this.projectPath = projectPath;
         this.delegate = delegate;
-        this.finder = finder;
     }
 
-    public ProjectInternal locateProject(String path) {
+    @Override
+    public ModelRegistry resolveProjectModel(String path) {
         if (path == null || path.length() == 0) {
-            return finder.getProject(projectPath);
+            return delegate.resolveProjectModel(projectPath);
         }
 
-        return delegate.locateProject(path);
+        return delegate.resolveProjectModel(path);
     }
 }
