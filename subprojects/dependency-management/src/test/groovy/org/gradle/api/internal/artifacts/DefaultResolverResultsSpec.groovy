@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import spock.lang.Specification
 
-class ResolverResultsSpec extends Specification {
+class DefaultResolverResultsSpec extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
     private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
