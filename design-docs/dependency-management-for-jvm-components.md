@@ -255,7 +255,8 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
 - The definition order of source sets is maintained, binary-owned source sets preceding external inputs
 - A Jar binary can be built from one or more input Java and resource source sets
 - Error cases:
-    - Fail at configuration time when there is no language rule available to build the binary from a given input source set.
+    - Fail at configuration time when creating a binary-owned source set with the same name as the component source set
+    - Fail at configuration time when creating two binary-owned source sets with the same name
 
 ### User visible changes
 
@@ -282,8 +283,8 @@ model {
 }
 ```
 
-* `BinarySpec.getSource()` is replaced with `getSources()`
-* `ComponentSpec.getSource()` is replaced with `getSources()`
+* `BinarySpec.getSource()` is deprecated and replaced with `getSources()`
+* `ComponentSpec.getSource()` is deprecated and replaced with `getSources()`
 * `BinarySpec.getInputs()` returns all source sets, e.g. source sets owned by the binary and source sets inherited from the component.
 
 ### Test cases
@@ -297,7 +298,9 @@ model {
 - Given a component and its binary
     - Component source set `ca`, `cb` and `cc`
     - Binary source set `ba`, `bb` and `bc`
-    - The binary's inputs should be in the order `ba`, `bb`, `bc`, `ca`, `cb`, `cc`
+    - The component's `getSources()` should be ordered `ca`, `cb` and `cc`
+    - The binary's `getSources()` should be ordered `ba`, `bb` and `bc`
+    - The binary's `getInputs()` should be in the order `ba`, `bb`, `bc`, `ca`, `cb`, `cc`
 - Error cases above
 
 ### Implementation
@@ -315,6 +318,7 @@ model {
 - Change component report to report on all inputs for a binary.
 - Change base plugins to add component source sets as inputs to its binaries, rather than owned by the binary.
 - Remove special case for inputs from `DefaultNativeTestSuiteBinarySpec` and reuse general mechanism.
+- Remove `FunctionalSourceSet.copy()` mention in release notes.
 
 ### Notes
 
