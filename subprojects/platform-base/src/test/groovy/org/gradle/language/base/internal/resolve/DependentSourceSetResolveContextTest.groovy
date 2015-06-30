@@ -15,7 +15,8 @@
  */
 
 package org.gradle.language.base.internal.resolve
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
+
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.language.base.internal.DependentSourceSetInternal
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -54,8 +55,8 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         where:
         path       | library  | contextName
-        ':myPath'  | 'myLib'  | LibraryBinaryIdentifier.CONFIGURATION_NAME
-        ':myPath'  | 'myLib2' | LibraryBinaryIdentifier.CONFIGURATION_NAME
-        ':myPath2' | 'myLib'  | LibraryBinaryIdentifier.CONFIGURATION_NAME
+        ':myPath'  | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
+        ':myPath'  | 'myLib2' | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
+        ':myPath2' | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
     }
 }

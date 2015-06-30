@@ -18,7 +18,6 @@ package org.gradle.language.base.internal.model;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -40,10 +39,10 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         ComponentIdentifier component = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
         metaData.addConfiguration(
-            LibraryBinaryIdentifier.CONFIGURATION_NAME,
+            DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME,
             String.format("Configuration for '%s' variant '%s'", libraryName, variant),
             Collections.<String>emptySet(),
-            Collections.singleton(LibraryBinaryIdentifier.CONFIGURATION_NAME),
+            Collections.singleton(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME),
             true,
             true,
             buildDependencies);

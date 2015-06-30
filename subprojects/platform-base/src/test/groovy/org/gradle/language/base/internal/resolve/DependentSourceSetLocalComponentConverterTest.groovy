@@ -17,6 +17,7 @@
 package org.gradle.language.base.internal.resolve
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.language.base.internal.DependentSourceSetInternal
 import org.gradle.platform.base.DependencySpecContainer
@@ -74,7 +75,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
         metadata.dependencies.empty
         !metadata.changing
-        metadata.configurationNames == [LibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
+        metadata.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
         metadata.source == null
     }
 
@@ -114,7 +115,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         metadata.componentId instanceof LibraryBinaryIdentifier
         metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
         !metadata.changing
-        metadata.configurationNames == [LibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
+        metadata.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
         metadata.source == null
 
         and: "component metadata dependencies correspond to the defined dependencies"

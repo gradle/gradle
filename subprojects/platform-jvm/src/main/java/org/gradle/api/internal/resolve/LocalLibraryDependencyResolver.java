@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -85,7 +86,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         if (spec instanceof JvmBinarySpec) {
                             Jar jar = ((JvmBinarySpec)spec).getTasks().getJar();
                             PublishArtifact publishArtifact = new ArchivePublishArtifact(jar);
-                            metaData.addArtifacts(LibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
+                            metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
                         }
                     }
                 }

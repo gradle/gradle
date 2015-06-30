@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface LibraryBinaryIdentifier extends ComponentIdentifier {
-    String CONFIGURATION_NAME = "Component configuration";
 
     /**
      * The project path of the library.
