@@ -60,6 +60,86 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 """
     }
 
+    def "source order is retained"() {
+        buildFile << """
+class Dump extends RuleSource {
+
+    @Validate
+    void checkBinaries(BinaryContainer binaries) {
+        binaries.each { binary ->
+            println "Binary sources: \${binary.sources.values()}"
+            println "Binary inputs: \${binary.inputs}"
+        }
+    }
+}
+
+apply plugin: Dump
+
+model {
+    components {
+        sampleLib(SampleLibrary) {
+            sources {
+                compA(LibrarySourceSet) {
+                    source.srcDir "src/main/comp-a"
+                }
+                compB(LibrarySourceSet) {
+                    source.srcDir "src/main/comp-b"
+                }
+            }
+            binaries {
+                bin(SampleBinary) {
+                    sources {
+                        binaryA(LibrarySourceSet) {
+                            source.srcDir "src/main/binary-a"
+                        }
+                        binaryB(LibrarySourceSet) {
+                            source.srcDir "src/main/binary-b"
+                        }
+                    }
+                }
+            }
+            sources {
+                compC(LibrarySourceSet) {
+                    source.srcDir "src/main/comp-c"
+                }
+            }
+            binaries {
+                bin {
+                    sources {
+                        binaryC(LibrarySourceSet) {
+                            source.srcDir "src/main/binary-c"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    components {
+        sampleLib {
+            sources {
+                compD(LibrarySourceSet) {
+                    source.srcDir "src/main/comp-d"
+                }
+            }
+            binaries {
+                bin {
+                    sources {
+                        binaryD(LibrarySourceSet) {
+                            source.srcDir "src/main/binary-d"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+        expect:
+        succeeds "components"
+        output.contains """Binary sources: [DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary inputs: [DefaultLibrarySourceSet 'sampleLib:compA', DefaultLibrarySourceSet 'sampleLib:compB', DefaultLibrarySourceSet 'sampleLib:compC', DefaultLibrarySourceSet 'sampleLib:compD', DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
+    }
+
     def "fail when multiple source sets are registered with the same name"() {
         buildFile << """
 model {
