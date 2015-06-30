@@ -30,11 +30,13 @@ import spock.lang.Unroll
 class DefaultModuleRegistryIntegrationTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile distDir
+    File javacExecutable
 
     def setup() {
         distDir = tmpDir.createDir("dist")
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
+        javacExecutable = determineJavacExecutable()
     }
 
     @Unroll
@@ -78,7 +80,7 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
             public class MyClass {}
         """
-        new AntBuilder().javac(destdir: contents, includeantruntime: true) {
+        new AntBuilder().javac(destdir: contents, includeantruntime: true, executable: javacExecutable) {
             src(path: contents)
         }
 
@@ -103,5 +105,9 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
             }
             false
         }
+    }
+
+    private static File determineJavacExecutable() {
+        availableJdksWithJavac()[0].javacExecutable
     }
 }
