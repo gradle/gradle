@@ -157,6 +157,9 @@ public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
 
     @Override
     public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
+        if (containsKey(name)) {
+            throw new IllegalStateException("Entry with name already exists: " + name);
+        }
         S s = instantiator.create(name, type);
         configAction.execute(s);
         onCreateAction.execute(s);
