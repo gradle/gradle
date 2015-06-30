@@ -65,10 +65,12 @@ sourceSets.each {
     }
 }
 
-if(!JavaVersion.current().isJava8Compatible()) {
-   tasks.withType(ScalaCompile) {
-     scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-   }
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.fork = true
+    scalaCompileOptions.useAnt = false
+    if(!JavaVersion.current().isJava8Compatible()) {
+        scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+    }
 }
 '''
         file('src/org/gradle/main/resource.txt') << 'some text'

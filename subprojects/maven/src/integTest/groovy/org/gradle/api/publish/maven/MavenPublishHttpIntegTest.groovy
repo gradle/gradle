@@ -15,19 +15,25 @@
  */
 
 package org.gradle.api.publish.maven
+
+import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @LeaksFileHandles
 class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
+    @Rule
+    HttpServer redirectServer
 
     MavenHttpRepository mavenRemoteRepo
     MavenHttpModule module
@@ -39,6 +45,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def setup() {
         server.start()
+        redirectServer.start()
 
         mavenRemoteRepo = new MavenHttpRepository(server, repoPath, mavenRepo)
         group = "org.gradle"
@@ -47,39 +54,13 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module = mavenRemoteRepo.module(group, name, version)
 
         settingsFile << 'rootProject.name = "publish"'
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
-            version = '$version'
-            group = '$group'
-
-            publishing {
-                repositories {
-                    maven {
-                        url "$mavenRemoteRepo.uri"
-                    }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
     }
 
     def "can publish to an unauthenticated http repo"() {
         given:
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
-        module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
+        expectModulePublish(module)
+
         when:
         succeeds 'publish'
 
@@ -189,5 +170,110 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
+    @Issue("GRADLE-3312")
+    def "can publish to a http repo via redirects"() {
+        given:
+        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
+
+        redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
+        module.rootMetaData.expectGetMissing()
+
+        expectRedirectPublish(module, server.getUri(), redirectServer)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
+        def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
+
+        module.pomFile.assertIsCopyOf(localPom)
+        module.pom.verifyChecksums()
+        module.artifactFile.assertIsCopyOf(localArtifact)
+        module.artifact.verifyChecksums()
+
+        module.rootMetaData.verifyChecksums()
+        module.rootMetaData.versions == ["2"]
+    }
+
+    @Issue("GRADLE-3312")
+    def "can publish to an authenticated http repo via redirects"() {
+        given:
+        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
+
+        def credentials = new DefaultPasswordCredentials('username', 'password')
+        buildFile << """
+            publishing.repositories.maven.credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
+            }
+        """
+
+        redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
+        module.rootMetaData.expectGetMissing(credentials)
+
+        expectRedirectPublish(module, server.getUri(), redirectServer, credentials)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
+        def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
+
+        module.pomFile.assertIsCopyOf(localPom)
+        module.pom.verifyChecksums()
+        module.artifactFile.assertIsCopyOf(localArtifact)
+        module.artifact.verifyChecksums()
+
+        module.rootMetaData.verifyChecksums()
+        module.rootMetaData.versions == ["2"]
+    }
+
+    private String publicationBuild(String version, String group, URI uri) {
+        return """
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            version = '$version'
+            group = '$group'
+
+            publishing {
+                repositories {
+                    maven {
+                        url "$uri"
+                    }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+    }
+
+    private void expectModulePublish(MavenHttpModule module) {
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
+        module.rootMetaData.expectGetMissing()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
+    }
+
+    private void expectRedirectPublish(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, Credentials credentials = null) {
+        String redirectUri = targetServerUri.toString()
+        [module.artifact, module.pom, module.rootMetaData].each { artifact ->
+            [artifact, artifact.sha1, artifact.md5].each { innerArtifact ->
+                httpServer.expectPutRedirected(innerArtifact.path, "${redirectUri}${innerArtifact.path}")
+                innerArtifact.expectPut(credentials)
+            }
+        }
     }
 }
