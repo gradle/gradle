@@ -48,48 +48,162 @@ class BuildScriptTransformerSpec extends Specification {
         metadataCacheDir = new File(testProjectDir, "metadata");
     }
 
-    private boolean containsImperativeStatements(String script) {
+    private BuildScriptData parse(String script) {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data.hasImperativeStatements
+        return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data
     }
 
-    def "empty script does not contain imperative code"() {
+    def "empty script does not contain any code"() {
         expect:
-        !containsImperativeStatements("")
-        !containsImperativeStatements("//ignore me")
+        def scriptData = parse(script)
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
+
+        where:
+        script         | _
+        ""             | _
+        "// ignore me" | _
+        "\r\n\t   "    | _
     }
 
-    def "class, method and property declarations are not considered imperative code"() {
-        expect:
-        !containsImperativeStatements("""
-            class SomeClass {}
-            String a
+    def "class declarations are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            class SomeClass {
+                String a = 123
+                def doStuff() {
+                    int i = 9
+                }
+            }
         """)
+
+        expect:
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
     }
 
-    def "non-imperative script blocks are not considered imperative code"() {
+    def "property declarations are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            String a
+            String b = "hi"
+            int c = b.length()
+        """)
+
         expect:
-        !containsImperativeStatements("plugins {}; buildscript {}; model {}")
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "field declarations are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            @groovy.transform.Field Long c
+            @groovy.transform.Field Long d = 12
+            @groovy.transform.Field Long e = d * 2
+        """)
+
+        expect:
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "extracted script blocks are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+plugins {
+    int v = 12
+    println "ignore me"
+}
+buildscript {
+    doStuff()
+}
+buildscript {
+    if ( true ) { return }
+}
+""")
+
+        expect:
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "model blocks are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+model {
+    task { foo(Task) { println "hi" } }
+}
+""")
+
+        expect:
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
     }
 
     def "imports are not considered imperative code"() {
-        !containsImperativeStatements("import java.lang.String")
+        expect:
+        def scriptData = parse("import java.lang.String")
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
     }
 
     def "method declarations are considered imperative code"() {
         expect:
-        containsImperativeStatements("def method() { println 'hi' }")
+        def scriptData = parse("def method() { println 'hi' }")
+        scriptData.hasImperativeStatements
+        scriptData.hasMethods
+    }
+
+    def "constant expressions and constant return are not imperative"() {
+        expect:
+        def scriptData = parse(script)
+        !scriptData.hasImperativeStatements
+        !scriptData.hasMethods
+
+        where:
+        script         | _
+        "return null"  | _
+        "return true"  | _
+        "return 'abc'" | _
+        """
+"hi"
+'hi'
+null
+true
+123
+return 12
+"""         | _
     }
 
     def "imperative code is detected"() {
         expect:
-        containsImperativeStatements("foo = 'bar'")
-        containsImperativeStatements("foo")
-        containsImperativeStatements("println 'hi!'")
-    }
+        def scriptData = parse(script)
+        scriptData.hasImperativeStatements
+        !scriptData.hasMethods
 
+        where:
+        script                        | _
+        "foo = 'bar'"                 | _
+        "foo"                         | _
+        '"${foo}"'                    | _
+        "println 'hi!'"               | _
+        "return a + 1"                | _
+        "return foo"                  | _
+        'return "${foo}"'             | _
+        "if (a) { return null }; foo" | _
+        """
+plugins {
+}
+println "hi"
+"""                        | _
+        """
+foo
+return null
+"""                        | _
+    }
 }

@@ -81,7 +81,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.script >> script
-        1 * scriptRunner.data >> new BuildScriptData(true)
+        1 * scriptRunner.data >> new BuildScriptData(true, true)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:
@@ -99,7 +99,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.script >> script
-        1 * scriptRunner.data >> new BuildScriptData(true)
+        1 * scriptRunner.data >> new BuildScriptData(true, true)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
 
         then:

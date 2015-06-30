@@ -23,11 +23,12 @@ import org.gradle.internal.serialize.Serializer;
 public class BuildScriptDataSerializer implements Serializer<BuildScriptData> {
     @Override
     public BuildScriptData read(Decoder decoder) throws Exception {
-        return new BuildScriptData(decoder.readBoolean());
+        return new BuildScriptData(decoder.readBoolean(), decoder.readBoolean());
     }
 
     @Override
     public void write(Encoder encoder, BuildScriptData value) throws Exception {
         encoder.writeBoolean(value.getHasImperativeStatements());
+        encoder.writeBoolean(value.getHasMethods());
     }
 }

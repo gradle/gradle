@@ -31,6 +31,7 @@ import java.util.List;
 public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer implements GroovyCodeVisitor {
 
     private boolean imperativeStatementDetected;
+    private boolean methodsDetected;
 
     @Override
     public void register(CompilationUnit compilationUnit) {
@@ -46,24 +47,24 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
         return imperativeStatementDetected;
     }
 
+    public boolean isMethodsDetected() {
+        return methodsDetected;
+    }
+
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
         if (!source.getAST().getMethods().isEmpty()) {
             imperativeStatementDetected = true;
+            methodsDetected = true;
             return;
         }
 
         BlockStatement statementBlock = source.getAST().getStatementBlock();
         List<Statement> statements = statementBlock.getStatements();
-        if (statements.size() == 1 && AstUtils.isReturnNullStatement(statements.get(0))) {
-            return;
-        }
-
         for (int i = 0; i < statements.size() && !imperativeStatementDetected; i++) {
             statements.get(i).visit(this);
         }
     }
-
 
     @Override
     public void visitBlockStatement(BlockStatement block) {
@@ -99,6 +100,9 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
 
     @Override
     public void visitReturnStatement(ReturnStatement statement) {
+        if (statement.getExpression() instanceof ConstantExpression) {
+            return;
+        }
         imperativeStatementDetected = true;
     }
 
@@ -253,7 +257,6 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
 
     @Override
     public void visitConstantExpression(ConstantExpression expression) {
-        imperativeStatementDetected = true;
     }
 
     @Override

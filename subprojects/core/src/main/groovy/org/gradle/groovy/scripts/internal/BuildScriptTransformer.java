@@ -47,7 +47,7 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
     public void register(CompilationUnit compilationUnit) {
         new FilteringScriptTransformer(filter).register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);
-        new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
+        new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
         new ScriptSourceDescriptionTransformer(scriptSource.getDisplayName()).register(compilationUnit);
         new ModelBlockTransformer().register(compilationUnit);
@@ -56,6 +56,6 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
 
     @Override
     public BuildScriptData create() {
-        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected());
+        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected(), imperativeStatementDetectingTransformer.isMethodsDetected());
     }
 }

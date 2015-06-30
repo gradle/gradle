@@ -25,9 +25,6 @@ import org.gradle.plugin.internal.PluginId;
 import java.util.List;
 
 public class PluginRequestsSerializer implements Serializer<PluginRequests> {
-
-    public static final Serializer<PluginRequests> INSTANCE = new PluginRequestsSerializer();
-
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readInt();
