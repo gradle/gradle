@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.SharedLibraryBinarySpec
 import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
-import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.platform.base.BinaryContainer
-
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -57,7 +53,6 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         def builderTask
         if (binary instanceof NativeExecutableBinarySpec || binary instanceof NativeTestSuiteBinarySpec) {
             builderTask = createLinkExecutableTask(tasks, binary)
-            binary.tasks.add createInstallTask(tasks, binary);
         } else if (binary instanceof SharedLibraryBinarySpec) {
             builderTask = createLinkSharedLibraryTask(tasks, binary)
         } else if (binary instanceof StaticLibraryBinarySpec) {
@@ -110,23 +105,5 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         task.conventionMapping.outputFile = { staticLibrary.staticLibraryFile }
         task.staticLibArgs = binary.staticLibArchiver.args
         return task
-    }
-
-    private static createInstallTask(TaskContainer tasks, def executable) {
-        def binary = executable as NativeBinarySpecInternal
-        InstallExecutable installTask = tasks.create(binary.namingScheme.getTaskName("install"), InstallExecutable)
-        installTask.description = "Installs a development image of $executable"
-        installTask.group = LifecycleBasePlugin.BUILD_GROUP
-
-        installTask.toolChain = binary.toolChain
-
-        def project = installTask.project
-        installTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/install/${binary.namingScheme.outputDirectoryBase}") }
-
-        installTask.conventionMapping.executable = { executable.executableFile }
-        installTask.lib { binary.libs*.runtimeFiles }
-
-        installTask.dependsOn(executable)
-        return installTask
     }
 }

@@ -15,9 +15,11 @@
  */
 package org.gradle.nativeplatform.plugins;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,6 +33,7 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
@@ -46,7 +49,9 @@ import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
+import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
@@ -55,6 +60,8 @@ import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -269,6 +276,50 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
+        /**
+         * Can't use @BinaryTasks because the binary is not _built-by_ the install task, but it is associated with it.
+         * Rule is called multiple times, so need to check for task existence before creating.
+         */
+        @Defaults
+        void createInstallTasks(TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, @Path("buildDir") File buildDir) {
+            // There's no common API for NativeExecutableBinarySpec and NativeTestSuiteBinarySpec
+            for (NativeExecutableBinarySpecInternal binary : binaries.withType(NativeExecutableBinarySpecInternal.class).values()) {
+                Task installTask = createInstallTask(tasks, binary, binary.getExecutableFile(), buildDir);
+                binary.getTasks().add(installTask);
+            }
+            for (NativeTestSuiteBinarySpecInternal binary : binaries.withType(NativeTestSuiteBinarySpecInternal.class).values()) {
+                Task installTask = createInstallTask(tasks, binary, binary.getExecutableFile(), buildDir);
+                binary.getTasks().add(installTask);
+            }
+        }
+
+        private Task createInstallTask(TaskContainer tasks, final NativeBinarySpecInternal binary, final File executableFile, final File buildDirectory) {
+            return tasks.create(binary.getNamingScheme().getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
+                @Override
+                public void execute(InstallExecutable installTask) {
+                    installTask.setDescription("Installs a development image of $executable");
+                    installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    installTask.setToolChain(binary.getToolChain());
+
+                    File defaultDestination = new File(buildDirectory, "install/" + binary.getNamingScheme().getOutputDirectoryBase());
+                    installTask.setDestinationDir(defaultDestination);
+
+                    installTask.setExecutable(executableFile);
+
+                    installTask.lib(new Callable<List<FileCollection>>() {
+                        @Override
+                        public List<FileCollection> call() throws Exception {
+                            List<FileCollection> runtimeFiles = Lists.newArrayList();
+                            for (NativeDependencySet nativeDependencySet : binary.getLibs()) {
+                                runtimeFiles.add(nativeDependencySet.getRuntimeFiles());
+                            }
+                            return runtimeFiles;
+                        }
+                    });
+                    installTask.dependsOn(binary);
+                }
+            });
+        }
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
