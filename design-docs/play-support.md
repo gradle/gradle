@@ -809,26 +809,32 @@ Existing BuildLink adapter can be used with minor modifications.
 
 #### Test coverage
 
-- Changes to source are reflected in running play app
-  - test changes to different types of source:
-     - controller (java/scala), routes, model (java/scala), views (twirl), javascript, coffeescript, css, lesscss
+- ~~Changes to source are reflected in running play app~~
+   - ~~test changes to different types of source:~~
+     - ~~controller (java/scala)~~
+     - ~~routes~~
+     - ~~model (java/scala)~~
+     - ~~views (twirl)~~
+     - ~~javascript~~ TODO: Minification test fails
+     - ~~coffeescript~~
+     - ~~css~~
 - Reload is not triggered if dependency of play run task fails
 
 ### Story: Reloading changes in multi-project Play application
 
 #### Implementation
 
-The Play BuildLink solution returns a new classloader that contains the "changing" application resources. The non-changing application resources are part of the parent classloader for the classloader returned by the BuildLink implementation. 
+The Play BuildLink solution returns a new classloader that contains the "changing" application resources. The non-changing application resources are part of the parent classloader for the classloader returned by the BuildLink implementation.
 In a multi-project Play application, the "changing" application resources are considered to be the application jar of the current project and all dependencies that are of a Project component type. All other resources in the runtime classpath are part of the "non-changing" resources and handled by the parent classloader.
  - dependencies of project component type will be filtered by checking `ResolvedArtifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier`
- 
+
 #### Test coverage
 - Changes to source are reflected in running play app
   - test changes to primary app and submodules
 
 ### Story: Scala compile process is reused across continuous build instances
 
-This is a performance optimization to the implementation of Play reload, that decreases compile times by reusing compiler daemons. 
+This is a performance optimization to the implementation of Play reload, that decreases compile times by reusing compiler daemons.
 This story also supersedes the `BuildSession` concept added in earlier stories with a service registry scope serving the same purpose.
 
 #### Implementation

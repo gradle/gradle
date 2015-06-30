@@ -31,7 +31,7 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         assert appIsStopped()
     }
 
-    def "can modify play app while app is running in continuous build"() {
+    def "should reload modified scala controller and routes"() {
         when:
         succeeds("runPlayBinary")
 
@@ -43,16 +43,6 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
 
         then:
         succeeds()
-        runningApp.playUrl('hello').text == 'Hello world'
-    }
-
-    def "can modify play app before it has been started"() {
-        when:
-        addHelloWorld()
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
         runningApp.playUrl('hello').text == 'Hello world'
     }
 
@@ -68,7 +58,7 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         }
     }
 
-    def "can reload java controller"() {
+    def "should reload modified java controller and routes"() {
         when:
         succeeds("runPlayBinary")
 
@@ -92,7 +82,7 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
     }
 
     @Ignore
-    def "minify works properly"() {
+    def "should reload modified javascript and minify changes"() {
         when:
         succeeds("runPlayBinary")
 
@@ -115,7 +105,7 @@ message = "Hello coffeescript"
     }
 
 
-    def "can modify coffeescript file"() {
+    def "should reload modified coffeescript"() {
         when:
         succeeds("runPlayBinary")
 
@@ -136,7 +126,7 @@ message = "Hello coffeescript"
         //runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
 
-    def "can add javascript file"() {
+    def "should detect new javascript files"() {
         when:
         succeeds("runPlayBinary")
 
@@ -152,5 +142,85 @@ var message = "Hello JS";
         succeeds()
         runningApp.playUrl('assets/javascripts/helloworld.js').text.contains('Hello JS')
         runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
+    }
+
+    def "should reload modified java model"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+        assert runningApp.playUrl().text.contains("<li>foo:1</li>")
+
+        when:
+        file("app/models/DataType.java").with {
+            text = text.replaceFirst(~/"%s:%s"/, '"Hello %s:%s !"')
+        }
+
+        then:
+        succeeds()
+        assert runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
+    }
+
+    def "should reload modified scala model"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+        assert runningApp.playUrl().text.contains("<li>foo:1</li>")
+
+        when:
+        file("conf/scala.routes") << "\nGET     /hello                   controllers.scala.MixedJava.hello"
+        file("app/models/ScalaClass.scala") << '''{
+    def hello() = {
+        "Hello " + name  + " from scala model"
+    }
+}
+'''
+        file("app/controllers/scala/MixedJava.java").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+  public static Result hello() {
+    return ok(new models.ScalaClass("world").hello());
+  }
+}
+''')
+        }
+
+        then:
+        succeeds()
+        assert runningApp.playUrl("scala/hello").text.contains("Hello world from scala model")
+    }
+
+    def "should reload twirl template"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("app/views/index.scala.html").with {
+            text = text.replaceFirst(~/Welcome to Play/, 'Welcome to Play with Gradle')
+        }
+
+        then:
+        succeeds()
+        assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
+    }
+
+    def "should reload css"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        file("public/stylesheets/main.css") << 'body { font-size: 20px }'
+
+        then:
+        succeeds()
+        assert runningApp.playUrl('assets/stylesheets/main.css').text.contains("body { font-size: 20px }")
     }
 }
