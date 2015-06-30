@@ -93,7 +93,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     private void maybePrintRules(ModelNode model, StyledTextOutput styledTextoutput) {
         List<ModelRuleDescriptor> executedRules = model.getExecutedRules();
         if (executedRules.size() > 0) {
-            printNestedAttributeTitle(styledTextoutput, "Rules: ");
+            printNestedAttributeTitle(styledTextoutput, "Rules:");
             for (ModelRuleDescriptor ruleDescriptor : executedRules) {
                 printNestedAttribute(styledTextoutput, "⤷ " + ruleDescriptor.toString());
             }
@@ -106,7 +106,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     private void printNestedAttributeTitle(StyledTextOutput styledTextoutput, String title) {
-        styledTextoutput.withStyle(Identifier).format("      | %s |", title);
+        styledTextoutput.withStyle(Identifier).format("      | %s", title);
         styledTextoutput.println();
     }
 
