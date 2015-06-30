@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -80,7 +81,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped(':createMainJar',':mainJar')
+        executedAndNotSkipped(':createMainJar', ':mainJar')
 
     }
 
@@ -212,7 +213,7 @@ model {
 
     }
 
-    def "should fail if project doesn't exist" () {
+    def "should fail if project doesn't exist"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -255,7 +256,7 @@ model {
 
     }
 
-    def "should fail if project exists but not library" () {
+    def "should fail if project exists but not library"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -299,7 +300,7 @@ model {
         failure.assertHasCause("Project ':dep' does not contain library 'doesNotExist'. Did you want to use 'main'?")
     }
 
-    def "should display the list of candidate libraries in case a library is not found" () {
+    def "should display the list of candidate libraries in case a library is not found"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -397,7 +398,7 @@ model {
 
     }
 
-    def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available" () {
+    def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -442,7 +443,7 @@ model {
         failure.assertHasCause("Project ':dep' contains more than one library. Please select one of 'awesome', 'lib'")
     }
 
-    def "should fail and display a sensible error message if target project doesn't define any library" () {
+    def "should fail and display a sensible error message if target project doesn't define any library"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -481,7 +482,7 @@ plugins {
         failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
-   def "should fail and display a sensible error message if target project doesn't use new model" () {
+    def "should fail and display a sensible error message if target project doesn't use new model"() {
         given:
         applyJavaPlugin(buildFile)
         buildFile << '''
@@ -586,7 +587,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':c:createMainJar',':b:createMainJar'
+        executedAndNotSkipped ':c:createMainJar', ':b:createMainJar'
 
     }
 
@@ -889,5 +890,46 @@ plugins {
 
             apply type: ComponentTypeRules
         """
+    }
+
+    def "collects all errors if there's more than one resolution failure"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'someLib' // first error
+                        project ':b' // second error
+                        project ':c' library 'foo' // third error
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp {}'
+
+        when: "build fails"
+        fails ':mainJar'
+
+        then: "displays a reasonable error message indicating the faulty source set"
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+
+        and: "first resolution error is displayed"
+        failure.assertHasCause("Could not resolve project ':' library 'someLib'")
+        failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
+
+        and: "second resolution error is displayed"
+        failure.assertHasCause("Could not resolve project ':b'")
+        failure.assertHasCause("Project ':b' not found")
+
+        and: "third resolution error is displayed"
+        failure.assertHasCause("Could not resolve project ':c' library 'foo'")
+        failure.assertHasCause("Project ':c' not found")
     }
 }
