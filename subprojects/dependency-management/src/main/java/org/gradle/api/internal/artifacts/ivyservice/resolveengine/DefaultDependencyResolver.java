@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -98,7 +98,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolve(final ResolveContext resolveContext,
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
-                        final DefaultResolverResults results) throws ResolveException {
+                        final ResolverResults results) throws ResolveException {
         LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
@@ -148,7 +148,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolveArtifacts(final ResolveContext resolveContext,
                                  final List<? extends ResolutionAwareRepository> repositories,
                                  final GlobalDependencyResolutionRules metadataHandler,
-                                 final DefaultResolverResults results) throws ResolveException {
+                                 final ResolverResults results) throws ResolveException {
         ResolvedGraphResults graphResults = results.getGraphResults();
         ResolvedArtifactResults artifactResults = results.getArtifactsBuilder().resolve();
 

@@ -24,10 +24,10 @@ public interface ArtifactDependencyResolver {
     void resolve(ResolveContext resolveContext,
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,
-                 DefaultResolverResults results) throws ResolveException;
+                 ResolverResults results) throws ResolveException;
 
     void resolveArtifacts(ResolveContext resolveContext,
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,
-                 DefaultResolverResults results) throws ResolveException;
+                 ResolverResults results) throws ResolveException;
 }

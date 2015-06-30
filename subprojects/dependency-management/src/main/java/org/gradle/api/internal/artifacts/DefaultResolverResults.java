@@ -104,23 +104,27 @@ public class DefaultResolverResults implements ResolverResults {
         }
     }
 
+    @Override
     public void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult) {
         this.resolutionResult = resolutionResult;
         this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.fatalFailure = null;
     }
 
+    @Override
     public void failed(ResolveException failure) {
         this.resolutionResult = null;
         this.fatalFailure = failure;
     }
 
+    @Override
     public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
     }
 
+    @Override
     public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
         this.resolvedConfiguration = resolvedConfiguration;
         this.graphResults = null;
@@ -128,14 +132,17 @@ public class DefaultResolverResults implements ResolverResults {
         this.artifactResults = null;
     }
 
+    @Override
     public ResolvedGraphResults getGraphResults() {
         return graphResults;
     }
 
+    @Override
     public ResolvedArtifactsBuilder getArtifactsBuilder() {
         return artifactResults;
     }
 
+    @Override
     public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {
         return transientConfigurationResultsBuilder;
     }

@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
 
@@ -32,4 +36,21 @@ public interface ResolverResults {
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     ResolvedArtifactsContainer getResolvedArtifacts();
+
+    // TODO: The methods below should be removed to make sure old model resolution is decoupled from
+    // the new model
+
+    void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
+
+    void failed(ResolveException failure);
+
+    void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder);
+
+    void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration);
+
+    ResolvedGraphResults getGraphResults();
+
+    ResolvedArtifactsBuilder getArtifactsBuilder();
+
+    TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder();
 }
