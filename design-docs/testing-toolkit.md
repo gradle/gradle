@@ -1,7 +1,5 @@
 # Testing custom build logic
 
-This stories are partially extracted, re-aligned and distilled from this [spec](https://github.com/gradle/gradle/blob/master/design-docs/testing-user-build-logic.md).
-
 ## High-level goals
 
 * Writing and executing functional tests against build scripts via Tooling API.
