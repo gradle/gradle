@@ -19,6 +19,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 public interface ConfigurationResolver {
-    void resolve(ConfigurationInternal configuration, DefaultResolverResults results) throws ResolveException;
-    void resolveArtifacts(ConfigurationInternal configuration, DefaultResolverResults results) throws ResolveException;
+    void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+    void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
 }
