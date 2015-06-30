@@ -24,10 +24,14 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
+import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -48,6 +52,7 @@ import java.util.Set;
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private FunctionalSourceSet mainSources;
+    private ModelMap<LanguageSourceSet> ownedSources;
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
@@ -109,6 +114,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     public void setBinarySources(FunctionalSourceSet sources) {
         mainSources = sources;
+        ownedSources = DomainObjectCollectionBackedModelMap.wrap(LanguageSourceSet.class, sources, sources.getEntityInstantiator(), sources.getNamer(), Actions.doNothing());
     }
 
     @Override
@@ -123,6 +129,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     @Override
     public Set<LanguageSourceSet> getAllSources() {
         return Sets.newLinkedHashSet(mainSources);
+    }
+
+    @Override
+    public ModelMap<LanguageSourceSet> getSources() {
+        return ModelMapGroovyDecorator.wrap(ownedSources);
     }
 
     public BinaryTasksCollection getTasks() {
