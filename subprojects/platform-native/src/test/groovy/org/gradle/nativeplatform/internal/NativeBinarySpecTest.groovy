@@ -64,7 +64,8 @@ class NativeBinarySpecTest extends Specification {
         def binary = testBinary(component)
 
         then:
-        binary.source.contains(sourceSet)
+        binary.sources.containsValue(sourceSet)
+        binary.inputs.contains(sourceSet)
     }
 
     def "binary uses all source sets from a functional source set"() {
@@ -86,8 +87,8 @@ class NativeBinarySpecTest extends Specification {
         binary.binarySources = functionalSourceSet
 
         then:
-        binary.source.contains(sourceSet1)
-        binary.source.contains(sourceSet2)
+        binary.sources.containsValue(sourceSet1)
+        binary.sources.containsValue(sourceSet2)
     }
 
     def "uses resolver to resolve lib to dependency"() {
@@ -118,7 +119,7 @@ class NativeBinarySpecTest extends Specification {
         def sourceSet = Stub(DependentSourceSet) {
             getLibs() >> [lib]
         }
-        binary.source.add sourceSet
+        binary.inputs.add sourceSet
 
         1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [lib]
@@ -169,7 +170,7 @@ class NativeBinarySpecTest extends Specification {
         def sourceSet = Stub(DependentSourceSet) {
             getLibs() >> [sourceLib]
         }
-        binary.source.add sourceSet
+        binary.inputs.add sourceSet
         binary.lib(lib2)
 
         and:

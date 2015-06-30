@@ -89,7 +89,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getSource() >> sourceDirSet
             getExportedHeaders() >> headerDirSet
         }
-        binary.source.add sourceSet
+        binary.inputs.add sourceSet
 
         expect:
         binary.sharedLibraryFile == sharedLibraryFile
@@ -117,7 +117,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def resourceSet = Stub(NativeResourceSet) {
             getSource() >> sourceDirSet
         }
-        binary.source.add resourceSet
+        binary.inputs.add resourceSet
 
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")

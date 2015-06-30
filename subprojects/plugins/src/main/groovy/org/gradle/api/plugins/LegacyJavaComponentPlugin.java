@@ -94,7 +94,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createCompileJavaTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
+        binary.getInputs().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
             public void execute(JavaSourceSet javaSourceSet) {
                 JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                 configureCompileTask(compileTask, javaSourceSet, binary);
@@ -106,7 +106,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
+        binary.getInputs().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
             public void execute(JvmResourceSet resourceSet) {
                 Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                 resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
