@@ -16,9 +16,9 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
-public class DefaultLibraryComponentIdentifier implements LibraryComponentIdentifier {
+public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
     private final String projectPath;
     private final String libraryName;
     private final String displayName;
@@ -28,7 +28,7 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
         return displayName;
     }
 
-    public DefaultLibraryComponentIdentifier(String projectPath, String libraryName, String variant) {
+    public DefaultLibraryBinaryIdentifier(String projectPath, String libraryName, String variant) {
         assert projectPath != null : "project path cannot be null";
         assert libraryName != null : "library name cannot be null";
         assert variant != null : "variant cannot be null";
@@ -61,7 +61,7 @@ public class DefaultLibraryComponentIdentifier implements LibraryComponentIdenti
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultLibraryComponentIdentifier that = (DefaultLibraryComponentIdentifier) o;
+        DefaultLibraryBinaryIdentifier that = (DefaultLibraryBinaryIdentifier) o;
         return Objects.equal(projectPath, that.projectPath)
             && Objects.equal(libraryName, that.libraryName)
             && Objects.equal(variant, that.variant);

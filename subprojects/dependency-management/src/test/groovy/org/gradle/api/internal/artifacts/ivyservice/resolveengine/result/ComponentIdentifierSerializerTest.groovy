@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
 
@@ -51,10 +51,10 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes LibraryIdentifier"() {
         given:
-        LibraryComponentIdentifier selection = new DefaultLibraryComponentIdentifier(':project', 'lib', 'variant')
+        LibraryBinaryIdentifier selection = new DefaultLibraryBinaryIdentifier(':project', 'lib', 'variant')
 
         when:
-        LibraryComponentIdentifier result = serialize(selection, serializer)
+        LibraryBinaryIdentifier result = serialize(selection, serializer)
 
         then:
         result.projectPath == ':project'

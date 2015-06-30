@@ -15,16 +15,16 @@
  */
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
-class DefaultLibraryComponentIdentifierTest extends Specification {
+class DefaultLibraryBinaryIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryComponentIdentifier defaultBuildComponentIdentifier = new DefaultLibraryComponentIdentifier(':myPath', 'myLib', 'api')
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(':myPath', 'myLib', 'api')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
@@ -36,7 +36,7 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
 
     def "is instantiated with null project constructor parameter value"() {
         when:
-        new DefaultLibraryComponentIdentifier(null, 'foo', 'api')
+        new DefaultLibraryBinaryIdentifier(null, 'foo', 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -45,7 +45,7 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
 
     def "is instantiated with null library constructor parameter value"() {
         when:
-        new DefaultLibraryComponentIdentifier('foo', null, 'api')
+        new DefaultLibraryBinaryIdentifier('foo', null, 'api')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -54,7 +54,7 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
 
     def "is instantiated with null variant constructor parameter value"() {
         when:
-        new DefaultLibraryComponentIdentifier('foo', 'bar', null)
+        new DefaultLibraryBinaryIdentifier('foo', 'bar', null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -64,8 +64,8 @@ class DefaultLibraryComponentIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath,#libraryName,#variant)"() {
         expect:
-        LibraryComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryComponentIdentifier(':myProjectPath1', 'myLib', 'api')
-        LibraryComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryComponentIdentifier(projectPath, libraryName, variant)
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryBinaryIdentifier(':myProjectPath1', 'myLib', 'api')
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier2 = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation

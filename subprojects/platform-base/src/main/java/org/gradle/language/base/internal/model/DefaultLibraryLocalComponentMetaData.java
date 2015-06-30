@@ -18,10 +18,10 @@ package org.gradle.language.base.internal.model;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 
 import java.util.Collections;
@@ -37,13 +37,13 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
             projectPath, libraryName, VERSION
         );
-        ComponentIdentifier component = new DefaultLibraryComponentIdentifier(projectPath, libraryName, variant);
+        ComponentIdentifier component = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant);
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
         metaData.addConfiguration(
-            LibraryComponentIdentifier.CONFIGURATION_NAME,
+            LibraryBinaryIdentifier.CONFIGURATION_NAME,
             String.format("Configuration for '%s' variant '%s'", libraryName, variant),
             Collections.<String>emptySet(),
-            Collections.singleton(LibraryComponentIdentifier.CONFIGURATION_NAME),
+            Collections.singleton(LibraryBinaryIdentifier.CONFIGURATION_NAME),
             true,
             true,
             buildDependencies);

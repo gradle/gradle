@@ -17,7 +17,7 @@ package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -45,7 +45,7 @@ public class DependentSourceSetResolveContext implements ResolveContext {
 
     @Override
     public String getName() {
-        return LibraryComponentIdentifier.CONFIGURATION_NAME;
+        return LibraryBinaryIdentifier.CONFIGURATION_NAME;
     }
 
     public String getComponentName() {

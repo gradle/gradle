@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  *
  */
 @Incubating
-public interface LibraryComponentIdentifier extends ComponentIdentifier {
+public interface LibraryBinaryIdentifier extends ComponentIdentifier {
     String CONFIGURATION_NAME = "Component configuration";
 
     /**

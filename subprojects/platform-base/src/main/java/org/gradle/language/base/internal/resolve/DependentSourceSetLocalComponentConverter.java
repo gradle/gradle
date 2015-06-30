@@ -19,7 +19,7 @@ import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.tasks.TaskDependency;
@@ -72,8 +72,8 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
             LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
                 selector,
                 requested,
-                LibraryComponentIdentifier.CONFIGURATION_NAME,
-                LibraryComponentIdentifier.CONFIGURATION_NAME,
+                LibraryBinaryIdentifier.CONFIGURATION_NAME,
+                LibraryBinaryIdentifier.CONFIGURATION_NAME,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false,

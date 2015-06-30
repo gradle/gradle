@@ -19,7 +19,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
@@ -56,8 +56,8 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if (identifier instanceof LibraryComponentIdentifier) {
-            LibraryComponentIdentifier projectComponentIdentifier = (LibraryComponentIdentifier) identifier;
+        if (identifier instanceof LibraryBinaryIdentifier) {
+            LibraryBinaryIdentifier projectComponentIdentifier = (LibraryBinaryIdentifier) identifier;
             return projectPath.equals(projectComponentIdentifier.getProjectPath())
                 && projectComponentIdentifier.getLibraryName().equals(libraryName);
         }

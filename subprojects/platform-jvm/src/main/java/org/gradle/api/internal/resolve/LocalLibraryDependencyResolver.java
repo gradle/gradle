@@ -23,7 +23,7 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.ArtifactType;
@@ -85,7 +85,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         if (spec instanceof JvmBinarySpec) {
                             Jar jar = ((JvmBinarySpec)spec).getTasks().getJar();
                             PublishArtifact publishArtifact = new ArchivePublishArtifact(jar);
-                            metaData.addArtifacts(LibraryComponentIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
+                            metaData.addArtifacts(LibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
                         }
                     }
                 }
@@ -172,7 +172,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     private boolean isLibrary(ComponentIdentifier identifier) {
-        return identifier instanceof LibraryComponentIdentifier;
+        return identifier instanceof LibraryBinaryIdentifier;
     }
 
     @Override

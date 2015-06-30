@@ -18,7 +18,7 @@ package org.gradle.api.internal.resolve
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
@@ -138,7 +138,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         given:
         def artifact = Mock(ComponentArtifactMetaData)
         def result = new DefaultBuildableArtifactResolveResult()
-        artifact.componentId >> Mock(LibraryComponentIdentifier)
+        artifact.componentId >> Mock(LibraryBinaryIdentifier)
 
         when:
         resolver.resolveArtifact(artifact, Mock(ModuleSource), result)
@@ -165,7 +165,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         given:
         def component = Mock(ComponentResolveMetaData)
         def result = new DefaultBuildableArtifactSetResolveResult()
-        component.componentId >> Mock(LibraryComponentIdentifier)
+        component.componentId >> Mock(LibraryBinaryIdentifier)
 
         when:
         resolver.resolveModuleArtifacts(component, type, result)

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.DefaultLibraryComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -38,7 +38,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
         throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
@@ -59,8 +59,8 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;
             encoder.writeByte(Implementation.BUILD.getId());
             encoder.writeString(projectComponentIdentifier.getProjectPath());
-        } else if(value instanceof DefaultLibraryComponentIdentifier) {
-            LibraryComponentIdentifier libraryIdentifier = (LibraryComponentIdentifier)value;
+        } else if(value instanceof DefaultLibraryBinaryIdentifier) {
+            LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier)value;
             encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryIdentifier.getProjectPath());
             encoder.writeString(libraryIdentifier.getLibraryName());
