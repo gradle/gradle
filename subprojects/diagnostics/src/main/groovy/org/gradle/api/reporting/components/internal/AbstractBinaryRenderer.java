@@ -74,6 +74,9 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderOwnedSourceSets(T binary, TextReportBuilder builder) {
+        if (((BinarySpecInternal) binary).isLegacyBinary()) {
+            return;
+        }
         ModelMap<LanguageSourceSet> sources = binary.getSources();
         if (!sources.isEmpty()) {
             SourceSetRenderer sourceSetRenderer = new SourceSetRenderer();
