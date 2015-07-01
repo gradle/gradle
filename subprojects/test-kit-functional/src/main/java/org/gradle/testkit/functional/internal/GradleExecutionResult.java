@@ -20,10 +20,14 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GradleExecutionResult {
     private final ByteArrayOutputStream standardOutput;
     private final ByteArrayOutputStream standardError;
+    private final List<String> executedTasks = new ArrayList<String>();
+    private final List<String> skippedTasks = new ArrayList<String>();
     private Throwable throwable;
 
     public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError) {
@@ -45,6 +49,14 @@ public class GradleExecutionResult {
         } catch(UnsupportedEncodingException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public List<String> getExecutedTasks() {
+        return executedTasks;
+    }
+
+    public List<String> getSkippedTasks() {
+        return skippedTasks;
     }
 
     public Throwable getThrowable() {

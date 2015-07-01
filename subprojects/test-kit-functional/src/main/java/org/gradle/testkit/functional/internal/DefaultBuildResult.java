@@ -18,13 +18,19 @@ package org.gradle.testkit.functional.internal;
 
 import org.gradle.testkit.functional.BuildResult;
 
+import java.util.List;
+
 public class DefaultBuildResult implements BuildResult {
     private final String standardOutput;
     private final String standardError;
+    private final List<String> executedTasks;
+    private final List<String> skippedTasks;
 
-    public DefaultBuildResult(String standardOutput, String standardError) {
+    public DefaultBuildResult(String standardOutput, String standardError, List<String> executedTasks, List<String> skippedTasks) {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
+        this.executedTasks = executedTasks;
+        this.skippedTasks = skippedTasks;
     }
 
     public String getStandardOutput() {
@@ -33,5 +39,13 @@ public class DefaultBuildResult implements BuildResult {
 
     public String getStandardError() {
         return standardError;
+    }
+
+    public List<String> getExecutedTasks() {
+        return executedTasks;
+    }
+
+    public List<String> getSkippedTasks() {
+        return skippedTasks;
     }
 }

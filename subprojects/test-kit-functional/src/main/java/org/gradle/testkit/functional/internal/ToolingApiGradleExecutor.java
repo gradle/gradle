@@ -25,6 +25,9 @@ import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistributio
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.ProgressListener;
+import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
@@ -70,6 +73,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             BuildLauncher launcher = connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
+            launcher.addProgressListener(new TaskExecutionProgressListener(gradleExecutionResult.getExecutedTasks(), gradleExecutionResult.getSkippedTasks()));
 
             String[] argumentArray = new String[arguments.size()];
             arguments.toArray(argumentArray);
@@ -116,6 +120,42 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHomeDir());
         } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
             gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getURI());
+        }
+    }
+
+    private class TaskExecutionProgressListener implements ProgressListener {
+        private final List<String> executedTasks;
+        private final List<String> skippedTasks;
+
+        public TaskExecutionProgressListener(List<String> executedTasks, List<String> skippedTasks) {
+            this.executedTasks = executedTasks;
+            this.skippedTasks = skippedTasks;
+        }
+
+        public void statusChanged(ProgressEvent event) {
+            if(event instanceof TaskFinishEvent) {
+                TaskFinishEvent taskFinishEvent = (TaskFinishEvent)event;
+                String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
+                executedTasks.add(taskPath);
+
+                TaskOperationResult result = taskFinishEvent.getResult();
+
+                if(isFailed(result) || isSkipped(result) || isUpToDate(result)) {
+                    skippedTasks.add(taskPath);
+                }
+            }
+        }
+
+        private boolean isFailed(TaskOperationResult result) {
+            return result instanceof TaskFailureResult;
+        }
+
+        private boolean isSkipped(TaskOperationResult result) {
+            return result instanceof TaskSkippedResult;
+        }
+
+        private boolean isUpToDate(TaskOperationResult result) {
+            return result instanceof TaskSuccessResult && ((TaskSuccessResult)result).isUpToDate();
         }
     }
 }

@@ -98,6 +98,7 @@ public class DefaultGradleRunner extends GradleRunner {
         gradleExecutor.withTasks(getTasks());
         GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
         action.execute(gradleExecutionResult);
-        return new DefaultBuildResult(gradleExecutionResult.getStandardOutput(), gradleExecutionResult.getStandardError());
+        return new DefaultBuildResult(gradleExecutionResult.getStandardOutput(), gradleExecutionResult.getStandardError(),
+                                      gradleExecutionResult.getExecutedTasks(), gradleExecutionResult.getSkippedTasks());
     }
 }

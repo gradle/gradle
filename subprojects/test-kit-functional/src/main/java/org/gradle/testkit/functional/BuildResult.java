@@ -18,6 +18,8 @@ package org.gradle.testkit.functional;
 
 import org.gradle.api.Incubating;
 
+import java.util.List;
+
 /**
  * Result of a build execution.
  *
@@ -38,4 +40,18 @@ public interface BuildResult {
      * @return Standard error messages
      */
     String getStandardError();
+
+    /**
+     * Returns the executed tasks of a build execution. The execution status of a task can either be SKIPPED, UP-TO-DATE, successful or failed.
+     *
+     * @return Executed tasks
+     */
+    List<String> getExecutedTasks();
+
+    /**
+     * Returns executed tasks that were marked SKIPPED, UP-TO-DATE or failed during build execution.
+     *
+     * @return Skipped tasks
+     */
+    List<String> getSkippedTasks();
 }

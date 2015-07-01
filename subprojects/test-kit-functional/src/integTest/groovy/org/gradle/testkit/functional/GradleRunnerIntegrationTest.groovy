@@ -44,6 +44,8 @@ class GradleRunnerIntegrationTest extends Specification {
         noExceptionThrown()
         result.standardOutput.contains(':help')
         !result.standardError
+        result.executedTasks == [':help']
+        result.skippedTasks.empty
     }
 
     def "execute build for expected success"() {
@@ -59,6 +61,8 @@ class GradleRunnerIntegrationTest extends Specification {
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
+        result.executedTasks == [':helloWorld']
+        result.skippedTasks.empty
     }
 
     def "execute build for expected success but fails"() {
@@ -99,8 +103,11 @@ Unexpected exception""")
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains(':helloWorld FAILED')
+        result.standardError.contains("Execution failed for task ':helloWorld'")
         result.standardError.contains('Expected exception')
+        result.executedTasks == [':helloWorld']
+        result.skippedTasks == [':helloWorld']
     }
 
     def "execute build for expected failure but succeeds"() {
@@ -138,9 +145,11 @@ Unexpected exception""")
         result.standardOutput.contains(':byeWorld')
         result.standardOutput.contains('Bye world!')
         !result.standardError
+        result.executedTasks == [':helloWorld', ':byeWorld']
+        result.skippedTasks.empty
     }
 
-    def "execute skipped tasks"() {
+    def "execute task actions marked as up-to-date or skipped"() {
         given:
         buildFile << """
             task helloWorld
@@ -160,7 +169,8 @@ Unexpected exception""")
         noExceptionThrown()
         result.standardOutput.contains(':helloWorld UP-TO-DATE')
         result.standardOutput.contains(':byeWorld SKIPPED')
-        !result.standardError
+        result.executedTasks == [':helloWorld', ':byeWorld']
+        result.skippedTasks == [':helloWorld', ':byeWorld']
     }
 
     def "execute plugin and custom task logic as part of the build script"() {
@@ -191,6 +201,8 @@ Unexpected exception""")
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
+        result.executedTasks == [':helloWorld']
+        result.skippedTasks.empty
     }
 
     def "execute build with buildSrc project"() {
@@ -219,6 +231,8 @@ public class MyApp {
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
+        result.executedTasks == [':helloWorld']
+        result.skippedTasks.empty
     }
 
     @Unroll
@@ -249,6 +263,8 @@ public class MyApp {
         result.standardOutput.contains(debugMessage) == hasDebugMessage
         result.standardOutput.contains(infoMessage) == hasInfoMessage
         result.standardOutput.contains(quietMessage) == hasQuietMessage
+        result.executedTasks == [':helloWorld']
+        result.skippedTasks.empty
 
         where:
         arguments                | hasDebugMessage | hasInfoMessage | hasQuietMessage
@@ -276,6 +292,8 @@ public class MyApp {
         noExceptionThrown()
         !result.standardOutput.contains(':helloWorld')
         result.standardError.contains('Could not compile build file')
+        result.executedTasks.empty
+        result.skippedTasks.empty
     }
 
     def "build execution for script with unknown Gradle API method class"() {
@@ -296,6 +314,8 @@ public class MyApp {
         noExceptionThrown()
         !result.standardOutput.contains(':helloWorld')
         result.standardError.contains('Could not find method doSomething()')
+        result.executedTasks.empty
+        result.skippedTasks.empty
     }
 
     def "build execution with badly formed argument"() {
