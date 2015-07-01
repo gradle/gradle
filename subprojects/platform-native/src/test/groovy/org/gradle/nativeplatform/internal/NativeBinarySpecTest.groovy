@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
@@ -54,42 +53,6 @@ class NativeBinarySpecTest extends Specification {
         getName() >> "BuildType1"
     }
     def resolver = Mock(NativeDependencyResolver)
-
-    def "binary uses source from its owner component"() {
-        given:
-        def sourceSet = Stub(LanguageSourceSet)
-
-        when:
-        component.sources.add(sourceSet)
-        def binary = testBinary(component)
-
-        then:
-        binary.sources.containsValue(sourceSet)
-        binary.inputs.contains(sourceSet)
-    }
-
-    def "binary uses all source sets from a functional source set"() {
-        given:
-        def binary = testBinary(component)
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator, Stub(ProjectSourceSet))
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        def sourceSet2 = Stub(LanguageSourceSet) {
-            getName() >> "ss2"
-        }
-
-        when:
-        functionalSourceSet.add(sourceSet1)
-        functionalSourceSet.add(sourceSet2)
-
-        and:
-        binary.binarySources = functionalSourceSet
-
-        then:
-        binary.sources.containsValue(sourceSet1)
-        binary.sources.containsValue(sourceSet2)
-    }
 
     def "uses resolver to resolve lib to dependency"() {
         def binary = testBinary(component, flavor1)

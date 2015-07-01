@@ -16,30 +16,27 @@
 
 package org.gradle.platform.base.binary;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
-
-import java.util.Set;
 
 /**
  * Base class for custom binary implementations.
@@ -51,8 +48,9 @@ import java.util.Set;
  */
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private ModelMap<LanguageSourceSet> ownedSourceSets;
-    private final Set<LanguageSourceSet> referencedSourceSets = Sets.newHashSet();
+    private final NamedDomainObjectFactoryRegistry<LanguageSourceSet> entityInstantiator;
+    private final ModelMap<LanguageSourceSet> ownedSourceSets;
+    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
@@ -89,6 +87,14 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         this.name = info.name;
         this.typeName = info.typeName;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
+        DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet> entityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet>(LanguageSourceSet.class, "owned sources");
+        this.entityInstantiator = entityInstantiator;
+        this.ownedSourceSets = new DomainObjectCollectionBackedModelMap<LanguageSourceSet>(
+            LanguageSourceSet.class,
+            new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class),
+            entityInstantiator,
+            new Namer(),
+            Actions.doNothing());
     }
 
     protected String getTypeName() {
@@ -112,14 +118,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return getBuildAbility().isBuildable();
     }
 
-    // TODO:DAZ This is really doing 2 things: 1) copying the referenced source sets, and 2) providing the factories for creating new owned source sets
-    public void setBinarySources(FunctionalSourceSet componentSources) {
-        NamedEntityInstantiator<LanguageSourceSet> sourceSetInstantiator = componentSources.getEntityInstantiator();
-        ownedSourceSets = new DomainObjectCollectionBackedModelMap<LanguageSourceSet>(LanguageSourceSet.class, new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class), sourceSetInstantiator, new Namer(), Actions.doNothing());
-
-        referencedSourceSets.addAll(componentSources);
-    }
-
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, ownedSourceSets.values());
@@ -130,11 +128,13 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     @Override
+    public NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator() {
+        return entityInstantiator;
+    }
+
+    @Override
     public DomainObjectSet<LanguageSourceSet> getInputs() {
-        DomainObjectSet<LanguageSourceSet> inputs = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-        inputs.addAll(referencedSourceSets);
-        inputs.addAll(ownedSourceSets.values());
-        return inputs;
+        return inputSourceSets;
     }
 
     @Override

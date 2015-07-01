@@ -479,8 +479,10 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'newComponent'
+        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
+afterEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'newComponent'"""))
 
     }
@@ -603,8 +605,10 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "tasks"
 
         and:
-        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'newComponent'
+        output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
+afterEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'newComponent'"""))
 
     }

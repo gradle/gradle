@@ -20,13 +20,13 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -121,10 +121,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.resourcesDir = resourcesDir;
     }
 
-    public void setBinarySources(FunctionalSourceSet sources) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
         throw new UnsupportedOperationException();
@@ -137,7 +133,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        // TODO:LPTR This should return something usable
         throw new UnsupportedOperationException();
     }
 
@@ -149,6 +144,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     @Override
     public void addSourceSet(LanguageSourceSet sourceSet) {
         sourceSets.add(sourceSet);
+    }
+
+    @Override
+    public NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator() {
+        throw new UnsupportedOperationException();
     }
 
     public String getDisplayName() {

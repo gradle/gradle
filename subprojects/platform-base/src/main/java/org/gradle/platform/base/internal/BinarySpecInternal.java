@@ -16,18 +16,19 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
     ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
 
-    void setBinarySources(FunctionalSourceSet sources);
-
     void setBuildable(boolean buildable);
 
     BinaryBuildAbility getBuildAbility();
 
     boolean isLegacyBinary();
+
+    NamedDomainObjectFactoryRegistry<LanguageSourceSet> getEntityInstantiator();
 }

@@ -16,11 +16,11 @@
 
 package org.gradle.platform.base.binary
 
+import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
@@ -67,71 +67,31 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "can own source sets"() {
+        def fileResolver = Mock(FileResolver)
         def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
-        def functionalSourceSet = new DefaultFunctionalSourceSet("main", instantiator, Stub(ProjectSourceSet))
-        binary.binarySources = functionalSourceSet
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        def sourceSet2 = Stub(LanguageSourceSet) {
-            getName() >> "ss2"
-        }
-        def sourceSet3 = Stub(LanguageSourceSet) {
-            getName() >> "ss3"
-        }
+        binary.entityInstantiator.registerFactory(CustomSourceSet, new NamedDomainObjectFactory<CustomSourceSet>() {
+            @Override
+            CustomSourceSet create(String name) {
+                return BaseLanguageSourceSet.create(CustomSourceSet, name, "test-parent", fileResolver, instantiator)
+            }
+        })
 
-        when:
-        functionalSourceSet.add(sourceSet1)
-
-        then:
-        functionalSourceSet*.name == ["ss1"]
-        binary.sources.values()*.name == ["ss1"]
-        binary.inputs*.name == ["ss1"]
-
-        when:
-        binary.addSourceSet(sourceSet2)
-
-        then:
-        functionalSourceSet*.name == ["ss1", "ss2"]
-        binary.sources.values()*.name == ["ss1", "ss2"]
-        binary.inputs*.name == ["ss1", "ss2"]
-
-        when:
-        binary.inputs.add(sourceSet3)
-
-        then:
-        functionalSourceSet*.name == ["ss1", "ss2"]
-        binary.sources.values()*.name == ["ss1", "ss2"]
-        binary.inputs*.name == ["ss1", "ss2", "ss3"]
-    }
-
-    def "owned sources can be configured, but not input sources"() {
-        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
-        def functionalSourceSet = new DefaultFunctionalSourceSet("main", instantiator, Stub(ProjectSourceSet))
-        binary.binarySources = functionalSourceSet
-        def ownedSourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "owned1"
-        }
-        def ownedSourceSet2 = Stub(LanguageSourceSet) {
-            getName() >> "owned2"
-        }
         def inputSourceSet = Stub(LanguageSourceSet) {
             getName() >> "input"
         }
 
-        functionalSourceSet.add ownedSourceSet1
-        binary.addSourceSet ownedSourceSet2
-        binary.inputs.add inputSourceSet
-
-        def configuredSourceSets = []
-
         when:
-        binary.sources { sources ->
-            configuredSourceSets.addAll sources.values()
-        }
+        binary.sources.create("custom", CustomSourceSet)
 
         then:
-        configuredSourceSets*.name == ["owned1", "owned2"]
+        binary.sources.values()*.name == ["custom"]
+
+        when:
+        binary.inputs.add inputSourceSet
+
+        then:
+        binary.sources.values()*.name == ["custom"]
+        binary.inputs*.name == ["input"]
     }
 
     static class MySampleBinary extends BaseBinarySpec {

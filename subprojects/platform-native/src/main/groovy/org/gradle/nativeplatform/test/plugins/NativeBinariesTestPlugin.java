@@ -41,6 +41,8 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecFactory;
 import org.gradle.platform.base.test.TestSuiteContainer;
@@ -83,6 +85,19 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 for (DependentSourceSet testSource : testSuiteBinary.getInputs().withType(DependentSourceSet.class)) {
                     testSource.lib(testedBinary.getInputs());
                 }
+                testSuiteBinary.getInputs().addAll(testedBinary.getInputs());
+            }
+        }
+
+        @Finalize
+        void addTestSuiteSourceSetsToBinaries(TestSuiteContainer componentSpecs) {
+            for (final ComponentSpec componentSpec : componentSpecs.values()) {
+                componentSpec.getBinaries().beforeEach(new Action<BinarySpec>() {
+                    @Override
+                    public void execute(BinarySpec binary) {
+                        binary.getInputs().addAll(componentSpec.getSource().values());
+                    }
+                });
             }
         }
 

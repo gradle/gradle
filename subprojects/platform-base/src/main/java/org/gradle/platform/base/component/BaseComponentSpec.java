@@ -21,8 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
-import org.gradle.internal.TriAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -44,7 +42,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -52,16 +49,6 @@ import java.util.Set;
  */
 @Incubating
 public abstract class BaseComponentSpec implements ComponentSpecInternal {
-
-    private static final TriAction<MutableModelNode, BinarySpec, List<ModelView<?>>> CREATE_BINARY_SOURCE_SET = new TriAction<MutableModelNode, BinarySpec, List<ModelView<?>>>() {
-        @Override
-        public void execute(MutableModelNode modelNode, BinarySpec binarySpec, List<ModelView<?>> views) {
-            FunctionalSourceSet componentSources = ModelViews.getInstance(views.get(0), FunctionalSourceSet.class);
-            BinarySpecInternal binarySpecInternal = Cast.uncheckedCast(binarySpec);
-            FunctionalSourceSet binarySources = componentSources.copy(binarySpec.getName());
-            binarySpecInternal.setBinarySources(binarySources);
-        }
-    };
 
     private static final Transformer<FunctionalSourceSet, MutableModelNode> PUSH_FUNCTIONAL_SOURCE_SET_TO_NODE = new Transformer<FunctionalSourceSet, MutableModelNode>() {
         @Override
@@ -141,13 +128,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         assert binaries != null;
 
         final ModelPath sourcesNodePath = modelNode.getPath().child("sources");
-        binaries.applyToAllLinks(ModelActionRole.Defaults, DirectNodeInputUsingModelAction.of(
-            ModelReference.of(BinarySpecInternal.PUBLIC_MODEL_TYPE),
-            new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".sources"),
-            Collections.<ModelReference<?>>singletonList(ModelReference.of(sourcesNodePath, FunctionalSourceSet.class)),
-            CREATE_BINARY_SOURCE_SET
-        ));
-
         ModelRuleDescriptor sourcesDescriptor = new NestedModelRuleDescriptor(modelNode.getDescriptor(), ".sources");
         modelNode.addLink(
             BridgedCollections
