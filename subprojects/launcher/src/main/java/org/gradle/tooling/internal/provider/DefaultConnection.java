@@ -31,6 +31,8 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
@@ -42,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection {
+    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private ProtocolToModelAdapter adapter;
     private ServiceRegistry services;
@@ -185,6 +187,18 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
+        return new ProviderBuildResult<T>((T) results);
+    }
+
+    /**
+     * This is used by consumers 2.5-rc1 and later.
+     */
+    public <T> BuildResult<T> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+        throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        validateCanRun();
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
+        Object results = connection.runTests(testExecutionRequest, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 
 import java.io.Serializable;
+import java.util.Collection;
 
-public class BuildModelAction extends SubscribableBuildAction implements BuildAction, Serializable {
+public class TestExecutionRequestAction extends SubscribableBuildAction implements BuildAction, Serializable {
     private final StartParameter startParameter;
-    private final String modelName;
-    private final boolean runTasks;
+    private InternalTestExecutionRequest testExecutionRequest;
 
-    private BuildClientSubscriptions clientSubscriptions;
-
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public TestExecutionRequestAction(InternalTestExecutionRequest testExecutionRequest, StartParameter startParameter, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
+        this.testExecutionRequest = testExecutionRequest;
         this.startParameter = startParameter;
-        this.modelName = modelName;
-        this.runTasks = runTasks;
     }
 
     @Override
@@ -39,12 +39,7 @@ public class BuildModelAction extends SubscribableBuildAction implements BuildAc
         return startParameter;
     }
 
-    public String getModelName() {
-        return modelName;
+    public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors() {
+        return testExecutionRequest.getTestExecutionDescriptors();
     }
-
-    public boolean isRunTasks() {
-        return runTasks;
-    }
-
 }

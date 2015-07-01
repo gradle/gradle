@@ -21,6 +21,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>The following constraints apply to implementations:
  * <ul>
  * <li>Implementations must be thread-safe.
+ * <li>Implementations should implement {@link InternalTestExecutionConnection}. This is used by all consumer versions from 2.5-rc-1.
  * <li>Implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1.
  * <li>Implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.

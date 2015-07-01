@@ -31,6 +31,12 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
                 return new ClientProvidedBuildActionRunner();
             }
         });
+
+        registration.addProvider(new Object() {
+            TestExecutionRequestActionRunner createTestExecutionRequestActionRunner() {
+                return new TestExecutionRequestActionRunner();
+            }
+        });
     }
 
     @Override
