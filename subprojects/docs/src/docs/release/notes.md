@@ -343,6 +343,7 @@ We would like to thank the following community members for making contributions 
 * [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`.
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the Maven publishing mechanisms to use Aether libraries.
 * [Lorin Hochstein](https://github.com/lorin) - Improvements to the ANTLR plugin documentation.
+* [Amit Portnoy](https://github.com/amitport) - Minor fix in LifecycleBasePlugin
 
 ## Known issues
 
