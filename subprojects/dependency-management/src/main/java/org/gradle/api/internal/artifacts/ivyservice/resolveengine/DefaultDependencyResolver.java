@@ -29,10 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
@@ -71,12 +68,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final IvyContextManager ivyContextManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final VersionComparator versionComparator;
+    private final RequestScopeResolverProviderFactory requestScopeResolverProviderFactory;
     private final boolean buildProjectDependencies;
 
     public DefaultDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
                                      CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
                                      ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator,
-                                     boolean buildProjectDependencies) {
+                                     RequestScopeResolverProviderFactory requestScopeResolverProviderFactory, boolean buildProjectDependencies) {
         this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -84,6 +82,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.ivyContextManager = ivyContextManager;
         this.storeFactory = storeFactory;
         this.versionComparator = versionComparator;
+        this.requestScopeResolverProviderFactory = requestScopeResolverProviderFactory;
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
@@ -105,7 +104,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) resolveContext.getResolutionStrategy();
 
                 List<LocalComponentConverter> localComponentFactories = allServices(LocalComponentConverter.class);
-                List<ResolverProvider> resolvers = allServices(ResolverProvider.class, ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));
+                List<ResolverProvider> resolvers = allServices(ResolverProvider.class);
+                List<RequestScopeResolverProviderFactory.Query> requestScopeProviderQueries = allServices(RequestScopeResolverProviderFactory.Query.class);
+                for (RequestScopeResolverProviderFactory.Query query : requestScopeProviderQueries) {
+                    ResolverProvider provider = requestScopeResolverProviderFactory.tryCreate(resolveContext, query);
+                    if (provider!=null) {
+                        resolvers.add(provider);
+                    }
+                }
+                resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));
+
                 ResolverProviderChain resolverProvider = new ResolverProviderChain(resolvers);
                 ResolverProvider wrappingProvider = DelegatingResolverProvider.of(
                     createArtifactResolver(resolverProvider.getArtifactResolver()),

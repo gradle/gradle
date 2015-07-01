@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.platform.base.Platform;
 
 public class DependentSourceSetResolveContext implements ResolveContext {
     private final String projectPath;
@@ -31,12 +32,14 @@ public class DependentSourceSetResolveContext implements ResolveContext {
     private final String variant;
     private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
+    private final Platform platform;
 
-    public DependentSourceSetResolveContext(String projectPath, String componentName, String variant, DependentSourceSetInternal sourceSet) {
+    public DependentSourceSetResolveContext(String projectPath, String componentName, String variant, DependentSourceSetInternal sourceSet, Platform platform) {
         this.projectPath = projectPath;
         this.componentName = componentName;
         this.variant = variant;
         this.sourceSet = sourceSet;
+        this.platform = platform;
     }
 
     public DependentSourceSetInternal getSourceSet() {
@@ -65,12 +68,15 @@ public class DependentSourceSetResolveContext implements ResolveContext {
         return resolutionStrategy;
     }
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
     @Override
     public DependencySet getDependencies() {
         DefaultDomainObjectSet<Dependency> backingSet = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         return new DefaultDependencySet(String.format("%s dependencies", this.getName()), backingSet);
     }
-
 
     @Override
     public DependencySet getAllDependencies() {

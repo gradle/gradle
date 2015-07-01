@@ -30,6 +30,7 @@ import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Platform;
 
 import java.io.File;
 import java.util.*;
@@ -41,6 +42,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final BinarySpec binary;
     private final ArtifactDependencyResolver dependencyResolver;
     private final FileCollection compileClasspath;
+    private final Platform platform;
 
     private ResolverResults resolverResults;
     private TaskDependency taskDependency;
@@ -51,13 +53,14 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         BinarySpec binarySpec,
         DependentSourceSetInternal sourceSet,
         ArtifactDependencyResolver dependencyResolver,
-        FileCollection compileClasspath) {
+        FileCollection compileClasspath, Platform platform) {
         this.projectPath = projectPath;
         this.componentName = componentName;
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
         this.compileClasspath = compileClasspath;
+        this.platform = platform;
     }
 
     @Override
@@ -78,7 +81,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     private DependentSourceSetResolveContext createResolveContext() {
-        return new DependentSourceSetResolveContext(projectPath, componentName, binary.getName(), sourceSet);
+        return new DependentSourceSetResolveContext(projectPath, componentName, binary.getName(), sourceSet, platform);
     }
 
     @Override

@@ -16,12 +16,18 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
+import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RequestScopeResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -39,13 +45,37 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        LocalLibraryDependencyResolver createLibraryResolver(ProjectModelResolver projectModelResolver) {
-            return new LocalLibraryDependencyResolver(projectModelResolver);
+        RequestScopeResolverProviderFactory.Query createResolverProvider(ProjectModelResolver projectModelResolver) {
+            return new RequestScopeResolverProviderFactory.Query(JavaLibraryResolverProvider.class, projectModelResolver) {
+                @Override
+                public boolean canCreateFrom(ResolveContext context) {
+                    return context instanceof DependentSourceSetResolveContext;
+                }
+            };
         }
 
-        ResolverProvider createResolverProvider(LocalLibraryDependencyResolver resolver) {
-            return DelegatingResolverProvider.of(resolver);
+    }
+
+    public static class JavaLibraryResolverProvider implements ResolverProvider {
+        private final LocalLibraryDependencyResolver resolver;
+
+        public JavaLibraryResolverProvider(ResolveContext context, ProjectModelResolver projectModelResolver) {
+            resolver = new LocalLibraryDependencyResolver(projectModelResolver, (JavaPlatform) ((DependentSourceSetResolveContext) context).getPlatform());
         }
 
+        @Override
+        public DependencyToComponentIdResolver getComponentIdResolver() {
+            return resolver;
+        }
+
+        @Override
+        public ComponentMetaDataResolver getComponentResolver() {
+            return resolver;
+        }
+
+        @Override
+        public ArtifactResolver getArtifactResolver() {
+            return resolver;
+        }
     }
 }

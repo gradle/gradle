@@ -118,7 +118,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                         ((BaseLanguageSourceSet)javaSourceSet).getParentName(),
                         binarySpec,
                         (DependentSourceSetInternal) javaSourceSet,
-                        dependencyResolver, javaSourceSet.getCompileClasspath().getFiles());
+                        dependencyResolver, javaSourceSet.getCompileClasspath().getFiles(), compile.getPlatform());
                     compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
