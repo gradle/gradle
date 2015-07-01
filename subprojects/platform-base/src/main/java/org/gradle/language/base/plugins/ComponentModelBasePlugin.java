@@ -208,6 +208,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Finalize
         void addSourceSetsOwnedByBinariesToTheirInputs(BinaryContainer binarySpecs) {
             for (BinarySpec binary : binarySpecs) {
+                if (((BinarySpecInternal) binary).isLegacyBinary()) {
+                    continue;
+                }
                 binary.getInputs().addAll(binary.getSources().values());
             }
         }
