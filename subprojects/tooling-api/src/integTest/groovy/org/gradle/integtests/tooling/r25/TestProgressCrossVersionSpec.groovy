@@ -706,7 +706,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.5")
     @ToolingApiVersion(">=2.5")
-    def "top-level test operation has test task as parent iff task listener is attached"() {
+    def "top-level test operation has test task as parent if task listener is attached"() {
         given:
         goodCode()
 
