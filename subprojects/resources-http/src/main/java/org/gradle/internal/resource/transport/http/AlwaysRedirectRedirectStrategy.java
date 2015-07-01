@@ -26,6 +26,11 @@ import org.apache.http.protocol.HttpContext;
 
 import java.net.URI;
 
+/**
+ * A class which makes httpclient follow redirects for all http methods.
+ * This has been introduced to overcome a regression caused by switching to apache httpclient as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312)
+ * The rational for httpclient not following redirects, by default, can be found here: https://issues.apache.org/jira/browse/HTTPCLIENT-860
+ */
 public class AlwaysRedirectRedirectStrategy extends DefaultRedirectStrategy {
 
     public AlwaysRedirectRedirectStrategy() {
@@ -39,19 +44,19 @@ public class AlwaysRedirectRedirectStrategy extends DefaultRedirectStrategy {
     public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
         URI uri = this.getLocationURI(request, response, context);
         String method = request.getRequestLine().getMethod();
-        if (method.equalsIgnoreCase("HEAD")) {
+        if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
             return new HttpHead(uri);
-        } else if (method.equalsIgnoreCase("POST")) {
+        } else if (method.equalsIgnoreCase(HttpPost.METHOD_NAME)) {
             return this.copyEntity(new HttpPost(uri), request);
-        } else if (method.equalsIgnoreCase("PUT")) {
+        } else if (method.equalsIgnoreCase(HttpPut.METHOD_NAME)) {
             return this.copyEntity(new HttpPut(uri), request);
-        } else if (method.equalsIgnoreCase("DELETE")) {
+        } else if (method.equalsIgnoreCase(HttpDelete.METHOD_NAME)) {
             return new HttpDelete(uri);
-        } else if (method.equalsIgnoreCase("TRACE")) {
+        } else if (method.equalsIgnoreCase(HttpTrace.METHOD_NAME)) {
             return new HttpTrace(uri);
-        } else if (method.equalsIgnoreCase("OPTIONS")) {
+        } else if (method.equalsIgnoreCase(HttpOptions.METHOD_NAME)) {
             return new HttpOptions(uri);
-        } else if (method.equalsIgnoreCase("PATCH")) {
+        } else if (method.equalsIgnoreCase(HttpPatch.METHOD_NAME)) {
             return this.copyEntity(new HttpPatch(uri), request);
         } else {
             return new HttpGet(uri);

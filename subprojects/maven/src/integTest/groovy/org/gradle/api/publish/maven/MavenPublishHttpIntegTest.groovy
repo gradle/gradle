@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.credentials.Credentials
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -45,7 +45,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def setup() {
         server.start()
-        redirectServer.start()
 
         mavenRemoteRepo = new MavenHttpRepository(server, repoPath, mavenRepo)
         group = "org.gradle"
@@ -54,11 +53,11 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module = mavenRemoteRepo.module(group, name, version)
 
         settingsFile << 'rootProject.name = "publish"'
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
     }
 
     def "can publish to an unauthenticated http repo"() {
         given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
         expectModulePublish(module)
 
         when:
@@ -80,14 +79,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Unroll
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
-        def credentials = new DefaultPasswordCredentials('username', 'password')
-
-        buildFile << """
-            publishing.repositories.maven.credentials {
-                username '${credentials.username}'
-                password '${credentials.password}'
-            }
-        """
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, credentials)
 
         server.authenticationScheme = authScheme
 
@@ -124,14 +117,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Unroll
     def "reports failure publishing with wrong credentials using #authScheme"() {
         given:
-        def credentials = new DefaultPasswordCredentials('wrong', 'wrong')
-
-        buildFile << """
-            publishing.repositories.maven.credentials {
-                username '${credentials.username}'
-                password '${credentials.password}'
-            }
-        """
+        PasswordCredentials credentials = new DefaultPasswordCredentials('wrong', 'wrong')
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, credentials)
 
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
@@ -154,6 +141,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Unroll
     def "reports failure when required credentials are not provided #authScheme"() {
         given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
         module.pom.expectPut(401)
@@ -175,12 +163,14 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Issue("GRADLE-3312")
     def "can publish to a http repo via redirects"() {
         given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        redirectServer.start()
         buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
 
         redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
         module.rootMetaData.expectGetMissing()
 
-        expectRedirectPublish(module, server.getUri(), redirectServer)
+        expectModulePublishViaRedirect(module, server.getUri(), redirectServer)
 
         when:
         succeeds 'publish'
@@ -201,20 +191,15 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Issue("GRADLE-3312")
     def "can publish to an authenticated http repo via redirects"() {
         given:
-        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
+        redirectServer.start()
 
-        def credentials = new DefaultPasswordCredentials('username', 'password')
-        buildFile << """
-            publishing.repositories.maven.credentials {
-                username '${credentials.username}'
-                password '${credentials.password}'
-            }
-        """
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"), credentials)
 
         redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
         module.rootMetaData.expectGetMissing(credentials)
 
-        expectRedirectPublish(module, server.getUri(), redirectServer, credentials)
+        expectModulePublishViaRedirect(module, server.getUri(), redirectServer, credentials)
 
         when:
         succeeds 'publish'
@@ -232,7 +217,13 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.versions == ["2"]
     }
 
-    private String publicationBuild(String version, String group, URI uri) {
+    private String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
+        String credentialsBlock = credentials ? """
+                        credentials{
+                            username '${credentials.username}'
+                            password '${credentials.password}'
+                        }
+                        """ : ''
         return """
             apply plugin: 'java'
             apply plugin: 'maven-publish'
@@ -243,6 +234,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
                 repositories {
                     maven {
                         url "$uri"
+                        ${credentialsBlock}
                     }
                 }
                 publications {
@@ -267,7 +259,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.md5.expectPut()
     }
 
-    private void expectRedirectPublish(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, Credentials credentials = null) {
+    private void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {
         String redirectUri = targetServerUri.toString()
         [module.artifact, module.pom, module.rootMetaData].each { artifact ->
             [artifact, artifact.sha1, artifact.md5].each { innerArtifact ->
