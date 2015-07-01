@@ -49,8 +49,7 @@ import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
+import org.gradle.nativeplatform.tasks.*;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -276,6 +275,75 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
+        @BinaryTasks
+        public void createTasks(ModelMap<Task> tasks, final SharedLibraryBinarySpecInternal binary) {
+            String taskName = binary.getNamingScheme().getTaskName("link");
+            tasks.create(taskName, LinkSharedLibrary.class, new Action<LinkSharedLibrary>() {
+                @Override
+                public void execute(LinkSharedLibrary linkTask) {
+                    linkTask.setDescription("Links " + binary.getName());
+                    linkTask.setToolChain(binary.getToolChain());
+                    linkTask.setTargetPlatform(binary.getTargetPlatform());
+                    linkTask.setOutputFile(binary.getSharedLibraryFile());
+                    linkTask.setInstallName(binary.getSharedLibraryFile().getName());
+                    linkTask.setLinkerArgs(binary.getLinker().getArgs());
+
+                    linkTask.lib(new BinaryLibs(binary) {
+                        @Override
+                        protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                            return nativeDependencySet.getLinkFiles();
+                        }
+                    });
+                }
+            });
+        }
+
+        @BinaryTasks
+        public void createTasks(ModelMap<Task> tasks, final StaticLibraryBinarySpecInternal binary) {
+            String taskName = binary.getNamingScheme().getTaskName("create");
+            tasks.create(taskName, CreateStaticLibrary.class, new Action<CreateStaticLibrary>() {
+                @Override
+                public void execute(CreateStaticLibrary task) {
+                    task.setDescription("Creates " + binary.getName());
+                    task.setToolChain(binary.getToolChain());
+                    task.setTargetPlatform(binary.getTargetPlatform());
+                    task.setOutputFile(binary.getStaticLibraryFile());
+                    task.setStaticLibArgs(binary.getStaticLibArchiver().getArgs());
+                }
+            });
+        }
+
+        @BinaryTasks
+        public void createTasks(ModelMap<Task> tasks, final NativeExecutableBinarySpecInternal executableBinary) {
+            createExecutableTask(tasks, executableBinary, executableBinary.getExecutableFile());
+        }
+
+        @BinaryTasks
+        public void createTasks(ModelMap<Task> tasks, final NativeTestSuiteBinarySpecInternal testSuiteBinary) {
+            createExecutableTask(tasks, testSuiteBinary, testSuiteBinary.getExecutableFile());
+        }
+
+        private void createExecutableTask(ModelMap<Task> tasks, final NativeBinarySpecInternal binary, final File executableFile) {
+            String taskName = binary.getNamingScheme().getTaskName("link");
+            tasks.create(taskName, LinkExecutable.class, new Action<LinkExecutable>() {
+                @Override
+                public void execute(LinkExecutable linkTask) {
+                    linkTask.setDescription("Links " + binary.getName());
+                    linkTask.setToolChain(binary.getToolChain());
+                    linkTask.setTargetPlatform(binary.getTargetPlatform());
+                    linkTask.setOutputFile(executableFile);
+                    linkTask.setLinkerArgs(binary.getLinker().getArgs());
+
+                    linkTask.lib(new BinaryLibs(binary) {
+                        @Override
+                        protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                            return nativeDependencySet.getLinkFiles();
+                        }
+                    });
+                }
+            });
+        }
+
         /**
          * Can't use @BinaryTasks because the binary is not _built-by_ the install task, but it is associated with it.
          * Rule is called multiple times, so need to check for task existence before creating.
@@ -306,20 +374,36 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
                     installTask.setExecutable(executableFile);
 
-                    installTask.lib(new Callable<List<FileCollection>>() {
+                    installTask.lib(new BinaryLibs(binary) {
                         @Override
-                        public List<FileCollection> call() throws Exception {
-                            List<FileCollection> runtimeFiles = Lists.newArrayList();
-                            for (NativeDependencySet nativeDependencySet : binary.getLibs()) {
-                                runtimeFiles.add(nativeDependencySet.getRuntimeFiles());
-                            }
-                            return runtimeFiles;
+                        protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                            return nativeDependencySet.getRuntimeFiles();
                         }
                     });
+
                     installTask.dependsOn(binary);
                 }
             });
         }
+    }
+
+    private abstract static class BinaryLibs implements Callable<List<FileCollection>> {
+        private final NativeBinarySpec binary;
+
+        public BinaryLibs(NativeBinarySpec binary) {
+            this.binary = binary;
+        }
+
+        @Override
+        public List<FileCollection> call() throws Exception {
+            List<FileCollection> runtimeFiles = Lists.newArrayList();
+            for (NativeDependencySet nativeDependencySet : binary.getLibs()) {
+                runtimeFiles.add(getFiles(nativeDependencySet));
+            }
+            return runtimeFiles;
+        }
+
+        protected abstract FileCollection getFiles(NativeDependencySet nativeDependencySet);
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
