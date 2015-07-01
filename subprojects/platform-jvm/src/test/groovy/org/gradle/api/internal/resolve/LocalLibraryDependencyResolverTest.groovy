@@ -215,6 +215,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
                 def binaries = Mock(ModelMap)
                 binaries.values() >> {
                     def binary = Mock(JvmBinarySpec)
+                    binary.displayName >> "binary for $lib"
                     binary.name >> 'api'
                     binary.buildTask >> Mock(Task)
                     binary.targetPlatform >> platform

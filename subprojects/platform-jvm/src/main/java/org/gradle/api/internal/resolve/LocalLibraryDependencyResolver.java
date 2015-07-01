@@ -69,7 +69,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     private static final Comparator<JvmBinarySpec> JVM_BINARY_SPEC_COMPARATOR = new Comparator<JvmBinarySpec>() {
         @Override
         public int compare(JvmBinarySpec o1, JvmBinarySpec o2) {
-            return o1.getTargetPlatform().getTargetCompatibility().compareTo(o2.getTargetPlatform().getTargetCompatibility());
+            return o1.getDisplayName().compareTo(o2.getDisplayName());
         }
     };
 

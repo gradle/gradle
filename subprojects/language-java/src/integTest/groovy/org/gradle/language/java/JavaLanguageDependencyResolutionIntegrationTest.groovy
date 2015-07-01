@@ -879,6 +879,62 @@ model {
         succeeds 'java7MainJar'
     }
 
+    def "should fail because multiple binaries match for the same variant"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+
+class CustomBinaries extends RuleSource {
+   @ComponentBinaries
+   void createBinaries(ModelMap<JarBinarySpec> binaries, JvmLibrarySpec spec) {
+       // duplicate binaries, to make sure we have two binaries for the same platform
+       def newBins = [:]
+       binaries.keySet().each { bName ->
+           def binary = binaries.get(bName)
+           newBins["${bName}2"] = binary
+       }
+
+       newBins.each { k,v -> binaries.create(k) {
+            targetPlatform = v.targetPlatform
+            toolChain = v.toolChain
+            jarFile = v.jarFile
+       }}
+    }
+}
+
+apply plugin: CustomBinaries
+
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        when:
+        fails ':mainJar'
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 6) : [Jar 'depJar', Jar 'depJar2']")
+
+    }
+
     def "should choose matching variants from dependency"() {
         given:
         applyJavaPlugin(buildFile)
