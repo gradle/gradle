@@ -43,6 +43,8 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -61,6 +63,7 @@ import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.VersionNumber;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,13 +84,19 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                                                                                                     .put(PlayMajorVersion.PLAY_2_3_X, "0.13.6")
                                                                                                     .put(PlayMajorVersion.PLAY_2_4_X, "0.13.8")
                                                                                                     .build();
+    private final ModelRegistry modelRegistry;
 
+    @Inject
+    public PlayApplicationPlugin(ModelRegistry modelRegistry) {
+        this.modelRegistry = modelRegistry;
+    }
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(PlayApplicationSpec.class), PlaySourceSetRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -137,37 +146,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void registerRoutesLanguageType(LanguageTypeBuilder<RoutesSourceSet> builder) {
             builder.setLanguageName("routes");
             builder.defaultImplementation(DefaultRoutesSourceSet.class);
-        }
-
-        @Mutate
-        void createJvmSourceSets(ModelMap<PlayApplicationSpec> components, ServiceRegistry serviceRegistry) {
-            components.beforeEach(new Action<PlayApplicationSpec>() {
-                @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSource().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
-                        @Override
-                        public void execute(ScalaLanguageSourceSet scalaSources) {
-                            scalaSources.getSource().srcDir("app");
-                            scalaSources.getSource().include("**/*.scala");
-                        }
-                    });
-
-                    playComponent.getSource().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
-                        @Override
-                        public void execute(JavaSourceSet javaSources) {
-                            javaSources.getSource().srcDir("app");
-                            javaSources.getSource().include("**/*.java");
-                        }
-                    });
-
-                    playComponent.getSource().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
-                        @Override
-                        public void execute(JvmResourceSet appResources) {
-                            appResources.getSource().srcDirs("conf");
-                        }
-                    });
-                }
-            });
         }
 
         @Validate
@@ -294,39 +272,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             listBuilder.add(dependency);
 
             return listBuilder.build();
-        }
-
-        @Mutate
-        void createTwirlSourceSets(ModelMap<PlayApplicationSpec> components) {
-            components.beforeEach(new Action<PlayApplicationSpec>() {
-                @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSource().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
-                        @Override
-                        public void execute(TwirlSourceSet twirlSourceSet) {
-                            twirlSourceSet.getSource().srcDir("app");
-                            twirlSourceSet.getSource().include("**/*.html");
-                        }
-                    });
-                }
-            });
-        }
-
-        @Mutate
-        void createRoutesSourceSets(ModelMap<PlayApplicationSpec> components) {
-            components.beforeEach(new Action<PlayApplicationSpec>() {
-                @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSource().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
-                        @Override
-                        public void execute(RoutesSourceSet routesSourceSet) {
-                            routesSourceSet.getSource().srcDir("conf");
-                            routesSourceSet.getSource().include("routes");
-                            routesSourceSet.getSource().include("*.routes");
-                        }
-                    });
-                }
-            });
         }
 
         @Mutate
