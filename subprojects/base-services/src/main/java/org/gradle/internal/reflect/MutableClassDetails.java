@@ -24,6 +24,7 @@ class MutableClassDetails implements ClassDetails {
     private final MethodSet instanceMethods = new MethodSet();
     private final Map<String, MutablePropertyDetails> properties = new TreeMap<String, MutablePropertyDetails>();
     private final List<Method> methods = new ArrayList<Method>();
+    private final Set<Class<?>> superTypes = new LinkedHashSet<Class<?>>();
 
     MutableClassDetails(Class<?> type) {
         this.type = type;
@@ -37,6 +38,11 @@ class MutableClassDetails implements ClassDetails {
     @Override
     public List<Method> getInstanceMethods() {
         return instanceMethods.getValues();
+    }
+
+    @Override
+    public Set<Class<?>> getSuperTypes() {
+        return superTypes;
     }
 
     @Override
@@ -56,6 +62,10 @@ class MutableClassDetails implements ClassDetails {
             throw new NoSuchPropertyException(String.format("No property '%s' found on %s.", name, type));
         }
         return property;
+    }
+
+    void superType(Class<?> type) {
+        superTypes.add(type);
     }
 
     void method(Method method) {

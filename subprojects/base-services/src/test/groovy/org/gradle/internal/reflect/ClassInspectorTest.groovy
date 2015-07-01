@@ -248,6 +248,7 @@ class ClassInspectorTest extends Specification {
 
     interface SomeInterface {
         Number getProp()
+
         void setProp(Number value)
 
         String getReadOnly()
@@ -265,9 +266,13 @@ class ClassInspectorTest extends Specification {
 
     class PropNames {
         String getA() { null }
+
         String getB() { null }
+
         String getURL() { null }
+
         String getUrl() { null }
+
         String get_A() { null }
     }
 
@@ -311,6 +316,7 @@ class ClassInspectorTest extends Specification {
 
     interface SubInterface extends SomeInterface {
         Long getOther()
+
         void setOther(Long l)
     }
 
@@ -353,5 +359,13 @@ class ClassInspectorTest extends Specification {
         String getWriteOnly() {
             return ""
         }
+    }
+
+    def "can extract super types"() {
+        expect:
+        ClassInspector.inspect(Object).superTypes.empty
+        ClassInspector.inspect(Serializable).superTypes.empty
+        ClassInspector.inspect(List).superTypes.toList() == [Collection, Iterable]
+        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, List, RandomAccess, Cloneable, Serializable, AbstractCollection, Collection, Iterable]
     }
 }

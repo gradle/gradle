@@ -39,13 +39,14 @@ public class ClassInspector {
             if (!seen.add(current)) {
                 continue;
             }
+            if (!current.equals(type)) {
+                classDetails.superType(current);
+            }
             inspectClass(current, classDetails);
-            for (Class<?> c : current.getInterfaces()) {
-                queue.add(0, c);
-            }
             if (current.getSuperclass() != null && current.getSuperclass() != Object.class) {
-                queue.add(0, current.getSuperclass());
+                queue.add(current.getSuperclass());
             }
+            Collections.addAll(queue, current.getInterfaces());
         }
     }
 
@@ -60,20 +61,20 @@ public class ClassInspector {
             Class<?>[] parameterTypes = method.getParameterTypes();
             String methodName = method.getName();
             if (methodName.startsWith("get")
-                    && methodName.length() > 3
-                    && !method.getReturnType().equals(Void.TYPE)
-                    && parameterTypes.length == 0) {
+                && methodName.length() > 3
+                && !method.getReturnType().equals(Void.TYPE)
+                && parameterTypes.length == 0) {
                 String propertyName = propertyName(methodName, 3);
                 classDetails.property(propertyName).addGetter(method);
             } else if (methodName.startsWith("is")
-                    && methodName.length() > 2
-                    && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE))
-                    && parameterTypes.length == 0) {
+                && methodName.length() > 2
+                && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE))
+                && parameterTypes.length == 0) {
                 String propertyName = propertyName(methodName, 2);
                 classDetails.property(propertyName).addGetter(method);
             } else if (methodName.startsWith("set")
-                    && methodName.length() > 3
-                    && parameterTypes.length == 1) {
+                && methodName.length() > 3
+                && parameterTypes.length == 1) {
                 String propertyName = propertyName(methodName, 3);
                 classDetails.property(propertyName).addSetter(method);
             } else {
