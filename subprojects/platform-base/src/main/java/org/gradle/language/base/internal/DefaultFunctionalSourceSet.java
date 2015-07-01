@@ -45,13 +45,4 @@ public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomai
     public String getName() {
         return name;
     }
-
-    // TODO:DAZ This needs unit testing
-    // TODO:DAZ Perhaps we should pull out a LanguageSourceSet 'factory-for-type' so we only register the languages once
-    public FunctionalSourceSet copy(String name) {
-        DefaultFunctionalSourceSet copy = getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator(), projectSourceSet);
-        copy.namedEntityInstantiator.copyFactoriesFrom(namedEntityInstantiator);
-        copy.addAll(this);
-        return copy;
-    }
 }

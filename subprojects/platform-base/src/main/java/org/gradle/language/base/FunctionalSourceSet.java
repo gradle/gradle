@@ -26,5 +26,4 @@ import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInterna
 @Incubating
 // TODO:DAZ Make this internal
 public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainerInternal<LanguageSourceSet>, Named {
-    FunctionalSourceSet copy(String name);
 }
