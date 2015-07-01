@@ -24,12 +24,10 @@ import org.gradle.language.base.ProjectSourceSet;
 
 public class DefaultFunctionalSourceSet extends AddOnlyRuleAwarePolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
     private final String name;
-    private final ProjectSourceSet projectSourceSet;
 
     public DefaultFunctionalSourceSet(String name, Instantiator instantiator, final ProjectSourceSet projectSourceSet) {
         super(LanguageSourceSet.class, instantiator);
         this.name = name;
-        this.projectSourceSet = projectSourceSet;
         whenObjectAdded(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet languageSourceSet) {
                 projectSourceSet.add(languageSourceSet);
