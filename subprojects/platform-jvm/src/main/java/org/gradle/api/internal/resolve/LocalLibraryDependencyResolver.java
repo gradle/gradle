@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.TreeMultimap;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -59,6 +60,19 @@ import java.util.*;
 // TODO: This should really live in platform-base, however we need to inject the library requirements at some
 // point, and for now it is hardcoded to JVM libraries
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+    private static final Comparator<JavaPlatform> JAVA_PLATFORM_COMPARATOR = new Comparator<JavaPlatform>() {
+        @Override
+        public int compare(JavaPlatform o1, JavaPlatform o2) {
+            return o1.getTargetCompatibility().compareTo(o2.getTargetCompatibility());
+        }
+    };
+    private static final Comparator<JvmBinarySpec> JVM_BINARY_SPEC_COMPARATOR = new Comparator<JvmBinarySpec>() {
+        @Override
+        public int compare(JvmBinarySpec o1, JvmBinarySpec o2) {
+            return o1.getTargetPlatform().getTargetCompatibility().compareTo(o2.getTargetPlatform().getTargetCompatibility());
+        }
+    };
+
     private final ProjectModelResolver projectModelResolver;
     private final JavaPlatform javaPlatform;
 
@@ -77,9 +91,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
                 DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-                Collection<BinarySpec> variants = selectedLibrary.getBinaries().values();
-                if (variants.size() > 1) {
-                    result.failed(new ModuleVersionResolveException(selector, String.format("Multiple binaries available for library '%s' : %s", libraryName, variants)));
+                Collection<BinarySpec> allVariants = selectedLibrary.getBinaries().values();
+                Collection<? extends BinarySpec> variants = filterBinaries(allVariants);
+                if (!allVariants.isEmpty() && variants.isEmpty()) {
+                    // no compatible variant found
+                    result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, javaPlatform, allVariants)));
+                } else if (variants.size() > 1) {
+                    result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, javaPlatform, variants)));
                 } else {
                     for (BinarySpec spec : variants) {
                         buildDependencies.add(spec);
@@ -95,11 +113,31 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 }
             }
             if (!result.hasResult()) {
-                String message = prettyErrorMessage(selector, resolutionResult);
+                String message = prettyResolutionErrorMessage(selector, resolutionResult);
                 ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, new LibraryResolveException(message));
                 result.failed(failure);
             }
         }
+    }
+
+    private Collection<? extends BinarySpec> filterBinaries(Collection<BinarySpec> values) {
+        if (values.isEmpty()) {
+            return values;
+        }
+        TreeMultimap<JavaPlatform, JvmBinarySpec> platformToBinary = TreeMultimap.create(JAVA_PLATFORM_COMPARATOR, JVM_BINARY_SPEC_COMPARATOR);
+        for (BinarySpec binarySpec : values) {
+            if (binarySpec instanceof JvmBinarySpec) {
+                JvmBinarySpec jvmSpec = (JvmBinarySpec) binarySpec;
+                if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility())<=0) {
+                    platformToBinary.put(jvmSpec.getTargetPlatform(), jvmSpec);
+                }
+            }
+        }
+        if (platformToBinary.isEmpty()) {
+            return Collections.emptyList();
+        }
+        JavaPlatform first = platformToBinary.keySet().last();
+        return platformToBinary.get(first);
     }
 
     private LibraryResolutionResult doResolve(String projectPath,
@@ -120,7 +158,22 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private static String prettyErrorMessage(
+    private static String multipleBinariesForSameVariantErrorMessage(String libraryName, JavaPlatform javaPlatform, Collection<? extends BinarySpec> variants) {
+        return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, javaPlatform, variants);
+    }
+
+    private static String noCompatiblePlatformErrorMessage(String libraryName, JavaPlatform javaPlatform, Collection<BinarySpec> allVariants) {
+        return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, javaPlatform, Lists.transform(
+            Lists.newArrayList(allVariants), new Function<BinarySpec, String>() {
+                @Override
+                public String apply(BinarySpec input) {
+                    return input instanceof JvmBinarySpec ? ((JvmBinarySpec) input).getTargetPlatform().toString() : input.toString();
+                }
+            }
+        ));
+    }
+
+    private static String prettyResolutionErrorMessage(
         LibraryComponentSelector selector,
         LibraryResolutionResult result) {
         boolean hasLibraries = result.hasLibraries();

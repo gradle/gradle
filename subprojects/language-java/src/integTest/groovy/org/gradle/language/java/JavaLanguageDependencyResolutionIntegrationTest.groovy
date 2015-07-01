@@ -17,6 +17,8 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -757,39 +759,6 @@ model {
 
     }
 
-    def "should fail resolution if more than one binary is available"() {
-        given:
-        applyJavaPlugin(buildFile)
-        buildFile << '''
-model {
-    components {
-        zdep(JvmLibrarySpec) {
-            targetPlatform 'java6'
-            targetPlatform 'java7'
-        }
-
-        main(JvmLibrarySpec) {
-            sources {
-                java {
-                    dependencies {
-                        library 'zdep'
-                    }
-                }
-            }
-        }
-    }
-}
-'''
-        file('src/zdep/java/Dep.java') << 'public class Dep {}'
-        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
-
-        when:
-        fails ':mainJar'
-
-        then:
-        failure.assertHasCause("Multiple binaries available for library 'zdep'")
-    }
-
     def "fails if a dependency is not a JvmLibrarySpec library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -865,6 +834,172 @@ model {
 
         then:
         executedAndNotSkipped(':b:createMainJar')
+    }
+
+    def "should choose appropriate Java variants"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java7'
+            targetPlatform 'java6'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        java6MainJar.finalizedBy('checkDependencies')
+        java7MainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(depJar)
+            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(depJar)
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        expect:
+        succeeds 'java6MainJar'
+
+        and:
+        succeeds 'java7MainJar'
+    }
+
+    def "should choose matching variants from dependency"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java7'
+            targetPlatform 'java6'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        java6MainJar.finalizedBy('checkDependencies')
+        java7MainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
+            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        expect:
+        succeeds 'java6MainJar'
+
+        and:
+        succeeds 'java7MainJar'
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "should not choose higher version than available"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            targetPlatform 'java8'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java7'
+            targetPlatform 'java6'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        java6MainJar.finalizedBy('checkDependencies')
+        java7MainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(java6DepJar)
+            assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(java7DepJar)
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        expect:
+        succeeds 'java6MainJar'
+
+        and:
+        succeeds 'java7MainJar'
+    }
+
+    def "should display candidate platforms if no one matches"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        when:
+        fails 'mainJar'
+
+        then:
+        failure.assertHasCause("Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7]")
     }
 
     void applyJavaPlugin(File buildFile) {
