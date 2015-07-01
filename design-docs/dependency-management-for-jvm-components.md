@@ -418,6 +418,7 @@ Change dependency resolution to honor the variant dimensions for a custom compon
 - Expose a way to query the resolved compile classpath for a Java source set.
 - Plugin author defines target Java platform for Jar binary
 - Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
+    - This will require using `LanguageTransform`s in Scala
 
 # Feature 3: TBD
 
