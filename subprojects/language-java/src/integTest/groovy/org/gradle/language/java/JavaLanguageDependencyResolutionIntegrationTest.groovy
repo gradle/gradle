@@ -836,6 +836,7 @@ model {
         executedAndNotSkipped(':b:createMainJar')
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose appropriate Java variants"() {
         given:
         applyJavaPlugin(buildFile)
@@ -935,6 +936,7 @@ model {
 
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose matching variants from dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1025,6 +1027,7 @@ model {
         succeeds 'java7MainJar'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should display candidate platforms if no one matches"() {
         given:
         applyJavaPlugin(buildFile)
