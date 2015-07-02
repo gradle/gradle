@@ -18,6 +18,13 @@ package org.gradle.tooling;
 
 import org.gradle.api.GradleException;
 
+/**
+ * Thrown when the {@link TestLauncher} cannot run tests.
+ * <p>
+ * The exception extends {@link UnsupportedVersionException} only for backwards compatibility reasons.
+ *
+ * @since 2.6
+ */
 public class TestLauncherException extends GradleException {
     public TestLauncherException(String message) {
         super(message);
