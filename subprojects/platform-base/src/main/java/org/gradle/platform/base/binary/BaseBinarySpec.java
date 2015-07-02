@@ -119,6 +119,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return getInputs();
     }

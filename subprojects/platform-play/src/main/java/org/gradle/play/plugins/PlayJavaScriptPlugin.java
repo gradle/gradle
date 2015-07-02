@@ -68,7 +68,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
 
     @BinaryTasks
     void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
-        for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getInputs().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
                 createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
             }
