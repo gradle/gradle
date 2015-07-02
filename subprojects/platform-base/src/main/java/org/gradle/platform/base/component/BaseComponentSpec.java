@@ -203,7 +203,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         action.execute(getBinaries());
     }
 
-    public FunctionalSourceSet getSources() {
+    public FunctionalSourceSet getFunctionalSourceSet() {
         return mainSourceSet;
     }
 

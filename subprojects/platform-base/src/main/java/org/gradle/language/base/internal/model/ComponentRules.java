@@ -68,7 +68,7 @@ public class ComponentRules extends RuleSource {
         }
 
         void registerLanguageSourceSetFactory(final ComponentSpecInternal component) {
-            final FunctionalSourceSet functionalSourceSet = component.getSources();
+            final FunctionalSourceSet functionalSourceSet = component.getFunctionalSourceSet();
             NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName());
             functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
         }

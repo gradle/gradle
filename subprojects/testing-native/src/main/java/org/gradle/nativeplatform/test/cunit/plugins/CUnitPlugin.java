@@ -92,7 +92,7 @@ public class CUnitPlugin implements Plugin<Project> {
         public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
-                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
+                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getFunctionalSourceSet();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
                 launcherSources.getSource().srcDir(new File(baseDir, "c"));

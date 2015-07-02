@@ -64,7 +64,7 @@ class CreateJvmBinariesTest extends Specification {
         def source2 = sourceSet("ss2")
 
         when:
-        library.sources.addAll([source1, source2])
+        library.functionalSourceSet.addAll([source1, source2])
         rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
