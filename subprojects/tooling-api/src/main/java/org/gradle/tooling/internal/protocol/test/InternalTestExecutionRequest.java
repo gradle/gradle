@@ -16,8 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public interface InternalTestExecutionRequest {
+public interface InternalTestExecutionRequest extends Serializable {
     Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors();
 }

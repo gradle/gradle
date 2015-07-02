@@ -16,7 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
-public interface InternalJvmTestExecutionDescriptor {
+import java.io.Serializable;
+
+public interface InternalJvmTestExecutionDescriptor extends Serializable {
     String getClassName();
 
     String getMethodName();

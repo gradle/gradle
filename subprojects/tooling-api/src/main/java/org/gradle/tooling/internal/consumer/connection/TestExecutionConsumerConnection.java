@@ -27,6 +27,8 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.DefaultInternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.consumer.DefaultInternalTestExecutionRequest;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -64,31 +66,10 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
         final Collection<JvmTestOperationDescriptor> jvmTestOperationDescriptors = toJvmTestOperatorDescriptor(testOperationDescriptors);
         final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors = Lists.newArrayList();
         for (final JvmTestOperationDescriptor descriptor : jvmTestOperationDescriptors) {
-            internalJvmTestDescriptors.add(new InternalJvmTestExecutionDescriptor() {
-                @Override
-                public String getClassName() {
-                    return descriptor.getClassName();
-                }
-
-                @Override
-                public String getMethodName() {
-                    return descriptor.getMethodName();
-                }
-
-                @Override
-                public String getTaskPath() {
-                    return findTaskPath(descriptor);
-                }
-            });
+            internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(descriptor.getClassName(), descriptor.getMethodName(), findTaskPath(descriptor)));
         }
-
-        InternalTestExecutionRequest request = new InternalTestExecutionRequest() {
-            @Override
-            public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors() {
-                return internalJvmTestDescriptors;
-            }
-        };
-        return request;
+        InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors);
+        return internalTestExecutionRequest;
     }
 
     private Collection<JvmTestOperationDescriptor> toJvmTestOperatorDescriptor(Collection<TestOperationDescriptor> testOperationDescriptors) {
