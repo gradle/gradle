@@ -59,7 +59,7 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
         }
 
         then:
-        !result.output.contains("ctrl+d to exit")
+        !result.output.contains("ctrl-d")
         result.output.contains(WAITING_MESSAGE)
     }
 

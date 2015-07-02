@@ -47,8 +47,6 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     RedirectStdIn redirectStdIn = new RedirectStdIn()
     PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
-    String waitingMessage = "Waiting for changes to input files of tasks... (ctrl+d to exit)\n"
-
     public void turnOnDebug() {
         executer.withDebug(true)
         executer.withArgument("--no-daemon")
@@ -131,7 +129,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
             def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
 
-            if (lastOutput.endsWith(TextUtil.toPlatformLineSeparators(waitingMessage))) {
+            if (lastOutput.contains(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks..."))) {
                 break
             } else if (lastOutput.size() > lastLength) {
                 lastActivity = System.currentTimeMillis()
