@@ -73,7 +73,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                playComponent.getSource().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
+                playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
                     @Override
                     public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
                         coffeeScriptSourceSet.getSource().srcDir("app/assets");

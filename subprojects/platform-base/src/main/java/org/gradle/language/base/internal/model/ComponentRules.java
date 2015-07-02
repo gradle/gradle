@@ -45,7 +45,7 @@ public class ComponentRules extends RuleSource {
 
     @Defaults
     void applyDefaultSourceConventions(final ComponentSpec component) {
-        component.getSource().afterEach(new AddDefaultSourceLocation(component.getName()));
+        component.getSources().afterEach(new AddDefaultSourceLocation(component.getName()));
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
@@ -78,7 +78,7 @@ public class ComponentRules extends RuleSource {
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
                 if (languageTransform.getSourceSetType().equals(languageRegistration.getSourceSetType())
                         && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSource().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
+                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
                     return;
                 }
             }

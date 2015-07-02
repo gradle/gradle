@@ -70,20 +70,20 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
         and:
         def exe = components.exe
-        exe.source instanceof ModelMap
-        sourceSetClass.isInstance(exe.source."$pluginName")
-        exe.source."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
-        exe.source."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
+        exe.sources instanceof ModelMap
+        sourceSetClass.isInstance(exe.sources."$pluginName")
+        exe.sources."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
+        exe.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
 
         and:
         def lib = components.lib
-        lib.source instanceof ModelMap
-        sourceSetClass.isInstance(lib.source."$pluginName")
-        lib.source."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
-        lib.source."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
+        lib.sources instanceof ModelMap
+        sourceSetClass.isInstance(lib.sources."$pluginName")
+        lib.sources."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
+        lib.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
 
         and:
-        project.sources as Set == (lib.source as Set) + (exe.source as Set)
+        project.sources as Set == (lib.sources as Set) + (exe.sources as Set)
     }
 
     def "can configure source set locations"() {
@@ -125,13 +125,13 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         expect:
         def components = realizeComponents()
         def exe = components.exe
-        with(exe.source."$pluginName") {
+        with(exe.sources."$pluginName") {
             source.srcDirs*.name == ["d1", "d2"]
             exportedHeaders.srcDirs*.name == ["h1", "h2"]
         }
 
         def lib = components.lib
-        with(lib.source."$pluginName") {
+        with(lib.sources."$pluginName") {
             source.srcDirs*.name == ["d3"]
             exportedHeaders.srcDirs*.name == ["h3"]
         }

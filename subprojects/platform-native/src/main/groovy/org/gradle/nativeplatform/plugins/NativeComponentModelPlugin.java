@@ -176,7 +176,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    componentSpec.getSource().withType(LanguageSourceSet.class).afterEach(new Action<LanguageSourceSet>() {
+                    componentSpec.getSources().withType(LanguageSourceSet.class).afterEach(new Action<LanguageSourceSet>() {
                         @Override
                         public void execute(LanguageSourceSet languageSourceSet) {
                             LanguageSourceSetInternal internalSourceSet = (LanguageSourceSetInternal) languageSourceSet;
@@ -199,7 +199,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(final NativeComponentSpec componentSpec) {
-                    componentSpec.getSource().withType(DependentSourceSet.class).afterEach(new Action<DependentSourceSet>() {
+                    componentSpec.getSources().withType(DependentSourceSet.class).afterEach(new Action<DependentSourceSet>() {
                         @Override
                         public void execute(DependentSourceSet dependentSourceSet) {
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
@@ -218,7 +218,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<NativeComponentSpec> nativeComponents) {
             for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
-                for (final DependentSourceSet dependentSourceSet : nativeComponentSpec.getSource().withType(DependentSourceSet.class).values()) {
+                for (final DependentSourceSet dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSet.class).values()) {
                     final DependentSourceSetInternal internalSourceSet = (DependentSourceSetInternal) dependentSourceSet;
                     if (internalSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeComponentSpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));

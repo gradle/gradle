@@ -34,7 +34,7 @@ class PlayJavaScriptPluginTest extends Specification {
         when:
         def playApp = Stub(PlayAppInternal) {
             getName() >> "play"
-            getSource() >> sources
+            getSources() >> sources
         }
         _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
         _ * sourceSet.getSource() >> sourceDirSet

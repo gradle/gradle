@@ -71,7 +71,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Added `BinarySpec.sources(Action<? extends ModelMap<LanguageSourceSet>>)` that allows the definition of sources specific to the binary.
 * Added `BinarySpec.getInputs()` that contains all the source sets needed to build the binary, including the ones specific to the binary and external source sets (e.g. inherited from the binary's parent component).
 * Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
-* Deprecated `BinarySpec.getSource()`: use `BinarySpec.getInputs()` instead
+* Deprecated `BinarySpec.getSource()`: use `BinarySpec.getInputs()` instead.
+* `ComponentSpec.getSource()` has been deprecated and replaced with `ComponentSpec.getSources()`.
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
 
 ## External contributions

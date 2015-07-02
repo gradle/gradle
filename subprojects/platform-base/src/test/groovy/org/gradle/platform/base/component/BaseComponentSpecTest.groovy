@@ -94,7 +94,7 @@ class BaseComponentSpecTest extends Specification {
         functionalSourceSet.add(lss2)
 
         then:
-        component.getSource().values() as List == [lss1, lss2]
+        component.sources as List == [lss1, lss2]
     }
 
     def languageSourceSet(String name) {

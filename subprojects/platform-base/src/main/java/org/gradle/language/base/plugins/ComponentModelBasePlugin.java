@@ -199,7 +199,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 componentSpec.getBinaries().beforeEach(new Action<BinarySpec>() {
                     @Override
                     public void execute(BinarySpec binary) {
-                        binary.getInputs().addAll(componentSpec.getSource().values());
+                        binary.getInputs().addAll(componentSpec.getSources().values());
                     }
                 });
             }

@@ -175,6 +175,11 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<LanguageSourceSet> getSource() {
+        return getSources();
+    }
+
+    @Override
+    public ModelMap<LanguageSourceSet> getSources() {
         sources.ensureUsable();
         return sources.asWritable(
             ModelTypes.modelMap(LanguageSourceSet.class),
@@ -185,7 +190,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
-        action.execute(getSource());
+        action.execute(getSources());
     }
 
     @Override

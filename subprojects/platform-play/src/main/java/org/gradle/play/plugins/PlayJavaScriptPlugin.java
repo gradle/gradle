@@ -55,7 +55,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                playComponent.getSource().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
+                playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
                     @Override
                     public void execute(JavaScriptSourceSet javaScriptSourceSet) {
                         javaScriptSourceSet.getSource().srcDir("app/assets");

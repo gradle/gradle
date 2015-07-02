@@ -145,7 +145,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
             getFiles() >> [tmpDir.createFile("input.src")]
         }
         def sourceSet = Stub(HeaderExportingSourceSet) {
-            getSource() >> sourceDirSet
+            getSources() >> sourceDirSet
             getExportedHeaders() >> headerDirSet
         }
         binary.inputs.add sourceSet

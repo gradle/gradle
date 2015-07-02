@@ -30,7 +30,7 @@ public class PlaySourceSetRules extends RuleSource {
 
     @Defaults
     void createJvmSourceSets(PlayApplicationSpec playComponent) {
-        playComponent.getSource().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
+        playComponent.getSources().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
             @Override
             public void execute(ScalaLanguageSourceSet scalaSources) {
                 scalaSources.getSource().srcDir("app");
@@ -38,7 +38,7 @@ public class PlaySourceSetRules extends RuleSource {
             }
         });
 
-        playComponent.getSource().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
+        playComponent.getSources().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
             @Override
             public void execute(JavaSourceSet javaSources) {
                 javaSources.getSource().srcDir("app");
@@ -46,7 +46,7 @@ public class PlaySourceSetRules extends RuleSource {
             }
         });
 
-        playComponent.getSource().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
+        playComponent.getSources().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
             @Override
             public void execute(JvmResourceSet appResources) {
                 appResources.getSource().srcDirs("conf");
@@ -56,7 +56,7 @@ public class PlaySourceSetRules extends RuleSource {
 
     @Defaults
     void createTwirlSourceSets(PlayApplicationSpec playComponent) {
-        playComponent.getSource().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
+        playComponent.getSources().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
             @Override
             public void execute(TwirlSourceSet twirlSourceSet) {
                 twirlSourceSet.getSource().srcDir("app");
@@ -67,7 +67,7 @@ public class PlaySourceSetRules extends RuleSource {
 
     @Defaults
     void createRoutesSourceSets(PlayApplicationSpec playComponent) {
-        playComponent.getSource().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
+        playComponent.getSources().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
             @Override
             public void execute(RoutesSourceSet routesSourceSet) {
                 routesSourceSet.getSource().srcDir("conf");

@@ -86,7 +86,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getFiles() >> [tmpDir.createFile("input.src")]
         }
         def sourceSet = Stub(HeaderExportingSourceSet) {
-            getSource() >> sourceDirSet
+            getSources() >> sourceDirSet
             getExportedHeaders() >> headerDirSet
         }
         binary.inputs.add sourceSet
@@ -115,7 +115,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
             getFiles() >> [tmpDir.createFile("input.rc")]
         }
         def resourceSet = Stub(NativeResourceSet) {
-            getSource() >> sourceDirSet
+            getSources() >> sourceDirSet
         }
         binary.inputs.add resourceSet
 

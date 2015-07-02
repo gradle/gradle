@@ -43,6 +43,11 @@ public interface ComponentSpec extends Named {
     ModelMap<LanguageSourceSet> getSource();
 
     /**
+     * The source sets that are used to build this component.
+     */
+    ModelMap<LanguageSourceSet> getSources();
+
+    /**
      * Configures the source sets used to build this component.
      */
     void sources(Action<? super ModelMap<LanguageSourceSet>> action);

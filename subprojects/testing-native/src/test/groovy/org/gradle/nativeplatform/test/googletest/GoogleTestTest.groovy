@@ -41,7 +41,7 @@ class GoogleTestTest extends Specification {
 
         when:
         GoogleTestTestSuiteSpec testSuite = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).mainTest
-        def sources = testSuite.source.values()
+        def sources = testSuite.sources.values()
         def binaries = testSuite.binaries.values()
 
         then:

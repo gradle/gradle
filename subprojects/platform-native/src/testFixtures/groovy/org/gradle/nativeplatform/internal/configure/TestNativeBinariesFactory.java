@@ -36,7 +36,7 @@ public class TestNativeBinariesFactory {
         T binary = BaseBinarySpec.create(type, name, instantiator, taskFactory);
         NativeBinaries.initialize(binary, namingScheme, resolver, platform, buildType, flavor);
         ComponentSpecInternal componentInternal = (ComponentSpecInternal) component;
-        binary.getInputs().addAll(component.getSource().values());
+        binary.getInputs().addAll(component.getSources().values());
         return binary;
     }
 }

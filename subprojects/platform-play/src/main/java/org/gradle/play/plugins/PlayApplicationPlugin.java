@@ -199,7 +199,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     JvmClasses classes = playBinary.getClasses();
                     classes.setClassesDir(new File(binaryBuildDir, "classes"));
 
-                    ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSource().withType(JvmResourceSet.class);
+                    ModelMap<JvmResourceSet> jvmResourceSets = componentSpec.getSources().withType(JvmResourceSet.class);
                     for (JvmResourceSet jvmResourceSet : jvmResourceSets.values()) {
                         for (File resourceDir : jvmResourceSet.getSource()) {
                             classes.addResourceDir(resourceDir);

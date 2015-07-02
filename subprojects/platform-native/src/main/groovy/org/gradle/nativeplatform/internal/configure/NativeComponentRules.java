@@ -44,7 +44,7 @@ import java.util.Set;
 public class NativeComponentRules extends RuleSource {
     @Defaults
     public void applyHeaderSourceSetConventions(final NativeComponentSpec component) {
-        component.getSource().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>() {
+        component.getSources().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>() {
             @Override
             public void execute(HeaderExportingSourceSet headerSourceSet) {
                 // Only apply default locations when none explicitly configured

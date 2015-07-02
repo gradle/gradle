@@ -34,7 +34,7 @@ class PlayCoffeeScriptPluginTest extends Specification {
         when:
         def playApp = Stub(PlayApplicationSpec) {
             getName() >> "play"
-            getSource() >> sources
+            getSources() >> sources
         }
         _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
         _ * sourceSet.getSource() >> sourceDirSet

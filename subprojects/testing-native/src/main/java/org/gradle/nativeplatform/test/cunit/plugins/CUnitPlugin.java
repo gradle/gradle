@@ -118,7 +118,7 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         private CSourceSet findLauncherSources(CUnitTestSuiteSpec suite) {
-            return suite.getSource().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
+            return suite.getSources().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
         }
 
         @BinaryType

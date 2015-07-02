@@ -51,12 +51,12 @@ class AssemblerPluginTest extends Specification {
         then:
         def components = realizeComponents()
         def exe = components.exe
-        exe.source instanceof ModelMap
-        exe.source.asm instanceof AssemblerSourceSet
-        exe.source.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
+        exe.sources instanceof ModelMap
+        exe.sources.asm instanceof AssemblerSourceSet
+        exe.sources.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
 
         and:
-        project.sources as Set == exe.source as Set
+        project.sources as Set == exe.sources as Set
     }
 
     def "can configure source set locations"() {
@@ -79,7 +79,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         expect:
-        realizeComponents().exe.source.asm.source.srcDirs*.name == ["d1", "d2"]
+        realizeComponents().exe.sources.asm.source.srcDirs*.name == ["d1", "d2"]
     }
 
     def "creates assemble tasks for each non-empty executable source set "() {
