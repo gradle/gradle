@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling;
 
-import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.api.GradleException;
 
-import java.util.Collection;
-import java.util.List;
-
-public class TestExecutionRequest {
-    private List<TestOperationDescriptor> testOperationDescriptors;
-
-    public TestExecutionRequest(List<TestOperationDescriptor> testOperationDescriptors) {
-        this.testOperationDescriptors = testOperationDescriptors;
-    }
-
-    public Collection<TestOperationDescriptor> getTestOperationDescriptors() {
-        return testOperationDescriptors;
+public class TestLauncherException extends GradleException {
+    public TestLauncherException(String message) {
+        super(message);
     }
 }

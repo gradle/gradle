@@ -16,11 +16,15 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.tooling.TestLauncherException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -56,10 +60,10 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     }
 
     InternalTestExecutionRequest toInternalTestExecutionRequest(TestExecutionRequest testExecutionRequest) {
-        final Collection<JvmTestOperationDescriptor> testTaskPaths = testExecutionRequest.getTestOperationDescriptors();
+        final Collection<TestOperationDescriptor> testOperationDescriptors = testExecutionRequest.getTestOperationDescriptors();
+        final Collection<JvmTestOperationDescriptor> jvmTestOperationDescriptors = toJvmTestOperatorDescriptor(testOperationDescriptors);
         final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors = Lists.newArrayList();
-
-        for (final JvmTestOperationDescriptor descriptor : testTaskPaths) {
+        for (final JvmTestOperationDescriptor descriptor : jvmTestOperationDescriptors) {
             internalJvmTestDescriptors.add(new InternalJvmTestExecutionDescriptor() {
                 @Override
                 public String getClassName() {
@@ -85,6 +89,25 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
             }
         };
         return request;
+    }
+
+    private Collection<JvmTestOperationDescriptor> toJvmTestOperatorDescriptor(Collection<TestOperationDescriptor> testOperationDescriptors) {
+        assertOnlyJvmTestOperatorDescriptors(testOperationDescriptors);
+
+        return Collections2.transform(testOperationDescriptors, new Function<TestOperationDescriptor, JvmTestOperationDescriptor>() {
+            @Override
+            public JvmTestOperationDescriptor apply(TestOperationDescriptor input) {
+                return (JvmTestOperationDescriptor) input;
+            }
+        });
+    }
+
+    private void assertOnlyJvmTestOperatorDescriptors(Collection<TestOperationDescriptor> testOperationDescriptors) {
+        for (TestOperationDescriptor testOperationDescriptor : testOperationDescriptors) {
+            if (!(testOperationDescriptor instanceof JvmTestOperationDescriptor)) {
+                throw new TestLauncherException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+            }
+        }
     }
 
     private String findTaskPath(JvmTestOperationDescriptor descriptor) {

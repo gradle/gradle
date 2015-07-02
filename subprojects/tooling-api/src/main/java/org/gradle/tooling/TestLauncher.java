@@ -28,6 +28,6 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withTests(TestOperationDescriptor... testDescriptors);
 
-    void run(); // Run synchronously
+    void run() throws TestLauncherException; // Run synchronously
     void run(ResultHandler<? super Void> handler); // Start asynchronously
 }

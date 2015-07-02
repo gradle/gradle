@@ -16,7 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.TestLauncherException
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
+import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -46,6 +48,21 @@ class TestExecutionConsumerConnectionTest extends Specification {
         }
     }
 
+    def "fails for non JvmTestOperationDescriptor descriptors"() {
+        given:
+        TestConnection delegate = newDelegateConnection()
+        TestExecutionConsumerConnection connection = new TestExecutionConsumerConnection(delegate, Mock(ModelMapping), Mock(ProtocolToModelAdapter))
+
+        when:
+        TestExecutionRequest testExecutionRequest = testExecutionRequest(Mock(NonJvmTestOperationDescriptor))
+        connection.runTests(testExecutionRequest, Mock(ConsumerOperationParameters))
+
+        then:
+        def e = thrown(TestLauncherException)
+        e.message == "Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported."
+
+    }
+
     private JvmTestOperationDescriptor jvmTestDecriptor(String className, String methodName) {
         JvmTestOperationDescriptor jvmTestOperationDescriptor = Mock()
         _ * jvmTestOperationDescriptor.className >> className
@@ -53,7 +70,7 @@ class TestExecutionConsumerConnectionTest extends Specification {
         jvmTestOperationDescriptor
     }
 
-    private TestExecutionRequest testExecutionRequest(JvmTestOperationDescriptor... descriptors) {
+    private TestExecutionRequest testExecutionRequest(TestOperationDescriptor... descriptors) {
         TestExecutionRequest testExecutionRequest = Mock()
         testExecutionRequest.testOperationDescriptors >> Arrays.asList(descriptors)
         testExecutionRequest
@@ -68,4 +85,6 @@ class TestExecutionConsumerConnectionTest extends Specification {
     }
 
     interface TestConnection extends InternalTestExecutionConnection, ConnectionVersion4, InternalCancellableConnection, ConfigurableConnection {}
+    interface NonJvmTestOperationDescriptor extends TestOperationDescriptor{}
 }
+
