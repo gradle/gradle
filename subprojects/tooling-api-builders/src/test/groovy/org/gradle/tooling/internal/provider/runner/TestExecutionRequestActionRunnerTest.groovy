@@ -21,6 +21,7 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.PayloadSerializer
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import spock.lang.Specification
@@ -48,7 +49,7 @@ class TestExecutionRequestActionRunnerTest extends Specification {
 
         GradleInternal gradleInternal = newGradleInternal()
         1 * buildController.gradle >> gradleInternal
-
+        1 * testExecutionRequestAction.getClientSubscriptions() >> Mock(BuildClientSubscriptions)
         StartParameter startParameter = new StartParameter();
         1 * testExecutionRequestAction.startParameter >> startParameter
         1 * testExecutionRequestAction.testExecutionDescriptors >> [testExecutionDescriptor("testTask", "TestClass", "testMethod")]
@@ -63,7 +64,7 @@ class TestExecutionRequestActionRunnerTest extends Specification {
     private GradleInternal newGradleInternal() {
         GradleInternal gradleInternal = Mock(GradleInternal)
         ServiceRegistry serviceRegistry = Mock()
-        1 * gradleInternal.getServices() >> serviceRegistry
+        _ * gradleInternal.getServices() >> serviceRegistry
         PayloadSerializer payloadSerializer = Mock()
         1 * serviceRegistry.get(PayloadSerializer.class) >> payloadSerializer
         gradleInternal
