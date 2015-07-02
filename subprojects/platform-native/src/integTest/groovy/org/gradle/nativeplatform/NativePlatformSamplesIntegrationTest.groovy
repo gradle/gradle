@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -55,6 +56,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cppExe
 
         when:
+        EnableModelDsl.enable(executer)
         run "installMain"
 
         then:

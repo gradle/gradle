@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -28,6 +30,10 @@ import spock.lang.Unroll
 
 @LeaksFileHandles
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
+
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
@@ -165,36 +171,38 @@ model {
     def "can customize binaries before and after linking"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
-        buildFile << """
+        buildFile << '''
 apply plugin: 'cpp'
 
 model {
     components {
         main(NativeExecutableSpec)
     }
-}
+    tasks { t ->
+        $("components.main").binaries { binaries ->
+            binaries.values().each { binary ->
+                def preLinkTask = binary.name + "PreLink"
+                t.create(preLinkTask) {
+                    dependsOn binary.tasks.withType(CppCompile)
+                    doLast {
+                        println "Pre Link"
+                    }
+                }
+                binary.tasks.link.dependsOn preLinkTask
 
-binaries.withType(NativeExecutableBinary) { binary ->
-    def preLink = task("\${binary.name}PreLink") {
-        dependsOn binary.tasks.withType(CppCompile)
-
-        doLast {
-            println "Pre Link"
+                def postLinkTask = binary.name + "PostLink"
+                t.create(postLinkTask) {
+                    dependsOn binary.tasks.link
+                    doLast {
+                        println "Post Link"
+                    }
+                }
+                binary.tasks.build.dependsOn postLinkTask
+            }
         }
     }
-    binary.tasks.link.dependsOn preLink
-
-    def postLink = task("\${binary.name}PostLink") {
-        dependsOn binary.tasks.link
-
-        doLast {
-            println "Post Link"
-        }
-    }
-
-    binary.builtBy postLink
 }
-"""
+'''
 
         and:
         helloWorldApp.writeSources(file("src/main"))
@@ -247,6 +255,7 @@ subprojects {
 apply plugin: 'cpp'
 model {
     components {
+        def modPath = { File original -> new File(original.parent + "/new_output/_" + original.name) }
         main(NativeExecutableSpec) {
             binaries.all {
                 executableFile = modPath(executableFile)
@@ -262,10 +271,6 @@ model {
             }
         }
     }
-}
-
-def modPath(File file) {
-    new File("\${file.parentFile}/new_output/_\${file.name}")
 }
 """
 
@@ -292,6 +297,7 @@ def modPath(File file) {
 apply plugin: 'cpp'
 model {
     components {
+        def modPath = { File original -> new File(original.parent + "/new_output/_" + original.name) }
         main(NativeExecutableSpec) {
             sources {
                 cpp.lib library: "hello", linkage: "${linkage}"
@@ -307,10 +313,6 @@ model {
             }
         }
     }
-}
-
-def modPath(File file) {
-    new File("\${file.parentFile}/new_output/_\${file.name}")
 }
 """
 
