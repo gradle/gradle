@@ -127,8 +127,9 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
+        return getInputs();
     }
 
     @Override
