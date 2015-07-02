@@ -365,6 +365,38 @@ this library, the Jar binary is built and made available to the consuming compon
 - Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
 - Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
 
+### Test cases
+
+- Given a project that defines a custom `CustomLibrarySpec` _A_ that creates a `JarBinarySpec`and a `JvmLibrarySpec` _B_:
+    - source set `main` of `B` declares a dependency on library `A`
+    - then:
+        - the Jar binary of `A` is built first
+        - source set `main` of `B` is compiled using the binary from `A` as the API dependency
+
+- Given a project `dep` that defines a custom `CustomLibrarySpec` _A_ that creates a `JarBinarySpec`and another project `consumer` that defines a `JvmLibrarySpec` _B_:
+    - source set `main` of _B_ declares a dependency on project `dep` library `A`
+    - then:
+        - the Jar binary of _A_ is built first
+        - source set `main` of _B_ is compiled using the binary from _A_ as the API dependency
+- Given a project `dep` that defines a custom `CustomLibrarySpec` _A_ that creates a `JarBinarySpec`and another project `consumer` that defines a `JvmLibrarySpec` _B_:
+    - source set `main` of _B_ declares a dependency on project `dep` without an explicit library name
+    - then:
+        - the Jar binary of _A_ is built first
+        - source set `main` of _B_ is compiled using the binary from _A_ as the API dependency
+- Given a project that defines a custom `CustomLibrarySpec` _A_ that creates multiple `JarBinarySpec`and a `JvmLibrarySpec` _B_:
+      - `A` declares a `java6` and a `java7` variant
+      - source set `main` of `B` requires `java7`
+      - source set `main` of `B` declares a dependency on library `A`
+      - then:
+          - source set `main` of `B` is compiled using the `java7` binary from `A` as the API dependency
+- Reverse the roles of _A_ and _B_ in the cases above (_A_ becomes the consumer, _B_ the producer)
+
+Error cases of the above.
+
+### Out of scope
+
+It is expected that a component that provides a `JarBinarySpec` is at least a `LibrarySpec`. It is not possible to resolve a dependency on something with is not a library.
+
 ## Story: Plugin author defines variants for custom Jar binary
 
 Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
