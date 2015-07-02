@@ -16,25 +16,29 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class ToolingBuilderServices implements PluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            BuildModelActionRunner createBuildModelActionRunner() {
-                return new BuildModelActionRunner();
-            }
-
-            ClientProvidedBuildActionRunner createClientProvidedBuildActionRunner() {
-                return new ClientProvidedBuildActionRunner();
-            }
-        });
 
         registration.addProvider(new Object() {
-            TestExecutionRequestActionRunner createTestExecutionRequestActionRunner() {
-                return new TestExecutionRequestActionRunner();
+            BuildActionRunner createBuildModelActionRunner(BuildClientSubscriptionHandler buildClientSubscriptionHandler) {
+                return new SubscribableBuildActionRunner(buildClientSubscriptionHandler, new BuildModelActionRunner());
+            }
+
+            BuildActionRunner createTestExecutionRequestActionRunner(BuildClientSubscriptionHandler buildClientSubscriptionHandler) {
+                return new SubscribableBuildActionRunner(buildClientSubscriptionHandler, new TestExecutionRequestActionRunner());
+            }
+
+            BuildActionRunner createClientProvidedBuildActionRunner(BuildClientSubscriptionHandler buildClientSubscriptionHandler) {
+                return new SubscribableBuildActionRunner(buildClientSubscriptionHandler, new ClientProvidedBuildActionRunner());
+            }
+
+            BuildClientSubscriptionHandler createBuildClientSubscriptionHandler() {
+                return new BuildClientSubscriptionHandler();
             }
         });
     }

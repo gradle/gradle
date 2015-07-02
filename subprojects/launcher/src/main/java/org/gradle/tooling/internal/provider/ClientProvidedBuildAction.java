@@ -17,19 +17,15 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public class ClientProvidedBuildAction implements BuildAction, Serializable {
+public class ClientProvidedBuildAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final SerializedPayload action;
-    private final BuildClientSubscriptions clientSubscriptions;
 
     public ClientProvidedBuildAction(StartParameter startParameter, SerializedPayload action, BuildClientSubscriptions clientSubscriptions) {
+        super(clientSubscriptions);
         this.startParameter = startParameter;
         this.action = action;
-        this.clientSubscriptions = clientSubscriptions;
     }
 
     @Override
@@ -39,9 +35,5 @@ public class ClientProvidedBuildAction implements BuildAction, Serializable {
 
     public SerializedPayload getAction() {
         return action;
-    }
-
-    public BuildClientSubscriptions getClientSubscriptions() {
-        return clientSubscriptions;
     }
 }

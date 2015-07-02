@@ -20,11 +20,15 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 
-class BuildClientSubscriptionsSetup {
-    /**
-     * Registers listeners with {@code Gradle} to receive those events for which the client has subscribed. Dispatch the events received from the Gradle listeners via {@code BuildEventConsumer}.
-     */
-    static void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
+import java.util.HashSet;
+import java.util.Set;
+
+public class BuildClientSubscriptionHandler {
+
+    private Set<BuildClientSubscriptions> registeredClientSubscriptions = new HashSet<BuildClientSubscriptions>();
+
+    void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
+        registeredClientSubscriptions.add(clientSubscriptions);
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
         if (clientSubscriptions.isSendTestProgressEvents()) {
             gradle.addListener(new ClientForwardingTestListener(eventConsumer, clientSubscriptions));
@@ -35,5 +39,13 @@ class BuildClientSubscriptionsSetup {
         if (clientSubscriptions.isSendBuildProgressEvents()) {
             gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
         }
+    }
+
+    public void removeClientSubscriptions(BuildClientSubscriptions clientSubscriptions) {
+        registeredClientSubscriptions.remove(clientSubscriptions);
+    }
+
+    public boolean hasClientSubscriptionsRegistered(BuildClientSubscriptions clientSubscriptions) {
+        return registeredClientSubscriptions.contains(clientSubscriptions);
     }
 }

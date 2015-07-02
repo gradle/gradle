@@ -17,14 +17,12 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 
-import java.io.Serializable;
 import java.util.Collection;
 
-public class TestExecutionRequestAction extends SubscribableBuildAction implements BuildAction, Serializable {
+public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private InternalTestExecutionRequest testExecutionRequest;
 

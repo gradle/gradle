@@ -42,10 +42,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         BuildModelAction buildModelAction = (BuildModelAction) action;
         GradleInternal gradle = buildController.getGradle();
 
-        // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
-        // this allows to send progress events back to the DaemonClient (via short-cut)
-        BuildClientSubscriptionsSetup.registerListenersForClientSubscriptions(buildModelAction.getClientSubscriptions(), gradle);
-
         if (buildModelAction.isRunTasks()) {
             buildController.run();
         } else {

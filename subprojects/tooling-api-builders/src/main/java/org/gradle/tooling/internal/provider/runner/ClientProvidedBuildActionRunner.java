@@ -42,10 +42,6 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         InternalBuildAction<?> clientAction = (InternalBuildAction<?>) payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
-        // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
-        // this allows to send progress events back to the DaemonClient (via short-cut)
-        BuildClientSubscriptionsSetup.registerListenersForClientSubscriptions(clientProvidedBuildAction.getClientSubscriptions(), gradle);
-
         buildController.configure();
         // Currently need to force everything to be configured
         gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());

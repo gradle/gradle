@@ -38,10 +38,8 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         }
         final GradleInternal gradle = buildController.getGradle();
 
-        TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
 
-        // TODO RG refactor this common logic out of TestExecutionRequestActionRunner and BuildModelActionRunner
-        BuildClientSubscriptionsSetup.registerListenersForClientSubscriptions(testExecutionRequestAction.getClientSubscriptions(), gradle);
+        TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
 
         final Collection<InternalJvmTestExecutionDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
         final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {

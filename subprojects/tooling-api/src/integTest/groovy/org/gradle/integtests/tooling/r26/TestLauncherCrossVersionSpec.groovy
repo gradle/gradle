@@ -89,8 +89,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    private List<TestOperationDescriptor> runBuildAndCollect() {
-        List<TestOperationDescriptor> allTestDescriptors = new ArrayList<TestOperationDescriptor>()
+    private Set<TestOperationDescriptor> runBuildAndCollect() {
+        def allTestDescriptors = [] as Set
         try {
             withConnection {
                 ProjectConnection connection ->

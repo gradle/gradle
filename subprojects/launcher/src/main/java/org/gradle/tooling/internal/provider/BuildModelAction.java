@@ -16,16 +16,11 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public class BuildModelAction extends SubscribableBuildAction implements BuildAction, Serializable {
+public class BuildModelAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-
-    private BuildClientSubscriptions clientSubscriptions;
 
     public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
