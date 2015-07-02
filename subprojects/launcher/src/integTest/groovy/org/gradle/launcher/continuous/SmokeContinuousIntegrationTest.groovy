@@ -302,7 +302,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d then enter to exit)\n")
+        output.endsWith("(ctrl-d then enter to exit)\r\n")
     }
 
 }
