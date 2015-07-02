@@ -22,11 +22,13 @@ import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
+
 /**
  * Tests “simple” maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
 
     MavenLocalRepository localM2Repo
     private M2Installation m2Installation
@@ -232,7 +234,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
+        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin\$Rules#publishing")
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
