@@ -265,6 +265,6 @@ class JavaBasePluginTest extends Specification {
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
-        binary.source as Set == project.sources as Set
+        binary.inputs as Set == project.sources as Set
     }
 }
