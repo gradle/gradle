@@ -241,31 +241,29 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(ModelMap<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
-            binaries.all(new Action<NativeBinarySpecInternal>() {
-                @Override
-                public void execute(final NativeBinarySpecInternal nativeBinarySpec) {
-                    for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
-                        nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
-                            @Override
-                            public void execute(final LanguageSourceSet languageSourceSet) {
-                                final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
-                                if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                    nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal) dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
-                                    final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
-                                    String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
-                                    nativeBinarySpec.getTasks().create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
-                                        @Override
-                                        public void execute(DefaultTask task) {
-                                            pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet);
-                                        }
-                                    });
-                                }
+        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
+            for (final NativeBinarySpecInternal nativeBinarySpec : binaries.values()) {
+                for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
+                    nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
+                        @Override
+                        public void execute(final LanguageSourceSet languageSourceSet) {
+                            final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
+                            if (dependentSourceSet.getPreCompiledHeader() != null) {
+                                nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal) dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
+                                final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
+                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                                Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
+                                    @Override
+                                    public void execute(DefaultTask task) {
+                                        pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet);
+                                    }
+                                });
+                                nativeBinarySpec.getTasks().add(pchTask);
                             }
-                        });
-                    }
+                        }
+                    });
                 }
-            });
+            }
         }
 
         private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {
