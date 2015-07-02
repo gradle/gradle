@@ -732,7 +732,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         when:
         fails "tasks"
         then:
-        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks(org.gradle.api.tasks.TaskContainer, $fullQualified)'"
+        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks'"
 
         where:
         projectionType                     | fullQualified

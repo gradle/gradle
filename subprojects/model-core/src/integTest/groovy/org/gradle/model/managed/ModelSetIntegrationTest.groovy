@@ -205,7 +205,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Declaration of model rule Rules#group(Group, org.gradle.model.ModelSet<Person>) is invalid.")
+        failure.assertHasCause("Declaration of model rule Rules#group is invalid.")
         failure.assertHasCause("Invalid managed model type Group: property 'members' cannot have a setter (org.gradle.model.ModelSet<Person> properties must be read only)")
     }
 
@@ -363,7 +363,7 @@ configure p3
 
         and:
         failure.assertHasDescription('A problem occurred configuring root project')
-        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(org.gradle.model.ModelSet<Person>)')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people')
         failure.assertHasCause('broken')
     }
 
@@ -393,7 +393,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people'")
     }
 
     def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
@@ -426,7 +426,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#readPeople'")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
@@ -454,7 +454,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputModelSet")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#tryToMutateInputModelSet(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#tryToMutateInputModelSet'")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
@@ -488,7 +488,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateModelSetOutsideOfCreationRule")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people'")
     }
 
     def "mutating managed set which is an input of a DSL rule is not allowed"() {

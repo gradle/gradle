@@ -157,7 +157,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription('A problem occurred configuring root project')
-        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(org.gradle.model.ModelMap<Person>) > foo.<init>')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people > foo.<init>')
         failure.assertHasCause('broken')
     }
 
@@ -189,7 +189,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#people(org.gradle.model.ModelMap<Person>)'")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#people'")
     }
 
     def "cannot mutate when used as an input"() {
@@ -219,7 +219,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#mutate")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate(org.gradle.model.ModelMap<org.gradle.api.Task>, org.gradle.model.ModelMap<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate'")
     }
 
     def "can read children of map when used as input"() {

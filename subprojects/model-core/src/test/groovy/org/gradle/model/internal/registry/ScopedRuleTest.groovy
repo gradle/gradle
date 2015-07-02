@@ -83,7 +83,7 @@ class ScopedRuleTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Rule org.gradle.model.internal.registry.ScopedRuleTest\$CreatorRule#string() cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
+        e.cause.message == "Rule ScopedRuleTest\$CreatorRule#string cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
     }
 
     static class ByPathBoundInputsChildRule extends RuleSource {

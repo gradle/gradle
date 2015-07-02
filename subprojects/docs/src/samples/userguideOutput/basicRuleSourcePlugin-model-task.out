@@ -7,30 +7,30 @@ Root project
 + model
     + person
           | Type:   	Person
-          | Creator: 	PersonRules#person(Person)
+          | Creator: 	PersonRules#person
           | Rules:
-             ⤷ PersonRules#person(Person)
-             ⤷ PersonRules#person(Person)
-             ⤷ PersonRules#setFirstName(Person)
+             ⤷ PersonRules#person
+             ⤷ PersonRules#person
+             ⤷ PersonRules#setFirstName
              ⤷ model.person
         + firstName
               | Type:   	java.lang.String
-              | Creator: 	PersonRules#person(Person)
+              | Creator: 	PersonRules#person
               | Value:  	John
               | Rules:
-                 ⤷ PersonRules#person(Person)
+                 ⤷ PersonRules#person
         + lastName
               | Type:   	java.lang.String
-              | Creator: 	PersonRules#person(Person)
+              | Creator: 	PersonRules#person
               | Value:  	Smith
               | Rules:
-                 ⤷ PersonRules#person(Person)
+                 ⤷ PersonRules#person
     + tasks
           | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
           | Creator: 	Project.<init>.tasks()
           | Rules:
              ⤷ Project.<init>.tasks()
-             ⤷ PersonRules#createHelloTask(org.gradle.model.ModelMap<org.gradle.api.Task>, Person)
+             ⤷ PersonRules#createHelloTask
         + components
               | Type:   	org.gradle.api.reporting.components.ComponentReport
               | Creator: 	tasks.addPlaceholderAction(components)
@@ -51,15 +51,15 @@ Root project
               | Value:  	task ':dependencyInsight'
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencyInsight)
-                 ⤷ org.gradle.api.plugins.HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration(org.gradle.api.tasks.diagnostics.DependencyInsightReportTask, org.gradle.internal.service.ServiceRegistry)
+                 ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + hello
               | Type:   	org.gradle.api.Task
-              | Creator: 	PersonRules#createHelloTask(org.gradle.model.ModelMap<org.gradle.api.Task>, Person) > create(hello)
+              | Creator: 	PersonRules#createHelloTask > create(hello)
               | Value:  	task ':hello'
               | Rules:
-                 ⤷ PersonRules#createHelloTask(org.gradle.model.ModelMap<org.gradle.api.Task>, Person) > create(hello)
-                 ⤷ PersonRules#createHelloTask(org.gradle.model.ModelMap<org.gradle.api.Task>, Person) > hello.<init>
+                 ⤷ PersonRules#createHelloTask > create(hello)
+                 ⤷ PersonRules#createHelloTask > hello.<init>
                  ⤷ copyToTaskContainer
         + help
               | Type:   	org.gradle.configuration.Help

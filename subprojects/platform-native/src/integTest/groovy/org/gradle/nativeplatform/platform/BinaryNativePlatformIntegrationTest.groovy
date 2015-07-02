@@ -370,7 +370,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.internal.configure.NativeComponentRules#createBinaries(")
+        failure.assertHasCause("Exception thrown while executing model rule: NativeComponentRules#createBinaries")
         failure.assertHasCause("Invalid NativePlatform: unknown")
     }
 

@@ -87,7 +87,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: ThrowingRule#badRule(org.gradle.api.Task)")
+        failure.assertHasCause("Exception thrown while executing model rule: ThrowingRule#badRule")
         failure.assertHasCause("I'm broken")
     }
 
@@ -115,8 +115,8 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.ModelMap<org.gradle.api.Task>)")
-        failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
+        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks")
+        failure.assertHasCause("InvalidRuleSource#invalidRule is not a valid model rule method")
     }
 
     def "unbound inputs of scoped rules are reported and their scope is shown"() {
@@ -144,7 +144,7 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("""The following model rules are unbound:
-  UnboundRuleSource#unboundRule(java.lang.String, java.lang.Integer, java.lang.String)
+  UnboundRuleSource#unboundRule
     Mutable:
       - <unspecified> (java.lang.String) parameter 1 in scope of 'tasks.taskWithUnboundRuleSourceApplied'
     Immutable:

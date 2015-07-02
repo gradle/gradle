@@ -50,7 +50,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         } else {
             printNodeName(model, styledTextoutput);
             maybePrintType(model, styledTextoutput);
-            printOrigin(model, styledTextoutput);
+            printCreator(model, styledTextoutput);
             maybePrintValue(model, styledTextoutput);
             maybePrintRules(model, styledTextoutput);
         }
@@ -67,7 +67,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         styledTextoutput.println();
     }
 
-    public void printOrigin(ModelNode model, StyledTextOutput styledTextoutput) {
+    public void printCreator(ModelNode model, StyledTextOutput styledTextoutput) {
         ModelRuleDescriptor descriptor = model.getDescriptor();
         StringBuffer buffer = new StringBuffer();
         descriptor.describeTo(buffer);

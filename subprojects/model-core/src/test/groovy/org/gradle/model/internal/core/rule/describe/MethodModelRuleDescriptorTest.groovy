@@ -26,14 +26,23 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(getClass(), method).describeTo(sb)
 
         then:
-        sb.toString() == getClass().name + "#" + method + description
+        sb.toString() == getClass().simpleName + "#" + method
 
         where:
-        method        | description
-        "noArgs"      | "()"
-        "oneArg"      | "(java.lang.String)"
-        "twoArgs"     | "(java.lang.String, java.lang.String)"
-        "genericArgs" | "(java.util.List<java.lang.String>, java.util.Map<java.lang.Integer, java.util.List<java.lang.String>>)"
+        method << [
+            "noArgs",
+            "oneArg",
+            "twoArgs",
+            "genericArgs"]
+    }
+
+    def "inner classes are described"() {
+        when:
+        def sb = new StringBuilder()
+        MethodModelRuleDescriptor.of(Outer.Inner, "noArgs").describeTo(sb)
+
+        then:
+        sb.toString() == 'MethodModelRuleDescriptorTest$Outer$Inner#noArgs'
     }
 
     def noArgs() {}
@@ -43,4 +52,10 @@ class MethodModelRuleDescriptorTest extends Specification {
     def twoArgs(String s1, String s2) {}
 
     def genericArgs(List<String> list, Map<Integer, List<String>> map) {}
+
+    class Outer {
+        static class Inner {
+            def noArgs() {}
+        }
+    }
 }

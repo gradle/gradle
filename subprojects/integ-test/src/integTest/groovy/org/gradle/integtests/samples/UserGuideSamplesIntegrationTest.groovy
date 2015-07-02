@@ -27,6 +27,8 @@ class UserGuideSamplesIntegrationTest {
      - gradle intTestImage makes sure that the samples' resources are copied to the right place
      - gradle docs:userguideDocbook makes sure that samples' info is extracted from XMLs
      - the 'expected' content of the asserting mechanism lives under docs/src/samples/userguideOutput
+     - Running:
+        ./gradlew intTestImage docs:userguideDocbook integtest:integTest --tests org.gradle.integtests.samples.UserGuideSamplesIntegrationTest
 
     */
 }

@@ -107,6 +107,9 @@ My Report
               | Type: \t java.lang.Integer
     + primaryCredentials
           | Type: \t PasswordCredentials
+          | Rules:
+                ⤷ Rule1
+                ⤷ Rule2
         + password
               | Value: \t hunter2
               | Type: \t java.lang.String
@@ -120,6 +123,8 @@ BUILD SUCCESSFUL
         expect:
         modelReport.reportNode.'**'.primaryCredentials.username.@nodeValue[0] == 'uname'
         modelReport.reportNode.'**'.primaryCredentials.username.@type[0] == 'java.lang.String'
+        modelReport.reportNode.'**'.primaryCredentials.@rules[0][0]== 'Rule1'
+        modelReport.reportNode.'**'.primaryCredentials.@rules[0][1]== 'Rule2'
     }
 
     def "should find a node attributes"() {

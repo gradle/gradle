@@ -80,4 +80,7 @@ class ModelReportOutput {
         }
     }
 
+    def getModelNode() {
+        parsedModelReport.reportNode
+    }
 }

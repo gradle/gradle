@@ -30,4 +30,15 @@ class MethodDescriptionTest extends Specification {
         MethodDescription.name("a").returns(String).owner(String).takes(String, String).toString() == "java.lang.String java.lang.String#a(java.lang.String, java.lang.String)"
         MethodDescription.name("a").owner(String).takes(String, String).toString() == "java.lang.String#a(java.lang.String, java.lang.String)"
     }
+
+    def "inner class name format"() {
+        expect:
+        MethodDescription.name('a').owner(Outer.Inner).toString() == 'org.gradle.internal.reflect.MethodDescriptionTest$Outer$Inner#a'
+    }
+
+    class Outer {
+        static class Inner {
+
+        }
+    }
 }

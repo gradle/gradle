@@ -63,11 +63,11 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 first
-\\- Rules#first(java.lang.String)
+\\- Rules#first
    \\- second
       \\- model.second @ build file '${buildFile}' line 26, column 17
          \\- third
-            \\- Rules#third(java.lang.String)
+            \\- Rules#third
                \\- first""")
     }
 
@@ -105,9 +105,9 @@ first
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 m1
-\\- Rules#m3ToM1(java.lang.Object, java.lang.Object)
+\\- Rules#m3ToM1
    \\- m3
-      \\- Rules#m1ToM3(java.lang.Object, java.lang.Object)
+      \\- Rules#m1ToM3
          \\- m1""")
     }
 
@@ -153,9 +153,9 @@ m1
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 m1
-\\- Rules#m3ToM1(java.lang.Object, java.lang.Object)
+\\- Rules#m3ToM1
    \\- m3
-      \\- Rules#m1ToM3(java.lang.Object, java.lang.Object)
+      \\- Rules#m1ToM3
          \\- m1""")
 
     }

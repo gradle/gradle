@@ -60,11 +60,7 @@ public interface PasswordCredentials {
 }
 
 
-@Managed
-public interface Numbers {
-    Integer getValue()
-    void setValue(Integer i)
-}
+${managedNumbers()}
 
 model {
     primaryCredentials(PasswordCredentials){
@@ -129,11 +125,7 @@ public interface PasswordCredentials {
 }
 
 
-@Managed
-public interface Numbers {
-    Integer getValue()
-    void setValue(Integer i)
-}
+${managedNumbers()}
 
 model {
     primaryCredentials(PasswordCredentials){
@@ -230,7 +222,7 @@ model {
               | Value:  \ttask ':dependencyInsight'
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencyInsight)
-                 ⤷ org.gradle.api.plugins.HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration(org.gradle.api.tasks.diagnostics.DependencyInsightReportTask, org.gradle.internal.service.ServiceRegistry)
+                 ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + help
               | Type:   \torg.gradle.configuration.Help
@@ -283,4 +275,59 @@ model {
                  ⤷ copyToTaskContainer
 ''')
     }
+
+    def "method rule source have simple type names and correct order"() {
+        given:
+        buildFile << """
+${managedNumbers()}
+
+class NumberRules extends RuleSource {
+    @Model("myNumbers")
+    void createRule(Numbers n) {
+       n.setValue(5)
+    }
+    @Defaults void defaultsRule(Numbers n) {}
+    @Mutate void mutateRule(Numbers n) {}
+    @Finalize void finalizeRule(Numbers n) {}
+    @Validate void validateRule(Numbers n) {}
 }
+
+class ClassHolder {
+    static class InnerRules extends RuleSource {
+         @Mutate void mutateRule(Numbers n) {}
+    }
+}
+
+apply plugin: NumberRules
+apply plugin: ClassHolder.InnerRules
+"""
+        buildFile
+        when:
+        run "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.myNumbers.@creator[0] == 'NumberRules#createRule'
+
+        int i = 0
+        def rules = modelNode.myNumbers.@rules[0]
+        rules[i++] == 'NumberRules#createRule' //'Creating myNumbers using NumberRules#createRule(Numbers)'
+        rules[i++] == 'NumberRules#defaultsRule'
+        //Confusing because the user supplied logic in createRule is only called once 'Mutating myNumbers using NumberRules#createRule(Numbers)'
+        rules[i++] == 'NumberRules#createRule'
+        rules[i++] == 'NumberRules#mutateRule'
+        rules[i++] == 'ClassHolder$InnerRules#mutateRule'
+        rules[i++] == 'NumberRules#finalizeRule'
+        rules[i] == 'NumberRules#validateRule'
+    }
+
+    private String managedNumbers() {
+        return """@Managed
+        public interface Numbers {
+            Integer getValue()
+            void setValue(Integer i)
+        }"""
+    }
+}
+
+

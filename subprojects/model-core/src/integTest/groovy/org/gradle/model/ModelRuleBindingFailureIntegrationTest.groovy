@@ -58,12 +58,12 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  MyPlugin\$Rules#mutateThing2(MyPlugin\$MyThing2, MyPlugin\$MyThing3)
+  MyPlugin\$Rules#mutateThing2
     Mutable:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1
     Immutable:
       - <unspecified> (MyPlugin\$MyThing3) parameter 2
-  MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)
+  MyPlugin\$Rules#thing1
     Immutable:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1""")
     }
@@ -160,10 +160,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("There is a problem with model rule Plugin3\$Rules#m(java.lang.String).")
+        failure.assertHasCause("There is a problem with model rule Plugin3\$Rules#m.")
         failure.assertHasCause("""Type-only model reference of type java.lang.String (parameter 1) is ambiguous as multiple model elements are available for this type:
-  - s1 (created by: Plugin1\$Rules#s1())
-  - s2 (created by: Plugin2\$Rules#s2())""")
+  - s1 (created by: Plugin1\$Rules#s1)
+  - s2 (created by: Plugin2\$Rules#s2)""")
     }
 
     def "incompatible type binding"() {
@@ -185,7 +185,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("There is a problem with model rule Plugin1\$Rules#addTasks(java.lang.Integer).")
+        failure.assertHasCause("There is a problem with model rule Plugin1\$Rules#addTasks.")
         failure.assertHasCause("""Model reference to element 'tasks' with type java.lang.Integer (parameter 1) is invalid due to incompatible types.
 This element was created by Project.<init>.tasks() and can be mutated as the following types:
   - org.gradle.model.ModelMap<org.gradle.api.Task>
@@ -211,7 +211,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  Rules#foo(java.lang.Integer)
+  Rules#foo
     Immutable:
       - bar (java.lang.Integer) parameter 1""")
     }

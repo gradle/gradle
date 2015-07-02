@@ -300,7 +300,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
+        failure.assertHasCause "MySamplePlugin#register is not a valid component model rule method."
         failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
@@ -325,8 +325,8 @@ BUILD SUCCESSFUL"""))
 
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)"
-        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
+        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin#register."
     }
 
     def buildWithCustomComponentPlugin() {

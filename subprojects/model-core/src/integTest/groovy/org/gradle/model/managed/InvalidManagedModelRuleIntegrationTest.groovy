@@ -48,7 +48,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson")
         failure.assertThatCause(Matchers.containsLine(Matchers.matchesRegexp(/No signature of method: .*\.setName\(\) is applicable for argument types: \(java.lang.Integer\) values: \[123\]/)))
     }
 
@@ -85,7 +85,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson")
         failure.assertHasCause("argument type mismatch")
     }
 
@@ -148,7 +148,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Rules#s(java.lang.String) is not a valid model rule method: a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.")
+        failure.assertHasCause("Rules#s is not a valid model rule method: a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.")
     }
 
     def "provides a useful error message when an invalid managed type is used in a rule"() {
@@ -172,7 +172,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Declaration of model rule RulePlugin#createPerson(Person) is invalid")
+        failure.assertHasCause("Declaration of model rule RulePlugin#createPerson is invalid")
         failure.assertHasCause("Invalid managed model type Person: read only property 'name' has non managed type java.lang.String, only managed types can be used")
     }
 }
