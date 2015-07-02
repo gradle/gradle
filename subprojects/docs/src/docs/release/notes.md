@@ -64,9 +64,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+* Removed `FunctionalSourceSet.copy()`
+
 ### Component model changes
 
-* Removed `BinarySpec.source(Object)`: It is no longer possible to add a sourceSet from one binary/component to another binary.
+* Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
+* Added `BinarySpec.sources(Action<? extends ModelMap<LanguageSourceSet>>)` that allows the definition of sources specific to the binary.
+* Added `BinarySpec.getInputs()` that contains all the source sets needed to build the binary, including the ones specific to the binary and external source sets (e.g. inherited from the binary's parent component).
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
 
 ## External contributions
