@@ -244,7 +244,7 @@ Allow multiple Jar binaries to be built from multiple Java source and resource s
 - A source set may be input to multiple binaries
     - These are not owned by the binary, they are inputs to the binary
     - A binary may also own some source sets, these are also implicit inputs to the binary
-- The definition order of source sets is maintained, binary-owned source sets following all other inputs
+- The definition order of source sets among a binary's inputs is maintained, source sets owned by the binary following all other inputs
 - A Jar binary can be built from one or more input Java and resource source sets
 - Error cases:
     - Fail at configuration time when creating a binary-owned source set with the same name as the component source set
@@ -451,6 +451,7 @@ Change dependency resolution to honor the variant dimensions for a custom compon
 - Plugin author defines target Java platform for Jar binary
 - Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
     - This will require using `LanguageTransform`s in Scala
+    - Windows resource sets on non-windows builds fail with the current `LanguageTransform.applyToBinary()` implementation
 
 # Feature 3: TBD
 
