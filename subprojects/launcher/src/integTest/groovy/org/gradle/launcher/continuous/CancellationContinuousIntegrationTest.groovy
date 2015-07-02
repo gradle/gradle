@@ -72,12 +72,12 @@ class CancellationContinuousIntegrationTest extends Java7RequiringContinuousInte
     def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:
         executer.beforeExecute { it.withForceInteractive(false) }
-        waitingMessage = "Waiting for changes to input files of tasks...\n"
         killToStop = true
         closeStdIn()
 
         then:
         succeeds "build" // tests message
+        output.endsWith("...\n")
 
         when:
         file("src/main/java/Thing.java") << "class Thing {}"

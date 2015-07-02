@@ -17,6 +17,8 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
@@ -281,6 +283,26 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         then:
         succeeds()
         executedAndNotSkipped(":a")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "exit hint does not mention enter when not on windows"() {
+        when:
+        buildScript "task a { inputs.file 'a'; doLast {} }"
+
+        then:
+        succeeds "a"
+        output.endsWith("(ctrl-d to exit)\n")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "exit hint mentions enter when on windows"() {
+        when:
+        buildScript "task a { inputs.file 'a'; doLast {} }"
+
+        then:
+        succeeds "a"
+        output.endsWith("(ctrl-d then enter to exit)\r\n")
     }
 
 }

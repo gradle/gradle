@@ -40,7 +40,7 @@
             When a change occurs, <userinput>gradle build</userinput> will be automatically executed again and the process repeats.
         </para>
         <para>
-            If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing <userinput>CTRL-D</userinput>.
+            If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing <userinput>CTRL-D</userinput> (On Microsoft Windows, it is required to also press <userinput>ENTER</userinput> or <userinput>RETURN</userinput> after <userinput>CTRL-D</userinput>).
             If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the <userinput>kill</userinput> command or similar).
             If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
         </para>
