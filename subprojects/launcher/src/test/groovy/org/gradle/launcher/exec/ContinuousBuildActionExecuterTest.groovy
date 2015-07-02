@@ -31,6 +31,7 @@ import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.session.BuildSession
 import org.gradle.logging.TestStyledTextOutputFactory
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
@@ -238,7 +239,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, executorFactory, buildSession, waiter)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, buildSession, waiter)
     }
 
 }
