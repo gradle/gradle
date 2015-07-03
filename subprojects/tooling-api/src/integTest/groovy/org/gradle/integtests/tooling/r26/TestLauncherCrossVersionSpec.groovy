@@ -95,6 +95,21 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "test task up-to-date when launched with same test descriptors again"() {
+        given:
+        launchTests(testDescriptors("example.MyTest", null, ":secondTest"))
+        when:
+        launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
+        then:
+        assertTaskExecuted(":secondTest")
+        assertTaskUpToDate(":secondTest")
+        assertTaskNotExecuted(":test")
+
+    }
+
+
+    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion("<2.6")
     def "fails with meaningful error when running against unsupported target version"() {
         when:
@@ -114,6 +129,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def assertTaskNotExecuted(String taskPath) {
         assert !finishedTasksEvents.any{ it.descriptor.taskPath == taskPath }
+        true
+    }
+
+    def assertTaskUpToDate(String taskPath) {
+        assert finishedTasksEvents.any{ it.descriptor.taskPath == taskPath && it.result.upToDate }
         true
     }
 
@@ -228,7 +248,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             package example2;
             public class MyOtherTest {
                 @org.junit.Test public void bar() throws Exception {
-                     org.junit.Assert.fail();
+                     org.junit.Assert.assertEquals(2, 2);
                 }
             }
         """
