@@ -235,17 +235,28 @@ public abstract class AstUtils {
         return doCallMethods.get(0);
     }
 
-    public static boolean isReturnNullStatement(Statement statement) {
+    /**
+     * Returns true if the the given statement may have some effect as part of a script body.
+     * Returns false when the given statement may be ignored, provided all other statements in the script body may also be ignored.
+     */
+    public static boolean mayHaveAnEffect(Statement statement) {
         if (statement instanceof ReturnStatement) {
             ReturnStatement returnStatement = (ReturnStatement) statement;
             if (returnStatement.getExpression() instanceof ConstantExpression) {
-                ConstantExpression constantExpression = (ConstantExpression) returnStatement.getExpression();
-                if (constantExpression.getValue() == null) {
-                    return true;
+                return false;
+            }
+        } else if (statement instanceof ExpressionStatement) {
+            ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+            if (expressionStatement.getExpression() instanceof ConstantExpression) {
+                return false;
+            }
+            if (expressionStatement.getExpression() instanceof DeclarationExpression) {
+                DeclarationExpression declarationExpression = (DeclarationExpression) expressionStatement.getExpression();
+                if (declarationExpression.getRightExpression() instanceof EmptyExpression || declarationExpression.getRightExpression() instanceof ConstantExpression) {
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
-
 }

@@ -20,9 +20,14 @@ import groovy.lang.Script;
 
 public interface CompiledScript<T extends Script, D> {
     /**
-     * Returns true if the `run()` method of this script is effectively empty and can be safely skipped.
+     * Returns true if the `run()` method of this script is effectively empty and can be ignored.
      */
     boolean isEmpty();
+
+    /**
+     * Returns true if the script declares any methods.
+     */
+    boolean getHasMethods();
 
     Class<? extends T> loadClass();
 

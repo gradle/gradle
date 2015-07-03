@@ -146,6 +146,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
         then:
         compiledScript.empty
+        !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
 
@@ -172,26 +173,29 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
         then:
         compiledScript.empty
+        !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
     }
 
     def testCompileScriptToDirWithMethodOnlyScript() {
-        final ScriptSource scriptSource = scriptSource("def method() { println 'hi' }")
+        final ScriptSource scriptSource = scriptSource("def method(def value) { return '[' + value + ']' }")
 
         when:
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
 
         then:
-        checkScriptClassesInCache()
+        checkScriptClassesInCache(true)
 
         when:
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        !compiledScript.empty
+        compiledScript.empty
+        compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
+        script.method(12) == "[12]"
     }
 
     def testCompileScriptToDirWithPropertiesOnlyScript() {
@@ -201,19 +205,20 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
 
         then:
-        checkScriptClassesInCache()
+        checkScriptClassesInCache(true)
 
         when:
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        !compiledScript.empty
+        compiledScript.empty
+        !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
     }
 
     def testLoadFromDirWhenNotAssignableToBaseClass() {
-        def scriptSource = scriptSource("def ignoreMe = true")
+        def scriptSource = scriptSource("ignoreMe = true")
 
         given:
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, Script.class, verifier)
@@ -340,6 +345,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
         then:
         compiledScript.empty
+        !compiledScript.hasMethods
         compiledScript.data == "extracted data"
         def script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
@@ -356,10 +362,10 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         1 * verifier.execute(!null)
     }
 
-    private void checkScriptClassesInCache() {
+    private void checkScriptClassesInCache(boolean empty = false) {
         assertTrue(scriptCacheDir.isDirectory())
         assertTrue(cachedFile.isFile())
-        checkEmptyScriptFlagSet(false)
+        checkEmptyScriptFlagSet(empty)
     }
 
     private void checkEmptyScriptInCache() {
@@ -377,7 +383,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         assertTrue(metaDataFile.isFile())
         def decoder = new KryoBackedDecoder(new FileInputStream(metaDataFile))
         try {
-            assertEquals(decoder.readByte(), flag ? 1 : 0)
+            assertEquals(decoder.readByte() & 1, flag ? 1 : 0)
         } finally {
             decoder.close()
         }

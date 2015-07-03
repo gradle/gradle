@@ -33,6 +33,11 @@ public class ClassCachingCompiledScript<T extends Script, M> implements Compiled
     }
 
     @Override
+    public boolean getHasMethods() {
+        return delegate.getHasMethods();
+    }
+
+    @Override
     public Class<? extends T> loadClass() {
         if (scriptClass == null) {
             scriptClass = delegate.loadClass();

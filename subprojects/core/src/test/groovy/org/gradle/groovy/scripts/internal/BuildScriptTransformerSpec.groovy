@@ -25,6 +25,7 @@ import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildScriptTransformerSpec extends Specification {
 
@@ -88,16 +89,16 @@ class BuildScriptTransformerSpec extends Specification {
         !scriptData.data.hasMethods
     }
 
-    def "property declarations are not considered imperative code"() {
+    def "property declarations with constant initializer are not considered imperative code"() {
         given:
         def scriptData = parse("""
             String a
             String b = "hi"
-            int c = b.length()
+            int c = 12
         """)
 
         expect:
-        !scriptData.empty
+        scriptData.empty
         !scriptData.data.hasImperativeStatements
         !scriptData.data.hasMethods
     }
@@ -107,16 +108,16 @@ class BuildScriptTransformerSpec extends Specification {
         def scriptData = parse("""
             @groovy.transform.Field Long c
             @groovy.transform.Field Long d = 12
-            @groovy.transform.Field Long e = d * 2
+            @groovy.transform.Field Long e = d * foo
         """)
 
         expect:
-        !scriptData.empty
+        scriptData.empty
         !scriptData.data.hasImperativeStatements
         !scriptData.data.hasMethods
     }
 
-    def "extracted script blocks are not considered imperative code"() {
+    def "filtered script blocks are not considered imperative code"() {
         given:
         def scriptData = parse("""
 plugins {
@@ -143,6 +144,8 @@ buildscript {
 model {
     task { foo(Task) { println "hi" } }
 }
+
+model { println "hi" }
 """)
 
         expect:
@@ -151,9 +154,36 @@ model {
         !scriptData.data.hasMethods
     }
 
+    def "model blocks combined with other non imperative elements are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+model {
+    task { foo(Task) { println "hi" } }
+}
+
+"constant"
+
+def something() { return 12 }
+
+model { println "hi" }
+
+class Thing { }
+
+return null
+""")
+
+        expect:
+        !scriptData.empty
+        !scriptData.data.hasImperativeStatements
+        scriptData.data.hasMethods
+    }
+
     def "imports are not considered imperative code"() {
         expect:
-        def scriptData = parse("import java.lang.String")
+        def scriptData = parse("""import java.lang.String
+import java.lang.*
+import static java.lang.String.*
+""")
         scriptData.empty
         !scriptData.data.hasImperativeStatements
         !scriptData.data.hasMethods
@@ -161,8 +191,10 @@ model {
 
     def "method declarations are not considered imperative code"() {
         expect:
-        def scriptData = parse("def method() { println 'hi' }")
-        !scriptData.empty
+        def scriptData = parse("""def method() { println 'hi' }
+private void doSomething() { thing = true }
+""")
+        scriptData.empty
         !scriptData.data.hasImperativeStatements
         scriptData.data.hasMethods
     }
@@ -170,6 +202,7 @@ model {
     def "constant expressions and constant return are not imperative"() {
         expect:
         def scriptData = parse(script)
+        scriptData.empty
         !scriptData.data.hasImperativeStatements
         !scriptData.data.hasMethods
 
@@ -188,7 +221,8 @@ return 12
 """         | _
     }
 
-    def "imperative code is detected"() {
+    @Unroll
+    def "imperative code is detected in #script"() {
         expect:
         def scriptData = parse(script)
         !scriptData.empty
@@ -196,23 +230,24 @@ return 12
         !scriptData.data.hasMethods
 
         where:
-        script                        | _
-        "foo = 'bar'"                 | _
-        "foo"                         | _
-        '"${foo}"'                    | _
-        "println 'hi!'"               | _
-        "return a + 1"                | _
-        "return foo"                  | _
-        'return "${foo}"'             | _
-        "if (a) { return null }; foo" | _
+        script                                         | _
+        "foo = 'bar'"                                  | _
+        "foo"                                          | _
+        '"${foo}"'                                     | _
+        "println 'hi!'"                                | _
+        "return a + 1"                                 | _
+        "return foo"                                   | _
+        'return "${foo}"'                              | _
+        'String s = "a" + "b"'                         | _
+        "if (a) { return null }; foo"                  | _
         """
 plugins {
 }
 println "hi"
-"""                        | _
+"""                                         | _
         """
 foo
 return null
-"""                        | _
+"""                                         | _
     }
 }

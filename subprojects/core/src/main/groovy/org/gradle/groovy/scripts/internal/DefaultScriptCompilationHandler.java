@@ -60,6 +60,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String METADATA_FILE_NAME = "metadata.bin";
+    private static final int EMPTY_FLAG = 1;
+    private static final int HAS_METHODS_FLAG = 2;
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
     private final String[] defaultImportPackages;
@@ -82,6 +84,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
+            GFileUtils.deleteDirectory(metadataDir);
             throw e;
         }
 
@@ -114,7 +117,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
                 return compilationUnit;
             }
-
         };
 
         groovyClassLoader.setResourceLoader(NO_OP_GROOVY_RESOURCE_LOADER);
@@ -133,16 +135,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
                     StringUtils.capitalize(source.getDisplayName())));
         }
-        serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript());
+        serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
     }
 
-    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript) {
+    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
             GFileUtils.mkdirs(metadataDir);
             KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile));
             try {
-                byte flags = (byte)(emptyScript ? 1 : 0);
+                byte flags = (byte) ((emptyScript ? EMPTY_FLAG : 0) | (hasMethods ? HAS_METHODS_FLAG : 0));
                 encoder.writeByte(flags);
                 if (extractingTransformer != null && extractingTransformer.getDataSerializer() != null) {
                     Serializer<M> serializer = extractingTransformer.getDataSerializer();
@@ -186,14 +188,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
-                                                                  File metadataCacheDir, final CompileOperation<M> transformer, final Class<T> scriptBaseClass, final ClassLoaderId classLoaderId) {
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                                                                  File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass,
+                                                                  ClassLoaderId classLoaderId) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
             KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
             try {
                 byte flags = decoder.readByte();
-                boolean isEmpty = (flags & 1) != 0;
+                boolean isEmpty = (flags & EMPTY_FLAG) != 0;
+                boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
                 if (isEmpty) {
                     classLoaderCache.remove(classLoaderId);
                 }
@@ -203,7 +207,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassCachingCompiledScript<T, M>(new ClassesDirCompiledScript<T, M>(isEmpty, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data));
+                return new ClassCachingCompiledScript<T, M>(new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data));
             } finally {
                 decoder.close();
             }
@@ -223,25 +227,30 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private static class EmptyScriptDetector extends CompilationUnit.SourceUnitOperation {
         private boolean emptyScript;
+        private boolean hasMethods;
 
         @Override
-        public void call(SourceUnit source) throws CompilationFailedException {
+        public void call(SourceUnit source) {
+            if (!source.getAST().getMethods().isEmpty()) {
+                hasMethods = true;
+            }
             emptyScript = isEmpty(source);
         }
 
         private boolean isEmpty(SourceUnit source) {
-            if (!source.getAST().getMethods().isEmpty()) {
-                return false;
-            }
             List<Statement> statements = source.getAST().getStatementBlock().getStatements();
-            if (statements.size() > 1) {
-                return false;
-            }
-            if (statements.isEmpty()) {
-                return true;
+            for (Statement statement : statements) {
+                if (AstUtils.mayHaveAnEffect(statement)) {
+                    return false;
+                }
             }
 
-            return AstUtils.isReturnNullStatement(statements.get(0));
+            // No statements, or no statements that have an effect
+            return true;
+        }
+
+        public boolean getHasMethods() {
+            return hasMethods;
         }
 
         public boolean isEmptyScript() {
@@ -292,6 +301,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final boolean isEmpty;
+        private final boolean hasMethods;
         private final ClassLoaderId classLoaderId;
         private final Class<T> scriptBaseClass;
         private final File scriptCacheDir;
@@ -299,8 +309,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final ScriptSource source;
         private final M metadata;
 
-        public ClassesDirCompiledScript(boolean isEmpty, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoader classLoader, ScriptSource source, M metadata) {
+        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoader classLoader, ScriptSource source, M metadata) {
             this.isEmpty = isEmpty;
+            this.hasMethods = hasMethods;
             this.classLoaderId = classLoaderId;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCacheDir = scriptCacheDir;
@@ -315,13 +326,18 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
+        public boolean getHasMethods() {
+            return hasMethods;
+        }
+
+        @Override
         public M getData() {
             return metadata;
         }
 
         @Override
         public Class<? extends T> loadClass() {
-            if (isEmpty) {
+            if (isEmpty && !hasMethods) {
                 return emptyScriptGenerator.generate(scriptBaseClass);
             }
 

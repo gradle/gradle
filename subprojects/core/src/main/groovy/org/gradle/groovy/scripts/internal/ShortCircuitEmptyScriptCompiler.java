@@ -44,6 +44,11 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
                     return true;
                 }
 
+                @Override
+                public boolean getHasMethods() {
+                    return false;
+                }
+
                 public Class<? extends T> loadClass() {
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }
