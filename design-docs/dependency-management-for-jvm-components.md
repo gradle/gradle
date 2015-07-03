@@ -365,6 +365,9 @@ this library, the Jar binary is built and made available to the consuming compon
 - Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
 - Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
 
+The current implementation of `LocalLibraryDependencyResolver` works on `JvmLibrarySpec` and `JvmBinarySpec`, which implies that it works on
+`JarBinarySpec`. If possible, we should avoid directly depending on `JarBinarySpec`.
+
 ### Test cases
 
 - Given a project that defines a custom `CustomLibrarySpec` _A_ that creates a `JarBinarySpec`and a `JvmLibrarySpec` _B_:
@@ -392,6 +395,11 @@ this library, the Jar binary is built and made available to the consuming compon
 - Reverse the roles of _A_ and _B_ in the cases above (_A_ becomes the consumer, _B_ the producer)
 
 Error cases of the above.
+
+### Implementation
+
+- In `LocalLibraryDependencyResolver` fix `acceptLibrary` so that it checks if any of the binaries is a `JvmBinarySpec`
+- Change the error message in case no suitable library is found (currently, it expects the library to be a `JvmLibrarySpec` but it can now be any type of `LibrarySpec`)
 
 ### Out of scope
 
