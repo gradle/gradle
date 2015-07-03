@@ -77,7 +77,36 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Rule based model configuration
 * The model report displays each rule that has been executed against a given model element.
-* The naming of rule source (`org.gradle.model.RuleSource`) method rules, appearing on the model report and in build exceptions, has changed to omit package names and method parameters.
+* The naming of rule source (`org.gradle.model.RuleSource`) method rules, appearing on the model report and in build exceptions, has changed as follows:
+    - package names are omitted
+    - Method parameters are excluded
+      - Model report
+        - Before
+```
+          | Rules:
+             ⤷ PersonRules#person
+             ⤷ PersonRules#setFirstName
+             ⤷ model.person
+```
+        - After
+```
+          | Rules:  |
+             ⤷ PersonRules#person(Person)
+             ⤷ PersonRules#setFirstName(Person)
+             ⤷ model.person
+```
+      - Build exceptions
+        - Before:
+```
+The following model rules are unbound:
+  org.gradle.model.ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput(org.gradle.model.ManagedNodeBackedModelMapTest$Bean, java.lang.String)
+```
+
+        - After:
+```
+The following model rules are unbound:
+  ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
+```
 
 
 ## External contributions

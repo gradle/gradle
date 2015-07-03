@@ -19,7 +19,6 @@ package org.gradle.model.internal.core.rule.describe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -61,13 +60,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     private String getClassName() {
-        Class<?> type = method.getDeclaringClass();
-        String className = type instanceof Class ? Cast.cast(Class.class, type).getName() : type.toString();
-        Package aPackage = type.getPackage();
-        if (null != aPackage) {
-            return className.replaceAll(aPackage.getName() + ".", "");
-        }
-        return className;
+        return ModelType.of(method.getDeclaringClass()).getSimpleName().replace('.', '$');
     }
 
     @Override
