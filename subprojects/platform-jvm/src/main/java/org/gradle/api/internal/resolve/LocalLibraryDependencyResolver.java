@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -41,10 +40,10 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
@@ -90,7 +89,6 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
-                DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                 Collection<BinarySpec> allVariants = selectedLibrary.getBinaries().values();
                 Collection<? extends BinarySpec> variants = filterBinaries(allVariants);
                 if (!allVariants.isEmpty() && variants.isEmpty()) {
@@ -99,17 +97,14 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 } else if (variants.size() > 1) {
                     result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, javaPlatform, variants)));
                 } else {
-                    for (BinarySpec spec : variants) {
-                        buildDependencies.add(spec);
-                        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), spec.getName(), buildDependencies);
-                        ComponentResolveMetaData resolveMetaData = metaData.toResolveMetaData();
-                        result.resolved(resolveMetaData);
-                        if (spec instanceof JvmBinarySpec) {
-                            Jar jar = ((JvmBinarySpec)spec).getTasks().getJar();
-                            PublishArtifact publishArtifact = new ArchivePublishArtifact(jar);
-                            metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(publishArtifact));
-                        }
-                    }
+                    JarBinarySpec jarBinary = (JarBinarySpec) variants.iterator().next();
+                    DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+                    buildDependencies.add(jarBinary);
+
+                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), jarBinary.getName(), buildDependencies);
+                    metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(createJarPublishArtifact(jarBinary)));
+
+                    result.resolved(metaData.toResolveMetaData());
                 }
             }
             if (!result.hasResult()) {
@@ -118,6 +113,10 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 result.failed(failure);
             }
         }
+    }
+
+    private PublishArtifact createJarPublishArtifact(JarBinarySpec jarBinarySpec) {
+        return new LibraryPublishArtifact("jar", jarBinarySpec.getJarFile());
     }
 
     private Collection<? extends BinarySpec> filterBinaries(Collection<BinarySpec> values) {

@@ -31,12 +31,10 @@ import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
-import org.gradle.jvm.JvmBinarySpec
-import org.gradle.jvm.JvmBinaryTasks
+import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-import org.gradle.jvm.tasks.Jar
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.ComponentSpecContainer
@@ -214,14 +212,12 @@ class LocalLibraryDependencyResolverTest extends Specification {
                 lib.name >> it
                 def binaries = Mock(ModelMap)
                 binaries.values() >> {
-                    def binary = Mock(JvmBinarySpec)
+                    def binary = Mock(JarBinarySpec)
                     binary.displayName >> "binary for $lib"
                     binary.name >> 'api'
                     binary.buildTask >> Mock(Task)
                     binary.targetPlatform >> platform
-                    def tasks = Mock(JvmBinaryTasks)
-                    tasks.jar >> Mock(Jar)
-                    binary.tasks >> tasks
+                    binary.jarFile >> new File("api.jar")
                     [binary]
                 }
                 lib.binaries >> binaries

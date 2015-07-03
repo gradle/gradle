@@ -39,13 +39,6 @@ model {
             }
         }
     }
-
-    tasks {
-        mainJar.finalizedBy('checkDependencies')
-        create('checkDependencies') {
-            assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJar)
-        }
-    }
 }
 '''
         file('src/zdep/java/Dep.java') << 'public class Dep {}'
@@ -55,7 +48,7 @@ model {
         succeeds ':mainJar'
 
         then:
-        executedAndNotSkipped ':createZdepJar'
+        executedAndNotSkipped ':compileZdepJarZdepJava', ':createZdepJar', ':zdepJar', ':compileMainJarMainJava'
 
     }
 
