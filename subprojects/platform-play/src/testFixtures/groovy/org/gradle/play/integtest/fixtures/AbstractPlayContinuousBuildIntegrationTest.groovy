@@ -49,14 +49,12 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
         """
     }
 
-    def appIsRunningAndDeployed() {
+    void appIsRunningAndDeployed() {
         runningApp.verifyStarted()
         runningApp.verifyContent()
-        true
     }
 
-    def appIsStopped() {
+    void appIsStopped() {
         runningApp.verifyStopped()
-        true
     }
 }
