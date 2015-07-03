@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.os.OperatingSystem;
 import org.junit.rules.MethodRule;
@@ -82,7 +83,7 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             base.evaluate();
             // Don't delete on failure
             try {
-                testDirectory.deleteDir();
+                FileUtils.deleteDirectory(testDirectory);
             } catch (Exception e) {
                 boolean suppressException = leaksHandles && OperatingSystem.current().isWindows();
                 if (suppressException) {
