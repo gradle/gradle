@@ -22,21 +22,36 @@ import java.util.Set;
 /**
  * Allows filtering tests for execution. Some examples:
  *
- * <pre autoTested=''> apply plugin: 'java'
+ * <pre autoTested=''>
+ *   apply plugin: 'java'
  *
- * test { filter { //specific test method includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
+ *   test {
+ *       filter {
+ *          //specific test method
+ *          includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
  *
- * //specific test method, use wildcard for packages includeTestsMatching "*SomeTest.someSpecificFeature"
+ *          //specific test method, use wildcard for packages
+ *          includeTestsMatching "*SomeTest.someSpecificFeature"
  *
- * //specific test class includeTestsMatching "org.gradle.SomeTest"
+ *          //specific test class
+ *          includeTestsMatching "org.gradle.SomeTest"
  *
- * //specific test class, wildcard for packages includeTestsMatching "*.SomeTest"
+ *          //specific test class, wildcard for packages
+ *          includeTestsMatching "*.SomeTest"
  *
- * //all classes in package, recursively includeTestsMatching "com.gradle.tooling.*"
+ *          //all classes in package, recursively
+ *          includeTestsMatching "com.gradle.tooling.*"
  *
- * //all integration tests, by naming convention includeTestsMatching "*IntegTest"
+ *          //all integration tests, by naming convention
+ *          includeTestsMatching "*IntegTest"
  *
- * //only ui tests from integration tests, by some naming convention includeTestsMatching "*IntegTest*ui" } }
+ *          //only ui tests from integration tests, by some naming convention
+ *          includeTestsMatching "*IntegTest*ui"
+ *
+ *          //specific test class and test method
+ *          includeTest "org.gradle.SomeTest", "someTestMethod"
+ *       }
+ *   }
  *
  * </pre>
  *
@@ -70,6 +85,13 @@ public interface TestFilter {
      */
     TestFilter setIncludePatterns(String... testNamePatterns);
 
+    /**
+     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     *
+     * @param className the class name of the test to execute
+     * @param methodName the method name of the test to execute. Can be null.
+     * @return this filter object
+     */
     TestFilter includeTest(String className, String methodName);
 }
 
