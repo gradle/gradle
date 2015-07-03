@@ -25,41 +25,73 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
+import spock.lang.Shared
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def currentTestDescriptors = [] as Set
+    def finishedTasksEvents = [] as Set
+
+    @Shared def givenTestDescriptors = [] as Set
+
+    def setup() {
+        testCode()
+        givenTestDescriptors = runBuildAndCollect();
+    }
 
     @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
-    def "can rerun tests by passing test descriptor"() {
-        given:
-        testCode()
-        def allTestDescriptors = runBuildAndCollect();
+    def "can run specific test class passed via test descriptor"() {
+        when:
+        launchTests(testDescriptors("example.MyTest"));
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
 
-        when: "passing test descriptor for test class"
-        def myTestClassDescriptors = findDescriptors(allTestDescriptors, "example.MyTest", null)
-        launchTests(myTestClassDescriptors);
-        then: "only specified test class is executed"
-        assertTestExecuted(className:"example.MyTest", methodName:"foo",  task:":test")
-        assertTestExecuted(className:"example.MyTest", methodName:"foo",  task:":secondTest")
-        assertTestExecuted(className:"example.MyTest", methodName:"foo2", task:":test")
-        assertTestExecuted(className:"example.MyTest", methodName:"foo2", task:":secondTest")
-        assertTestExecuted(className:"example2.MyOtherTest", methodName:null) // TODO clarify if this is by design
-        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar", task:"test")
-        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar", task:"secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: null) // TODO clarify if this is by design
 
-        when: "passing test descriptor for test method"
-        def myTestFooMethodDescriptor = findDescriptors(allTestDescriptors, "example.MyTest", "foo")
-        launchTests(myTestFooMethodDescriptor);
-        then: "only specified test method is executed"
-        assertTestExecuted(className:"example.MyTest", methodName:"foo", task:":test")
-        assertTestExecuted(className:"example.MyTest", methodName:"foo", task:":secondTest")
-        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2", task: ":test")
-        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
+    }
+
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "can run specific test method passed via test descriptor"() {
+        when:
+        launchTests(testDescriptors("example.MyTest", "foo"));
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+    }
+
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "runs only test task linked in test descriptor"() {
+        when:
+        launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
+        then:
+        assertTaskExecuted(":secondTest")
+        assertTaskNotExecuted(":test")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
     @ToolingApiVersion(">=2.6")
@@ -75,17 +107,26 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.message == "TestLauncher API not supported by Gradle provider version"
     }
 
+    boolean assertTaskExecuted(String taskPath) {
+        assert finishedTasksEvents.any{ it.descriptor.taskPath == taskPath }
+        true
+    }
 
-    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className, String methodName, String taskpath) {
+    def assertTaskNotExecuted(String taskPath) {
+        assert !finishedTasksEvents.any{ it.descriptor.taskPath == taskPath }
+        true
+    }
 
-        def descriptorByClassAndMethod = descriptors.findAll {it.className == className && it.methodName == methodName}
-        if(taskpath == null){
+    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className, String methodName, String taskpath) {
+
+        def descriptorByClassAndMethod = descriptors.findAll { it.className == className && it.methodName == methodName }
+        if (taskpath == null) {
             return descriptorByClassAndMethod
         }
 
         return descriptorByClassAndMethod.findAll {
             def parent = it.parent
-            while(parent.parent !=null){
+            while (parent.parent != null) {
                 parent = parent.parent
             }
             if (parent instanceof TaskOperationDescriptor) {
@@ -95,12 +136,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className, String methodName) {
-        findDescriptors(descriptors, className, methodName, null)
+    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className, String methodName) {
+        testDescriptors(descriptors, className, methodName, null)
     }
 
-    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className) {
-        findDescriptors(descriptors, className, null)
+    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className) {
+        testDescriptors(descriptors, className, null)
     }
 
     def assertTestNotExecuted(Map testInfo) {
@@ -114,23 +155,27 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private boolean hasTestDescriptor(testInfo) {
-        !findDescriptors(currentTestDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
+        !testDescriptors(currentTestDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
 
     void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
         currentTestDescriptors.clear()
+        finishedTasksEvents.clear()
         withConnection { ProjectConnection connection ->
             connection.newTestLauncher()
                 .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
                 .addProgressListener(new ProgressListener() {
+
                 @Override
                 void statusChanged(ProgressEvent event) {
-                    if (event instanceof TestProgressEvent) {
+                    if (event instanceof TaskFinishEvent) {
+                        finishedTasksEvents << event
+                    } else if (event instanceof TestProgressEvent) {
                         currentTestDescriptors << event.descriptor
                     }
                 }
             }, EnumSet.of(OperationType.TEST, OperationType.TASK))
-                .run()
+            .run()
         }
     }
 
