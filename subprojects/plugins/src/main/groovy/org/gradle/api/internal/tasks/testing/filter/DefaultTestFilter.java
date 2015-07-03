@@ -39,6 +39,16 @@ public class DefaultTestFilter implements TestFilter {
         return this;
     }
 
+    public TestFilter includeTest(String className, String methodName) {
+        validateName(className);
+        if(methodName == null || methodName.trim().isEmpty()){
+            testNames.add(new StringBuilder(className).append(".*").toString());
+        }else{
+            testNames.add(new StringBuilder(className).append(".").append(methodName).toString());
+        }
+        return this;
+    }
+
     @Input
     public Set<String> getIncludePatterns() {
         return testNames;

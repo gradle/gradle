@@ -65,11 +65,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                                 final String className = testDescriptor.getClassName();
                                 final String methodName = testDescriptor.getMethodName();
                                 if (className != null) {
-                                    if (methodName == null) {
-                                        testTask.getFilter().includeTestsMatching(className);
-                                    } else {
-                                        testTask.getFilter().includeTestsMatching(className + "." + methodName);
-                                    }
+                                    testTask.getFilter().includeTest(className, methodName);
                                 }
                             }
                         }
