@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r26
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -24,6 +25,7 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 
@@ -42,17 +44,22 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         def myTestClassDescriptors = findDescriptors(allTestDescriptors, "example.MyTest", null)
         launchTests(myTestClassDescriptors);
         then: "only specified test class is executed"
-        assertTestExecuted(className:"example.MyTest", methodName:"foo")
-        assertTestExecuted(className:"example.MyTest", methodName:"foo2")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo",  task:":test")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo",  task:":secondTest")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo2", task:":test")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo2", task:":secondTest")
         assertTestExecuted(className:"example2.MyOtherTest", methodName:null) // TODO clarify if this is by design
-        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar")
+        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar", task:"test")
+        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar", task:"secondTest")
 
         when: "passing test descriptor for test method"
         def myTestFooMethodDescriptor = findDescriptors(allTestDescriptors, "example.MyTest", "foo")
         launchTests(myTestFooMethodDescriptor);
         then: "only specified test method is executed"
-        assertTestExecuted(className:"example.MyTest", methodName:"foo")
-        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo", task:":test")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo", task:":secondTest")
+        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2", task: ":test")
+        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2", task: ":secondTest")
     }
 
     @ToolingApiVersion(">=2.6")
@@ -68,8 +75,32 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.message == "TestLauncher API not supported by Gradle provider version"
     }
 
+
+    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className, String methodName, String taskpath) {
+
+        def descriptorByClassAndMethod = descriptors.findAll {it.className == className && it.methodName == methodName}
+        if(taskpath == null){
+            return descriptorByClassAndMethod
+        }
+
+        return descriptorByClassAndMethod.findAll {
+            def parent = it.parent
+            while(parent.parent !=null){
+                parent = parent.parent
+            }
+            if (parent instanceof TaskOperationDescriptor) {
+                return parent.taskPath == taskpath
+            }
+            false
+        }
+    }
+
     Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className, String methodName) {
-        descriptors.findAll { it.className == className && it.methodName == methodName }
+        findDescriptors(descriptors, className, methodName, null)
+    }
+
+    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className) {
+        findDescriptors(descriptors, className, null)
     }
 
     def assertTestNotExecuted(Map testInfo) {
@@ -83,7 +114,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private boolean hasTestDescriptor(testInfo) {
-        currentTestDescriptors.any { it.className == testInfo.className && it.methodName == testInfo.methodName }
+        !findDescriptors(currentTestDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
 
     void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
@@ -108,7 +139,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         try {
             withConnection {
                 ProjectConnection connection ->
-                    connection.newBuild().forTasks('test').addProgressListener(new ProgressListener() {
+                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(new ProgressListener() {
                         @Override
                         void statusChanged(ProgressEvent event) {
                             if (event instanceof TestProgressEvent) {
@@ -127,6 +158,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
+
+            task secondTest(type:Test) {
+                classpath = sourceSets.test.runtimeClasspath
+                testClassesDir = sourceSets.test.output.classesDir
+            }
+
+            build.dependsOn secondTest
         """
 
         file("src/test/java/example/MyTest.java") << """
