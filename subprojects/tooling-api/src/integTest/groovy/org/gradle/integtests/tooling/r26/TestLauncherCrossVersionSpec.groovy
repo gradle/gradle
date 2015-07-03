@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -30,19 +29,7 @@ import org.gradle.tooling.events.test.TestProgressEvent
 
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.6")
-    @TargetGradleVersion("<2.6")
-    def "fails with meaningful error when running against unsupported target version"() {
-        when:
-        withConnection { ProjectConnection connection ->
-            connection.newTestLauncher().run()
-        }
-
-        then:
-
-        def e = thrown(UnsupportedVersionException)
-        e.message == "TestLauncher API not supported by Gradle provider version"
-    }
+    def currentTestDescriptors = [] as Set
 
     @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
@@ -52,41 +39,68 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         def allTestDescriptors = runBuildAndCollect();
 
         when: "passing test descriptor for test class"
-        def myTestClassDescriptor = allTestDescriptors.find { it.className == "example.MyTest" && it.methodName == null }
-        def testDescriptors = launchTestAndCollect(myTestClassDescriptor);
+        def myTestClassDescriptors = findDescriptors(allTestDescriptors, "example.MyTest", null)
+        launchTests(myTestClassDescriptors);
         then: "only specified test class is executed"
-        testDescriptors.any { it.className == "example.MyTest" && it.methodName == "foo" }
-        testDescriptors.any { it.className == "example.MyTest" && it.methodName == "foo2" }
-        // test class events are still fired for non included tests (though methods are not executed)
-        // TODO clarify if this is by design
-        testDescriptors.any { it.className == "example2.MyOtherTest" && it.methodName == null }
-        !testDescriptors.every { it.className != "example2.MyOtherTest" && it.methodName != "bar" }
+        assertTestExecuted(className:"example.MyTest", methodName:"foo")
+        assertTestExecuted(className:"example.MyTest", methodName:"foo2")
+        assertTestExecuted(className:"example2.MyOtherTest", methodName:null) // TODO clarify if this is by design
+        assertTestNotExecuted(className:"example2.MyOtherTest", methodName:"bar")
 
         when: "passing test descriptor for test method"
-        def myTestFooMethodDescriptor = allTestDescriptors.find { it.className == "example.MyTest" && it.methodName == "foo" }
-        testDescriptors = launchTestAndCollect(myTestFooMethodDescriptor);
+        def myTestFooMethodDescriptor = findDescriptors(allTestDescriptors, "example.MyTest", "foo")
+        launchTests(myTestFooMethodDescriptor);
         then: "only specified test method is executed"
-        testDescriptors.any { it.className == "example.MyTest" && it.methodName == "foo" }
-        !testDescriptors.any { it.className == "example.MyTest" && it.methodName == "foo2" }
+        assertTestExecuted(className:"example.MyTest", methodName:"foo")
+        assertTestNotExecuted(className:"example.MyTest", methodName:"foo2")
     }
 
-    Set<TestOperationDescriptor> launchTestAndCollect(TestOperationDescriptor... testsToLaunch) {
-        def testDescriptors = [] as Set
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion("<2.6")
+    def "fails with meaningful error when running against unsupported target version"() {
+        when:
+        withConnection { ProjectConnection connection ->
+            connection.newTestLauncher().run()
+        }
+
+        then:
+        def e = thrown(UnsupportedVersionException)
+        e.message == "TestLauncher API not supported by Gradle provider version"
+    }
+
+    Collection<TestOperationDescriptor> findDescriptors(Set<TestOperationDescriptor> descriptors, String className, String methodName) {
+        descriptors.findAll { it.className == className && it.methodName == methodName }
+    }
+
+    def assertTestNotExecuted(Map testInfo) {
+        assert !hasTestDescriptor(testInfo)
+        true
+    }
+
+    def assertTestExecuted(Map testInfo) {
+        assert hasTestDescriptor(testInfo)
+        true
+    }
+
+    private boolean hasTestDescriptor(testInfo) {
+        currentTestDescriptors.any { it.className == testInfo.className && it.methodName == testInfo.methodName }
+    }
+
+    void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
+        currentTestDescriptors.clear()
         withConnection { ProjectConnection connection ->
             connection.newTestLauncher()
-                .withTests(testsToLaunch)
+                .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
                 .addProgressListener(new ProgressListener() {
                 @Override
                 void statusChanged(ProgressEvent event) {
                     if (event instanceof TestProgressEvent) {
-                        testDescriptors << event.descriptor
+                        currentTestDescriptors << event.descriptor
                     }
                 }
             }, EnumSet.of(OperationType.TEST, OperationType.TASK))
                 .run()
         }
-        testDescriptors
-
     }
 
     private Set<TestOperationDescriptor> runBuildAndCollect() {
