@@ -23,11 +23,10 @@ class BuildScriptDataSerializerTest extends SerializerSpec {
 
     def "serializes data"() {
         given:
-        def value = new BuildScriptData(true, false)
+        def value = new BuildScriptData(true)
         def result = serialize(value, serializer)
 
         expect:
         result.hasImperativeStatements
-        !result.hasMethods
     }
 }

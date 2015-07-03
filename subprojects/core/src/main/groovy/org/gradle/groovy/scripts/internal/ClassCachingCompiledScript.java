@@ -28,8 +28,8 @@ public class ClassCachingCompiledScript<T extends Script, M> implements Compiled
     }
 
     @Override
-    public boolean isEmpty() {
-        return delegate.isEmpty();
+    public boolean getRunDoesSomething() {
+        return delegate.getRunDoesSomething();
     }
 
     @Override

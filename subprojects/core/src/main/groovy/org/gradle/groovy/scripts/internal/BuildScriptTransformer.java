@@ -56,6 +56,6 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
 
     @Override
     public BuildScriptData create() {
-        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected(), imperativeStatementDetectingTransformer.isMethodsDetected());
+        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected());
     }
 }

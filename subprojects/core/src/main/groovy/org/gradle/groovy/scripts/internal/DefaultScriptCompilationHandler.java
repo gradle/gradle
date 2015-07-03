@@ -321,7 +321,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
-        public boolean isEmpty() {
+        public boolean getRunDoesSomething() {
             return isEmpty;
         }
 

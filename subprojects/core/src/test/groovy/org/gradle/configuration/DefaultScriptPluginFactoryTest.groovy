@@ -80,8 +80,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(true, true)
-        _ * scriptRunner.runDoesSomething() >> true
+        _ * scriptRunner.data >> new BuildScriptData(true)
+        _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, _ as ServiceRegistry)
         0 * scriptRunner._
 
@@ -99,8 +99,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(ProjectScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(true, true)
-        _ * scriptRunner.runDoesSomething() >> true
+        _ * scriptRunner.data >> new BuildScriptData(true)
+        _ * scriptRunner.runDoesSomething >> true
+        _ * scriptRunner.hasMethods >> true
         1 * scriptRunner.script >> script
         1 * target.setScript(script)
         0 * target.addDeferredConfiguration(_)
@@ -121,8 +122,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(ProjectScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(true, false)
-        _ * scriptRunner.runDoesSomething() >> true
+        _ * scriptRunner.data >> new BuildScriptData(true)
+        _ * scriptRunner.runDoesSomething >> true
+        _ * scriptRunner.hasMethods >> false
         0 * target.setScript(_)
         0 * target.addDeferredConfiguration(_)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
@@ -142,8 +144,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(ProjectScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(false, true)
-        _ * scriptRunner.runDoesSomething() >> true
+        _ * scriptRunner.data >> new BuildScriptData(false)
+        _ * scriptRunner.runDoesSomething >> true
+        _ * scriptRunner.hasMethods >> true
         1 * scriptRunner.script >> script
         1 * target.setScript(script)
         1 * target.addDeferredConfiguration(_)
@@ -163,8 +166,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(ProjectScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(false, false)
-        _ * scriptRunner.runDoesSomething() >> true
+        _ * scriptRunner.data >> new BuildScriptData(false)
+        _ * scriptRunner.runDoesSomething >> true
+        _ * scriptRunner.hasMethods >> false
         0 * target.setScript(_)
         1 * target.addDeferredConfiguration(_)
         0 * scriptRunner._
@@ -183,8 +187,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(ProjectScript, _ as FactoryBackedCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
         1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
-        _ * scriptRunner.data >> new BuildScriptData(false, false)
-        _ * scriptRunner.runDoesSomething() >> false
+        _ * scriptRunner.data >> new BuildScriptData(false)
+        _ * scriptRunner.runDoesSomething >> false
+        _ * scriptRunner.hasMethods >> false
         0 * scriptRunner._
         0 * target.setScript(_)
         0 * target.addDeferredConfiguration(_)

@@ -27,9 +27,7 @@ import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import java.util.List;
 
 public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer {
-
     private boolean imperativeStatementDetected;
-    private boolean methodsDetected;
 
     @Override
     public void register(CompilationUnit compilationUnit) {
@@ -45,16 +43,8 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
         return imperativeStatementDetected;
     }
 
-    public boolean isMethodsDetected() {
-        return methodsDetected;
-    }
-
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
-        if (!source.getAST().getMethods().isEmpty()) {
-            methodsDetected = true;
-        }
-
         BlockStatement statementBlock = source.getAST().getStatementBlock();
         List<Statement> statements = statementBlock.getStatements();
         for (Statement statement : statements) {

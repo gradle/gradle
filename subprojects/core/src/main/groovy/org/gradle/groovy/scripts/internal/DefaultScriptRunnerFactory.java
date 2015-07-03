@@ -64,13 +64,18 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         }
 
         @Override
-        public boolean runDoesSomething() {
-            return !compiledScript.isEmpty();
+        public boolean getRunDoesSomething() {
+            return !compiledScript.getRunDoesSomething();
+        }
+
+        @Override
+        public boolean getHasMethods() {
+            return compiledScript.getHasMethods();
         }
 
         @Override
         public void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException {
-            if (compiledScript.isEmpty()) {
+            if (compiledScript.getRunDoesSomething()) {
                 return;
             }
 

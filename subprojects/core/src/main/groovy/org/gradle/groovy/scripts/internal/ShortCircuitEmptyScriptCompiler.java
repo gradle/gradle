@@ -40,7 +40,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
             classLoaderCache.remove(classLoaderId);
             return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
                 @Override
-                public boolean isEmpty() {
+                public boolean getRunDoesSomething() {
                     return true;
                 }
 

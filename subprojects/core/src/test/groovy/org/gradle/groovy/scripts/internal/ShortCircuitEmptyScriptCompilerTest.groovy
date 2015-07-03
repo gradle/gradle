@@ -51,7 +51,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         compiledScript.data == metadata
 
         and:

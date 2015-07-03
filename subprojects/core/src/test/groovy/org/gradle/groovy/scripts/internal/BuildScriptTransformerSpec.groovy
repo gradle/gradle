@@ -61,9 +61,9 @@ class BuildScriptTransformerSpec extends Specification {
     def "empty script does not contain any code"() {
         expect:
         def scriptData = parse(script)
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
 
         where:
         script         | _
@@ -84,9 +84,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "property declarations with constant initializer are not considered imperative code"() {
@@ -98,9 +98,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "field declarations are not considered imperative code"() {
@@ -112,9 +112,9 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "filtered script blocks are not considered imperative code"() {
@@ -133,9 +133,9 @@ buildscript {
 """)
 
         expect:
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "model blocks are not considered imperative code"() {
@@ -149,9 +149,9 @@ model { println "hi" }
 """)
 
         expect:
-        !scriptData.empty
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "model blocks combined with other non imperative elements are not considered imperative code"() {
@@ -173,9 +173,9 @@ return null
 """)
 
         expect:
-        !scriptData.empty
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        scriptData.data.hasMethods
+        scriptData.hasMethods
     }
 
     def "imports are not considered imperative code"() {
@@ -184,9 +184,9 @@ return null
 import java.lang.*
 import static java.lang.String.*
 """)
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
     }
 
     def "method declarations are not considered imperative code"() {
@@ -194,17 +194,17 @@ import static java.lang.String.*
         def scriptData = parse("""def method() { println 'hi' }
 private void doSomething() { thing = true }
 """)
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        scriptData.data.hasMethods
+        scriptData.hasMethods
     }
 
     def "constant expressions and constant return are not imperative"() {
         expect:
         def scriptData = parse(script)
-        scriptData.empty
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
 
         where:
         script         | _
@@ -225,9 +225,9 @@ return 12
     def "imperative code is detected in #script"() {
         expect:
         def scriptData = parse(script)
-        !scriptData.empty
+        !scriptData.runDoesSomething
         scriptData.data.hasImperativeStatements
-        !scriptData.data.hasMethods
+        !scriptData.hasMethods
 
         where:
         script                                         | _

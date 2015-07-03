@@ -21,11 +21,9 @@ package org.gradle.groovy.scripts.internal;
  */
 public class BuildScriptData {
     private final boolean hasImperativeStatements;
-    private final boolean hasMethods;
 
-    public BuildScriptData(boolean hasImperativeStatements, boolean hasMethods) {
+    public BuildScriptData(boolean hasImperativeStatements) {
         this.hasImperativeStatements = hasImperativeStatements;
-        this.hasMethods = hasMethods;
     }
 
     /**
@@ -34,12 +32,5 @@ public class BuildScriptData {
      */
     public boolean getHasImperativeStatements() {
         return hasImperativeStatements;
-    }
-
-    /**
-     * Returns true when the build script contains methods that can be inherited.
-     */
-    public boolean getHasMethods() {
-        return hasMethods;
     }
 }

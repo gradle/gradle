@@ -73,7 +73,7 @@ public class DefaultScriptRunnerFactoryTest {
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
         context.checking(new Expectations() {{
-            allowing(compiledScriptMock).isEmpty();
+            allowing(compiledScriptMock).getRunDoesSomething();
             will(returnValue(true));
         }});
 
@@ -88,7 +88,7 @@ public class DefaultScriptRunnerFactoryTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
-            allowing(compiledScriptMock).isEmpty();
+            allowing(compiledScriptMock).getRunDoesSomething();
             will(returnValue(false));
 
             one(scriptMock).init(target, scriptServices);
@@ -138,7 +138,7 @@ public class DefaultScriptRunnerFactoryTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
-            allowing(compiledScriptMock).isEmpty();
+            allowing(compiledScriptMock).getRunDoesSomething();
             will(returnValue(false));
 
             one(scriptMock).init(target, scriptServices);

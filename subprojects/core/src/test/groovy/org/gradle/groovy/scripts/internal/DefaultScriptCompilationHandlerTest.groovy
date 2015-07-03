@@ -116,7 +116,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        !compiledScript.empty
+        !compiledScript.runDoesSomething
         Script script = compiledScript.loadClass().newInstance()
         evaluateScript(script)
     }
@@ -145,7 +145,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
@@ -172,7 +172,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
@@ -191,7 +191,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
@@ -211,7 +211,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, classLoaderId)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         !compiledScript.hasMethods
         Script script = compiledScript.loadClass().newInstance()
         expectedScriptClass.isInstance(script)
@@ -297,7 +297,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, classLoaderId)
 
         then:
-        !compiledScript.empty
+        !compiledScript.runDoesSomething
         compiledScript.data == "extracted data"
         def script = compiledScript.loadClass().newInstance()
         evaluateScript(script)
@@ -344,7 +344,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         def compiledScript = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, classLoaderId)
 
         then:
-        compiledScript.empty
+        compiledScript.runDoesSomething
         !compiledScript.hasMethods
         compiledScript.data == "extracted data"
         def script = compiledScript.loadClass().newInstance()

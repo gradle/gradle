@@ -22,7 +22,7 @@ public interface CompiledScript<T extends Script, D> {
     /**
      * Returns true if the `run()` method of this script is effectively empty and can be ignored.
      */
-    boolean isEmpty();
+    boolean getRunDoesSomething();
 
     /**
      * Returns true if the script declares any methods.
