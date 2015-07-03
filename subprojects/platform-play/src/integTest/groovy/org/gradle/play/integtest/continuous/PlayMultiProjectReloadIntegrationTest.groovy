@@ -30,7 +30,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractPlayContinuousBuildI
 
     def cleanup() {
         stopGradle()
-        assert appIsStopped()
+        appIsStopped()
     }
 
     def "can modify play app while app is running in continuous build"() {

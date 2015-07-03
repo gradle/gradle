@@ -27,7 +27,7 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
 
     def cleanup() {
         stopGradle()
-        assert appIsStopped()
+        appIsStopped()
     }
 
     def "should reload modified scala controller and routes"() {
