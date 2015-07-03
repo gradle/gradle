@@ -39,33 +39,33 @@ From a client this API can be used like:
 
 ### Implementation
 
-~~* Given a `TestOperationDescriptor`, it is possible to calculate exactly which test task to run.~~
-~~* Introduce new `TestLauncher`~~
-~~* Add factory method `ProjectConnection#newTestRunner()`~~
-~~* Add a new protocol interface with a method that will accept a test execution request. The provider connection will implement this interface.~~
-~~    * For example see `InternalCancellableConnection`.~~
-~~    * Also update the docs on `ConnectionVersion4`.~~
-~~* Add a new `BuildAction` subtype to represent a test execution request.~~
-~~* Add a new `BuildActionRunner` subtype to handle this request.~~
-~~* Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.~~
+* ~~Given a `TestOperationDescriptor`, it is possible to calculate exactly which test task to run.~~
+* ~~Introduce new `TestLauncher`~~
+* ~~Add factory method `ProjectConnection#newTestRunner()`~~
+* ~~Add a new protocol interface with a method that will accept a test execution request. The provider connection will implement this interface.~~
+    * ~~For example see `InternalCancellableConnection`.~~
+    * ~~Also update the docs on `ConnectionVersion4`.~~
+* ~~Add a new `BuildAction` subtype to represent a test execution request.~~
+* ~~Add a new `BuildActionRunner` subtype to handle this request.~~
+* ~~Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.~~
 	* Ensure that listener failures are rethrown on the client side, as is done for the other kinds of operations. Refactor this on the client side so that the logic
 	  is in one place, rather than ad hoc per operation.
-~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).
+* ~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).
 * ~~Run appropriate `Test` tasks based on the descriptors.~~
 * Tests will not execute when test task is up-to-date.
 
 ### Test cases
 
 * tests are executed:
-~~    * method A included in task A and task B. Descriptor for (method A, task A) is used, ensure task A only is executed~~
-~~    * method A included in task A and task B. Descriptor for (method A, task A) and (method A, task B) is used, ensure both tasks executed.~~
-~~    * using descriptor for (class A, task A) runs all methods for class A in task A.~~
+    * ~~method A included in task A and task B. Descriptor for (method A, task A) is used, ensure task A only is executed~~
+    * ~~method A included in task A and task B. Descriptor for (method A, task A) and (method A, task B) is used, ensure both tasks executed.~~
+    * ~~using descriptor for (class A, task A) runs all methods for class A in task A.~~
     * using descriptor for (task A) runs all tests for task A.
 * build fails when the target test no longer exists.
 * does something reasonable when the target test task no longer exists, but the test still exists.
 * does something reasonable when the target test is no longer part of the target test task.
 * expected test progress events are received in each case
-~~* reasonable error message when target Gradle version does not support test execution~~
+* ~~reasonable error message when target Gradle version does not support test execution~~
 * does something reasonable when continuous build is used.
 * `StartParameter.taskNames` returns something reasonable.
 
