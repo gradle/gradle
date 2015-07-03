@@ -156,7 +156,6 @@ model {
           | Creator: \tmodel.nullCredentials
           | Rules:
              ⤷ model.nullCredentials
-             ⤷ model.nullCredentials
         + password
               | Type:   \tjava.lang.String
               | Creator: \tmodel.nullCredentials
@@ -172,11 +171,10 @@ model {
           | Creator: \tmodel.numbers
           | Rules:
              ⤷ model.numbers
-             ⤷ model.numbers
         + value
               | Type:   \tjava.lang.Integer
-              | Creator: \tmodel.numbers
               | Value:  \t5
+              | Creator: \tmodel.numbers
               | Rules:
                  ⤷ model.numbers
     + primaryCredentials
@@ -184,17 +182,16 @@ model {
           | Creator: \tmodel.primaryCredentials
           | Rules:
              ⤷ model.primaryCredentials
-             ⤷ model.primaryCredentials
         + password
               | Type:   \tjava.lang.String
-              | Creator: \tmodel.primaryCredentials
               | Value:  \thunter2
+              | Creator: \tmodel.primaryCredentials
               | Rules:
                  ⤷ model.primaryCredentials
         + username
               | Type:   \tjava.lang.String
-              | Creator: \tmodel.primaryCredentials
               | Value:  \tuname
+              | Creator: \tmodel.primaryCredentials
               | Rules:
                  ⤷ model.primaryCredentials
     + tasks
@@ -204,72 +201,72 @@ model {
              ⤷ Project.<init>.tasks()
         + components
               | Type:   \torg.gradle.api.reporting.components.ComponentReport
-              | Creator: \ttasks.addPlaceholderAction(components)
               | Value:  \ttask ':components'
+              | Creator: \ttasks.addPlaceholderAction(components)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(components)
                  ⤷ copyToTaskContainer
         + dependencies
               | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask
-              | Creator: \ttasks.addPlaceholderAction(dependencies)
               | Value:  \ttask ':dependencies'
+              | Creator: \ttasks.addPlaceholderAction(dependencies)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencies)
                  ⤷ copyToTaskContainer
         + dependencyInsight
               | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask
-              | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
               | Value:  \ttask ':dependencyInsight'
+              | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencyInsight)
                  ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + help
               | Type:   \torg.gradle.configuration.Help
-              | Creator: \ttasks.addPlaceholderAction(help)
               | Value:  \ttask ':help'
+              | Creator: \ttasks.addPlaceholderAction(help)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(help)
                  ⤷ copyToTaskContainer
         + init
               | Type:   \torg.gradle.buildinit.tasks.InitBuild
-              | Creator: \ttasks.addPlaceholderAction(init)
               | Value:  \ttask ':init'
+              | Creator: \ttasks.addPlaceholderAction(init)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(init)
                  ⤷ copyToTaskContainer
         + model
               | Type:   \torg.gradle.api.reporting.model.ModelReport
-              | Creator: \ttasks.addPlaceholderAction(model)
               | Value:  \ttask ':model'
+              | Creator: \ttasks.addPlaceholderAction(model)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(model)
                  ⤷ copyToTaskContainer
         + projects
               | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask
-              | Creator: \ttasks.addPlaceholderAction(projects)
               | Value:  \ttask ':projects'
+              | Creator: \ttasks.addPlaceholderAction(projects)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(projects)
                  ⤷ copyToTaskContainer
         + properties
               | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
-              | Creator: \ttasks.addPlaceholderAction(properties)
               | Value:  \ttask ':properties'
+              | Creator: \ttasks.addPlaceholderAction(properties)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(properties)
                  ⤷ copyToTaskContainer
         + tasks
               | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
-              | Creator: \ttasks.addPlaceholderAction(tasks)
               | Value:  \ttask ':tasks'
+              | Creator: \ttasks.addPlaceholderAction(tasks)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(tasks)
                  ⤷ copyToTaskContainer
         + wrapper
               | Type:   \torg.gradle.api.tasks.wrapper.Wrapper
-              | Creator: \ttasks.addPlaceholderAction(wrapper)
               | Value:  \ttask ':wrapper'
+              | Creator: \ttasks.addPlaceholderAction(wrapper)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(wrapper)
                  ⤷ copyToTaskContainer
@@ -311,10 +308,8 @@ apply plugin: ClassHolder.InnerRules
 
         int i = 0
         def rules = modelNode.myNumbers.@rules[0]
-        rules[i++] == 'NumberRules#createRule' //'Creating myNumbers using NumberRules#createRule(Numbers)'
-        rules[i++] == 'NumberRules#defaultsRule'
-        //Confusing because the user supplied logic in createRule is only called once 'Mutating myNumbers using NumberRules#createRule(Numbers)'
         rules[i++] == 'NumberRules#createRule'
+        rules[i++] == 'NumberRules#defaultsRule'
         rules[i++] == 'NumberRules#mutateRule'
         rules[i++] == 'ClassHolder$InnerRules#mutateRule'
         rules[i++] == 'NumberRules#finalizeRule'

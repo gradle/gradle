@@ -21,7 +21,6 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
 import java.util.Set;
 
 public interface ModelNode {
@@ -104,8 +103,7 @@ public interface ModelNode {
     Optional<String> getTypeDescription();
 
     /**
-     * Gets the rules that have been executed on this node in the order in which they are applied.
-     *
+     * Gets the rules that have been executed on this node in the order in which they were executed.
      */
-    List<ModelRuleDescriptor> getExecutedRules();
+    Set<ModelRuleDescriptor> getExecutedRules();
 }

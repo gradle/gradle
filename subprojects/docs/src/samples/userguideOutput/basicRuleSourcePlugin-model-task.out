@@ -10,19 +10,18 @@ Root project
           | Creator: 	PersonRules#person
           | Rules:
              ⤷ PersonRules#person
-             ⤷ PersonRules#person
              ⤷ PersonRules#setFirstName
              ⤷ model.person
         + firstName
               | Type:   	java.lang.String
-              | Creator: 	PersonRules#person
               | Value:  	John
+              | Creator: 	PersonRules#person
               | Rules:
                  ⤷ PersonRules#person
         + lastName
               | Type:   	java.lang.String
-              | Creator: 	PersonRules#person
               | Value:  	Smith
+              | Creator: 	PersonRules#person
               | Rules:
                  ⤷ PersonRules#person
     + tasks
@@ -33,80 +32,80 @@ Root project
              ⤷ PersonRules#createHelloTask
         + components
               | Type:   	org.gradle.api.reporting.components.ComponentReport
-              | Creator: 	tasks.addPlaceholderAction(components)
               | Value:  	task ':components'
+              | Creator: 	tasks.addPlaceholderAction(components)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(components)
                  ⤷ copyToTaskContainer
         + dependencies
               | Type:   	org.gradle.api.tasks.diagnostics.DependencyReportTask
-              | Creator: 	tasks.addPlaceholderAction(dependencies)
               | Value:  	task ':dependencies'
+              | Creator: 	tasks.addPlaceholderAction(dependencies)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencies)
                  ⤷ copyToTaskContainer
         + dependencyInsight
               | Type:   	org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
-              | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
               | Value:  	task ':dependencyInsight'
+              | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(dependencyInsight)
                  ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + hello
               | Type:   	org.gradle.api.Task
-              | Creator: 	PersonRules#createHelloTask > create(hello)
               | Value:  	task ':hello'
+              | Creator: 	PersonRules#createHelloTask > create(hello)
               | Rules:
                  ⤷ PersonRules#createHelloTask > create(hello)
                  ⤷ PersonRules#createHelloTask > hello.<init>
                  ⤷ copyToTaskContainer
         + help
               | Type:   	org.gradle.configuration.Help
-              | Creator: 	tasks.addPlaceholderAction(help)
               | Value:  	task ':help'
+              | Creator: 	tasks.addPlaceholderAction(help)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(help)
                  ⤷ copyToTaskContainer
         + init
               | Type:   	org.gradle.buildinit.tasks.InitBuild
-              | Creator: 	tasks.addPlaceholderAction(init)
               | Value:  	task ':init'
+              | Creator: 	tasks.addPlaceholderAction(init)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(init)
                  ⤷ copyToTaskContainer
         + model
               | Type:   	org.gradle.api.reporting.model.ModelReport
-              | Creator: 	tasks.addPlaceholderAction(model)
               | Value:  	task ':model'
+              | Creator: 	tasks.addPlaceholderAction(model)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(model)
                  ⤷ copyToTaskContainer
         + projects
               | Type:   	org.gradle.api.tasks.diagnostics.ProjectReportTask
-              | Creator: 	tasks.addPlaceholderAction(projects)
               | Value:  	task ':projects'
+              | Creator: 	tasks.addPlaceholderAction(projects)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(projects)
                  ⤷ copyToTaskContainer
         + properties
               | Type:   	org.gradle.api.tasks.diagnostics.PropertyReportTask
-              | Creator: 	tasks.addPlaceholderAction(properties)
               | Value:  	task ':properties'
+              | Creator: 	tasks.addPlaceholderAction(properties)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(properties)
                  ⤷ copyToTaskContainer
         + tasks
               | Type:   	org.gradle.api.tasks.diagnostics.TaskReportTask
-              | Creator: 	tasks.addPlaceholderAction(tasks)
               | Value:  	task ':tasks'
+              | Creator: 	tasks.addPlaceholderAction(tasks)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(tasks)
                  ⤷ copyToTaskContainer
         + wrapper
               | Type:   	org.gradle.api.tasks.wrapper.Wrapper
-              | Creator: 	tasks.addPlaceholderAction(wrapper)
               | Value:  	task ':wrapper'
+              | Creator: 	tasks.addPlaceholderAction(wrapper)
               | Rules:
                  ⤷ tasks.addPlaceholderAction(wrapper)
                  ⤷ copyToTaskContainer

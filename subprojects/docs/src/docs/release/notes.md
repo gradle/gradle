@@ -76,7 +76,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
 
 ### Rule based model configuration
+* The model report displays each rule that has been executed against a given model element.
 * The naming of rule source (`org.gradle.model.RuleSource`) method rules, appearing on the model report and in build exceptions, has changed to omit package names and method parameters.
+
 
 ## External contributions
 
