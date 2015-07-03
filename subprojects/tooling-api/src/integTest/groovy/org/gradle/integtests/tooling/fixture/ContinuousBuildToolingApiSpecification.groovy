@@ -43,7 +43,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionResult result
     ExecutionFailure failure
 
-    int buildTimeout = 10000
+    int buildTimeout = 10
     def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
 
     TestResultHandler buildResult
