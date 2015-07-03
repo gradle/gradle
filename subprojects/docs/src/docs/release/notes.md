@@ -82,31 +82,31 @@ The following are the newly deprecated items in this Gradle release. If you have
     - Method parameters are excluded
       - Model report
         - Before
-```
-          | Rules:
-             ⤷ PersonRules#person
-             ⤷ PersonRules#setFirstName
-             ⤷ model.person
-```
+        ```
+                  | Rules:
+                     ⤷ PersonRules#person
+                     ⤷ PersonRules#setFirstName
+                     ⤷ model.person
+        ```
         - After
-```
-          | Rules:  |
-             ⤷ PersonRules#person(Person)
-             ⤷ PersonRules#setFirstName(Person)
-             ⤷ model.person
-```
+        ```
+                  | Rules:  |
+                     ⤷ PersonRules#person(Person)
+                     ⤷ PersonRules#setFirstName(Person)
+                     ⤷ model.person
+        ```
       - Build exceptions
         - Before:
-```
-The following model rules are unbound:
-  org.gradle.model.ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput(org.gradle.model.ManagedNodeBackedModelMapTest$Bean, java.lang.String)
-```
+        ```
+        The following model rules are unbound:
+          org.gradle.model.ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput(org.gradle.model.ManagedNodeBackedModelMapTest$Bean, java.lang.String)
+        ```
 
         - After:
-```
-The following model rules are unbound:
-  ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
-```
+        ```
+        The following model rules are unbound:
+          ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
+        ```
 
 
 ## External contributions
