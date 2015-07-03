@@ -80,22 +80,24 @@ The following are the newly deprecated items in this Gradle release. If you have
 * The naming of rule source (`org.gradle.model.RuleSource`) method rules, appearing on the model report and in build exceptions, has changed as follows:
     - package names are omitted
     - Method parameters are excluded
-      - Model report
+      - Model report comparison
         - Before
-        ```
-                  | Rules:
-                     ⤷ PersonRules#person
-                     ⤷ PersonRules#setFirstName
-                     ⤷ model.person
-        ```
-        - After
         ```
                   | Rules:  |
                      ⤷ PersonRules#person(Person)
                      ⤷ PersonRules#setFirstName(Person)
+                     ⤷ org.acme.SomeClass#method(ParameterType)
                      ⤷ model.person
         ```
-      - Build exceptions
+        - After
+        ```
+                  | Rules:
+                     ⤷ PersonRules#person
+                     ⤷ PersonRules#setFirstName
+                     ⤷ SomeClass#method
+                     ⤷ model.person
+        ```
+      - Build exception comparison
         - Before:
         ```
         The following model rules are unbound:
