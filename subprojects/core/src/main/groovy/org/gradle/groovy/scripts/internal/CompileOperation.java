@@ -40,6 +40,9 @@ public interface CompileOperation<T> {
 
     Transformer getTransformer();
 
+    /**
+     * The data extracted from the script. Note that this method may be called without the transformer ever being invoked, in this case of an empty script.
+     */
     T getExtractedData();
 
     Serializer<T> getDataSerializer();
