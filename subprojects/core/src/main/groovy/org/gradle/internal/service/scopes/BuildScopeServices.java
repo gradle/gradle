@@ -183,13 +183,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, EmptyScriptGenerator emptyScriptGenerator, FileCacheBackedScriptClassCompiler scriptCompiler, ClassLoaderCache classLoaderCache) {
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler, ClassLoaderCache classLoaderCache) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
                                 scriptCompiler,
-                                emptyScriptGenerator,
                                 classLoaderCache
                         )
                 ),
@@ -200,12 +199,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected EmptyScriptGenerator createEmptyScriptGenerator() {
-        return new AsmBackedEmptyScriptGenerator();
-    }
-
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-            CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter,
+            CacheRepository cacheRepository, final StartParameter startParameter,
             ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
@@ -215,7 +210,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new FileCacheBackedScriptClassCompiler(
                 cacheRepository,
                 scriptCacheInvalidator,
-                new DefaultScriptCompilationHandler(emptyScriptGenerator, classLoaderCache, importsReader),
+                new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
                 progressLoggerFactory
         );
     }

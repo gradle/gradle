@@ -74,7 +74,7 @@ public class DefaultScriptRunnerFactoryTest {
 
         context.checking(new Expectations() {{
             allowing(compiledScriptMock).getRunDoesSomething();
-            will(returnValue(true));
+            will(returnValue(false));
         }});
 
         scriptRunner.run(target, scriptServices);
@@ -89,7 +89,7 @@ public class DefaultScriptRunnerFactoryTest {
             Sequence sequence = context.sequence("seq");
 
             allowing(compiledScriptMock).getRunDoesSomething();
-            will(returnValue(false));
+            will(returnValue(true));
 
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
@@ -139,7 +139,7 @@ public class DefaultScriptRunnerFactoryTest {
             Sequence sequence = context.sequence("seq");
 
             allowing(compiledScriptMock).getRunDoesSomething();
-            will(returnValue(false));
+            will(returnValue(true));
 
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);

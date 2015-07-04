@@ -62,12 +62,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
-    private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
     private final String[] defaultImportPackages;
 
-    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
-        this.emptyScriptGenerator = emptyScriptGenerator;
+    public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
         defaultImportPackages = importsReader.getImportPackages();
     }
@@ -322,7 +320,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         @Override
         public boolean getRunDoesSomething() {
-            return isEmpty;
+            return !isEmpty;
         }
 
         @Override
@@ -338,7 +336,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         @Override
         public Class<? extends T> loadClass() {
             if (isEmpty && !hasMethods) {
-                return emptyScriptGenerator.generate(scriptBaseClass);
+                throw new UnsupportedOperationException("Cannot load script that does nothing.");
             }
 
             try {

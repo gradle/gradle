@@ -65,7 +65,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         @Override
         public boolean getRunDoesSomething() {
-            return !compiledScript.getRunDoesSomething();
+            return compiledScript.getRunDoesSomething();
         }
 
         @Override
@@ -75,7 +75,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         @Override
         public void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException {
-            if (compiledScript.getRunDoesSomething()) {
+            if (!compiledScript.getRunDoesSomething()) {
                 return;
             }
 

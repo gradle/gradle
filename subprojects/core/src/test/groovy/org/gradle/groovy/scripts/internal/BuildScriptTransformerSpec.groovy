@@ -36,7 +36,7 @@ class BuildScriptTransformerSpec extends Specification {
         getImportPackages() >> ([] as String[])
     }
 
-    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader)
+    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)
     final String classpathClosureName = "buildscript"
 
     File scriptCacheDir
@@ -61,7 +61,7 @@ class BuildScriptTransformerSpec extends Specification {
     def "empty script does not contain any code"() {
         expect:
         def scriptData = parse(script)
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
 
@@ -84,7 +84,7 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -98,7 +98,7 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -112,7 +112,7 @@ class BuildScriptTransformerSpec extends Specification {
         """)
 
         expect:
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -133,7 +133,7 @@ buildscript {
 """)
 
         expect:
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -149,7 +149,7 @@ model { println "hi" }
 """)
 
         expect:
-        !scriptData.runDoesSomething
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -173,7 +173,7 @@ return null
 """)
 
         expect:
-        !scriptData.runDoesSomething
+        scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         scriptData.hasMethods
     }
@@ -184,7 +184,7 @@ return null
 import java.lang.*
 import static java.lang.String.*
 """)
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
     }
@@ -194,7 +194,7 @@ import static java.lang.String.*
         def scriptData = parse("""def method() { println 'hi' }
 private void doSomething() { thing = true }
 """)
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         scriptData.hasMethods
     }
@@ -202,7 +202,7 @@ private void doSomething() { thing = true }
     def "constant expressions and constant return are not imperative"() {
         expect:
         def scriptData = parse(script)
-        scriptData.runDoesSomething
+        !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
 
@@ -225,7 +225,7 @@ return 12
     def "imperative code is detected in #script"() {
         expect:
         def scriptData = parse(script)
-        !scriptData.runDoesSomething
+        scriptData.runDoesSomething
         scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
 

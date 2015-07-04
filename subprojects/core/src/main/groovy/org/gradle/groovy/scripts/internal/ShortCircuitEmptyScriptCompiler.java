@@ -24,12 +24,10 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     private final ScriptClassCompiler compiler;
-    private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
 
-    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache) {
+    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, ClassLoaderCache classLoaderCache) {
         this.compiler = compiler;
-        this.emptyScriptGenerator = emptyScriptGenerator;
         this.classLoaderCache = classLoaderCache;
     }
 
@@ -38,10 +36,10 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
                                                               final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             classLoaderCache.remove(classLoaderId);
-            return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
+            return new CompiledScript<T, M>() {
                 @Override
                 public boolean getRunDoesSomething() {
-                    return true;
+                    return false;
                 }
 
                 @Override
@@ -50,14 +48,14 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
                 }
 
                 public Class<? extends T> loadClass() {
-                    return emptyScriptGenerator.generate(scriptBaseClass);
+                    throw new UnsupportedOperationException("Cannot load a script that does nothing.");
                 }
 
                 @Override
                 public M getData() {
                     return operation.getExtractedData();
                 }
-            });
+            };
         }
         return compiler.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
     }
