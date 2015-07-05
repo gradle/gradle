@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
@@ -61,7 +60,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             for (UnresolvedDependency unresolvedDependency : graphResults.getUnresolvedDependencies()) {
                 failures.add(unresolvedDependency.getProblem());
             }
-            throw new ResolveException((ResolveContext) configuration, failures);
+            throw new ResolveException(configuration.toString(), failures);
         }
     }
 

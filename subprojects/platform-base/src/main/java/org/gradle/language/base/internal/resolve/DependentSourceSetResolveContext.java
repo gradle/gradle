@@ -51,6 +51,11 @@ public class DependentSourceSetResolveContext implements ResolveContext {
         return DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME;
     }
 
+    @Override
+    public String getDisplayName() {
+        return sourceSet.getDisplayName();
+    }
+
     public String getComponentName() {
         return componentName;
     }

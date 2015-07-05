@@ -70,7 +70,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         if (e instanceof ResolveException) {
             return (ResolveException) e;
         }
-        return new ResolveException(configuration, e);
+        return new ResolveException(configuration.getDisplayName(), e);
     }
 
     private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {

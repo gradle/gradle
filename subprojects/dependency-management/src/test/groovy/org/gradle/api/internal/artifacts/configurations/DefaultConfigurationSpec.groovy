@@ -302,7 +302,7 @@ class DefaultConfigurationSpec extends Specification {
     def "state indicates failure resolving graph"() {
         given:
         def configuration = conf()
-        def failure = new ResolveException(configuration, new RuntimeException())
+        def failure = new ResolveException("bad", new RuntimeException())
 
         and:
         _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->

@@ -25,6 +25,8 @@ public interface ResolveContext {
 
     String getName();
 
+    String getDisplayName();
+
     DependencySet getDependencies();
 
     DependencySet getAllDependencies();
