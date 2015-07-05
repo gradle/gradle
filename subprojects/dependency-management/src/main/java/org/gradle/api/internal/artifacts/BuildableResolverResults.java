@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
 
-public interface ResolverResults {
-    boolean hasError();
+public interface BuildableResolverResults extends ResolverResults {
+    void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
 
-    //old model, slowly being replaced by the new model
-    ResolvedConfiguration getResolvedConfiguration();
+    void failed(ResolveException failure);
 
-    //new model
-    ResolutionResult getResolutionResult();
-
-    // TODO:DAZ Remove this
-    void eachResolvedProject(Action<ResolvedProjectConfiguration> action);
-
-    ResolvedLocalComponentsResult getResolvedLocalComponents();
-
-    ResolvedArtifactsContainer getResolvedArtifacts();
+    void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration);
 }

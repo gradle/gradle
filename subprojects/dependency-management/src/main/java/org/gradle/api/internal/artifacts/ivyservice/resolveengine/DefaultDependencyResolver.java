@@ -21,10 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -97,7 +94,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolve(final ResolveContext resolveContext,
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
-                        final ResolverResults results) throws ResolveException {
+                        final BuildableResolverResults results) throws ResolveException {
         LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
@@ -143,12 +140,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
 
                 // Resolve the dependency graph
+                DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
                 DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
                 builder.resolve(resolveContext, newModelBuilder, oldModelBuilder, artifactsBuilder, localComponentsResultBuilder);
-                results.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
+                defaultResolverResults.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
 
                 ResolvedGraphResults graphResults = oldModelBuilder.complete();
-                results.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
+                defaultResolverResults.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
             }
         });
     }
@@ -156,15 +154,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public void resolveArtifacts(final ResolveContext resolveContext,
                                  final List<? extends ResolutionAwareRepository> repositories,
                                  final GlobalDependencyResolutionRules metadataHandler,
-                                 final ResolverResults results) throws ResolveException {
-        ResolvedGraphResults graphResults = results.getGraphResults();
-        ResolvedArtifactResults artifactResults = results.getArtifactsBuilder().resolve();
+                                 final BuildableResolverResults results) throws ResolveException {
 
         if (resolveContext instanceof Configuration) {
-            // TODO:DAZ Should not be holding onto all of this state
+            DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
+            ResolvedGraphResults graphResults = defaultResolverResults.getGraphResults();
+            ResolvedArtifactResults artifactResults = defaultResolverResults.getArtifactsBuilder().resolve();
+            TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = defaultResolverResults.getTransientConfigurationResultsBuilder();
 
-
-            Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
+            Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
             DefaultLenientConfiguration result = new DefaultLenientConfiguration(
                 (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);

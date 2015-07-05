@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
@@ -36,7 +33,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     public void resolve(final ResolveContext resolveContext,
                                    final List<? extends ResolutionAwareRepository> repositories,
                                    final GlobalDependencyResolutionRules metadataHandler,
-                                   final ResolverResults results) throws ResolveException {
+                                   final BuildableResolverResults results) throws ResolveException {
         lockingManager.useCache(String.format("resolve %s", resolveContext), new Runnable() {
             public void run() {
                 resolver.resolve(resolveContext, repositories, metadataHandler, results);
@@ -47,7 +44,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     public void resolveArtifacts(final ResolveContext resolveContext,
                                    final List<? extends ResolutionAwareRepository> repositories,
                                    final GlobalDependencyResolutionRules metadataHandler,
-                                   final ResolverResults results) throws ResolveException {
+                                   final BuildableResolverResults results) throws ResolveException {
         lockingManager.useCache(String.format("resolve %s", resolveContext), new Runnable() {
             public void run() {
                 resolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);

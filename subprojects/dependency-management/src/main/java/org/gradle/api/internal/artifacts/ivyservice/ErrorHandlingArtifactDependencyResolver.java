@@ -21,10 +21,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 
@@ -42,7 +39,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
     public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
-                        ResolverResults results) throws ResolveException {
+                        BuildableResolverResults results) throws ResolveException {
         try {
             dependencyResolver.resolve(resolveContext, repositories, metadataHandler, results);
         } catch (final Throwable e) {
@@ -54,7 +51,10 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         results.resolved(wrappedResult, results.getResolvedLocalComponents());
     }
 
-    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContext resolveContext,
+                                 List<? extends ResolutionAwareRepository> repositories,
+                                 GlobalDependencyResolutionRules metadataHandler,
+                                 BuildableResolverResults results) throws ResolveException {
         try {
             dependencyResolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);
         } catch (ResolveException e) {

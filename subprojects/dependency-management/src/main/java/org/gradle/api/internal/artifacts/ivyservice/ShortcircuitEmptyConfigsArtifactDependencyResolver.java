@@ -44,7 +44,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     public void resolve(ResolveContext resolveContext,
                         List<? extends ResolutionAwareRepository> repositories,
                         GlobalDependencyResolutionRules metadataHandler,
-                        ResolverResults results) throws ResolveException {
+                        BuildableResolverResults results) throws ResolveException {
         if (resolveContext instanceof Configuration && resolveContext.getAllDependencies().isEmpty()) {
             ModuleInternal module = ((DependencyMetaDataProvider) resolveContext).getModule();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
@@ -58,7 +58,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     }
 
     @Override
-    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, BuildableResolverResults results) throws ResolveException {
         if (resolveContext.getAllDependencies().isEmpty() && resolveContext instanceof Configuration) {
             results.withResolvedConfiguration(new EmptyResolvedConfiguration());
         } else {

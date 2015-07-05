@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
 
-public class DefaultResolverResults implements ResolverResults {
+public class DefaultResolverResults implements BuildableResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
@@ -118,13 +118,6 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
-        this.graphResults = graphResults;
-        this.artifactResults = artifactResults;
-        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
-    }
-
-    @Override
     public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
         this.resolvedConfiguration = resolvedConfiguration;
         this.graphResults = null;
@@ -132,17 +125,21 @@ public class DefaultResolverResults implements ResolverResults {
         this.artifactResults = null;
     }
 
-    @Override
+    // State not exposed via BuildableResolverResults, that is only accessed via DefaultConfigurationResolver
+    public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+        this.graphResults = graphResults;
+        this.artifactResults = artifactResults;
+        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
+    }
+
     public ResolvedGraphResults getGraphResults() {
         return graphResults;
     }
 
-    @Override
     public ResolvedArtifactsBuilder getArtifactsBuilder() {
         return artifactResults;
     }
 
-    @Override
     public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {
         return transientConfigurationResultsBuilder;
     }
