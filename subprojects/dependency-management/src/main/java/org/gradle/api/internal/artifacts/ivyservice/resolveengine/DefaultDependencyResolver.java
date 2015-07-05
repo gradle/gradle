@@ -224,7 +224,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
-        private final ChainedLocalComponentConverter localComponentFactory;
+        private final LocalComponentConverter localComponentFactory;
 
         public DefaultResolveContextToComponentResolver(ChainedLocalComponentConverter localComponentFactory) {
             this.localComponentFactory = localComponentFactory;

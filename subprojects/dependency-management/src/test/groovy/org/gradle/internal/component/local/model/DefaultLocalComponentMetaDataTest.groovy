@@ -15,7 +15,7 @@
  */
 
 package org.gradle.internal.component.local.model
-import org.apache.ivy.core.module.descriptor.Configuration
+
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
@@ -52,16 +52,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         superConf != null
         !superConf.visible
         !superConf.transitive
-
-        and:
-        def publishMetaData = metaData.toPublishMetaData()
-        publishMetaData.getModuleDescriptor().configurations.length == 2
-        publishMetaData.getModuleDescriptor().getConfiguration('conf') != null
-
-        def ivyConf = publishMetaData.getModuleDescriptor().getConfiguration('conf')
-        ivyConf != null
-        ivyConf.transitive
-        ivyConf.visibility == Configuration.Visibility.PUBLIC
     }
 
     def "can lookup artifact in various ways after it has been added"() {
@@ -85,17 +75,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
         publishArtifact == resolveMetaData.getConfiguration("conf").artifact(artifact)
-
-        and:
-        def publishMetaData = metaData.toPublishMetaData()
-        publishMetaData.artifacts.size() == 1
-
-        def publishMetaDataArtifact = (publishMetaData.artifacts as List).first()
-        publishMetaDataArtifact.id
-        publishMetaDataArtifact.id.componentIdentifier == componentIdentifier
-        publishMetaDataArtifact.artifactName.name == artifact.name
-        publishMetaDataArtifact.artifactName.type == artifact.type
-        publishMetaDataArtifact.artifactName.extension == artifact.extension
     }
 
     private addConfiguration(String name) {

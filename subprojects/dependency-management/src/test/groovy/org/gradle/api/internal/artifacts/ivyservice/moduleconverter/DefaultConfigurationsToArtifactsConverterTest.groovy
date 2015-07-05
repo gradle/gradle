@@ -17,14 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import spock.lang.Specification
 
 class DefaultConfigurationsToArtifactsConverterTest extends Specification {
     def converter = new DefaultConfigurationsToArtifactsConverter()
 
     def "adds artifacts from each configuration"() {
-        def metaData = Mock(MutableLocalComponentMetaData)
+        def metaData = Mock(BuildableLocalComponentMetaData)
         def config1 = Stub(Configuration)
         def config2 = Stub(Configuration)
         def artifacts1 = Stub(PublishArtifactSet)

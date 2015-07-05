@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.DomainObjectContext;
@@ -31,7 +30,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationLocalComponentConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToArtifactsConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
@@ -154,12 +155,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
     }
 
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
-            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
-    }
-
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry services;
 
@@ -195,7 +190,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    services.get(ConfigurationLocalComponentConverter.class),
+                    services.get(ConfigurationsToModuleDescriptorConverter.class),
+                    services.get(DependenciesToModuleDescriptorConverter.class),
+                    services.get(ConfigurationsToArtifactsConverter.class),
                     services.get(IvyContextManager.class),
                     new DefaultIvyDependencyPublisher(),
                     new IvyXmlModuleDescriptorWriter()

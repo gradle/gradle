@@ -41,10 +41,8 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
     }
 
     def "can add configuration"() {
-        def configuration = mockConfiguration()
-
         when:
-        metaData.addConfiguration(configuration)
+        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         then:
         metaData.moduleDescriptor.configurations.length == 1
@@ -70,7 +68,7 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         def dependency = Mock(DependencyMetaData)
 
         given:
-        metaData.addConfiguration(mockConfiguration())
+        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         and:
         dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")

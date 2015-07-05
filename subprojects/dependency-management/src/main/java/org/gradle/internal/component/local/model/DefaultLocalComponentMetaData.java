@@ -24,13 +24,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.model.*;
 
 import java.util.*;
 
-public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
+public class DefaultLocalComponentMetaData implements LocalComponentMetaData, BuildableLocalComponentMetaData {
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
     private final Map<String, Iterable<? extends PublishArtifact>> allArtifacts = Maps.newHashMap();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
@@ -68,26 +66,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public ComponentResolveMetaData toResolveMetaData() {
         return new DefaultLocalComponentResolveMetaData();
-    }
-
-    public BuildableIvyModulePublishMetaData toPublishMetaData() {
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, status);
-        for (DefaultLocalConfigurationMetaData configuration : allConfigurations.values()) {
-            publishMetaData.addConfiguration(configuration);
-        }
-        for (ExcludeRule excludeRule : allExcludeRules) {
-            publishMetaData.addExcludeRule(excludeRule);
-        }
-        for (DependencyMetaData dependency : allDependencies) {
-            publishMetaData.addDependency(dependency);
-        }
-        for (String configuration : allArtifacts.keySet()) {
-            Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(configuration);
-            for (PublishArtifact publishArtifact : publishArtifacts) {
-                publishMetaData.addArtifact(configuration, publishArtifact);
-            }
-        }
-        return publishMetaData;
     }
 
     private class DefaultLocalComponentResolveMetaData implements ComponentResolveMetaData {

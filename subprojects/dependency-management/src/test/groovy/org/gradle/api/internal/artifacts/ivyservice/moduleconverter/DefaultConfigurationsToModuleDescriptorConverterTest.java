@@ -25,9 +25,8 @@ import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -51,11 +50,11 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
     public void testAddConfigurations() {
         Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
-        MutableLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(id, componentId, "status");
+        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(id, "status");
 
         configurationsToModuleDescriptorConverter.addConfigurations(metaData, WrapUtil.toSet(configurationStub1, configurationStub2));
 
-        ModuleDescriptor moduleDescriptor = metaData.toPublishMetaData().getModuleDescriptor();
+        ModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub1.getName()),
                 expectedIvyConfiguration(configurationStub1));
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub2.getName()),

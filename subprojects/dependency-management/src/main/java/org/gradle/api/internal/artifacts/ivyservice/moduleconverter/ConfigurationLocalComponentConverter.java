@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 import java.util.Set;
 
@@ -52,7 +52,7 @@ public class ConfigurationLocalComponentConverter implements LocalComponentConve
     }
 
     @Override
-    public MutableLocalComponentMetaData convert(Object source) {
+    public LocalComponentMetaData convert(Object source) {
         ModuleInternal module;
         Set<? extends Configuration> configurations;
         if (source instanceof Configuration) {

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
@@ -36,7 +36,7 @@ class ProjectDependencyResolverTest extends Specification {
     def "resolves project dependency"() {
         setup:
         def resolveMetaData = Stub(ModuleComponentResolveMetaData)
-        def componentMetaData = Stub(MutableLocalComponentMetaData) {
+        def componentMetaData = Stub(BuildableLocalComponentMetaData) {
             toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableComponentIdResolveResult)
@@ -56,7 +56,7 @@ class ProjectDependencyResolverTest extends Specification {
     def "resolves project component"() {
         setup:
         def resolveMetaData = Stub(ModuleComponentResolveMetaData)
-        def componentMetaData = Stub(MutableLocalComponentMetaData) {
+        def componentMetaData = Stub(BuildableLocalComponentMetaData) {
             toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableComponentResolveResult)

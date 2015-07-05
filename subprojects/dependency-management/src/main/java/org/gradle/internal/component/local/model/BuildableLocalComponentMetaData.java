@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.DependencyMetaData;
 
 import java.util.Set;
 
-public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
+public interface BuildableLocalComponentMetaData {
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
     void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies);

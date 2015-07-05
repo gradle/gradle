@@ -51,15 +51,19 @@ class DependencyManagementGlobalScopeServices {
             descriptorFactory);
     }
 
-    ConfigurationLocalComponentConverter createPublishLocalComponentFactory(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                                    DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                    ExcludeRuleConverter excludeRuleConverter,
-                                                                    ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ConfigurationLocalComponentConverter(
-            configurationsToModuleDescriptorConverter,
-            new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter),
-            componentIdentifierFactory,
-            new DefaultConfigurationsToArtifactsConverter());
+    DependenciesToModuleDescriptorConverter createDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                                          ExcludeRuleConverter excludeRuleConverter) {
+        return new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter);
+    }
 
+    ConfigurationsToArtifactsConverter createConfigurationsToArtifactsConverter() {
+        return new DefaultConfigurationsToArtifactsConverter();
+    }
+
+    ConfigurationLocalComponentConverter createConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                                                    DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
+                                                                                    ConfigurationsToArtifactsConverter configurationsToArtifactsConverter,
+                                                                                    ComponentIdentifierFactory componentIdentifierFactory) {
+        return new ConfigurationLocalComponentConverter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
     }
 }

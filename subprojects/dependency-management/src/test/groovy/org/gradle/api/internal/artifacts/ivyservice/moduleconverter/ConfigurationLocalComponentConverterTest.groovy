@@ -53,6 +53,5 @@ public class ConfigurationLocalComponentConverterTest extends Specification {
         and:
         componentMetaData instanceof DefaultLocalComponentMetaData
         componentMetaData.toResolveMetaData().componentId == new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
-        componentMetaData.toPublishMetaData().moduleDescriptor instanceof DefaultModuleDescriptor
     }
 }
