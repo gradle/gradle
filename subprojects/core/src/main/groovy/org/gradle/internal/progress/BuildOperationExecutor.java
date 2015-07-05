@@ -31,14 +31,14 @@ public interface BuildOperationExecutor {
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(Object id, BuildOperationType operationType, Factory<T> factory);
+    <T> T run(Object id, String displayName, Factory<T> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
-    void run(Object id, BuildOperationType operationType, Runnable action);
+    void run(Object id, String displayName, Runnable action);
 
     /**
      * Returns the id of the current operation.

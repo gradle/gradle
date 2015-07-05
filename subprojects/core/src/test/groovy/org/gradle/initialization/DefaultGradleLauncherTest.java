@@ -31,7 +31,6 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -361,12 +360,12 @@ public class DefaultGradleLauncherTest {
         }
 
         @Override
-        public <T> T run(Object id, BuildOperationType operationType, Factory<T> factory) {
+        public <T> T run(Object id, String displayName, Factory<T> factory) {
             return factory.create();
         }
 
         @Override
-        public void run(Object id, BuildOperationType operationType, Runnable action) {
+        public void run(Object id, String displayName, Runnable action) {
             action.run();
         }
     }

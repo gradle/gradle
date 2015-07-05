@@ -181,12 +181,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private <T> T runRootBuildOperation(BuildOperationType operationType, Factory<T> factory) {
         Object id = OperationIdGenerator.generateId(gradle);
-        return buildOperationExecutor.run(id, operationType, factory);
+        return buildOperationExecutor.run(id, operationType.getDisplayName(), factory);
     }
 
     private void runBuildOperation(BuildOperationType operationType, Runnable action) {
         Object id = OperationIdGenerator.generateId(operationType, gradle);
-        buildOperationExecutor.run(id, operationType, action);
+        buildOperationExecutor.run(id, operationType.getDisplayName(), action);
     }
 
     /**

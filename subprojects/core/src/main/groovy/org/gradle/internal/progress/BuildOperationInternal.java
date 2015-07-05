@@ -20,12 +20,12 @@ import org.gradle.api.Nullable;
 public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;
-    private final BuildOperationType operationType;
+    private final String displayName;
 
-    public BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType) {
+    public BuildOperationInternal(Object id, Object parentId, String displayName) {
         this.id = id;
         this.parentId = parentId;
-        this.operationType = operationType;
+        this.displayName = displayName;
     }
 
     public Object getId() {
@@ -37,7 +37,7 @@ public final class BuildOperationInternal {
         return parentId;
     }
 
-    public BuildOperationType getOperationType() {
-        return operationType;
+    public String getDisplayName() {
+        return displayName;
     }
 }

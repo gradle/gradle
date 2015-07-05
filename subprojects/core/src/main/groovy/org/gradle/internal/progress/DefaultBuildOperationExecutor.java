@@ -43,17 +43,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public void run(Object id, BuildOperationType operationType, Runnable action) {
-        run(id, operationType, Factories.toFactory(action));
+    public void run(Object id, String displayName, Runnable action) {
+        run(id, displayName, Factories.toFactory(action));
     }
 
     @Override
-    public <T> T run(Object id, BuildOperationType operationType, Factory<T> factory) {
+    public <T> T run(Object id, String displayName, Factory<T> factory) {
         Object parentId = operationStack.isEmpty() ? null : operationStack.getFirst();
         operationStack.addFirst(id);
         try {
             long startTime = timeProvider.getCurrentTime();
-            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationType);
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, displayName);
             listener.started(operation, new OperationStartEvent(startTime));
 
             T result = null;

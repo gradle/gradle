@@ -29,7 +29,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action = Mock(Factory)
 
         when:
-        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action)
+        def result = executor.run("id", "<some-operation>", action)
 
         then:
         result == "result"
@@ -39,7 +39,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             assert operation.id == "id"
             assert operation.parentId == null
-            assert operation.operationType == BuildOperationType.CONFIGURING_BUILD
+            assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
         }
         1 * action.create() >> "result"
@@ -57,7 +57,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executor.run("id", BuildOperationType.CONFIGURING_BUILD, action)
+        executor.run("id", "<some-operation>", action)
 
         then:
         def e = thrown(RuntimeException)
@@ -68,7 +68,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             assert operation.id == "id"
             assert operation.parentId == null
-            assert operation.operationType == BuildOperationType.CONFIGURING_BUILD
+            assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
         }
         1 * action.create() >> { throw failure }
@@ -86,12 +86,12 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action2 = Mock(Runnable)
 
         when:
-        executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+        executor.run("id", "<parent>", action1)
 
         then:
         1 * action1.run() >> {
             assert executor.currentOperationId == "id"
-            executor.run("id2", BuildOperationType.EXECUTING_TASKS, action2)
+            executor.run("id2", "<child>", action2)
         }
         1 * action2.run() >> {
             assert executor.currentOperationId == "id2"
@@ -113,7 +113,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action3 = Mock(Factory)
 
         when:
-        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+        def result = executor.run("id", "<parent>", action1)
 
         then:
         result == "result"
@@ -123,7 +123,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
             assert operation.parentId == null
         }
         1 * action1.create() >> {
-            return executor.run("id2", BuildOperationType.EVALUATING_INIT_SCRIPTS, action2)
+            return executor.run("id2", "<op-2>", action2)
         }
 
         and:
@@ -132,7 +132,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
             assert operation.parentId == "id"
         }
         1 * action2.create() >> {
-            return executor.run("id3", BuildOperationType.EXECUTING_TASKS, action3)
+            return executor.run("id3", "<op-3>", action3)
         }
 
         and:
@@ -166,7 +166,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action3 = Mock(Factory)
 
         when:
-        def result = executor.run("id", BuildOperationType.CONFIGURING_BUILD, action1)
+        def result = executor.run("id", "<parent>", action1)
 
         then:
         result == "result"
@@ -177,11 +177,11 @@ class DefaultBuildOperationExecutorTest extends Specification {
         }
         1 * action1.create() >> {
             try {
-                executor.run("id2", BuildOperationType.EVALUATING_INIT_SCRIPTS, action2)
+                executor.run("id2", "<child-1>", action2)
             } catch (RuntimeException) {
                 // Ignore
             }
-            return executor.run("id3", BuildOperationType.EXECUTING_TASKS, action3)
+            return executor.run("id3", "<child-2>", action3)
         }
 
         and:
