@@ -22,15 +22,13 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicLong;
 
-// TODO - thread safety
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     private final InternalBuildListener listener;
     private final TimeProvider timeProvider;
     private final AtomicLong nextId = new AtomicLong();
-    private final LinkedList<BuildOperationId> operationStack = new LinkedList<BuildOperationId>();
+    private final ThreadLocal<OperationDetails> currentOperation = new ThreadLocal<OperationDetails>();
 
     public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider) {
         this.listener = listener;
@@ -39,10 +37,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Object getCurrentOperationId() {
-        if (operationStack.isEmpty()) {
+        OperationDetails current = currentOperation.get();
+        if (current == null) {
             throw new IllegalStateException("No operation is currently running.");
         }
-        return operationStack.getFirst();
+        return current.id;
     }
 
     @Override
@@ -52,9 +51,10 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <T> T run(String displayName, Factory<T> factory) {
-        BuildOperationId parentId = operationStack.isEmpty() ? null : operationStack.getFirst();
+        OperationDetails parent = currentOperation.get();
+        BuildOperationId parentId = parent == null ? null : parent.id;
         BuildOperationId id = new BuildOperationId(nextId.getAndIncrement());
-        operationStack.addFirst(id);
+        currentOperation.set(new OperationDetails(parent, id));
         try {
             long startTime = timeProvider.getCurrentTime();
             BuildOperationInternal operation = new BuildOperationInternal(id, parentId, displayName);
@@ -77,11 +77,21 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
             return result;
         } finally {
-            operationStack.removeFirst();
+            currentOperation.set(parent);
         }
     }
 
-    private static final class BuildOperationId implements Serializable {
+    private static class OperationDetails {
+        final OperationDetails parent;
+        final BuildOperationId id;
+
+        public OperationDetails(OperationDetails parent, BuildOperationId id) {
+            this.parent = parent;
+            this.id = id;
+        }
+    }
+
+    private static class BuildOperationId implements Serializable {
         private final long id;
 
         public BuildOperationId(long id) {

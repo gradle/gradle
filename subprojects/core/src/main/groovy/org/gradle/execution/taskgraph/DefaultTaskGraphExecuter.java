@@ -108,7 +108,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create()));
+            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperationId()));
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();
@@ -185,16 +185,17 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
+        private final Object parentOperationId;
 
-        public EventFiringTaskWorker(TaskExecuter taskExecuter) {
+        public EventFiringTaskWorker(TaskExecuter taskExecuter, Object parentOperationId) {
             this.taskExecuter = taskExecuter;
+            this.parentOperationId = parentOperationId;
         }
 
         @Override
         public void execute(TaskInternal task) {
             Object id = OperationIdGenerator.generateId(task);
-            Object parentId = buildOperationExecutor.getCurrentOperationId();
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentId, task);
+            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentOperationId, task);
             TaskStateInternal state = task.getState();
             long startTime = timeProvider.getCurrentTime();
             // TODO - move serialization to ListenerManager contract

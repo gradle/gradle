@@ -21,8 +21,6 @@ import org.gradle.internal.Factory;
 /**
  * Runs build operations. These are the pieces of work that make up a build.
  *
- * <p>Note that the current implementation is not thread safe. This will happen later.</p>
- *
  * <p>This is to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}.
  */
 public interface BuildOperationExecutor {
