@@ -26,7 +26,6 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
@@ -93,7 +92,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private BuildResult doBuild(final Stage upTo) {
         loggingManager.start();
 
-        return runRootBuildOperation(BuildOperationType.RUNNING_BUILD, new Factory<BuildResult>() {
+        return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
                 buildListener.buildStarted(gradle);
@@ -117,7 +116,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        runBuildOperation(BuildOperationType.EVALUATING_INIT_SCRIPTS, new Runnable() {
+        buildOperationExecutor.run("Run init scripts", new Runnable() {
             @Override
             public void run() {
                 initScriptHandler.executeScripts(gradle);
@@ -125,7 +124,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Evaluate settings script
-        runBuildOperation(BuildOperationType.EVALUATING_SETTINGS, new Runnable() {
+        buildOperationExecutor.run("Load projects", new Runnable() {
             @Override
             public void run() {
                 SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
@@ -136,7 +135,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Configure build
-        runBuildOperation(BuildOperationType.CONFIGURING_BUILD, new Runnable() {
+        buildOperationExecutor.run("Configure build", new Runnable() {
             @Override
             public void run() {
                 buildConfigurer.configure(gradle);
@@ -155,7 +154,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        runBuildOperation(BuildOperationType.POPULATING_TASK_GRAPH, new Runnable() {
+        buildOperationExecutor.run("Calculate task graph", new Runnable() {
             @Override
             public void run() {
                 buildExecuter.select(gradle);
@@ -167,7 +166,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         // Execute build
-        runBuildOperation(BuildOperationType.EXECUTING_TASKS, new Runnable() {
+        buildOperationExecutor.run("Run tasks", new Runnable() {
             @Override
             public void run() {
                 buildExecuter.execute();
@@ -176,14 +175,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         assert upTo == Stage.Build;
-    }
-
-    private <T> T runRootBuildOperation(BuildOperationType operationType, Factory<T> factory) {
-        return buildOperationExecutor.run(operationType.getDisplayName(), factory);
-    }
-
-    private void runBuildOperation(BuildOperationType operationType, Runnable action) {
-        buildOperationExecutor.run(operationType.getDisplayName(), action);
     }
 
     /**
