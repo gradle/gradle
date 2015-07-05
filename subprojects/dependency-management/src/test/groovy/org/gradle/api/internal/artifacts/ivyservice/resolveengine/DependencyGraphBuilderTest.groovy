@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedArtifactsBuilder
@@ -75,22 +74,17 @@ class DependencyGraphBuilderTest extends Specification {
     def moduleResolver = Mock(ResolveContextToComponentResolver)
     def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
     def moduleReplacements = Mock(ModuleReplacementsData)
-    def resolverProvider = Mock(ResolverProvider)
     DependencyGraphBuilder builder
 
     def setup() {
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
-        _ * resolverProvider.artifactResolver >> artifactResolver
-        _ * resolverProvider.componentIdResolver >> idResolver
-        _ * resolverProvider.componentResolver >> metaDataResolver
-
         _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ComponentResolveMetaData module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.getConfiguration(context.configurationName).artifacts)
         }
 
-        builder = new DependencyGraphBuilder(resolverProvider, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), dependencyToConfigurationResolver)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, artifactResolver, moduleResolver, dependencyToConfigurationResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements))
     }
 
     private DefaultLenientConfiguration resolve() {
