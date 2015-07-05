@@ -33,17 +33,14 @@ public class ScriptUsageLocationReporter implements ScriptExecutionListener, Usa
     private final Lock lock = new ReentrantLock();
     private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
 
-    public void beforeScript(Script script) {
+    @Override
+    public void scriptClassLoaded(ScriptSource scriptSource, Class<? extends Script> scriptClass) {
         lock.lock();
         try {
-            ScriptSource scriptSource = script.getScriptSource();
             scripts.put(scriptSource.getFileName(), scriptSource);
         } finally {
             lock.unlock();
         }
-    }
-
-    public void afterScript(Script script, Throwable result) {
     }
 
     public void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target) {

@@ -245,12 +245,7 @@ public class DefaultExceptionAnalyserTest {
     }
 
     private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        final Script script = context.mock(Script.class);
-        context.checking(new Expectations() {{
-            allowing(script).getScriptSource();
-            will(returnValue(source));
-        }});
-        analyser.beforeScript(script);
+        analyser.scriptClassLoaded(source, Script.class);
     }
 
     private DefaultExceptionAnalyser analyser() {

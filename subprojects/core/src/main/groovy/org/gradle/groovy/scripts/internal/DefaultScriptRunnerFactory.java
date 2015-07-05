@@ -51,9 +51,11 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         @Override
         public T getScript() {
             if (script == null) {
-                script = instantiator.newInstance(compiledScript.loadClass());
+                Class<? extends T> scriptClass = compiledScript.loadClass();
+                script = instantiator.newInstance(scriptClass);
                 script.setScriptSource(source);
                 script.setContextClassloader(contextClassLoader);
+                listener.scriptClassLoaded(source, scriptClass);
             }
             return script;
         }
@@ -82,7 +84,6 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();
             script.init(target, scriptServices);
-            listener.beforeScript(script);
             GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
             script.getStandardOutputCapture().start();
@@ -93,7 +94,6 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             }
             script.getStandardOutputCapture().stop();
             Thread.currentThread().setContextClassLoader(originalLoader);
-            listener.afterScript(script, failure);
             if (failure != null) {
                 throw failure;
             }

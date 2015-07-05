@@ -81,7 +81,7 @@ public class DefaultScriptRunnerFactoryTest {
     }
 
     @Test
-    public void redirectsStandardOutputAndSetsContextClassLoaderWhenNonEmptyScriptIsRun() {
+    public void setsUpAndTearsDownWhenNonEmptyScriptIsRun() {
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
         expectScriptInstantiated();
@@ -91,10 +91,10 @@ public class DefaultScriptRunnerFactoryTest {
             allowing(compiledScriptMock).getRunDoesSomething();
             will(returnValue(true));
 
-            one(scriptMock).init(target, scriptServices);
+            one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy, Script.class);
             inSequence(sequence);
 
-            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
 
             one(standardOutputCaptureMock).start();
@@ -114,9 +114,6 @@ public class DefaultScriptRunnerFactoryTest {
             }));
 
             one(standardOutputCaptureMock).stop();
-            inSequence(sequence);
-
-            one(scriptExecutionListenerMock).afterScript(scriptMock, null);
             inSequence(sequence);
         }});
 
@@ -141,10 +138,10 @@ public class DefaultScriptRunnerFactoryTest {
             allowing(compiledScriptMock).getRunDoesSomething();
             will(returnValue(true));
 
-            one(scriptMock).init(target, scriptServices);
+            one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy, Script.class);
             inSequence(sequence);
 
-            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
 
             one(standardOutputCaptureMock).start();
@@ -155,9 +152,6 @@ public class DefaultScriptRunnerFactoryTest {
             will(throwException(failure));
 
             one(standardOutputCaptureMock).stop();
-            inSequence(sequence);
-
-            one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)), with(notNullValue(Throwable.class)));
             inSequence(sequence);
         }});
 
