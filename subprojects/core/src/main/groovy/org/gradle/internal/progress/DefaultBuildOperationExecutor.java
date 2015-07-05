@@ -21,13 +21,16 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
 
+import java.io.Serializable;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicLong;
 
 // TODO - thread safety
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     private final InternalBuildListener listener;
     private final TimeProvider timeProvider;
-    private LinkedList<Object> operationStack = new LinkedList<Object>();
+    private final AtomicLong nextId = new AtomicLong();
+    private final LinkedList<BuildOperationId> operationStack = new LinkedList<BuildOperationId>();
 
     public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider) {
         this.listener = listener;
@@ -43,13 +46,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public void run(Object id, String displayName, Runnable action) {
-        run(id, displayName, Factories.toFactory(action));
+    public void run(String displayName, Runnable action) {
+        run(displayName, Factories.toFactory(action));
     }
 
     @Override
-    public <T> T run(Object id, String displayName, Factory<T> factory) {
-        Object parentId = operationStack.isEmpty() ? null : operationStack.getFirst();
+    public <T> T run(String displayName, Factory<T> factory) {
+        BuildOperationId parentId = operationStack.isEmpty() ? null : operationStack.getFirst();
+        BuildOperationId id = new BuildOperationId(nextId.getAndIncrement());
         operationStack.addFirst(id);
         try {
             long startTime = timeProvider.getCurrentTime();
@@ -74,6 +78,37 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             return result;
         } finally {
             operationStack.removeFirst();
+        }
+    }
+
+    private static final class BuildOperationId implements Serializable {
+        private final long id;
+
+        public BuildOperationId(long id) {
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(id);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            BuildOperationId other = (BuildOperationId) o;
+            return id == other.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) id;
         }
     }
 }

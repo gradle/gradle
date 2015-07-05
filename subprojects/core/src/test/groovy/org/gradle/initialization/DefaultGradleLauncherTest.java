@@ -360,12 +360,12 @@ public class DefaultGradleLauncherTest {
         }
 
         @Override
-        public <T> T run(Object id, String displayName, Factory<T> factory) {
+        public <T> T run(String displayName, Factory<T> factory) {
             return factory.create();
         }
 
         @Override
-        public void run(Object id, String displayName, Runnable action) {
+        public void run(String displayName, Runnable action) {
             action.run();
         }
     }

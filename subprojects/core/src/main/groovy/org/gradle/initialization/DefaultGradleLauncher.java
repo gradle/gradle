@@ -27,7 +27,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationType;
-import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
@@ -180,13 +179,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private <T> T runRootBuildOperation(BuildOperationType operationType, Factory<T> factory) {
-        Object id = OperationIdGenerator.generateId(gradle);
-        return buildOperationExecutor.run(id, operationType.getDisplayName(), factory);
+        return buildOperationExecutor.run(operationType.getDisplayName(), factory);
     }
 
     private void runBuildOperation(BuildOperationType operationType, Runnable action) {
-        Object id = OperationIdGenerator.generateId(operationType, gradle);
-        buildOperationExecutor.run(id, operationType.getDisplayName(), action);
+        buildOperationExecutor.run(operationType.getDisplayName(), action);
     }
 
     /**

@@ -27,9 +27,10 @@ class DefaultBuildOperationExecutorTest extends Specification {
 
     def "fires events when operation starts and finishes successfully"() {
         def action = Mock(Factory)
+        def id
 
         when:
-        def result = executor.run("id", "<some-operation>", action)
+        def result = executor.run("<some-operation>", action)
 
         then:
         result == "result"
@@ -37,7 +38,8 @@ class DefaultBuildOperationExecutorTest extends Specification {
         and:
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id"
+            id = operation.id
+            assert operation.id != null
             assert operation.parentId == null
             assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
@@ -45,7 +47,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * action.create() >> "result"
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id"
+            assert operation.id == id
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == null
@@ -55,9 +57,10 @@ class DefaultBuildOperationExecutorTest extends Specification {
     def "fires events when operation starts and fails"() {
         def action = Mock(Factory)
         def failure = new RuntimeException()
+        def id
 
         when:
-        executor.run("id", "<some-operation>", action)
+        executor.run("<some-operation>", action)
 
         then:
         def e = thrown(RuntimeException)
@@ -66,7 +69,8 @@ class DefaultBuildOperationExecutorTest extends Specification {
         and:
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id"
+            assert operation.id != null
+            id = operation.id
             assert operation.parentId == null
             assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
@@ -74,7 +78,7 @@ class DefaultBuildOperationExecutorTest extends Specification {
         1 * action.create() >> { throw failure }
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id"
+            assert operation.id == id
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == failure
@@ -84,17 +88,20 @@ class DefaultBuildOperationExecutorTest extends Specification {
     def "can query operation id from inside operation"() {
         def action1 = Mock(Runnable)
         def action2 = Mock(Runnable)
+        def id
 
         when:
-        executor.run("id", "<parent>", action1)
+        executor.run("<parent>", action1)
 
         then:
         1 * action1.run() >> {
-            assert executor.currentOperationId == "id"
-            executor.run("id2", "<child>", action2)
+            assert executor.currentOperationId != null
+            id = executor.currentOperationId
+            executor.run("<child>", action2)
         }
         1 * action2.run() >> {
-            assert executor.currentOperationId == "id2"
+            assert executor.currentOperationId != null
+            assert executor.currentOperationId != id
         }
     }
 
@@ -111,34 +118,38 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action1 = Mock(Factory)
         def action2 = Mock(Factory)
         def action3 = Mock(Factory)
+        def parentId
+        def child1Id
+        def child2Id
 
         when:
-        def result = executor.run("id", "<parent>", action1)
+        def result = executor.run("<parent>", action1)
 
         then:
         result == "result"
 
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id"
+            assert operation.id != null
+            parentId = operation.id
             assert operation.parentId == null
         }
         1 * action1.create() >> {
-            return executor.run("id2", "<op-2>", action2)
+            return executor.run("<op-2>", action2)
         }
 
         and:
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id2"
-            assert operation.parentId == "id"
+            child1Id = operation.id
+            assert operation.parentId == parentId
         }
         1 * action2.create() >> {
-            return executor.run("id3", "<op-3>", action3)
+            return executor.run("<op-3>", action3)
         }
 
         and:
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id3"
-            assert operation.parentId == "id2"
+            child2Id = operation.id
+            assert operation.parentId == child1Id
         }
         1 * action3.create() >> {
             return "result"
@@ -146,17 +157,17 @@ class DefaultBuildOperationExecutorTest extends Specification {
 
         and:
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id3"
+            assert operation.id == child2Id
         }
 
         and:
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id2"
+            assert operation.id == child1Id
         }
 
         and:
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id"
+            assert operation.id == parentId
         }
     }
 
@@ -164,51 +175,54 @@ class DefaultBuildOperationExecutorTest extends Specification {
         def action1 = Mock(Factory)
         def action2 = Mock(Factory)
         def action3 = Mock(Factory)
+        def parentId
+        def child1Id
+        def child2Id
 
         when:
-        def result = executor.run("id", "<parent>", action1)
+        def result = executor.run("<parent>", action1)
 
         then:
         result == "result"
 
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id"
+            parentId = operation.id
             assert operation.parentId == null
         }
         1 * action1.create() >> {
             try {
-                executor.run("id2", "<child-1>", action2)
+                executor.run("<child-1>", action2)
             } catch (RuntimeException) {
                 // Ignore
             }
-            return executor.run("id3", "<child-2>", action3)
+            return executor.run("<child-2>", action3)
         }
 
         and:
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id2"
-            assert operation.parentId == "id"
+            child1Id = operation.id
+            assert operation.parentId == parentId
         }
         1 * action2.create() >> { throw new RuntimeException() }
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id2"
+            assert operation.id == child1Id
         }
 
         and:
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
-            assert operation.id == "id3"
-            assert operation.parentId == "id"
+            child2Id = operation.id
+            assert operation.parentId == parentId
         }
         1 * action3.create() >> {
             return "result"
         }
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id3"
+            assert operation.id == child2Id
         }
 
         and:
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
-            assert operation.id == "id"
+            assert operation.id == parentId
         }
     }
 }
