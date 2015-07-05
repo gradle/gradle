@@ -316,7 +316,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectTaskLister();
     }
 
-    protected DependencyMetaDataProviderImpl createDependencyMetaDataProvider() {
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProviderImpl();
     }
 
