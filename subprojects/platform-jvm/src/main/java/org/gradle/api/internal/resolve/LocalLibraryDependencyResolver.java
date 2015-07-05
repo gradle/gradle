@@ -104,7 +104,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), jarBinary.getName(), buildDependencies);
                     metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(createJarPublishArtifact(jarBinary)));
 
-                    result.resolved(metaData.toResolveMetaData());
+                    result.resolved(metaData);
                 }
             }
             if (!result.hasResult()) {

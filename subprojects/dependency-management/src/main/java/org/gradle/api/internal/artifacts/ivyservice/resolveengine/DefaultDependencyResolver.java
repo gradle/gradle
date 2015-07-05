@@ -233,7 +233,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
             LocalComponentMetaData componentMetaData = localComponentFactory.convert(resolveContext);
-            result.resolved(componentMetaData.toResolveMetaData());
+            result.resolved(componentMetaData);
         }
     }
 

@@ -67,17 +67,13 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         component.id.version == '<local component>'
         component.id.toString() == ':myPath:myLib:<local component>'
 
-        when: "we create resolution metadata"
-        def metadata = component.toResolveMetaData()
-
-        then: "metadata reflects the appropriate library information"
-        metadata instanceof ComponentResolveMetaData
-        metadata.componentId instanceof LibraryBinaryIdentifier
-        metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
-        metadata.dependencies.empty
-        !metadata.changing
-        metadata.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
-        metadata.source == null
+        and: "metadata reflects the appropriate library information"
+        component.componentId instanceof LibraryBinaryIdentifier
+        component.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
+        component.dependencies.empty
+        !component.changing
+        component.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
+        component.source == null
     }
 
     @Unroll
@@ -108,21 +104,18 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         component.id.version == '<local component>'
         component.id.toString() == ':myPath:myLib:<local component>'
 
-        when: "we create resolution metadata"
-        def metadata = component.toResolveMetaData()
-
-        then: "metadata reflects the appropriate library information"
-        metadata instanceof ComponentResolveMetaData
-        metadata.componentId instanceof LibraryBinaryIdentifier
-        metadata.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
-        !metadata.changing
-        metadata.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
-        metadata.source == null
+        and: "metadata reflects the appropriate library information"
+        component instanceof ComponentResolveMetaData
+        component.componentId instanceof LibraryBinaryIdentifier
+        component.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
+        !component.changing
+        component.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
+        component.source == null
 
         and: "component metadata dependencies correspond to the defined dependencies"
-        metadata.dependencies.size() == dependencies.size()
+        component.dependencies.size() == dependencies.size()
         dependencies.eachWithIndex { spec, i ->
-            def componentDep = metadata.dependencies[i]
+            def componentDep = component.dependencies[i]
             assert componentDep.requested.group == spec.projectPath?:project
             assert componentDep.requested.name == spec.libraryName
             assert componentDep.requested.version == '<local component>'

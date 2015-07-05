@@ -938,7 +938,7 @@ class DependencyGraphBuilderTest extends Specification {
 //        def metaData = new MutableModuleMetaData(descriptor)
 //        metaData.descriptor.addConfiguration(new org.apache.ivy.core.module.descriptor.Configuration('default', org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC, null, [] as String[], true, null))
 //        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
-        return metaData.toResolveMetaData()
+        return metaData
     }
 
     def project(String name, String revision = '1.0', List<String> extraConfigs = []) {
@@ -948,7 +948,7 @@ class DependencyGraphBuilderTest extends Specification {
             metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, new DefaultTaskDependency())
         }
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
-        return metaData.toResolveMetaData()
+        return metaData
     }
 
     def traverses(Map<String, ?> args = [:], def from, ComponentResolveMetaData to) {

@@ -40,15 +40,14 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, taskDep)
 
         then:
-        def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.configurationNames == ['conf', 'super'] as Set
+        metaData.configurationNames == ['conf', 'super'] as Set
 
-        def conf = resolveMetaData.getConfiguration('conf')
+        def conf = metaData.getConfiguration('conf')
         conf != null
         conf.visible
         conf.transitive
 
-        def superConf = resolveMetaData.getConfiguration('super')
+        def superConf = metaData.getConfiguration('super')
         superConf != null
         !superConf.visible
         !superConf.transitive
@@ -65,16 +64,15 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addArtifact("conf", artifact, file)
 
         then:
-        def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.getConfiguration("conf").artifacts.size() == 1
+        metaData.getConfiguration("conf").artifacts.size() == 1
 
-        def publishArtifact = resolveMetaData.getConfiguration("conf").artifacts.first()
+        def publishArtifact = metaData.getConfiguration("conf").artifacts.first()
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
-        publishArtifact == resolveMetaData.getConfiguration("conf").artifact(artifact)
+        publishArtifact == metaData.getConfiguration("conf").artifact(artifact)
     }
 
     private addConfiguration(String name) {
@@ -104,9 +102,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addArtifact("conf2", publishArtifact)
 
         then:
-        def resolveMetaData = metaData.toResolveMetaData()
-        resolveMetaData.getConfiguration("conf1").artifacts.size() == 1
-        resolveMetaData.getConfiguration("conf1").artifacts == resolveMetaData.getConfiguration("conf2").artifacts
+        metaData.getConfiguration("conf1").artifacts.size() == 1
+        metaData.getConfiguration("conf1").artifacts == metaData.getConfiguration("conf2").artifacts
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
@@ -123,7 +120,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def ivyArtifact = artifactName()
 
         expect:
-        def resolveArtifact = metaData.toResolveMetaData().getConfiguration("conf").artifact(ivyArtifact)
+        def resolveArtifact = metaData.getConfiguration("conf").artifact(ivyArtifact)
         resolveArtifact.file == file
     }
 
@@ -133,7 +130,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addConfiguration("conf")
 
         expect:
-        def resolveArtifact = metaData.toResolveMetaData().getConfiguration("conf").artifact(artifact)
+        def resolveArtifact = metaData.getConfiguration("conf").artifact(artifact)
         resolveArtifact != null
         resolveArtifact.file == null
     }
@@ -144,21 +141,18 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def file1 = new File("artifact-1.zip")
         def file2 = new File("artifact-2.zip")
 
-        given:
+        when:
         addConfiguration("conf1")
         addConfiguration("conf2")
         addArtifact("conf1", artifact1, file1)
         addArtifact("conf2", artifact2, file2)
 
-        when:
-        def resolveMetaData = metaData.toResolveMetaData()
-
         then:
-        def conf1Artifacts = resolveMetaData.getConfiguration("conf1").artifacts as List
+        def conf1Artifacts = metaData.getConfiguration("conf1").artifacts as List
         conf1Artifacts.size() == 1
         def artifactMetadata1 = conf1Artifacts[0]
 
-        def conf2Artifacts = resolveMetaData.getConfiguration("conf2").artifacts as List
+        def conf2Artifacts = metaData.getConfiguration("conf2").artifacts as List
         conf2Artifacts.size() == 1
         def artifactMetadata2 = conf2Artifacts[0]
 
@@ -166,8 +160,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        resolveMetaData.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
-        resolveMetaData.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+        metaData.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
+        metaData.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
     def "can add dependencies"() {
@@ -177,7 +171,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addDependency(dependency)
 
         then:
-        metaData.toResolveMetaData().dependencies == [dependency]
+        metaData.dependencies == [dependency]
 
         // TODO:DAZ Test conversion of dependency meta data for publishing
 //        and:

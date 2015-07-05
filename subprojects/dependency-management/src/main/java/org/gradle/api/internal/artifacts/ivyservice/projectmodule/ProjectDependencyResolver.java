@@ -50,7 +50,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             if (componentMetaData == null) {
                 result.failed(new ModuleVersionResolveException(selector, "project '" + projectPath + "' not found."));
             } else {
-                result.resolved(componentMetaData.toResolveMetaData());
+                result.resolved(componentMetaData);
             }
         }
     }
@@ -62,7 +62,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             if (componentMetaData == null) {
                 result.failed(new ModuleVersionResolveException(new DefaultProjectComponentSelector(projectPath), "project '" + projectPath + "' not found."));
             } else {
-                result.resolved(componentMetaData.toResolveMetaData());
+                result.resolved(componentMetaData);
             }
         }
     }

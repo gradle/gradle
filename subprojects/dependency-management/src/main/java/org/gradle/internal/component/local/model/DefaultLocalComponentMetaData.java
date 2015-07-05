@@ -64,67 +64,50 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         allExcludeRules.add(excludeRule);
     }
 
-    public ComponentResolveMetaData toResolveMetaData() {
-        return new DefaultLocalComponentResolveMetaData();
+    @Override
+    public String toString() {
+        return componentIdentifier.getDisplayName();
     }
 
-    private class DefaultLocalComponentResolveMetaData implements ComponentResolveMetaData {
-        private ModuleVersionIdentifier moduleVersionIdentifier;
+    public ModuleSource getSource() {
+        return null;
+    }
 
-        public DefaultLocalComponentResolveMetaData() {
-            this.moduleVersionIdentifier = id;
-        }
+    public ComponentResolveMetaData withSource(ModuleSource source) {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        public String toString() {
-            return componentIdentifier.getDisplayName();
-        }
+    public boolean isGenerated() {
+        return false;
+    }
 
-        public ModuleVersionIdentifier getId() {
-            return moduleVersionIdentifier;
-        }
+    public boolean isChanging() {
+        return false;
+    }
 
-        public ModuleSource getSource() {
-            return null;
-        }
+    public String getStatus() {
+        return status;
+    }
 
-        public ComponentResolveMetaData withSource(ModuleSource source) {
-            throw new UnsupportedOperationException();
-        }
+    public List<String> getStatusScheme() {
+        return DEFAULT_STATUS_SCHEME;
+    }
 
-        public boolean isGenerated() {
-            return false;
-        }
+    public ComponentIdentifier getComponentId() {
+        return componentIdentifier;
+    }
 
-        public boolean isChanging() {
-            return false;
-        }
+    public List<DependencyMetaData> getDependencies() {
+        return allDependencies;
+    }
 
-        public String getStatus() {
-            return status;
-        }
+    @Override
+    public Set<String> getConfigurationNames() {
+        return allConfigurations.keySet();
+    }
 
-        public List<String> getStatusScheme() {
-            return DEFAULT_STATUS_SCHEME;
-        }
-
-        public ComponentIdentifier getComponentId() {
-            return componentIdentifier;
-        }
-
-        public List<DependencyMetaData> getDependencies() {
-            return allDependencies;
-        }
-
-        @Override
-        public Set<String> getConfigurationNames() {
-            return allConfigurations.keySet();
-        }
-
-        public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
-            return allConfigurations.get(name);
-        }
-
+    public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
+        return allConfigurations.get(name);
     }
 
     private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
@@ -155,7 +138,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         }
 
         public ComponentResolveMetaData getComponent() {
-            return new DefaultLocalComponentResolveMetaData();
+            return DefaultLocalComponentMetaData.this;
         }
 
         @Override

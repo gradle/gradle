@@ -16,14 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 
-public interface LocalComponentMetaData {
-    ModuleVersionIdentifier getId();
-
-    /**
-     * Converts this component to resolve meta-data.
-     */
-    ComponentResolveMetaData toResolveMetaData();
+public interface LocalComponentMetaData extends ComponentResolveMetaData {
 }

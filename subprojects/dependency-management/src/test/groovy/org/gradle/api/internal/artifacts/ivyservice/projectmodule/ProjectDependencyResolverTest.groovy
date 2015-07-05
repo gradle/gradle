@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
+import org.gradle.internal.component.local.model.LocalComponentMetaData
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
@@ -35,10 +33,7 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "resolves project dependency"() {
         setup:
-        def resolveMetaData = Stub(ModuleComponentResolveMetaData)
-        def componentMetaData = Stub(BuildableLocalComponentMetaData) {
-            toResolveMetaData() >> resolveMetaData
-        }
+        def componentMetaData = Mock(LocalComponentMetaData)
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetaData) {
             getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
@@ -49,16 +44,13 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getProject(":project") >> componentMetaData
-        1 * result.resolved(resolveMetaData)
+        1 * result.resolved(componentMetaData)
         0 * result._
     }
 
     def "resolves project component"() {
         setup:
-        def resolveMetaData = Stub(ModuleComponentResolveMetaData)
-        def componentMetaData = Stub(BuildableLocalComponentMetaData) {
-            toResolveMetaData() >> resolveMetaData
-        }
+        def componentMetaData = Mock(LocalComponentMetaData)
         def result = Mock(BuildableComponentResolveResult)
         def projectComponentId = new DefaultProjectComponentIdentifier(":projectPath")
 
@@ -67,7 +59,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getProject(":projectPath") >> componentMetaData
-        1 * result.resolved(resolveMetaData)
+        1 * result.resolved(componentMetaData)
         0 * result._
     }
 
