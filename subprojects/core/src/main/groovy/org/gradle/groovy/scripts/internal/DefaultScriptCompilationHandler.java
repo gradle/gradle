@@ -205,7 +205,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassCachingCompiledScript<T, M>(new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data));
+                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data);
             } finally {
                 decoder.close();
             }
@@ -306,6 +306,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final ClassLoader classLoader;
         private final ScriptSource source;
         private final M metadata;
+        private Class<? extends T> scriptClass;
 
         public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoader classLoader, ScriptSource source, M metadata) {
             this.isEmpty = isEmpty;
@@ -335,20 +336,22 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         @Override
         public Class<? extends T> loadClass() {
-            if (isEmpty && !hasMethods) {
-                throw new UnsupportedOperationException("Cannot load script that does nothing.");
-            }
-
-            try {
-                ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
-                return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
-            } catch (Exception e) {
-                File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
-                if (!expectedClassFile.exists()) {
-                    throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+            if (scriptClass == null) {
+                if (isEmpty && !hasMethods) {
+                    throw new UnsupportedOperationException("Cannot load script that does nothing.");
                 }
-                throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+                try {
+                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
+                    scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+                } catch (Exception e) {
+                    File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
+                    if (!expectedClassFile.exists()) {
+                        throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+                    }
+                    throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+                }
             }
+            return scriptClass;
         }
     }
 }
