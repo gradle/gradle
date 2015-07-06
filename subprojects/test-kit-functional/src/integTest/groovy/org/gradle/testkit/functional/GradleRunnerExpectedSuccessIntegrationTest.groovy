@@ -67,7 +67,7 @@ class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in $gradleRunner.workingDir with tasks \\u005BhelloWorld\\u005D and arguments \\u005B\\u005D
+        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with tasks \\u005BhelloWorld\\u005D and arguments \\u005B\\u005D
 
 Output:
 :helloWorld FAILED
@@ -82,7 +82,7 @@ Error:
 FAILURE: Build failed with an exception.
 
 \\u002A Where:
-Build file '${new File(gradleRunner.workingDir, "build.gradle")}' line: 4
+Build file '${TextUtil.escapeString(new File(gradleRunner.workingDir, "build.gradle").canonicalPath)}' line: 4
 
 \\u002A What went wrong:
 Execution failed for task ':helloWorld'.
