@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -76,6 +77,24 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+    }
+
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "runs all tests when test task descriptor is passed"() {
+        when:
+        launchTests(taskDescriptors(":test") + testDescriptors("example.MyTest", "foo", ":test"));
+        then:
+        assertTaskExecuted(":test")
+        assertTaskNotExecuted(":secondTest")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
     }
 
     @ToolingApiVersion(">=2.6")
@@ -188,6 +207,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    Collection<OperationDescriptor> taskDescriptors(Set<TaskFinishEvent> taskEvents = finishedTasksEvents, String taskPath) {
+        taskEvents.collect {it.descriptor}.findAll {it.taskPath == taskPath}
+    }
+
     Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className, String methodName) {
         testDescriptors(descriptors, className, methodName, null)
     }
@@ -210,12 +233,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         !testDescriptors(currentTestDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
 
-    void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
+    void launchTests(Collection<OperationDescriptor> testsToLaunch) {
         currentTestDescriptors.clear()
         finishedTasksEvents.clear()
         withConnection { ProjectConnection connection ->
             connection.newTestLauncher()
-                .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
+                .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
                 .addProgressListener(new ProgressListener() {
 
                 @Override
@@ -239,7 +262,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                     connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(new ProgressListener() {
                         @Override
                         void statusChanged(ProgressEvent event) {
-                            if (event instanceof TestProgressEvent) {
+                            if (event instanceof TaskFinishEvent) {
+                                finishedTasksEvents << event
+                            } else if (event instanceof TestProgressEvent) {
                                 allTestDescriptors << event.descriptor
                             }
                         }

@@ -72,7 +72,7 @@ class TestExecutionConsumerConnectionTest extends Specification {
 
     private TestExecutionRequest testExecutionRequest(TestOperationDescriptor... descriptors) {
         TestExecutionRequest testExecutionRequest = Mock()
-        testExecutionRequest.testOperationDescriptors >> Arrays.asList(descriptors)
+        testExecutionRequest.operationDescriptors >> Arrays.asList(descriptors)
         testExecutionRequest
     }
 

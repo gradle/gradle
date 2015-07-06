@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -35,7 +35,7 @@ import java.util.List;
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
-    List<TestOperationDescriptor> testOperationDescriptors = new ArrayList<TestOperationDescriptor>();
+    List<OperationDescriptor> operationDescriptors = new ArrayList<OperationDescriptor>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -49,8 +49,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
-    public TestLauncher withTests(TestOperationDescriptor... testDescriptors) {
-        testOperationDescriptors.addAll(Arrays.asList(testDescriptors));
+    public TestLauncher withTests(OperationDescriptor... testDescriptors) {
+        operationDescriptors.addAll(Arrays.asList(testDescriptors));
         return this;
     }
 
@@ -68,7 +68,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             }
             public Void run(ConsumerConnection connection) {
                 if(connection instanceof TestExecutionConsumerConnection) {
-                    return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(testOperationDescriptors), getParameters());
+                    return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(operationDescriptors), getParameters());
                 } else {
                     throw new UnsupportedVersionException("TestLauncher API not supported by Gradle provider version");
                 }

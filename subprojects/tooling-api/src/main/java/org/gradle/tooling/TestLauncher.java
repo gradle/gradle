@@ -16,7 +16,7 @@
 
 package org.gradle.tooling;
 
-import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.test.TestExecutionException;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.tooling.test.TestExecutionException;
  *
  * */
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
-    TestLauncher withTests(TestOperationDescriptor... testDescriptors);
+    TestLauncher withTests(OperationDescriptor... testDescriptors);
 
     void run() throws TestExecutionException; // Run synchronously
     void run(ResultHandler<? super Void> handler); // Start asynchronously

@@ -67,7 +67,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                             if (testDescriptor.getTaskPath().equals(testTaskPath)) {
                                 final String className = testDescriptor.getClassName();
                                 final String methodName = testDescriptor.getMethodName();
-                                if (className != null) {
+                                if(className == null && methodName == null) {
+                                    testTask.getFilter().includeTestsMatching("*");
+                                }else {
                                     testTask.getFilter().includeTest(className, methodName);
                                 }
                             }
@@ -86,9 +88,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
             buildController.run();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
-            if(throwable instanceof TestExecutionException){
+            if (throwable instanceof TestExecutionException) {
                 failure = new InternalTestExecutionException("Error while running test(s)", throwable);
-            } else if (throwable instanceof TaskSelectionException){
+            } else if (throwable instanceof TaskSelectionException) {
                 failure = new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;
@@ -105,7 +107,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
     private Throwable findRootCause(Exception tex) {
         Throwable t = tex.getCause();
-        while(t.getCause() != null) {
+        while (t.getCause() != null) {
             t = t.getCause();
         }
         return t;

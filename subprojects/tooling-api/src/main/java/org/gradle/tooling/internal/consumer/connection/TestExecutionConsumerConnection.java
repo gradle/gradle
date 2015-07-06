@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.tooling.test.TestExecutionException;
@@ -62,25 +60,20 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     }
 
     InternalTestExecutionRequest toInternalTestExecutionRequest(TestExecutionRequest testExecutionRequest) {
-        final Collection<TestOperationDescriptor> testOperationDescriptors = testExecutionRequest.getTestOperationDescriptors();
-        final Collection<JvmTestOperationDescriptor> jvmTestOperationDescriptors = toJvmTestOperatorDescriptor(testOperationDescriptors);
+        final Collection<OperationDescriptor> operationDescriptors = testExecutionRequest.getOperationDescriptors();
         final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors = Lists.newArrayList();
-        for (final JvmTestOperationDescriptor descriptor : jvmTestOperationDescriptors) {
-            internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(descriptor.getClassName(), descriptor.getMethodName(), findTaskPath(descriptor)));
+        for (final OperationDescriptor descriptor : operationDescriptors) {
+            if (descriptor instanceof JvmTestOperationDescriptor) {
+                JvmTestOperationDescriptor jvmTestOperationDescriptor = (JvmTestOperationDescriptor)descriptor;
+                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), findTaskPath(jvmTestOperationDescriptor)));
+            } else if (descriptor instanceof TaskOperationDescriptor) {
+                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null, null, ((TaskOperationDescriptor) descriptor).getTaskPath()));
+            } else {
+                throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+            }
         }
         InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors);
         return internalTestExecutionRequest;
-    }
-
-    private Collection<JvmTestOperationDescriptor> toJvmTestOperatorDescriptor(Collection<TestOperationDescriptor> testOperationDescriptors) {
-        assertOnlyJvmTestOperatorDescriptors(testOperationDescriptors);
-
-        return Collections2.transform(testOperationDescriptors, new Function<TestOperationDescriptor, JvmTestOperationDescriptor>() {
-            @Override
-            public JvmTestOperationDescriptor apply(TestOperationDescriptor input) {
-                return (JvmTestOperationDescriptor) input;
-            }
-        });
     }
 
     private void assertOnlyJvmTestOperatorDescriptors(Collection<TestOperationDescriptor> testOperationDescriptors) {

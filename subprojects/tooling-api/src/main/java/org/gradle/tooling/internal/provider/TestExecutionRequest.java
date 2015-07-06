@@ -16,19 +16,19 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 
 import java.util.Collection;
 import java.util.List;
 
 public class TestExecutionRequest {
-    private List<TestOperationDescriptor> testOperationDescriptors;
+    private List<OperationDescriptor> operationDescriptors;
 
-    public TestExecutionRequest(List<TestOperationDescriptor> testOperationDescriptors) {
-        this.testOperationDescriptors = testOperationDescriptors;
+    public TestExecutionRequest(List<OperationDescriptor> operationDescriptors) {
+        this.operationDescriptors = operationDescriptors;
     }
 
-    public Collection<TestOperationDescriptor> getTestOperationDescriptors() {
-        return testOperationDescriptors;
+    public Collection<OperationDescriptor> getOperationDescriptors() {
+        return operationDescriptors;
     }
 }
