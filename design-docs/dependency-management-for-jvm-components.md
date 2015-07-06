@@ -332,7 +332,6 @@ dependencies of the source are also built and the source compiled.
 - API dependencies should be built before the Java source is compiled.
 - Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
 - Default Java platform and tool-chains are used to build the binary. For this story, the Java platform is not configurable for these binaries.
-- Dependency resolution honors the target platform of the consuming custom Jar binary.
 - Error cases:
     - Fail when no rule is available to define the tasks for a `BinarySpec`.
 
@@ -347,17 +346,16 @@ dependencies of the source are also built and the source compiled.
         - Source from `b` is compiled against the API of `lib2` only and the compiled classes end up in the Jar.
         - Resources from `res-a` and `res-b` end up in the Jar.
         - Jar contains only the above items.
-- Plugin with custom component and custom rule for creating task for `JarBinarySpec`, not using `jvm-component` plugin:
-    - Probably want to add a new sample under `customModel` that demonstrates a custom jvm-based component
 - Error cases above.
 
 ### Implementation
 
-- May need to replace `ComponentSpecInternal.getInputTypes()`, possibly by moving to `BinarySpecInternal` for now.
-    - This is only used to determine the default source sets for a component, so may not be required unless we want this to
-      automatically work for custom components based on configured binary types.
 - Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
 - Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
+
+### Open issues
+
+- What happens when adding a managed subtype of `JarBinarySpec`? Do the rules for `@ComponentBinaries` in the `jvm-component` plugin apply to these as well?
 
 ## Story: Plugin author defines a custom library that provides a Java API
 
