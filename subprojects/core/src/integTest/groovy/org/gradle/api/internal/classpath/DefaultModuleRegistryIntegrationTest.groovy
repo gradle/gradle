@@ -16,28 +16,23 @@
 
 package org.gradle.api.internal.classpath
 
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.jvm.JavaHomeException
-import org.gradle.internal.jvm.JavaInfo
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.IgnoreIf
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@IgnoreIf({ DefaultModuleRegistryIntegrationTest.availableJdksWithJavac().size() == 0 })
 class DefaultModuleRegistryIntegrationTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile distDir
-    File javacExecutable
 
     def setup() {
         distDir = tmpDir.createDir("dist")
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
-        javacExecutable = determineJavacExecutable()
     }
 
     @Unroll
@@ -76,14 +71,19 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
     private void createJarFile(TestFile jar) {
         TestFile contents = tmpDir.createDir('contents')
-        TestFile javaFile = contents.createFile('org/gradle/MyClass.java')
-        javaFile << """package org.gradle;
+        TestFile classFile = contents.createFile('org/gradle/MyClass.class')
 
-            public class MyClass {}
-        """
-        String compatibilityVersion = JavaVersion.VERSION_1_6.toString()
-        new AntBuilder().javac(destdir: contents, includeantruntime: true, source: compatibilityVersion, target: compatibilityVersion, fork: 'yes', executable: javacExecutable) {
-            src(path: contents)
+        ClassNode classNode = new ClassNode()
+        classNode.version = Opcodes.V1_6
+        classNode.access = Opcodes.ACC_PUBLIC
+        classNode.name = 'org/gradle/MyClass'
+        classNode.superName = 'java/lang/Object'
+
+        ClassWriter cw = new ClassWriter(0)
+        classNode.accept(cw)
+
+        classFile.withDataOutputStream {
+            it.write(cw.toByteArray())
         }
 
         contents.zipTo(jar)
@@ -93,23 +93,5 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
         URL[] urls = [new URL("jar:${jar.toURI().toURL()}!/")] as URL[]
         URLClassLoader ucl = new URLClassLoader(urls)
         Class.forName('org.gradle.MyClass', true, ucl)
-    }
-
-    static List<JavaInfo> availableJdksWithJavac() {
-        AvailableJavaHomes.availableJdks.findAll {
-            try {
-                if (it.javacExecutable) {
-                    return true
-                }
-            }
-            catch (JavaHomeException ignore) {
-                // ignore
-            }
-            false
-        }
-    }
-
-    private static File determineJavacExecutable() {
-        availableJdksWithJavac()[0].javacExecutable
     }
 }
