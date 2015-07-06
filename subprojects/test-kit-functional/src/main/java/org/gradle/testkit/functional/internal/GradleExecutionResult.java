@@ -20,19 +20,25 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class GradleExecutionResult {
     private final ByteArrayOutputStream standardOutput;
     private final ByteArrayOutputStream standardError;
-    private final List<String> executedTasks = new ArrayList<String>();
-    private final List<String> skippedTasks = new ArrayList<String>();
-    private Throwable throwable;
+    private final List<String> executedTasks;
+    private final List<String> skippedTasks;
+    private final Throwable throwable;
 
-    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError) {
+    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<String> executedTasks, List<String> skippedTasks) {
+        this(standardOutput, standardError, executedTasks, skippedTasks, null);
+    }
+
+    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<String> executedTasks, List<String> skippedTasks, Throwable throwable) {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
+        this.executedTasks = executedTasks;
+        this.skippedTasks = skippedTasks;
+        this.throwable = throwable;
     }
 
     public String getStandardOutput() {
@@ -61,10 +67,6 @@ public class GradleExecutionResult {
 
     public Throwable getThrowable() {
         return throwable;
-    }
-
-    public void setThrowable(Throwable throwable) {
-        this.throwable = throwable;
     }
 
     public boolean isSuccessful() {

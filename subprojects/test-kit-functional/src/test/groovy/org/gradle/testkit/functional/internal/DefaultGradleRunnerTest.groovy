@@ -45,8 +45,7 @@ class DefaultGradleRunnerTest extends Specification {
     @Unroll
     def "creates diagnostic message for execution result for thrown #description"() {
         given:
-        GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()
-        gradleExecutionResult.setThrowable(exception)
+        GradleExecutionResult gradleExecutionResult = createGradleExecutionResult(exception)
 
         when:
         String message = defaultGradleRunner.createDiagnosticsMessage('Gradle build executed', gradleExecutionResult)
@@ -64,12 +63,14 @@ $expectedReason
         new RuntimeException('Something went wrong', new GradleException('Unknown command line option', new Exception('Total fail'))) | 'Total fail'                  | 'exception having multiple parent causes'
     }
 
-    private GradleExecutionResult createGradleExecutionResult() {
+    private GradleExecutionResult createGradleExecutionResult(Throwable throwable = null) {
         ByteArrayOutputStream standardOutput = new ByteArrayOutputStream()
         standardOutput.write('This is some output'.bytes)
         ByteArrayOutputStream standardError = new ByteArrayOutputStream()
         standardError.write('This is some error'.bytes)
-        new GradleExecutionResult(standardOutput, standardError)
+        List<String> executedTasks = new ArrayList<>();
+        List<String> skippedTasks = new ArrayList<>();
+        new GradleExecutionResult(standardOutput, standardError, executedTasks, skippedTasks, throwable)
     }
 
     private String getBasicDiagnosticsMessage() {

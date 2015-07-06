@@ -32,6 +32,7 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -63,7 +64,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     public GradleExecutionResult run() {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
-        final GradleExecutionResult gradleExecutionResult = new GradleExecutionResult(standardOutput, standardError);
+        final List<String> executedTasks = new ArrayList<String>();
+        final List<String> skippedTasks = new ArrayList<String>();
 
         GradleConnector gradleConnector = buildConnector();
         ProjectConnection connection = null;
@@ -73,7 +75,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             BuildLauncher launcher = connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
-            launcher.addProgressListener(new TaskExecutionProgressListener(gradleExecutionResult.getExecutedTasks(), gradleExecutionResult.getSkippedTasks()));
+            launcher.addProgressListener(new TaskExecutionProgressListener(executedTasks, skippedTasks));
 
             String[] argumentArray = new String[arguments.size()];
             arguments.toArray(argumentArray);
@@ -85,14 +87,14 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             launcher.run();
         } catch(RuntimeException t) {
-            gradleExecutionResult.setThrowable(t);
+            return new GradleExecutionResult(standardOutput, standardError, executedTasks, skippedTasks, t);
         } finally {
             if(connection != null) {
                 connection.close();
             }
         }
 
-        return gradleExecutionResult;
+        return new GradleExecutionResult(standardOutput, standardError, executedTasks, skippedTasks);
     }
 
     private GradleConnector buildConnector() {
