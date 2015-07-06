@@ -21,8 +21,6 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.testkit.functional.internal.DefaultGradleRunner;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
-import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
-import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
 
 import java.io.File;
 import java.util.List;
@@ -125,9 +123,7 @@ public abstract class GradleRunner {
     }
 
     static GradleRunner create(GradleDistribution gradleDistribution) {
-        if(!(gradleDistribution instanceof VersionBasedGradleDistribution
-            || gradleDistribution instanceof InstalledGradleDistribution
-            || gradleDistribution instanceof URILocatedGradleDistribution)) {
+        if(!(gradleDistribution instanceof InstalledGradleDistribution)) {
             throw new IllegalArgumentException(String.format("Invalid Gradle distribution type: %s", gradleDistribution.getClass().getName()));
         }
 

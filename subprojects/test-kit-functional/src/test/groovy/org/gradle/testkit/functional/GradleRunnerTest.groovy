@@ -19,8 +19,6 @@ package org.gradle.testkit.functional
 import org.gradle.testkit.functional.internal.DefaultGradleRunner
 import org.gradle.testkit.functional.internal.dist.GradleDistribution
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
-import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution
-import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -34,17 +32,12 @@ class GradleRunnerTest extends Specification {
     }
 
     @Unroll
-    def "can create instance with supported Gradle distribution type #gradleDistribution"() {
+    def "can create instance with supported Gradle distribution type"() {
         when:
-        GradleRunner gradleRunner = GradleRunner.create(gradleDistribution)
+        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(new File('some/dir')))
 
         then:
         gradleRunner instanceof DefaultGradleRunner
-
-        where:
-        gradleDistribution << [new VersionBasedGradleDistribution('2.4'),
-                               new InstalledGradleDistribution(new File('some/dir')),
-                               new URILocatedGradleDistribution(new URI('http://services.gradle.org/distributions/gradle-2.4-bin.zip'))]
     }
 
     def "throws exception for unsupported Gradle distribution type"() {

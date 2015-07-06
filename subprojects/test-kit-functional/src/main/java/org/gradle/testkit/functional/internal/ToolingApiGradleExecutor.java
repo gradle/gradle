@@ -20,8 +20,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
-import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
-import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -116,12 +114,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             logger.debug("Using %s", gradleDistribution.getDisplayName());
         }
 
-        if(gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getVersion());
-        } else if(gradleDistribution instanceof InstalledGradleDistribution) {
+        if(gradleDistribution instanceof InstalledGradleDistribution) {
             gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHomeDir());
-        } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
-            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getURI());
         }
     }
 
