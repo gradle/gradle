@@ -194,9 +194,7 @@ The implementation should continue to build on the dependency resolution engine.
     - A request in this context is a single dependency resolution, that is
 to say a call to `DefaultDependencyResolver#resolve`.
     - The factory should accept a `ResolveContext` instance
-    - The factory should create an instance of a `ResolverProvider` based on a `Query` object
-    - The `Query` represents contextual information necessary to instantiate a `ResolverProvider`. In particular, it wraps the `ResolveContext` instance.
-- Update `DefaultDependencyResolver` to use the factory to instantiate a new `ResolverProvider`, providing it with a `ResolveContext`.
+    - Update `DefaultDependencyResolver` to use the factory to instantiate a new `ResolverProvider`, providing it with a `ResolveContext`.
 - Replace direct instantiation of `LocalLibraryDependencyResolver` in `BuildScopeServices` with a call to the factory
     - Create a `JavaLibraryResolverProvider` which accepts a `ResolveContext` as a constructor argument and delegates to a `LocalLibraryDependencyResolver`
     - Update `LocalLibraryDependencyResolver` to accept a `JvmBinarySpec` as a constructor argument. This spec provides information to the resolver about the usage of the library
@@ -213,8 +211,16 @@ information from `ResolveContext` to create the `LocalLibraryDependencyResolver`
     - When `a` targets Java 6 and Java 7, and `b` targets Java 6, Java 7 and Java 8, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7.
     - When `a` targets Java 6 and Java 7, and `b` targets Java 6 and Java 7, then `a` Java 6 is built against `b` Java 6 and `a` Java 7 is built against `b` Java 7 and the order
     of declaration of the platforms on `b` doesn't matter
-
-- Error cases as above.
+    - When `a` targets Java 6 and `b` targets Java 7 then `a` Java 6 is not buildable
+        - Error message should detail available platform variants of `b`
+    - When `a` targets Java 6 and Java 7, and `b` targets Java 7 and Java 8, then `a` Java 6 is not buildable and `a` Java 7 is built against `b` Java 7
+      - Reasonable error message when attempting to build `a` Java 6
+      - Error message should detail available platform variants of `b`
+    - When `a` targets Java 6, and `b` has 2 different variants for Java 6
+        - Error attempting to build `a` outlines multiple variants with compatible platform
+    - When `a` targets Java 6 and Java 7, and `b` has 2 different variants for Java 6
+        - Error attempting to build `a` Java 6 outlines multiple variants with compatible platform
+        - Error attempting to build `b` Java 7 outlines no compatible variants
 
 ## Feature backlog
 
@@ -332,7 +338,7 @@ dependencies of the source are also built and the source compiled.
 
 ### Test cases
 
-- Given a custom component that creates a `JarBinarySpec`, using
+- Given a custom component that creates a `JarBinarySpec`, using the `jvm-component` plugin:
     - Source set `a` depends on Java library `lib1`
     - Source set `b` depends on Java library `lib2`
     - Resources set `res-a` and `res-b`
