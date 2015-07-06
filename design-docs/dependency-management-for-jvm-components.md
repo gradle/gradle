@@ -365,16 +365,15 @@ Define a custom library that produces a Jar binary from Java source. When anothe
 this library, the Jar binary is built and made available to the consuming component.
 
 - Change dependency resolution to select a `LibrarySpec` instance that provides a `JarBinarySpec`.
-    - For a requirement that specifies a `project` and no `library`, select the library that may provide a Jar binary.
+    - For a requirement that specifies a `project` and no `library`, select the library that provides a Jar binary.
         - Fail when there is not exactly one such library.
     - Given a selected library, fail when that library does not provide exactly one compatible `JarBinarySpec`.
 - Dependency resolution honors the target platform of the consuming Jar binary, so that all API dependencies must be compatible with the target platform.
 - Allows an arbitrary graph of custom libraries and Java libraries to be assembled and built.
 
-The current implementation of `LocalLibraryDependencyResolver` works on `JvmLibrarySpec` and `JvmBinarySpec`, which implies that it works on
-`JarBinarySpec`. If possible, we should avoid directly depending on `JarBinarySpec`.
-
 ### Test cases
+
+#### Simple dependencies
 
 - Given a project that defines a custom `CustomLibrarySpec` _A_ that creates a `JarBinarySpec`and a `JvmLibrarySpec` _B_:
     - source set `main` of `B` declares a dependency on library `A`
@@ -400,7 +399,70 @@ The current implementation of `LocalLibraryDependencyResolver` works on `JvmLibr
           - source set `main` of `B` is compiled using the `java7` binary from `A` as the API dependency
 - Reverse the roles of _A_ and _B_ in the cases above (_A_ becomes the consumer, _B_ the producer)
 
-Error cases of the above.
+#### Complex graph of dependencies
+
+To simplify the definition of the tests above, a component whose name starts with `J` is a JVM library, while a component whose name starts with `C` is a custom component
+providing at least one `JarBinarySpec`. When we say _x depends on y_ we mean that a source set of _x_ depends on the API of the library of _y_. It is expected that for
+dependency resolution, the test verify that the classpath contains the appropriate jars.
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`, all of them targeting Java 6
+    - building `J1`, `C` or `J2` should succeed
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`
+    - `J1` targets Java 6 and Java 7
+    - `C` targets Java 7
+    - `J2` targets Java 7
+    - building the Java 7 variant of `J1` should succeed
+    - building `C` should succeed
+    - building the Java 6 variant of `J1` should fail with an error message highlighting that no compatible variant of `C` has been found
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`
+    - `J1` targets Java 6 and Java 7
+    - `C` targets Java 6 and Java 7
+    - `J2` targets Java 7
+    - resolving the dependencies of the Java 6 and Java 7 variants of `J1` should succeed
+    - resolving the dependencies of `C` should fail with an error message highlighting that no compatible variant of `J2` has been found
+    - building the Java 7 version of `J1` should succeed
+    - building the Java 6 version of `J1` should fail
+    - building the Java 7 variant of `C` should succeed
+
+- Given a component `J1` that depends on `C`, itself depending on `J2` all targetting Java 6 and Java 7
+    - resolving the dependencies of `J1` and `C` should succeed
+    - the Java 7 variant of `J1` should depend on the Java 7 variant of `C`
+    - the Java 6 variant of `J1` should depend on the Java 6 variant of `C`
+    - the Java 6 variant of `C` should depend on the Java 6 variant of `J2`
+    - the Java 7 variant of `C` should depend on the Java 7 variant of `J2`
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`
+    - `J1` targets Java 6
+    - `C` targets Java 6 and Java 7
+    - `J2` target Java 6
+    - resolving the dependencies of `J1` (as well as building) should succeed
+    - resolving the dependencies of the Java 6 version of `C`  (as well as building) should succeed
+    - resolving the dependencies of the Java 7 version of `C` should fail
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`, itself depending on `J1`
+    - resolving the dependencies of `J1`, `C` or `J2` should succeed
+    - building any of the components should fail with a cyclic dependency error
+
+- Given a component `J1` that depends on `C`, itself depending on `J2`
+    - `J1`, `C` and `J2` target Java 6 and Java 7
+    - `C` provides 2 binaries for `Java 6`
+    - resolving the dependencies and building the Java 7 version of all components should succeed
+    - resolving the dependencies and building the Java 6 version of `C` should succeed
+    - resolving the dependencies of the Java 6 variant of `J1` should fail with an error message indicating that multiple binaries for `C` are available for the `Java 6` variant
+
+- Given a component `J1` that depends on `C1`, a component `J2` that depends on `C1`, a component `C2` that depends on `J2`, a component `J3` that depends on `J1`, `J2` and `C2`
+    - resolving the dependencies and building any of the component should succeed
+
+- Given a component `J1` that depends on `C1`, a component `J2` that depends on `C1`, a component `J3` that depends on `J1` and `J2`
+    - all components but `J2` target Java 6 and Java 7
+    - `J2` only targets Java 6
+    - resolving the dependencies and building of all components for the Java 6 variant should succeed
+    - resolving the dependencies for the Java 7 variant of `J3` should fail with an error indicating that no suitable variant of `J2` is found
+    - resolving the dependencies for the Java 7 variant of `C2` should fail with an error indicating that no suitable variant of `J2` is found
+
+
 
 ### Implementation
 
