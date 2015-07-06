@@ -126,6 +126,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.language.base.internal.*
             import org.gradle.language.base.*
             import org.gradle.internal.reflect.*
+            import org.gradle.internal.service.*
 
 
             class CustomLanguageTransformation implements LanguageTransform {
