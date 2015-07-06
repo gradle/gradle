@@ -19,6 +19,6 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 
 import java.util.Set;
 
-public interface ResolvedArtifactsContainer {
+public interface ResolvedArtifacts {
     Set<ResolvedArtifact> getArtifacts();
 }

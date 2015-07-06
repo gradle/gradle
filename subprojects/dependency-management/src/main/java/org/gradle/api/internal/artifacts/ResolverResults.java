@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifacts;
 
 public interface ResolverResults {
     boolean hasError();
@@ -36,5 +36,5 @@ public interface ResolverResults {
 
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
-    ResolvedArtifactsContainer getResolvedArtifacts();
+    ResolvedArtifacts getResolvedArtifacts();
 }

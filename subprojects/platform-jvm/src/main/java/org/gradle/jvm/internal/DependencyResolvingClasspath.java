@@ -15,32 +15,36 @@
  */
 package org.gradle.jvm.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
+    private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
+    private final List<ResolutionAwareRepository> remoteRepositories = Lists.newArrayList();
     private final JarBinarySpec binary;
     private final DependentSourceSetInternal sourceSet;
     private final ArtifactDependencyResolver dependencyResolver;
-    private final JavaPlatform platform;
+    private final DependentSourceSetResolveContext resolveContext;
 
-    private ResolverResults resolverResults;
+    private ResolverResults cachedResolveResults;
     private TaskDependency taskDependency;
 
     public DependencyResolvingClasspath(
@@ -50,7 +54,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
-        this.platform = binarySpec.getTargetPlatform();
+        resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, binary.getTargetPlatform());
     }
 
     @Override
@@ -61,16 +65,13 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public Set<File> getFiles() {
         ensureResolved();
-        Set<File> classpath = new LinkedHashSet<File>();
-        Set<ResolvedArtifact> artifacts = resolverResults.getResolvedArtifacts().getArtifacts();
-        for (ResolvedArtifact resolvedArtifact : artifacts) {
-            classpath.add(resolvedArtifact.getFile());
-        }
-        return classpath;
-    }
-
-    private DependentSourceSetResolveContext createResolveContext() {
-        return new DependentSourceSetResolveContext(binary.getId(), sourceSet, platform);
+        Set<ResolvedArtifact> artifacts = cachedResolveResults.getResolvedArtifacts().getArtifacts();
+        return CollectionUtils.collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+            @Override
+            public File transform(ResolvedArtifact resolvedArtifact) {
+                return resolvedArtifact.getFile();
+            }
+        });
     }
 
     @Override
@@ -80,38 +81,30 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     private void ensureResolved() {
-        if (resolverResults==null) {
-            final DefaultTaskDependency result = new DefaultTaskDependency();
-            result.add(super.getBuildDependencies());
-            final List<Throwable> notFound = new LinkedList<Throwable>();
-            resolve(createResolveContext(), new Action<DefaultResolverResults>() {
-                @Override
-                public void execute(DefaultResolverResults resolverResults) {
-                    if (!resolverResults.hasError()) {
-                        ResolvedLocalComponentsResult resolvedLocalComponents = resolverResults.getResolvedLocalComponents();
-                        result.add(resolvedLocalComponents.getComponentBuildDependencies());
-                    }
-                    resolverResults.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                        @Override
-                        public void execute(DependencyResult dependencyResult) {
-                            if (dependencyResult instanceof UnresolvedDependencyResult) {
-                                UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
-                                notFound.add(unresolved.getFailure());
-                            }
-                        }
-                    });
-                }
-            });
-            if (!notFound.isEmpty()) {
-                throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
-            }
-            taskDependency = result;
+        if (cachedResolveResults == null) {
+            DefaultResolverResults results = new DefaultResolverResults();
+
+            dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, results);
+            failOnUnresolvedDependency(results.getResolutionResult());
+
+            taskDependency = results.getResolvedLocalComponents().getComponentBuildDependencies();
+            cachedResolveResults = results;
         }
     }
 
-    public void resolve(ResolveContext resolveContext, Action<DefaultResolverResults> onResolve) {
-        resolverResults = new DefaultResolverResults();
-        dependencyResolver.resolve(resolveContext, Collections.<ResolutionAwareRepository>emptyList(), GlobalDependencyResolutionRules.NO_OP, (DefaultResolverResults) resolverResults);
-        onResolve.execute((DefaultResolverResults) resolverResults);
+    private void failOnUnresolvedDependency(ResolutionResult resolutionResult) {
+        final List<Throwable> notFound = new LinkedList<Throwable>();
+        resolutionResult.allDependencies(new Action<DependencyResult>() {
+            @Override
+            public void execute(DependencyResult dependencyResult) {
+                if (dependencyResult instanceof UnresolvedDependencyResult) {
+                    UnresolvedDependencyResult unresolved = (UnresolvedDependencyResult) dependencyResult;
+                    notFound.add(unresolved.getFailure());
+                }
+            }
+        });
+        if (!notFound.isEmpty()) {
+            throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
+        }
     }
 }

@@ -185,12 +185,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
             results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
         } else {
-            results.getResolutionResult().allComponents(new Action<ResolvedComponentResult>() {
-                @Override
-                public void execute(ResolvedComponentResult resolvedComponentResult) {
-
-                }
-            });
+            throw new UnsupportedOperationException("Artifact resolution only supported for Configuration");
         }
     }
 

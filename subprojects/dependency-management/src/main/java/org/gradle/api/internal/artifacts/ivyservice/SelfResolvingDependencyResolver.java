@@ -53,7 +53,7 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);
 
-        ((DefaultResolverResults) results).withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
+        results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
     }
 
     protected static class SelfResolvingFilesProvider {

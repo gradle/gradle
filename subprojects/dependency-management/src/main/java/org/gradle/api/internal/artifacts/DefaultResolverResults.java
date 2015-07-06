@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifacts;
 
 public class DefaultResolverResults implements BuildableResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
@@ -88,7 +88,10 @@ public class DefaultResolverResults implements BuildableResolverResults {
     }
 
     @Override
-    public ResolvedArtifactsContainer getResolvedArtifacts() {
+    public ResolvedArtifacts getResolvedArtifacts() {
+        if (fatalFailure != null) {
+            throw fatalFailure;
+        }
         return artifactResults.resolve();
     }
 

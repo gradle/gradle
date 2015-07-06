@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifactsContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifacts;
 
 import java.util.Set;
 
-public interface ResolvedArtifactResults extends ResolvedArtifactsContainer {
-    void resolveNow();
-
+public interface ResolvedArtifactResults extends ResolvedArtifacts {
     Set<ResolvedArtifact> getArtifacts(long id);
 }
