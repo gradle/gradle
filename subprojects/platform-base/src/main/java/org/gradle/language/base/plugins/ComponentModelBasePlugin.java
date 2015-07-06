@@ -111,7 +111,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageTransformContainer languageTransforms) {
+        void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             for (LanguageTransform<?, ?> language : languageTransforms) {
                 for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                     if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
@@ -124,8 +124,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
                             String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
                             Task task = tasks.create(taskName, taskConfig.getTaskType());
-
-                            taskConfig.configureTask(task, binary, sourceSet);
+                            taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 
                             task.dependsOn(sourceSet);
                             binary.getTasks().add(task);

@@ -84,7 +84,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     return ProcessResources.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
                     JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;

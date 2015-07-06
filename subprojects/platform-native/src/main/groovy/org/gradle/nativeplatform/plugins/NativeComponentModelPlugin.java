@@ -241,7 +241,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
+        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
             for (final NativeBinarySpecInternal nativeBinarySpec : binaries.values()) {
                 for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
                     nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
@@ -255,7 +255,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                     @Override
                                     public void execute(DefaultTask task) {
-                                        pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet);
+                                        pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet, serviceRegistry);
                                     }
                                 });
                                 nativeBinarySpec.getTasks().add(pchTask);

@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -60,7 +61,7 @@ abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
         return taskType;
     }
 
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureCompileTaskCommon((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }

@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -96,15 +95,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     return PlatformJavaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
 
-                    // TODO: Probably need to extract this in a utility class for language plugins,
-                    // or a language plugin superclass in order to avoid the use of internal APIs
-                    GradleInternal gradle = (GradleInternal) task.getProject().getGradle();
-                    ArtifactDependencyResolver dependencyResolver = gradle.getServices().get(ArtifactDependencyResolver.class);
+                    ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+
                     ProjectInternal project = (ProjectInternal) task.getProject();
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
