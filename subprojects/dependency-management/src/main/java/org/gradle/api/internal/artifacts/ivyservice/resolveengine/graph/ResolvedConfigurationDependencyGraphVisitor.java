@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
@@ -48,7 +49,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
-    private DependencyGraphBuilder.ConfigurationNode root;
+    private DependencyGraphNode root;
 
     ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
         this.builder = builder;
@@ -56,13 +57,13 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         this.artifactResolver = artifactResolver;
     }
 
-    public void start(DependencyGraphBuilder.ConfigurationNode root) {
+    public void start(DependencyGraphNode root) {
         this.root = root;
     }
 
-    public void visitNode(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration) {
-        builder.newResolvedDependency(resolvedConfiguration.id);
-        for (DependencyGraphBuilder.DependencyEdge dependency : resolvedConfiguration.outgoingEdges) {
+    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        builder.newResolvedDependency(resolvedConfiguration.getNodeId());
+        for (DependencyGraphEdge dependency : resolvedConfiguration.getOutgoingEdges()) {
             ModuleVersionResolveException failure = dependency.getFailure();
             if (failure != null) {
                 addUnresolvedDependency(dependency, dependency.getRequestedModuleVersion(), failure);
@@ -70,32 +71,32 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    public void visitEdge(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration) {
+    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
         LOGGER.debug("Attaching {} to its parents.", resolvedConfiguration);
-        for (DependencyGraphBuilder.DependencyEdge dependency : resolvedConfiguration.incomingEdges) {
+        for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
             attachToParents(dependency, resolvedConfiguration);
         }
     }
 
-    private void attachToParents(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
-        ResolvedConfigurationIdentifier parent = dependency.from.id;
-        ResolvedConfigurationIdentifier child = childConfiguration.id;
+    private void attachToParents(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
+        ResolvedConfigurationIdentifier parent = dependency.getFrom().getNodeId();
+        ResolvedConfigurationIdentifier child = childConfiguration.getNodeId();
         builder.addChild(parent, child);
 
         ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
         builder.addArtifacts(child, parent, artifacts.getId());
         artifactsBuilder.addArtifacts(artifacts.getId(), artifacts);
 
-        if (parent == root.id) {
+        if (parent == root.getNodeId()) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();
             builder.addFirstLevelDependency(moduleDependency, child);
         }
     }
 
     // TODO:DAZ This is functional, but need to refactor for clarity
-    private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+    private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
         long id = idGenerator.generateId();
-        ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.id;
+        ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
         ConfigurationMetaData metaData = childConfiguration.getMetaData();
         ComponentResolveMetaData component = metaData.getComponent();
 
@@ -118,11 +119,11 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         return configurationArtifactSet;
     }
 
-    public void finish(DependencyGraphBuilder.ConfigurationNode root) {
+    public void finish(DependencyGraphNode root) {
         allResolvedArtifacts.clear();
         artifactSetsByConfiguration.clear();
         attachFailures(builder);
-        builder.done(root.id);
+        builder.done(root.getNodeId());
     }
 
     private void attachFailures(ResolvedConfigurationBuilder result) {
@@ -135,14 +136,14 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private Collection<List<ModuleVersionIdentifier>> calculatePaths(BrokenDependency brokenDependency) {
         // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
 
-        Map<DependencyGraphBuilder.ModuleVersionResolveState, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<DependencyGraphBuilder.ModuleVersionResolveState, List<ModuleVersionIdentifier>>();
+        Map<ModuleVersionSelection, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ModuleVersionSelection, List<ModuleVersionIdentifier>>();
         List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
         rootPath.add(root.toId());
-        shortestPaths.put(root.moduleRevision, rootPath);
+        shortestPaths.put(root.getSelection(), rootPath);
 
         Set<DependencyGraphBuilder.ModuleVersionResolveState> directDependees = new LinkedHashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
-        for (DependencyGraphBuilder.ConfigurationNode node : brokenDependency.requiredBy) {
-            directDependees.add(node.moduleRevision);
+        for (DependencyGraphNode node : brokenDependency.requiredBy) {
+            directDependees.add(node.getState());
         }
 
         Set<DependencyGraphBuilder.ModuleVersionResolveState> seen = new HashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
@@ -150,7 +151,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         queue.addAll(directDependees);
         while (!queue.isEmpty()) {
             DependencyGraphBuilder.ModuleVersionResolveState version = queue.getFirst();
-            if (version == root.moduleRevision) {
+            if (version == root.getSelection()) {
                 queue.removeFirst();
             } else if (seen.add(version)) {
                 for (DependencyGraphBuilder.ModuleVersionResolveState incomingVersion : version.getIncoming()) {
@@ -189,18 +190,18 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         return paths;
     }
 
-    private void addUnresolvedDependency(DependencyGraphBuilder.DependencyEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
+    private void addUnresolvedDependency(DependencyGraphEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
         BrokenDependency breakage = failuresByRevisionId.get(requested);
         if (breakage == null) {
             breakage = new BrokenDependency(failure);
             failuresByRevisionId.put(requested, breakage);
         }
-        breakage.requiredBy.add(dependency.from);
+        breakage.requiredBy.add(dependency.getFrom());
     }
 
     private static class BrokenDependency {
         final ModuleVersionResolveException failure;
-        final List<DependencyGraphBuilder.ConfigurationNode> requiredBy = new ArrayList<DependencyGraphBuilder.ConfigurationNode>();
+        final List<DependencyGraphNode> requiredBy = new ArrayList<DependencyGraphNode>();
 
         private BrokenDependency(ModuleVersionResolveException failure) {
             this.failure = failure;

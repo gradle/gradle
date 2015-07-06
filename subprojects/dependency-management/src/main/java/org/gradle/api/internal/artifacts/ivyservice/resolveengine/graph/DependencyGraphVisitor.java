@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 interface DependencyGraphVisitor {
-    void start(DependencyGraphBuilder.ConfigurationNode root);
-    void visitNode(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration);
-    void visitEdge(DependencyGraphBuilder.ConfigurationNode resolvedConfiguration);
-    void finish(DependencyGraphBuilder.ConfigurationNode root);
+    void start(DependencyGraphNode root);
+    void visitNode(DependencyGraphNode resolvedConfiguration);
+    void visitEdge(DependencyGraphNode resolvedConfiguration);
+    void finish(DependencyGraphNode root);
 }

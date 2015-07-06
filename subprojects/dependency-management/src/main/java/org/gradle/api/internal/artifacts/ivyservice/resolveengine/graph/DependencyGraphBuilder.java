@@ -32,10 +32,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -197,7 +197,7 @@ public class DependencyGraphBuilder {
     /**
      * Represents the edges in the dependency graph.
      */
-    static class DependencyEdge implements InternalDependencyResult {
+    private static class DependencyEdge implements DependencyGraphEdge {
         public final ConfigurationNode from;
         public final ModuleVersionSelectorResolveState selector;
 
@@ -218,6 +218,11 @@ public class DependencyGraphBuilder {
         @Override
         public String toString() {
             return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), Joiner.on(',').join(dependencyMetaData.getModuleConfigurations()));
+        }
+
+        @Override
+        public DependencyGraphNode getFrom() {
+            return from;
         }
 
         /**
@@ -288,7 +293,6 @@ public class DependencyGraphBuilder {
             return dependencyMetaData.getSelector();
         }
 
-        // TODO This should be replaced by getRequested()
         public ModuleVersionSelector getRequestedModuleVersion() {
             return dependencyMetaData.getRequested();
         }
@@ -620,7 +624,7 @@ public class DependencyGraphBuilder {
     /**
      * Represents a node in the dependency graph.
      */
-    static class ConfigurationNode {
+    private static class ConfigurationNode implements DependencyGraphNode {
         public final ModuleVersionResolveState moduleRevision;
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
@@ -638,17 +642,45 @@ public class DependencyGraphBuilder {
             moduleRevision.addConfiguration(this);
         }
 
+        @Override
+        public ResolvedConfigurationIdentifier getNodeId() {
+            return id;
+        }
+
+        @Override
         public ModuleVersionIdentifier toId() {
             return moduleRevision.id;
         }
 
+        @Override
         public ComponentIdentifier getComponentId() {
             return moduleRevision.getComponentId();
         }
 
+        @Override
+        public ModuleVersionSelection getSelection() {
+            return moduleRevision;
+        }
+
+        @Override
+        public Set<DependencyGraphEdge> getIncomingEdges() {
+            return Cast.uncheckedCast(incomingEdges);
+        }
+
+        @Override
+        public Set<DependencyGraphEdge> getOutgoingEdges() {
+            return Cast.uncheckedCast(outgoingEdges);
+        }
+
         // TODO:DAZ Need to get rid of this
+        @Override
         public ConfigurationMetaData getMetaData() {
             return metaData;
+        }
+
+        @Override
+        public ModuleVersionResolveState getState() {
+            return moduleRevision;
         }
 
         @Override
