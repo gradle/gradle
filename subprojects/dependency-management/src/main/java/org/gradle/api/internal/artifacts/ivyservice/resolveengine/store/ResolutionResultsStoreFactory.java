@@ -80,7 +80,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 return createBinaryStore(storeKey);
             }
 
-            public Store<ResolvedComponentResult> oldModelStore() {
+            public Store<ResolvedComponentResult> newModelCache() {
                 if (oldModelCache == null) {
                     oldModelCache = new CachedStoreFactory("Resolution result");
                     cleanUpLater.add(oldModelCache);
@@ -88,7 +88,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 return oldModelCache.createCachedStore(storeSetId);
             }
 
-            public Store<TransientConfigurationResults> newModelStore() {
+            public Store<TransientConfigurationResults> oldModelCache() {
                 if (newModelCache == null) {
                     newModelCache = new CachedStoreFactory("Resolved configuration");
                     cleanUpLater.add(newModelCache);
