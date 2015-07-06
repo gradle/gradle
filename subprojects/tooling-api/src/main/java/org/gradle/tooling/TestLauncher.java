@@ -17,7 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.tests.TestExecutionException;
+import org.gradle.tooling.test.TestExecutionException;
 
 /**
  *

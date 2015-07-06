@@ -28,7 +28,7 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
-import org.gradle.tooling.tests.TestExecutionException
+import org.gradle.tooling.test.TestExecutionException
 
 @TargetGradleVersion(">=1.0-milestone-8")
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.tests;
+package org.gradle.tooling.test;
 
 import org.gradle.tooling.GradleConnectionException;
 
