@@ -40,6 +40,7 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Set;
@@ -175,6 +176,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     @Override
     public ModelMap<LanguageSourceSet> getSource() {
+        DeprecationLogger.nagUserOfReplacedProperty("source", "sources");
         return getSources();
     }
 
