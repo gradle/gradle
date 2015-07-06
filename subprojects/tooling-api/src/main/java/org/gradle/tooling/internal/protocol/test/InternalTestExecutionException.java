@@ -27,4 +27,8 @@ public class InternalTestExecutionException extends RuntimeException {
     public InternalTestExecutionException(Throwable cause) {
         super(cause);
     }
+
+    public InternalTestExecutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

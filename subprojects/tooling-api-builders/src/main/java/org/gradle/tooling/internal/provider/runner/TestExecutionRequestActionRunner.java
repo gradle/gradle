@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.execution.TaskSelectionException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -86,7 +87,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
             if(throwable instanceof TestExecutionException){
-                failure = new InternalTestExecutionException(throwable);
+                failure = new InternalTestExecutionException("Error while running test(s)", throwable);
+            } else if (throwable instanceof TaskSelectionException){
+                failure = new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;
             }

@@ -39,7 +39,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     def givenTestDescriptors = [] as Set
 
     def setup() {
-            testCode()
+        testCode()
         givenTestDescriptors = runBuildAndCollectDescriptors();
     }
 
@@ -120,6 +120,21 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         def e = thrown(TestExecutionException)
         e.cause.message == "No tests found for given includes: [example.MyTest.*]"
+    }
+
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when test task no longer exists"() {
+        given:
+        buildFile.text = simpleJavaProject()
+        when:
+        launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
+        then:
+        assertTaskNotExecuted(":secondTest")
+        assertTaskNotExecuted(":test")
+
+        def e = thrown(TestExecutionException)
+        e.cause.message == "Task 'secondTest' not found in root project 'testproject'."
     }
 
     def testClassRemoved() {
@@ -236,11 +251,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def testCode() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
+        settingsFile << "rootProject.name = 'testproject'"
+        buildFile.text = simpleJavaProject()
 
+        buildFile << """
             task secondTest(type:Test) {
                 classpath = sourceSets.test.runtimeClasspath
                 testClassesDir = sourceSets.test.output.classesDir
@@ -269,5 +283,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
+    }
+
+    def simpleJavaProject() {
+        """
+        apply plugin: 'java'
+        repositories { mavenCentral() }
+        dependencies { testCompile 'junit:junit:4.12' }
+        """
+
     }
 }
