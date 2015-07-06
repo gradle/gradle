@@ -17,36 +17,34 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-functional-'
 
     def setup() {
         buildFile << """
-            configurations {
-                libs
-            }
+            apply plugin: 'java'
 
             task resolveLibs(type: Copy) {
                 ext.extractedDir = file('\$buildDir/libs')
-                from configurations.libs
+                from configurations.testCompile
                 into extractedDir
             }
 
-            task check {
+            task verifyTestKitJars {
                 dependsOn resolveLibs
             }
         """
+
+        file('src/test/java/com/gradle/example/MyTest.java') << javaClassReferencingTestKit()
     }
 
-    def "gradleTestKit dependency API adds test-kit classes"() {
-        when:
+    def "gradleTestKit dependency API adds test-kit classes and can compile against them"() {
+        given:
+        buildFile << testKitDependency()
         buildFile << """
-            dependencies {
-                libs gradleTestKit()
-            }
-
-            check {
+            verifyTestKitJars {
                 doLast {
                     def jarFiles = resolveLibs.extractedDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
@@ -63,18 +61,18 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
             }
         """
 
+        when:
+        ExecutionResult result = succeeds('verifyTestKitJars', 'compileTestJava')
+
         then:
-        succeeds 'check'
+        result.assertTaskNotSkipped(':compileTestJava')
     }
 
     def "gradleApi dependency API does not include test-kit JAR"() {
         when:
+        buildFile << gradleApiDependency()
         buildFile << """
-            dependencies {
-                libs gradleApi()
-            }
-
-            check {
+            verifyTestKitJars {
                 doLast {
                     def jarFiles = resolveLibs.extractedDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
@@ -84,6 +82,43 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
         """
 
         then:
-        succeeds 'check'
+        succeeds('verifyTestKitJars')
+    }
+
+    def "gradleApi dependency API cannot compile class that relies on test-kit JAR"() {
+        given:
+        buildFile << gradleApiDependency()
+
+        when:
+        ExecutionResult result = fails('compileTestJava')
+
+        then:
+        result.assertTaskNotSkipped(':compileTestJava')
+        result.error.contains('package org.gradle.testkit.functional does not exist')
+    }
+
+    private String gradleApiDependency() {
+        testCompileDependency('gradleApi()')
+    }
+
+    private String testKitDependency() {
+        testCompileDependency('gradleTestKit()')
+    }
+
+    private String testCompileDependency(String dependencyNotation) {
+        """
+            dependencies {
+                testCompile $dependencyNotation
+            }
+        """
+    }
+
+    private String javaClassReferencingTestKit() {
+        """package com.gradle.example;
+
+           import org.gradle.testkit.functional.GradleRunner;
+
+           public class MyTest {}
+        """
     }
 }
