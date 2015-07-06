@@ -23,7 +23,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
@@ -211,8 +214,7 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionComparator versionComparator,
                                                                 StartParameter startParameter,
                                                                 ComponentIdentifierFactory componentIdentifierFactory,
-                                                                ServiceRegistry serviceRegistry,
-                                                                Instantiator instantiator) {
+                                                                ServiceRegistry serviceRegistry) {
         DefaultDependencyResolver resolver = new DefaultDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
@@ -221,7 +223,7 @@ class DependencyManagementBuildScopeServices {
             ivyContextManager,
             resolutionResultsStoreFactory,
             versionComparator,
-            new RequestScopeResolverProviderFactory(instantiator), startParameter.isBuildProjectDependencies()
+            startParameter.isBuildProjectDependencies()
         );
         return new ErrorHandlingArtifactDependencyResolver(
             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
