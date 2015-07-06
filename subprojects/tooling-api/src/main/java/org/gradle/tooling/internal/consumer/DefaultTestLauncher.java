@@ -68,13 +68,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             }
             public Void run(ConsumerConnection connection) {
                 if(connection instanceof TestExecutionConsumerConnection) {
-//                    try {
-                        return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(testOperationDescriptors), getParameters());
-//                    }catch(Exception ex){
-//                        throw new TestLauncherException("Cannot execute tests.", ex);
-//                    }
-
-                }else {
+                    return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(testOperationDescriptors), getParameters());
+                } else {
                     throw new UnsupportedVersionException("TestLauncher API not supported by Gradle provider version");
                 }
             }
