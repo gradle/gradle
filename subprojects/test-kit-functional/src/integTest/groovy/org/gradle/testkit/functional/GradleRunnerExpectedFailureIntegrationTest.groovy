@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.functional
 
+import org.gradle.util.TextUtil
+
 class GradleRunnerExpectedFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "execute build for expected failure"() {
         given:
@@ -50,6 +52,20 @@ class GradleRunnerExpectedFailureIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildSuccess)
-        t.message.contains('Unexpected build execution success')
+        String expectedMessage = """Unexpected build execution success in $gradleRunner.workingDir with tasks \\[helloWorld\\] and arguments \\[\\]
+
+Output:
+:helloWorld
+Hello world!
+
+BUILD SUCCESSFUL
+
+Total time: .+ secs
+
+-----
+Error:
+
+-----"""
+        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
     }
 }

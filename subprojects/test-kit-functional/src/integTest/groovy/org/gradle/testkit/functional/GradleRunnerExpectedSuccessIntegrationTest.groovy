@@ -67,10 +67,35 @@ class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains('Unexpected build execution failure')
-        message.contains("""Reason:
-Unexpected exception""")
+        String expectedMessage = """Unexpected build execution failure in $gradleRunner.workingDir with tasks \\[helloWorld\\] and arguments \\[\\]
+
+Output:
+:helloWorld FAILED
+
+BUILD FAILED
+
+Total time: .+ secs
+
+-----
+Error:
+
+FAILURE: Build failed with an exception\\.
+
+\\* Where:
+Build file '$gradleRunner.workingDir/build\\.gradle' line: 4
+
+\\* What went wrong:
+Execution failed for task ':helloWorld'\\.
+> Unexpected exception
+
+\\* Try:
+Run with --stacktrace option to get the stack trace\\. Run with --info or --debug option to get more log output.
+
+-----
+Reason:
+Unexpected exception
+-----"""
+        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
     }
 
     def "execute build for multiple tasks"() {
