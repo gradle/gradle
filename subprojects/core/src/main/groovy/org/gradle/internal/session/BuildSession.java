@@ -17,11 +17,11 @@
 package org.gradle.internal.session;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Represents a build "session" which could be a single build or many builds triggered over the lifetime of a
- * continuous build invocation.  Any stoppables added to the build session will be stopped at the end of the session.
+ * continuous build invocation.  Any stoppables added to the build session scope will be stopped at the end of the session.
  */
 @ThreadSafe
 public interface BuildSession {
@@ -31,8 +31,9 @@ public interface BuildSession {
     void reset();
 
     /**
-     * Add a new stoppable object to the build session.  The object will be stopped when the build session completes.
-     * @param stoppable
+     * Returns the build session scoped services for this session.
+     *
+     * @return the build session service registry
      */
-    void add(Stoppable stoppable);
+    ServiceRegistry getServices();
 }

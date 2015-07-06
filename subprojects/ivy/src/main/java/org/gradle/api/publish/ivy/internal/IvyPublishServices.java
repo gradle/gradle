@@ -33,6 +33,9 @@ public class IvyPublishServices implements PluginServiceRegistry {
         registration.addProvider(new GlobalServices());
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
     }

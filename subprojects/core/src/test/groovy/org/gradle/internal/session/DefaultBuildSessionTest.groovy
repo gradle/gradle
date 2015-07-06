@@ -17,41 +17,55 @@
 package org.gradle.internal.session
 
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.UnknownServiceException
 import spock.lang.Specification
 
-
 class DefaultBuildSessionTest extends Specification {
-    BuildSession buildSession = new DefaultBuildSession();
+    ServiceRegistry parentRegistry = Stub(ServiceRegistry)
+    BuildSession buildSession = new DefaultBuildSession(parentRegistry);
 
-    def "stopping build session stops all stoppables" () {
-        Stoppable stoppable1 = Mock(Stoppable)
-        Stoppable stoppable2 = Mock(Stoppable)
-        Stoppable stoppable3 = Mock(Stoppable)
-        [ stoppable1, stoppable2, stoppable3 ].each { buildSession.add(it) }
+    def "returns the same build session scope until the build session is reset" () {
+        def services
+        def servicesBefore = buildSession.getServices()
+
+        when:
+        services = buildSession.getServices()
+
+        then:
+        services == servicesBefore
+
+        when:
+        services = buildSession.getServices()
+
+        then:
+        services == servicesBefore
 
         when:
         buildSession.reset()
 
         then:
-        1 * stoppable1.stop()
-        1 * stoppable2.stop()
-        1 * stoppable3.stop()
+        buildSession.getServices() != servicesBefore
     }
 
-    def "a stoppable added to build session will be stopped after every session" () {
-        Stoppable stoppable1 = Mock(Stoppable)
-        buildSession.add(stoppable1)
+    def "a service added to the build session scope is stopped and removed on reset" () {
+        parentRegistry.get(Stoppable) >> { throw new UnknownServiceException(Stoppable, "") }
+        Stoppable service = Mock(Stoppable)
+        ((DefaultServiceRegistry)buildSession.getServices()).add(Stoppable.class, service)
+        assert buildSession.getServices().get(Stoppable) == service
 
         when:
         buildSession.reset()
 
         then:
-        1 * stoppable1.stop()
+        1 * service.stop()
 
         when:
-        buildSession.reset()
+        buildSession.getServices().get(Stoppable)
 
         then:
-        1 * stoppable1.stop()
+        def e = thrown(UnknownServiceException)
+        e.message == "No service of type Stoppable available in BuildSessionScopeServices."
     }
 }

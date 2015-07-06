@@ -25,6 +25,9 @@ public class NativeLanguageServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 

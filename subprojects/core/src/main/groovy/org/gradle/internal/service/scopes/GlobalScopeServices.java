@@ -97,10 +97,6 @@ public class GlobalScopeServices {
         }
     }
 
-    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
-        return new DefaultGradleLauncherFactory(services);
-    }
-
     TemporaryFileProvider createTemporaryFileProvider() {
         return new TmpDirTemporaryFileProvider();
     }
@@ -243,7 +239,7 @@ public class GlobalScopeServices {
         return new DefaultFileWatcherFactory(executorFactory);
     }
 
-    BuildSession createBuildSession() {
-        return new DefaultBuildSession();
+    BuildSession createBuildSession(ServiceRegistry serviceRegistry) {
+        return new DefaultBuildSession(serviceRegistry);
     }
 }

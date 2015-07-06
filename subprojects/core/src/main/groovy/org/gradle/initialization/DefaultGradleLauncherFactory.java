@@ -48,8 +48,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
 
-    public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
-        sharedServices = globalServices;
+    public DefaultGradleLauncherFactory(ServiceRegistry sharedServices) {
+        this.sharedServices = sharedServices;
         tracker = new NestedBuildTracker();
 
         // Register default loggers

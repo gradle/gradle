@@ -34,6 +34,9 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         registration.add(JarBinarySpecSpecializationSchemaExtractionStrategy.class);
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }

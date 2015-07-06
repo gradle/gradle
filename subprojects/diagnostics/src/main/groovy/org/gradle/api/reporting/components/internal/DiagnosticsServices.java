@@ -34,6 +34,9 @@ public class DiagnosticsServices implements PluginServiceRegistry {
         });
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 

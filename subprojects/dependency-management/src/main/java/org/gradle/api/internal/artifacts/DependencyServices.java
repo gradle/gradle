@@ -24,6 +24,9 @@ public class DependencyServices implements PluginServiceRegistry {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildScopeServices());
     }

@@ -26,10 +26,14 @@ import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.session.BuildSession
 import spock.lang.Specification
 
 class InProcessBuildActionExecuterTest extends Specification {
     final GradleLauncherFactory factory = Mock()
+    final BuildSession buildSession = Mock()
+    final ServiceRegistry serviceRegistry = Mock()
     final DefaultGradleLauncher launcher = Mock()
     final BuildRequestContext buildRequestContext = Mock()
     final BuildActionParameters param = Mock()
@@ -41,7 +45,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     BuildAction action = Mock() {
         getStartParameter() >> startParameter
     }
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner)
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(buildSession, actionRunner)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
@@ -58,6 +62,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.result = '<result>'
@@ -76,6 +82,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == null
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert !controller.hasResult()
@@ -96,6 +104,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.run() >> buildResult
         _ * buildResult.gradle >> gradle
@@ -117,6 +127,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.getBuildAnalysis() >> buildResult
         _ * buildResult.gradle >> gradle
@@ -142,6 +154,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.run() >> buildResult
         1 * launcher.stop()
@@ -158,6 +172,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         e == failure
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.run() >> { throw failure }
         _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
@@ -177,6 +193,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         e == failure
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.buildAnalysis >> { throw failure }
         _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
@@ -194,6 +212,8 @@ class InProcessBuildActionExecuterTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
+        1 * buildSession.getServices() >> serviceRegistry
+        1 * serviceRegistry.get(GradleLauncherFactory) >> factory
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * launcher.buildAnalysis >> { throw new RuntimeException() }
         _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->

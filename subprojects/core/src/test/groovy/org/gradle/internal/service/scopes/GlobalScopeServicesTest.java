@@ -70,11 +70,6 @@ public class GlobalScopeServicesTest {
     }
 
     @Test
-    public void providesAGradleLauncherFactory() {
-        assertThat(registry().get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
-    }
-
-    @Test
     public void providesCommandLineArgsConverter() {
         assertThat(registry().get(CommandLineConverter.class), instanceOf(
                 DefaultCommandLineConverter.class));
@@ -109,22 +104,22 @@ public class GlobalScopeServicesTest {
     public void providesALoggingManagerFactory() {
         assertThat(registry().getFactory(LoggingManagerInternal.class), instanceOf(DefaultLoggingManagerFactory.class));
     }
-    
+
     @Test
     public void providesAListenerManager() {
         assertThat(registry().get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
     }
-    
+
     @Test
     public void providesAProgressLoggerFactory() {
         assertThat(registry().get(ProgressLoggerFactory.class), instanceOf(DefaultProgressLoggerFactory.class));
     }
-    
+
     @Test
     public void providesAGradleDistributionLocator() {
         assertThat(registry().get(GradleDistributionLocator.class), instanceOf(DefaultModuleRegistry.class));
     }
-    
+
     @Test
     public void providesAClassLoaderFactory() {
         assertThat(registry().get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));

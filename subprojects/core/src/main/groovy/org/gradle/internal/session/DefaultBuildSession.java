@@ -16,22 +16,31 @@
 
 package org.gradle.internal.session;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 
-import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultBuildSession implements BuildSession {
     ReentrantLock lock = new ReentrantLock();
-    List<Stoppable> stoppables = Lists.newArrayList();
+    final ServiceRegistry parentRegistry;
+    private BuildSessionScopeServices sessionScopeServices;
+
+    public DefaultBuildSession(ServiceRegistry services) {
+        this.parentRegistry = services;
+        initializeServices();
+    }
+
+    private void initializeServices() {
+        sessionScopeServices = new BuildSessionScopeServices(parentRegistry);
+    }
 
     @Override
-    public void add(Stoppable stoppable) {
+    public ServiceRegistry getServices() {
         lock.lock();
         try {
-            stoppables.add(stoppable);
+            return sessionScopeServices;
         } finally {
             lock.unlock();
         }
@@ -41,7 +50,8 @@ public class DefaultBuildSession implements BuildSession {
     public void reset() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(stoppables).stop();
+            CompositeStoppable.stoppable(sessionScopeServices).stop();
+            initializeServices();
         } finally {
             lock.unlock();
         }

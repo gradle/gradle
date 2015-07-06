@@ -43,6 +43,9 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
         });
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }

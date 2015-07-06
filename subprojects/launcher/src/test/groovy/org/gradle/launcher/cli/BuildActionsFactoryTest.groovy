@@ -23,6 +23,7 @@ import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
@@ -62,6 +63,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
+        _ * loggingServices.getAll(PluginServiceRegistry) >> []
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {

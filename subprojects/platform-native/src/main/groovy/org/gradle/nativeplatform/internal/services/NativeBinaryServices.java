@@ -39,6 +39,9 @@ public class NativeBinaryServices implements PluginServiceRegistry {
         registration.add(NativePlatformResolver.class);
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultVisualStudioLocator.class);
         registration.add(DefaultWindowsSdkLocator.class);

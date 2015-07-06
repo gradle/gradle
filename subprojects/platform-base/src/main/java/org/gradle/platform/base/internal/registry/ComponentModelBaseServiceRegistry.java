@@ -34,6 +34,10 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
         registration.addProvider(new GlobalScopeServices());
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeServices());
+    }
+
     public void registerBuildServices(ServiceRegistration registration){
         registration.addProvider(new BuildScopeServices());
     }
@@ -73,11 +77,11 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
         MethodModelRuleExtractor createBinaryTaskPluginInspector() {
             return new BinaryTasksModelRuleExtractor();
         }
+    }
 
+    private static class BuildSessionScopeServices {
         DeploymentRegistry createDeploymentRegistry(BuildSession buildSession) {
-            DeploymentRegistry deploymentRegistry = new DefaultDeploymentRegistry();
-            buildSession.add(deploymentRegistry);
-            return deploymentRegistry;
+            return new DefaultDeploymentRegistry();
         }
     }
 }
