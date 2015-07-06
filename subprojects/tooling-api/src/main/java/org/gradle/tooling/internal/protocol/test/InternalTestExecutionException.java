@@ -24,8 +24,8 @@ package org.gradle.tooling.internal.protocol.test;
  * @since 2.6-rc-1
  */
 public class InternalTestExecutionException extends RuntimeException {
-    public InternalTestExecutionException(Throwable cause) {
-        super(cause);
+    public InternalTestExecutionException(String message) {
+        super(message);
     }
 
     public InternalTestExecutionException(String message, Throwable cause) {

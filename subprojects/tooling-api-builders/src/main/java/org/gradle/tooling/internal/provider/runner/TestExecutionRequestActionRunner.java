@@ -18,9 +18,8 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.execution.TaskSelectionException;
+import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -54,29 +53,35 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         testExecutionRequestAction.getStartParameter().setTaskNames(testTaskPaths);
         for (final String testTaskPath : testTaskPaths) {
             gradle.addProjectEvaluationListener(new ProjectEvaluationListener() {
-                @Override
-                public void beforeEvaluate(Project project) {
-                }
+                                                    @Override
+                                                    public void beforeEvaluate(Project project) {
+                                                    }
 
-                @Override
-                public void afterEvaluate(Project project, ProjectState state) {
-                    final Task task = project.getTasks().findByPath(testTaskPath);
-                    if (task != null && task instanceof Test) {
-                        Test testTask = (Test) task;
-                        for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-                            if (testDescriptor.getTaskPath().equals(testTaskPath)) {
-                                final String className = testDescriptor.getClassName();
-                                final String methodName = testDescriptor.getMethodName();
-                                if(className == null && methodName == null) {
-                                    testTask.getFilter().includeTestsMatching("*");
-                                }else {
-                                    testTask.getFilter().includeTest(className, methodName);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+                                                    @Override
+                                                    public void afterEvaluate(Project project, ProjectState state) {
+                                                        final Task task = project.getTasks().findByPath(testTaskPath);
+                                                        if (task == null) {
+                                                            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found in project '%s'.", testTaskPath, project.getName()));
+                                                        } else if (!(task instanceof Test)) {
+                                                            throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+                                                        } else {
+                                                            Test testTask = (Test) task;
+                                                            for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
+                                                                if (testDescriptor.getTaskPath().equals(testTaskPath)) {
+                                                                    final String className = testDescriptor.getClassName();
+                                                                    final String methodName = testDescriptor.getMethodName();
+                                                                    if (className == null && methodName == null) {
+                                                                        testTask.getFilter().includeTestsMatching("*");
+                                                                    } else {
+                                                                        testTask.getFilter().includeTest(className, methodName);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+            );
 
         }
 
@@ -88,9 +93,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
             buildController.run();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
-            if (throwable instanceof TestExecutionException) {
-                failure = new InternalTestExecutionException("Error while running test(s)", throwable);
-            } else if (throwable instanceof TaskSelectionException) {
+            if (throwable instanceof InternalTestExecutionException) {
+                failure = throwable;
+            }else if (throwable instanceof TestExecutionException) {
                 failure = new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;

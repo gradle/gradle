@@ -31,6 +31,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
 
+@ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=1.0-milestone-8")
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
@@ -44,7 +45,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         givenTestDescriptors = runBuildAndCollectDescriptors();
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "can run specific test class passed via test descriptor"() {
         when:
@@ -63,7 +63,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "can run specific test method passed via test descriptor"() {
         when:
@@ -79,7 +78,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "runs all tests when test task descriptor is passed"() {
         when:
@@ -97,7 +95,15 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
     }
 
-    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "passing task descriptor with unsupported task type fails with meaningful error"() {
+        when:
+        launchTests(taskDescriptors(":build"))
+        then:
+        def e = thrown(Exception)
+        e.cause.message == "Task ':build' of type 'org.gradle.api.DefaultTask_Decorated' not supported for executing tests via TestLauncher API."
+    }
+
     @TargetGradleVersion(">=2.6")
     def "runs only test task linked in test descriptor"() {
         when:
@@ -113,7 +119,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "test task up-to-date when launched with same test descriptors again"() {
         given:
@@ -126,7 +131,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":test")
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test no longer exists"() {
         given:
@@ -141,7 +145,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "No tests found for given includes: [example.MyTest.*]"
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test task no longer exists"() {
         given:
@@ -153,14 +156,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":test")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == "Task 'secondTest' not found in root project 'testproject'."
+        e.cause.message == "Requested test task with path ':secondTest' cannot be found in project 'testproject'."
     }
 
     def testClassRemoved() {
         file("src/test/java/example/MyTest.java").delete()
     }
 
-    @ToolingApiVersion(">=2.6")
     @TargetGradleVersion("<2.6")
     def "fails with meaningful error when running against unsupported target version"() {
         when:
