@@ -624,7 +624,7 @@ public class DependencyGraphBuilder {
     /**
      * Represents a node in the dependency graph.
      */
-    private static class ConfigurationNode implements DependencyGraphNode {
+    static class ConfigurationNode implements DependencyGraphNode {
         public final ModuleVersionResolveState moduleRevision;
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
@@ -676,11 +676,6 @@ public class DependencyGraphBuilder {
         @Override
         public ConfigurationMetaData getMetaData() {
             return metaData;
-        }
-
-        @Override
-        public ModuleVersionResolveState getState() {
-            return moduleRevision;
         }
 
         @Override

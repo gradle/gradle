@@ -39,7 +39,4 @@ public interface DependencyGraphNode {
 
     // TODO:DAZ Need to get rid of this
     ConfigurationMetaData getMetaData();
-
-    // TODO:DAZ Encapsulate this type : this exposes too much of the implementation
-    DependencyGraphBuilder.ModuleVersionResolveState getState();
 }
