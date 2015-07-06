@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
-
-import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.tests.TestExecutionException;
+package org.gradle.tooling.internal.protocol.test;
 
 /**
+ * A wrapper thrown when a test cannot be executed. The failure will be attached as the cause of this exception.
  *
- * A {@code TestLauncher} allows you to configure and execute a tests in a Gradle build.
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 2.5
- *
- * */
-public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
-    TestLauncher withTests(TestOperationDescriptor... testDescriptors);
-
-    void run() throws TestExecutionException; // Run synchronously
-    void run(ResultHandler<? super Void> handler); // Start asynchronously
+ * @since 2.6-rc-1
+ */
+public class InternalTestExecutionException extends RuntimeException {
+    public InternalTestExecutionException(Throwable cause) {
+        super(cause);
+    }
 }

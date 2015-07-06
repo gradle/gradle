@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.tooling.TestLauncherException;
+import org.gradle.tooling.tests.TestExecutionException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
@@ -86,7 +86,7 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     private void assertOnlyJvmTestOperatorDescriptors(Collection<TestOperationDescriptor> testOperationDescriptors) {
         for (TestOperationDescriptor testOperationDescriptor : testOperationDescriptors) {
             if (!(testOperationDescriptor instanceof JvmTestOperationDescriptor)) {
-                throw new TestLauncherException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+                throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
             }
         }
     }

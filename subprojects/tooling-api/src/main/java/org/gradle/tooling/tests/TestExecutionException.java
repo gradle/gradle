@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.tooling.tests;
 
-import org.gradle.api.GradleException;
+import org.gradle.tooling.GradleConnectionException;
 
 /**
- * Thrown when the {@link TestLauncher} cannot run tests.
+ * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests.
  * <p>
- * The exception extends {@link UnsupportedVersionException} only for backwards compatibility reasons.
  *
  * @since 2.6
  */
-public class TestLauncherException extends GradleException {
-    public TestLauncherException(String message) {
+public class TestExecutionException extends GradleConnectionException {
+    public TestExecutionException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+
+    public TestExecutionException(String message) {
         super(message);
     }
 }

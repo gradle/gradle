@@ -24,8 +24,8 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
-import org.gradle.tooling.internal.provider.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.provider.TestExecutionRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +68,12 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             }
             public Void run(ConsumerConnection connection) {
                 if(connection instanceof TestExecutionConsumerConnection) {
-                    return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(testOperationDescriptors), getParameters());
+//                    try {
+                        return ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(testOperationDescriptors), getParameters());
+//                    }catch(Exception ex){
+//                        throw new TestLauncherException("Cannot execute tests.", ex);
+//                    }
+
                 }else {
                     throw new UnsupportedVersionException("TestLauncher API not supported by Gradle provider version");
                 }

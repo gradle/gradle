@@ -23,6 +23,8 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
+import org.gradle.tooling.tests.TestExecutionException;
 
 /**
  * Adapts a {@link ResultHandler} to a {@link ResultHandlerVersion1}.
@@ -51,6 +53,8 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
             handler.onFailure((GradleConnectionException) failure);
         } else if (failure instanceof InternalBuildCancelledException) {
             handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
+        } else if (failure instanceof InternalTestExecutionException) {
+            handler.onFailure(new TestExecutionException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof ListenerNotificationException) {

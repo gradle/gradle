@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.api.tasks.testing;
 
-import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.tests.TestExecutionException;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+
+import java.io.Serializable;
 
 /**
+ * <p>A <code>TestExecutionException</code> is thrown when a test task fails.
  *
- * A {@code TestLauncher} allows you to configure and execute a tests in a Gradle build.
- *
- * @since 2.5
- *
- * */
-public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
-    TestLauncher withTests(TestOperationDescriptor... testDescriptors);
-
-    void run() throws TestExecutionException; // Run synchronously
-    void run(ResultHandler<? super Void> handler); // Start asynchronously
+ * @since 2.6
+ */
+@Incubating
+public class TestExecutionException extends GradleException implements Serializable {
+    public TestExecutionException(String message) {
+        super(message);
+    }
 }

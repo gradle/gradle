@@ -18,11 +18,13 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
@@ -75,10 +77,34 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
         }
 
-        buildController.run();
 
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        BuildActionResult buildActionResult = new BuildActionResult(payloadSerializer.serialize(null), null);
+
+        Throwable failure = null;
+        try {
+            buildController.run();
+        } catch (RuntimeException rex) {
+            Throwable throwable = findRootCause(rex);
+            if(throwable instanceof TestExecutionException){
+                failure = new InternalTestExecutionException(throwable);
+            } else {
+                throw rex;
+            }
+        }
+        BuildActionResult buildActionResult;
+        if (failure != null) {
+            buildActionResult = new BuildActionResult(null, payloadSerializer.serialize(failure));
+        } else {
+            buildActionResult = new BuildActionResult(payloadSerializer.serialize(null), null);
+        }
         buildController.setResult(buildActionResult);
+    }
+
+    private Throwable findRootCause(Exception tex) {
+        Throwable t = tex.getCause();
+        while(t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
     }
 }

@@ -61,7 +61,7 @@ From a client this API can be used like:
     * ~~method A included in task A and task B. Descriptor for (method A, task A) and (method A, task B) is used, ensure both tasks executed.~~
     * ~~using descriptor for (class A, task A) runs all methods for class A in task A.~~
     * using descriptor for (task A) runs all tests for task A.
-* build fails when the target test no longer exists.
+* ~~build fails when the target test no longer exists.~~
 * does something reasonable when the target test task no longer exists, but the test still exists.
 * does something reasonable when the target test is no longer part of the target test task.
 * expected test progress events are received in each case

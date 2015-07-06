@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.tooling.TestLauncherException
+import org.gradle.tooling.tests.TestExecutionException
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -58,7 +58,7 @@ class TestExecutionConsumerConnectionTest extends Specification {
         connection.runTests(testExecutionRequest, Mock(ConsumerOperationParameters))
 
         then:
-        def e = thrown(TestLauncherException)
+        def e = thrown(TestExecutionException)
         e.message == "Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported."
 
     }
