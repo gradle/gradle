@@ -94,6 +94,14 @@ class BaseBinarySpecTest extends Specification {
         binary.inputs*.name == ["input"]
     }
 
+    def "source property is the same as inputs property"() {
+        given:
+        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+
+        expect:
+        binary.source == binary.inputs
+    }
+
     static class MySampleBinary extends BaseBinarySpec {
     }
     static class MyConstructedBinary extends BaseBinarySpec {

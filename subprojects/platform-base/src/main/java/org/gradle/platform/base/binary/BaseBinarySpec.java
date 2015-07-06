@@ -37,6 +37,7 @@ import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Base class for custom binary implementations.
@@ -120,6 +121,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
+        DeprecationLogger.nagUserOfReplacedProperty("source", "inputs");
         return getInputs();
     }
 
