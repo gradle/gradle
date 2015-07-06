@@ -30,7 +30,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
     def "can convert dependent source set resolve context"() {
         given:
-        def context = new DependentSourceSetResolveContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal), Mock(Platform))
+        def context = createContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal), Mock(Platform))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -49,7 +49,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         dependencySpecs.iterator() >> { [].iterator() }
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
+        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -85,7 +85,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
         sourceSet.dependencies >> dependencySpecs
 
-        def context = new DependentSourceSetResolveContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
+        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -128,5 +128,9 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         [new DefaultDependencySpec('someLib', ':myPath'), new DefaultDependencySpec('someLib', ':myPath2')] | '2 deps on 2 different projects'
         [new DefaultDependencySpec('someLib', null)]                                                        | 'a single dependency on the current project'
 
+    }
+
+    private static createContext(String path, String library, String variant, DependentSourceSetInternal dependentSourceSetInternal, Platform platform) {
+        return new DependentSourceSetResolveContext(new DefaultLibraryBinaryIdentifier(path, library, variant), dependentSourceSetInternal, platform)
     }
 }

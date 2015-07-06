@@ -151,7 +151,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                             DefaultTask
                         }
 
-                        void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                        void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                         }
                     }
                 }
