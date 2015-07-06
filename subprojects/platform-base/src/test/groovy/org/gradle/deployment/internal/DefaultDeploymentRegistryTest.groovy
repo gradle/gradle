@@ -66,20 +66,28 @@ class DefaultDeploymentRegistryTest extends Specification {
         1 * handle3.stop()
     }
 
-    def "stopping registry removes deployment handles from registry" () {
-        DeploymentHandle handle1 = Mock(DeploymentHandle)
-        DeploymentHandle handle2 = Mock(DeploymentHandle)
-        DeploymentHandle handle3 = Mock(DeploymentHandle)
-        registry.register("test1", handle1)
-        registry.register("test2", handle2)
-        registry.register("test3", handle3)
-
-        when:
+    def "cannot get a handle once the registry is stopped" () {
+        given:
+        registry.register("test", Mock(DeploymentHandle))
         registry.stop()
 
+        when:
+        registry.get(DeploymentHandle, "test")
+
         then:
-        registry.get(DeploymentHandle.class, "test1") == null
-        registry.get(DeploymentHandle.class, "test2") == null
-        registry.get(DeploymentHandle.class, "test3") == null
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot register or get deployment handles once the registry has been stopped."
+    }
+
+    def "cannot register a handle once the registry is stopped" () {
+        given:
+        registry.stop()
+
+        when:
+        registry.register("test", Mock(DeploymentHandle))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot register or get deployment handles once the registry has been stopped."
     }
 }

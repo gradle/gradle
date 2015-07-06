@@ -27,11 +27,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private boolean stopped;
 
     @Override
     public void register(String id, DeploymentHandle handle) {
         lock.lock();
         try {
+            failIfStopped();
             if (!handles.containsKey(id)) {
                 handles.put(id, handle);
             } else {
@@ -46,6 +48,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
         lock.lock();
         try {
+            failIfStopped();
             return Cast.cast(handleType, handles.get(id));
         } finally {
             lock.unlock();
@@ -58,9 +61,15 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         try {
             CompositeStoppable.stoppable(handles.values()).stop();
         } finally {
+            stopped = true;
             handles.clear();
             lock.unlock();
         }
     }
 
+    private void failIfStopped() {
+        if (stopped) {
+            throw new IllegalStateException("Cannot register or get deployment handles once the registry has been stopped.");
+        }
+    }
 }
