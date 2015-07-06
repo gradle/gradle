@@ -74,6 +74,17 @@ From a client this API can be used like:
 * Behaviour with continuous build.
 * Behaviour when task no longer exists or no longer contains the requested test, but the test still exists (eg it has moved)
 
+## Story: Allow forced execution of up-to-date test tasks
+
+### Implementation
+
+* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
+* allow configuration from client side via `TestLauncher#alwaysRunTests()`
+
+### Test Coverage
+
+* can force execution of up-to-date test
+
 ## Story: Add ability to launch JVM tests by class
 
 ### API proposal
@@ -152,17 +163,6 @@ Instead, detect which `Test` task instances to run based on their inputs.
 
 For example, a Spock test with `@Unroll`, or a Gradle cross-version test. In general, there is not a one-to-one mapping between test
 method and test execution. Fix the test descriptors to honour this contract.
-
-## Story: Allow forced execution of up-to-date test tasks
-
-### Implementation
-
-* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
-* allow configuration from client side via `TestLauncher#alwaysRunTests()`
-
-### Test Coverage
-
-* can force execution of up-to-date test
 
 ## Story: Add ability to launch tests in debug mode
 
