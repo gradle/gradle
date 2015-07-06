@@ -16,10 +16,13 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
@@ -34,6 +37,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private String baseName;
+    private ComponentSpec component;
 
     @Override
     protected String getTypeName() {
@@ -46,6 +50,16 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    @Override
+    public void setComponent(ComponentSpec componentSpec) {
+        this.component = componentSpec;
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     public JvmBinaryTasks getTasks() {

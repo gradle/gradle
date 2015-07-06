@@ -19,48 +19,38 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.Platform;
 
 import java.io.File;
 import java.util.*;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
-    private final String projectPath;
-    private final String componentName;
+    private final JarBinarySpec binary;
     private final DependentSourceSetInternal sourceSet;
-    private final BinarySpec binary;
     private final ArtifactDependencyResolver dependencyResolver;
-    private final FileCollection compileClasspath;
-    private final Platform platform;
+    private final JavaPlatform platform;
 
     private ResolverResults resolverResults;
     private TaskDependency taskDependency;
 
     public DependencyResolvingClasspath(
-        String projectPath,
-        String componentName,
-        BinarySpec binarySpec,
-        DependentSourceSetInternal sourceSet,
-        ArtifactDependencyResolver dependencyResolver,
-        FileCollection compileClasspath, Platform platform) {
-        this.projectPath = projectPath;
-        this.componentName = componentName;
+            JarBinarySpec binarySpec,
+            DependentSourceSetInternal sourceSet,
+            ArtifactDependencyResolver dependencyResolver) {
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
-        this.compileClasspath = compileClasspath;
-        this.platform = platform;
+        this.platform = binarySpec.getTargetPlatform();
     }
 
     @Override
@@ -72,7 +62,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public Set<File> getFiles() {
         ensureResolved();
         Set<File> classpath = new LinkedHashSet<File>();
-        classpath.addAll(compileClasspath.getFiles());
         Set<ResolvedArtifact> artifacts = resolverResults.getResolvedArtifacts().getArtifacts();
         for (ResolvedArtifact resolvedArtifact : artifacts) {
             classpath.add(resolvedArtifact.getFile());
@@ -81,7 +70,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     private DependentSourceSetResolveContext createResolveContext() {
-        return new DependentSourceSetResolveContext(projectPath, componentName, binary.getName(), sourceSet, platform);
+        return new DependentSourceSetResolveContext(binary.getId(), sourceSet, platform);
     }
 
     @Override

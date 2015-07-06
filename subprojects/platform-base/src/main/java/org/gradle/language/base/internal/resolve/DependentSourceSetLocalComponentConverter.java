@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.tasks.TaskDependency;
@@ -46,13 +47,11 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
     @Override
     public DefaultLibraryLocalComponentMetaData convert(Object source) {
         DependentSourceSetResolveContext context = (DependentSourceSetResolveContext) source;
-        String projectPath = context.getProjectPath();
+        LibraryBinaryIdentifier libraryBinaryIdentifier = context.getComponentId();
         DependentSourceSetInternal sourceSet = context.getSourceSet();
-        String componentName = context.getComponentName();
-        String variant = context.getVariant();
         TaskDependency buildDependencies = context.getSourceSet().getBuildDependencies();
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(projectPath, componentName, variant, buildDependencies);
-        addDependencies(projectPath, metaData, sourceSet.getDependencies());
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(libraryBinaryIdentifier, buildDependencies);
+        addDependencies(libraryBinaryIdentifier.getProjectPath(), metaData, sourceSet.getDependencies());
         return metaData;
     }
 

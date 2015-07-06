@@ -17,6 +17,7 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -26,6 +27,11 @@ import java.io.File;
  */
 @Incubating @HasInternalProtocol
 public interface JarBinarySpec extends JvmBinarySpec {
+    /**
+     * The unique identifier of this JarBinarySpec.
+     */
+    LibraryBinaryIdentifier getId();
+
     /**
      * The jar file output for this binary.
      */

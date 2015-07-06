@@ -30,12 +30,13 @@ class DependentSourceSetResolveContextTest extends Specification {
         given:
         def project = ':foo'
         def sourceset = Mock(DependentSourceSetInternal)
+        def id = new DefaultLibraryBinaryIdentifier(project, COMPONENT_NAME, VARIANT)
 
         when:
-        def context = new DependentSourceSetResolveContext(project, COMPONENT_NAME, VARIANT, sourceset, Mock(Platform))
+        def context = new DependentSourceSetResolveContext(id, sourceset, Mock(Platform))
 
         then:
-        context.projectPath == project
+        context.componentId.projectPath == project
         context.dependencies.empty
         context.allDependencies.empty
     }
@@ -45,13 +46,14 @@ class DependentSourceSetResolveContextTest extends Specification {
         // keeping this test in case we need to change the context name again
         given:
         def sourceset = Mock(DependentSourceSetInternal)
+        def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
 
         when:
         sourceset.parentName >> library
-        def context = new DependentSourceSetResolveContext(path, COMPONENT_NAME, VARIANT, sourceset, Mock(Platform))
+        def context = new DependentSourceSetResolveContext(id, sourceset, Mock(Platform))
 
         then:
-        context.projectPath == path
+        context.componentId.projectPath == path
         context.name == contextName
 
         where:

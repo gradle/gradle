@@ -101,7 +101,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                     buildDependencies.add(jarBinary);
 
-                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(selectorProjectPath, selectedLibrary.getName(), jarBinary.getName(), buildDependencies);
+                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinary.getId(), buildDependencies);
                     metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(createJarPublishArtifact(jarBinary)));
 
                     result.resolved(metaData);

@@ -25,7 +25,7 @@ import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 
 public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implements JavaSourceSet, DependentSourceSetInternal {
-    private final Classpath compileClasspath = new EmptyClasspath();
+    private final Classpath emptyClasspath = new EmptyClasspath();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override
@@ -34,7 +34,7 @@ public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implemen
     }
 
     public Classpath getCompileClasspath() {
-        return compileClasspath;
+        return emptyClasspath;
     }
 
     @Override

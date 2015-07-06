@@ -18,6 +18,7 @@ package org.gradle.language.base.internal.model;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -32,15 +33,14 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         super(id, componentIdentifier, Project.DEFAULT_STATUS);
     }
 
-    public static DefaultLibraryLocalComponentMetaData newMetaData(String projectPath, String libraryName, String variant, TaskDependency buildDependencies) {
+    public static DefaultLibraryLocalComponentMetaData newMetaData(LibraryBinaryIdentifier componentId, TaskDependency buildDependencies) {
         ModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(
-            projectPath, libraryName, VERSION
+            componentId.getProjectPath(), componentId.getLibraryName(), VERSION
         );
-        ComponentIdentifier component = new DefaultLibraryBinaryIdentifier(projectPath, libraryName, variant);
-        DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, component);
+        DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, componentId);
         metaData.addConfiguration(
             DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME,
-            String.format("Configuration for '%s' variant '%s'", libraryName, variant),
+            String.format("Request metadata: %s", componentId.getDisplayName()),
             Collections.<String>emptySet(),
             Collections.singleton(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME),
             true,

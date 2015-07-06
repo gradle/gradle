@@ -27,6 +27,7 @@ import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
@@ -76,7 +77,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
     private ProjectInternal mockProject(String path) {
         def mock = Mock(ProjectInternal)
         mock.findProject(':') >> mock
-        mock.path >> ':'
+        mock.path >> path
         mock.modelRegistry >> Mock(ModelRegistry)
         mock.tasks >> Mock(TaskContainerInternal)
         projects[path] = mock
@@ -207,12 +208,13 @@ class LocalLibraryDependencyResolverTest extends Specification {
             ComponentSpecContainer components = Mock()
             project.modelRegistry.find(_, _) >> components
             def map = Mock(ModelMap)
-            def librarySpecs = libraries.collect {
+            def librarySpecs = libraries.collect { library ->
                 def lib = Mock(JvmLibrarySpec)
-                lib.name >> it
+                lib.name >> library
                 def binaries = Mock(ModelMap)
                 binaries.values() >> {
                     def binary = Mock(JarBinarySpec)
+                    binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'api')
                     binary.displayName >> "binary for $lib"
                     binary.name >> 'api'
                     binary.buildTask >> Mock(Task)

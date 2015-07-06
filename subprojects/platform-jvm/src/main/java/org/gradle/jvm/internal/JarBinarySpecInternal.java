@@ -16,10 +16,11 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.ComponentSpecAware;
 
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
+public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, ComponentSpecAware {
     String getBaseName();
 
     void setBaseName(String baseName);

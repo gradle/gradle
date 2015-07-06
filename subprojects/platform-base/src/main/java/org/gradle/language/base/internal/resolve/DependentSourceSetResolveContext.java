@@ -17,6 +17,7 @@ package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -27,23 +28,15 @@ import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.platform.base.Platform;
 
 public class DependentSourceSetResolveContext implements ResolveContext {
-    private final String projectPath;
-    private final String componentName;
-    private final String variant;
+    private final LibraryBinaryIdentifier binaryId;
     private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
     private final Platform platform;
 
-    public DependentSourceSetResolveContext(String projectPath, String componentName, String variant, DependentSourceSetInternal sourceSet, Platform platform) {
-        this.projectPath = projectPath;
-        this.componentName = componentName;
-        this.variant = variant;
+    public DependentSourceSetResolveContext(LibraryBinaryIdentifier binaryId, DependentSourceSetInternal sourceSet, Platform platform) {
+        this.binaryId = binaryId;
         this.sourceSet = sourceSet;
         this.platform = platform;
-    }
-
-    public DependentSourceSetInternal getSourceSet() {
-        return sourceSet;
     }
 
     @Override
@@ -56,25 +49,21 @@ public class DependentSourceSetResolveContext implements ResolveContext {
         return sourceSet.getDisplayName();
     }
 
-    public String getComponentName() {
-        return componentName;
+    public LibraryBinaryIdentifier getComponentId() {
+        return binaryId;
     }
 
-    public String getProjectPath() {
-        return projectPath;
+    public DependentSourceSetInternal getSourceSet() {
+        return sourceSet;
     }
 
-    public String getVariant() {
-        return variant;
+    public Platform getPlatform() {
+        return platform;
     }
 
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
-    }
-
-    public Platform getPlatform() {
-        return platform;
     }
 
     @Override
