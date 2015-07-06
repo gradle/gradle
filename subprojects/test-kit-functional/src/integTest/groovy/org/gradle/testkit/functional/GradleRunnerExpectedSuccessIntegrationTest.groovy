@@ -21,7 +21,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-    def "execute build without providing a task runs the help task"() {
+    def "execute build without providing a task (executes help task by as observed by command line execution)"() {
         when:
         GradleRunner gradleRunner = prepareGradleRunner()
         BuildResult result = gradleRunner.succeeds()

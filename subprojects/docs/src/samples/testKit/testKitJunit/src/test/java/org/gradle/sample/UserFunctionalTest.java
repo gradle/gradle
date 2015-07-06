@@ -18,13 +18,14 @@ package org.gradle.sample;
 
 import org.gradle.testkit.functional.BuildResult;
 import org.gradle.testkit.functional.GradleRunner;
-import org.gradle.util.GFileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
@@ -32,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 
 // START SNIPPET functional-test-junit
 public class UserFunctionalTest {
-    @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    @Rule public final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder();
     private File buildFile;
 
     @Before
@@ -41,14 +42,14 @@ public class UserFunctionalTest {
     }
 
     @Test
-    public void testHelloWorldTask() {
+    public void testHelloWorldTask() throws IOException {
         // write build script file under test
         String buildFileContent = "task helloWorld {" +
                                   "    doLast {" +
                                   "        println 'Hello world!'" +
                                   "    }" +
                                   "}";
-        GFileUtils.writeFile(buildFileContent, buildFile);
+        writeFile(buildFile, buildFileContent);
 
         // create and configure Gradle runner
         GradleRunner gradleRunner = GradleRunner.create();
@@ -60,6 +61,20 @@ public class UserFunctionalTest {
         // verify build result
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");
+    }
+
+    private void writeFile(File destination, String content) throws IOException {
+        BufferedWriter output = null;
+
+        try {
+            output = new BufferedWriter(new FileWriter(destination));
+            output.write(content);
+        }
+        finally {
+            if(output != null) {
+                output.close();
+            }
+        }
     }
 }
 // END SNIPPET functional-test-junit

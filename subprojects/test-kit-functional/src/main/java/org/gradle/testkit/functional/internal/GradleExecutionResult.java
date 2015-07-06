@@ -17,6 +17,7 @@
 package org.gradle.testkit.functional.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.resource.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -51,7 +52,7 @@ public class GradleExecutionResult {
 
     private String getUTF8EncodedString(ByteArrayOutputStream outputStream) {
         try {
-            return outputStream.toString("UTF-8");
+            return outputStream.toString(CharsetUtil.UTF_8.name());
         } catch(UnsupportedEncodingException e) {
             throw new UncheckedIOException(e);
         }

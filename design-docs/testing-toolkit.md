@@ -121,6 +121,7 @@ A functional test using Spock could look as such:
 * Reuse contract? Can `TestRunner` be reused to run multiple builds? Is it reset between builds?
 * Need to do something useful with the build standard output and error when `succeeds()` or `fails()` throw an exception.
 * Thread-safety contract?
+* Should we be doing any implicit normalization of failure diagnostic messages?
 
 ## Story: Functional test queries the build result
 
