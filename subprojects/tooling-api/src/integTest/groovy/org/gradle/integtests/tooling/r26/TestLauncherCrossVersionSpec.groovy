@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -29,18 +28,18 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
-import spock.lang.Shared
 
+@TargetGradleVersion(">=1.0-milestone-8")
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def currentTestDescriptors = [] as Set
     def finishedTasksEvents = [] as Set
 
-    @Shared def givenTestDescriptors = [] as Set
+    def givenTestDescriptors = [] as Set
 
     def setup() {
-        testCode()
-        givenTestDescriptors = runBuildAndCollect();
+            testCode()
+        givenTestDescriptors = runBuildAndCollectDescriptors();
     }
 
     @ToolingApiVersion(">=2.6")
@@ -105,9 +104,25 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskExecuted(":secondTest")
         assertTaskUpToDate(":secondTest")
         assertTaskNotExecuted(":test")
+    }
+
+    @ToolingApiVersion(">=2.6")
+    @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when test no longer exists"() {
+        given:
+        testClassRemoved()
+        when:
+        launchTests(testDescriptors("example.MyTest", null, ":test"));
+        then:
+        def e = thrown(BuildException)
+        assertTaskExecuted(":test")
+        assertTaskNotExecuted(":secondTest")
 
     }
 
+    def testClassRemoved() {
+        file("src/test/java/example/MyTest.java").delete()
+    }
 
     @ToolingApiVersion(">=2.6")
     @TargetGradleVersion("<2.6")
@@ -199,7 +214,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    private Set<TestOperationDescriptor> runBuildAndCollect() {
+    private Set<TestOperationDescriptor> runBuildAndCollectDescriptors() {
         def allTestDescriptors = [] as Set
         try {
             withConnection {
