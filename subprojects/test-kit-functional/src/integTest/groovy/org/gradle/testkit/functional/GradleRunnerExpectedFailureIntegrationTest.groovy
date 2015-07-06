@@ -52,7 +52,7 @@ class GradleRunnerExpectedFailureIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildSuccess)
-        String expectedMessage = """Unexpected build execution success in $gradleRunner.workingDir with tasks \\[helloWorld\\] and arguments \\[\\]
+        String expectedMessage = """Unexpected build execution success in $gradleRunner.workingDir with tasks \\u005BhelloWorld\\u005D and arguments \\u005B\\u005D
 
 Output:
 :helloWorld

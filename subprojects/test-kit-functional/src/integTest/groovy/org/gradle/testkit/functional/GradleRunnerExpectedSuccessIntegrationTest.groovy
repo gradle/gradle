@@ -67,7 +67,7 @@ class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in $gradleRunner.workingDir with tasks \\[helloWorld\\] and arguments \\[\\]
+        String expectedMessage = """Unexpected build execution failure in $gradleRunner.workingDir with tasks \\u005BhelloWorld\\u005D and arguments \\u005B\\u005D
 
 Output:
 :helloWorld FAILED
@@ -79,17 +79,17 @@ Total time: .+ secs
 -----
 Error:
 
-FAILURE: Build failed with an exception\\.
+FAILURE: Build failed with an exception.
 
-\\* Where:
-Build file '$gradleRunner.workingDir/build\\.gradle' line: 4
+\\u002A Where:
+Build file '${new File(gradleRunner.workingDir, "build.gradle")}' line: 4
 
-\\* What went wrong:
-Execution failed for task ':helloWorld'\\.
+\\u002A What went wrong:
+Execution failed for task ':helloWorld'.
 > Unexpected exception
 
-\\* Try:
-Run with --stacktrace option to get the stack trace\\. Run with --info or --debug option to get more log output.
+\\u002A Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
 -----
 Reason:
