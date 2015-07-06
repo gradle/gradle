@@ -16,21 +16,19 @@
 
 package org.gradle.sample;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.gradle.testkit.functional.BuildResult;
+import org.gradle.testkit.functional.GradleRunner;
+import org.gradle.util.GFileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import org.gradle.util.GFileUtils;
-import org.gradle.testkit.functional.GradleRunner;
-import org.gradle.testkit.functional.BuildResult;
 
 // START SNIPPET functional-test-junit
 public class UserFunctionalTest {
@@ -54,10 +52,7 @@ public class UserFunctionalTest {
 
         // create and configure Gradle runner
         GradleRunner gradleRunner = GradleRunner.create();
-        gradleRunner.withWorkingDir(testProjectDir.getRoot());
-        List<String> tasks = new ArrayList<String>();
-        tasks.add("helloWorld");
-        gradleRunner.withTasks(tasks);
+        gradleRunner.withWorkingDir(testProjectDir.getRoot()).withTasks("helloWorld");
 
         // execute build script
         BuildResult result = gradleRunner.succeeds();

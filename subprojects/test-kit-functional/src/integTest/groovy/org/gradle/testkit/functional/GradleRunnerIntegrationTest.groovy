@@ -324,7 +324,7 @@ public class MyApp {
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.withArguments(['--unknown'])
+        gradleRunner.withArguments('--unknown')
         gradleRunner.succeeds()
 
         then:
@@ -402,7 +402,7 @@ Gradle build daemon disappeared unexpectedly (it may have been killed or may hav
 
     private GradleRunner prepareGradleRunner(String... tasks) {
         GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
-        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withTasks(tasks as List<String>)
+        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withTasks(tasks)
         assert gradleRunner.workingDir == testProjectDir.testDirectory
         gradleRunner
     }

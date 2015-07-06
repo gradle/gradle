@@ -27,6 +27,7 @@ import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
@@ -67,6 +68,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
+    public GradleRunner withArguments(String... arguments) {
+        return withArguments(Arrays.asList(arguments));
+    }
+
     public List<String> getTasks() {
         return taskNames;
     }
@@ -74,6 +79,10 @@ public class DefaultGradleRunner extends GradleRunner {
     public GradleRunner withTasks(List<String> taskNames) {
         this.taskNames = taskNames;
         return this;
+    }
+
+    public GradleRunner withTasks(String... taskNames) {
+        return withTasks(Arrays.asList(taskNames));
     }
 
     public BuildResult succeeds() {

@@ -78,6 +78,14 @@ public abstract class GradleRunner {
     public abstract GradleRunner withArguments(List<String> arguments);
 
     /**
+     * Sets the arguments used for the build execution.
+     *
+     * @param arguments Build execution arguments
+     * @return The current {@link GradleRunner} instance
+     */
+    public abstract GradleRunner withArguments(String... arguments);
+
+    /**
      * Returns the provided task names for build execution. Defaults to an empty List.
      *
      * @return Task names
@@ -91,6 +99,14 @@ public abstract class GradleRunner {
      * @return The current {@link GradleRunner} instance
      */
     public abstract GradleRunner withTasks(List<String> taskNames);
+
+    /**
+     * Defines which tasks should be executed.
+     *
+     * @param taskNames Task names
+     * @return The current {@link GradleRunner} instance
+     */
+    public abstract GradleRunner withTasks(String... taskNames);
 
     /**
      * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.
