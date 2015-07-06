@@ -44,32 +44,36 @@ public class DefaultGradleRunner extends GradleRunner {
         return gradleUserHomeDir;
     }
 
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+    public GradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
+        return this;
     }
 
     public File getWorkingDir() {
         return workingDirectory;
     }
 
-    public void setWorkingDir(File workingDirectory) {
+    public GradleRunner withWorkingDir(File workingDirectory) {
         this.workingDirectory = workingDirectory;
+        return this;
     }
 
     public List<String> getArguments() {
         return arguments;
     }
 
-    public void setArguments(List<String> arguments) {
+    public GradleRunner withArguments(List<String> arguments) {
         this.arguments = arguments;
+        return this;
     }
 
     public List<String> getTasks() {
         return taskNames;
     }
 
-    public void setTasks(List<String> taskNames) {
+    public GradleRunner withTasks(List<String> taskNames) {
         this.taskNames = taskNames;
+        return this;
     }
 
     public BuildResult succeeds() {

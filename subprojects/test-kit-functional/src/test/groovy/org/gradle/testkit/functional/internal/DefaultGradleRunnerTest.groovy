@@ -28,9 +28,7 @@ class DefaultGradleRunnerTest extends Specification {
     List<String> arguments = ['--parallel', '-Pfoo=bar']
 
     def setup() {
-        defaultGradleRunner.setWorkingDir(workingDir)
-        defaultGradleRunner.setTasks(tasks)
-        defaultGradleRunner.setArguments(arguments)
+        defaultGradleRunner.withWorkingDir(workingDir).withTasks(tasks).withArguments(arguments)
     }
 
     def "creates diagnostic message for execution result without thrown exception"() {

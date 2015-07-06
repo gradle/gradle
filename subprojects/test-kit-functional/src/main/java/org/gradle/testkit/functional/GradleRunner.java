@@ -45,8 +45,9 @@ public abstract class GradleRunner {
      * Sets the Gradle user home directory.
      *
      * @param gradleUserHomeDir Gradle user home directory
+     * @return The current {@link GradleRunner} instance
      */
-    public abstract void setGradleUserHomeDir(File gradleUserHomeDir);
+    public abstract GradleRunner withGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
      * Returns the working directory for the current build execution.
@@ -59,8 +60,9 @@ public abstract class GradleRunner {
      * Sets the working directory for the current build execution.
      *
      * @param workingDirectory Working directory
+     * @return The current {@link GradleRunner} instance
      */
-    public abstract void setWorkingDir(File workingDirectory);
+    public abstract GradleRunner withWorkingDir(File workingDirectory);
 
     /**
      * Returns the provided arguments for the build execution. Defaults to an empty List.
@@ -73,8 +75,9 @@ public abstract class GradleRunner {
      * Sets the arguments used for the build execution.
      *
      * @param arguments Build execution arguments
+     * @return The current {@link GradleRunner} instance
      */
-    public abstract void setArguments(List<String> arguments);
+    public abstract GradleRunner withArguments(List<String> arguments);
 
     /**
      * Returns the provided task names for build execution. Defaults to an empty List.
@@ -87,8 +90,9 @@ public abstract class GradleRunner {
      * Defines which tasks should be executed.
      *
      * @param taskNames Task names
+     * @return The current {@link GradleRunner} instance
      */
-    public abstract void setTasks(List<String> taskNames);
+    public abstract GradleRunner withTasks(List<String> taskNames);
 
     /**
      * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.

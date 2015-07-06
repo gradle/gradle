@@ -54,10 +54,10 @@ public class UserFunctionalTest {
 
         // create and configure Gradle runner
         GradleRunner gradleRunner = GradleRunner.create();
-        gradleRunner.setWorkingDir(testProjectDir.getRoot());
+        gradleRunner.withWorkingDir(testProjectDir.getRoot());
         List<String> tasks = new ArrayList<String>();
         tasks.add("helloWorld");
-        gradleRunner.setTasks(tasks);
+        gradleRunner.withTasks(tasks);
 
         // execute build script
         BuildResult result = gradleRunner.succeeds();

@@ -254,7 +254,7 @@ public class MyApp {
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.arguments = arguments
+        gradleRunner.withArguments(arguments)
         BuildResult result = gradleRunner.succeeds()
 
         then:
@@ -324,7 +324,7 @@ public class MyApp {
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.arguments = ['--unknown']
+        gradleRunner.withArguments(['--unknown'])
         gradleRunner.succeeds()
 
         then:
@@ -342,7 +342,7 @@ Unknown command-line option '--unknown'.""")
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.workingDir = nonExistentWorkingDir
+        gradleRunner.withWorkingDir(nonExistentWorkingDir)
         gradleRunner.succeeds()
 
         then:
@@ -402,13 +402,7 @@ Gradle build daemon disappeared unexpectedly (it may have been killed or may hav
 
     private GradleRunner prepareGradleRunner(String... tasks) {
         GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
-
-        gradleRunner.with {
-            gradleUserHomeDir = buildContext.gradleUserHomeDir
-            workingDir = testProjectDir.testDirectory
-            setTasks(tasks as List<String>)
-        }
-
+        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withTasks(tasks as List<String>)
         assert gradleRunner.workingDir == testProjectDir.testDirectory
         gradleRunner
     }
