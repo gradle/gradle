@@ -25,11 +25,51 @@ import org.gradle.testkit.functional.UnexpectedBuildFailure;
 import org.gradle.testkit.functional.UnexpectedBuildSuccess;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultGradleRunner extends GradleRunner {
     private final GradleDistribution gradleDistribution;
+    private File gradleUserHomeDir;
+    private File workingDirectory;
+    private List<String> arguments = new ArrayList<String>();
+    private List<String> taskNames = new ArrayList<String>();
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
         this.gradleDistribution = gradleDistribution;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
+    }
+
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
+    }
+
+    public File getWorkingDir() {
+        return workingDirectory;
+    }
+
+    public void setWorkingDir(File workingDirectory) {
+        this.workingDirectory = workingDirectory;
+    }
+
+    public List<String> getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(List<String> arguments) {
+        this.arguments = arguments;
+    }
+
+    public List<String> getTasks() {
+        return taskNames;
+    }
+
+    public void setTasks(List<String> taskNames) {
+        this.taskNames = taskNames;
     }
 
     public BuildResult succeeds() {

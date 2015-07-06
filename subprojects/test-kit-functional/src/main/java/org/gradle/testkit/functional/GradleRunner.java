@@ -25,7 +25,6 @@ import org.gradle.testkit.functional.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.functional.internal.dist.VersionBasedGradleDistribution;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,82 +34,61 @@ import java.util.List;
  */
 @Incubating
 public abstract class GradleRunner {
-    private File gradleUserHomeDir;
-    private File workingDirectory;
-    private List<String> arguments = new ArrayList<String>();
-    private List<String> taskNames = new ArrayList<String>();
-
     /**
      * Returns the Gradle user home directory. Defaults to null which indicates the default location.
      *
      * @return Gradle user home directory
      */
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
+    public abstract File getGradleUserHomeDir();
 
     /**
      * Sets the Gradle user home directory.
      *
      * @param gradleUserHomeDir Gradle user home directory
      */
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-    }
+    public abstract void setGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
      * Returns the working directory for the current build execution.
      *
      * @return Working directory
      */
-    public File getWorkingDir() {
-        return workingDirectory;
-    }
+    public abstract File getWorkingDir();
 
     /**
      * Sets the working directory for the current build execution.
      *
      * @param workingDirectory Working directory
      */
-    public void setWorkingDir(File workingDirectory) {
-        this.workingDirectory = workingDirectory;
-    }
+    public abstract void setWorkingDir(File workingDirectory);
 
     /**
      * Returns the provided arguments for the build execution. Defaults to an empty List.
      *
      * @return Build execution arguments
      */
-    public List<String> getArguments() {
-        return arguments;
-    }
+    public abstract List<String> getArguments();
 
     /**
      * Sets the arguments used for the build execution.
      *
      * @param arguments Build execution arguments
      */
-    public void setArguments(List<String> arguments) {
-        this.arguments = arguments;
-    }
-
-    /**
-     * Defines which tasks should be executed.
-     *
-     * @param taskNames Task names
-     */
-    public void setTasks(List<String> taskNames) {
-        this.taskNames = taskNames;
-    }
+    public abstract void setArguments(List<String> arguments);
 
     /**
      * Returns the provided task names for build execution. Defaults to an empty List.
      *
      * @return Task names
      */
-    public List<String> getTasks() {
-        return taskNames;
-    }
+    public abstract List<String> getTasks();
+
+    /**
+     * Defines which tasks should be executed.
+     *
+     * @param taskNames Task names
+     */
+    public abstract void setTasks(List<String> taskNames);
 
     /**
      * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.
@@ -127,7 +105,7 @@ public abstract class GradleRunner {
     public abstract BuildResult fails();
 
     /**
-     * Creates and returns a default implementation of a {@link GradleRunner}. The default implementation is determined based on the following rules:
+     * Creates and returns an implementation of a {@link GradleRunner}. The implementation is determined based on the following rules:
      *
      * <p>
      * - When running from a {@code Test} task, use the Gradle installation that is running the build.<br>

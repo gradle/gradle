@@ -16,7 +16,5 @@
 
 /**
  * Classes for writing and executing functional tests for custom build logic.
- * <p>
- * Please see <a href="http://gradle.org/current/docs/userguide/test_kit.html">Gradle test-kit</a>
  */
 package org.gradle.testkit.functional;
