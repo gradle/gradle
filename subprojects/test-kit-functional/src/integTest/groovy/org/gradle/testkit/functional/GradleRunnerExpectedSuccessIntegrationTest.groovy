@@ -16,25 +16,11 @@
 
 package org.gradle.testkit.functional
 
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
-import org.junit.Rule
-import spock.lang.Shared
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class GradleRunnerIntegrationTest extends Specification {
-    @Shared IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    @Rule TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
-    File buildFile
-
-    def setup() {
-        buildFile = testProjectDir.file('build.gradle')
-    }
-
+class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "execute build without providing a task runs the help task"() {
         when:
         GradleRunner gradleRunner = prepareGradleRunner()
@@ -85,42 +71,6 @@ class GradleRunnerIntegrationTest extends Specification {
         message.contains('Unexpected build execution failure')
         message.contains("""Reason:
 Unexpected exception""")
-    }
-
-    def "execute build for expected failure"() {
-        given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    throw new GradleException('Expected exception')
-                }
-            }
-        """
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
-
-        then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld FAILED')
-        result.standardError.contains("Execution failed for task ':helloWorld'")
-        result.standardError.contains('Expected exception')
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks == [':helloWorld']
-    }
-
-    def "execute build for expected failure but succeeds"() {
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.fails()
-
-        then:
-        Throwable t = thrown(UnexpectedBuildSuccess)
-        t.message.contains('Unexpected build execution success')
     }
 
     def "execute build for multiple tasks"() {
@@ -272,148 +222,5 @@ public class MyApp {
         ['-PmyProp=hello']       | false           | false          | true
         ['-d', '-PmyProp=hello'] | true            | true           | true
         ['-i', '-PmyProp=hello'] | false           | true           | true
-    }
-
-    def "build execution for script with invalid Groovy syntax"() {
-        given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    'Hello world!"
-                }
-            }
-        """
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
-
-        then:
-        noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not compile build file')
-        result.executedTasks.empty
-        result.skippedTasks.empty
-    }
-
-    def "build execution for script with unknown Gradle API method class"() {
-        given:
-        buildFile << """
-            task helloWorld {
-                doSomething {
-                    println 'Hello world!'
-                }
-            }
-        """
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
-
-        then:
-        noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not find method doSomething()')
-        result.executedTasks.empty
-        result.skippedTasks.empty
-    }
-
-    def "build execution with badly formed argument"() {
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.withArguments('--unknown')
-        gradleRunner.succeeds()
-
-        then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Unknown command-line option '--unknown'.""")
-        !message.contains(':helloWorld')
-    }
-
-    def "build execution with non-existent working directory"() {
-        given:
-        File nonExistentWorkingDir = new File('some/path/that/does/not/exist')
-        buildFile << helloWorldTask()
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.withWorkingDir(nonExistentWorkingDir)
-        gradleRunner.succeeds()
-
-        then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
-        !message.contains(':helloWorld')
-    }
-
-    def "build execution with invalid JVM arguments"() {
-        given:
-        GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
-        buildFile << helloWorldTask()
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.succeeds()
-
-        then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Unable to start the daemon process.
-This problem might be caused by incorrect configuration of the daemon.
-For example, an unrecognized jvm option is used.""")
-        !message.contains(':helloWorld')
-    }
-
-    def "daemon dies during build execution"() {
-        given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
-                    Runtime.runtime.halt(0)
-                    println 'Bye world!'
-                }
-            }
-        """
-
-        when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.succeeds()
-
-        then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Output:
-:helloWorld
-Hello world!""")
-        !message.contains('Bye world!')
-        message.contains("""Reason:
-Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
-""")
-    }
-
-    private GradleRunner prepareGradleRunner(String... tasks) {
-        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
-        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withTasks(tasks)
-        assert gradleRunner.workingDir == testProjectDir.testDirectory
-        gradleRunner
-    }
-
-    private String helloWorldTask() {
-        """
-        task helloWorld {
-            doLast {
-                println 'Hello world!'
-            }
-        }
-        """
     }
 }
