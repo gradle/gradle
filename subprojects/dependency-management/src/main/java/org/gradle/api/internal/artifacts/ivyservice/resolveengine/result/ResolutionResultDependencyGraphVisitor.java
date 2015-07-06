@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 
-class ResolutionResultDependencyGraphVisitor implements DependencyGraphVisitor {
+public class ResolutionResultDependencyGraphVisitor implements DependencyGraphVisitor {
     private final ResolutionResultBuilder newModelBuilder;
 
-    ResolutionResultDependencyGraphVisitor(ResolutionResultBuilder newModelBuilder) {
+    public ResolutionResultDependencyGraphVisitor(ResolutionResultBuilder newModelBuilder) {
         this.newModelBuilder = newModelBuilder;
     }
 

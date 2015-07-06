@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -29,17 +32,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
@@ -54,32 +52,21 @@ public class DependencyGraphBuilder {
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
     private final ConflictHandler conflictHandler;
     private final ResolveContextToComponentResolver moduleResolver;
-    private final ArtifactResolver artifactResolver;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
 
-    public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver componentArtifactResolver,
+    public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver, DependencyToConfigurationResolver dependencyToConfigurationResolver,
                                   ConflictHandler conflictHandler) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
-        this.artifactResolver = componentArtifactResolver;
         this.moduleResolver = resolveContextToComponentResolver;
         this.conflictHandler = conflictHandler;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
-    public void resolve(ResolveContext resolveContext,
-                        ResolutionResultBuilder newModelBuilder,
-                        ResolvedConfigurationBuilder oldModelBuilder,
-                        ResolvedArtifactsBuilder artifactsBuilder,
-                        ResolvedLocalComponentsResultBuilder projectModelBuilder) throws ResolveException {
-        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, artifactResolver);
-        DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
-        DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder);
-        DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
-
-        resolveDependencyGraph(resolveContext, modelVisitor);
+    public void resolve(ResolveContext resolveContext, DependencyGraphVisitor... visitors) {
+        resolveDependencyGraph(resolveContext, new CompositeDependencyGraphVisitor(visitors));
     }
 
     private void resolveDependencyGraph(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
@@ -512,7 +499,7 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module version.
      */
-    static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection {
+    public static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection {
         public final ModuleVersionIdentifier id;
         private final ComponentMetaDataResolver resolver;
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();

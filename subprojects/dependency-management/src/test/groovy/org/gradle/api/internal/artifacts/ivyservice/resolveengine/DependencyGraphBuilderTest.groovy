@@ -31,14 +31,13 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedArtifactsBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultDependencyGraphVisitor
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
@@ -84,7 +83,7 @@ class DependencyGraphBuilderTest extends Specification {
             result.resolved(module.getConfiguration(context.configurationName).artifacts)
         }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, artifactResolver, moduleResolver, dependencyToConfigurationResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements))
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, dependencyToConfigurationResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements))
     }
 
     private DefaultLenientConfiguration resolve() {
@@ -92,7 +91,10 @@ class DependencyGraphBuilderTest extends Specification {
         def modelBuilder = new DefaultResolvedConfigurationBuilder(transientConfigurationResultsBuilder)
         def artifactsBuilder = new DefaultResolvedArtifactsBuilder()
 
-        builder.resolve(configuration, resolutionResultBuilder, modelBuilder, artifactsBuilder, projectModelBuilder)
+        builder.resolve(configuration,
+                new ResolutionResultDependencyGraphVisitor(resolutionResultBuilder),
+                new ResolvedConfigurationDependencyGraphVisitor(modelBuilder, artifactsBuilder, artifactResolver),
+                new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder))
 
         def graphResults = modelBuilder.complete()
         def artifactResults = artifactsBuilder.resolve()

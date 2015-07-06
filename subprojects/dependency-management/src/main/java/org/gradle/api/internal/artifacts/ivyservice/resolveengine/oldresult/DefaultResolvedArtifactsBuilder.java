@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
-
 public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 

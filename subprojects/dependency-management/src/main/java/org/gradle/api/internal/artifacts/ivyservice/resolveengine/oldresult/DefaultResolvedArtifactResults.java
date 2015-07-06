@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;

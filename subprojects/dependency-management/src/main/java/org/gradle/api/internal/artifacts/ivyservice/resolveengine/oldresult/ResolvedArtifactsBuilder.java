@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
-
 public interface ResolvedArtifactsBuilder {
 
     // TODO:DAZ Should have a component id here, instead of relying on an internal id for syncing with graph

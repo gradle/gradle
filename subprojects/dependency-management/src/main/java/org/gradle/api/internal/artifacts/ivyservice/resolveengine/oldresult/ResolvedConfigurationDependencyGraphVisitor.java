@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -24,8 +24,10 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
@@ -38,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor {
+public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolvedConfigurationDependencyGraphVisitor.class);
 
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
@@ -50,7 +52,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private DependencyGraphNode root;
 
-    ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
+    public ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
         this.builder = builder;
         this.artifactsBuilder = artifactsBuilder;
         this.artifactResolver = artifactResolver;
