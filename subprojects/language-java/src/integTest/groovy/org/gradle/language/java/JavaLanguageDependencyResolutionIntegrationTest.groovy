@@ -929,6 +929,72 @@ model {
 
     }
 
+    def "should display reasonable error messages in case of multiple binaries available or no compatible variant is found"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+
+class CustomBinaries extends RuleSource {
+   @ComponentBinaries
+   void createBinaries(ModelMap<JarBinarySpec> binaries, JvmLibrarySpec spec) {
+       // duplicate binaries, to make sure we have two binaries for the same platform
+       def newBins = [:]
+       binaries.keySet().each { bName ->
+           if (bName =~ /dep/) {
+              def binary = binaries.get(bName)
+              newBins["${bName}2"] = binary
+           }
+       }
+
+       newBins.each { k,v -> binaries.create(k) {
+            targetPlatform = v.targetPlatform
+            toolChain = v.toolChain
+            jarFile = v.jarFile
+       }}
+    }
+}
+
+apply plugin: CustomBinaries
+
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java6'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        when: "attempt to build main jar Java 6"
+        fails ':java6MainJar'
+
+        then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 6) : [Jar 'depJar', Jar 'depJar2']")
+
+        when: "attempt to build main jar Java 7"
+        fails ':java7MainJar'
+
+        then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Multiple binaries available for library 'dep' (Java SE 7) : [Jar 'depJar', Jar 'depJar2']")
+
+    }
+
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose matching variants from dependency"() {
         given:
@@ -1052,6 +1118,42 @@ model {
 
         then:
         failure.assertHasCause("Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7]")
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "should display candidate platforms if no one matches and multiple binaries are defined"() {
+        given:
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        dep(JvmLibrarySpec) {
+            targetPlatform 'java7'
+            targetPlatform 'java8'
+        }
+
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'dep'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/dep/java/Dep.java') << 'public class Dep {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
+
+        when:
+        fails ':java6MainJar'
+
+        then:
+        failure.assertHasCause("Cannot find a compatible binary for library 'dep' (Java SE 6). Available platforms: [Java SE 7, Java SE 8]")
     }
 
     void applyJavaPlugin(File buildFile) {
