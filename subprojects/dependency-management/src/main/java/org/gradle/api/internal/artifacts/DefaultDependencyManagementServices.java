@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -134,9 +135,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor);
         }
 
-        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
-                                                       GlobalDependencyResolutionRules metadataHandler) {
-            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler);
+        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,
+                                                       RepositoryHandler repositories,
+                                                       GlobalDependencyResolutionRules metadataHandler,
+                                                       ComponentIdentifierFactory componentIdentifierFactory,
+                                                       CacheLockingManager cacheLockingManager) {
+            return new ErrorHandlingConfigurationResolver(
+                    new ShortCircuitEmptyConfigurationResolver(
+                            new SelfResolvingDependencyConfigurationResolver(
+                                    new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler, cacheLockingManager)),
+                            componentIdentifierFactory)
+            );
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.Lists;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.*;
@@ -49,7 +48,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -170,27 +168,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-    }
-
-    public void resolveArtifacts(final ResolveContext resolveContext,
-                                 final List<? extends ResolutionAwareRepository> repositories,
-                                 final GlobalDependencyResolutionRules metadataHandler,
-                                 final BuildableResolverResults results) throws ResolveException {
-
-        if (resolveContext instanceof Configuration) {
-            DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
-            ResolvedGraphResults graphResults = defaultResolverResults.getGraphResults();
-            ResolvedArtifactResults artifactResults = defaultResolverResults.getArtifactsBuilder().resolve();
-            TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = defaultResolverResults.getTransientConfigurationResultsBuilder();
-
-            Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
-
-            DefaultLenientConfiguration result = new DefaultLenientConfiguration(
-                (Configuration) resolveContext, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
-            results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
-        } else {
-            throw new UnsupportedOperationException("Artifact resolution only supported for Configuration");
-        }
     }
 
     private static class ChainedLocalComponentConverter implements LocalComponentConverter {

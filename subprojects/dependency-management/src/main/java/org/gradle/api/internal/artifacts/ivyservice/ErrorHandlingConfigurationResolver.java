@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,56 +21,53 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.BuildableResolverResults;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
-public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependencyResolver {
-    private final ArtifactDependencyResolver dependencyResolver;
+public class ErrorHandlingConfigurationResolver implements ConfigurationResolver {
+    private final ConfigurationResolver delegate;
 
-    public ErrorHandlingArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
-        this.dependencyResolver = dependencyResolver;
+    public ErrorHandlingConfigurationResolver(ConfigurationResolver delegate) {
+        this.delegate = delegate;
     }
 
-    public void resolve(ResolveContext resolveContext,
-                        List<? extends ResolutionAwareRepository> repositories,
-                        GlobalDependencyResolutionRules metadataHandler,
-                        BuildableResolverResults results) throws ResolveException {
+    @Override
+    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
         try {
-            dependencyResolver.resolve(resolveContext, repositories, metadataHandler, results);
+            delegate.resolve(configuration, results);
         } catch (final Throwable e) {
-            results.failed(wrapException(e, resolveContext));
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, resolveContext));
+            results.failed(wrapException(e, configuration));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
             return;
         }
-        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), resolveContext);
+        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
         results.resolved(wrappedResult, results.getResolvedLocalComponents());
     }
 
-    public void resolveArtifacts(ResolveContext resolveContext,
-                                 List<? extends ResolutionAwareRepository> repositories,
-                                 GlobalDependencyResolutionRules metadataHandler,
-                                 BuildableResolverResults results) throws ResolveException {
+    @Override
+    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
         try {
-            dependencyResolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);
+            delegate.resolveArtifacts(configuration, results);
         } catch (ResolveException e) {
-            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, resolveContext));
+            results.withResolvedConfiguration(new BrokenResolvedConfiguration(e, configuration));
             return;
         }
 
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext);
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
         results.withResolvedConfiguration(wrappedConfiguration);
     }
 
-    private static ResolveException wrapException(Throwable e, ResolveContext configuration) {
+    private static ResolveException wrapException(Throwable e, ResolveContext resolveContext) {
         if (e instanceof ResolveException) {
             return (ResolveException) e;
         }
-        return new ResolveException(configuration.getDisplayName(), e);
+        return new ResolveException(resolveContext.getDisplayName(), e);
     }
 
     private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
@@ -167,12 +164,12 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
 
     private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
         private final ResolvedConfiguration resolvedConfiguration;
-        private final ResolveContext resolveContext;
+        private final ConfigurationInternal configuration;
 
         public ErrorHandlingResolvedConfiguration(ResolvedConfiguration resolvedConfiguration,
-                                                  ResolveContext resolveContext) {
+                                                  ConfigurationInternal configuration) {
             this.resolvedConfiguration = resolvedConfiguration;
-            this.resolveContext = resolveContext;
+            this.configuration = configuration;
         }
 
         public boolean hasError() {
@@ -181,9 +178,9 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
 
         public LenientConfiguration getLenientConfiguration() {
             try {
-                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), resolveContext);
+                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), configuration);
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
 
@@ -191,7 +188,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             try {
                 resolvedConfiguration.rethrowFailure();
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
 
@@ -199,7 +196,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             try {
                 return resolvedConfiguration.getFiles(dependencySpec);
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
 
@@ -207,7 +204,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
 
@@ -215,7 +212,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
 
@@ -223,18 +220,18 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             try {
                 return resolvedConfiguration.getResolvedArtifacts();
             } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
+                throw wrapException(e, configuration);
             }
         }
     }
 
     private static class BrokenResolvedConfiguration implements ResolvedConfiguration {
         private final Throwable e;
-        private final ResolveContext resolveContext;
+        private final ConfigurationInternal configuration;
 
-        public BrokenResolvedConfiguration(Throwable e, ResolveContext resolveContext) {
+        public BrokenResolvedConfiguration(Throwable e, ConfigurationInternal configuration) {
             this.e = e;
-            this.resolveContext = resolveContext;
+            this.configuration = configuration;
         }
 
         public boolean hasError() {
@@ -242,27 +239,27 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         }
 
         public LenientConfiguration getLenientConfiguration() {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
 
         public void rethrowFailure() throws ResolveException {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
 
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            throw wrapException(e, resolveContext);
+            throw wrapException(e, configuration);
         }
     }
 }

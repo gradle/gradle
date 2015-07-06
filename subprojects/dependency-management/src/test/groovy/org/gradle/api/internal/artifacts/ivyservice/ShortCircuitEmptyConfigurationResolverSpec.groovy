@@ -17,25 +17,21 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultResolverResults
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
-class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specification {
+class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
-    def delegate = Mock(ArtifactDependencyResolver)
+    def delegate = Mock(ConfigurationResolver)
     def configuration = Stub(ConfigurationInternal)
-    def repositories = [Stub(ResolutionAwareRepository)]
-    def metadataHandler = Stub(GlobalDependencyResolutionRules)
     def dependencies = Stub(DependencySet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def results = new DefaultResolverResults()
-    def dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate, componentIdentifierFactory);
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory);
 
     def "returns empty result when no dependencies"() {
         given:
@@ -43,8 +39,8 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getAllDependencies() >> dependencies
 
         when:
-        dependencyResolver.resolve(configuration, repositories, metadataHandler, results)
-        dependencyResolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
+        dependencyResolver.resolve(configuration, results)
+        dependencyResolver.resolveArtifacts(configuration, results)
 
         then:
         def resolvedConfig = results.resolvedConfiguration
@@ -70,9 +66,9 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getAllDependencies() >> dependencies
 
         when:
-        dependencyResolver.resolve(configuration, repositories, metadataHandler, results)
+        dependencyResolver.resolve(configuration, results)
 
         then:
-        1 * delegate.resolve(configuration, repositories, metadataHandler, results)
+        1 * delegate.resolve(configuration, results)
     }
 }

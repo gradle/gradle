@@ -25,9 +25,4 @@ public interface ArtifactDependencyResolver {
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,
                  BuildableResolverResults results) throws ResolveException;
-
-    void resolveArtifacts(ResolveContext resolveContext,
-                 List<? extends ResolutionAwareRepository> repositories,
-                 GlobalDependencyResolutionRules metadataHandler,
-                 BuildableResolverResults results) throws ResolveException;
 }

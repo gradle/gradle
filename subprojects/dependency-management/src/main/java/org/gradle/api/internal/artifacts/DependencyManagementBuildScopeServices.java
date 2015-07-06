@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
@@ -213,7 +212,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                                 VersionComparator versionComparator,
                                                                 StartParameter startParameter,
-                                                                ComponentIdentifierFactory componentIdentifierFactory,
                                                                 ServiceRegistry serviceRegistry) {
         DefaultDependencyResolver resolver = new DefaultDependencyResolver(
             serviceRegistry,
@@ -225,13 +223,7 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             startParameter.isBuildProjectDependencies()
         );
-        return new ErrorHandlingArtifactDependencyResolver(
-            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                new SelfResolvingDependencyResolver(
-                    new CacheLockingArtifactDependencyResolver(
-                        cacheLockingManager,
-                        resolver)),
-                componentIdentifierFactory));
+        return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {

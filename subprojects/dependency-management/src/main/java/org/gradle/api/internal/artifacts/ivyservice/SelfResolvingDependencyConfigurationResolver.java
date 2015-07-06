@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +17,35 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.BuildableResolverResults;
+import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
-public class SelfResolvingDependencyResolver implements ArtifactDependencyResolver {
-    private final ArtifactDependencyResolver resolver;
+public class SelfResolvingDependencyConfigurationResolver implements ConfigurationResolver {
+    private final ConfigurationResolver delegate;
 
-    public SelfResolvingDependencyResolver(ArtifactDependencyResolver resolver) {
-        this.resolver = resolver;
+    public SelfResolvingDependencyConfigurationResolver(ConfigurationResolver delegate) {
+        this.delegate = delegate;
     }
 
-    public void resolve(ResolveContext resolveContext,
-                        List<? extends ResolutionAwareRepository> repositories,
-                        GlobalDependencyResolutionRules metadataHandler,
-                        BuildableResolverResults results) throws ResolveException {
-        resolver.resolve(resolveContext, repositories, metadataHandler, results);
+    @Override
+    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+        delegate.resolve(configuration, results);
     }
 
-    public void resolveArtifacts(ResolveContext contextInternal,
-                                 List<? extends ResolutionAwareRepository> repositories,
-                                 GlobalDependencyResolutionRules metadataHandler,
-                                 BuildableResolverResults results) throws ResolveException {
-        resolver.resolveArtifacts(contextInternal, repositories, metadataHandler, results);
+    @Override
+    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+
+        delegate.resolveArtifacts(configuration, results);
 
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
-        Configuration configuration = (Configuration) contextInternal;
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);

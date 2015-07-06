@@ -20,7 +20,9 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
 
@@ -30,20 +32,30 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactDependencyResolver resolver;
     private final RepositoryHandler repositories;
     private final GlobalDependencyResolutionRules metadataHandler;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories, GlobalDependencyResolutionRules metadataHandler) {
+    public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories, GlobalDependencyResolutionRules metadataHandler, CacheLockingManager cacheLockingManager) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
-    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, (BuildableResolverResults) results);
+        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, results);
     }
 
-    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        resolver.resolveArtifacts(configuration, resolutionAwareRepositories, metadataHandler, (BuildableResolverResults) results);
+    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+        DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
+        ResolvedGraphResults graphResults = defaultResolverResults.getGraphResults();
+        ResolvedArtifactResults artifactResults = defaultResolverResults.getArtifactsBuilder().resolve();
+        TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = defaultResolverResults.getTransientConfigurationResultsBuilder();
+
+        Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
+
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(
+            configuration, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
+        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 }

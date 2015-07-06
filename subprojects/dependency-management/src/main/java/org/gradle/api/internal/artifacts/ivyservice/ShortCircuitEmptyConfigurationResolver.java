@@ -18,51 +18,50 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.BuildableResolverResults;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedLocalComponentsResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements ArtifactDependencyResolver {
-    private final ArtifactDependencyResolver dependencyResolver;
+public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
+    private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
 
-    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver, ComponentIdentifierFactory componentIdentifierFactory) {
-        this.dependencyResolver = dependencyResolver;
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory) {
+        this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
-    public void resolve(ResolveContext resolveContext,
-                        List<? extends ResolutionAwareRepository> repositories,
-                        GlobalDependencyResolutionRules metadataHandler,
-                        BuildableResolverResults results) throws ResolveException {
-        if (resolveContext instanceof Configuration && resolveContext.getAllDependencies().isEmpty()) {
-            ModuleInternal module = ((DependencyMetaDataProvider) resolveContext).getModule();
+    @Override
+    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+        if (configuration.getAllDependencies().isEmpty()) {
+            ModuleInternal module = configuration.getModule();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             ResolvedLocalComponentsResult emptyProjectResult = new DefaultResolvedLocalComponentsResultBuilder(false).complete();
             results.resolved(emptyResult, emptyProjectResult);
         } else {
-            dependencyResolver.resolve(resolveContext, repositories, metadataHandler, results);
+            delegate.resolve(configuration, results);
         }
     }
 
     @Override
-    public void resolveArtifacts(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, BuildableResolverResults results) throws ResolveException {
-        if (resolveContext.getAllDependencies().isEmpty() && resolveContext instanceof Configuration) {
+    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+        if (configuration.getAllDependencies().isEmpty()) {
             results.withResolvedConfiguration(new EmptyResolvedConfiguration());
         } else {
-            dependencyResolver.resolveArtifacts(resolveContext, repositories, metadataHandler, results);
+            delegate.resolveArtifacts(configuration, results);
         }
     }
 

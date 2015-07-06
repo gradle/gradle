@@ -20,42 +20,38 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext
+import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultResolverResults
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
-public class SelfResolvingDependencyResolverTest extends Specification {
+public class SelfResolvingDependencyConfigurationResolverTest extends Specification {
 
-    private delegate = Mock(ArtifactDependencyResolver)
+    private delegate = Mock(ConfigurationResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private configuration = Mock(ConfigurationInternal)
-    private repositories = [Mock(ResolutionAwareRepository)]
     private dependencies = Mock(DependencySet)
-    private metadataHandler = Stub(GlobalDependencyResolutionRules)
     private results = new DefaultResolverResults()
-    private resolver = new SelfResolvingDependencyResolver(delegate);
+    private resolver = new SelfResolvingDependencyConfigurationResolver(delegate);
 
     void "returns correct resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
-        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolve(configuration, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
+        delegate.resolveArtifacts(configuration, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, results)
-        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
+        resolver.resolve(configuration, results)
+        resolver.resolveArtifacts(configuration, results)
 
         then:
-        def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
+        def conf = (SelfResolvingDependencyConfigurationResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
         conf.resolvedConfiguration == resolvedConfiguration
         conf.selfResolvingFilesProvider
         conf.selfResolvingFilesProvider.resolveContext.transitive
@@ -64,30 +60,30 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "uses configuration transitive setting"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
-        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolve(configuration, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
+        delegate.resolveArtifacts(configuration, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> false
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, results)
-        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
+        resolver.resolve(configuration, results)
+        resolver.resolveArtifacts(configuration, results)
 
         then:
-        def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
+        def conf = (SelfResolvingDependencyConfigurationResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
         !conf.selfResolvingFilesProvider.resolveContext.transitive
     }
 
     void "delegates to provided resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
-        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
+        delegate.resolve(configuration, results) >> { results.resolved(Mock(ResolutionResult), Mock(ResolvedLocalComponentsResult)) }
+        delegate.resolveArtifacts(configuration, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, results)
-        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
+        resolver.resolve(configuration, results)
+        resolver.resolveArtifacts(configuration, results)
         results.resolvedConfiguration.getFirstLevelModuleDependencies(Specs.satisfyAll())
         results.resolvedConfiguration.getResolvedArtifacts()
         results.resolvedConfiguration.hasError()
@@ -109,7 +105,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
         def fooDep = new DefaultExternalModuleDependency("org", "foo", "1.0")
         Set<Dependency> dependencies = [fooDep, new DefaultExternalModuleDependency("org", "bar", "1.0")]
 
-        def provider = new SelfResolvingDependencyResolver.SelfResolvingFilesProvider(resolveContext, dependencies)
+        def provider = new SelfResolvingDependencyConfigurationResolver.SelfResolvingFilesProvider(resolveContext, dependencies)
 
         when:
         def files = provider.getFiles({ it.name == 'foo' } as Spec)
@@ -125,12 +121,12 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "aggregates files with self resolving files first"() {
         given:
-        def provider = Mock(SelfResolvingDependencyResolver.SelfResolvingFilesProvider) {
+        def provider = Mock(SelfResolvingDependencyConfigurationResolver.SelfResolvingFilesProvider) {
             getFiles(Specs.satisfyAll()) >> [new File("foo.jar")]
         }
         resolvedConfiguration.getFiles(Specs.satisfyAll()) >> new HashSet<File>([new File("bar.jar")])
 
-        def conf = new SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider)
+        def conf = new SelfResolvingDependencyConfigurationResolver.FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider)
 
         when:
         def files = conf.getFiles(Specs.satisfyAll())
