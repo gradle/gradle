@@ -81,6 +81,9 @@ class SampleLibraryRules extends RuleSource {
 
 apply plugin: SampleLibraryRules
 
+def compileSources = new TreeMap<String, String>()
+def compileClasspaths = new TreeMap<String, String>()
+
 model {
     components {
         lib1(JvmLibrarySpec)
@@ -114,15 +117,21 @@ model {
     }
     tasks {
         withType(AbstractCompile) { compile ->
-            println compile.name + " sources: " + compile.source.files.sort()*.name.join(", ") + "."
-            println compile.name + " classpath: " + compile.classpath.files.sort()*.name.join(", ") + "."
+            compileSources.put compile.name, compile.source.files.sort()*.name.join(", ")
+            compileClasspaths.put compile.name, compile.classpath.files.sort()*.name.join(", ")
+        }
+        create("showPaths") { task ->
+            task.doLast {
+                println "Sources:\\n" + compileSources.collect { key, value -> "\$key=\$value" }.join("\\n")
+                println "Classpaths:\\n" + compileClasspaths.collect { key, value -> "\$key=\$value" }.join("\\n")
+            }
         }
     }
 }
 """
 
         when:
-        succeeds "assemble"
+        succeeds "assemble", "showPaths"
 
         then:
         new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).hasDescendants(
@@ -132,14 +141,17 @@ model {
             "Bin.class",
             "bin.properties"
         )
-        output.contains(TextUtil.toPlatformLineSeparators("""compileSampleLibJarSampleLibLib sources: Sample.java.
-compileSampleLibJarSampleLibLib classpath: lib1.jar.
-compileSampleLibJarSampleLibBin sources: Bin.java.
-compileSampleLibJarSampleLibBin classpath: lib2.jar.
-compileLib2JarLib2Java sources: Lib2.java.
-compileLib2JarLib2Java classpath: .
-compileLib1JarLib1Java sources: Lib1.java.
-compileLib1JarLib1Java classpath: .
+        output.contains(TextUtil.toPlatformLineSeparators("""
+Sources:
+compileLib1JarLib1Java=Lib1.java
+compileLib2JarLib2Java=Lib2.java
+compileSampleLibJarSampleLibBin=Bin.java
+compileSampleLibJarSampleLibLib=Sample.java
+Classpaths:
+compileLib1JarLib1Java=
+compileLib2JarLib2Java=
+compileSampleLibJarSampleLibBin=lib2.jar
+compileSampleLibJarSampleLibLib=lib1.jar
 """))
     }
 }
