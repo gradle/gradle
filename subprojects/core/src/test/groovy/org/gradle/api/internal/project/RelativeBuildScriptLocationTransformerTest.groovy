@@ -26,6 +26,7 @@ class RelativeBuildScriptLocationTransformerTest extends Specification {
 
     def "should get the relative script path to the root project"() {
         expect:
-        new RelativeBuildScriptLocationTransformer().transform(root).get() == normaliseFileSeparators('/build.gradle')
+        def path = new RelativeBuildScriptLocationTransformer().transform(root).get()
+        normaliseFileSeparators(path) == '/build.gradle'
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
 import static org.gradle.util.Matchers.containsText
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -206,7 +205,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "dependencies" // something that doesn't actually require thing1 to be built
-        failure.assertThatCause(containsText(normaliseFileSeparators("model.thing1 @ /build.gradle")))
+        failure.assertThatCause(containsText("model.thing1 @ ${File.separator}build.gradle"))
         failure.assertThatCause(containsText("Cannot create an element of type Thing as it is not a managed type"))
     }
 

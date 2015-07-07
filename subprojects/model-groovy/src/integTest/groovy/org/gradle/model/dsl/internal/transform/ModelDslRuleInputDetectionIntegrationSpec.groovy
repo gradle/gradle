@@ -323,7 +323,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.raboof @ /${buildFile.name} line 15, column 17
+  model.tasks.raboof @ ${File.separator}${buildFile.name} line 15, column 17
     Mutable:
       + tasks.raboof (java.lang.Object)
     Immutable:
