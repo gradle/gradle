@@ -112,7 +112,7 @@ model {
         }
     }
     tasks {
-        create("showPaths") { task ->
+        create("validate") { task ->
             task.doLast {
                 // Check for isolation of compiler source- and classpaths
                 assert compileLib1JarLib1Java.source.files*.name == [ "Lib1.java" ]
@@ -131,9 +131,10 @@ model {
 """
 
         when:
-        succeeds "assemble", "showPaths"
+        succeeds "sampleLibJar", "validate"
 
         then:
+        executed ":lib1Jar", ":lib2Jar"
         new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).hasDescendants(
             "Sample.class",
             "sample.properties",
