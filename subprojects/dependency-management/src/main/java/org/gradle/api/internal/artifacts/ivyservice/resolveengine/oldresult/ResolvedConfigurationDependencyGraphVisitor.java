@@ -82,11 +82,10 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
     private void attachToParents(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
         ResolvedConfigurationIdentifier parent = dependency.getFrom().getNodeId();
         ResolvedConfigurationIdentifier child = childConfiguration.getNodeId();
-        builder.addChild(parent, child);
 
         ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
-        builder.addArtifacts(child, parent, artifacts.getId());
-        artifactsBuilder.addArtifacts(artifacts.getId(), artifacts);
+        builder.addChild(parent, child, artifacts.getId());
+        artifactsBuilder.addArtifacts(artifacts);
 
         if (parent == root.getNodeId()) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();

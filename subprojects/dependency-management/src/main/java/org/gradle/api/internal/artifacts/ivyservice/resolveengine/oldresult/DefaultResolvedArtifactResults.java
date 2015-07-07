@@ -43,8 +43,8 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
         return a;
     }
 
-    public void addArtifactSet(long id, ArtifactSet artifactSet) {
-        artifactSets.put(id, artifactSet);
+    public void addArtifactSet(ArtifactSet artifactSet) {
+        artifactSets.put(artifactSet.getId(), artifactSet);
     }
 
     public void resolveNow() {

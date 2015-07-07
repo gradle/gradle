@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
-    public void addArtifacts(long id, ArtifactSet artifactSet) {
-        artifactResults.addArtifactSet(id, artifactSet);
+    public void addArtifacts(ArtifactSet artifactSet) {
+        artifactResults.addArtifactSet(artifactSet);
     }
 
     @Override
