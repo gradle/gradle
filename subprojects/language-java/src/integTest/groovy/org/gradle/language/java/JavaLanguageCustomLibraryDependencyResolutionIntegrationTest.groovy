@@ -581,6 +581,79 @@ model {
         succeeds ':thirdJar'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "All components should depend on the corresponding variants"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+        }
+    }
+
+    tasks {
+        create('checkMainDependencies') {
+            doLast {
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(secondJava6Jar)
+            }
+        }
+        create('checkSecondDependencies') {
+            doLast {
+                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(java7ThirdJar)
+                assert compileSecondJava6JarSecondJava.taskDependencies.getDependencies(compileSecondJava6JarSecondJava).contains(java6ThirdJar)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect: "Can resolve dependencies of the Java 6 and Java 7 variant of the main and second components"
+        succeeds ':checkMainDependencies'
+        succeeds ':checkSecondDependencies'
+
+        and: "Can build the Java 7 variant of all components"
+        succeeds ':java7MainJar'
+        succeeds ':secondJava7Jar'
+        succeeds ':java7ThirdJar'
+
+        and: "Can build the Java 6 variant of all components"
+        succeeds ':java6MainJar'
+        succeeds ':secondJava6Jar'
+        succeeds ':java6ThirdJar'
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
