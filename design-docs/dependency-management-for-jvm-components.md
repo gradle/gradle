@@ -324,16 +324,10 @@ model {
 
 ## Story: Plugin author defines a custom component built from Java source
 
-Define a custom component that produces a Jar binary from Java source and resources. When the Jar is built, the compile time
-dependencies of the source are also built and the source compiled.
+Define a custom component that produces a Jar binary from Java source and resources, using the `jvm-component` plugin.
+When the Jar is built, the compile time dependencies of the source are also built and the source compiled.
 
-- Allow a `JarBinarySpec` to be added to the binaries container of any component.
-- When `jvm-component` plugin is applied, the Jar binary should be buildable.
-- API dependencies should be built before the Java source is compiled.
-- Each Java source set may have different dependencies. The compile classpaths for each source set should be isolated from the others.
-- Default Java platform and tool-chains are used to build the binary. For this story, the Java platform is not configurable for these binaries.
-- Error cases:
-    - Fail when no rule is available to define the tasks for a `BinarySpec`.
+- The Jar binary should be buildable in the same way an JVM Library Jar binary is built.
 
 ### Test cases
 
@@ -346,18 +340,15 @@ dependencies of the source are also built and the source compiled.
         - Source from `b` is compiled against the API of `lib2` only and the compiled classes end up in the Jar.
         - Resources from `res-a` and `res-b` end up in the Jar.
         - Jar contains only the above items.
-- Error cases above.
 
 ### Implementation
 
 - Will need to rework `JvmComponentPlugin` so that `ConfigureJarBinary` is applied in some form to all `JarBinarySpec` instances, not just those that belong to a Jvm library.
-- Change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
 
-### Open issues
+### Out of scope
 
-- How to create a managed sub-type of `JarBinarySpec`?
-- How to assign different tasks for a sub-type of `JarBinarySpec` when the `jvm-component` plugin does it already for all `JarBinarySpec`s?
-
+- Defining platforms and tool-chains is out of scope for this story. Using the default Java platform in the test cases is okay.
+- Building a `JarBinarySpec` without the `jvm-component` plugin applied
 
 ## Story: Plugin author defines a custom library that provides a Java API
 
@@ -520,6 +511,8 @@ Change dependency resolution to honor the variant dimensions for a custom compon
 - Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
     - This will require using `LanguageTransform`s in Scala
     - Windows resource sets on non-windows builds fail with the current `LanguageTransform.applyToBinary()` implementation
+- Fail when no rule is available to define the tasks for a `BinarySpec`.
+    - Will need to change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
 
 # Feature 3: TBD
 
