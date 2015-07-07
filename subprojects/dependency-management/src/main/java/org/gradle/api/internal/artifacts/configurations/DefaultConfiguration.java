@@ -383,14 +383,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
-        cachedResolverResults.eachResolvedProject(new Action<ResolvedProjectConfiguration>() {
-            @Override
-            public void execute(ResolvedProjectConfiguration projectResult) {
-                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                targetConfig.markAsObserved(requestedState);
-            }
-        });
+        for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
+            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+            targetConfig.markAsObserved(requestedState);
+        }
     }
 
     private void resolveArtifactsIfRequired() {

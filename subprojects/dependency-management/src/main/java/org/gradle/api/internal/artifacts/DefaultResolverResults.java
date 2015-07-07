@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifacts;
 
 public class DefaultResolverResults implements BuildableResolverResults {
@@ -65,17 +63,6 @@ public class DefaultResolverResults implements BuildableResolverResults {
             throw fatalFailure;
         }
         return resolutionResult;
-    }
-
-    // TODO:DAZ Remove this
-    public void eachResolvedProject(Action<ResolvedProjectConfiguration> action) {
-        assertHasResult();
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
-        for (ResolvedProjectConfiguration resolvedProjectConfiguration : resolvedLocalComponentsResult.getResolvedProjectConfigurations()) {
-            action.execute(resolvedProjectConfiguration);
-        }
     }
 
     @Override
