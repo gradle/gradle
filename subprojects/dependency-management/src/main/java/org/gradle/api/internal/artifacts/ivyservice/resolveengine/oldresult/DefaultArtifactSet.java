@@ -34,19 +34,21 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractArtifactSet implements ArtifactSet {
+public class DefaultArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleSource moduleSource;
     private final ModuleResolutionFilter selector;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
+    private final Set<ComponentArtifactMetaData> artifacts;
 
-    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, ArtifactResolver artifactResolver,
-                               Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
+    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, Set<ComponentArtifactMetaData> artifacts,
+                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
         this.selector = selector;
+        this.artifacts = artifacts;
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
@@ -57,9 +59,8 @@ public abstract class AbstractArtifactSet implements ArtifactSet {
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
-        Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts();
-        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
-        for (ComponentArtifactMetaData artifact : componentArtifacts) {
+        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
+        for (ComponentArtifactMetaData artifact : artifacts) {
             IvyArtifactName artifactName = artifact.getName();
             if (!selector.acceptArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
                 continue;
@@ -75,12 +76,6 @@ public abstract class AbstractArtifactSet implements ArtifactSet {
         }
         return resolvedArtifacts;
     }
-
-    protected ArtifactResolver getArtifactResolver() {
-        return artifactResolver;
-    }
-
-    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts();
 
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
