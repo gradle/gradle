@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
-    public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-functional-'
+    public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
 
     def setup() {
         buildFile << """

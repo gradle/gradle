@@ -46,10 +46,10 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_TEST_KIT")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-test-kit-functional-runtime"]
+        classpath.asFiles.collect{it.name} == ["gradle-test-kit-runtime"]
 
         and:
-        1 * moduleRegistry.getModule("gradle-test-kit-functional") >> module("gradle-test-kit-functional")
+        1 * moduleRegistry.getModule("gradle-test-kit") >> module("gradle-test-kit")
         0 * pluginModuleRegistry.getPluginModules()
     }
 

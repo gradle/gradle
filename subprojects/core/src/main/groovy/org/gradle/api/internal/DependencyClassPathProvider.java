@@ -52,7 +52,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         }
         if (name.equals(GRADLE_TEST_KIT.name())) {
             ClassPath classpath = new DefaultClassPath();
-            for (Module module : moduleRegistry.getModule("gradle-test-kit-functional").getAllRequiredModules()) {
+            for (Module module : moduleRegistry.getModule("gradle-test-kit").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
             return classpath;

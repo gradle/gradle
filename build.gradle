@@ -181,7 +181,7 @@ dependencies {
     sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
-    gradlePlugins project(':testKitFunctional')
+    gradlePlugins project(':testKit')
 }
 
 task verifyIsProductionBuildEnvironment << {
