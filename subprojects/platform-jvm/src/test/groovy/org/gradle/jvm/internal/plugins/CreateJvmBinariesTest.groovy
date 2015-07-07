@@ -42,7 +42,7 @@ class CreateJvmBinariesTest extends Specification {
     def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
-    def rule = new JvmComponentPlugin()
+    def rule = new JvmComponentPlugin.Rules()
     def platforms = Mock(PlatformResolvers)
     ModelMap<JarBinarySpec> binaries = Mock(ModelMap)
     def instantiator = Mock(Instantiator)
