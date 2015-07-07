@@ -83,11 +83,14 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         then:
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "parent"
+            assert event.parentId == null
+            assert event.operationId != null
             parentId = event.operationId
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "child"
-            assert event.operationId.parentId == parentId.id
+            assert event.operationId != parentId
+            assert event.parentId == parentId
         }
     }
 
@@ -110,11 +113,11 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "sibling"
-            assert event.operationId.parentId == parentId.id
+            assert event.parentId == parentId
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "child"
-            assert event.operationId.parentId == parentId.id
+            assert event.parentId == parentId
         }
     }
 
@@ -147,24 +150,23 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         then:
         1 * progressListener.started({it.description == "op-1"}) >> { ProgressStartEvent event ->
             parentId = event.operationId
+            assert event.parentId == null
         }
         1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
             childId = event.operationId
+            assert event.parentId == parentId
         }
         1 * progressListener.started({it.description == "op-2"}) >> { ProgressStartEvent event ->
             id2 = event.operationId
+            assert event.parentId == null
         }
 
         and:
-        parentId.parentId == null
-        childId.parentId == parentId.id
-        id2.parentId == null
-        [parentId.id, childId.id, id2.id].toSet().size() == 3
+        [parentId, childId, id2].toSet().size() == 3
     }
 
     def "operation can have parent running in a different thread"() {
         OperationIdentifier parentId
-        OperationIdentifier childId
 
         when:
         async {
@@ -189,12 +191,9 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
             parentId = event.operationId
         }
         1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
-            childId = event.operationId
+            assert event.parentId == parentId
+            assert event.operationId != parentId
         }
-
-        and:
-        parentId.parentId == null
-        childId.parentId == parentId.id
     }
 
     def canSpecifyShortDescription() {

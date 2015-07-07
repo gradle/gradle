@@ -148,7 +148,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
             }
         });
 
-
         if (upTo == Stage.Configure) {
             return;
         }

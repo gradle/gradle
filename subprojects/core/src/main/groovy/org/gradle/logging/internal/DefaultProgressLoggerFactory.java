@@ -57,12 +57,11 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private enum State { idle, started, completed }
 
     private class ProgressLoggerImpl implements ProgressLogger {
-        private final long id;
+        private final OperationIdentifier id;
         private final String category;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
         private ProgressLoggerImpl parent;
-        private OperationIdentifier operationIdentifier;
         private String description;
         private String shortDescription;
         private String loggingHeader;
@@ -70,7 +69,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         public ProgressLoggerImpl(ProgressLoggerImpl parent, long id, String category, ProgressListener listener, TimeProvider timeProvider) {
             this.parent = parent;
-            this.id = id;
+            this.id = new OperationIdentifier(id);
             this.category = category;
             this.listener = listener;
             this.timeProvider = timeProvider;
@@ -132,13 +131,12 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            operationIdentifier = new OperationIdentifier(this.id, parent == null ? null : parent.id);
-            listener.started(new ProgressStartEvent(operationIdentifier, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
             assertRunning();
-            listener.progress(new ProgressEvent(operationIdentifier, timeProvider.getCurrentTime(), category, toStatus(status)));
+            listener.progress(new ProgressEvent(id, timeProvider.getCurrentTime(), category, toStatus(status)));
         }
 
         public void completed() {
@@ -149,8 +147,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(operationIdentifier,
-                    timeProvider.getCurrentTime(), category, description, toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(id, timeProvider.getCurrentTime(), category, description, toStatus(status)));
         }
 
         private String toStatus(String status) {

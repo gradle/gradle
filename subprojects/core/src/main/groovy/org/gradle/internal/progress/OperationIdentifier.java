@@ -20,24 +20,18 @@ import java.io.Serializable;
 
 public class OperationIdentifier implements Serializable {
     private final long id;
-    private final Long parentId;
 
-    public OperationIdentifier(long id, Long parentId) {
+    public OperationIdentifier(long id) {
         this.id = id;
-        this.parentId = parentId;
     }
 
     public long getId() {
         return id;
     }
 
-    public Long getParentId() {
-        return parentId;
-    }
-
     @Override
     public String toString() {
-        return id + ":" + parentId;
+        return String.valueOf(id);
     }
 
     @Override
@@ -50,18 +44,11 @@ public class OperationIdentifier implements Serializable {
         }
 
         OperationIdentifier that = (OperationIdentifier) o;
-
-        if (getId() != that.getId()) {
-            return false;
-        }
-        return !(getParentId() != null ? !getParentId().equals(that.getParentId()) : that.getParentId() != null);
-
+        return id == that.id;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (getId() ^ (getId() >>> 32));
-        result = 31 * result + (getParentId() != null ? getParentId().hashCode() : 0);
-        return result;
+        return (int) id;
     }
 }

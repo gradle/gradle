@@ -23,7 +23,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
@@ -66,8 +65,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
         OperationDetails parent = currentOperation.get();
-        BuildOperationId parentId = parent == null ? null : parent.id;
-        BuildOperationId id = new BuildOperationId(nextId.getAndIncrement());
+        OperationIdentifier parentId = parent == null ? null : parent.id;
+        OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
         currentOperation.set(new OperationDetails(parent, id));
         try {
             long startTime = timeProvider.getCurrentTime();
@@ -113,42 +112,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     private static class OperationDetails {
         final OperationDetails parent;
-        final BuildOperationId id;
+        final OperationIdentifier id;
 
-        public OperationDetails(OperationDetails parent, BuildOperationId id) {
+        public OperationDetails(OperationDetails parent, OperationIdentifier id) {
             this.parent = parent;
             this.id = id;
-        }
-    }
-
-    private static class BuildOperationId implements Serializable {
-        private final long id;
-
-        public BuildOperationId(long id) {
-            this.id = id;
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(id);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            BuildOperationId other = (BuildOperationId) o;
-            return id == other.id;
-        }
-
-        @Override
-        public int hashCode() {
-            return (int) id;
         }
     }
 }
