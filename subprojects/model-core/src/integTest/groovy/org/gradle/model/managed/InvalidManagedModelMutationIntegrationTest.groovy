@@ -125,7 +125,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ build file")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ ${File.separator}${buildFile.name}")
     }
 
     def "mutating managed objects outside of a creation rule is not allowed"() {

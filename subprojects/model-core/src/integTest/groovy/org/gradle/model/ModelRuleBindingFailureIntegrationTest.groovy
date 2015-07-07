@@ -84,7 +84,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  model.foo.bar @ build file '${buildFile}' line 4, column 17
+  model.foo.bar @ ${File.separator}${buildFile.name} line 4, column 17
     Mutable:
       - foo.bar (java.lang.Object)""")
     }
@@ -115,7 +115,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.foonar @ build file '${buildFile}' line 15, column 17
+  model.tasks.foonar @ ${File.separator}${buildFile.name} line 15, column 17
     Mutable:
       - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
     }

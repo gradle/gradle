@@ -65,7 +65,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 first
 \\- Rules#first
    \\- second
-      \\- model.second @ build file '${buildFile}' line 26, column 17
+      \\- model.second @ ${File.separator}${buildFile.name} line 26, column 17
          \\- third
             \\- Rules#third
                \\- first""")
