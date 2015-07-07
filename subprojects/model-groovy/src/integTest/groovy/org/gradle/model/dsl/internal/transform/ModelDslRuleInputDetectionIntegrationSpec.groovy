@@ -283,13 +283,13 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause(normaliseFileSeparators("""The following model rules are unbound:
-  model.fooar @ /${buildFile.name} line 20, column 17
+  model.fooar @ ${File.separator}${buildFile.name} line 20, column 17
     Mutable:
       - fooar (java.lang.Object) - suggestions: foobar
-  model.foobah @ /${buildFile.name} line 18, column 17
+  model.foobah @ ${File.separator}${buildFile.name} line 18, column 17
     Mutable:
       - foobah (java.lang.Object) - suggestions: foobar
-  model.foonar @ /${buildFile.name} line 16, column 17
+  model.foonar @ ${File.separator}${buildFile.name} line 16, column 17
     Mutable:
       - foonar (java.lang.Object) - suggestions: foobar"""))
     }

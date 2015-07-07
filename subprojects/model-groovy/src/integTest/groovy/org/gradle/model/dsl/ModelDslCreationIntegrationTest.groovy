@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.dsl
+
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
@@ -208,5 +209,4 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("model.thing1 @ ${File.separator}build.gradle"))
         failure.assertThatCause(containsText("Cannot create an element of type Thing as it is not a managed type"))
     }
-
 }
