@@ -788,6 +788,107 @@ model {
         succeeds ':java7ThirdJar'
     }
 
+    def "complex graph of dependencies without variants"() {
+        given:
+        /*
+                   +----------------+
+                   |     main       |
+                   |     (Java)     +-------------------------------------+
+                   +--+-----------+-+                                     |
+                      |           |                                       |
+                      |           |                                       |
+        +-------------v--+      +-v---------------+              +--------v----------+
+        |     second     |      |      third      <--------------+     fourth        |
+        |     (Java)     |      |      (Java)     |              |     (custom)      |
+        +-------------+--+      +--+--------------+              +-------------------+
+                      |            |
+                      |            |
+                   +--v------------v-+
+                   |     fifth       |
+                   |     (custom)    |
+                   +-----------------+
+
+         */
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                        library 'third'
+                        library 'fourth'
+                    }
+                }
+            }
+        }
+        second(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'fifth'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'fifth'
+                    }
+                }
+            }
+        }
+        fourth(CustomLibrary) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        fifth(CustomLibrary) {
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+
+    tasks {
+        create('checkDependencies') {
+            doLast {
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).containsAll([secondJar, thirdJar, fourthJar])
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(fifthJar)
+                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(fifthJar)
+                assert compileFourthJarFourthJava.taskDependencies.getDependencies(compileFourthJarFourthJava).contains(thirdJar)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app, ThirdApp app3, FourthApp app4) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(FifthApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp { void dependsOn(FifthApp app) {}  }'
+        file('src/fourth/java/FourthApp.java') << 'public class FourthApp { void dependsOn(ThirdApp app) {} }'
+        file('src/fifth/java/FifthApp.java') << 'public class FifthApp {}'
+
+        expect: "can resolve dependencies"
+        succeeds ':checkDependencies'
+
+        and: "can build any of the components"
+        succeeds ':mainJar'
+        succeeds ':secondJar'
+        succeeds ':thirdJar'
+        succeeds ':fourthJar'
+        succeeds ':fifthJar'
+    }
 
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
