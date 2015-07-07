@@ -96,7 +96,7 @@ class ModelReportParser {
     }
 
     private static String rule(String line) {
-        return line.replaceAll('⤷', '').replaceAll(' ', '').trim()
+        return line.replaceAll('⤷', '').trim()
     }
 
     private static boolean isARule(String line) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.tasks.internal;
+package org.gradle.api.internal.file;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Transformer;
@@ -40,6 +40,14 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
 
     public static Transformer<String, File> forDirectory(File rootDir, File currentDirectory) {
         return new RelativeFileNameTransformer(rootDir, currentDirectory);
+    }
+
+    public static Transformer<String, File> from(File file) {
+        if (file.isFile()) {
+            File parentFile = file.getParentFile();
+            return new RelativeFileNameTransformer(parentFile, parentFile);
+        }
+        return new RelativeFileNameTransformer(file, file);
     }
 
     public String transform(File file) {

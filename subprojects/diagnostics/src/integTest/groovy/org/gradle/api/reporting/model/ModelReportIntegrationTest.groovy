@@ -273,7 +273,7 @@ model {
 ''')
     }
 
-    def "method rule source have simple type names and correct order"() {
+    def "method rule sources have simple type names and correct order"() {
         given:
         buildFile << """
 ${managedNumbers()}

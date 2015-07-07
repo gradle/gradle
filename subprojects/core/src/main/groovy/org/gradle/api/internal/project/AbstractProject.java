@@ -145,6 +145,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private final Path path;
 
+    private final String relativeDirectoryPath;
+
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
@@ -185,6 +187,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         populateModelRegistry(services.get(ModelRegistry.class));
+
+        this.relativeDirectoryPath = new RelativeBuildScriptLocationTransformer().transform(this).orNull();
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
@@ -967,7 +971,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelSchemaStore modelSchemaStore = getModelSchemaStore();
 
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, relativeDirectoryPath), modelRules);
         } else {
             new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore).configure(modelRules);
         }
@@ -988,4 +992,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         getDeferredProjectConfiguration().fire();
     }
 
+    @Override
+    public String getRelativeDirectoryPath() {
+        return relativeDirectoryPath;
+    }
 }

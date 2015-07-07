@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.ide.visualstudio.tasks.internal;
 
-import org.gradle.api.Transformer;
+package org.gradle.api.internal.project
 
-import java.io.File;
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-public class AbsoluteFileNameTransformer implements Transformer<String, File> {
-    public String transform(File file) {
-        return file.getAbsolutePath();
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
+class RelativeBuildScriptLocationTransformerTest extends Specification {
+    def root = TestUtil.createRootProject()
+
+    def "should get the relative script path to the root project"() {
+        expect:
+        new RelativeBuildScriptLocationTransformer().transform(root).get() == normaliseFileSeparators('/build.gradle')
     }
 }

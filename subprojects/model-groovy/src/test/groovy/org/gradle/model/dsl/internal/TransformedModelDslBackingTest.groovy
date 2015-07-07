@@ -37,7 +37,7 @@ class TransformedModelDslBackingTest extends Specification {
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def schemaStore = DefaultModelSchemaStore.instance
-    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), schemaStore, referenceExtractor, locationExtractor)
+    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), schemaStore, referenceExtractor, locationExtractor, "/build.gradle")
 
     void register(String pathString, Object element) {
         modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())

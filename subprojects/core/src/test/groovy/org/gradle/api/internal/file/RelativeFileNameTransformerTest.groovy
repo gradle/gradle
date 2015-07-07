@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.tasks.internal
+package org.gradle.api.internal.file
 
 import spock.lang.Specification
 

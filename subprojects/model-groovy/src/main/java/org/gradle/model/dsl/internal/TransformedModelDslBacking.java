@@ -65,16 +65,16 @@ public class TransformedModelDslBacking {
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
-        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, String relativeProjectPath) {
+        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR, relativeProjectPath);
     }
 
     TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor,
-                               Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+                               Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor, String relativeProjectPath) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
         this.inputPathsExtractor = inputPathsExtractor;
-        this.ruleLocationExtractor = ruleLocationExtractor;
+        this.ruleLocationExtractor = new RelativePathSourceLocationTransformer(relativeProjectPath, ruleLocationExtractor);
     }
 
     public void configure(String modelPathString, Closure<?> closure) {
@@ -156,6 +156,23 @@ public class TransformedModelDslBacking {
                     new ClosureBackedAction<Object>(closure).execute(object);
                 }
             });
+        }
+    }
+
+    private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
+        private final String path;
+        private Transformer<SourceLocation, ? super Closure<?>> delegate;
+
+
+        public RelativePathSourceLocationTransformer(String path, Transformer<SourceLocation, ? super Closure<?>> delegate) {
+            this.path = path;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SourceLocation transform(Closure<?> closure) {
+            SourceLocation transform = delegate.transform(closure);
+            return new SourceLocation(path, transform.getLineNumber(), transform.getColumnNumber());
         }
     }
 }

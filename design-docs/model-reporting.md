@@ -60,6 +60,9 @@ When we toggle `org.gradle.model.dsl` we provide better descriptors for DSL rule
 Currently, we include the absolute path to the script containing the rule.
 This should be relative to the project root.
 
+_Not in scope_
+- Presenting the relative path, line number and column number, to a transitive build script. i.e. `apply from: '../../../someScript.gradle'`
+
 # Story: Rule binding failure errors use consistent terminology
 
 See ModelRuleBindingFailureIntegrationTest.
