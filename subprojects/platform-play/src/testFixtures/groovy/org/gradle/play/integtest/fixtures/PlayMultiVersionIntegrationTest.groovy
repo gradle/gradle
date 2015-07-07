@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.JDK8 : PlayCoverage.DEFAULT })
+@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.PLAY24_OR_EARLIER : PlayCoverage.PLAY23_OR_EARLIER })
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 

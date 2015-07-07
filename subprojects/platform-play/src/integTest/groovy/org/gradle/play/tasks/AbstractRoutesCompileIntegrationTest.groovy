@@ -19,27 +19,21 @@
 package org.gradle.play.tasks
 
 import org.apache.commons.lang.StringUtils
-import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
+abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryRoutes"
     def destinationDir = file(destinationDirPath)
-    def routesJavaFileNameTemplate = { packageName, namespace -> "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}routes.java" }
-    def routesReverseFileNameTemplate = { packageName, namespace -> "${packageName ? packageName + '/' :''}routes_reverseRouting.scala" }
-    def routesScalaFileNameTemplate = { packageName, namespace -> "${packageName ? packageName + '/' :''}routes_routing.scala" }
-    def otherRoutesFilesTemplates = []
+
+    abstract getRoutesJavaFileNameTemplate(String packageName, String namespace);
+    abstract getRoutesReverseFileNameTemplate(String packageName, String namespace);
+    abstract getRoutesScalaFileNameTemplate(String packageName, String namespace);
+    abstract getOtherRoutesFilesTemplates();
 
     def setup() {
-        if (versionNumber.major == 2 && versionNumber.minor >= 4) {
-            routesJavaFileNameTemplate = { packageName, namespace -> "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}routes.java" }
-            routesReverseFileNameTemplate = { packageName, namespace ->  "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}ReverseRoutes.scala" }
-            routesScalaFileNameTemplate = { packageName, namespace -> "${packageName?:'router'}/Routes.scala" }
-            otherRoutesFilesTemplates = [{packageName, namespace -> "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}javascript/JavaScriptReverseRoutes.scala" },
-                                         {packageName, namespace -> "${packageName?:'router'}/RoutesPrefix.scala" }]
-        }
         settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile <<"""
 plugins {
@@ -85,9 +79,9 @@ repositories {
 
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
-        def routesFirstCompileSnapshot = file(destinationDirPath, routesJavaFileNameTemplate('','')).snapshot();
-        def revRoutingFirstCompileSnapshot = file(destinationDirPath, routesReverseFileNameTemplate('','')).snapshot();
-        def routingFirstCompileSnapshot = file(destinationDirPath, routesScalaFileNameTemplate('','')).snapshot();
+        def routesFirstCompileSnapshot = file(destinationDirPath, getRoutesJavaFileNameTemplate('','')).snapshot();
+        def revRoutingFirstCompileSnapshot = file(destinationDirPath, getRoutesReverseFileNameTemplate('','')).snapshot();
+        def routingFirstCompileSnapshot = file(destinationDirPath, getRoutesScalaFileNameTemplate('','')).snapshot();
 
         when:
         templateFile << "\n\n"
@@ -98,9 +92,9 @@ repositories {
         executedAndNotSkipped ":compilePlayBinaryRoutes"
 
         and:
-        file(destinationDirPath, routesJavaFileNameTemplate('','')).assertHasChangedSince(routesFirstCompileSnapshot)
-        file(destinationDirPath, routesReverseFileNameTemplate('','')).assertHasChangedSince(revRoutingFirstCompileSnapshot);
-        file(destinationDirPath, routesScalaFileNameTemplate('','')).assertHasChangedSince(routingFirstCompileSnapshot);
+        file(destinationDirPath, getRoutesJavaFileNameTemplate('','')).assertHasChangedSince(routesFirstCompileSnapshot)
+        file(destinationDirPath, getRoutesReverseFileNameTemplate('','')).assertHasChangedSince(revRoutingFirstCompileSnapshot);
+        file(destinationDirPath, getRoutesScalaFileNameTemplate('','')).assertHasChangedSince(routingFirstCompileSnapshot);
 
         when:
         succeeds "compilePlayBinaryRoutes"
@@ -258,7 +252,7 @@ object Application extends Controller {
     }
 
     def createRouteFileList(String packageName = '', String namespace='') {
-        [routesJavaFileNameTemplate(packageName, namespace), routesReverseFileNameTemplate(packageName, namespace), routesScalaFileNameTemplate(packageName, namespace)] + otherRoutesFilesTemplates.collect { it(packageName, namespace) }
+        [getRoutesJavaFileNameTemplate(packageName, namespace), getRoutesReverseFileNameTemplate(packageName, namespace), getRoutesScalaFileNameTemplate(packageName, namespace)] + otherRoutesFilesTemplates.collect { it(packageName, namespace) }
     }
 
     def withExtraSourceSets() {
