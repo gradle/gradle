@@ -58,6 +58,45 @@ model {
 
     }
 
+    def "custom component can consume a JVM library"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec)
+        zdep(CustomLibrary) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        zdepJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            doLast {
+                assert compileZdepJarZdepJava.taskDependencies.getDependencies(compileZdepJarZdepJava).contains(mainJar)
+            }
+        }
+    }
+}
+'''
+        file('src/zdep/java/App.java') << 'public class App extends TestApp {}'
+        file('src/main/java/TestApp.java') << 'public class TestApp {}'
+
+        expect:
+        succeeds ':zdepJar'
+
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
