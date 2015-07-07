@@ -73,7 +73,7 @@
         <title>The GradleRunner API</title>
         <para>After adding the dependency on the test-kit, its API becomes available to the functional test classes of the relevant <literal>SourceSet</literal>. The main entry point for executing a
             build script with the help of the test-kit is the interface <apilink class="org.gradle.testkit.functional.GradleRunner"/>. <literal>GradleRunner</literal> exposes a method named
-            <apilink class="org.gradle.testkit.functional.GradleRunner" method="create"/> for instantiating the implementation.</para>
+            <apilink class="org.gradle.testkit.functional.GradleRunner" method="create()"/> for instantiating the implementation.</para>
         <para>The are more options that can be provided for a build execution. Please refer to the API to discover more options.</para>
         <para>A build execution is assumed to be successful or failing based on the build script logic. The root cause of a failing build could be invalid syntax of the build script logic, a thrown
             exception, a failed task or a mechanical issue with the test execution originating from the Tooling API. The execution of build logic is initiated by calling the methods
