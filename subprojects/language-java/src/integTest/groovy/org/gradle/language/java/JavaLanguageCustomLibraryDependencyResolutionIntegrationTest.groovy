@@ -336,6 +336,108 @@ model {
 
     }
 
+    def "Java consumes custom component consuming Java component"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec)
+    }
+
+    tasks {
+        mainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            doLast {
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect:
+        succeeds ':mainJar'
+    }
+
+    def "Custom consumes Java component consuming custom component"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(CustomLibrary) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(CustomLibrary) {
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+
+    tasks {
+        mainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            doLast {
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect:
+        succeeds ':mainJar'
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
