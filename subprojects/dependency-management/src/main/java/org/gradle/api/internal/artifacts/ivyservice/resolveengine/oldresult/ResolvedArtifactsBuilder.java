@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+
 public interface ResolvedArtifactsBuilder {
 
-    // TODO:DAZ Should have a component id here, instead of relying on an internal id for syncing with graph
-    void addArtifacts(ArtifactSet artifacts);
+    void addArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts);
 
     ResolvedArtifactResults resolve();
 }

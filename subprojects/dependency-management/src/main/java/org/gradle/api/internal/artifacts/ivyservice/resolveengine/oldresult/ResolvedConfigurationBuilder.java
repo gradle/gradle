@@ -26,7 +26,7 @@ public interface ResolvedConfigurationBuilder {
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
 
-    void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, long artifactsId);
+    void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
 
     void newResolvedDependency(ResolvedConfigurationIdentifier id);
 

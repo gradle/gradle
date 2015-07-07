@@ -83,13 +83,8 @@ public class TransientConfigurationResultsBuilder {
         writeId(FIRST_LVL, id);
     }
 
-    public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, final long artifactId) {
+    public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
         writeId(PARENT_CHILD, parent, child);
-        binaryStore.write(new BinaryStore.WriteAction() {
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeLong(artifactId);
-            }
-        });
     }
 
     public TransientConfigurationResults load(final ResolvedContentsMapping mapping) {
@@ -159,7 +154,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(decoder.readLong())));
+                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(parentId, childId)));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

@@ -83,14 +83,14 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
         ResolvedConfigurationIdentifier parent = dependency.getFrom().getNodeId();
         ResolvedConfigurationIdentifier child = childConfiguration.getNodeId();
 
-        ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
-        builder.addChild(parent, child, artifacts.getId());
-        artifactsBuilder.addArtifacts(artifacts);
-
+        builder.addChild(parent, child);
         if (parent == root.getNodeId()) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();
             builder.addFirstLevelDependency(moduleDependency, child);
         }
+
+        ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
+        artifactsBuilder.addArtifacts(parent, child, artifacts);
     }
 
     // TODO:DAZ This is functional, but need to refactor for clarity
