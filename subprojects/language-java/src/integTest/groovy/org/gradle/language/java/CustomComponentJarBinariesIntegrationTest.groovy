@@ -17,7 +17,6 @@
 package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
 
 class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec {
     def "custom component defined by plugin is built from Java source using JVM component plugin" () {
@@ -81,9 +80,6 @@ class SampleLibraryRules extends RuleSource {
 
 apply plugin: SampleLibraryRules
 
-def compileSources = new TreeMap<String, String>()
-def compileClasspaths = new TreeMap<String, String>()
-
 model {
     components {
         lib1(JvmLibrarySpec)
@@ -116,14 +112,18 @@ model {
         }
     }
     tasks {
-        withType(AbstractCompile) { compile ->
-            compileSources.put compile.name, compile.source.files.sort()*.name.join(", ")
-            compileClasspaths.put compile.name, compile.classpath.files.sort()*.name.join(", ")
-        }
         create("showPaths") { task ->
             task.doLast {
-                println "Sources:\\n" + compileSources.collect { key, value -> "\$key=\$value" }.join("\\n")
-                println "Classpaths:\\n" + compileClasspaths.collect { key, value -> "\$key=\$value" }.join("\\n")
+                // Check for isolation of compiler source- and classpaths
+                assert compileLib1JarLib1Java.source.files*.name == [ "Lib1.java" ]
+                assert compileLib2JarLib2Java.source.files*.name == [ "Lib2.java" ]
+                assert compileSampleLibJarSampleLibLib.source.files*.name == [ "Sample.java" ]
+                assert compileSampleLibJarSampleLibBin.source.files*.name == [ "Bin.java" ]
+
+                assert compileLib1JarLib1Java.classpath.files*.name == []
+                assert compileLib2JarLib2Java.classpath.files*.name == []
+                assert compileSampleLibJarSampleLibLib.classpath.files*.name == [ "lib1.jar" ]
+                assert compileSampleLibJarSampleLibBin.classpath.files*.name == [ "lib2.jar" ]
             }
         }
     }
@@ -141,17 +141,5 @@ model {
             "Bin.class",
             "bin.properties"
         )
-        output.contains(TextUtil.toPlatformLineSeparators("""
-Sources:
-compileLib1JarLib1Java=Lib1.java
-compileLib2JarLib2Java=Lib2.java
-compileSampleLibJarSampleLibBin=Bin.java
-compileSampleLibJarSampleLibLib=Sample.java
-Classpaths:
-compileLib1JarLib1Java=
-compileLib2JarLib2Java=
-compileSampleLibJarSampleLibBin=lib2.jar
-compileSampleLibJarSampleLibLib=lib1.jar
-"""))
     }
 }
