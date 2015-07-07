@@ -706,7 +706,7 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            ModuleResolutionFilter resolutionFilter = getSelector(transitiveIncoming);
+            ModuleResolutionFilter resolutionFilter = getModuleResolutionFilter(transitiveIncoming);
             if (previousTraversal != null) {
                 if (previousTraversal.acceptsSameModulesAs(resolutionFilter)) {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
@@ -752,7 +752,7 @@ public class DependencyGraphBuilder {
             return moduleRevision.state == ModuleState.Selected;
         }
 
-        private ModuleResolutionFilter getSelector(List<DependencyEdge> transitiveEdges) {
+        private ModuleResolutionFilter getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
             ModuleResolutionFilter resolutionFilter;
             if (transitiveEdges.isEmpty()) {
                 resolutionFilter = DefaultModuleResolutionFilter.all();
