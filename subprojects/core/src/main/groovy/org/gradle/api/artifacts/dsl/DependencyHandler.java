@@ -319,7 +319,7 @@ public interface DependencyHandler {
     Dependency gradleApi();
 
     /**
-     * Creates a dependency on the Gradle test-kit API.
+     * Creates a dependency on the <a href="http://gradle.org/current/docs/userguide/test_kit.html">Gradle test-kit</a> API.
      *
      * @return The dependency.
      * @since 2.6
