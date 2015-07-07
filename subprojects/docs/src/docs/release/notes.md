@@ -33,8 +33,10 @@ This feature was contributed by [Dominik Schürmann](https://github.com/dschuerm
 
 ### Gradle test-kit
 
-Gradle now supports a test-kit for writing and executing functional tests for custom build logic. This is the initial iteration of the functionality. Future releases will increase the support for
-other features.
+One of the features the community has been yearning for a long time is the ability to write and execute tests for Gradle build logic. The Gradle team is excited to have started this work with this release.
+Gradle now supports a test-kit for writing functional tests for build scripts agnostic of the testing framework. The execution of the tests is performed by the Tooling API. This functionality is a
+tremendous step toward the capability of rigorously testing custom extensions to Gradle, a use case often encountered by build authors and Open Source plugin developers. Future releases will increase
+the support for other features.
 
 See the new User Guide section about using the [test-kit](userguide/test_kit.html).
 
