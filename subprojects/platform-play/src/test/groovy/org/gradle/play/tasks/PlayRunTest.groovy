@@ -17,8 +17,6 @@
 package org.gradle.play.tasks
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.deployment.internal.DeploymentRegistry
-import org.gradle.play.internal.run.PlayApplicationDeploymentHandle
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
@@ -31,8 +29,6 @@ import spock.lang.Specification
 
 class PlayRunTest extends Specification {
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    DeploymentRegistry deploymentRegistry = Mock(DeploymentRegistry)
-    PlayApplicationDeploymentHandle deploymentHandle = Mock(PlayApplicationDeploymentHandle)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
     InputStream systemInputStream = Mock()
@@ -46,7 +42,6 @@ class PlayRunTest extends Specification {
         playRun = TestUtil.createTask(PlayRun)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
-        playRun.deploymentRegistry = deploymentRegistry
         playRun.playToolProvider = playToolProvider
         System.in = systemInputStream
     }
@@ -59,7 +54,6 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * deploymentRegistry.get(PlayApplicationDeploymentHandle, _) >> null
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
@@ -73,7 +67,6 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * deploymentRegistry.get(PlayApplicationDeploymentHandle, _) >> null
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions() != null
@@ -81,12 +74,18 @@ class PlayRunTest extends Specification {
         }
     }
 
-    def "reloads deployment handle when deployment is already registered" () {
-        1 * systemInputStream.read() >> 4
+    def "reloads runner token when deployment is already registered" () {
+        playRun.project.gradle.startParameter.continuous = true
         when:
-        playRun.execute();
+        playRun.run();
         then:
-        1 * deploymentRegistry.get(PlayApplicationDeploymentHandle, _) >> deploymentHandle
-        1 * deploymentHandle.reload()
+        1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
+        1 * playApplicationRunner.start(_) >> { runnerToken }
+
+        when:
+        playRun.run();
+        then:
+        1 * runnerToken.isRunning() >> true
+        1 * runnerToken.rebuildSuccess()
     }
 }

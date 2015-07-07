@@ -169,10 +169,6 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    void setDeploymentRegistry(DeploymentRegistry deploymentRegistry) {
-        throw new UnsupportedOperationException();
-    }
-
     public void setPlayToolProvider(PlayToolProvider playToolProvider) {
         this.playToolProvider = playToolProvider;
     }
