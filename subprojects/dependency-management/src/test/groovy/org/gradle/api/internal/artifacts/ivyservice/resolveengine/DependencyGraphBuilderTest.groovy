@@ -92,8 +92,9 @@ class DependencyGraphBuilderTest extends Specification {
         def artifactsBuilder = new DefaultResolvedArtifactsBuilder()
 
         builder.resolve(configuration,
+                new ResolvedArtifactsGraphVisitor(artifactsBuilder, artifactResolver),
                 new ResolutionResultDependencyGraphVisitor(resolutionResultBuilder),
-                new ResolvedConfigurationDependencyGraphVisitor(modelBuilder, artifactsBuilder, artifactResolver),
+                new ResolvedConfigurationDependencyGraphVisitor(modelBuilder),
                 new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder))
 
         def graphResults = modelBuilder.complete()

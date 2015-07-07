@@ -96,30 +96,33 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", resolveContext);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) resolveContext.getResolutionStrategy();
-                ResolverProvider componentSource = createComponentSource(resolutionStrategy, resolveContext, repositories, metadataHandler);
-                ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, componentSource.getArtifactResolver()));
 
                 StoreSet stores = storeFactory.createStoreSet();
+
+                BinaryStore oldModelStore = stores.nextBinaryStore();
+                Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
+                TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+                DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
                 BinaryStore newModelStore = stores.nextBinaryStore();
                 Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
                 ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
                 DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
 
-                BinaryStore oldModelStore = stores.nextBinaryStore();
-                Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
-                TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-                DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
-                DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, artifactResolver);
+                ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) resolveContext.getResolutionStrategy();
+                ResolverProvider componentSource = createComponentSource(resolutionStrategy, resolveContext, repositories, metadataHandler);
+                ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, componentSource.getArtifactResolver()));
+
+                ResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
+                DependencyGraphVisitor artifactsVisitor = new ResolvedArtifactsGraphVisitor(artifactsBuilder, artifactResolver);
 
                 ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
                 DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
 
                 // Resolve the dependency graph
                 DependencyGraphBuilder builder = createDependencyGraphBuilder(componentSource, resolutionStrategy, metadataHandler);
-                builder.resolve(resolveContext, oldModelVisitor, newModelVisitor, projectModelVisitor);
+                builder.resolve(resolveContext, artifactsVisitor, oldModelVisitor, newModelVisitor, projectModelVisitor);
 
                 DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
                 defaultResolverResults.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
