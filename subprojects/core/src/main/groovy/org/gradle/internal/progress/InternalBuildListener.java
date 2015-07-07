@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.progress;
 
+/**
+ * A listener that is notified as build operations are executed via a {@link BuildOperationExecutor}.
+ */
 public interface InternalBuildListener {
 
     void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent);
