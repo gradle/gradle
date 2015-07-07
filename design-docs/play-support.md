@@ -760,6 +760,13 @@ All infrastructure can be internal and be just enough to meet the requirements f
 
 #### Implementation
 
+- Introduce `BuildSessionScopeServices` which is a PluginServiceRegistry scope that fits between GlobalScopeServices and BuildScopeServices.
+It manages the lifecycle of services that should exist across multiple builds in a continuous build session, but should not extend across
+multiple continuous build sessions (in a long-living process like the daemon).
+
+- Introduce a Deployment Registry
+
+
     // Gradle service, that outlives a single build (i.e. maybe global)
     // Accessible to tasks via service extraction
     @ThreadSafe
@@ -839,7 +846,6 @@ This story also supersedes the `BuildSession` concept added in earlier stories w
 
 #### Implementation
 
-- Introduce `BuildSessionScopeServices`
 - Move `CompilerDaemonManager` to session scope
 
 #### Test coverage
