@@ -433,14 +433,6 @@ dependency resolution, the test verify that the classpath contains the appropria
     - the Java 6 variant of `C` should depend on the Java 6 variant of `J2`
     - the Java 7 variant of `C` should depend on the Java 7 variant of `J2`
 
-- Given a component `J1` that depends on `C`, itself depending on `J2`
-    - `J1` targets Java 6
-    - `C` targets Java 6 and Java 7
-    - `J2` target Java 6
-    - resolving the dependencies of `J1` (as well as building) should succeed
-    - resolving the dependencies of the Java 6 version of `C`  (as well as building) should succeed
-    - resolving the dependencies of the Java 7 version of `C` should fail
-
 - Given a component `J1` that depends on `C`, itself depending on `J2`, itself depending on `J1`
     - resolving the dependencies of `J1`, `C` or `J2` should succeed
     - building any of the components should fail with a cyclic dependency error
