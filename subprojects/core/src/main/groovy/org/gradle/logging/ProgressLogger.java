@@ -16,8 +16,6 @@
 
 package org.gradle.logging;
 
-import org.gradle.internal.progress.OperationIdentifier;
-
 /**
  * Used to log the progress of a potentially long running operation.
  *
@@ -52,7 +50,7 @@ public interface ProgressLogger {
      *
      * @param description The description.
      */
-    void setDescription(String description);
+    ProgressLogger setDescription(String description);
 
     /**
      * Returns the short description of the operation. This is used in place of the full description when display space is limited.
@@ -68,7 +66,7 @@ public interface ProgressLogger {
      *
      * @param description The short description.
      */
-    void setShortDescription(String description);
+    ProgressLogger setShortDescription(String description);
 
     /**
      * <p>Returns the logging header for the operation. This is logged before any other log messages for this operation are logged. It is usually
@@ -86,7 +84,7 @@ public interface ProgressLogger {
      *
      * @param header The header. May be empty or null.
      */
-    void setLoggingHeader(String header);
+    ProgressLogger setLoggingHeader(String header);
 
     /**
      * Convenience method that sets descriptions and logs started() event.
@@ -125,6 +123,4 @@ public interface ProgressLogger {
      * @param status The final status message. Can be null or empty.
      */
     void completed(String status);
-
-    OperationIdentifier currentOperationId();
 }
