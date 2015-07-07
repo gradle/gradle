@@ -715,6 +715,80 @@ model {
         failure.assertHasDescription 'Circular dependency between the following tasks:'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "Fails if one of the dependencies provides more than one binary for the selected variant"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            // duplication is intentional!
+            targetPlatform 'java6'
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+        }
+    }
+
+    tasks {
+        create('checkJava7Dependencies') {
+            doLast {
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
+                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(java7ThirdJar)
+            }
+        }
+        create('checkMainJava6Dependencies') {
+            doLast {
+                compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect: "Can resolve dependencies of the Java 7 variant of the main and second components"
+        succeeds ':checkJava7Dependencies'
+
+        and: "Fails resolving the dependencies of the Java 6 variant of the main component"
+        fails ':checkMainJava6Dependencies'
+        failure.assertHasCause "Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''"
+        failure.assertHasCause "Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondJava6Jar', Jar 'secondJava6Jarx']"
+
+        and: "Can build the Java 7 variant of all components"
+        succeeds ':java7MainJar'
+        succeeds ':secondJava7Jar'
+        succeeds ':java7ThirdJar'
+    }
+
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
@@ -764,7 +838,8 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                     def multipleTargets = selectedPlatforms.size()>1
                     selectedPlatforms.each { platform ->
                         def toolChain = toolChains.getForPlatform(platform)
-                        def binaryName = "${jvmLibrary.name}${multipleTargets?platform.name.capitalize():''}Jar"
+                        String binaryName = "${jvmLibrary.name}${multipleTargets?platform.name.capitalize():''}Jar"
+                        while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
                         binaries.create(binaryName) { jar ->
                             jar.baseName = jvmLibrary.name
                             jar.toolChain = toolChain
