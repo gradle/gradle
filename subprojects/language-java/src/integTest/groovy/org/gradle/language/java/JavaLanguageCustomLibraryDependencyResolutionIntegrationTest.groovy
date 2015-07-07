@@ -654,6 +654,67 @@ model {
         succeeds ':java6ThirdJar'
     }
 
+    def "can define a cyclic dependency"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+
+    tasks {
+        create('checkDependencies') {
+            doLast {
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+                assert compileThirdJarThirdJava.taskDependencies.getDependencies(compileThirdJarThirdJava).contains(mainJar)
+            }
+        }
+    }
+}'''
+
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp { void dependsOn(TestApp app) {} }'
+
+        expect: "Can resolve the dependencies for each component"
+        succeeds ':checkDependencies'
+
+        and: 'building fails'
+        fails ':mainJar'
+        failure.assertHasDescription 'Circular dependency between the following tasks:'
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
