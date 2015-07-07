@@ -16,13 +16,25 @@
 
 package org.gradle.internal.progress;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
 
 /**
- * Runs build operations. These are the pieces of work that make up a build.
+ * Runs build operations. These are the pieces of work that make up a build. Build operations can be nested inside other
+ * build operations.
  *
- * <p>This is to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}.
+ * The executor provides several capabilities:
+ *
+ * <ul>
+ *     <p>Fires events via {@link InternalBuildListener}. For example, this means that notification of build operation
+ *     execution can be received by tooling AIP clients.</p>
+ *     <p>Generates progress logging events.</p>
+ * </ul>
+ *
+ * <p>This is intended to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}, to
+ * allow both synchronous and asynchronous execution of build operations.
  */
+@ThreadSafe
 public interface BuildOperationExecutor {
     /**
      * Runs the given build operation synchronously. Invokes the given factory from the current thread and returns the result.
@@ -32,11 +44,25 @@ public interface BuildOperationExecutor {
     <T> T run(String displayName, Factory<T> factory);
 
     /**
+     * Runs the given build operation synchronously. Invokes the given factory from the current thread and returns the result.
+     *
+     * <p>Rethrows any exception thrown by the factory.</p>
+     */
+    <T> T run(BuildOperationDetails operationDetails, Factory<T> factory);
+
+    /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
     void run(String displayName, Runnable action);
+
+    /**
+     * Runs the given build operation synchronously. Invokes the given action from the current thread.
+     *
+     * <p>Rethrows any exception thrown by the action.</p>
+     */
+    void run(BuildOperationDetails operationDetails, Runnable action);
 
     /**
      * Returns the id of the current operation.

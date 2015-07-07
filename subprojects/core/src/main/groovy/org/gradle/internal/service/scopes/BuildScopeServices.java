@@ -121,8 +121,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return listenerManager.createChild();
     }
 
-    protected BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider);
+    protected BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
+        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider, progressLoggerFactory);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

@@ -20,6 +20,8 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,12 +29,14 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     private final InternalBuildListener listener;
     private final TimeProvider timeProvider;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private final AtomicLong nextId = new AtomicLong();
     private final ThreadLocal<OperationDetails> currentOperation = new ThreadLocal<OperationDetails>();
 
-    public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider) {
+    public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
         this.listener = listener;
         this.timeProvider = timeProvider;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     @Override
@@ -46,24 +50,50 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public void run(String displayName, Runnable action) {
-        run(displayName, Factories.toFactory(action));
+        run(BuildOperationDetails.displayName(displayName).build(), Factories.toFactory(action));
+    }
+
+    @Override
+    public void run(BuildOperationDetails operationDetails, Runnable action) {
+        run(operationDetails, Factories.toFactory(action));
     }
 
     @Override
     public <T> T run(String displayName, Factory<T> factory) {
+        return run(BuildOperationDetails.displayName(displayName).build(), factory);
+    }
+
+    @Override
+    public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
         OperationDetails parent = currentOperation.get();
         BuildOperationId parentId = parent == null ? null : parent.id;
         BuildOperationId id = new BuildOperationId(nextId.getAndIncrement());
         currentOperation.set(new OperationDetails(parent, id));
         try {
             long startTime = timeProvider.getCurrentTime();
-            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, displayName);
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getDisplayName());
             listener.started(operation, new OperationStartEvent(startTime));
 
             T result = null;
             Throwable failure = null;
             try {
-                result = factory.create();
+                ProgressLogger progressLogger;
+                if (operationDetails.getProgressDisplayName() != null) {
+                    progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+                    progressLogger.setDescription(operationDetails.getDisplayName());
+                    progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
+                    progressLogger.started();
+                } else {
+                    progressLogger = null;
+                }
+
+                try {
+                    result = factory.create();
+                } finally {
+                    if (progressLogger != null) {
+                        progressLogger.completed();
+                    }
+                }
             } catch (Throwable t) {
                 failure = t;
             }

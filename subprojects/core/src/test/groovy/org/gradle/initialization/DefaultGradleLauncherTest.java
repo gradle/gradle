@@ -30,6 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -360,8 +361,18 @@ public class DefaultGradleLauncherTest {
         }
 
         @Override
+        public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
+            return factory.create();
+        }
+
+        @Override
         public <T> T run(String displayName, Factory<T> factory) {
             return factory.create();
+        }
+
+        @Override
+        public void run(BuildOperationDetails operationDetails, Runnable action) {
+            action.run();
         }
 
         @Override

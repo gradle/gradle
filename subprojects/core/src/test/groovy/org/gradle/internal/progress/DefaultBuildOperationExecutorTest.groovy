@@ -18,24 +18,29 @@ package org.gradle.internal.progress
 
 import org.gradle.internal.Factory
 import org.gradle.internal.TimeProvider
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(InternalBuildListener)
     def timeProvider = Mock(TimeProvider)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider)
+    def progressLoggerFactory = Mock(ProgressLoggerFactory)
+    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory)
 
     def "fires events when operation starts and finishes successfully"() {
         def action = Mock(Factory)
+        def progressLogger = Mock(ProgressLogger)
+        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
         def id
 
         when:
-        def result = operationExecutor.run("<some-operation>", action)
+        def result = operationExecutor.run(operationDetails, action)
 
         then:
         result == "result"
 
-        and:
+        then:
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             id = operation.id
@@ -44,7 +49,20 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
         }
+
+        then:
+        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLogger.setDescription("<some-operation>")
+        1 * progressLogger.setShortDescription("<some-op>")
+        1 * progressLogger.started()
+
+        then:
         1 * action.create() >> "result"
+
+        then:
+        1 * progressLogger.completed()
+
+        then:
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.id == id
@@ -56,17 +74,19 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "fires events when operation starts and fails"() {
         def action = Mock(Factory)
+        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
         def failure = new RuntimeException()
+        def progressLogger = Mock(ProgressLogger)
         def id
 
         when:
-        operationExecutor.run("<some-operation>", action)
+        operationExecutor.run(operationDetails, action)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
-        and:
+        then:
         1 * timeProvider.currentTime >> 123L
         1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
             assert operation.id != null
@@ -75,7 +95,20 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.displayName == "<some-operation>"
             assert start.startTime == 123L
         }
+
+        then:
+        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLogger.setDescription("<some-operation>")
+        1 * progressLogger.setShortDescription("<some-op>")
+        1 * progressLogger.started()
+
+        then:
         1 * action.create() >> { throw failure }
+
+        then:
+        1 * progressLogger.completed()
+
+        then:
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.id == id
@@ -83,6 +116,20 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == failure
         }
+    }
+
+    def "does not generate progress logging when operation has no progress display name"() {
+        def action = Mock(Factory)
+
+        when:
+        def result = operationExecutor.run("<some-operation>", action)
+
+        then:
+        result == "result"
+
+        then:
+        1 * action.create() >> "result"
+        0 * progressLoggerFactory._
     }
 
     def "multiple threads can run independent operations concurrently"() {
