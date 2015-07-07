@@ -355,7 +355,9 @@ dependencies of the source are also built and the source compiled.
 
 ### Open issues
 
-- What happens when adding a managed subtype of `JarBinarySpec`? Do the rules for `@ComponentBinaries` in the `jvm-component` plugin apply to these as well?
+- How to create a managed sub-type of `JarBinarySpec`?
+- How to assign different tasks for a sub-type of `JarBinarySpec` when the `jvm-component` plugin does it already for all `JarBinarySpec`s?
+
 
 ## Story: Plugin author defines a custom library that provides a Java API
 
