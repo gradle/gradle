@@ -33,13 +33,13 @@ import java.util.concurrent.CountDownLatch;
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
 
     private PlayRunSpec runSpec;
-    private VersionedPlayRunAdapter spec;
+    private VersionedPlayRunAdapter runAdapter;
 
     private volatile CountDownLatch stop;
 
-    public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter spec) {
+    public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter runAdapter) {
         this.runSpec = runSpec;
-        this.spec = spec;
+        this.runAdapter = runAdapter;
     }
 
     public void execute(WorkerProcessContext context) {
@@ -77,10 +77,10 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         try {
             ClassLoader docsClassLoader = classLoader;
 
-            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
+            Object buildDocHandler = runAdapter.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
 
-            Object buildLink = spec.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
-            spec.runDevHttpServer(classLoader, docsClassLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
+            Object buildLink = runAdapter.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
+            runAdapter.runDevHttpServer(classLoader, docsClassLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -110,6 +110,6 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     @Override
     public void rebuildSuccess() {
-        spec.forceReloadNextTime();
+        runAdapter.forceReloadNextTime();
     }
 }
