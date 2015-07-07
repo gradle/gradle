@@ -438,15 +438,6 @@ dependency resolution, the test verify that the classpath contains the appropria
 - Given a component `J1` that depends on `C1`, a component `J2` that depends on `C1`, a component `C2` that depends on `J2`, a component `J3` that depends on `J1`, `J2` and `C2`
     - resolving the dependencies and building any of the component should succeed
 
-- Given a component `J1` that depends on `C1`, a component `J2` that depends on `C1`, a component `J3` that depends on `J1` and `J2`
-    - all components but `J2` target Java 6 and Java 7
-    - `J2` only targets Java 6
-    - resolving the dependencies and building of all components for the Java 6 variant should succeed
-    - resolving the dependencies for the Java 7 variant of `J3` should fail with an error indicating that no suitable variant of `J2` is found
-    - resolving the dependencies for the Java 7 variant of `C2` should fail with an error indicating that no suitable variant of `J2` is found
-
-
-
 ### Implementation
 
 - In `LocalLibraryDependencyResolver` fix `acceptLibrary` so that it checks if any of the binaries is a `JvmBinarySpec`
