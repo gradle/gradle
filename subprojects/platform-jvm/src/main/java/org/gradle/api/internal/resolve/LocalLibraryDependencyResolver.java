@@ -305,7 +305,12 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         private boolean acceptLibrary(LibrarySpec librarySpec) {
             // TODO: this should be parametrized, and provided in some way to the resolver
             // once this is done, can move to platform-base
-            return librarySpec instanceof JvmLibrarySpec;
+            for (BinarySpec spec : librarySpec.getBinaries().values()) {
+                if (spec instanceof JvmBinarySpec) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private LibrarySpec getSingleMatchingLibrary() {
