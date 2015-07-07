@@ -40,8 +40,8 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unable to delete file")
 
         cleanup:
-        channel?.close()
         lock?.release()
+        channel?.close()
     }
 
     def "can define 'build' and 'check' tasks when applying plugin"() {
