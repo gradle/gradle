@@ -17,6 +17,8 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -62,10 +64,11 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     public DaemonStartupInfo startDaemon() {
+        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator();
         DefaultModuleRegistry registry = new DefaultModuleRegistry();
         Set<File> bootstrapClasspath = new LinkedHashSet<File>();
         bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath().getAsFiles());
-        if (registry.getGradleHome() == null) {
+        if (gradleDistributionLocator.getGradleHome() == null) {
             // Running from the classpath - chuck in everything we can find
             bootstrapClasspath.addAll(registry.getFullClasspath());
         }

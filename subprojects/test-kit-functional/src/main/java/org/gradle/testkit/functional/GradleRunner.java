@@ -17,7 +17,8 @@
 package org.gradle.testkit.functional;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.testkit.functional.internal.DefaultGradleRunner;
 import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
@@ -133,8 +134,8 @@ public abstract class GradleRunner {
      * @return Default implementation
      */
     public static GradleRunner create() {
-        DefaultModuleRegistry registry = new DefaultModuleRegistry(GradleRunner.class);
-        File gradleHome = registry.getGradleHome();
+        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
+        File gradleHome = gradleDistributionLocator.getGradleHome();
         return create(new InstalledGradleDistribution(gradleHome));
     }
 

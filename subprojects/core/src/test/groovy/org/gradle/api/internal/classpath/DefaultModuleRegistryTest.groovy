@@ -62,7 +62,7 @@ class DefaultModuleRegistryTest extends Specification {
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
         def ignoredDir = tmpDir.createDir("ignore-me-out/production/someModule")
         def cl = new URLClassLoader([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -75,7 +75,7 @@ class DefaultModuleRegistryTest extends Specification {
         def classesDir = tmpDir.createDir("some-module/bin")
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
         def cl = new URLClassLoader([classesDir, resourcesDir, staticResourcesDir, runtimeDep].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -88,7 +88,7 @@ class DefaultModuleRegistryTest extends Specification {
         def classesDir = tmpDir.createDir("some-module/build/classes/main")
         def staticResourcesDir = tmpDir.createDir("some-module/build/resources/main")
         def cl = new URLClassLoader([classesDir, resourcesDir, staticResourcesDir, runtimeDep].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -115,7 +115,7 @@ class DefaultModuleRegistryTest extends Specification {
         resourcesDir.file("gradle-some-module-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
 
         def cl = new URLClassLoader([resourcesDir, runtimeDep].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -133,7 +133,7 @@ class DefaultModuleRegistryTest extends Specification {
         resourcesDir.file("gradle-module-2-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
 
         def cl = new URLClassLoader([resourcesDir].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -155,7 +155,7 @@ class DefaultModuleRegistryTest extends Specification {
         resourcesDir.file("gradle-module-3-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
 
         def cl = new URLClassLoader([resourcesDir].collect { it.toURI().toURL() } as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -165,7 +165,7 @@ class DefaultModuleRegistryTest extends Specification {
     def "fails when classpath does not contain manifest resource"() {
         given:
         def cl = new URLClassLoader([] as URL[])
-        def registry = new DefaultModuleRegistry(cl, null)
+        def registry = new DefaultModuleRegistry(cl, null as File)
 
         when:
         registry.getModule("gradle-some-module")

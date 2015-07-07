@@ -21,10 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.classpath.*;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
@@ -118,6 +115,10 @@ public class GlobalScopeServices {
 
     DefaultModuleRegistry createModuleRegistry() {
         return new DefaultModuleRegistry();
+    }
+
+    DefaultGradleDistributionLocator createGradleDistributionLocator() {
+        return new DefaultGradleDistributionLocator();
     }
 
     DocumentationRegistry createDocumentationRegistry() {

@@ -17,6 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
@@ -43,10 +44,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected GradleDistributionLocator createGradleDistributionLocator() {
-        return new GradleDistributionLocator() {
-            public File getGradleHome() {
-                return homeDir;
-            }
-        };
+        return new DefaultGradleDistributionLocator(homeDir);
     }
 }

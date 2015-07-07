@@ -25,7 +25,7 @@ import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultModuleRegistryIntegrationTest extends Specification {
+class DefaultGradleDistributionLocatorIntegrationTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile distDir
 
@@ -43,10 +43,11 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
         when:
         Class clazz = loadClassFromJar(jar)
-        def registry = new DefaultModuleRegistry(clazz)
+        def gradleDistributionLocator = new DefaultGradleDistributionLocator(clazz)
 
         then:
-        registry.gradleHome == distDir
+        gradleDistributionLocator.gradleHome == distDir
+        gradleDistributionLocator.libDirs == [new File(distDir, 'lib'), new File(distDir, 'lib/plugins')]
 
         where:
         jarDirectory << ['lib', 'lib/plugins']
@@ -60,10 +61,11 @@ class DefaultModuleRegistryIntegrationTest extends Specification {
 
         when:
         Class clazz = loadClassFromJar(jar)
-        def registry = new DefaultModuleRegistry(clazz)
+        def gradleDistributionLocator = new DefaultGradleDistributionLocator(clazz)
 
         then:
-        !registry.gradleHome
+        !gradleDistributionLocator.gradleHome
+        gradleDistributionLocator.libDirs == []
 
         where:
         jarDirectory << ['other', 'other/plugins']
