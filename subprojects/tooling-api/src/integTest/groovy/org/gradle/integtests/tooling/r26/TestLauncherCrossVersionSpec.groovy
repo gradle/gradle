@@ -15,13 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.UnsupportedVersionException
+import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.tooling.fixture.*
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.*
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
@@ -34,10 +31,14 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=1.0-milestone-8")
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
+    TestOutputStream stderr = new TestOutputStream()
+    TestOutputStream stdout = new TestOutputStream()
 
     def testDescriptors = [] as Set
     def taskEvents = [] as Set
@@ -202,6 +203,75 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found in project 'testproject'."
     }
 
+    @TargetGradleVersion(">=2.6")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "can run and cancel testlauncher in continuous mode"() {
+        when:
+        withConnection {
+            def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+
+            launchTests(it, testDescriptors("example.MyTest", null, ":secondTest"), new TestResultHandler(), cancellationTokenSource,  "-t");
+            waitingForBuild()
+            assertTaskExecuted(":secondTest")
+            assertTaskNotExecuted(":test")
+            assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+            assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+            assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
+            assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+
+            testDescriptors.clear()
+            changeTestSource()
+            waitingForBuild()
+
+            cancellationTokenSource.cancel()
+        }
+
+        then:
+        assertBuildCancelled()
+        assertTaskExecuted(":secondTest")
+        assertTaskNotExecuted(":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+
+    }
+
+    def assertBuildCancelled() {
+        stdout.toString().contains("Build cancelled.")
+        true
+    }
+
+    def changeTestSource() {
+        // adding two more test methods
+        file("src/test/java/example/MyTest.java").text = """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo2() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo3() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo4() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+    }
+
+    private void waitingForBuild() {
+        ConcurrentTestUtil.poll {
+            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
+        }
+        stdout.reset()
+        stderr.reset()
+    }
+
+
     def testClassRemoved() {
         file("src/test/java/example/MyTest.java").delete()
     }
@@ -279,23 +349,45 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     void launchTests(Collection<OperationDescriptor> testsToLaunch) {
+        withConnection { ProjectConnection connection ->
+            launchTests(connection, testsToLaunch, null, GradleConnector.newCancellationTokenSource());
+        }
+    }
+
+    def launchTests(ProjectConnection connection, Collection<TestOperationDescriptor> testsToLaunch,
+                    ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, String... arguments) {
         testDescriptors.clear()
         taskEvents.clear()
-        withConnection { ProjectConnection connection ->
-            connection.newTestLauncher()
-                .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
-                .addProgressListener(new ProgressListener() {
+        TestLauncher testLauncher = connection.newTestLauncher()
+            .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
+            .withArguments(arguments)
+            .withCancellationToken(cancellationTokenSource.token())
+            .addProgressListener(new ProgressListener() {
 
-                @Override
-                void statusChanged(ProgressEvent event) {
-                    if (event instanceof TaskProgressEvent) {
-                        taskEvents << event
-                    } else if (event instanceof TestProgressEvent) {
-                        testDescriptors << event.descriptor
-                    }
+            @Override
+            void statusChanged(ProgressEvent event) {
+                if (event instanceof TaskProgressEvent) {
+                    taskEvents << event
+                } else if (event instanceof TestProgressEvent) {
+                    testDescriptors << event.descriptor
                 }
-            }, EnumSet.of(OperationType.TEST, OperationType.TASK))
-                .run()
+            }
+        }, EnumSet.of(OperationType.TEST, OperationType.TASK))
+
+        if (toolingApi.isEmbedded()) {
+            testLauncher
+                .setStandardOutput(stdout)
+                .setStandardError(stderr)
+        } else {
+            testLauncher
+                .setStandardOutput(new TeeOutputStream(stdout, System.out))
+                .setStandardError(new TeeOutputStream(stderr, System.err))
+        }
+
+        if(resultHandler == null){
+            testLauncher.run()
+        }else {
+            testLauncher.run(resultHandler)
         }
     }
 
