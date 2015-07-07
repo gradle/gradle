@@ -146,8 +146,8 @@ model {
         java7MainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdepjava6Jar)
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdepjava7Jar)
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdepJava6Jar)
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdepJava7Jar)
             }
         }
     }
@@ -284,7 +284,7 @@ model {
         mainJar.finalizedBy('checkDependencies')
         create('checkDependencies') {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepjava7Jar)
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJava7Jar)
             }
         }
     }
@@ -438,6 +438,149 @@ model {
         succeeds ':mainJar'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "Cannot build all variants of main component because of missing dependency variant"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            targetPlatform 'java7'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+    }
+
+    tasks {
+        java7MainJar.finalizedBy('checkDependencies')
+        create('checkDependencies') {
+            doLast {
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJar)
+                assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect: "Can resolve dependencies and compile the Java 7 variant of the main Jar"
+        succeeds ':java7MainJar'
+
+        and: "Can resolve dependencies and compile any of the dependencies"
+        succeeds ':secondJar'
+        succeeds ':thirdJar'
+
+        and: "Trying to compile the Java 6 variant fails"
+        fails ':java6MainJar'
+        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''")
+        failure.assertHasCause("Cannot find a compatible binary for library 'second' (Java SE 6). Available platforms: [Java SE 7]")
+    }
+
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "Not all components target the same Java platforms"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        buildFile << '''
+
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+            targetPlatform 'java6'
+            targetPlatform 'java7'
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'third'
+                    }
+                }
+            }
+        }
+        third(JvmLibrarySpec) {
+            targetPlatform 'java7'
+        }
+    }
+
+    tasks {
+        create('checkMainDependencies') {
+            doLast {
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(secondJava6Jar)
+            }
+        }
+        create('checkSecondJava7VariantDependencies') {
+            doLast {
+                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(thirdJar)
+            }
+        }
+        create('checkSecondJava6VariantDependencies') {
+            doLast {
+                assert compileSecondJava6JarSecondJava.taskDependencies.getDependencies(compileSecondJava6JarSecondJava)
+            }
+        }
+    }
+}
+'''
+        file('src/main/java/TestApp.java') << 'public class TestApp { void dependsOn(SecondApp app) {} }'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
+        file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
+
+        expect: "Can resolve dependencies of the Java 6 and Java 7 variant of the main Jar"
+        succeeds ':checkMainDependencies'
+
+        and: "Resolving the dependencies and compiling the Java 7 variant of the second jar should work"
+        succeeds ':checkSecondJava7VariantDependencies'
+        succeeds ':secondJava7Jar'
+
+        and: "Resolving the dependencies of the Java 6 version of the second jar should fail"
+        fails ':checkSecondJava6VariantDependencies'
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'secondJava6Jar'' source set 'Java source 'second:java''")
+        failure.assertHasCause("Cannot find a compatible binary for library 'third' (Java SE 6). Available platforms: [Java SE 7]")
+
+        and: "Can build the Java 7 variant of all components"
+        succeeds ':java7MainJar'
+        succeeds ':secondJava7Jar'
+        succeeds ':thirdJar'
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
@@ -487,7 +630,7 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                     def multipleTargets = selectedPlatforms.size()>1
                     selectedPlatforms.each { platform ->
                         def toolChain = toolChains.getForPlatform(platform)
-                        def binaryName = "${jvmLibrary.name}${multipleTargets?platform.name:''}Jar"
+                        def binaryName = "${jvmLibrary.name}${multipleTargets?platform.name.capitalize():''}Jar"
                         binaries.create(binaryName) { jar ->
                             jar.baseName = jvmLibrary.name
                             jar.toolChain = toolChain
