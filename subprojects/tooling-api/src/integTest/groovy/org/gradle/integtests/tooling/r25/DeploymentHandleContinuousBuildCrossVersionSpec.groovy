@@ -28,7 +28,7 @@ import spock.lang.Timeout
 @Timeout(120)
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
+@TargetGradleVersion(GradleVersions.SUPPORTS_DEPLOYMENT_REGISTRY)
 class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
     File triggerFile = file('triggerFile')
     File keyFile = file('keyFile')
