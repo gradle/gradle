@@ -143,14 +143,14 @@ model {
     tasks {
         java6MainJar {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdepJava6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJava6Jar/zdep.jar")] as Set
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdep6Jar)
+                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep6Jar/zdep.jar")] as Set
             }
         }
         java7MainJar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdepJava7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJava7Jar/zdep.jar")] as Set
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdep7Jar)
+                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
             }
         }
     }
@@ -286,8 +286,8 @@ model {
     tasks {
         mainJar {
             doLast {
-                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdepJava7Jar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJava7Jar/zdep.jar")] as Set
+                assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdep7Jar)
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
             }
         }
     }
@@ -547,18 +547,18 @@ model {
     tasks {
         create('checkMainDependencies') {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(secondJava6Jar)
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(second6Jar)
             }
         }
         create('checkSecondJava7VariantDependencies') {
             doLast {
-                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(thirdJar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(thirdJar)
             }
         }
         create('checkSecondJava6VariantDependencies') {
             doLast {
-                compileSecondJava6JarSecondJava.taskDependencies.getDependencies(compileSecondJava6JarSecondJava)
+                compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava)
             }
         }
     }
@@ -573,16 +573,16 @@ model {
 
         and: "Resolving the dependencies and compiling the Java 7 variant of the second jar should work"
         succeeds ':checkSecondJava7VariantDependencies'
-        succeeds ':secondJava7Jar'
+        succeeds ':second7Jar'
 
         and: "Resolving the dependencies of the Java 6 version of the second jar should fail"
         fails ':checkSecondJava6VariantDependencies'
-        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'secondJava6Jar'' source set 'Java source 'second:java''")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'second6Jar'' source set 'Java source 'second:java''")
         failure.assertHasCause("Cannot find a compatible binary for library 'third' (Java SE 6). Available platforms: [Java SE 7]")
 
         and: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
-        succeeds ':secondJava7Jar'
+        succeeds ':second7Jar'
         succeeds ':thirdJar'
     }
 
@@ -626,26 +626,26 @@ model {
     tasks {
         java6MainJar {
             doLast {
-                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(secondJava6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJava6Jar/second.jar")] as Set
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(second6Jar)
+                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/second6Jar/second.jar")] as Set
             }
         }
         java7MainJar {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJava7Jar/second.jar")] as Set
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
+                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/second7Jar/second.jar")] as Set
             }
         }
-        secondJava6Jar {
+        second6Jar {
             doLast {
-                assert compileSecondJava6JarSecondJava.taskDependencies.getDependencies(compileSecondJava6JarSecondJava).contains(java6ThirdJar)
-                assert compileSecondJava6JarSecondJava.classpath.files == [file("${buildDir}/jars/java6ThirdJar/third.jar")] as Set
+                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(java6ThirdJar)
+                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/java6ThirdJar/third.jar")] as Set
             }
         }
-        secondJava7Jar {
+        second7Jar {
             doLast {
-                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(java7ThirdJar)
-                assert compileSecondJava7JarSecondJava.classpath.files == [file("${buildDir}/jars/java7ThirdJar/third.jar")] as Set
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(java7ThirdJar)
+                assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/java7ThirdJar/third.jar")] as Set
             }
         }
     }
@@ -657,12 +657,12 @@ model {
 
         expect: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
-        succeeds ':secondJava7Jar'
+        succeeds ':second7Jar'
         succeeds ':java7ThirdJar'
 
         and: "Can build the Java 6 variant of all components"
         succeeds ':java6MainJar'
-        succeeds ':secondJava6Jar'
+        succeeds ':second6Jar'
         succeeds ':java6ThirdJar'
     }
 
@@ -768,8 +768,8 @@ model {
     tasks {
         create('checkJava7Dependencies') {
             doLast {
-                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(secondJava7Jar)
-                assert compileSecondJava7JarSecondJava.taskDependencies.getDependencies(compileSecondJava7JarSecondJava).contains(java7ThirdJar)
+                assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
+                assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(java7ThirdJar)
             }
         }
         create('checkMainJava6Dependencies') {
@@ -790,11 +790,11 @@ model {
         and: "Fails resolving the dependencies of the Java 6 variant of the main component"
         fails ':checkMainJava6Dependencies'
         failure.assertHasCause "Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''"
-        failure.assertHasCause "Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondJava6Jar', Jar 'secondJava6Jarx']"
+        failure.assertHasCause "Multiple binaries available for library 'second' (Java SE 6) : [Jar 'second6Jar', Jar 'second6Jarx']"
 
         and: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
-        succeeds ':secondJava7Jar'
+        succeeds ':second7Jar'
         succeeds ':java7ThirdJar'
     }
 
@@ -946,10 +946,10 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                     def classesDir = new File(buildDir, "classes")
                     def javaVersions = library.javaVersions ?: [JavaVersion.current().majorVersion]
                     def multipleTargets = javaVersions.size() > 1
-                    javaVersions.each {
-                        def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java$it"))
+                    javaVersions.each { version ->
+                        def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
                         def toolChain = toolChains.getForPlatform(platform)
-                        String binaryName = "${library.name}${multipleTargets?platform.name.capitalize():''}Jar"
+                        String binaryName = "${library.name}${javaVersions.size() > 1 ? version :''}Jar"
                         while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
                         binaries.create(binaryName) { jar ->
                             jar.toolChain = toolChain
