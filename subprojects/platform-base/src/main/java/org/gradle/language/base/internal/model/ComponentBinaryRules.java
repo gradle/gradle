@@ -43,29 +43,14 @@ public class ComponentBinaryRules extends RuleSource {
             public void execute(BinarySpec binary) {
                 for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                     // TODO - allow view as internal type and remove the cast
-                    BinarySourcesRegistrationAction.create(component.getName(), languageRegistration).execute((BinarySpecInternal) binary);
+                    register((BinarySpecInternal) binary, component.getName(), languageRegistration);
                 }
             }
+
+            private <U extends LanguageSourceSet> void register(BinarySpecInternal binary, String componentName, LanguageRegistration<U> languageRegistration) {
+                NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(componentName);
+                binary.getEntityInstantiator().registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
+            }
         });
-    }
-
-    // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class BinarySourcesRegistrationAction<U extends LanguageSourceSet> implements Action<BinarySpecInternal> {
-        private final String componentName;
-        private final LanguageRegistration<U> languageRegistration;
-
-        private BinarySourcesRegistrationAction(String componentName, LanguageRegistration<U> registration) {
-            this.componentName = componentName;
-            this.languageRegistration = registration;
-        }
-
-        public static <U extends LanguageSourceSet> BinarySourcesRegistrationAction<U> create(String componentName, LanguageRegistration<U> registration) {
-            return new BinarySourcesRegistrationAction<U>(componentName, registration);
-        }
-
-        public void execute(BinarySpecInternal binary) {
-            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(componentName);
-            binary.getEntityInstantiator().registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
-        }
     }
 }
