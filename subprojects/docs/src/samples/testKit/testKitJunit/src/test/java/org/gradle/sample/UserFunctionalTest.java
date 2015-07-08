@@ -27,6 +27,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -61,6 +62,8 @@ public class UserFunctionalTest {
         // verify build result
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");
+        assertEquals(result.getExecutedTasks(), Collections.singletonList(":helloWorld"));
+        assertEquals(result.getSkippedTasks(), Collections.emptyList());
     }
 
     private void writeFile(File destination, String content) throws IOException {

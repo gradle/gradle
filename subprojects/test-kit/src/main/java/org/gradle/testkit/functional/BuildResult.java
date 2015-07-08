@@ -42,14 +42,15 @@ public interface BuildResult {
     String getStandardError();
 
     /**
-     * Returns the executed tasks of a build execution. The execution status of a task can either be SKIPPED, UP-TO-DATE, successful or failed.
+     * Returns the paths of executed tasks of a build execution. The execution status of a task can either be SKIPPED, UP-TO-DATE, FAILED or successful. Tasks from the {@code buildSrc} project
+     * will not be listed.
      *
      * @return Executed tasks
      */
     List<String> getExecutedTasks();
 
     /**
-     * Returns executed tasks that were marked SKIPPED, UP-TO-DATE or failed during build execution.
+     * Returns the paths of executed tasks that were marked SKIPPED, UP-TO-DATE or FAILED during build execution. Tasks from the {@code buildSrc} project will not be listed.
      *
      * @return Skipped tasks
      */
