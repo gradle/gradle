@@ -55,10 +55,8 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
-
             public T run(ConsumerConnection connection) {
                 T model = connection.run(modelType, operationParameters);
-                operationParameters.getBuildProgressListener().rethrowErrors();
                 return model;
             }
         }, new ResultHandlerAdapter<T>(handler));

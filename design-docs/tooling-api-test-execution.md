@@ -48,8 +48,8 @@ From a client this API can be used like:
 * ~~Add a new `BuildAction` subtype to represent a test execution request.~~
 * ~~Add a new `BuildActionRunner` subtype to handle this request.~~
 * ~~Extract a decorator out of the current `BuildActionRunner` implementations to take care of wiring up listeners to send events back to build client.~~
-	* Ensure that listener failures are rethrown on the client side, as is done for the other kinds of operations. Refactor this on the client side so that the logic
-	  is in one place, rather than ad hoc per operation.
+	* ~~Ensure that listener failures are rethrown on the client side, as is done for the other kinds of operations. Refactor this on the client side so that the logic~~
+	  ~~is in one place, rather than ad hoc per operation.~~
 * ~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).
 * ~~Run appropriate `Test` tasks based on the descriptors.~~
 * ~~Tests will not execute when test task is up-to-date.~
