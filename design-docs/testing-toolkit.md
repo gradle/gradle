@@ -27,7 +27,7 @@ A set of interfaces/builders will be developed to provide programmatic execution
 To use the test-kit, the build author must declare a dependency on the test-kit:
 
     dependencies {
-        testCompile testKit()
+        testCompile gradleTestKit()
     }
 
 Initially, this will be available only as a local dependency.
