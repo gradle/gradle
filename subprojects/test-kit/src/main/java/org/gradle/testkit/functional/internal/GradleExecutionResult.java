@@ -16,11 +16,7 @@
 
 package org.gradle.testkit.functional.internal;
 
-import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.resource.CharsetUtil;
-
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public class GradleExecutionResult {
@@ -43,19 +39,11 @@ public class GradleExecutionResult {
     }
 
     public String getStandardOutput() {
-        return getUTF8EncodedString(standardOutput);
+        return standardOutput.toString();
     }
 
     public String getStandardError() {
-        return getUTF8EncodedString(standardError);
-    }
-
-    private String getUTF8EncodedString(ByteArrayOutputStream outputStream) {
-        try {
-            return outputStream.toString(CharsetUtil.UTF_8.name());
-        } catch(UnsupportedEncodingException e) {
-            throw new UncheckedIOException(e);
-        }
+        return standardError.toString();
     }
 
     public List<String> getExecutedTasks() {
