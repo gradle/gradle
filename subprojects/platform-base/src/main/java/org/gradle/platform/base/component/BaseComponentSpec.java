@@ -49,6 +49,8 @@ import java.util.Set;
  * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
+// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
+@SuppressWarnings("deprecation")
 public abstract class BaseComponentSpec implements ComponentSpecInternal {
 
     private static final Transformer<FunctionalSourceSet, MutableModelNode> PUSH_FUNCTIONAL_SOURCE_SET_TO_NODE = new Transformer<FunctionalSourceSet, MutableModelNode>() {

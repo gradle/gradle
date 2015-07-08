@@ -48,6 +48,8 @@ import org.gradle.util.DeprecationLogger;
  *
  */
 @Incubating
+// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
+@SuppressWarnings("deprecation")
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final NamedDomainObjectFactoryRegistry<LanguageSourceSet> entityInstantiator;
     private final ModelMap<LanguageSourceSet> ownedSourceSets;
