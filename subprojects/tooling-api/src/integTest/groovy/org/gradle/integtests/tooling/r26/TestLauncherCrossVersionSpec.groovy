@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r26
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
@@ -173,6 +174,32 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskExecuted(":secondTest")
         assertTaskUpToDate(":secondTest")
         assertTaskNotExecuted(":test")
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "listener errors are rethrown on client side"() {
+        given:
+        def taskDescriptors = taskDescriptors(":test")
+        def failingProgressListener = failingProgressListener()
+        when:
+        withConnection { ProjectConnection connection ->
+            def testLauncher = connection.newTestLauncher()
+            testLauncher.addProgressListener(failingProgressListener)
+            testLauncher.withTests(taskDescriptors.toArray(new TaskOperationDescriptor[taskDescriptors.size()]))
+            testLauncher.run()
+        };
+        then:
+        def e = thrown(ListenerFailedException)
+        e.cause.message == "failing progress listener"
+    }
+
+    ProgressListener failingProgressListener() {
+        new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                throw new GradleException("failing progress listener")
+            }
+        }
     }
 
     @TargetGradleVersion(">=2.6")
