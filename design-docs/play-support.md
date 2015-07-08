@@ -889,13 +889,26 @@ Play uses Guice to do autowiring in the new style.
 Test coverage:
 - add Play 2.4.x integration test application that uses injected routes compiler and non-static style of controllers in Scala and Java.
 
-### Open Issues
+### Story: Add support for configuring Play 2.4.x aggregate reverse routes
 
-- The routes compiler contains a setting `playAggregateReverseRoutes` in Play 2.4.x. The definition is "A list of projects that reverse routes should be aggregated from.".
+In previous versions of Play, the only way for a project to use the reverse routes of another project in a multiproject build is to create a
+compile dependency on the other project.  This is inconvenient when two different projects want to both share each others routes as it creates
+a circular dependency.  Play 2.4 introduces a new configuration option `aggregateReverseRoutes` which allows the reverse routes of projects to
+be exposed to other projects via a common shared dependency project.  Basically, each project depends on the shared project and only generates
+forward routes while all of the reverse routes come from the shared dependency.
+
  - Play manual: [Aggregating Reverse routers](https://github.com/playframework/playframework/blob/2.4.x/documentation/manual/detailedTopics/build/AggregatingReverseRouters.md)
  - [Routes compilation sbt task in 2.3.x](https://github.com/playframework/playframework/blob/2.3.x/framework/src/sbt-plugin/src/main/scala/PlaySourceGenerators.scala#L20)
  - [Routes compilation sbt task in 2.4.x](https://github.com/playframework/playframework/blob/2.4.x/framework/src/sbt-plugin/src/main/scala/play/sbt/routes/RoutesCompiler.scala#L48)
 
+#### Implementation
+
+Possible implementation:
+- Add an `aggregateReverseRoutes` setting to `PlayApplicationBinarySpec` that accepts a list of projects.
+- Add a `ReverseRoutes` buildable model element to `PlayApplicationBinarySpecInternal` with an `aggregated` setting and a list of generated source dirs.
+- Split the generation of forward routes and reverse routes into two RoutesCompile tasks.
+- When a project is added to the aggregateReverseRoutes of another project, a binary rule is created that sets `ReverseRoutes.aggregated` to true and its generated source dirs are then added to the ReverseRoutes of the aggregate project.
+- When the scalaCompilePlayBinary task is configured, include ReverseRoutes generated source dirs only if aggregate is false.
 
 ### Story: Build of pending changes is deferred until reload is requested by Play application
 
