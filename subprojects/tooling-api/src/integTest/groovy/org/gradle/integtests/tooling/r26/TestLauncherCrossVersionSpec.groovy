@@ -17,7 +17,11 @@
 package org.gradle.integtests.tooling.r26
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
-import org.gradle.integtests.tooling.fixture.*
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.TestResultHandler
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 import org.gradle.tooling.events.OperationDescriptor
@@ -177,6 +181,39 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "can run and cancel testlauncher in continuous mode"() {
+        when:
+        withConnection {
+            def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+
+            launchTests(it, testDescriptors("example.MyTest", null, ":secondTest"), new TestResultHandler(), cancellationTokenSource,  "-t");
+            waitingForBuild()
+            assertTaskExecuted(":secondTest")
+            assertTaskNotExecuted(":test")
+            assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+            assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+            assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
+            assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+
+            testDescriptors.clear()
+            changeTestSource()
+            waitingForBuild()
+
+            cancellationTokenSource.cancel()
+        }
+
+        then:
+        assertBuildCancelled()
+        assertTaskExecuted(":secondTest")
+        assertTaskNotExecuted(":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+    }
+
+    @TargetGradleVersion(">=2.6")
     def "listener errors are rethrown on client side"() {
         given:
         def taskDescriptors = taskDescriptors(":test")
@@ -230,39 +267,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found in project 'testproject'."
     }
 
-    @TargetGradleVersion(">=2.6")
-    @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "can run and cancel testlauncher in continuous mode"() {
-        when:
-        withConnection {
-            def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-
-            launchTests(it, testDescriptors("example.MyTest", null, ":secondTest"), new TestResultHandler(), cancellationTokenSource,  "-t");
-            waitingForBuild()
-            assertTaskExecuted(":secondTest")
-            assertTaskNotExecuted(":test")
-            assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-            assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-            assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
-            assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-
-            testDescriptors.clear()
-            changeTestSource()
-            waitingForBuild()
-
-            cancellationTokenSource.cancel()
-        }
-
-        then:
-        assertBuildCancelled()
-        assertTaskExecuted(":secondTest")
-        assertTaskNotExecuted(":test")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-
-    }
 
     def assertBuildCancelled() {
         stdout.toString().contains("Build cancelled.")
@@ -298,12 +302,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         stderr.reset()
     }
 
-
-    def testClassRemoved() {
-        file("src/test/java/example/MyTest.java").delete()
-    }
-
-    @TargetGradleVersion("<2.6")
+    @TargetGradleVersion(">=1.0-milestone-8 <2.6")
     def "fails with meaningful error when running against unsupported target version"() {
         when:
         withConnection { ProjectConnection connection ->
@@ -327,6 +326,16 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def assertTaskUpToDate(String taskPath) {
         assert taskEvents.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && it.result.upToDate }
+        true
+    }
+
+    def assertTestNotExecuted(Map testInfo) {
+        assert !hasTestDescriptor(testInfo)
+        true
+    }
+
+    def assertTestExecuted(Map testInfo) {
+        assert hasTestDescriptor(testInfo)
         true
     }
 
@@ -361,15 +370,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         testDescriptors(descriptors, className, null)
     }
 
-    def assertTestNotExecuted(Map testInfo) {
-        assert !hasTestDescriptor(testInfo)
-        true
-    }
 
-    def assertTestExecuted(Map testInfo) {
-        assert hasTestDescriptor(testInfo)
-        true
-    }
 
     private boolean hasTestDescriptor(testInfo) {
         !testDescriptors(testDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
@@ -480,6 +481,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         repositories { mavenCentral() }
         dependencies { testCompile 'junit:junit:4.12' }
         """
-
     }
+
+    def testClassRemoved() {
+        file("src/test/java/example/MyTest.java").delete()
+    }
+
 }
