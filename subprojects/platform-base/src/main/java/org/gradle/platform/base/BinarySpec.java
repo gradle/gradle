@@ -48,6 +48,12 @@ public interface BinarySpec extends BuildableModelElement, Named {
      */
     ModelMap<LanguageSourceSet> getSources();
 
+    /**
+     * Returns all inputs of the binary. This includes source sets owned by the binary,
+     * and other source sets created elsewhere (e.g. inherited from the binary's component).
+     *
+     * @return all inputs of the binary.
+     */
     DomainObjectSet<LanguageSourceSet> getInputs();
 
     /**
