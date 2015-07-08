@@ -26,9 +26,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.Matchers.containsText
 import static org.gradle.util.Matchers.matchesRegexp
-
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
@@ -323,7 +321,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         errorResolvingPlugin()
 
         failure.assertThatCause(matchesRegexp(".*?Could not GET 'http://localhost:\\d+/.+?/plugin/use/org.my.myplugin/1.0'.*?"))
-        failure.assertThatCause(containsText("Connection refused"))
+        failure.assertThatCause(matchesRegexp(".*?Connection( to http://localhost:\\d+)? refused"))
     }
 
     def "non contactable dependency repository produces error"() {
@@ -344,7 +342,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         fails("verify")
         errorResolvingPlugin()
         failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
-        failure.assertThatCause(containsText("Connection refused"))
+        failure.assertThatCause(matchesRegexp(".*?Connection( to $address)? refused"))
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
