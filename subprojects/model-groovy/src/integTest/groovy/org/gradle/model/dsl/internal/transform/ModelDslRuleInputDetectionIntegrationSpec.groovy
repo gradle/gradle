@@ -15,12 +15,10 @@
  */
 
 package org.gradle.model.dsl.internal.transform
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
@@ -282,7 +280,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertHasCause(normaliseFileSeparators("""The following model rules are unbound:
+        failure.assertHasCause("""The following model rules are unbound:
   model.fooar @ ${File.separator}${buildFile.name} line 20, column 17
     Mutable:
       - fooar (java.lang.Object) - suggestions: foobar
@@ -291,7 +289,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
       - foobah (java.lang.Object) - suggestions: foobar
   model.foonar @ ${File.separator}${buildFile.name} line 16, column 17
     Mutable:
-      - foonar (java.lang.Object) - suggestions: foobar"""))
+      - foonar (java.lang.Object) - suggestions: foobar""")
     }
 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
