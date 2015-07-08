@@ -36,6 +36,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private File workingDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> taskNames = new ArrayList<String>();
+    private List<String> jvmArguments = new ArrayList<String>();
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
         this.gradleDistribution = gradleDistribution;
@@ -83,6 +84,15 @@ public class DefaultGradleRunner extends GradleRunner {
 
     public GradleRunner withTasks(String... taskNames) {
         return withTasks(Arrays.asList(taskNames));
+    }
+
+    public GradleRunner withJvmArguments(List<String> jvmArguments) {
+        this.jvmArguments = jvmArguments;
+        return this;
+    }
+
+    public GradleRunner withJvmArguments(String... jvmArguments) {
+        return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
     public BuildResult succeeds() {
@@ -145,10 +155,11 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult run(Action<GradleExecutionResult> action) {
-        GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, getWorkingDir());
-        gradleExecutor.withGradleUserHomeDir(getGradleUserHomeDir());
-        gradleExecutor.withArguments(getArguments());
-        gradleExecutor.withTasks(getTasks());
+        GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, workingDirectory);
+        gradleExecutor.withGradleUserHomeDir(gradleUserHomeDir);
+        gradleExecutor.withArguments(arguments);
+        gradleExecutor.withTasks(taskNames);
+        gradleExecutor.withJvmArguments(jvmArguments);
         GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
         action.execute(gradleExecutionResult);
         return new DefaultBuildResult(gradleExecutionResult.getStandardOutput(), gradleExecutionResult.getStandardError(),
