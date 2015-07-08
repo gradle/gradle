@@ -19,7 +19,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ServiceLifecycle;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.tooling.internal.consumer.RethrowingErrorsConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
@@ -53,7 +52,7 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
                     public void run() {
                         T result;
                         try {
-                            result = actionExecutor.run(new RethrowingErrorsConsumerAction<T>(action));
+                            result = actionExecutor.run(action);
                         } catch (Throwable t) {
                             handler.onFailure(t);
                             return;
