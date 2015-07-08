@@ -17,14 +17,15 @@
 
 package org.gradle.integtests.tooling.r25
 
-import groovy.transform.NotYetImplemented
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.*
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -53,16 +54,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some task(s) to run first"
-        List<ProgressEvent> result = []
+        def events = new ProgressEvents()
         withConnection {
             ProjectConnection connection ->
-                connection.model(BuildInvocations).forTasks('assemble').addProgressListener({ ProgressEvent event ->
-                    result << event
-                }, EnumSet.of(OperationType.GENERIC)).get()
+                connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
-        result.size() > 0
+        events.assertIsABuild()
     }
 
     @ToolingApiVersion(">=2.5")
@@ -72,16 +71,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        List<ProgressEvent> result = []
+        def events = new ProgressEvents()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
-                    result << event
-                }, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then: "build progress events must be forwarded to the attached listeners"
-        result.size() > 0
+        events.assertIsABuild()
     }
 
     @ToolingApiVersion(">=2.5")
@@ -126,107 +123,31 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        def events = new ProgressEvents()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('classes').addProgressListener({ ProgressEvent event ->
-                    result << event
-                }, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then:
-        result.size() % 2 == 0          // same number of start events as finish events
-        result.size() == 5 * 2          // build running, loading projects, configuring, populating task graph, executing tasks
-        result.each {
-            assert it.displayName == it.toString()
-            assert it.descriptor.displayName == it.descriptor.toString()
-        }
+        // Verify the most interesting operations; there may be others
+        def runBuild = events.operation("Run build")
+        runBuild.descriptor.name == "Run build"
+        runBuild.descriptor.parent == null
 
-        def buildRunningStarted = result[0]
-        buildRunningStarted instanceof StartEvent &&
-            buildRunningStarted.eventTime > 0 &&
-            buildRunningStarted.displayName == 'Run build started' &&
-            buildRunningStarted.descriptor.name == 'Run build' &&
-            buildRunningStarted.descriptor.displayName == 'Run build' &&
-            buildRunningStarted.descriptor.parent == null
-        def evaluatingSettingsStarted = result[1]
-        evaluatingSettingsStarted instanceof StartEvent &&
-            evaluatingSettingsStarted.eventTime > 0 &&
-            evaluatingSettingsStarted.displayName == 'Load projects started' &&
-            evaluatingSettingsStarted.descriptor.name == 'Load projects' &&
-            evaluatingSettingsStarted.descriptor.displayName == 'Load projects' &&
-            evaluatingSettingsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingSettingsFinished = result[2]
-        evaluatingSettingsFinished instanceof FinishEvent &&
-            evaluatingSettingsFinished.eventTime > 0 &&
-            evaluatingSettingsFinished.displayName == 'Load projects succeeded' &&
-            evaluatingSettingsFinished.descriptor.name == 'Load projects' &&
-            evaluatingSettingsFinished.descriptor.displayName == 'Load projects' &&
-            evaluatingSettingsFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            evaluatingSettingsFinished.result instanceof SuccessResult &&
-            evaluatingSettingsFinished.result.startTime == evaluatingSettingsStarted.eventTime &&
-            evaluatingSettingsFinished.result.endTime == evaluatingSettingsFinished.eventTime
-        def configuringBuildStarted = result[3]
-        configuringBuildStarted instanceof StartEvent &&
-            configuringBuildStarted.eventTime > 0 &&
-            configuringBuildStarted.displayName == 'Configure build started' &&
-            configuringBuildStarted.descriptor.name == 'Configure build' &&
-            configuringBuildStarted.descriptor.displayName == 'Configure build' &&
-            configuringBuildStarted.descriptor.parent == buildRunningStarted.descriptor
-        def configuringBuildFinished = result[4]
-        configuringBuildFinished instanceof FinishEvent &&
-            configuringBuildFinished.eventTime > 0 &&
-            configuringBuildFinished.displayName == 'Configure build succeeded' &&
-            configuringBuildFinished.descriptor.name == 'Configure build' &&
-            configuringBuildFinished.descriptor.displayName == 'Configure build' &&
-            configuringBuildFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            configuringBuildFinished.result instanceof SuccessResult &&
-            configuringBuildFinished.result.startTime == configuringBuildStarted.eventTime &&
-            configuringBuildFinished.result.endTime == configuringBuildFinished.eventTime
-        def populatingTaskGraphStarted = result[5]
-        populatingTaskGraphStarted instanceof StartEvent &&
-            populatingTaskGraphStarted.eventTime > 0 &&
-            populatingTaskGraphStarted.displayName == 'Calculate task graph started' &&
-            populatingTaskGraphStarted.descriptor.name == 'Calculate task graph' &&
-            populatingTaskGraphStarted.descriptor.displayName == 'Calculate task graph' &&
-            populatingTaskGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def populatingTaskGraphFinished = result[6]
-        populatingTaskGraphFinished instanceof FinishEvent &&
-            populatingTaskGraphFinished.eventTime > 0 &&
-            populatingTaskGraphFinished.displayName == 'Calculate task graph succeeded' &&
-            populatingTaskGraphFinished.descriptor.name == 'Calculate task graph' &&
-            populatingTaskGraphFinished.descriptor.displayName == 'Calculate task graph' &&
-            populatingTaskGraphFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            populatingTaskGraphFinished.result instanceof SuccessResult &&
-            populatingTaskGraphFinished.result.startTime == populatingTaskGraphStarted.eventTime &&
-            populatingTaskGraphFinished.result.endTime == populatingTaskGraphFinished.eventTime
-        def executingTasksGraphStarted = result[7]
-        executingTasksGraphStarted instanceof StartEvent &&
-            executingTasksGraphStarted.eventTime > 0 &&
-            executingTasksGraphStarted.displayName == 'Run tasks started' &&
-            executingTasksGraphStarted.descriptor.name == 'Run tasks' &&
-            executingTasksGraphStarted.descriptor.displayName == 'Run tasks' &&
-            executingTasksGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def executingTasksFinished = result[8]
-        executingTasksFinished instanceof FinishEvent &&
-            executingTasksFinished.eventTime > 0 &&
-            executingTasksFinished.displayName == 'Run tasks succeeded' &&
-            executingTasksFinished.descriptor.name == 'Run tasks' &&
-            executingTasksFinished.descriptor.displayName == 'Run tasks' &&
-            executingTasksFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            executingTasksFinished.result instanceof SuccessResult &&
-            executingTasksFinished.result.startTime == executingTasksGraphStarted.eventTime &&
-            executingTasksFinished.result.endTime == executingTasksFinished.eventTime
-        def buildRunningFinished = result[9]
-        buildRunningFinished instanceof FinishEvent &&
-            buildRunningFinished.eventTime > 0 &&
-            buildRunningFinished.displayName == 'Run build succeeded' &&
-            buildRunningFinished.descriptor.name == 'Run build' &&
-            buildRunningFinished.descriptor.displayName == 'Run build' &&
-            buildRunningFinished.descriptor.parent == null &&
-            buildRunningFinished.result instanceof SuccessResult &&
-            buildRunningFinished.result.startTime == buildRunningStarted.eventTime &&
-            buildRunningFinished.result.endTime == buildRunningFinished.eventTime
+        def configureBuild = events.operation("Configure build")
+        configureBuild.descriptor.name == "Configure build"
+        configureBuild.descriptor.parent == runBuild.descriptor
+
+        def runTasks = events.operation("Run tasks")
+        runTasks.descriptor.name == "Run tasks"
+        runTasks.descriptor.parent == runBuild.descriptor
+
+        events.operations[0] == runBuild
+        events.assertHasSingleTree()
+
+        events.operations.each { it.successful }
+        events.operations.each { it.buildOperation }
     }
 
     @ToolingApiVersion(">=2.5")
@@ -251,138 +172,37 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
+        def events = new ProgressEvents()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
-                    result << event
-                }, EnumSet.of(OperationType.GENERIC)).run()
+                connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
         then:
         thrown(BuildException)
 
         then:
-        result.size() % 2 == 0          // same number of start events as finish events
-        result.size() == 5 * 2          // build running, loading projects, configuring, populating task graph, executing tasks
-        result.each {
-            assert it.displayName == it.toString()
-            assert it.descriptor.displayName == it.descriptor.toString()
-        }
+        // The main operations; there may be others
+        def runBuild = events.operation("Run build")
+        runBuild.descriptor.parent == null
+        runBuild.failed
+        runBuild.failures.size() == 1
 
-        def buildRunningStarted = result[0]
-        buildRunningStarted instanceof StartEvent &&
-            buildRunningStarted.eventTime > 0 &&
-            buildRunningStarted.displayName == 'Run build started' &&
-            buildRunningStarted.descriptor.name == 'Run build' &&
-            buildRunningStarted.descriptor.displayName == 'Run build' &&
-            buildRunningStarted.descriptor.parent == null
-        def evaluatingSettingsStarted = result[1]
-        evaluatingSettingsStarted instanceof StartEvent &&
-            evaluatingSettingsStarted.eventTime > 0 &&
-            evaluatingSettingsStarted.displayName == 'Load projects started' &&
-            evaluatingSettingsStarted.descriptor.name == 'Load projects' &&
-            evaluatingSettingsStarted.descriptor.displayName == 'Load projects' &&
-            evaluatingSettingsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingSettingsFinished = result[2]
-        evaluatingSettingsFinished instanceof FinishEvent &&
-            evaluatingSettingsFinished.eventTime > 0 &&
-            evaluatingSettingsFinished.displayName == 'Load projects succeeded' &&
-            evaluatingSettingsFinished.descriptor.name == 'Load projects' &&
-            evaluatingSettingsFinished.descriptor.displayName == 'Load projects' &&
-            evaluatingSettingsFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            evaluatingSettingsFinished.result instanceof SuccessResult &&
-            evaluatingSettingsFinished.result.startTime == evaluatingSettingsStarted.eventTime &&
-            evaluatingSettingsFinished.result.endTime == evaluatingSettingsFinished.eventTime
-        def configuringBuildStarted = result[3]
-        configuringBuildStarted instanceof StartEvent &&
-            configuringBuildStarted.eventTime > 0 &&
-            configuringBuildStarted.displayName == 'Configure build started' &&
-            configuringBuildStarted.descriptor.name == 'Configure build' &&
-            configuringBuildStarted.descriptor.displayName == 'Configure build' &&
-            configuringBuildStarted.descriptor.parent == buildRunningStarted.descriptor
-        def configuringBuildFinished = result[4]
-        configuringBuildFinished instanceof FinishEvent &&
-            configuringBuildFinished.eventTime > 0 &&
-            configuringBuildFinished.displayName == 'Configure build succeeded' &&
-            configuringBuildFinished.descriptor.name == 'Configure build' &&
-            configuringBuildFinished.descriptor.displayName == 'Configure build' &&
-            configuringBuildFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            configuringBuildFinished.result instanceof SuccessResult &&
-            configuringBuildFinished.result.startTime == configuringBuildStarted.eventTime &&
-            configuringBuildFinished.result.endTime == configuringBuildFinished.eventTime
-        def populatingTaskGraphStarted = result[5]
-        populatingTaskGraphStarted instanceof StartEvent &&
-            populatingTaskGraphStarted.eventTime > 0 &&
-            populatingTaskGraphStarted.displayName == 'Calculate task graph started' &&
-            populatingTaskGraphStarted.descriptor.name == 'Calculate task graph' &&
-            populatingTaskGraphStarted.descriptor.displayName == 'Calculate task graph' &&
-            populatingTaskGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def populatingTaskGraphFinished = result[6]
-        populatingTaskGraphFinished instanceof FinishEvent &&
-            populatingTaskGraphFinished.eventTime > 0 &&
-            populatingTaskGraphFinished.displayName == 'Calculate task graph succeeded' &&
-            populatingTaskGraphFinished.descriptor.name == 'Calculate task graph' &&
-            populatingTaskGraphFinished.descriptor.displayName == 'Calculate task graph' &&
-            populatingTaskGraphFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            populatingTaskGraphFinished.result instanceof SuccessResult &&
-            populatingTaskGraphFinished.result.startTime == populatingTaskGraphStarted.eventTime &&
-            populatingTaskGraphFinished.result.endTime == populatingTaskGraphFinished.eventTime
-        def executingTasksGraphStarted = result[7]
-        executingTasksGraphStarted instanceof StartEvent &&
-            executingTasksGraphStarted.eventTime > 0 &&
-            executingTasksGraphStarted.displayName == 'Run tasks started' &&
-            executingTasksGraphStarted.descriptor.name == 'Run tasks' &&
-            executingTasksGraphStarted.descriptor.displayName == 'Run tasks' &&
-            executingTasksGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def executingTasksFinished = result[8]
-        executingTasksFinished instanceof FinishEvent &&
-            executingTasksFinished.eventTime > 0 &&
-            executingTasksFinished.displayName == 'Run tasks failed' &&
-            executingTasksFinished.descriptor.name == 'Run tasks' &&
-            executingTasksFinished.descriptor.displayName == 'Run tasks' &&
-            executingTasksFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            executingTasksFinished.result instanceof FailureResult &&
-            executingTasksFinished.result.startTime == executingTasksGraphStarted.eventTime &&
-            executingTasksFinished.result.endTime == executingTasksFinished.eventTime &&
-            executingTasksFinished.result.failures.size() == 1
-        def buildRunningFinished = result[9]
-        buildRunningFinished instanceof FinishEvent &&
-            buildRunningFinished.eventTime > 0 &&
-            buildRunningFinished.displayName == 'Run build failed' &&
-            buildRunningFinished.descriptor.name == 'Run build' &&
-            buildRunningFinished.descriptor.displayName == 'Run build' &&
-            buildRunningFinished.descriptor.parent == null &&
-            buildRunningFinished.result instanceof FailureResult &&
-            buildRunningFinished.result.startTime == buildRunningStarted.eventTime &&
-            buildRunningFinished.result.endTime == buildRunningFinished.eventTime &&
-            buildRunningFinished.result.failures.size() == 1
-    }
+        def configureBuild = events.operation("Configure build")
+        configureBuild.descriptor.parent == runBuild.descriptor
+        configureBuild.successful
 
-    @TargetGradleVersion('>=2.5')
-    @ToolingApiVersion('>=2.5')
-    @NotYetImplemented
-    def "should receive build events from GradleBuild"() {
-        buildFile << """task innerBuild(type:GradleBuild) {
-            buildFile = file('other.gradle')
-            tasks = ['innerTask']
-            startParameter.searchUpwards = false
-        }"""
-        file("other.gradle") << """
-            task innerTask()
-        """
+        def runTasks = events.operation("Run tasks")
+        assert runTasks.descriptor.parent == runBuild.descriptor
+        runTasks.failed
+        runTasks.failures.size() == 1
 
-        when:
-        List<ProgressEvent> result = new ArrayList<ProgressEvent>()
-        withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('innerBuild').addProgressListener({ ProgressEvent event ->
-                result << event
-            }, EnumSet.of(OperationType.TASK)).run()
-        }
+        events.operations[0] == runBuild
+        events.assertHasSingleTree()
+        events.operations.each { it.buildOperation }
 
-        then:
-        result.size() % 2 == 0       // same number of start events as finish events
-        result.size() == 7 * 2 * 2   // life-cycle for both inner and outer build
+        events.failed == [runBuild, runTasks]
+        events.successful == events.operations - [runBuild, runTasks]
     }
 
     def goodCode() {
