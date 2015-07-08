@@ -53,29 +53,20 @@ public class TransformedModelDslBacking {
         }
     };
 
-    private static final Transformer<SourceLocation, Closure<?>> RULE_LOCATION_EXTRACTOR = new Transformer<SourceLocation, Closure<?>>() {
-        public SourceLocation transform(Closure<?> closure) {
-            RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            return new SourceLocation(ruleMetadata.scriptSourceDescription(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
-        }
-    };
-
     private final ModelRegistry modelRegistry;
     private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
 
     public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, String relativeProjectPath) {
-        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR, relativeProjectPath);
+        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeProjectPath));
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor,
-                               Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor, String relativeProjectPath) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
         this.inputPathsExtractor = inputPathsExtractor;
-        //TODO - remove the delegate and RULE_LOCATION_EXTRACTOR
-        this.ruleLocationExtractor = new RelativePathSourceLocationTransformer(relativeProjectPath, ruleLocationExtractor);
+        this.ruleLocationExtractor = ruleLocationExtractor;
     }
 
     public void configure(String modelPathString, Closure<?> closure) {
@@ -162,18 +153,15 @@ public class TransformedModelDslBacking {
 
     private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
         private final String path;
-        private Transformer<SourceLocation, ? super Closure<?>> delegate;
 
-
-        public RelativePathSourceLocationTransformer(String path, Transformer<SourceLocation, ? super Closure<?>> delegate) {
+        public RelativePathSourceLocationTransformer(String path) {
             this.path = path;
-            this.delegate = delegate;
         }
 
         @Override
         public SourceLocation transform(Closure<?> closure) {
-            SourceLocation transform = delegate.transform(closure);
-            return new SourceLocation(path, transform.getLineNumber(), transform.getColumnNumber());
+            RuleMetadata ruleMetadata = getRuleMetadata(closure);
+            return new SourceLocation(path, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
 }
