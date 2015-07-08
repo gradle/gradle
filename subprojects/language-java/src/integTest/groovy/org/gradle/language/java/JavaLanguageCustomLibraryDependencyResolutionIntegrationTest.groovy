@@ -125,8 +125,7 @@ model {
 model {
     components {
         zdep(CustomLibrary) {
-            targetPlatform 'java6'
-            targetPlatform 'java7'
+            targetPlatforms 6,7
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java6'
@@ -172,7 +171,7 @@ model {
 model {
     components {
         zdep(CustomLibrary) {
-            targetPlatform 'java7'
+            targetPlatforms 7
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java6'
@@ -227,7 +226,7 @@ model {
             targetPlatform 'java7'
         }
         main(CustomLibrary) {
-            targetPlatform 'java7'
+            targetPlatforms 7
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -265,8 +264,7 @@ model {
 model {
     components {
         zdep(CustomLibrary) {
-            targetPlatform 'java6'
-            targetPlatform 'java7'
+            targetPlatforms 6,7
         }
         main(JvmLibrarySpec) {
             targetPlatform 'java7'
@@ -460,7 +458,7 @@ model {
             }
         }
         second(CustomLibrary) {
-            targetPlatform 'java7'
+            targetPlatforms 7
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -524,8 +522,7 @@ model {
             }
         }
         second(CustomLibrary) {
-            targetPlatform 'java6'
-            targetPlatform 'java7'
+            targetPlatforms 6,7
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -603,8 +600,7 @@ model {
             }
         }
         second(CustomLibrary) {
-            targetPlatform 'java6'
-            targetPlatform 'java7'
+            targetPlatforms 6,7
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -738,9 +734,7 @@ model {
         }
         second(CustomLibrary) {
             // duplication is intentional!
-            targetPlatform 'java6'
-            targetPlatform 'java6'
-            targetPlatform 'java7'
+            targetPlatforms 6,6,7
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -909,13 +903,13 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
 
 interface CustomLibrary extends LibrarySpec {
-    void targetPlatform(String platform)
-    List<String> getTargetPlatforms()
+    void targetPlatforms(int... platforms)
+    List<Integer> getTargetPlatforms()
 }
 
 class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
-    List<String> targetPlatforms = []
-    void targetPlatform(String platform) { targetPlatforms << platform }
+    List<Integer> targetPlatforms = []
+    void targetPlatforms(int... platforms) { platforms.each { targetPlatforms << it } }
 }
 
             class ComponentTypeRules extends RuleSource {
@@ -927,29 +921,23 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
 
                 @ComponentBinaries
                 void createBinaries(ModelMap<JarBinarySpec> binaries,
-                    CustomLibrary jvmLibrary,
+                    CustomLibrary library,
                     PlatformResolvers platforms,
                     @Path("buildDir") File buildDir,
                     JavaToolChainRegistry toolChains) {
 
                     def binariesDir = new File(buildDir, "jars")
                     def classesDir = new File(buildDir, "classes")
-                    def targetPlatforms = jvmLibrary.targetPlatforms
-                    def selectedPlatforms = targetPlatforms.collect { platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create(it)) }?:[new DefaultJavaPlatform(JavaVersion.current())]
+                    def targetPlatforms = library.targetPlatforms
+                    def selectedPlatforms = targetPlatforms.collect { platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java$it")) }?:[new DefaultJavaPlatform(JavaVersion.current())]
                     def multipleTargets = selectedPlatforms.size()>1
                     selectedPlatforms.each { platform ->
                         def toolChain = toolChains.getForPlatform(platform)
-                        String binaryName = "${jvmLibrary.name}${multipleTargets?platform.name.capitalize():''}Jar"
+                        String binaryName = "${library.name}${multipleTargets?platform.name.capitalize():''}Jar"
                         while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
                         binaries.create(binaryName) { jar ->
-                            jar.baseName = jvmLibrary.name
                             jar.toolChain = toolChain
                             jar.targetPlatform = platform
-
-                            def outputDir = new File(classesDir, jar.name)
-                            jar.classesDir = outputDir
-                            jar.resourcesDir = outputDir
-                            jar.jarFile = new File(binariesDir, "${jar.name}/${jar.baseName}.jar")
                         }
                     }
                 }
