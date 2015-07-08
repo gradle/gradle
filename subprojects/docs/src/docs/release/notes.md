@@ -70,7 +70,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Component model changes
 
-* Added `BinarySpec.sources(Action<? extends ModelMap<LanguageSourceSet>>)` that allows the definition of sources specific to the binary.
+* `BinarySpec.sources()` now takes an `Action` that operates on a `ModelMap<LanguageSourceSet>` instead of a `PolymorphicDomainObjectContainer`. Source sets defined here are specific to the binary.
 * Added `BinarySpec.getInputs()` that contains all the source sets needed to build the binary, including the ones specific to the binary and external source sets (e.g. inherited from the binary's parent component).
 * Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
 * Deprecated `BinarySpec.getSource()`: use `BinarySpec.getInputs()` instead.
