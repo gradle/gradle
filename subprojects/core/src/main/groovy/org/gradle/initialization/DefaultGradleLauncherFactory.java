@@ -23,14 +23,14 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
-import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.progress.*;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -92,7 +92,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer) {
-        final BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
+        BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
@@ -124,15 +124,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
-            new SettingsHandler(
-                new DefaultSettingsFinder(
-                    new BuildLayoutFactory()),
-                serviceRegistry.get(SettingsProcessor.class),
-                new BuildSourceBuilder(
-                    this,
-                    serviceRegistry.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope(),
-                    serviceRegistry.get(CacheRepository.class))
-            ),
+            serviceRegistry.get(SettingsHandler.class),
             serviceRegistry.get(BuildLoader.class),
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),

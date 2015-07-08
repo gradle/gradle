@@ -55,6 +55,8 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
@@ -228,12 +230,28 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected InitScriptHandler createInitScriptHandler() {
+    protected SettingsHandler createSettingsHandler(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
+                                                    ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                    BuildOperationExecutor buildOperationExecutor) {
+        return new SettingsHandler(
+                new DefaultSettingsFinder(
+                        new BuildLayoutFactory()),
+                settingsProcessor,
+                new BuildSourceBuilder(
+                        gradleLauncherFactory,
+                        classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                        cacheRepository,
+                        buildOperationExecutor)
+        );
+    }
+
+    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
         return new InitScriptHandler(
                 new DefaultInitScriptProcessor(
-                        get(ScriptPluginFactory.class),
-                        get(ScriptHandlerFactory.class)
-                )
+                        scriptPluginFactory,
+                        scriptHandlerFactory
+                ),
+                buildOperationExecutor
         );
     }
 

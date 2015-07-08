@@ -50,7 +50,6 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
 
         Collection<File> classpath = listener.getRuntimeClasspath();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        LOGGER.info("================================================" + " Finished building buildSrc");
         try {
             markerFile.createNewFile();
         } catch (IOException e) {

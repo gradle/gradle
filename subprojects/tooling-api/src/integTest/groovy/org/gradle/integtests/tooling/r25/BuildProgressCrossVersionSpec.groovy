@@ -136,7 +136,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         result.size() % 2 == 0          // same number of start events as finish events
-        result.size() == 6 * 2          // build running, init scripts, loading, configuring, populating task graph, executing tasks
+        result.size() == 5 * 2          // build running, loading projects, configuring, populating task graph, executing tasks
         result.each {
             assert it.displayName == it.toString()
             assert it.descriptor.displayName == it.descriptor.toString()
@@ -149,31 +149,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             buildRunningStarted.descriptor.name == 'Run build' &&
             buildRunningStarted.descriptor.displayName == 'Run build' &&
             buildRunningStarted.descriptor.parent == null
-        def evaluatingInitScriptsStarted = result[1]
-        evaluatingInitScriptsStarted instanceof StartEvent &&
-            evaluatingInitScriptsStarted.eventTime > 0 &&
-            evaluatingInitScriptsStarted.displayName == 'Run init scripts started' &&
-            evaluatingInitScriptsStarted.descriptor.name == 'Run init scripts' &&
-            evaluatingInitScriptsStarted.descriptor.displayName == 'Run init scripts' &&
-            evaluatingInitScriptsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingInitScriptsFinished = result[2]
-        evaluatingInitScriptsFinished instanceof FinishEvent &&
-            evaluatingInitScriptsFinished.eventTime > 0 &&
-            evaluatingInitScriptsFinished.displayName == 'Run init scripts succeeded' &&
-            evaluatingInitScriptsFinished.descriptor.name == 'Run init scripts' &&
-            evaluatingInitScriptsFinished.descriptor.displayName == 'Run init scripts' &&
-            evaluatingInitScriptsFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            evaluatingInitScriptsFinished.result instanceof SuccessResult &&
-            evaluatingInitScriptsFinished.result.startTime == evaluatingInitScriptsStarted.eventTime &&
-            evaluatingInitScriptsFinished.result.endTime == evaluatingInitScriptsFinished.eventTime
-        def evaluatingSettingsStarted = result[3]
+        def evaluatingSettingsStarted = result[1]
         evaluatingSettingsStarted instanceof StartEvent &&
             evaluatingSettingsStarted.eventTime > 0 &&
             evaluatingSettingsStarted.displayName == 'Load projects started' &&
             evaluatingSettingsStarted.descriptor.name == 'Load projects' &&
             evaluatingSettingsStarted.descriptor.displayName == 'Load projects' &&
             evaluatingSettingsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingSettingsFinished = result[4]
+        def evaluatingSettingsFinished = result[2]
         evaluatingSettingsFinished instanceof FinishEvent &&
             evaluatingSettingsFinished.eventTime > 0 &&
             evaluatingSettingsFinished.displayName == 'Load projects succeeded' &&
@@ -183,14 +166,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             evaluatingSettingsFinished.result instanceof SuccessResult &&
             evaluatingSettingsFinished.result.startTime == evaluatingSettingsStarted.eventTime &&
             evaluatingSettingsFinished.result.endTime == evaluatingSettingsFinished.eventTime
-        def configuringBuildStarted = result[5]
+        def configuringBuildStarted = result[3]
         configuringBuildStarted instanceof StartEvent &&
             configuringBuildStarted.eventTime > 0 &&
             configuringBuildStarted.displayName == 'Configure build started' &&
             configuringBuildStarted.descriptor.name == 'Configure build' &&
             configuringBuildStarted.descriptor.displayName == 'Configure build' &&
             configuringBuildStarted.descriptor.parent == buildRunningStarted.descriptor
-        def configuringBuildFinished = result[6]
+        def configuringBuildFinished = result[4]
         configuringBuildFinished instanceof FinishEvent &&
             configuringBuildFinished.eventTime > 0 &&
             configuringBuildFinished.displayName == 'Configure build succeeded' &&
@@ -200,14 +183,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             configuringBuildFinished.result instanceof SuccessResult &&
             configuringBuildFinished.result.startTime == configuringBuildStarted.eventTime &&
             configuringBuildFinished.result.endTime == configuringBuildFinished.eventTime
-        def populatingTaskGraphStarted = result[7]
+        def populatingTaskGraphStarted = result[5]
         populatingTaskGraphStarted instanceof StartEvent &&
             populatingTaskGraphStarted.eventTime > 0 &&
             populatingTaskGraphStarted.displayName == 'Calculate task graph started' &&
             populatingTaskGraphStarted.descriptor.name == 'Calculate task graph' &&
             populatingTaskGraphStarted.descriptor.displayName == 'Calculate task graph' &&
             populatingTaskGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def populatingTaskGraphFinished = result[8]
+        def populatingTaskGraphFinished = result[6]
         populatingTaskGraphFinished instanceof FinishEvent &&
             populatingTaskGraphFinished.eventTime > 0 &&
             populatingTaskGraphFinished.displayName == 'Calculate task graph succeeded' &&
@@ -217,14 +200,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             populatingTaskGraphFinished.result instanceof SuccessResult &&
             populatingTaskGraphFinished.result.startTime == populatingTaskGraphStarted.eventTime &&
             populatingTaskGraphFinished.result.endTime == populatingTaskGraphFinished.eventTime
-        def executingTasksGraphStarted = result[9]
+        def executingTasksGraphStarted = result[7]
         executingTasksGraphStarted instanceof StartEvent &&
             executingTasksGraphStarted.eventTime > 0 &&
             executingTasksGraphStarted.displayName == 'Run tasks started' &&
             executingTasksGraphStarted.descriptor.name == 'Run tasks' &&
             executingTasksGraphStarted.descriptor.displayName == 'Run tasks' &&
             executingTasksGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def executingTasksFinished = result[10]
+        def executingTasksFinished = result[8]
         executingTasksFinished instanceof FinishEvent &&
             executingTasksFinished.eventTime > 0 &&
             executingTasksFinished.displayName == 'Run tasks succeeded' &&
@@ -234,7 +217,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             executingTasksFinished.result instanceof SuccessResult &&
             executingTasksFinished.result.startTime == executingTasksGraphStarted.eventTime &&
             executingTasksFinished.result.endTime == executingTasksFinished.eventTime
-        def buildRunningFinished = result[11]
+        def buildRunningFinished = result[9]
         buildRunningFinished instanceof FinishEvent &&
             buildRunningFinished.eventTime > 0 &&
             buildRunningFinished.displayName == 'Run build succeeded' &&
@@ -281,7 +264,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         result.size() % 2 == 0          // same number of start events as finish events
-        result.size() == 6 * 2          // build running, init scripts, loading, configuring, populating task graph, executing tasks
+        result.size() == 5 * 2          // build running, loading projects, configuring, populating task graph, executing tasks
         result.each {
             assert it.displayName == it.toString()
             assert it.descriptor.displayName == it.descriptor.toString()
@@ -294,31 +277,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             buildRunningStarted.descriptor.name == 'Run build' &&
             buildRunningStarted.descriptor.displayName == 'Run build' &&
             buildRunningStarted.descriptor.parent == null
-        def evaluatingInitScriptsStarted = result[1]
-        evaluatingInitScriptsStarted instanceof StartEvent &&
-            evaluatingInitScriptsStarted.eventTime > 0 &&
-            evaluatingInitScriptsStarted.displayName == 'Run init scripts started' &&
-            evaluatingInitScriptsStarted.descriptor.name == 'Run init scripts' &&
-            evaluatingInitScriptsStarted.descriptor.displayName == 'Run init scripts' &&
-            evaluatingInitScriptsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingInitScriptsFinished = result[2]
-        evaluatingInitScriptsFinished instanceof FinishEvent &&
-            evaluatingInitScriptsFinished.eventTime > 0 &&
-            evaluatingInitScriptsFinished.displayName == 'Run init scripts succeeded' &&
-            evaluatingInitScriptsFinished.descriptor.name == 'Run init scripts' &&
-            evaluatingInitScriptsFinished.descriptor.displayName == 'Run init scripts' &&
-            evaluatingInitScriptsFinished.descriptor.parent == buildRunningStarted.descriptor &&
-            evaluatingInitScriptsFinished.result instanceof SuccessResult &&
-            evaluatingInitScriptsFinished.result.startTime == evaluatingInitScriptsStarted.eventTime &&
-            evaluatingInitScriptsFinished.result.endTime == evaluatingInitScriptsFinished.eventTime
-        def evaluatingSettingsStarted = result[3]
+        def evaluatingSettingsStarted = result[1]
         evaluatingSettingsStarted instanceof StartEvent &&
             evaluatingSettingsStarted.eventTime > 0 &&
             evaluatingSettingsStarted.displayName == 'Load projects started' &&
             evaluatingSettingsStarted.descriptor.name == 'Load projects' &&
             evaluatingSettingsStarted.descriptor.displayName == 'Load projects' &&
             evaluatingSettingsStarted.descriptor.parent == buildRunningStarted.descriptor
-        def evaluatingSettingsFinished = result[4]
+        def evaluatingSettingsFinished = result[2]
         evaluatingSettingsFinished instanceof FinishEvent &&
             evaluatingSettingsFinished.eventTime > 0 &&
             evaluatingSettingsFinished.displayName == 'Load projects succeeded' &&
@@ -328,14 +294,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             evaluatingSettingsFinished.result instanceof SuccessResult &&
             evaluatingSettingsFinished.result.startTime == evaluatingSettingsStarted.eventTime &&
             evaluatingSettingsFinished.result.endTime == evaluatingSettingsFinished.eventTime
-        def configuringBuildStarted = result[5]
+        def configuringBuildStarted = result[3]
         configuringBuildStarted instanceof StartEvent &&
             configuringBuildStarted.eventTime > 0 &&
             configuringBuildStarted.displayName == 'Configure build started' &&
             configuringBuildStarted.descriptor.name == 'Configure build' &&
             configuringBuildStarted.descriptor.displayName == 'Configure build' &&
             configuringBuildStarted.descriptor.parent == buildRunningStarted.descriptor
-        def configuringBuildFinished = result[6]
+        def configuringBuildFinished = result[4]
         configuringBuildFinished instanceof FinishEvent &&
             configuringBuildFinished.eventTime > 0 &&
             configuringBuildFinished.displayName == 'Configure build succeeded' &&
@@ -345,14 +311,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             configuringBuildFinished.result instanceof SuccessResult &&
             configuringBuildFinished.result.startTime == configuringBuildStarted.eventTime &&
             configuringBuildFinished.result.endTime == configuringBuildFinished.eventTime
-        def populatingTaskGraphStarted = result[7]
+        def populatingTaskGraphStarted = result[5]
         populatingTaskGraphStarted instanceof StartEvent &&
             populatingTaskGraphStarted.eventTime > 0 &&
             populatingTaskGraphStarted.displayName == 'Calculate task graph started' &&
             populatingTaskGraphStarted.descriptor.name == 'Calculate task graph' &&
             populatingTaskGraphStarted.descriptor.displayName == 'Calculate task graph' &&
             populatingTaskGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def populatingTaskGraphFinished = result[8]
+        def populatingTaskGraphFinished = result[6]
         populatingTaskGraphFinished instanceof FinishEvent &&
             populatingTaskGraphFinished.eventTime > 0 &&
             populatingTaskGraphFinished.displayName == 'Calculate task graph succeeded' &&
@@ -362,14 +328,14 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             populatingTaskGraphFinished.result instanceof SuccessResult &&
             populatingTaskGraphFinished.result.startTime == populatingTaskGraphStarted.eventTime &&
             populatingTaskGraphFinished.result.endTime == populatingTaskGraphFinished.eventTime
-        def executingTasksGraphStarted = result[9]
+        def executingTasksGraphStarted = result[7]
         executingTasksGraphStarted instanceof StartEvent &&
             executingTasksGraphStarted.eventTime > 0 &&
             executingTasksGraphStarted.displayName == 'Run tasks started' &&
             executingTasksGraphStarted.descriptor.name == 'Run tasks' &&
             executingTasksGraphStarted.descriptor.displayName == 'Run tasks' &&
             executingTasksGraphStarted.descriptor.parent == buildRunningStarted.descriptor
-        def executingTasksFinished = result[10]
+        def executingTasksFinished = result[8]
         executingTasksFinished instanceof FinishEvent &&
             executingTasksFinished.eventTime > 0 &&
             executingTasksFinished.displayName == 'Run tasks failed' &&
@@ -380,7 +346,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             executingTasksFinished.result.startTime == executingTasksGraphStarted.eventTime &&
             executingTasksFinished.result.endTime == executingTasksFinished.eventTime &&
             executingTasksFinished.result.failures.size() == 1
-        def buildRunningFinished = result[11]
+        def buildRunningFinished = result[9]
         buildRunningFinished instanceof FinishEvent &&
             buildRunningFinished.eventTime > 0 &&
             buildRunningFinished.displayName == 'Run build failed' &&

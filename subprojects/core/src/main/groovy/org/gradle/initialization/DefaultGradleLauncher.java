@@ -116,12 +116,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         // Evaluate init scripts
-        buildOperationExecutor.run("Run init scripts", new Runnable() {
-            @Override
-            public void run() {
-                initScriptHandler.executeScripts(gradle);
-            }
-        });
+        initScriptHandler.executeScripts(gradle);
 
         // Evaluate settings script
         buildOperationExecutor.run("Load projects", new Runnable() {
