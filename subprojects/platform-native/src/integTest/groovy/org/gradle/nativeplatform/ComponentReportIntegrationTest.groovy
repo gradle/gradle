@@ -35,7 +35,13 @@ model {
         ${toolChain.buildScriptConfig}
     }
     components {
-        someLib(NativeLibrarySpec)
+        someLib(NativeLibrarySpec) {
+            binaries.withType(StaticLibraryBinarySpec) {
+                sources {
+                    moreCpp(CppSourceSet)
+                }
+            }
+        }
     }
 }
 """
@@ -66,6 +72,9 @@ Binaries
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
+        source sets:
+            C++ source 'someLib:moreCpp'
+                No source directories
 """
     }
 

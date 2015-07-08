@@ -89,6 +89,21 @@ Binaries
                 targetPlatform "java5"
                 targetPlatform "java6"
                 targetPlatform "java7"
+
+                binaries {
+                    all {
+                        if (targetPlatform.name == "java6") {
+                            sources {
+                                java2(JavaSourceSet) {
+                                    source.srcDir "src/main/java2"
+                                    dependencies {
+                                        library 'some-library'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -209,13 +224,17 @@ plugins {
 model {
     components {
         someLib(JvmLibrarySpec) {
+            targetPlatform "java5"
+            targetPlatform "java6"
             binaries {
                 all {
-                    sources {
-                        java2(JavaSourceSet) {
-                            source.srcDir "src/main/java2"
-                            dependencies {
-                                library 'some-library'
+                    if (targetPlatform.name == "java5") {
+                        sources {
+                            java2(JavaSourceSet) {
+                                source.srcDir "src/main/java2"
+                                dependencies {
+                                    library 'some-library'
+                                }
                             }
                         }
                     }
@@ -240,16 +259,21 @@ Source sets
         srcDir: src/someLib/resources
 
 Binaries
-    Jar 'someLibJar'
-        build using task: :someLibJar
-        platform: $currentJava
+    Jar 'java5SomeLibJar'
+        build using task: :java5SomeLibJar
+        platform: java5
         tool chain: $currentJdk
-        Jar file: build/jars/someLibJar/someLib.jar
+        Jar file: build/jars/java5SomeLibJar/someLib.jar
         source sets:
             Java source 'someLib:java2'
                 srcDir: src/main/java2
                 dependencies
                     library 'some-library'
+    Jar 'java6SomeLibJar'
+        build using task: :java6SomeLibJar
+        platform: java6
+        tool chain: $currentJdk
+        Jar file: build/jars/java6SomeLibJar/someLib.jar
 """
     }
 }

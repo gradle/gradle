@@ -80,7 +80,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         ModelMap<LanguageSourceSet> sources = binary.getSources();
         if (!sources.isEmpty()) {
             SourceSetRenderer sourceSetRenderer = new SourceSetRenderer();
-            builder.itemCollection("source sets", sources.values(), sourceSetRenderer, "owned source sets");
+            builder.itemCollection("source sets", sources.values(), sourceSetRenderer, "source sets");
         }
     }
 }
