@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
@@ -44,7 +43,6 @@ import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
@@ -84,10 +82,10 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         @Finalize
         public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
-
             for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
-                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getFunctionalSourceSet();
-                suiteSourceSet.maybeCreate("cpp", CppSourceSet.class);
+                if (!suite.getSources().containsKey("cpp")) {
+                    suite.getSources().create("cpp", CppSourceSet.class);
+                }
             }
         }
 
