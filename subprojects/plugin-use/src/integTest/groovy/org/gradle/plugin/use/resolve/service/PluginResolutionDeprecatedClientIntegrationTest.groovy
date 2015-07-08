@@ -276,7 +276,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
 
     void failPluginNotFound() {
         fails "tasks"
-        failure.assertThatDescription(containsText("Plugin \\[id: '.+', version: '1.0'\\] was not found"))
+        failure.assertThatDescription(containsText("Plugin [id: '${PLUGIN_ID_1}', version: '1.0'] was not found"))
     }
 
     void fail() {

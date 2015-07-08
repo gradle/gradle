@@ -603,7 +603,7 @@ class HttpServer extends ServerWithExpectations {
         })
     }
 
-    void addHandler(Handler handler){
+    void addHandler(Handler handler) {
         collection.addHandler(handler)
     }
 

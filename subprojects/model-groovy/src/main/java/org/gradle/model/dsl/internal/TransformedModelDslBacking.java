@@ -74,6 +74,7 @@ public class TransformedModelDslBacking {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
         this.inputPathsExtractor = inputPathsExtractor;
+        //TODO - remove the delegate and RULE_LOCATION_EXTRACTOR
         this.ruleLocationExtractor = new RelativePathSourceLocationTransformer(relativeProjectPath, ruleLocationExtractor);
     }
 
