@@ -125,7 +125,7 @@ A functional test using Spock could look as such:
 
 ## Story: Functional test queries the build result
 
-Add methods to `TestResult` to query the result.
+Add methods to `BuildResult` to query the result.
 
     public interface BuildResult {
         String getStandardOutput();
