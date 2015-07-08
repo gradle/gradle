@@ -281,7 +281,7 @@ model {
 }
 ```
 
-* `BinarySpec.getSource()` is deprecated and replaced with `getSources()`
+* `BinarySpec.getSource()` is deprecated and replaced with `getInputs()`
 * `ComponentSpec.getSource()` is deprecated and replaced with `getSources()`
 * `BinarySpec.getInputs()` returns all source sets, e.g. source sets owned by the binary and source sets inherited from the component.
 
