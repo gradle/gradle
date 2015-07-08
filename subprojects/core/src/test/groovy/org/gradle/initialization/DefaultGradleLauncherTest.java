@@ -82,7 +82,6 @@ public class DefaultGradleLauncherTest {
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
-    private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private Closeable buildServices = context.mock(Closeable.class);
@@ -118,7 +117,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsHandlerMock,
             buildLoaderMock, buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
-            modelListenerMock, tasksCompletionListener, buildCompletionListener, buildOperationExecutor, buildExecuter,
+            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildExecuter,
             buildServices);
 
         context.checking(new Expectations() {
@@ -327,7 +326,6 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 one(buildExecuter).execute();
-                one(tasksCompletionListener).onTasksFinished(gradleMock);
             }
         });
     }

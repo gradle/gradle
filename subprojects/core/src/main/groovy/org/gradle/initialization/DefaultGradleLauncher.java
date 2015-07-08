@@ -44,7 +44,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final LoggingManagerInternal loggingManager;
     private final BuildListener buildListener;
     private final ModelConfigurationListener modelConfigurationListener;
-    private final TasksCompletionListener tasksCompletionListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildExecuter buildExecuter;
@@ -56,7 +55,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
-                                 ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
+                                 ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
@@ -68,7 +67,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
-        this.tasksCompletionListener = tasksCompletionListener;
         this.buildOperationExecutor = operationExecutor;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
@@ -164,7 +162,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
             @Override
             public void run() {
                 buildExecuter.execute();
-                tasksCompletionListener.onTasksFinished(gradle);
             }
         });
 
