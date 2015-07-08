@@ -64,7 +64,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Deprecation of `BinarySpec.getSource()` and `ComponentSpec.getSource()`
+### Deprecation of methods on (incubating) software model
 
 * `BinarySpec.getSource()` has been deprecated and replaced with `BinarySpec.getInputs()`.
 * `ComponentSpec.getSource()` has been deprecated and replaced with `ComponentSpec.getSources()`.
@@ -81,11 +81,10 @@ Binaries now distinguish between source sets that are specific to them (owned so
 
 * `BinarySpec.sources()` now takes an `Action` that operates on a `ModelMap<LanguageSourceSet>` instead of a `PolymorphicDomainObjectContainer`. Source sets defined here are specific to the binary.
 * Added `BinarySpec.getSources()` that returns only the sources specific to the binary.
+    * Note: this method shadows access to `ComponentSpec.getSources()` when used in a nested `binaries` block.
 * Added `BinarySpec.getInputs()` that contains all the source sets needed to build the binary, including the ones specific to the binary and external source sets (e.g. inherited from the binary's parent component).
 * Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
-
-Note: the new `BinarySpec.getSources()` and `BinarySpec.sources()` shadows access to `ComponentSpec.sources()`.
 
 ### Rule based model configuration
 * The model report displays each rule that has been executed against a given model element.
