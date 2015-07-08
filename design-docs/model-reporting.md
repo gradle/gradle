@@ -88,7 +88,6 @@ Execution failed for task ':tasks'.
 ```
 
 __Option 1__
-```
 
 ```
 Execution failed for task ':tasks'.
