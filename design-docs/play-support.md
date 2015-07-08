@@ -816,15 +816,11 @@ Existing BuildLink adapter can be used with minor modifications.
 
 #### Test coverage
 
-- ~~Changes to source are reflected in running play app~~
-   - ~~test changes to different types of source:~~
-     - ~~controller (java/scala)~~
-     - ~~routes~~
-     - ~~model (java/scala)~~
-     - ~~views (twirl)~~
-     - ~~javascript~~
-     - ~~coffeescript~~
-     - ~~css~~
+- ~~User changes a controller and sees the change reflected in the running app.~~
+- ~~User changes a route and sees the change reflected in the running app.~~
+- ~~User changes a model class and sees the change reflected in the running app.~~
+- ~~User changes a twirl template and sees the change reflected in the running app.~~
+- ~~User changes a static asset and sees the change reflected in the running app.~~
 - Reload is not triggered if dependency of play run task fails
 
 ### Story: Reloading changes in multi-project Play application

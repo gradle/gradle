@@ -57,29 +57,6 @@ class PlayReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTe
         }
     }
 
-    def "should reload modified java controller and routes"() {
-        when:
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        file("conf/jva.routes") << "\nGET     /hello                   controllers.jva.PureJava.hello"
-        file("app/controllers/jva/PureJava.java").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, '''
-  public static Result hello() {
-    return ok("Hello world from Java");
-  }
-}
-''')
-        }
-
-        then:
-        succeeds()
-        runningApp.playUrl('java/hello').text == 'Hello world from Java'
-    }
-
     def "should reload modified coffeescript"() {
         when:
         succeeds("runPlayBinary")
@@ -137,36 +114,6 @@ var message = "Hello JS";
         assert runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
     }
 
-    def "should reload modified scala model"() {
-        when:
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
-        assert runningApp.playUrl().text.contains("<li>foo:1</li>")
-
-        when:
-        file("conf/scala.routes") << "\nGET     /hello                   controllers.scala.MixedJava.hello"
-        file("app/models/ScalaClass.scala") << '''{
-    def hello() = {
-        "Hello " + name  + " from scala model"
-    }
-}
-'''
-        file("app/controllers/scala/MixedJava.java").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, '''
-  public static Result hello() {
-    return ok(new models.ScalaClass("world").hello());
-  }
-}
-''')
-        }
-
-        then:
-        succeeds()
-        assert runningApp.playUrl("scala/hello").text.contains("Hello world from scala model")
-    }
-
     def "should reload twirl template"() {
         when:
         succeeds("runPlayBinary")
@@ -182,20 +129,5 @@ var message = "Hello JS";
         then:
         succeeds()
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
-    }
-
-    def "should reload css"() {
-        when:
-        succeeds("runPlayBinary")
-
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        file("public/stylesheets/main.css") << 'body { font-size: 20px }'
-
-        then:
-        succeeds()
-        assert runningApp.playUrl('assets/stylesheets/main.css').text.contains("body { font-size: 20px }")
     }
 }
