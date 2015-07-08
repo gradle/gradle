@@ -491,6 +491,24 @@ Change dependency resolution to honor the variant dimensions for a custom compon
     - Resolving for a binary with `(platform)` from a library with binaries with `(platform, buildType, screenSize)`, select all candidates with compatible `platform`.
     - Resolving for a binary with `(platform, screenSize)` from a library with binaries with `(platform, buildType)`, select all candidates with compatible `platform`.
 
+### Test cases
+
+- Given a component with a binary requiring `(platform, buildType, screenSize)` and a library only providing `(platform)`, should select the library that matches the platform
+- Given a component with a binary requiring `(platform, buildType, screenSize)` and a library only providing `(platform, buildType, screenSize)`, should select the library
+that matches all criteria.
+- Given a component with a binary requiring `(platform, buildType, screenSize)`, a library only providing a matching `(platform, buildType)` and a library providing
+a matching `(platform, buildType, screenSize)`, should select the binary which matches all criteria.
+- Given a component with a binary requiring `(platform, buildType, screenSize)`, a library only providing a matching `(platform, buildType)` and a library providing
+a matching `(platform, screenSize)`, should fail with an error message indicating that two variants are available matching the requested criteria. The error message must indicate
+the available variants.
+- Given a component with a binary requiring `(platform)` and a library only providing `(platform, buildType, screenSize)`, should select the library that matches the platform
+
+### Implementation
+
+- make `DependentSourceSetResolveContext` use a `BinarySpec` instead of a `Platform`
+- make `LocalLibraryDependencyResolver` use a `JarBinarySpec` instead of a `JavaPlatform`
+- extract variants from the the resolving binary and the candidate binary (dependending on the advancement of other stories, first step maybe using reflection, second step using `ModelSchema`)
+
 ## Feature backlog
 
 - Allow library to expose Jar, classes dir or any combination as its Java API.
