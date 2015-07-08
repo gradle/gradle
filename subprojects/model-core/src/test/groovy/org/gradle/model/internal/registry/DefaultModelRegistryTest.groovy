@@ -77,7 +77,7 @@ class DefaultModelRegistryTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == """The following model rules are unbound:
   foo creator
-    Immutable:
+    Inputs:
       - other (java.lang.Object)"""
     }
 
@@ -92,7 +92,7 @@ class DefaultModelRegistryTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == """The following model rules are unbound:
   foo creator
-    Immutable:
+    Inputs:
       - <unspecified> (java.lang.Long)"""
     }
 
@@ -873,13 +873,13 @@ class DefaultModelRegistryTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == '''The following model rules are unbound:
   by-path
-    Mutable:
+    Subject:
       - a.b (java.lang.Object)
   by-path-and-type
-    Mutable:
+    Subject:
       - missing (java.lang.String)
   by-type
-    Mutable:
+    Subject:
       - <unspecified> (java.lang.Long)'''
     }
 
@@ -896,17 +896,17 @@ class DefaultModelRegistryTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == '''The following model rules are unbound:
   by-path
-    Mutable:
+    Subject:
       + foo (java.lang.Object)
-    Immutable:
+    Inputs:
       - other.thing (java.lang.String) java.lang.String
   by-type
-    Mutable:
+    Subject:
       - <unspecified> (java.lang.Runnable)
-    Immutable:
+    Inputs:
       - <unspecified> (java.lang.String) java.lang.String
   creator
-    Immutable:
+    Inputs:
       - a.b (java.lang.Object) a.b'''
     }
 
@@ -963,9 +963,9 @@ class DefaultModelRegistryTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == '''The following model rules are unbound:
   non-bindable
-    Mutable:
+    Subject:
       + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
-    Immutable:
+    Inputs:
       - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
     }
 

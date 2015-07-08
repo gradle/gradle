@@ -59,12 +59,12 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("""The following model rules are unbound:
   MyPlugin\$Rules#mutateThing2
-    Mutable:
+    Subject:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1
-    Immutable:
+    Inputs:
       - <unspecified> (MyPlugin\$MyThing3) parameter 2
   MyPlugin\$Rules#thing1
-    Immutable:
+    Inputs:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1""")
     }
 
@@ -85,7 +85,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("""The following model rules are unbound:
   model.foo.bar @ ${File.separator}${buildFile.name} line 4, column 17
-    Mutable:
+    Subject:
       - foo.bar (java.lang.Object)""")
     }
 
@@ -116,7 +116,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("""The following model rules are unbound:
   model.tasks.foonar @ ${File.separator}${buildFile.name} line 15, column 17
-    Mutable:
+    Subject:
       - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
     }
 
@@ -212,7 +212,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         then:
         failure.assertHasCause("""The following model rules are unbound:
   Rules#foo
-    Immutable:
+    Inputs:
       - bar (java.lang.Integer) parameter 1""")
     }
 

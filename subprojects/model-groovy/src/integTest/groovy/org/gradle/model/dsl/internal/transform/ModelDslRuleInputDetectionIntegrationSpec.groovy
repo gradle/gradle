@@ -282,13 +282,13 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         then:
         failure.assertHasCause("""The following model rules are unbound:
   model.fooar @ ${File.separator}${buildFile.name} line 20, column 17
-    Mutable:
+    Subject:
       - fooar (java.lang.Object) - suggestions: foobar
   model.foobah @ ${File.separator}${buildFile.name} line 18, column 17
-    Mutable:
+    Subject:
       - foobah (java.lang.Object) - suggestions: foobar
   model.foonar @ ${File.separator}${buildFile.name} line 16, column 17
-    Mutable:
+    Subject:
       - foonar (java.lang.Object) - suggestions: foobar""")
     }
 
@@ -322,9 +322,9 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         then:
         failure.assertHasCause("""The following model rules are unbound:
   model.tasks.raboof @ ${File.separator}${buildFile.name} line 15, column 17
-    Mutable:
+    Subject:
       + tasks.raboof (java.lang.Object)
-    Immutable:
+    Inputs:
       - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
       - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
       - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar""")

@@ -712,9 +712,9 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         UnboundModelRulesException e = thrown()
         normaliseLineSeparators(e.message) == """The following model rules are unbound:
   UnmanagedNodeBackedModelMapTest\$ElementRules#connectElementToInput
-    Mutable:
+    Subject:
       - <unspecified> ($Bean.name) parameter 1 in scope of 'beans.element\'
-    Immutable:
+    Inputs:
       - <unspecified> ($String.name) parameter 2"""
     }
 

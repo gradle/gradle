@@ -45,11 +45,11 @@ public class UnboundRulesReporter {
 
             writer.print(rule.getDescriptor());
             if (rule.getMutableInputs().size() > 0) {
-                heading("Mutable:");
+                heading("Subject:");
                 reportInputs(rule.getMutableInputs());
             }
             if (rule.getImmutableInputs().size() > 0) {
-                heading("Immutable:");
+                heading("Inputs:");
                 reportInputs(rule.getImmutableInputs());
             }
         }

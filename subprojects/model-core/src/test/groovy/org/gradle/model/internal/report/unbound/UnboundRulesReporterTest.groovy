@@ -38,11 +38,11 @@ class UnboundRulesReporterTest extends Specification {
 
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
->   Mutable:
+>   Subject:
 >     - parent.p1 (java.lang.String)
 >     - <unspecified> (java.lang.String) in scope of 'some.scope'
 >     + parent.p3 (java.lang.Integer)
->   Immutable:
+>   Inputs:
 >     - parent.p4 (java.lang.Number) - suggestions: parent.p31, parent.p32
 >     - <unspecified> (java.lang.Number)
 >     + parent.p6 (java.lang.Number)""")

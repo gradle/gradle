@@ -145,9 +145,9 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("""The following model rules are unbound:
   UnboundRuleSource#unboundRule
-    Mutable:
+    Subject:
       - <unspecified> (java.lang.String) parameter 1 in scope of 'tasks.taskWithUnboundRuleSourceApplied'
-    Immutable:
+    Inputs:
       - <unspecified> (java.lang.Integer) parameter 2
       - tasks.taskWithUnboundRuleSourceApplied.some.inner.path (java.lang.String) parameter 3""")
     }
