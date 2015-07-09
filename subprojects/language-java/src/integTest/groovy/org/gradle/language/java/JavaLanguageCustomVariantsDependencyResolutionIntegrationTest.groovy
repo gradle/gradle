@@ -123,13 +123,16 @@ model {
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
 
+        def firstFlavorsDSL = firstFlavors ? 'flavors ' + firstFlavors.collect { "'$it'" }.join(',') : ''
+        def secondFlavorsDSL = secondFlavors ? 'flavors ' + secondFlavors.collect { "'$it'" }.join(',') : ''
+
         buildFile << """
 
 model {
     components {
         first(CustomLibrary) {
             javaVersions 6
-            flavors ${firstFlavors.collect { "'$it'" }.join(',')}
+            $firstFlavorsDSL
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -140,7 +143,7 @@ model {
         }
         second(CustomLibrary) {
             javaVersions 6
-            flavors ${secondFlavors.collect { "'$it'" }.join(',')}
+            $secondFlavorsDSL
             sources {
                 java(JavaSourceSet)
             }
@@ -152,12 +155,12 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         expect:
-        firstFlavors.each { flavor ->
+        def flavorsToTest = firstFlavors ?: ['default']
+        flavorsToTest.each { flavor ->
             def taskName = "first${flavor.capitalize()}Jar"
             if (errors[flavor]) {
                 fails taskName
                 failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                failure.assertHasCause("Cannot find a compatible binary for library 'second'")
                 errors[flavor].each { err ->
                     assert failure.assertThatCause(Matchers.containsText(err))
                 }
@@ -168,13 +171,26 @@ model {
 
         where:
         outcome    | firstFlavors         | secondFlavors        | errors
+        'succeeds' | []                   | []                   | [:]
+        'succeeds' | []                   | ['release']          | [:]
+        'fails'    | []                   | ['release', 'debug'] | [default: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDebugJar', Jar 'secondReleaseJar']"]]
         'succeeds' | ['release']          | ['release']          | [:]
         'succeeds' | ['release', 'debug'] | ['release', 'debug'] | [:]
-        'fails'    | ['release']          | ['debug']            | [release: ["Required platform 'java6', available: 'java6'", "Required flavor 'release', available: 'debug'"]]
-        'fails'    | ['release']          | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
-        'fails'    | ['release', 'debug'] | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
-        'fails'    | ['release', 'test']  | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"],
-                                                                    test   : ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'test', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+        'fails'    | ['release']          | ['debug']            | [release: ["Cannot find a compatible binary for library 'second'",
+                                                                              "Required platform 'java6', available: 'java6'",
+                                                                              "Required flavor 'release', available: 'debug'"]]
+        'fails'    | ['release']          | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+        'fails'    | ['release', 'debug'] | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+        'fails'    | ['release', 'test']  | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"],
+                                                                    test   : ["Cannot find a compatible binary for library 'second'",
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
+                                                                              "Required flavor 'test', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
     }
 
     void applyJavaPlugin(File buildFile) {
@@ -263,7 +279,9 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                             binaries.create(binaryName) { jar ->
                                 jar.toolChain = toolChain
                                 jar.targetPlatform = platform
-                                jar.flavor = flavor
+                                if (library.flavors) {
+                                    jar.flavor = flavor
+                                }
                             }
                         }
                     }
