@@ -476,38 +476,68 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 
 ## Story: Java sources of custom component are compiled against matching binary variant
 
-Change dependency resolution to honor the variant dimensions for a custom component.
+Change dependency resolution to honor variant dimensions for a custom component with Jar binaries.
 
-- When resolving dependencies of a binary with variant dimensions `D` with values `d`:
-    - Match any binary with variant dimensions `E` and values `e` where the intersection of `D` and `E` is not empty, and the values of `e` from the intersection are compatible.
-      with the values from `d`.
-    - Fail when there is not exactly one such binary.
-- To determine whether the variant values are compatible:
-    - Exact match on name
-    - Special case compatibility for `JavaPlatform`.
-- For example:
-    - Resolving for a binary with `(platform, buildType, screenSize)` from a library with binaries with `(platform)`, select all candidates with compatible `platform` and
-      ignore the other dimensions.
-    - Resolving for a binary with `(platform)` from a library with binaries with `(platform, buildType, screenSize)`, select all candidates with compatible `platform`.
-    - Resolving for a binary with `(platform, screenSize)` from a library with binaries with `(platform, buildType)`, select all candidates with compatible `platform`.
+When compiling a Java source to build a Jar binary, resolve a classpath dependency by:
+
+- Locate the library matching the dependency. For a project-only dependency, find the library that contains at least one `JarBinarySpec`.
+    - Fail if there is not exactly one matching library.
+- Locate the JarBinarySpec for the library is compatible with the `JavaPlatform` and other variant dimensions of the binary that is being built.
+    - Variant dimensions are identified solely by name of annotated property
+    - Ignore any variant dimensions that do not exist in both the resolving `JarBinarySpec` type and the resolved `JarBinarySpec` type
+    - For each variant dimensions that exists in both binaries, check if the values for that dimension are compatible:
+        - Exact match on string values
+        - Exact match on `name` property for `Named` values
+        - Highest compatible version for `JavaPlatform` values
+        - Null comparison and type conversion to be decided (see open issues)
+- If there are multiple compatible binaries:
+    - If they differ _only_ on `JavaPlatform` value (and all other variant dimensions are identical), choose the variant with the lowest major version
+    - If _any_ of the binaries differ on a variant dimension _other_ than `JavaPlatform`, fail.
+        - Error message should detail the variant values for the multiple compatible binaries
+- If there are no compatible binaries:
+    - Failure message should detail the variant values for all available (incompatible) `JarBinarySpec` instances
 
 ### Test cases
 
-- Given a component with a binary requiring `(platform, buildType, screenSize)` and a library only providing `(platform)`, should select the library that matches the platform
-- Given a component with a binary requiring `(platform, buildType, screenSize)` and a library only providing `(platform, buildType, screenSize)`, should select the library
-that matches all criteria.
-- Given a component with a binary requiring `(platform, buildType, screenSize)`, a library only providing a matching `(platform, buildType)` and a library providing
-a matching `(platform, buildType, screenSize)`, should select the binary which matches all criteria.
-- Given a component with a binary requiring `(platform, buildType, screenSize)`, a library only providing a matching `(platform, buildType)` and a library providing
-a matching `(platform, screenSize)`, should fail with an error message indicating that two variants are available matching the requested criteria. The error message must indicate
-the available variants.
-- Given a component with a binary requiring `(platform)` and a library only providing `(platform, buildType, screenSize)`, should select the library that matches the platform
+- Scenario: building a custom binary type and resolving against a library with the same custom binary type
+    - Binary `A {platform, buildType, flavor}` depends on Library `B {platform, buildType, flavor}`, choose the binary of `B` with the same `buildType` and the highest compatible `platform`.
+        - Given `A1[java6,debug,'free']` and `B1[java6,debug,'free']`, `B2[java6,release,'free']`: select `B1` due to matching `buildType`
+        - Given `A1[java6,debug,'free']` and `B1[java6,debug,'free']`, `B2[java6,debug,'paid']`: select `B1` due to matching `flavor`
+        - Given `A1[java6,debug,'free']` and `B1[java5,debug,'free']`, `B2[java6,debug,'free']`, `B3[java7,debug,'free']`: select `B2` for highest compatible `platform`
+        - Given `A1[java6,debug,'free']` and `B1[java6,debug,'paid']`, `B2[java6,release,'free']`, `B3[java7,debug,'free']`: FAIL (no compatible) and list available variants
+        - Given `A1[java6,debug,'free']` and `B1[java7,debug,'free']`: FAIL (no compatible) and list available variants
+        - Given `A1[java6,debug,'free']` and `B1[java5,debug,'free']`, `B2[java6,debug,'free']`, `B2[java7,debug,'free']`: FAIL (multiple compatible) and list compatible variants (`B1`, `B2`)
+- Scenario: building a custom binary type and resolving against a library with standard `JarBinarySpec` instances.
+    - Binary `A {platform, buildType}` depends on Library `B {platform}`, inspect the binaries of `B` for the one with the lowest compatible `platform`.
+        - Given `A1[java6,debug]` and `B1[java6]`, `B2[java7]`: select `B1` due to highest compatible `platform`
+        - Given `A1[java6,debug]` and `B1[java7]`, `B2[java8]`: FAIL (no compatible) and list available variants
+- Scenario: building a standard `JarBinarySpec` instance and resolving against a library with custom binary types.
+    - Binary `A {platform}` depends on Library `B {platform, buildType}`, inspect the binaries of `B` for the one with the lowest compatible `platform`.
+        - Given `A1[java6]` and `B1[java6,debug]`, `B2[java7,release]`: select `B1` due to highest compatible `platform`
+        - Given `A1[java6]` and `B1[java7,debug]`, `B2[java8,release]`: FAIL (no compatible) and list all available variants
+        - Given `A1[java6]` and `B1[java6,debug]`, `B2[java6,release]`, `B3[java7,release]`: FAIL (multiple compatible) and list compatible variants (`B1`, `B2`)
+- Scenario: building a custom `JarBinarySpec` type and resolving against a library with a different custom `JarBinarySpec` type.
+    - Binary `A {platform, flavor}` depends on Library `B {platform, buildType}`, inspect the binaries of `B` for the one with the lowest compatible `platform`.
+        - Given `A1[java6, 'free']` and `B1[java6,debug]`, `B2[java7,release]`: select `B1` due to highest compatible `platform`
+        - Given `A1[java6, 'free']` and `B1[java7,debug]`, `B2[java8,release]`: FAIL (no compatible) and list all available variants
+        - Given `A1[java6, 'free']` and `B1[java6,debug]`, `B2[java6,release]`, `B3[java7,release]`: FAIL (multiple compatible) and list compatible variants (`B1`, `B2`)
+- Some coverage for open issues, below (to be decided)
+    - null dimension values
+    - common dimensions with different value types
 
 ### Implementation
 
-- make `DependentSourceSetResolveContext` use a `BinarySpec` instead of a `Platform`
-- make `LocalLibraryDependencyResolver` use a `JarBinarySpec` instead of a `JavaPlatform`
-- extract variants from the the resolving binary and the candidate binary (dependending on the advancement of other stories, first step maybe using reflection, second step using `ModelSchema`)
+- Extract variant metadata from `JarBinarySpec` instance: include `JavaPlatform` as well as any custom variants
+    - Depending on the advancement of other stories, first step maybe using reflection, second step using `ModelSchema`
+- `DependentSourceSetResolveContext` contains variant metadata for jar being built
+- `LocalLibraryDependencyResolver` compares variant metadata from resolve context with variant metadata for candidate binaries
+
+### Open Issues
+
+- Perform exact match on null variant values, or treat null value as "wildcard" match (compatible with any value for this variant dimension)?
+- How to resolve 2 binary types that share a variant dimension name, but with a different return type: e.g. both variants have `buildType` dimension, but
+    - One is typed as `String` the other is typed as `BuildType extends Named`
+    - One is typed as `BuildType extends Named` and the other is typed as `DifferentBuildType extends Named`
 
 ## Feature backlog
 
