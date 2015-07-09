@@ -481,9 +481,9 @@ model {
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'newComponent'"""))
 
     }
@@ -607,9 +607,9 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""beforeEach DefaultCustomComponent 'main'
+afterEach DefaultCustomComponent 'main'
 beforeEach DefaultCustomComponent 'newComponent'
 creating DefaultCustomComponent 'newComponent'
-afterEach DefaultCustomComponent 'main'
 afterEach DefaultCustomComponent 'newComponent'"""))
 
     }
