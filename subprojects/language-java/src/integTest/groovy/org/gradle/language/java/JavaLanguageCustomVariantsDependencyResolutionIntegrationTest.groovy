@@ -15,10 +15,10 @@
  */
 
 package org.gradle.language.java
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Matchers
 import spock.lang.Unroll
+
+import static org.gradle.util.Matchers.containsText
 
 class JavaLanguageCustomVariantsDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -162,7 +162,7 @@ model {
                 fails taskName
                 failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
                 errors[flavor].each { err ->
-                    assert failure.assertThatCause(Matchers.containsText(err))
+                    failure.assertThatCause(containsText(err))
                 }
             } else {
                 succeeds taskName
