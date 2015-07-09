@@ -34,15 +34,28 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def "mixes in ManagedInstance"() {
         def node = Stub(MutableModelNode)
-        def state = Stub(ModelElementState) {
+        def state = Mock(ModelElementState) {
             getBackingNode() >> node
         }
 
-        expect:
-        def proxyClass = generate(SomeType)
-        def impl = proxyClass.newInstance(state)
+        when:
+        Class<? extends SomeType> proxyClass = generate(SomeType)
+        SomeType impl = proxyClass.newInstance(state)
+
+        then:
         impl instanceof ManagedInstance
-        impl.backingNode == node
+        ((ManagedInstance) impl).backingNode == node
+
+        when:
+        impl.value = 1
+        then:
+        1 * state.set("value", 1)
+
+        when:
+        def value = impl.value
+        then:
+        value == 1
+        1 * state.get("value") >> { 1 }
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
