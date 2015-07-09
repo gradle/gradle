@@ -47,15 +47,15 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        JavaLibraryResolverProviderFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver) {
-            return new JavaLibraryResolverProviderFactory(projectModelResolver);
+        LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver) {
+            return new LocalLibraryDependencyResolverFactory(projectModelResolver);
         }
     }
 
-    public static class JavaLibraryResolverProviderFactory implements ResolverProviderFactory {
+    public static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {
         private final ProjectModelResolver projectModelResolver;
 
-        public JavaLibraryResolverProviderFactory(ProjectModelResolver projectModelResolver) {
+        public LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver) {
             this.projectModelResolver = projectModelResolver;
         }
 

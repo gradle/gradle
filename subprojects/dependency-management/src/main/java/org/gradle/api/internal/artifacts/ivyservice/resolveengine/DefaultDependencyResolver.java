@@ -146,9 +146,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private ResolverProviderChain createComponentSource(ResolutionStrategyInternal resolutionStrategy, ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {
-        List<ResolverProvider> resolvers = allServices(ResolverProvider.class);
-        List<ResolverProviderFactory> providerFactories = allServices(ResolverProviderFactory.class);
-        for (ResolverProviderFactory factory : providerFactories) {
+        List<ResolverProviderFactory> resolverFactories = allServices(ResolverProviderFactory.class);
+        List<ResolverProvider> resolvers = Lists.newArrayList();
+        for (ResolverProviderFactory factory : resolverFactories) {
             if (factory.canCreate(resolveContext)) {
                 resolvers.add(factory.create(resolveContext));
             }

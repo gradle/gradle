@@ -22,10 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
@@ -240,7 +237,25 @@ class DependencyManagementBuildScopeServices {
             projectRegistry));
     }
 
-    ResolverProvider createProjectResolverProvider(ProjectDependencyResolver resolver) {
-        return DelegatingResolverProvider.of(resolver);
+    ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {
+        return new ProjectResolverProviderFactory(resolver);
+    }
+
+    private static class ProjectResolverProviderFactory implements ResolverProviderFactory {
+        private final ProjectDependencyResolver resolver;
+
+        public ProjectResolverProviderFactory(ProjectDependencyResolver resolver) {
+            this.resolver = resolver;
+        }
+
+        @Override
+        public boolean canCreate(ResolveContext context) {
+            return true;
+        }
+
+        @Override
+        public ResolverProvider create(ResolveContext context) {
+            return DelegatingResolverProvider.of(resolver);
+        }
     }
 }
