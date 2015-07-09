@@ -143,12 +143,14 @@ class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("""The following model rules are unbound:
+        failure.assertHasCause("""The following model rules could not be applied:
   UnboundRuleSource#unboundRule
     Subject:
-      - <unspecified> (java.lang.String) parameter 1 in scope of 'tasks.taskWithUnboundRuleSourceApplied'
+       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:parameter 1 | Scope:'tasks.taskWithUnboundRuleSourceApplied'|
     Inputs:
-      - <unspecified> (java.lang.Integer) parameter 2
-      - tasks.taskWithUnboundRuleSourceApplied.some.inner.path (java.lang.String) parameter 3""")
+       | Found:false | Path:<unspecified> | Type:java.lang.Integer | Description:parameter 2|
+       | Found:false | Path:tasks.taskWithUnboundRuleSourceApplied.some.inner.path | Type:java.lang.String | Description:parameter 3|""")
+
     }
+
 }

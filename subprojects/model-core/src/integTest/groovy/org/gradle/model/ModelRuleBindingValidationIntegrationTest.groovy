@@ -60,10 +60,10 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         fails "help"
-        failure.assertHasCause("""The following model rules are unbound:
+        failure.assertHasCause("""The following model rules could not be applied:
   Rules#s1
     Inputs:
-      - <unspecified> (java.lang.Integer) parameter 1""")
+       | Found:false | Path:<unspecified> | Type:java.lang.Integer | Description:parameter 1|""")
     }
 
 }

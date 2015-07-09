@@ -654,12 +654,12 @@ class ManagedNodeBackedModelMapTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+        normaliseLineSeparators(e.message) == """The following model rules could not be applied:
   ManagedNodeBackedModelMapTest\$ElementRules#connectElementToInput
     Subject:
-      - <unspecified> ($Bean.name) parameter 1 in scope of 'beans.element\'
+       | Found:false | Path:<unspecified> | Type:org.gradle.model.ManagedNodeBackedModelMapTest\$Bean | Description:parameter 1 | Scope:'beans.element'|
     Inputs:
-      - <unspecified> ($String.name) parameter 2"""
+       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:parameter 2|"""
     }
 
     static class SetOther extends RuleSource {

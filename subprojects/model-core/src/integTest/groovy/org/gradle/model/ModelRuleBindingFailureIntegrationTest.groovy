@@ -15,10 +15,8 @@
  */
 
 package org.gradle.model
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-
 /**
  * Tests the information provided when a model rule fails to bind.
  *
@@ -45,7 +43,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void mutateThing2(MyThing2 thing2, MyThing3 thing3) {
+                    void mutateThing2(MyThing2 thing2, MyThing3 thing3n, String someOtherThing, Integer intParam) {
                     }
                 }
             }
@@ -57,15 +55,17 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
+        failure.assertHasCause("""The following model rules could not be applied:
   MyPlugin\$Rules#mutateThing2
     Subject:
-      - <unspecified> (MyPlugin\$MyThing2) parameter 1
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|
     Inputs:
-      - <unspecified> (MyPlugin\$MyThing3) parameter 2
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|
+       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:parameter 3|
+       | Found:false | Path:<unspecified> | Type:java.lang.Integer | Description:parameter 4|
   MyPlugin\$Rules#thing1
     Inputs:
-      - <unspecified> (MyPlugin\$MyThing2) parameter 1""")
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|""")
     }
 
     def "unbound dsl rules are reported"() {
@@ -83,10 +83,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  model.foo.bar @ ${File.separator}${buildFile.name} line 4, column 17
+        failure.assertHasCause("""The following model rules could not be applied:
+  model.foo.bar @ ${File.separator}build.gradle line 4, column 17
     Subject:
-      - foo.bar (java.lang.Object)""")
+       | Found:false | Path:foo.bar | Type:java.lang.Object|""")
     }
 
     def "suggestions are provided for unbound rules"() {
@@ -114,10 +114,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.foonar @ ${File.separator}${buildFile.name} line 15, column 17
+        failure.assertHasCause("""The following model rules could not be applied:
+  model.tasks.foonar @ ${File.separator}build.gradle line 15, column 17
     Subject:
-      - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
+       | Found:false | Path:tasks.foonar | Type:java.lang.Object | Suggestions:tasks.foobar|""")
     }
 
     def "ambiguous binding integration test"() {
@@ -210,10 +210,10 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
+        failure.assertHasCause("""The following model rules could not be applied:
   Rules#foo
     Inputs:
-      - bar (java.lang.Integer) parameter 1""")
+       | Found:false | Path:bar | Type:java.lang.Integer""")
     }
 
     def "unbound rule for project that has no needed tasks does not cause error"() {
@@ -225,6 +225,51 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         succeeds ":b:dependencies"
         fails ":a:dependencies"
         failure.assertHasDescription("A problem occurred configuring project ':a'")
-        failure.assertHasCause("The following model rules are unbound:")
+        failure.assertHasCause("The following model rules could not be applied:")
+    }
+
+    def "bound subject with unbound rules are reported"() {
+        given:
+        buildScript """
+            class MyPlugin {
+                static class MyThing1 {}
+                static class MyThing2 {}
+                static class MyThing3 {}
+
+                static class Rules extends RuleSource {
+                    @Model
+                    MyThing1 thing1() {
+                        new MyThing1()
+                    }
+
+                    @Mutate
+                    void thing1(MyThing1 MyThing1, MyThing3 thing3) {
+
+                    }
+
+                    @Mutate
+                    void mutateThing2(MyThing2 thing2, MyThing3 thing3) {
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("""The following model rules could not be applied:
+  MyPlugin\$Rules#mutateThing2
+    Subject:
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|
+    Inputs:
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|
+  MyPlugin\$Rules#thing1
+    Subject:
+       | Found:true | Path:thing1 | Type:MyPlugin\$MyThing1 | Description:parameter 1|
+    Inputs:
+       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|""")
     }
 }

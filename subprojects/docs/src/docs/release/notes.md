@@ -117,10 +117,35 @@ Binaries now distinguish between source sets that are specific to them (owned so
 
         - After:
         ```
-        The following model rules are unbound:
+        The following model rules could not be applied:
           ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
         ```
+* The model report now displays a relative path to the build script for DSL based rules. Previously an absolute file path was displayed.
+* The format of build errors, caused by model based rules failing to locate subjects or inputs, has been improved.
 
+    __Current__
+    ```
+    The following model rules are unbound:
+      model.tasks.raboof @ /build.gradle line 15, column 17
+        Subject:
+          + tasks.raboof (java.lang.Object)
+        Inputs:
+          - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
+          - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
+          - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar"
+    ```
+
+    __New format__
+    ```
+    The following model rules could not be applied:
+      model.tasks.raboof @ /build.gradle line 15, column 17
+        Subject:
+           | Found:true | Path:tasks.raboof | Type:java.lang.Object|
+        Inputs:
+           | Found:false | Path:tasks.foonar | Type:java.lang.Object | Description:@ line 16 | Suggestions:tasks.foobar|
+           | Found:false | Path:tasks.fooar | Type:java.lang.Object | Description:@ line 17 | Suggestions:tasks.foobar|
+           | Found:false | Path:tasks.foobarr | Type:java.lang.Object | Description:@ line 18 | Suggestions:tasks.foobar|
+    ```
 
 ## External contributions
 

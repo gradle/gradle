@@ -39,12 +39,12 @@ class UnboundRulesReporterTest extends Specification {
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
 >   Subject:
->     - parent.p1 (java.lang.String)
->     - <unspecified> (java.lang.String) in scope of 'some.scope'
->     + parent.p3 (java.lang.Integer)
+>      | Found:false | Path:parent.p1 | Type:java.lang.String|
+>      | Found:false | Path:<unspecified> | Type:java.lang.String | Scope:'some.scope'|
+>      | Found:true | Path:parent.p3 | Type:java.lang.Integer|
 >   Inputs:
->     - parent.p4 (java.lang.Number) - suggestions: parent.p31, parent.p32
->     - <unspecified> (java.lang.Number)
->     + parent.p6 (java.lang.Number)""")
+>      | Found:false | Path:parent.p4 | Type:java.lang.Number | Suggestions:parent.p31, parent.p32|
+>      | Found:false | Path:<unspecified> | Type:java.lang.Number|
+>      | Found:true | Path:parent.p6 | Type:java.lang.Number|""")
     }
 }

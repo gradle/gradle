@@ -75,10 +75,10 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+        normaliseLineSeparators(e.message) == """The following model rules could not be applied:
   foo creator
     Inputs:
-      - other (java.lang.Object)"""
+       | Found:false | Path:other | Type:java.lang.Object|"""
     }
 
     def "cannot get element for which creator by-type input does not exist"() {
@@ -90,10 +90,10 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+        normaliseLineSeparators(e.message) == """The following model rules could not be applied:
   foo creator
     Inputs:
-      - <unspecified> (java.lang.Long)"""
+       | Found:false | Path:<unspecified> | Type:java.lang.Long|"""
     }
 
     def "cannot register creator when by-type input is ambiguous"() {
@@ -871,16 +871,16 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
   by-path
     Subject:
-      - a.b (java.lang.Object)
+       | Found:false | Path:a.b | Type:java.lang.Object|
   by-path-and-type
     Subject:
-      - missing (java.lang.String)
+       | Found:false | Path:missing | Type:java.lang.String|
   by-type
     Subject:
-      - <unspecified> (java.lang.Long)'''
+       | Found:false | Path:<unspecified> | Type:java.lang.Long|'''
     }
 
     def "reports unbound inputs"() {
@@ -894,20 +894,20 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
   by-path
     Subject:
-      + foo (java.lang.Object)
+       | Found:true | Path:foo | Type:java.lang.Object|
     Inputs:
-      - other.thing (java.lang.String) java.lang.String
+       | Found:false | Path:other.thing | Type:java.lang.String | Description:java.lang.String|
   by-type
     Subject:
-      - <unspecified> (java.lang.Runnable)
+       | Found:false | Path:<unspecified> | Type:java.lang.Runnable|
     Inputs:
-      - <unspecified> (java.lang.String) java.lang.String
+       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:java.lang.String|
   creator
     Inputs:
-      - a.b (java.lang.Object) a.b'''
+       | Found:false | Path:a.b | Type:java.lang.Object | Description:a.b|'''
     }
 
     def "closes elements as required to bind all subjects and inputs"() {
@@ -961,12 +961,12 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
   non-bindable
     Subject:
-      + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
+       | Found:true | Path:foo | Type:org.gradle.model.internal.registry.DefaultModelRegistryTest\$Bean|
     Inputs:
-      - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
+       | Found:false | Path:emptyBeans.element | Type:org.gradle.model.internal.registry.DefaultModelRegistryTest\$Bean|'''
     }
 
     def "does not report unbound creators of removed nodes"() {

@@ -17,9 +17,11 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.PrintWriter;
+import java.util.List;
 
 @NotThreadSafe
 public class UnboundRulesReporter {
@@ -58,19 +60,24 @@ public class UnboundRulesReporter {
     private void reportInputs(Iterable<? extends UnboundRuleInput> inputs) {
         for (UnboundRuleInput input : inputs) {
             item();
-            writer.print(input.isBound() ? "+ " : "- ");
+            List<String> parts = Lists.newArrayList();
+            parts.add("");
+            parts.add(String.format("Found:%s", input.isBound()));
+
             String path = input.getPath() == null ? "<unspecified>" : input.getPath();
-            writer.print(String.format("%s (%s)", path, input.getType()));
+            parts.add("Path:" + path);
+            parts.add("Type:" + input.getType());
             if (input.getDescription() != null) {
-                writer.print(String.format(" %s", input.getDescription()));
+                parts.add("Description:" + input.getDescription());
             }
             if (input.getPath() == null && input.getScope() != null) {
-                writer.print(String.format(" in scope of '%s'", input.getScope()));
+                parts.add(String.format("Scope:'%s'", input.getScope()));
             }
             if (input.getSuggestedPaths().size() > 0) {
-                writer.print(" - suggestions: ");
-                writer.print(Joiner.on(", ").join(input.getSuggestedPaths()));
+                String join = Joiner.on(", ").join(input.getSuggestedPaths());
+                parts.add(String.format("Suggestions:%s", join.trim()));
             }
+            writer.print(Joiner.on(" | ").join(parts) + "|");
         }
     }
 

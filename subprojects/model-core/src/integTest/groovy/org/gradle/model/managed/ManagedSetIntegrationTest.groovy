@@ -548,6 +548,6 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("The following model rules are unbound")
+        failure.assertHasCause("The following model rules could not be applied:")
     }
 }

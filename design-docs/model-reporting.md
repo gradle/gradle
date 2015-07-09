@@ -72,61 +72,6 @@ Two problems:
 1. Use of `mutable` & `immutable`: should be `subject`, `inputs`
 1. Use of `+` for “did bind” and `-` for “did not bind” is too subtle - needs to be clearer what is happening
 
-_Options to clear up “did bind” and  “did not bind_
-
-__Current__
-```
-Execution failed for task ':tasks'.
-> The following model rules are unbound:
-    model.tasks.raboof @ /build.gradle line 15, column 17
-      Subject:
-        + tasks.raboof (java.lang.Object)
-      Inputs:
-        - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
-        - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
-        - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar
-```
-
-__Option 1__
-
-```
-Execution failed for task ':tasks'.
-> The following model rules are unbound:
-    model.tasks.raboof @ /build.gradle line 15, column 17
-      Subject:
-        ✔ tasks.raboof (java.lang.Object)
-      Inputs:
-        ✗ tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
-        ✗ tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
-        ✗ tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar
-```
-
-__Option 2__
-```
-Execution failed for task ':tasks'.
-> The following model rules are unbound:
-    model.tasks.raboof @ /build.gradle line 15, column 17
-      Subject:
-        [bound] tasks.raboof (java.lang.Object)
-      Inputs:
-        [unbound] tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
-        [unbound] tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
-        [unbound] tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar
-```
-
-__Option 3__
-```
-Execution failed for task ':tasks'.
-> The following model rules are unbound:
-    model.tasks.raboof @ /build.gradle line 15, column 17
-      Subject:
-        - tasks.raboof (java.lang.Object) (bound)
-      Inputs:
-        - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar (unbound)
-        - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar (unbound)
-        - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar (unbound)
-```
-
 # Backlog
 
 # Story: Model report shows hidden nodes
