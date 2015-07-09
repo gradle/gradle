@@ -216,7 +216,7 @@ model {
 
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "should choose the lowest compatible platform variant of the target binary when dependency is a JVM component"() {
+    def "should choose the highest compatible platform variant of the target binary when dependency is a JVM component"() {
         given:
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
@@ -259,7 +259,7 @@ model {
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "should choose the lowest compatible platform variant of the target binary when dependency is a custom component"() {
+    def "should choose the highest compatible platform variant of the target binary when dependency is a custom component"() {
         given:
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
