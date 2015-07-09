@@ -25,4 +25,9 @@ public class PlayRunAdapterV24X extends PlayRunAdapterV23X {
         ScalaMethod runMethod = ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.DevServerStart", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class, String.class);
         runMethod.invoke(buildLink, buildDocHandler, httpPort, "0.0.0.0");
     }
+
+    @Override
+    protected String getIOSupportDependencyVersion() {
+        return "0.13.8";
+    }
 }

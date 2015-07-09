@@ -15,11 +15,9 @@
  */
 package org.gradle.play.plugins;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -54,21 +52,18 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
-import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
+import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -77,13 +72,6 @@ import java.util.Map;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
-    private static final VersionNumber MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT = VersionNumber.parse("2.3.7");
-    private static final String RUN_SUPPORT_PLAY_MODULE = "run-support";
-
-    private static final Map<PlayMajorVersion, String> PLAY_TO_SBT_IO_VERSION_MAPPING = ImmutableMap.<PlayMajorVersion, String>builder()
-                                                                                                    .put(PlayMajorVersion.PLAY_2_3_X, "0.13.6")
-                                                                                                    .put(PlayMajorVersion.PLAY_2_4_X, "0.13.8")
-                                                                                                    .build();
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -237,41 +225,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         private void addRunSupportDependencies(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
-            if (PlayMajorVersion.forPlatform(playPlatform) != PlayMajorVersion.PLAY_2_2_X) {
-                List<?> runSupportDependencies = createRunSupportDependencies(playPlatform);
-                for (Object dependencyNotation : runSupportDependencies) {
-                    configurations.getPlayRun().addDependency(dependencyNotation);
-                }
-            }
-        }
-
-        private List<?> createRunSupportDependencies(PlayPlatform playPlatform) {
-            ImmutableList.Builder<Object> listBuilder = ImmutableList.builder();
-
+            String playVersion = playPlatform.getPlayVersion();
             String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
-
-            // run-support is available in Play >= 2.3.7
-            VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
-            if (playVersion.compareTo(MINIMUM_PLAY_VERSION_WITH_RUN_SUPPORT) >= 0) {
-                // run-support contains AssetsClassLoader class, which is required for reloading support
-                listBuilder.add(((PlayPlatformInternal) playPlatform).getDependencyNotation(RUN_SUPPORT_PLAY_MODULE));
-            } else {
-                // use run-support from default version for older Play 2.3.x versions
-                DefaultExternalModuleDependency runSupportDependency = new DefaultExternalModuleDependency("com.typesafe.play", String.format("%s_%s", RUN_SUPPORT_PLAY_MODULE, scalaCompatibilityVersion), DefaultPlayPlatform.DEFAULT_PLAY_VERSION);
-                runSupportDependency.setTransitive(false);
-                listBuilder.add(runSupportDependency);
+            Iterable<Dependency> runSupportDependencies = PlayApplicationRunnerFactory.createPlayRunAdapter(playPlatform).getRunsupportClasspathDependencies(playVersion, scalaCompatibilityVersion);
+            for (Dependency dependencyNotation : runSupportDependencies) {
+                configurations.getPlayRun().addDependency(dependencyNotation);
             }
-
-            // the name is "io" for Scala 2.10 , but "io_2.11" for Scala 2.11
-            String name = scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s", "io", scalaCompatibilityVersion);
-            // this dependency is only available in ivy repo that doesn't have a proper default configuration
-            // must specify configuration to resolve dependency
-            String sbtIoVersion = PLAY_TO_SBT_IO_VERSION_MAPPING.get(PlayMajorVersion.forPlatform(playPlatform));
-            DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, sbtIoVersion, "runtime");
-            dependency.setTransitive(false);
-            listBuilder.add(dependency);
-
-            return listBuilder.build();
         }
 
         @Mutate

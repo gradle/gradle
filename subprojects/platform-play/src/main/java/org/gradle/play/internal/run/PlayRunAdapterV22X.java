@@ -16,6 +16,9 @@
 
 package org.gradle.play.internal.run;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.Dependency;
+
 public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
     @Override
     protected Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException {
@@ -30,5 +33,10 @@ public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
     @Override
     protected Class<?> getDocHandlerFactoryClass(ClassLoader docsClassLoader) throws ClassNotFoundException {
         return docsClassLoader.loadClass("play.docs.SBTDocHandlerFactory");
+    }
+
+    @Override
+    public Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion) {
+        return Lists.newArrayList();
     }
 }

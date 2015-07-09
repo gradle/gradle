@@ -44,7 +44,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final FileResolver fileResolver;
     private final CompilerDaemonManager compilerDaemonManager;
     private final PlayPlatform targetPlatform;
-    private final PlayMajorVersion playMajorVersion;
     private Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
@@ -57,10 +56,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.compilerDaemonManager = compilerDaemonManager;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.targetPlatform = targetPlatform;
-        this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
         this.twirlClasspath = twirlClasspath;
         this.routesClasspath = routesClasspath;
         this.javaScriptClasspath = javaScriptClasspath;
+        // validate that the targetPlatform is valid
+        PlayMajorVersion.forPlatform(targetPlatform);
     }
 
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
@@ -80,7 +80,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T> T get(Class<T> toolType) {
         if (PlayApplicationRunner.class.isAssignableFrom(toolType)) {
-            return toolType.cast(newApplicationRunner());
+            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory));
         }
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
@@ -89,23 +89,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         @SuppressWarnings("unchecked")
         Compiler<T> converted = (Compiler<T>) raw;
         return converted;
-    }
-
-    private PlayApplicationRunner newApplicationRunner() {
-        VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
-        return new PlayApplicationRunner(workerProcessBuilderFactory, playRunAdapter);
-    }
-
-    private VersionedPlayRunAdapter createPlayRunAdapter() {
-        switch (playMajorVersion) {
-            case PLAY_2_2_X:
-                return new PlayRunAdapterV22X();
-            case PLAY_2_4_X:
-                return new PlayRunAdapterV24X();
-            case PLAY_2_3_X:
-            default:
-                return new PlayRunAdapterV23X();
-        }
     }
 
     public boolean isAvailable() {
