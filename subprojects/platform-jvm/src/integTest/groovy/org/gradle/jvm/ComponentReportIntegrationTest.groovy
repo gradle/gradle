@@ -89,21 +89,6 @@ Binaries
                 targetPlatform "java5"
                 targetPlatform "java6"
                 targetPlatform "java7"
-
-                binaries {
-                    all {
-                        if (targetPlatform.name == "java6") {
-                            sources {
-                                java2(JavaSourceSet) {
-                                    source.srcDir "src/main/java2"
-                                    dependencies {
-                                        library 'some-library'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }
