@@ -57,7 +57,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     public void credentials(Action<? super PasswordCredentials> action) {
         if (credentials != null && !(credentials instanceof PasswordCredentials)) {
-            throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentals; please use credentials(Class, Action)");
+            throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
     }
