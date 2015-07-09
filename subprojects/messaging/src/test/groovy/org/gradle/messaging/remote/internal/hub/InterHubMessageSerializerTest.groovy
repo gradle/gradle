@@ -16,15 +16,16 @@
 
 package org.gradle.messaging.remote.internal.hub
 
+import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.Serializers
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
-import org.gradle.internal.serialize.kryo.JavaSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {
-    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new JavaSerializer<Object>())
+    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(Serializers.stateful(new DefaultSerializer<Object[]>(getClass().classLoader)))
 
     def "can serialise ChannelMessage"() {
         def channelId = new ChannelIdentifier("channel name")
