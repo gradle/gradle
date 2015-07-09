@@ -228,7 +228,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         failure.assertHasCause("The following model rules could not be applied:")
     }
 
-    def "bound subject with unbound rules are reported"() {
+    def "bound subject with unbound inputs are reported"() {
         given:
         buildScript """
             class MyPlugin {
