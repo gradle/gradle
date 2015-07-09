@@ -52,13 +52,9 @@ public class PlayRunAdapterV23X extends DefaultVersionedPlayRunAdapter {
 
     @Override
     protected ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader) {
-        Class<?> assetsClassLoaderClass = null;
-        try {
-            assetsClassLoaderClass = classLoader.loadClass("play.runsupport.AssetsClassLoader");
-        } catch (ClassNotFoundException ignore) {
-            // fallback to default implementation, play.runsupport.AssetsClassLoader requires Play >= 2.3.7
-            return super.createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
-        }
+        Class<?> assetsClassLoaderClass;
+
+        assetsClassLoaderClass = loadClass(classLoader, "play.runsupport.AssetsClassLoader");
 
         final Class<?> tuple2Class = loadClass(classLoader, "scala.Tuple2");
 
