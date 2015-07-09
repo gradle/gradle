@@ -48,10 +48,10 @@ model {
     }
 
     tasks {
-        firstDefaultJar {
+        firstDefaultDefaultJar {
             doLast {
-                assert compileFirstDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDefaultJarFirstJava).contains(secondDefaultJar)
-                assert compileFirstDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDefaultJar/second.jar")] as Set
+                assert compileFirstDefaultDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDefaultDefaultJarFirstJava).contains(secondDefaultDefaultJar)
+                assert compileFirstDefaultDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDefaultDefaultJar/second.jar")] as Set
             }
         }
     }
@@ -61,7 +61,7 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         expect:
-        succeeds ':firstDefaultJar'
+        succeeds ':firstDefaultDefaultJar'
 
     }
 
@@ -93,16 +93,16 @@ model {
     }
 
     tasks {
-        firstReleaseJar {
+        firstReleaseDefaultJar {
             doLast {
-                assert compileFirstReleaseJarFirstJava.taskDependencies.getDependencies(compileFirstReleaseJarFirstJava).contains(secondReleaseJar)
-                assert compileFirstReleaseJarFirstJava.classpath.files == [file("${buildDir}/jars/secondReleaseJar/second.jar")] as Set
+                assert compileFirstReleaseDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstReleaseDefaultJarFirstJava).contains(secondReleaseDefaultJar)
+                assert compileFirstReleaseDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondReleaseDefaultJar/second.jar")] as Set
             }
         }
-        firstDebugJar {
+        firstDebugDefaultJar {
             doLast {
-                assert compileFirstDebugJarFirstJava.taskDependencies.getDependencies(compileFirstDebugJarFirstJava).contains(secondDebugJar)
-                assert compileFirstDebugJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDebugJar/second.jar")] as Set
+                assert compileFirstDebugDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDebugDefaultJarFirstJava).contains(secondDebugDefaultJar)
+                assert compileFirstDebugDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDebugDefaultJar/second.jar")] as Set
             }
         }
     }
@@ -112,8 +112,8 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         expect:
-        succeeds ':firstReleaseJar'
-        succeeds ':firstDebugJar'
+        succeeds ':firstReleaseDefaultJar'
+        succeeds ':firstDebugDefaultJar'
 
     }
 
@@ -144,6 +144,7 @@ model {
         second(CustomLibrary) {
             javaVersions 6
             $secondFlavorsDSL
+            buildTypes 'default'
             sources {
                 java(JavaSourceSet)
             }
@@ -157,7 +158,7 @@ model {
         expect:
         def flavorsToTest = firstFlavors ?: ['default']
         flavorsToTest.each { flavor ->
-            def taskName = "first${flavor.capitalize()}Jar"
+            def taskName = "first${flavor.capitalize()}DefaultJar"
             if (errors[flavor]) {
                 fails taskName
                 failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
@@ -173,24 +174,24 @@ model {
         outcome    | firstFlavors         | secondFlavors        | errors
         'succeeds' | []                   | []                   | [:]
         'succeeds' | []                   | ['release']          | [:]
-        'fails'    | []                   | ['release', 'debug'] | [default: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDebugJar', Jar 'secondReleaseJar']"]]
+        'fails'    | []                   | ['release', 'debug'] | [default: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDebugDefaultJar', Jar 'secondReleaseDefaultJar']"]]
         'succeeds' | ['release']          | ['release']          | [:]
         'succeeds' | ['release', 'debug'] | ['release', 'debug'] | [:]
         'fails'    | ['release']          | ['debug']            | [release: ["Cannot find a compatible binary for library 'second'",
                                                                               "Required platform 'java6', available: 'java6'",
                                                                               "Required flavor 'release', available: 'debug'"]]
         'fails'    | ['release']          | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
         'fails'    | ['release', 'debug'] | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
         'fails'    | ['release', 'test']  | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"],
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"],
                                                                     test   : ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'",
-                                                                              "Required flavor 'test', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                              "Required flavor 'test', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
     }
 
     void applyJavaPlugin(File buildFile) {
@@ -214,6 +215,7 @@ import org.gradle.platform.base.internal.DefaultPlatformRequirement
 interface CustomLibrary extends LibrarySpec {
     void javaVersions(int... platforms)
     void flavors(String... flavors)
+    void buildTypes(String... buildTypes)
 
     List<Integer> getJavaVersions()
 
@@ -231,6 +233,10 @@ interface CustomBinaryVariants {
 
 interface CustomJarSpec extends JarBinarySpec, CustomBinaryVariants {}
 
+class DefaultBuildType implements BuildType {
+    String name
+}
+
 class CustomBinary extends DefaultJarBinarySpec implements CustomJarSpec {
     String flavor
     BuildType buildType
@@ -241,8 +247,10 @@ class CustomBinary extends DefaultJarBinarySpec implements CustomJarSpec {
 class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
     List<Integer> javaVersions = []
     List<String> flavors = []
+    List<BuildType> buildTypes = []
     void javaVersions(int... platforms) { javaVersions.addAll(platforms) }
     void flavors(String... fvs) { flavors.addAll(fvs) }
+    void buildTypes(String... bts) { buildTypes.addAll(bts.collect { new DefaultBuildType(name:it) }) }
 }
 
             class ComponentTypeRules extends RuleSource {
@@ -268,19 +276,25 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
                     def classesDir = new File(buildDir, "classes")
                     def javaVersions = library.javaVersions ?: [JavaVersion.current().majorVersion]
                     def flavors = library.flavors?:['default']
+                    def buildTypes = library.buildTypes?:[new DefaultBuildType(name:'default')]
                     def multipleTargets = javaVersions.size() > 1
                     javaVersions.each { version ->
                         flavors.each { flavor ->
-                            def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
-                            def toolChain = toolChains.getForPlatform(platform)
-                            def baseName = "${library.name}${flavor.capitalize()}"
-                            String binaryName = "$baseName${javaVersions.size() > 1 ? version :''}Jar"
-                            while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
-                            binaries.create(binaryName) { jar ->
-                                jar.toolChain = toolChain
-                                jar.targetPlatform = platform
-                                if (library.flavors) {
-                                    jar.flavor = flavor
+                            buildTypes.each { buildType ->
+                                def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
+                                def toolChain = toolChains.getForPlatform(platform)
+                                def baseName = "${library.name}${flavor.capitalize()}${buildType.name.capitalize()}"
+                                String binaryName = "$baseName${javaVersions.size() > 1 ? version :''}Jar"
+                                while (binaries.containsKey(binaryName)) { binaryName = "${binaryName}x" }
+                                binaries.create(binaryName) { jar ->
+                                    jar.toolChain = toolChain
+                                    jar.targetPlatform = platform
+                                    if (library.flavors) {
+                                        jar.flavor = flavor
+                                    }
+                                    if (library.buildTypes) {
+                                        jar.buildType = buildType
+                                    }
                                 }
                             }
                         }
