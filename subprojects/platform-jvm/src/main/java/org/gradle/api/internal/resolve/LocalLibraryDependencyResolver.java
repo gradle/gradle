@@ -190,7 +190,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, javaPlatform, availablePlatforms);
         } else {
             final boolean moreThanOneBinary = allBinaries.size() > 1;
-            List<String> availablePlatforms = Lists.transform(
+            Set<String> availablePlatforms = new TreeSet<String>(Lists.transform(
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
                     @Override
                     public String apply(BinarySpec input) {
@@ -204,7 +204,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         return null;
                     }
                 }
-            );
+            ));
             StringBuilder error = new StringBuilder(String.format("Cannot find a compatible binary for library '%s' (%s).\n", libraryName, javaPlatform));
             Joiner joiner = Joiner.on(",").skipNulls();
             error.append("    Required platform '").append(javaPlatform.getName()).append("', ");
@@ -228,7 +228,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             for (String dimension : resolveDimensions) {
                 if (!"targetPlatform".equals(dimension)) {
                     error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
-                    Set<String> available = variants.get(dimension);
+                    Set<String> available = new TreeSet<String>(variants.get(dimension));
                     if (!available.isEmpty()) {
                         error.append(", available: ").append(joiner.join(available)).append("\n");
                     } else {
