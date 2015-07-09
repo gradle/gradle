@@ -40,7 +40,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         } else if (credentials instanceof PasswordCredentials) {
             return Cast.uncheckedCast(credentials);
         } else {
-            throw new IllegalStateException("Can not use getCredentials() method when not using PasswordCredentals; please use getCredentials(Class)");
+            throw new IllegalStateException("Can not use getCredentials() method when not using PasswordCredentials; please use getCredentials(Class)");
         }
     }
 
