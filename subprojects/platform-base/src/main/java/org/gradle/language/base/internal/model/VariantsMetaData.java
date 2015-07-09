@@ -23,7 +23,7 @@ public interface VariantsMetaData {
 
     Set<String> getDimensions();
 
-    Object getValueAsString(String dimension);
+    String getValueAsString(String dimension);
 
     <T extends Named> T getValueAsType(Class<T> clazz, String dimension);
 
