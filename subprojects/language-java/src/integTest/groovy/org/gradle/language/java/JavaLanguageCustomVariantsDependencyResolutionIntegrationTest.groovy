@@ -118,7 +118,7 @@ model {
     }
 
     @Unroll
-    def "should fail resolving because a variant dimension doesn't match with second library flavors #flavors"() {
+    def "matching first flavors #firstFlavors with second flavors #secondFlavors #outcome"() {
         given:
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
@@ -129,7 +129,7 @@ model {
     components {
         first(CustomLibrary) {
             javaVersions 6
-            flavors 'release'
+            flavors ${firstFlavors.collect { "'$it'" }.join(',')}
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -140,7 +140,7 @@ model {
         }
         second(CustomLibrary) {
             javaVersions 6
-            flavors ${flavors.collect { "'$it'" }.join(',')}
+            flavors ${secondFlavors.collect { "'$it'" }.join(',')}
             sources {
                 java(JavaSourceSet)
             }
@@ -152,19 +152,29 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         expect:
-        fails ':firstReleaseJar'
-
-        and:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'firstReleaseJar'' source set 'Java source 'first:java''")
-        failure.assertHasCause('Cannot find a compatible binary for library \'second\'')
-        errors.each { err ->
-            assert failure.assertThatCause(Matchers.containsText(err))
+        firstFlavors.each { flavor ->
+            def taskName = "first${flavor.capitalize()}Jar"
+            if (errors[flavor]) {
+                fails taskName
+                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+                failure.assertHasCause("Cannot find a compatible binary for library 'second'")
+                errors[flavor].each { err ->
+                    assert failure.assertThatCause(Matchers.containsText(err))
+                }
+            } else {
+                succeeds taskName
+            }
         }
 
         where:
-        flavors            | errors
-        ['debug']          | ["Required platform 'java6', available: 'java6'", "Required flavor 'release', available: 'debug'"]
-        ['debug', 'other'] | ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]
+        outcome    | firstFlavors         | secondFlavors        | errors
+        'succeeds' | ['release']          | ['release']          | [:]
+        'succeeds' | ['release', 'debug'] | ['release', 'debug'] | [:]
+        'fails'    | ['release']          | ['debug']            | [release: ["Required platform 'java6', available: 'java6'", "Required flavor 'release', available: 'debug'"]]
+        'fails'    | ['release']          | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+        'fails'    | ['release', 'debug'] | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
+        'fails'    | ['release', 'test']  | ['debug', 'other']   | [release: ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"],
+                                                                    test   : ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'test', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]]
     }
 
     void applyJavaPlugin(File buildFile) {
