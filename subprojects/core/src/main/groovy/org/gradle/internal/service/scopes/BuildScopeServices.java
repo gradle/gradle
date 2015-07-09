@@ -230,19 +230,21 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsHandler createSettingsHandler(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
-                                                    ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                    BuildOperationExecutor buildOperationExecutor) {
-        return new SettingsHandler(
-                new DefaultSettingsFinder(
-                        new BuildLayoutFactory()),
-                settingsProcessor,
-                new BuildSourceBuilder(
-                        gradleLauncherFactory,
-                        classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                        cacheRepository,
-                        buildOperationExecutor)
-        );
+    protected SettingsLoader createSettingsLoader(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
+                                                  ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                  BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingSettingsLoader(
+                new SettingsHandler(
+                        new DefaultSettingsFinder(
+                                new BuildLayoutFactory()),
+                        settingsProcessor,
+                        new BuildSourceBuilder(
+                                gradleLauncherFactory,
+                                classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                                cacheRepository,
+                                buildOperationExecutor)
+                ),
+                buildLoader);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
@@ -255,19 +257,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsProcessor createSettingsProcessor() {
-        return new PropertiesLoadingSettingsProcessor(
-                new ScriptEvaluatingSettingsProcessor(
-                        get(ScriptPluginFactory.class),
-                        get(ScriptHandlerFactory.class),
-                        new SettingsFactory(
-                                get(Instantiator.class),
-                                get(ServiceRegistryFactory.class)
+    protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
+                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingSettingsProcessor(
+                new PropertiesLoadingSettingsProcessor(
+                        new ScriptEvaluatingSettingsProcessor(
+                                scriptPluginFactory,
+                                scriptHandlerFactory,
+                                new SettingsFactory(
+                                        instantiator,
+                                        serviceRegistryFactory
+                                ),
+                                propertiesLoader
                         ),
-                        get(IGradlePropertiesLoader.class)
+                        propertiesLoader
                 ),
-                get(IGradlePropertiesLoader.class)
-        );
+                buildOperationExecutor);
     }
 
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {

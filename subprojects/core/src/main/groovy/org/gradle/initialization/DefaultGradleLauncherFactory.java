@@ -124,8 +124,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
-            serviceRegistry.get(SettingsHandler.class),
-            serviceRegistry.get(BuildLoader.class),
+            serviceRegistry.get(SettingsLoader.class),
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
             loggingManager,

@@ -19,7 +19,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
@@ -37,8 +36,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private final GradleInternal gradle;
     private final InitScriptHandler initScriptHandler;
-    private final SettingsHandler settingsHandler;
-    private final BuildLoader buildLoader;
+    private final SettingsLoader settingsLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final LoggingManagerInternal loggingManager;
@@ -52,16 +50,15 @@ public class DefaultGradleLauncher extends GradleLauncher {
     /**
      * Creates a new instance.
      */
-    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                                 BuildLoader buildLoader, BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
+    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
+                                 BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
-        this.settingsHandler = settingsHandler;
-        this.buildLoader = buildLoader;
+        this.settingsLoader = settingsLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
@@ -116,16 +113,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Evaluate init scripts
         initScriptHandler.executeScripts(gradle);
 
-        // Evaluate settings script
-        buildOperationExecutor.run("Load projects", new Runnable() {
-            @Override
-            public void run() {
-                SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
-                buildListener.settingsEvaluated(settings);
-                buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-                buildListener.projectsLoaded(gradle);
-            }
-        });
+        // Calculate projects
+        settingsLoader.findAndLoadSettings(gradle);
 
         // Configure build
         buildOperationExecutor.run("Configure build", new Runnable() {

@@ -51,7 +51,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        events.operations.find { it.descriptor.displayName == "Run init scripts" }
+        def initScripts = events.operation("Run init scripts")
+        initScripts.descriptor.parent == events.operation("Run build").descriptor
     }
 
     def "generates buildSrc operation when there is a nested buildSrc build"() {
@@ -78,6 +79,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        events.operations.find { it.descriptor.displayName == "Build buildSrc" }
+        def buildSrc = events.operation("Build buildSrc")
+        buildSrc.descriptor.parent == events.operation("Run build").descriptor
     }
 }

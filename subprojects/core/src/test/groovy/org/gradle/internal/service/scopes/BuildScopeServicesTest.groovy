@@ -29,11 +29,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.configuration.BuildConfigurer
-import org.gradle.configuration.DefaultBuildConfigurer
-import org.gradle.configuration.DefaultScriptPluginFactory
-import org.gradle.configuration.ImportsReader
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.*
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
@@ -204,7 +200,7 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         expectListenerManagerCreated()
         expect:
-        assertThat(registry.get(SettingsProcessor), instanceOf(PropertiesLoadingSettingsProcessor))
+        assertThat(registry.get(SettingsProcessor), instanceOf(NotifyingSettingsProcessor))
         assertThat(registry.get(SettingsProcessor), sameInstance(registry.get(SettingsProcessor)))
     }
 
