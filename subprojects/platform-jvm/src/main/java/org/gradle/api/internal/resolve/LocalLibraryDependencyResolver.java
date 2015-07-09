@@ -55,6 +55,7 @@ import org.gradle.platform.base.LibrarySpec;
 
 import java.util.*;
 
+
 // TODO: This should really live in platform-base, however we need to inject the library requirements at some
 // point, and for now it is hardcoded to JVM libraries
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
@@ -90,15 +91,15 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
-                Collection<BinarySpec> allVariants = selectedLibrary.getBinaries().values();
-                Collection<? extends BinarySpec> variants = filterBinaries(allVariants);
-                if (!allVariants.isEmpty() && variants.isEmpty()) {
+                Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
+                Collection<? extends BinarySpec> compatibleBinaries = filterBinaries(allBinaries);
+                if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
                     // no compatible variant found
-                    result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, javaPlatform, allVariants)));
-                } else if (variants.size() > 1) {
-                    result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, javaPlatform, variants)));
+                    result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, javaPlatform, allBinaries)));
+                } else if (compatibleBinaries.size() > 1) {
+                    result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, javaPlatform, compatibleBinaries)));
                 } else {
-                    JarBinarySpec jarBinary = (JarBinarySpec) variants.iterator().next();
+                    JarBinarySpec jarBinary = (JarBinarySpec) compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                     buildDependencies.add(jarBinary);
 
@@ -137,7 +138,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                         if (!"targetPlatform".equals(dimension)) {
                             String resolveValue = variantsMetaData.getValueAsString(dimension);
                             String binaryValue = binaryVariants.getValueAsString(dimension);
-                            matching = matching && Objects.equals(resolveValue, binaryValue);
+                            matching = matching && com.google.common.base.Objects.equal(resolveValue, binaryValue);
                         }
                     }
                     if (matching) {
