@@ -25,18 +25,18 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
-import org.gradle.platform.base.Platform;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 
 public class DependentSourceSetResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier binaryId;
     private final DependentSourceSetInternal sourceSet;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
-    private final Platform platform;
+    private final VariantsMetaData variants;
 
-    public DependentSourceSetResolveContext(LibraryBinaryIdentifier binaryId, DependentSourceSetInternal sourceSet, Platform platform) {
+    public DependentSourceSetResolveContext(LibraryBinaryIdentifier binaryId, DependentSourceSetInternal sourceSet, VariantsMetaData variants) {
         this.binaryId = binaryId;
         this.sourceSet = sourceSet;
-        this.platform = platform;
+        this.variants = variants;
     }
 
     @Override
@@ -57,8 +57,8 @@ public class DependentSourceSetResolveContext implements ResolveContext {
         return sourceSet;
     }
 
-    public Platform getPlatform() {
-        return platform;
+    public VariantsMetaData getVariants() {
+        return variants;
     }
 
     @Override

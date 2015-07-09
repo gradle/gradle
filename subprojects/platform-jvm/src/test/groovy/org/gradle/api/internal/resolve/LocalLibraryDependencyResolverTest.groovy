@@ -36,6 +36,7 @@ import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.ComponentSpecContainer
@@ -65,7 +66,9 @@ class LocalLibraryDependencyResolverTest extends Specification {
         projectModelResolver = new DefaultProjectModelResolver(projectRegistry)
         rootProject = mockProject(':')
         platform = new DefaultJavaPlatform(JavaVersion.current())
-        resolver = new LocalLibraryDependencyResolver(projectModelResolver, platform)
+        def variants = Mock(VariantsMetaData)
+        variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
+        resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

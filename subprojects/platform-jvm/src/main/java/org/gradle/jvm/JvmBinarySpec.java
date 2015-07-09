@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Variant;
 
 import java.io.File;
 
@@ -37,6 +38,7 @@ public interface JvmBinarySpec extends BinarySpec {
     /**
      * The target platform for this binary.
      */
+    @Variant
     JavaPlatform getTargetPlatform();
 
     /**

@@ -25,7 +25,6 @@ import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
-import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
@@ -68,7 +67,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         @Override
         public ResolverProvider create(ResolveContext context) {
             LocalLibraryDependencyResolver delegate = new LocalLibraryDependencyResolver(projectModelResolver,
-                (JavaPlatform) ((DependentSourceSetResolveContext) context).getPlatform());
+                ((DependentSourceSetResolveContext) context).getVariants());
             return DelegatingResolverProvider.of(delegate);
         }
     }

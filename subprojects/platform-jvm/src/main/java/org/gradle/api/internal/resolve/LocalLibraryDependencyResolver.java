@@ -45,6 +45,7 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
@@ -73,11 +74,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     };
 
     private final ProjectModelResolver projectModelResolver;
+    private final VariantsMetaData variantsMetaData;
     private final JavaPlatform javaPlatform;
 
-    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, JavaPlatform platform) {
+    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData) {
         this.projectModelResolver = projectModelResolver;
-        this.javaPlatform = platform;
+        this.variantsMetaData = variantsMetaData;
+        this.javaPlatform = variantsMetaData.getValueAsType(JavaPlatform.class, "targetPlatform");
     }
 
     @Override

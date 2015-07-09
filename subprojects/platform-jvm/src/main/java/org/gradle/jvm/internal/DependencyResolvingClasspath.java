@@ -21,12 +21,16 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.util.CollectionUtils;
@@ -54,7 +58,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
-        resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, binary.getTargetPlatform());
+        resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary));
     }
 
     @Override

@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.language.base.internal.DependentSourceSetInternal
+import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.platform.base.DependencySpecContainer
-import org.gradle.platform.base.Platform
 import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,7 +30,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
     def "can convert dependent source set resolve context"() {
         given:
-        def context = createContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal), Mock(Platform))
+        def context = createContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal), Mock(VariantsMetaData))
 
         when:
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -49,7 +49,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         dependencySpecs.iterator() >> { [].iterator() }
         sourceSet.dependencies >> dependencySpecs
 
-        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
+        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(VariantsMetaData))
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -85,7 +85,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
         sourceSet.dependencies >> dependencySpecs
 
-        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(Platform))
+        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(VariantsMetaData))
 
         when: "we create a local component factory"
         def factory = new DependentSourceSetLocalComponentConverter()
@@ -130,7 +130,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
     }
 
-    private static createContext(String path, String library, String variant, DependentSourceSetInternal dependentSourceSetInternal, Platform platform) {
-        return new DependentSourceSetResolveContext(new DefaultLibraryBinaryIdentifier(path, library, variant), dependentSourceSetInternal, platform)
+    private static createContext(String path, String library, String variant, DependentSourceSetInternal dependentSourceSetInternal, VariantsMetaData variantsMetaData) {
+        return new DependentSourceSetResolveContext(new DefaultLibraryBinaryIdentifier(path, library, variant), dependentSourceSetInternal, variantsMetaData)
     }
 }
