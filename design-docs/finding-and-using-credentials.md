@@ -12,18 +12,18 @@ how repository transports and authentication mechanisms are modeled.
 * There is on-going work in progress to improve and encourage the re-use of `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport` implementations. One of the goals of this work is to
 make it easier to contribute new transport implementations from both within Gradle and via community plugins. A unified approach to modeling and configuring credentials will help achieve this goal.
 
-# Use cases 
+# Use cases
 
-There are many use cases where credentials and other secure information must be made available to Gradle: 
+There are many use cases where credentials and other secure information must be made available to Gradle:
 
 * Resolving and downloading a Gradle runtime from a secure repository.
 * Resolving dependencies from a secure repository.
 * Publishing to a secure repository, including publishing plugins to `plugins.gradle.org`.
-* Downloading script plugins from a secure repository. 
+* Downloading script plugins from a secure repository.
 * Signing artifacts. Often the signing material is encrypted in some form.
 * Any custom task or build logic that uses a secure service in some form, for example:
     * Release automation that makes VCS changes.
-    * Release automation that pushes artifacts or makes changes to remote systems. 
+    * Release automation that pushes artifacts or makes changes to remote systems.
 
 Currently out of scope for this specification is any verification of artifacts received from some source, such as validating the signatures of the artifacts.
 Also out of scope is any management of key material, though this of course could be automated by a plugin.
@@ -68,18 +68,18 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 * S3 transport:
     - Credentials: access key + secret key.
-    - Use static credentials. 
+    - Use static credentials.
     - Use AWS credentials file.
     - Use EC2 instance credentials.
     - Use SDK defaults.
-    - All use the same type of credentials, are different providers. 
+    - All use the same type of credentials, are different providers.
     - Can be implemented using various combinations of `AWSCredentialsProvider`.
 * HTTP/HTTPS transport:
     - Basic auth: username + password.
     - Digest auth: username + password.
     - Kerberos: client-to-server ticket + client-to-server session key.
     - NTLM: domain, username, password.
-    - Basic, Kerberos and NTLM can be performce preemptively.
+    - Basic, Kerberos and NTLM can be performed preemptively.
     - Should replace existing username parsing with a public NTLMCredentials type.
     - Kerberos and NTML credentials can usually be provided by the environment (using native APIs or experimental support in http-client)
 * SFTP transport:
@@ -91,7 +91,51 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 # Implementation Plan
 
-## Stories
+## Story: Build author configures the set of authentication protocols to use for an HTTP repository
+
+- If user specifies one or more auth protocols for a repository, limit attempts to those protocols only.
+- Where no auth protocols are configured, attempt all supported auth protocols for HTTP (current behaviour).
+- Use the credentials supplied for the repository for all attempted authentication protocols
+- Fail if an authentication protocol is specified that is not supported by the configured repository transport
+	- Only define HTTP authentication protocols for now
+	- All other repository transports disallow _all_ authentication protocols
+
+```
+    maven {
+        url 'https://repo.somewhere.com/maven'
+        credentials {
+	        username 'user'
+	        password 'pwd'
+	    }
+        authentication(BasicAuth)
+        authentication(NTLMAuth)
+    }
+```
+
+### Test Coverage
+
+- Build fails with error when specifying an authentication protocol for an unsupported transport protocol (currently only HTTP should be supported)
+- Build fails when specifying an authentication protocol when no credentials have been specified
+- All supported authentication protocols are attempted when none are specified
+- When authentication protocols are specified, only those are attempted
+
+## Story: Build author configures Basic Auth to send credentials pre-emptively
+
+```
+    maven {
+        url 'https://repo.somewhere.com/maven'
+        credentials {
+	        username 'user'
+	        password 'pwd'
+	    }
+        authentication(BasicAuth) {
+	        preemptive = true
+	    }
+        authentication(NTLMAuth)
+    }
+```
+
+## Candidate Stories
 
 * Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
 * Implement an authentication protocol to facilitate preemptive basic authentication with HTTP repositories.
@@ -146,6 +190,17 @@ repositories {
         authentication(BasicAuth) {
             preemptive = true
             credentials(basicAuthCreds)
+        }
+    }
+    maven {
+        url 'https://repo.somewhere.com/maven'
+        //Auth protocol with credentials and configuration
+        authentication(BasicAuth) {
+            preemptive = true
+            credentials {
+	            username 'foo'
+	            password 'bar'
+            }
         }
     }
 
