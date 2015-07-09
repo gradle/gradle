@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -75,7 +76,7 @@ model {
 model {
     components {
         first(CustomLibrary) {
-            flavors 'release', 'debug'
+            flavors 'paid', 'free'
             sources {
                 java(JavaSourceSet) {
                     dependencies {
@@ -85,7 +86,7 @@ model {
             }
         }
         second(CustomLibrary) {
-            flavors 'release', 'debug'
+            flavors 'paid', 'free'
             sources {
                 java(JavaSourceSet)
             }
@@ -93,16 +94,16 @@ model {
     }
 
     tasks {
-        firstReleaseDefaultJar {
+        firstPaidDefaultJar {
             doLast {
-                assert compileFirstReleaseDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstReleaseDefaultJarFirstJava).contains(secondReleaseDefaultJar)
-                assert compileFirstReleaseDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondReleaseDefaultJar/second.jar")] as Set
+                assert compileFirstPaidDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstPaidDefaultJarFirstJava).contains(secondPaidDefaultJar)
+                assert compileFirstPaidDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondPaidDefaultJar/second.jar")] as Set
             }
         }
-        firstDebugDefaultJar {
+        firstFreeDefaultJar {
             doLast {
-                assert compileFirstDebugDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstDebugDefaultJarFirstJava).contains(secondDebugDefaultJar)
-                assert compileFirstDebugDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondDebugDefaultJar/second.jar")] as Set
+                assert compileFirstFreeDefaultJarFirstJava.taskDependencies.getDependencies(compileFirstFreeDefaultJarFirstJava).contains(secondFreeDefaultJar)
+                assert compileFirstFreeDefaultJarFirstJava.classpath.files == [file("${buildDir}/jars/secondFreeDefaultJar/second.jar")] as Set
             }
         }
     }
@@ -112,8 +113,8 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         expect:
-        succeeds ':firstReleaseDefaultJar'
-        succeeds ':firstDebugDefaultJar'
+        succeeds ':firstPaidDefaultJar'
+        succeeds ':firstFreeDefaultJar'
 
     }
 
@@ -157,41 +158,52 @@ model {
 
         expect:
         def flavorsToTest = firstFlavors ?: ['default']
-        flavorsToTest.each { flavor ->
-            def taskName = "first${flavor.capitalize()}DefaultJar"
-            if (errors[flavor]) {
-                fails taskName
-                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                errors[flavor].each { err ->
-                    failure.assertThatCause(containsText(err))
+        def buildTypesToTest = firstBuildTypes ?: ['default']
+        Set consumedErrors = []
+        buildTypesToTest.each { buildType ->
+            flavorsToTest.each { flavor ->
+                String taskName = "first${flavor.capitalize()}${buildType.capitalize()}Jar"
+                if (errors[taskName]) {
+                    consumedErrors << taskName
+                    fails taskName
+                    failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+                    errors[taskName].each { err ->
+                        failure.assertThatCause(containsText(err))
+                    }
+                } else {
+                    succeeds taskName
                 }
-            } else {
-                succeeds taskName
             }
         }
 
+        and:
+        // sanity check to make sure that we use all errors defined in the spec, in case the name of tasks change due
+        // to internal implementation changes or variant values changes
+        errors.keySet() == consumedErrors
+
+
         where:
-        outcome    | firstFlavors         | secondFlavors        | errors
-        'succeeds' | []                   | []                   | [:]
-        'succeeds' | []                   | ['release']          | [:]
-        'fails'    | []                   | ['release', 'debug'] | [default: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDebugDefaultJar', Jar 'secondReleaseDefaultJar']"]]
-        'succeeds' | ['release']          | ['release']          | [:]
-        'succeeds' | ['release', 'debug'] | ['release', 'debug'] | [:]
-        'fails'    | ['release']          | ['debug']            | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6'",
-                                                                              "Required flavor 'release', available: 'debug'"]]
-        'fails'    | ['release']          | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
-        'fails'    | ['release', 'debug'] | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
-        'fails'    | ['release', 'test']  | ['debug', 'other']   | [release: ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
-                                                                              "Required flavor 'release', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"],
-                                                                    test   : ["Cannot find a compatible binary for library 'second'",
-                                                                              "Required platform 'java6', available: 'java6' on Jar 'secondDebugDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
-                                                                              "Required flavor 'test', available: 'debug' on Jar 'secondDebugDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
+        outcome    | firstFlavors     | secondFlavors     | firstBuildTypes | secondBuildTypes | errors
+        'succeeds' | []               | []                | []              | []               | [:]
+        'succeeds' | []               | ['paid']          | []              | []               | [:]
+        'fails'    | []               | ['paid', 'free']  | []              | []               | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDefaultJar', Jar 'secondPaidDefaultJar']"]]
+        'succeeds' | ['paid']         | ['paid']          | []              | []               | [:]
+        'succeeds' | ['paid', 'free'] | ['paid', 'free']  | []              | []               | [:]
+        'fails'    | ['paid']         | ['free']          | []              | []               | [firstPaidDefaultJar: ["Cannot find a compatible binary for library 'second'",
+                                                                                                                        "Required platform 'java6', available: 'java6'",
+                                                                                                                        "Required flavor 'paid', available: 'free'"]]
+        'fails'    | ['paid']         | ['free', 'other'] | []              | []               | [firstPaidDefaultJar: ["Cannot find a compatible binary for library 'second'",
+                                                                                                                        "Required platform 'java6', available: 'java6' on Jar 'secondFreeDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                                                                        "Required flavor 'paid', available: 'free' on Jar 'secondFreeDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
+        'fails'    | ['paid', 'free'] | ['free', 'other'] | []              | []               | [firstPaidDefaultJar: ["Cannot find a compatible binary for library 'second'",
+                                                                                                                        "Required platform 'java6', available: 'java6' on Jar 'secondFreeDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                                                                        "Required flavor 'paid', available: 'free' on Jar 'secondFreeDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
+        'fails'    | ['paid', 'test'] | ['free', 'other'] | []              | []               | [firstPaidDefaultJar: ["Cannot find a compatible binary for library 'second'",
+                                                                                                                        "Required platform 'java6', available: 'java6' on Jar 'secondFreeDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                                                                        "Required flavor 'paid', available: 'free' on Jar 'secondFreeDefaultJar','other' on Jar 'secondOtherDefaultJar'"],
+                                                                                                  firstTestDefaultJar: ["Cannot find a compatible binary for library 'second'",
+                                                                                                                        "Required platform 'java6', available: 'java6' on Jar 'secondFreeDefaultJar','java6' on Jar 'secondOtherDefaultJar'",
+                                                                                                                        "Required flavor 'test', available: 'free' on Jar 'secondFreeDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
     }
 
     void applyJavaPlugin(File buildFile) {
