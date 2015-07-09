@@ -16,14 +16,14 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
+import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
 
-class PlayMultiProjectReloadIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
+class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
     PlayApp playApp = new PlayMultiProject()
     TestFile playRunBuildFile = file("primary/build.gradle")

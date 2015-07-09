@@ -16,12 +16,12 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.play.integtest.fixtures.AbstractPlayContinuousBuildIntegrationTest
+import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
-class PlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
+class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp()
 
