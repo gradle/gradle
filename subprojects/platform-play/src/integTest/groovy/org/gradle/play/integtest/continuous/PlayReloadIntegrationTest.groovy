@@ -130,4 +130,39 @@ var message = "Hello JS";
         succeeds()
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
     }
+
+    def "reload is not triggered if task dependency of play run task fails" () {
+        given:
+        staticTimeController()
+
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+        def time = runningApp.playUrl('java/time').text
+
+        when:
+        file("app/controllers/jva/PureJava.java") << "XXX"
+        expectBuildFailure = true
+
+        then:
+        fails()
+
+        and: "controller class has not been reloaded"
+        runningApp.playUrl('java/time').text == time
+    }
+
+    void staticTimeController() {
+        file("conf/jva.routes") << "\nGET     /time                   controllers.jva.PureJava.time"
+        file("app/controllers/jva/PureJava.java").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+                  private static long time = System.currentTimeMillis();
+                  public static Result time() {
+                    return ok(String.format("%d", time));
+                  }
+                }
+            ''')
+        }
+    }
 }

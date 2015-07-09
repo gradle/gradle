@@ -821,7 +821,7 @@ Existing BuildLink adapter can be used with minor modifications.
 - ~~User changes a model class and sees the change reflected in the running app.~~
 - ~~User changes a twirl template and sees the change reflected in the running app.~~
 - ~~User changes a static asset and sees the change reflected in the running app.~~
-- Reload is not triggered if dependency of play run task fails
+- ~~Reload is not triggered if dependency of play run task fails~~
 
 ### Story: Reloading changes in multi-project Play application
 
