@@ -15,7 +15,10 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Matchers
+import spock.lang.Unroll
 
 class JavaLanguageCustomVariantsDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -114,16 +117,18 @@ model {
 
     }
 
-    def "should fail resolving because a variant dimension doesn't match"() {
+    @Unroll
+    def "should fail resolving because a variant dimension doesn't match with second library flavors #flavors"() {
         given:
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
 
-        buildFile << '''
+        buildFile << """
 
 model {
     components {
         first(CustomLibrary) {
+            javaVersions 6
             flavors 'release'
             sources {
                 java(JavaSourceSet) {
@@ -134,14 +139,15 @@ model {
             }
         }
         second(CustomLibrary) {
-            flavors 'debug'
+            javaVersions 6
+            flavors ${flavors.collect { "'$it'" }.join(',')}
             sources {
                 java(JavaSourceSet)
             }
         }
     }
 }
-'''
+"""
         file('src/first/java/FirstApp.java') << 'public class FirstApp extends SecondApp {}'
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
@@ -151,8 +157,14 @@ model {
         and:
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'firstReleaseJar'' source set 'Java source 'first:java''")
         failure.assertHasCause('Cannot find a compatible binary for library \'second\'')
-        // todo: error message *has* to include the available variants
+        errors.each { err ->
+            assert failure.assertThatCause(Matchers.containsText(err))
+        }
 
+        where:
+        flavors            | errors
+        ['debug']          | ["Required platform 'java6', available: 'java6'", "Required flavor 'release', available: 'debug'"]
+        ['debug', 'other'] | ["Required platform 'java6', available: 'java6' on Jar 'secondDebugJar','java6' on Jar 'secondOtherJar'", "Required flavor 'release', available: 'debug' on Jar 'secondDebugJar','other' on Jar 'secondOtherJar'"]
     }
 
     void applyJavaPlugin(File buildFile) {

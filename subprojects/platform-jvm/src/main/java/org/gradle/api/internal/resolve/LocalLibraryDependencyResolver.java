@@ -95,9 +95,9 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 Collection<? extends BinarySpec> compatibleBinaries = filterBinaries(allBinaries);
                 if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
                     // no compatible variant found
-                    result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, javaPlatform, allBinaries)));
+                    result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, allBinaries)));
                 } else if (compatibleBinaries.size() > 1) {
-                    result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, javaPlatform, compatibleBinaries)));
+                    result.failed(new ModuleVersionResolveException(selector, multipleBinariesForSameVariantErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     JarBinarySpec jarBinary = (JarBinarySpec) compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
@@ -172,19 +172,72 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private static String multipleBinariesForSameVariantErrorMessage(String libraryName, JavaPlatform javaPlatform, Collection<? extends BinarySpec> variants) {
+    private String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> variants) {
         return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, javaPlatform, variants);
     }
 
-    private static String noCompatiblePlatformErrorMessage(String libraryName, JavaPlatform javaPlatform, Collection<BinarySpec> allVariants) {
-        return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, javaPlatform, Lists.transform(
-            Lists.newArrayList(allVariants), new Function<BinarySpec, String>() {
-                @Override
-                public String apply(BinarySpec input) {
-                    return input instanceof JvmBinarySpec ? ((JvmBinarySpec) input).getTargetPlatform().toString() : input.toString();
+    private String noCompatiblePlatformErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
+        Set<String> resolveDimensions = variantsMetaData.getDimensions();
+        if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
+            List<String> availablePlatforms = Lists.transform(
+                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
+                    @Override
+                    public String apply(BinarySpec input) {
+                        return input instanceof JvmBinarySpec ? ((JvmBinarySpec) input).getTargetPlatform().toString() : input.toString();
+                    }
+                }
+            );
+            return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, javaPlatform, availablePlatforms);
+        } else {
+            final boolean moreThanOneBinary = allBinaries.size() > 1;
+            List<String> availablePlatforms = Lists.transform(
+                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
+                    @Override
+                    public String apply(BinarySpec input) {
+                        if (input instanceof JvmBinarySpec) {
+                            JavaPlatform targetPlatform = ((JvmBinarySpec) input).getTargetPlatform();
+                            if (moreThanOneBinary) {
+                                return String.format("'%s' on %s", targetPlatform.getName(), input.getDisplayName());
+                            }
+                            return String.format("'%s'", targetPlatform.getName(), input.getDisplayName());
+                        }
+                        return null;
+                    }
+                }
+            );
+            StringBuilder error = new StringBuilder(String.format("Cannot find a compatible binary for library '%s' (%s).\n", libraryName, javaPlatform));
+            Joiner joiner = Joiner.on(",").skipNulls();
+            error.append("    Required platform '").append(javaPlatform.getName()).append("', ");
+            error.append("available: ").append(joiner.join(availablePlatforms));
+            error.append("\n");
+            HashMultimap<String, String> variants = HashMultimap.create();
+            for (BinarySpec spec : allBinaries) {
+                VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec);
+                for (String dimension : resolveDimensions) {
+                    String value = md.getValueAsString(dimension);
+                    if (value != null) {
+                        if (moreThanOneBinary) {
+                            variants.put(dimension, String.format("'%s' on %s", value, spec.getDisplayName()));
+                        } else {
+                            variants.put(dimension, String.format("'%s'", value, spec.getDisplayName()));
+                        }
+                    }
                 }
             }
-        ));
+
+            for (String dimension : resolveDimensions) {
+                if (!"targetPlatform".equals(dimension)) {
+                    error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
+                    Set<String> available = variants.get(dimension);
+                    if (!available.isEmpty()) {
+                        error.append(", available: ").append(joiner.join(available)).append("\n");
+                    } else {
+                        error.append(" but no compatible binary was found");
+                    }
+                }
+            }
+            return error.toString();
+        }
     }
 
     private static String prettyResolutionErrorMessage(
