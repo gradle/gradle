@@ -78,7 +78,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "dependencies"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
+        failure.assertThatCause(Matchers.startsWith("The following model rules could not be applied"))
 
         where:
         annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
