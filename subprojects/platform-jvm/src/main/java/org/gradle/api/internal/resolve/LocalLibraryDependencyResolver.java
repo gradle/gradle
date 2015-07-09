@@ -17,10 +17,7 @@ package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.collect.*;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -45,6 +42,7 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
@@ -127,11 +125,24 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return values;
         }
         TreeMultimap<JavaPlatform, JvmBinarySpec> platformToBinary = TreeMultimap.create(JAVA_PLATFORM_COMPARATOR, JVM_BINARY_SPEC_COMPARATOR);
+        Set<String> resolveDimensions = variantsMetaData.getDimensions();
         for (BinarySpec binarySpec : values) {
             if (binarySpec instanceof JvmBinarySpec) {
                 JvmBinarySpec jvmSpec = (JvmBinarySpec) binarySpec;
-                if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility())<=0) {
-                    platformToBinary.put(jvmSpec.getTargetPlatform(), jvmSpec);
+                if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
+                    VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(jvmSpec);
+                    Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getDimensions());
+                    boolean matching = true;
+                    for (String dimension : commonsDimensions) {
+                        if (!"targetPlatform".equals(dimension)) {
+                            String resolveValue = variantsMetaData.getValueAsString(dimension);
+                            String binaryValue = binaryVariants.getValueAsString(dimension);
+                            matching = matching && Objects.equals(resolveValue, binaryValue);
+                        }
+                    }
+                    if (matching) {
+                        platformToBinary.put(jvmSpec.getTargetPlatform(), jvmSpec);
+                    }
                 }
             }
         }
@@ -197,8 +208,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibrarySpec notMatchingRequirements = result.getNonMatchingLibrary();
             if (notMatchingRequirements != null) {
                 sb.append(" contains a library named '").append(libraryName)
-                  .append("' but it is not a ")
-                  .append(JvmLibrarySpec.class.getSimpleName());
+                    .append("' but it is not a ")
+                    .append(JvmLibrarySpec.class.getSimpleName());
             } else {
                 sb.append(" does not contain library '").append(libraryName).append("'. Did you want to use ");
                 if (candidateLibraries.size() == 1) {
@@ -239,7 +250,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
             ConfigurationMetaData configuration = component.getConfiguration(usage.getConfigurationName());
-            if (configuration!=null) {
+            if (configuration != null) {
                 Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
                 result.resolved(artifacts);
             }
