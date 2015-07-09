@@ -43,13 +43,18 @@ public class ComponentBinaryRules extends RuleSource {
             public void execute(BinarySpec binary) {
                 for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                     // TODO - allow view as internal type and remove the cast
-                    register((BinarySpecInternal) binary, component.getName(), languageRegistration);
+                    registerLanguageSourceSets((BinarySpecInternal) binary, component.getName(), languageRegistration);
                 }
+                addComponentSourceSetsToBinaryInputs(binary, component);
             }
 
-            private <U extends LanguageSourceSet> void register(BinarySpecInternal binary, String componentName, LanguageRegistration<U> languageRegistration) {
+            private <U extends LanguageSourceSet> void registerLanguageSourceSets(BinarySpecInternal binary, String componentName, LanguageRegistration<U> languageRegistration) {
                 NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(componentName);
                 binary.getEntityInstantiator().registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
+            }
+
+            private void addComponentSourceSetsToBinaryInputs(BinarySpec binary, ComponentSpec component) {
+                binary.getInputs().addAll(component.getSources().values());
             }
         });
     }

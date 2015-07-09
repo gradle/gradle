@@ -192,18 +192,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-        void addComponentSourceSetsToBinaries(ComponentSpecContainer componentSpecs) {
-            for (final ComponentSpec componentSpec : componentSpecs.values()) {
-                componentSpec.getBinaries().beforeEach(new Action<BinarySpec>() {
-                    @Override
-                    public void execute(BinarySpec binary) {
-                        binary.getInputs().addAll(componentSpec.getSources().values());
-                    }
-                });
-            }
-        }
-
+        // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
         @Finalize
         void addSourceSetsOwnedByBinariesToTheirInputs(BinaryContainer binarySpecs) {
             for (BinarySpec binary : binarySpecs) {
