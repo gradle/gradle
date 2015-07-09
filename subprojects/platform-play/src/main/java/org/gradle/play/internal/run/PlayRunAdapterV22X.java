@@ -16,8 +16,9 @@
 
 package org.gradle.play.internal.run;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
+
+import java.util.Collections;
 
 public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
     @Override
@@ -37,6 +38,6 @@ public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
 
     @Override
     public Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion) {
-        return Lists.newArrayList();
+        return Collections.emptySet();
     }
 }
