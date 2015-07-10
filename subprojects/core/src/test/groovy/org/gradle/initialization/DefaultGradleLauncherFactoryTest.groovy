@@ -18,13 +18,14 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
-    final ServiceRegistry sharedServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
+    final ServiceRegistry sharedServices = new BuildSessionScopeServices(new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false)))
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
 
     def "makes services from build context available as build scoped services"() {
