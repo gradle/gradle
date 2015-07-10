@@ -140,7 +140,7 @@ model {
         // "selected" contains the information about the expected selected binaries
         // so we are going to build the "tasks" block which is going to make the assertions about
         // the selected component binary
-        String tasksBlock = generateCheckDependenciesDSLBlock(selected, buildTypesToTest, flavorsToTest, jdk1)
+        String tasksBlock = generateCheckDependenciesDSLBlockForCustomComponent(selected, buildTypesToTest, flavorsToTest, jdk1)
 
         buildFile << """
 
@@ -255,7 +255,7 @@ model {
         // "selected" contains the information about the expected selected binaries
         // so we are going to build the "tasks" block which is going to make the assertions about
         // the selected component binary
-        String tasksBlock = generateCheckDependenciesDSLBlock(selected, buildTypesToTest, flavorsToTest, jdk1)
+        String tasksBlock = generateCheckDependenciesDSLBlockForCustomComponent(selected, buildTypesToTest, flavorsToTest, jdk1)
 
         buildFile << """
 
@@ -325,6 +325,99 @@ model {
         outcome = errors ? 'fails' : 'succeeds'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    @Unroll("matching Java #jdk1 with custom {jdk #jdk2, flavors #flavors2, builtTypes #buildTypes2} #outcome")
+    def "building a standard JarBinarySpec instance and resolving against a library with custom binary types. "() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        def flavorsDSL = flavors2 ? 'flavors ' + flavors2.collect { "'$it'" }.join(',') : ''
+        def buildTypesDSL = buildTypes2 ? 'buildTypes ' + buildTypes2.collect { "'$it'" }.join(',') : ''
+        def javaVersionsDSL = "javaVersions ${jdk2.join(',')}"
+        def targetPlatformsDSL = "${jdk1.collect { "targetPlatform 'java$it' " }.join('\n')}"
+
+        // "selected" contains the information about the expected selected binaries
+        // so we are going to build the "tasks" block which is going to make the assertions about
+        // the selected component binary
+        String tasksBlock = generateCheckDependenciesDSLBlockForJavaLibrary(selected, jdk1)
+
+        buildFile << """
+
+model {
+    components {
+        first(JvmLibrarySpec) {
+            $targetPlatformsDSL
+            sources {
+                java {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(CustomLibrary) {
+
+            $javaVersionsDSL
+            $flavorsDSL
+            $buildTypesDSL
+
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+
+    $tasksBlock
+}
+"""
+        file('src/first/java/FirstApp.java') << 'public class FirstApp extends SecondApp {}'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
+
+        expect:
+        Set consumedErrors = []
+        forEachJavaBinary(jdk1) { String taskName ->
+            if (errors[taskName]) {
+                consumedErrors << taskName
+                fails taskName
+                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+                errors[taskName].each { err ->
+                    failure.assertThatCause(containsText(err))
+                }
+            } else {
+                succeeds taskName
+            }
+        }
+
+        and:
+        // sanity check to make sure that we use all errors defined in the spec, in case the name of tasks change due
+        // to internal implementation changes or variant values changes
+        errors.keySet() == consumedErrors
+
+        where:
+        jdk1   | buildTypes2          | flavors2         | jdk2   | selected                               | errors
+        [6]    | []                   | []               | [6]    | [:]                                    | [:]
+        [6]    | ['debug']            | ['free']         | [6, 7] | [firstJar: 'secondFreeDebug6Jar']      | [:]
+        [6, 7] | ['debug']            | ['free']         | [6, 7] | [java6FirstJar: 'secondFreeDebug6Jar',
+                                                                     java7FirstJar: 'secondFreeDebug7Jar'] | [:]
+        [5, 6] | ['debug']            | ['free']         | [6, 7] | [java6FirstJar: 'secondFreeDebug6Jar'] | [java5FirstJar: ["Cannot find a compatible binary for library 'second' (Java SE 5). Available platforms: [Java SE 6, Java SE 7]"]]
+        [6]    | ['debug', 'release'] | []               | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDefaultDebug6Jar', Jar 'secondDefaultRelease6Jar']"]]
+        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDebug6Jar', Jar 'secondFreeRelease6Jar', Jar 'secondPaidDebug6Jar', Jar 'secondPaidRelease6Jar']"]]
+
+        and:
+        outcome = errors ? 'fails' : 'succeeds'
+    }
+
+    private static void forEachJavaBinary(List<Integer> platforms, Closure calledWithTaskName) {
+        if (platforms.size() == 1) {
+            calledWithTaskName 'firstJar'
+        } else {
+            platforms.each { platform ->
+                calledWithTaskName "java${platform}FirstJar"
+            }
+        }
+    }
+
     private static void forEachCustomBinary(List<String> buildTypesToTest, List<String> flavorsToTest, List<Integer> jdksToTest, Closure calledWithTaskName) {
         buildTypesToTest.each { buildType ->
             flavorsToTest.each { flavor ->
@@ -336,11 +429,11 @@ model {
         }
     }
 
-    private static String generateCheckDependenciesDSLBlock(Map<String, String> selected, List<String> buildTypesToTest, List<String> flavorsToTest, List<Integer> jdksToTest) {
+    private static String generateCheckDependenciesDSLBlock(Map<String, String> selected, Closure loop) {
         def checkTasks = [:]
         def taskNames = []
 
-        forEachCustomBinary(buildTypesToTest, flavorsToTest, jdksToTest) { taskName ->
+        loop { taskName ->
             if (selected[taskName]) {
                 def target = selected[taskName]
                 checkTasks[taskName] = """
@@ -369,6 +462,14 @@ model {
             }
 """ : ''
         tasksBlock
+    }
+
+    private static String generateCheckDependenciesDSLBlockForCustomComponent(Map<String, String> selected, List<String> buildTypesToTest, List<String> flavorsToTest, List<Integer> jdksToTest) {
+        generateCheckDependenciesDSLBlock(selected, this.&forEachCustomBinary.curry(buildTypesToTest, flavorsToTest, jdksToTest))
+    }
+
+    private static String generateCheckDependenciesDSLBlockForJavaLibrary(Map<String, String> selected, List<Integer> jdksToTest) {
+        generateCheckDependenciesDSLBlock(selected, this.&forEachJavaBinary.curry(jdksToTest))
     }
 
     void applyJavaPlugin(File buildFile) {
