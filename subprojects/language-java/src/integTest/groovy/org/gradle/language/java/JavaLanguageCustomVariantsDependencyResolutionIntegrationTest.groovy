@@ -140,33 +140,7 @@ model {
         // "selected" contains the information about the expected selected binaries
         // so we are going to build the "tasks" block which is going to make the assertions about
         // the selected component binary
-        def checkTasks = [:]
-        buildTypesToTest.each { buildType ->
-            flavorsToTest.each { flavor ->
-                String taskName = "first${flavor.capitalize()}${buildType.capitalize()}Jar"
-                if (selected[taskName]) {
-                    def target = selected[taskName]
-                    checkTasks[taskName] = """
-                $taskName {
-                    doLast {
-                        def t = $taskName
-                        while (!(t instanceof PlatformJavaCompile)) {
-                            t = t.taskDependencies.getDependencies(t)[0]
-                        }
-                        assert t.classpath.files == [file("\${buildDir}/jars/$target/second.jar")] as Set
-                    }
-                }
-"""
-                }
-            }
-        }
-
-        def tasksBlock = checkTasks ? """
-            tasks {
-                ${checkTasks.values().join('\n')}
-            }
-""" : ''
-
+        String tasksBlock = generateCheckDependenciesDSLBlock(selected, buildTypesToTest, flavorsToTest, jdk1)
 
         buildFile << """
 
@@ -206,19 +180,16 @@ model {
 
         expect:
         Set consumedErrors = []
-        buildTypesToTest.each { buildType ->
-            flavorsToTest.each { flavor ->
-                String taskName = "first${flavor.capitalize()}${buildType.capitalize()}Jar"
-                if (errors[taskName]) {
-                    consumedErrors << taskName
-                    fails taskName
-                    failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                    errors[taskName].each { err ->
-                        failure.assertThatCause(containsText(err))
-                    }
-                } else {
-                    succeeds taskName
+        forEachCustomBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
+            if (errors[taskName]) {
+                consumedErrors << taskName
+                fails taskName
+                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+                errors[taskName].each { err ->
+                    failure.assertThatCause(containsText(err))
                 }
+            } else {
+                succeeds taskName
             }
         }
 
@@ -238,11 +209,15 @@ model {
                                                                                                                                                                                        "Required buildType 'release', available: 'debug'"]]
         [6]  | []          | []               | [6]       | ['release', 'debug'] | ['paid', 'free']  | [:]                                                 | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDebugJar', Jar 'secondFreeReleaseJar', Jar 'secondPaidDebugJar', Jar 'secondPaidReleaseJar']"]]
         [6]  | []          | ['paid']         | [6]       | []                   | ['paid']          | [firstPaidDefaultJar: 'secondPaidDefaultJar']       | [:]
-        [6]  | []          | ['paid', 'free'] | [6]       | []                   | ['paid', 'free']  | [firstFreeDebugJar: 'secondFreeDebugJar',
-                                                                                                        firstPaidDebugJar: 'secondPaidDebugJar']           | [:]
+        [6]  | []          | ['paid', 'free'] | [6]       | []                   | ['paid', 'free']  | [firstFreeDefaultJar: 'secondFreeDefaultJar',
+                                                                                                        firstPaidDefaultJar: 'secondPaidDefaultJar']       | [:]
         [6]  | ['debug']   | ['free']         | [6]       | ['debug', 'release'] | ['free']          | [firstFreeDebugJar: 'secondFreeDebugJar']           | [:]
         [6]  | ['debug']   | ['free']         | [6]       | ['debug']            | ['free', 'paid']  | [firstFreeDebugJar: 'secondFreeDebugJar']           | [:]
         [6]  | ['debug']   | ['free']         | [5, 6, 7] | ['debug']            | ['free']          | [firstFreeDebugJar: 'secondFreeDebug6Jar']          | [:]
+        [6]  | ['debug']   | ['free']         | [7]       | ['debug']            | ['free']          | [:]                                                 | [firstFreeDebugJar: ["Cannot find a compatible binary for library 'second' (Java SE 6)",
+                                                                                                                                                                                  "Required platform 'java6', available: 'java7'",
+                                                                                                                                                                                  "Required flavor 'free', available: 'free'",
+                                                                                                                                                                                  "Required buildType 'debug', available: 'debug'"]]
         [6]  | []          | ['paid']         | [6]       | []                   | ['free']          | [:]                                                 | [firstPaidDefaultJar: ["Cannot find a compatible binary for library 'second'",
                                                                                                                                                                                     "Required platform 'java6', available: 'java6'",
                                                                                                                                                                                     "Required flavor 'paid', available: 'free'"]]
@@ -260,6 +235,140 @@ model {
                                                                                                                                                                                     "Required flavor 'test', available: 'free' on Jar 'secondFreeDefaultJar','other' on Jar 'secondOtherDefaultJar'"]]
         and:
         outcome = errors ? 'fails' : 'succeeds'
+    }
+
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    @Unroll("matching custom {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with Java {jdk #jdk2} #outcome")
+    def "building a custom binary type and resolving against a library with standard JarBinarySpec instances"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        def firstFlavorsDSL = flavors1 ? 'flavors ' + flavors1.collect { "'$it'" }.join(',') : ''
+        def firstBuildTypesDSL = buildTypes1 ? 'buildTypes ' + buildTypes1.collect { "'$it'" }.join(',') : ''
+        def firstJavaVersionsDSL = "javaVersions ${jdk1.join(',')}"
+        def secondJavaVersionsDSL = "${jdk2.collect { "targetPlatform 'java$it' " }.join('\n')}"
+
+        def flavorsToTest = flavors1 ?: ['default']
+        def buildTypesToTest = buildTypes1 ?: ['default']
+
+        // "selected" contains the information about the expected selected binaries
+        // so we are going to build the "tasks" block which is going to make the assertions about
+        // the selected component binary
+        String tasksBlock = generateCheckDependenciesDSLBlock(selected, buildTypesToTest, flavorsToTest, jdk1)
+
+        buildFile << """
+
+model {
+    components {
+        first(CustomLibrary) {
+
+            $firstJavaVersionsDSL
+            $firstFlavorsDSL
+            $firstBuildTypesDSL
+
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+        second(JvmLibrarySpec) {
+            $secondJavaVersionsDSL
+        }
+    }
+
+    $tasksBlock
+}
+"""
+        file('src/first/java/FirstApp.java') << 'public class FirstApp extends SecondApp {}'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
+
+        expect:
+        Set consumedErrors = []
+        forEachCustomBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
+            if (errors[taskName]) {
+                consumedErrors << taskName
+                fails taskName
+                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+                errors[taskName].each { err ->
+                    failure.assertThatCause(containsText(err))
+                }
+            } else {
+                succeeds taskName
+            }
+        }
+
+        and:
+        // sanity check to make sure that we use all errors defined in the spec, in case the name of tasks change due
+        // to internal implementation changes or variant values changes
+        errors.keySet() == consumedErrors
+
+        where:
+        jdk1   | buildTypes1          | flavors1         | jdk2   | selected                                | errors
+        [6]    | []                   | []               | [6]    | [:]                                     | [:]
+        [6]    | ['debug']            | ['free']         | [6, 7] | [firstFreeDebugJar: 'java6SecondJar']   | [:]
+        [6, 7] | ['debug']            | ['free']         | [6, 7] | [firstFreeDebug6Jar: 'java6SecondJar',
+                                                                     firstFreeDebug7Jar: 'java7SecondJar']  | [:]
+        [5, 6] | ['debug']            | ['free']         | [6, 7] | [firstFreeDebug6Jar: 'java6SecondJar']  | [firstFreeDebug5Jar: ["Cannot find a compatible binary for library 'second' (Java SE 5)",
+                                                                                                                                    "Required platform 'java5', available: 'java6' on Jar 'java6SecondJar','java7' on Jar 'java7SecondJar'",
+                                                                                                                                    "Required flavor 'free' but no compatible binary was found",
+                                                                                                                                    "Required buildType 'debug' but no compatible binary was found"]]
+        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [firstFreeDebugJar  : 'java6SecondJar',
+                                                                     firstFreeReleaseJar: 'java6SecondJar',
+                                                                     firstPaidDebugJar  : 'java6SecondJar',
+                                                                     firstPaidReleaseJar: 'java6SecondJar'] | [:]
+
+        and:
+        outcome = errors ? 'fails' : 'succeeds'
+    }
+
+    private static void forEachCustomBinary(List<String> buildTypesToTest, List<String> flavorsToTest, List<Integer> jdksToTest, Closure calledWithTaskName) {
+        buildTypesToTest.each { buildType ->
+            flavorsToTest.each { flavor ->
+                jdksToTest.each { jdk ->
+                    String javaVersion = jdksToTest.size() > 1 ? "$jdk" : ''
+                    calledWithTaskName "first${flavor.capitalize()}${buildType.capitalize()}${javaVersion}Jar"
+                }
+            }
+        }
+    }
+
+    private static String generateCheckDependenciesDSLBlock(Map<String, String> selected, List<String> buildTypesToTest, List<String> flavorsToTest, List<Integer> jdksToTest) {
+        def checkTasks = [:]
+        def taskNames = []
+
+        forEachCustomBinary(buildTypesToTest, flavorsToTest, jdksToTest) { taskName ->
+            if (selected[taskName]) {
+                def target = selected[taskName]
+                checkTasks[taskName] = """
+                $taskName {
+                    doLast {
+                        def t = $taskName
+                        while (!(t instanceof PlatformJavaCompile)) {
+                            t = t.taskDependencies.getDependencies(t)[0]
+                        }
+                        assert t.classpath.files == [file("\${buildDir}/jars/$target/second.jar")] as Set
+                    }
+                }
+"""
+            } else {
+                taskNames << taskName
+            }
+        }
+
+        if (checkTasks.keySet() != selected.keySet()) {
+            throw new IllegalArgumentException("The following tasks are declared in the datatable 'selected' column but not found in the generated tasks: ${selected.keySet() - checkTasks.keySet()}. Possible solutions = $taskNames")
+        }
+
+        def tasksBlock = checkTasks ? """
+            tasks {
+                ${checkTasks.values().join('\n')}
+            }
+""" : ''
+        tasksBlock
     }
 
     void applyJavaPlugin(File buildFile) {

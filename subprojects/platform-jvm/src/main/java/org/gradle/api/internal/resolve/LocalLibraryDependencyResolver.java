@@ -232,7 +232,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     if (!available.isEmpty()) {
                         error.append(", available: ").append(joiner.join(available)).append("\n");
                     } else {
-                        error.append(" but no compatible binary was found");
+                        error.append(" but no compatible binary was found\n");
                     }
                 }
             }
