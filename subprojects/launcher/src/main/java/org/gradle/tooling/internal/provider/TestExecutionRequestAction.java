@@ -17,10 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
-
-import java.util.Collection;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
@@ -37,7 +34,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return startParameter;
     }
 
-    public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors() {
-        return testExecutionRequest.getTestExecutionDescriptors();
+    public InternalTestExecutionRequest getTestExecutionRequest() {
+        return testExecutionRequest;
     }
 }

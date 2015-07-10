@@ -264,7 +264,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":test")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == "Requested test task with path ':secondTest' cannot be found in project 'testproject'."
+        e.cause.message == "Requested test task with path ':secondTest' cannot be found."
     }
 
 

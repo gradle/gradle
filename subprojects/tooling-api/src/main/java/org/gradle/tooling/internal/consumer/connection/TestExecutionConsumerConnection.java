@@ -18,11 +18,9 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.tooling.test.TestExecutionException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.DefaultInternalJvmTestExecutionDescriptor;
@@ -37,6 +35,7 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescrip
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequest;
+import org.gradle.tooling.test.TestExecutionException;
 
 import java.util.Collection;
 import java.util.List;
@@ -74,14 +73,6 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
         }
         InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors);
         return internalTestExecutionRequest;
-    }
-
-    private void assertOnlyJvmTestOperatorDescriptors(Collection<TestOperationDescriptor> testOperationDescriptors) {
-        for (TestOperationDescriptor testOperationDescriptor : testOperationDescriptors) {
-            if (!(testOperationDescriptor instanceof JvmTestOperationDescriptor)) {
-                throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
-            }
-        }
     }
 
     private String findTaskPath(JvmTestOperationDescriptor descriptor) {

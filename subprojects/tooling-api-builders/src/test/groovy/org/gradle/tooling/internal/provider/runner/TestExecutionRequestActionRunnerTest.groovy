@@ -21,6 +21,7 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest
 import org.gradle.tooling.internal.provider.PayloadSerializer
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import spock.lang.Specification
@@ -47,10 +48,14 @@ class TestExecutionRequestActionRunnerTest extends Specification {
         BuildController buildController= Mock(BuildController)
 
         GradleInternal gradleInternal = newGradleInternal()
+        InternalTestExecutionRequest testExecutionRequest = Mock()
+
         1 * buildController.gradle >> gradleInternal
         StartParameter startParameter = new StartParameter();
         1 * testExecutionRequestAction.startParameter >> startParameter
-        1 * testExecutionRequestAction.testExecutionDescriptors >> [testExecutionDescriptor("testTask", "TestClass", "testMethod")]
+        1 * testExecutionRequestAction.testExecutionRequest >> testExecutionRequest
+        1 * testExecutionRequest.testExecutionDescriptors >> [testExecutionDescriptor("testTask", "TestClass", "testMethod")]
+
         when:
         runner.run(testExecutionRequestAction, buildController)
         then:
