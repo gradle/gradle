@@ -20,51 +20,21 @@ class BaseSerializerFactoryTest extends SerializerSpec {
     def factory = new BaseSerializerFactory()
 
     def "uses efficient serialization for Strings"() {
-        def encoder = Mock(Encoder)
-        def decoder = Mock(Decoder)
-
-        when:
+        expect:
         def serializer = factory.getSerializerFor(String)
-        serializer.write(encoder, "hi")
-        def result = serializer.read(decoder)
-
-        then:
-        result == "bye"
-        1 * encoder.writeString("hi")
-        1 * decoder.readString() >> "bye"
-        0 * _
+        usesEfficientSerialization("hi", serializer, 3) == "hi"
     }
 
     def "uses efficient serialization for Files"() {
-        def encoder = Mock(Encoder)
-        def decoder = Mock(Decoder)
-
-        when:
+        expect:
         def serializer = factory.getSerializerFor(File)
-        serializer.write(encoder, new File("some-file"))
-        def result = serializer.read(decoder)
-
-        then:
-        result == new File("some-file")
-        1 * encoder.writeString("some-file")
-        1 * decoder.readString() >> "some-file"
-        0 * _
+        usesEfficientSerialization(new File("some-file"), serializer, 10) == new File("some-file")
     }
 
     def "uses efficient serialization for Long"() {
-        def encoder = Mock(Encoder)
-        def decoder = Mock(Decoder)
-
-        when:
+        expect:
         def serializer = factory.getSerializerFor(Long)
-        serializer.write(encoder, 123L)
-        def result = serializer.read(decoder)
-
-        then:
-        result == 456L
-        1 * encoder.writeLong(123L)
-        1 * decoder.readLong() >> 456L
-        0 * _
+        usesEfficientSerialization(123L, serializer) == 123L
     }
 
     enum Letters {
@@ -72,37 +42,24 @@ class BaseSerializerFactoryTest extends SerializerSpec {
     }
 
     def "uses efficient serialization for Enum"() {
-        def encoder = Mock(Encoder)
-        def decoder = Mock(Decoder)
-
-        when:
+        expect:
         def serializer = factory.getSerializerFor(Letters)
-        serializer.write(encoder, Letters.B)
-        def result = serializer.read(decoder)
-
-        then:
-        result == Letters.C
-        1 * encoder.writeSmallInt(1)
-        1 * decoder.readSmallInt() >> 2
-        0 * _
+        usesEfficientSerialization(Letters.B, serializer) == Letters.B
     }
 
     def "uses efficient serialization for byte arrays"() {
-        def s = factory.getSerializerFor(byte[])
-        def os = new ByteArrayOutputStream()
-        s.write(new OutputStreamBackedEncoder(os), new byte[5])
-
         expect:
-        def result = serialize(new byte[5], s)
+        def serializer = factory.getSerializerFor(byte[])
+        def result = usesEfficientSerialization(new byte[5], serializer)
         result instanceof byte[]
         result.length == 5
     }
 
-    def "can serialize string maps"() {
-        def s = BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER
+    def "uses efficient serialization for string maps"() {
+        def serializer = BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER
 
         expect:
-        serialize(map, s) == map
+        usesEfficientSerialization(map, serializer) == map
 
         where:
         map << [
@@ -117,9 +74,9 @@ class BaseSerializerFactoryTest extends SerializerSpec {
 
     class Thing {}
 
-    def "serialize booleans"() {
+    def "uses efficient serialization for booleans"() {
         expect:
-        serialize(true, factory.getSerializerFor(Boolean))
-        !serialize(false, factory.getSerializerFor(Boolean))
+        usesEfficientSerialization(true, factory.getSerializerFor(Boolean))
+        !usesEfficientSerialization(false, factory.getSerializerFor(Boolean))
     }
 }

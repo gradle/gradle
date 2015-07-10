@@ -21,10 +21,10 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.*;
-import org.gradle.messaging.remote.internal.Message;
 
 public class TestEventSerializer {
     public static Serializer<Object[]> create() {
+        BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
@@ -36,7 +36,7 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
-        registry.register(Throwable.class, new ThrowableSerializer());
+        registry.register(Throwable.class, factory.getSerializerFor(Throwable.class));
         return new ObjectArraySerializer(registry.build());
     }
 
@@ -59,16 +59,6 @@ public class TestEventSerializer {
             if (value != null) {
                 serializer.write(encoder, value);
             }
-        }
-    }
-
-    private static class ThrowableSerializer implements Serializer<Throwable> {
-        public Throwable read(Decoder decoder) throws Exception {
-            return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
-        }
-
-        public void write(Encoder encoder, Throwable value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
         }
     }
 
