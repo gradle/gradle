@@ -32,7 +32,6 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
-import org.gradle.util.ConfigureUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -433,7 +432,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 .setStandardError(new TeeOutputStream(stderr, System.err))
         }
 
-        ConfigureUtil.configure(confgurationClosure, testLauncher)
+        confgurationClosure.call(testLauncher)
 
         if(resultHandler == null){
             testLauncher.run()
