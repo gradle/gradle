@@ -181,16 +181,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachFlavorAndBuildTypeBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
-            if (errors[taskName]) {
-                consumedErrors << taskName
-                fails taskName
-                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                errors[taskName].each { err ->
-                    failure.assertThatCause(containsText(err))
-                }
-            } else {
-                succeeds taskName
-            }
+            checkResolution(errors, consumedErrors, taskName)
         }
 
         and:
@@ -295,16 +286,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachFlavorAndBuildTypeBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
-            if (errors[taskName]) {
-                consumedErrors << taskName
-                fails taskName
-                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                errors[taskName].each { err ->
-                    failure.assertThatCause(containsText(err))
-                }
-            } else {
-                succeeds taskName
-            }
+            checkResolution(errors, consumedErrors, taskName)
         }
 
         and:
@@ -383,16 +365,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachJavaBinary(jdk1) { String taskName ->
-            if (errors[taskName]) {
-                consumedErrors << taskName
-                fails taskName
-                failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
-                errors[taskName].each { err ->
-                    failure.assertThatCause(containsText(err))
-                }
-            } else {
-                succeeds taskName
-            }
+            checkResolution(errors, consumedErrors, taskName)
         }
 
         and:
@@ -420,6 +393,106 @@ model {
         outcome = errors ? 'fails' : 'succeeds'
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    @Unroll("matching custom1 {jdk #jdk1, flavors #flavors) with custom2 {jdk #jdk2, builtTypes #buildTypes} #outcome")
+    def "building a custom JarBinarySpec type and resolving against a library with a different custom JarBinarySpec type"() {
+        given:
+        applyJavaPlugin(buildFile)
+        addCustomLibraryType(buildFile)
+
+        def flavorsDSL = flavors ? 'flavors ' + flavors.collect { "'$it'" }.join(',') : ''
+        def buildTypesDSL = buildTypes ? 'buildTypes ' + buildTypes.collect { "'$it'" }.join(',') : ''
+        def javaVersionsDSL1 = "javaVersions ${jdk1.join(',')}"
+        def javaVersionsDSL2 = "javaVersions ${jdk2.join(',')}"
+
+        // "selected" contains the information about the expected selected binaries
+        // so we are going to build the "tasks" block which is going to make the assertions about
+        // the selected component binary
+        def flavorsToTest = flavors ?: ['default']
+        String tasksBlock = generateCheckDependenciesDSLBlockForFlavorLibrary(selected, flavorsToTest, jdk1)
+
+        buildFile << """
+
+model {
+    components {
+        first(FlavorOnlyLibrary) {
+
+            $javaVersionsDSL1
+            $flavorsDSL
+
+            sources {
+                java(JavaSourceSet) {
+                    dependencies {
+                        library 'second'
+                    }
+                }
+            }
+        }
+
+        second(BuildTypeOnlyLibrary) {
+
+            $javaVersionsDSL2
+            $buildTypesDSL
+
+            sources {
+                java(JavaSourceSet)
+            }
+        }
+    }
+
+    $tasksBlock
+}
+"""
+        file('src/first/java/FirstApp.java') << 'public class FirstApp extends SecondApp {}'
+        file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
+
+        expect:
+        Set consumedErrors = []
+        forEachFlavor(flavorsToTest, jdk1) { String taskName ->
+            checkResolution(errors, consumedErrors, taskName)
+        }
+
+        and:
+        // sanity check to make sure that we use all errors defined in the spec, in case the name of tasks change due
+        // to internal implementation changes or variant values changes
+        errors.keySet() == consumedErrors
+
+        where:
+        jdk1   | flavors          | buildTypes           | jdk2   | selected                           | errors
+        [6]    | []               | []                   | [6]    | [:]                                | [:]
+        [6]    | ['free']         | ['debug']            | [6, 7] | [firstFreeJar: 'secondDebug6Jar']  | [:]
+        [6, 7] | ['free']         | ['debug']            | [6, 7] | [firstFree6Jar: 'secondDebug6Jar',
+                                                                     firstFree7Jar: 'secondDebug7Jar'] | [:]
+        [5, 6] | ['free']         | ['debug']            | [6, 7] | [firstFree6Jar: 'secondDebug6Jar'] | [firstFree5Jar: ["Cannot find a compatible binary for library 'second' (Java SE 5)",
+                                                                                                                          "Required platform 'java5', available: 'java6' on Jar 'secondDebug6Jar','java7' on Jar 'secondDebug7Jar'",
+                                                                                                                          "Required flavor 'free' but no compatible binary was found"]]
+        [6]    | []               | ['debug', 'release'] | [6, 7] | [:]                                | [firstDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                            "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
+                                                                                                                            "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+        [6]    | ['free', 'paid'] | ['debug', 'release'] | [6, 7] | [:]                                | [firstFreeJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"],
+                                                                                                          firstPaidJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                         "Jar 'secondDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+
+        and:
+        outcome = errors ? 'fails' : 'succeeds'
+    }
+
+    private void checkResolution(Map<String, String> errors, Set<String> consumedErrors, String taskName) {
+        if (errors[taskName]) {
+            consumedErrors << taskName
+            fails taskName
+            failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$taskName'' source set 'Java source 'first:java''")
+            errors[taskName].each { err ->
+                failure.assertThatCause(containsText(err))
+            }
+        } else {
+            succeeds taskName
+        }
+    }
+
     private static void forEachJavaBinary(List<Integer> platforms, Closure calledWithTaskName) {
         if (platforms.size() == 1) {
             calledWithTaskName 'firstJar'
@@ -437,6 +510,15 @@ model {
                     String javaVersion = jdksToTest.size() > 1 ? "$jdk" : ''
                     calledWithTaskName "first${flavor.capitalize()}${buildType.capitalize()}${javaVersion}Jar"
                 }
+            }
+        }
+    }
+
+    private static void forEachFlavor(List<String> flavorsToTest, List<Integer> jdksToTest, Closure calledWithTaskName) {
+        flavorsToTest.each { flavor ->
+            jdksToTest.each { jdk ->
+                String javaVersion = jdksToTest.size() > 1 ? "$jdk" : ''
+                calledWithTaskName "first${flavor.capitalize()}${javaVersion}Jar"
             }
         }
     }
@@ -484,6 +566,10 @@ model {
         generateCheckDependenciesDSLBlock(selected, this.&forEachJavaBinary.curry(jdksToTest))
     }
 
+    private static String generateCheckDependenciesDSLBlockForFlavorLibrary(Map<String, String> selected, List<String> flavors, List<Integer> jdksToTest) {
+        generateCheckDependenciesDSLBlock(selected, this.&forEachFlavor.curry(flavors, jdksToTest))
+    }
+
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
 plugins {
@@ -501,58 +587,112 @@ import org.gradle.platform.base.internal.PlatformResolvers
 
 trait JavaVersionsAware {
     List<Integer> javaVersions = []
+
     void javaVersions(int ... platforms) { javaVersions.addAll(platforms) }
 }
+
 trait FlavorAware {
     List<String> flavors = []
+
     void flavors(String... fvs) { flavors.addAll(fvs) }
 }
+
 trait BuildTypeAware {
     List<BuildType> buildTypes = []
+
     void buildTypes(String... bts) { buildTypes.addAll(bts.collect { new DefaultBuildType(name: it) }) }
 }
 
-trait FlavorAndBuildTypeAwareLibrary implements LibrarySpec, JavaVersionsAware, FlavorAware, BuildTypeAware { }
+// define the 3 types of libraries used in the tests: flavor only, build type only, and both (all of them include Java version)
+trait FlavorOnlyLibrary implements LibrarySpec, JavaVersionsAware, FlavorAware {}
+
+trait BuildTypeOnlyLibrary implements LibrarySpec, JavaVersionsAware, BuildTypeAware {}
+
+trait FlavorAndBuildTypeAwareLibrary implements LibrarySpec, JavaVersionsAware, FlavorAware, BuildTypeAware {}
 
 interface BuildType extends Named {}
-class DefaultBuildType implements BuildType { String name }
+
+class DefaultBuildType implements BuildType {
+    String name
+}
 
 trait FlavorJarBinarySpec implements JarBinarySpec {
     String flavor
-    @Variant getFlavor() { flavor }
+
+    @Variant
+    getFlavor() { flavor }
 }
+
 trait BuildTypeJarBinarySpec implements JarBinarySpec {
     BuildType buildType
+
     @Variant
     BuildType getBuildType() { buildType }
 }
+
 trait FlavorAndBuildTypeJarBinarySpec implements FlavorJarBinarySpec, BuildTypeJarBinarySpec {}
+
+// define the 3 concrete binary types used in tests (flavor, build type and both)
+class FlavorBinary extends DefaultJarBinarySpec implements FlavorJarBinarySpec {
+    // workaround for Groovy bug
+    JvmBinaryTasks getTasks() { super.tasks }
+}
+
+class BuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeJarBinarySpec {
+    // workaround for Groovy bug
+    JvmBinaryTasks getTasks() { super.tasks }
+}
 
 class FlavorAndBuildTypeBinary extends DefaultJarBinarySpec implements FlavorAndBuildTypeJarBinarySpec {
     // workaround for Groovy bug
     JvmBinaryTasks getTasks() { super.tasks }
 }
 
-class DefaultFlavorAndBuildTypeAwareLibrary extends BaseComponentSpec implements FlavorAndBuildTypeAwareLibrary {    }
+// define the 3 concrete library types
+class DefaultFlavorOnlyLibrary extends BaseComponentSpec implements FlavorOnlyLibrary {}
+
+class DefaultBuildTypeOnlyLibrary extends BaseComponentSpec implements BuildTypeOnlyLibrary {}
+
+class DefaultFlavorAndBuildTypeAwareLibrary extends BaseComponentSpec implements FlavorAndBuildTypeAwareLibrary {}
 
 class ComponentTypeRules extends RuleSource {
 
     @ComponentType
-    void registerCustomComponentType(ComponentTypeBuilder<FlavorAndBuildTypeAwareLibrary> builder) {
+    void registerFlavorAndBuildTypeComponent(ComponentTypeBuilder<FlavorAndBuildTypeAwareLibrary> builder) {
         builder.defaultImplementation(DefaultFlavorAndBuildTypeAwareLibrary)
     }
 
+    @ComponentType
+    void registerFlavorOnlyComponent(ComponentTypeBuilder<FlavorOnlyLibrary> builder) {
+        builder.defaultImplementation(DefaultFlavorOnlyLibrary)
+    }
+
+    @ComponentType
+    void registerBuildTypeOnlyComponent(ComponentTypeBuilder<BuildTypeOnlyLibrary> builder) {
+        builder.defaultImplementation(DefaultBuildTypeOnlyLibrary)
+    }
+
     @BinaryType
-    void registerJar(BinaryTypeBuilder<FlavorAndBuildTypeJarBinarySpec> builder) {
+    void registerFlavorAndBuildTypeJar(BinaryTypeBuilder<FlavorAndBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(FlavorAndBuildTypeBinary)
     }
 
+    @BinaryType
+    void registerFlavorOnlyJar(BinaryTypeBuilder<FlavorJarBinarySpec> builder) {
+        builder.defaultImplementation(FlavorBinary)
+    }
+
+    @BinaryType
+    void registerBuildTypeOnlyJar(BinaryTypeBuilder<BuildTypeJarBinarySpec> builder) {
+        builder.defaultImplementation(BuildTypeBinary)
+    }
+
     @ComponentBinaries
-    void createBinaries(ModelMap<FlavorAndBuildTypeJarBinarySpec> binaries,
-                        FlavorAndBuildTypeAwareLibrary library,
-                        PlatformResolvers platforms,
-                        @Path("buildDir") File buildDir,
-                        JavaToolChainRegistry toolChains) {
+    void createFlavorAndBuildTypeBinaries(ModelMap<FlavorAndBuildTypeJarBinarySpec> binaries,
+                                          FlavorAndBuildTypeAwareLibrary library,
+                                          PlatformResolvers platforms,
+                                          @Path("buildDir") File buildDir,
+                                          JavaToolChainRegistry toolChains) {
 
         def javaVersions = library.javaVersions ?: [JavaVersion.current().majorVersion]
         def flavors = library.flavors ?: ['default']
@@ -564,9 +704,6 @@ class ComponentTypeRules extends RuleSource {
                     def toolChain = toolChains.getForPlatform(platform)
                     def baseName = "${library.name}${flavor.capitalize()}${buildType.name.capitalize()}"
                     String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
-                    while (binaries.containsKey(binaryName)) {
-                        binaryName = "${binaryName}x"
-                    }
                     binaries.create(binaryName) { jar ->
                         jar.toolChain = toolChain
                         jar.targetPlatform = platform
@@ -576,6 +713,58 @@ class ComponentTypeRules extends RuleSource {
                         if (library.buildTypes) {
                             jar.buildType = buildType
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @ComponentBinaries
+    void createFlavorOnlyBinaries(ModelMap<FlavorJarBinarySpec> binaries,
+                                  FlavorOnlyLibrary library,
+                                  PlatformResolvers platforms,
+                                  @Path("buildDir") File buildDir,
+                                  JavaToolChainRegistry toolChains) {
+
+        def javaVersions = library.javaVersions ?: [JavaVersion.current().majorVersion]
+        def flavors = library.flavors ?: ['default']
+        javaVersions.each { version ->
+            flavors.each { flavor ->
+                def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
+                def toolChain = toolChains.getForPlatform(platform)
+                def baseName = "${library.name}${flavor.capitalize()}"
+                String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                binaries.create(binaryName) { jar ->
+                    jar.toolChain = toolChain
+                    jar.targetPlatform = platform
+                    if (library.flavors) {
+                        jar.flavor = flavor
+                    }
+                }
+            }
+        }
+    }
+
+   @ComponentBinaries
+    void createBuildTypeOnlyBinaries(ModelMap<BuildTypeJarBinarySpec> binaries,
+                                  BuildTypeOnlyLibrary library,
+                                  PlatformResolvers platforms,
+                                  @Path("buildDir") File buildDir,
+                                  JavaToolChainRegistry toolChains) {
+
+        def javaVersions = library.javaVersions ?: [JavaVersion.current().majorVersion]
+        def buildTypes = library.buildTypes ?: [ new DefaultBuildType(name:'default')]
+        javaVersions.each { version ->
+            buildTypes.each { buildType ->
+                def platform = platforms.resolve(JavaPlatform, DefaultPlatformRequirement.create("java${version}"))
+                def toolChain = toolChains.getForPlatform(platform)
+                def baseName = "${library.name}${buildType.name.capitalize()}"
+                String binaryName = "$baseName${javaVersions.size() > 1 ? version : ''}Jar"
+                binaries.create(binaryName) { jar ->
+                    jar.toolChain = toolChain
+                    jar.targetPlatform = platform
+                    if (library.buildTypes) {
+                        jar.buildType = buildType
                     }
                 }
             }
