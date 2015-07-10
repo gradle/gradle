@@ -146,7 +146,6 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                 for (final String testTaskPath : testTaskPaths) {
                     gradle.getRootProject().getTasks().findByPath(testTaskPath);
                     final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
-                    ;
                     if (task == null) {
                         throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
                     } else if (!(task instanceof Test)) {

@@ -15,15 +15,9 @@
  */
 
 package org.gradle.tooling.internal.provider.runner
-import org.gradle.StartParameter
-import org.gradle.api.internal.GradleInternal
+
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest
-import org.gradle.tooling.internal.provider.PayloadSerializer
-import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import spock.lang.Specification
 
 class TestExecutionRequestActionRunnerTest extends Specification {
@@ -38,46 +32,5 @@ class TestExecutionRequestActionRunnerTest extends Specification {
         then:
         0 * buildController._
         0 * buildAction._
-    }
-
-    def "configures tasks to run from passed TestExecutionDescriptors"(){
-        given:
-        def runner = new TestExecutionRequestActionRunner()
-
-        TestExecutionRequestAction testExecutionRequestAction = Mock(TestExecutionRequestAction)
-        BuildController buildController= Mock(BuildController)
-
-        GradleInternal gradleInternal = newGradleInternal()
-        InternalTestExecutionRequest testExecutionRequest = Mock()
-
-        1 * buildController.gradle >> gradleInternal
-        StartParameter startParameter = new StartParameter();
-        1 * testExecutionRequestAction.startParameter >> startParameter
-        1 * testExecutionRequestAction.testExecutionRequest >> testExecutionRequest
-        1 * testExecutionRequest.testExecutionDescriptors >> [testExecutionDescriptor("testTask", "TestClass", "testMethod")]
-
-        when:
-        runner.run(testExecutionRequestAction, buildController)
-        then:
-        startParameter.taskNames == ["testTask"]
-        1 * buildController.run()
-        1 * buildController.setResult(_)
-    }
-
-    private GradleInternal newGradleInternal() {
-        GradleInternal gradleInternal = Mock(GradleInternal)
-        ServiceRegistry serviceRegistry = Mock()
-        _ * gradleInternal.getServices() >> serviceRegistry
-        PayloadSerializer payloadSerializer = Mock()
-        1 * serviceRegistry.get(PayloadSerializer.class) >> payloadSerializer
-        gradleInternal
-    }
-
-    private InternalJvmTestExecutionDescriptor testExecutionDescriptor(String taskPath, String className, String methodName) {
-        InternalJvmTestExecutionDescriptor testExecutionDescriptor = Mock(InternalJvmTestExecutionDescriptor)
-        _ * testExecutionDescriptor.taskPath >> taskPath
-        _ * testExecutionDescriptor.className >> className
-        _ * testExecutionDescriptor.methodName >> methodName
-        testExecutionDescriptor
     }
 }
