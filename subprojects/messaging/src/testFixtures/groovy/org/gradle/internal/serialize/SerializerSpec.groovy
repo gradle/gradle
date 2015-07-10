@@ -20,7 +20,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
-class SerializerSpec extends Specification {
+abstract class SerializerSpec extends Specification {
     public <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
         return fromBytes(bytes, serializer)

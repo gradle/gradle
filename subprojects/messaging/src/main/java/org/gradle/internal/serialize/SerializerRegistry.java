@@ -17,7 +17,19 @@
 package org.gradle.internal.serialize;
 
 public interface SerializerRegistry<T> {
+    /**
+     * Use the given serializer for objects of the given type.
+     */
     <U extends T> void register(Class<U> implementationType, Serializer<U> serializer);
 
+    /**
+     * Use Java serialization for the specified type and all subtypes. Should be avoided, but useful when migrating to using serializers or when dealing with
+     * arbitrary user types.
+     */
+    <U extends T> void useJavaSerialization(Class<U> implementationType);
+
+    /**
+     * Creates a serializer that uses the current registrations.
+     */
     Serializer<T> build();
 }
