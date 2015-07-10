@@ -53,7 +53,8 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
     }
 
     private static class TaggedTypeSerializer<T> implements Serializer<T> {
-        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo((byte) 0, new DefaultSerializer<Object>());
+        private static final int JAVA_TYPE = 1; // Reserve 0 for null (to be added later)
+        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo((byte) JAVA_TYPE, new DefaultSerializer<Object>());
         private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
         private final Map<Byte, TypeInfo> serializersByTag = new HashMap<Byte, TypeInfo>();
         private final Set<Class<?>> javaSerialization;
@@ -67,7 +68,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         }
 
         private void add(Class<?> type, Serializer<?> serializer) {
-            TypeInfo typeInfo = new TypeInfo((byte) serializersByTag.size(), serializer);
+            TypeInfo typeInfo = new TypeInfo((byte) (serializersByTag.size() + JAVA_TYPE), serializer);
             serializersByType.put(type, typeInfo);
             serializersByTag.put(typeInfo.tag, typeInfo);
         }

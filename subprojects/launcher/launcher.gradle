@@ -24,6 +24,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ':languageJava')
+useTestFixtures(project: ':messaging')
 
 integTestTasks.all {
     if (isCiServer) {

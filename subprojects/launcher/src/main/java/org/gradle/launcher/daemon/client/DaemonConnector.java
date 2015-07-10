@@ -31,7 +31,7 @@ public interface DaemonConnector {
      * @return A connection to a matching daemon, or null if not running.
      */
     @Nullable
-    public DaemonClientConnection maybeConnect(DaemonInstanceDetails daemonAddress);
+    DaemonClientConnection maybeConnect(DaemonInstanceDetails daemonAddress);
 
     /**
      * Attempts to connect to a daemon that matches the given constraint.
@@ -39,18 +39,18 @@ public interface DaemonConnector {
      * @return A connection to a matching daemon, or null if none running.
      */
     @Nullable
-    public DaemonClientConnection maybeConnect(ExplainingSpec<DaemonContext> constraint);
+    DaemonClientConnection maybeConnect(ExplainingSpec<DaemonContext> constraint);
 
     /**
      * Connects to a daemon that matches the given constraint, starting one if required.
      *
      * @return A connection to a matching daemon. Never returns null.
      */
-    public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint);
+    DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint);
 
     /**
      * Starts a new daemon and returns a connection to it.
      */
-    public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint);
+    DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint);
 
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.serialize
 
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.messaging.remote.internal.Message
 import spock.lang.Specification
 
 abstract class SerializerSpec extends Specification {
@@ -33,7 +34,11 @@ abstract class SerializerSpec extends Specification {
     public <T> T usesEfficientSerialization(T value, Serializer<T> serializer, Integer expectedLength = null) {
         def bytes = toBytes(value, serializer)
         def length = bytes.length
-        def defaultLength = toBytes(value, new DefaultSerializer<T>()).length
+
+        def defaultBytes = new ByteArrayOutputStream()
+        Message.send(value, defaultBytes)
+        def defaultLength = defaultBytes.size()
+
         println "${length} < ${defaultLength}"
         assert length < defaultLength
         assert expectedLength == null || length == expectedLength
