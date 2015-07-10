@@ -31,6 +31,7 @@ import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.slf4j.Logger;
@@ -88,11 +89,12 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             paramSerializer = new JavaSerializer<Object[]>(methodParamClassLoader);
         }
 
-        MessageSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
-                new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
-                        new MethodInvocationSerializer(
-                                methodParamClassLoader,
-                                paramSerializer)));
+        MessageSerializer<InterHubMessage> serializer = new KryoBackedMessageSerializer<InterHubMessage>(
+                new InterHubMessageSerializer(
+                        new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
+                                new MethodInvocationSerializer(
+                                        methodParamClassLoader,
+                                        paramSerializer))));
 
         connection = completion.create(serializer);
         hub.addConnection(connection);
