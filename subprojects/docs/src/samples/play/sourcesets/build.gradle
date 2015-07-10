@@ -20,6 +20,26 @@ dependencies {
     playTest "com.google.guava:guava:17.0"
 }
 
+// START SNIPPET default-sourcesets
+model {
+    components {
+        play {
+            sources {
+                java {
+                    source.srcDir "additional/java"
+                }
+                routes {
+                    source {
+                        srcDir "additional/routes"
+                        include "**/*.rts"
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET default-sourcesets
+
 // START SNIPPET play-extra-sourcesets
 model {
     components {

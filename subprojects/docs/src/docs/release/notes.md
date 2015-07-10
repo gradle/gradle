@@ -12,11 +12,21 @@ Add-->
 
 ### Play Framework Support (i)
 
-Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.  This is the initial iteration of the plugin.
+Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.  This support allows users
+to model, build, test, run and package Play applications.  It includes support for:
 
-Future releases will increase the support for other features and versions of the Play Framework.  The Gradle distribution comes with several sample builds using Play for you to try out.
+* Compiling Scala and Java controllers, tests, and model classes
+* Processing routes files
+* Processing Twirl templates
+* Compiling coffeescript assets
+* Minifying javascript assets
+* Running tests with the JUnitRunner
+* Running applications in development mode
+* Staging and creating Play distribution packages
 
-See the new User Guide section about using the [`play` plugin](userguide/play_plugin.html).
+Future releases will add more features and versions of the Play Framework.
+
+See the [User Guide](userguide/play_plugin.html) for more information on using the `play` plugin as well as the sample builds delivered with the Gradle distribution.
 
 ### Support for verifying Gradle wrapper distribution download against SHA-256 hash
 

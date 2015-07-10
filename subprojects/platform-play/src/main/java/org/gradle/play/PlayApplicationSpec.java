@@ -29,6 +29,17 @@ public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
     /**
      * Specifies a {@link org.gradle.play.platform.PlayPlatform} with a given set of requirements that this
      * component should be built be for.
+     * <pre>
+     *     model {
+     *          components {
+     *              play {
+     *                  platform play: '2.3.2'
+     *                  platform play: '2.3.6', scala: '2.10'
+     *                  platform play: '2.3.7', scala: '2.11', java: '1.8'
+     *              }
+     *          }
+     *      }
+     * </pre>
      * @param platformRequirements Map of Play requirements or the name of an Play platform.
      */
     void platform(Object platformRequirements);

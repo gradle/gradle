@@ -23,7 +23,7 @@ dependencies {
 // START SNIPPET play-custom-distribution
 model {
     distributions {
-        play {
+        playBinary {
             contents {
                 from("README")
             }
