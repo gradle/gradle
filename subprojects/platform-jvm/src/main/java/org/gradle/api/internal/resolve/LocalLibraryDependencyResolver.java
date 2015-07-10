@@ -71,6 +71,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return o1.getDisplayName().compareTo(o2.getDisplayName());
         }
     };
+    private static final String TARGET_PLATFORM = "targetPlatform";
 
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
@@ -79,7 +80,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData) {
         this.projectModelResolver = projectModelResolver;
         this.variantsMetaData = variantsMetaData;
-        this.javaPlatform = variantsMetaData.getValueAsType(JavaPlatform.class, "targetPlatform");
+        this.javaPlatform = variantsMetaData.getValueAsType(JavaPlatform.class, TARGET_PLATFORM);
     }
 
     @Override
@@ -135,7 +136,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getDimensions());
                     boolean matching = true;
                     for (String dimension : commonsDimensions) {
-                        if (isPlatformDimension(dimension)) {
+                        if (!isPlatformDimension(dimension)) {
                             String resolveValue = variantsMetaData.getValueAsString(dimension);
                             String binaryValue = binaryVariants.getValueAsString(dimension);
                             matching = matching && com.google.common.base.Objects.equal(resolveValue, binaryValue);
@@ -200,8 +201,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private boolean isPlatformDimension(String dimension) {
-        return !"targetPlatform".equals(dimension);
+    private static boolean isPlatformDimension(String dimension) {
+        return TARGET_PLATFORM.equals(dimension);
     }
 
     private String noCompatiblePlatformErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
@@ -254,7 +255,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             }
 
             for (String dimension : resolveDimensions) {
-                if (isPlatformDimension(dimension)) {
+                if (!isPlatformDimension(dimension)) {
                     error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
                     Set<String> available = new TreeSet<String>(variants.get(dimension));
                     if (!available.isEmpty()) {
