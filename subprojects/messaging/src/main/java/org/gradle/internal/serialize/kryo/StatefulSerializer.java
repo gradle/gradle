@@ -22,7 +22,13 @@ import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 
 public interface StatefulSerializer<T> {
+    /**
+     * Should not perform any buffering
+     */
     ObjectReader<T> newReader(Decoder decoder);
 
+    /**
+     * Should not perform any buffering
+     */
     ObjectWriter<T> newWriter(Encoder encoder);
 }
