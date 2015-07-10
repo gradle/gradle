@@ -203,11 +203,17 @@ model {
         [6]  | []          | []               | [6]       | []                   | []                | [:]                                                 | [:]
         [6]  | []          | []               | [6]       | []                   | []                | [firstDefaultDefaultJar: 'secondDefaultDefaultJar'] | [:]
         [6]  | []          | []               | [6]       | []                   | ['paid']          | [firstDefaultDefaultJar: 'secondPaidDefaultJar']    | [:]
-        [6]  | []          | []               | [6]       | []                   | ['paid', 'free']  | [:]                                                 | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDefaultJar', Jar 'secondPaidDefaultJar']"]]
+        [6]  | []          | []               | [6]       | []                   | ['paid', 'free']  | [:]                                                 | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                                                                                       "Jar 'secondFreeDefaultJar'", "flavor 'free'",
+                                                                                                                                                                                       "Jar 'secondPaidDefaultJar'", "flavor 'paid'"]]
         [6]  | ['release'] | []               | [6]       | ['debug']            | []                | [:]                                                 | [firstDefaultReleaseJar: ["Cannot find a compatible binary for library 'second' (Java SE 6).",
                                                                                                                                                                                        "Required platform 'java6', available: 'java6'",
                                                                                                                                                                                        "Required buildType 'release', available: 'debug'"]]
-        [6]  | []          | []               | [6]       | ['release', 'debug'] | ['paid', 'free']  | [:]                                                 | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDebugJar', Jar 'secondFreeReleaseJar', Jar 'secondPaidDebugJar', Jar 'secondPaidReleaseJar']"]]
+        [6]  | []          | []               | [6]       | ['release', 'debug'] | ['paid', 'free']  | [:]                                                 | [firstDefaultDefaultJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                                                                                       "Jar 'secondFreeDebugJar'", "buildType 'debug'", "flavor 'free'",
+                                                                                                                                                                                       "Jar 'secondFreeReleaseJar'", "buildType 'release'", "flavor 'free'",
+                                                                                                                                                                                       "Jar 'secondPaidDebugJar'", "buildType 'debug'", "flavor 'paid'",
+                                                                                                                                                                                       "Jar 'secondPaidReleaseJar'", "buildType 'release'", "flavor 'paid'"]]
         [6]  | []          | ['paid']         | [6]       | []                   | ['paid']          | [firstPaidDefaultJar: 'secondPaidDefaultJar']       | [:]
         [6]  | []          | ['paid', 'free'] | [6]       | []                   | ['paid', 'free']  | [firstFreeDefaultJar: 'secondFreeDefaultJar',
                                                                                                         firstPaidDefaultJar: 'secondPaidDefaultJar']       | [:]
@@ -401,8 +407,14 @@ model {
         [6, 7] | ['debug']            | ['free']         | [6, 7] | [java6FirstJar: 'secondFreeDebug6Jar',
                                                                      java7FirstJar: 'secondFreeDebug7Jar'] | [:]
         [5, 6] | ['debug']            | ['free']         | [6, 7] | [java6FirstJar: 'secondFreeDebug6Jar'] | [java5FirstJar: ["Cannot find a compatible binary for library 'second' (Java SE 5). Available platforms: [Java SE 6, Java SE 7]"]]
-        [6]    | ['debug', 'release'] | []               | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondDefaultDebug6Jar', Jar 'secondDefaultRelease6Jar']"]]
-        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) : [Jar 'secondFreeDebug6Jar', Jar 'secondFreeRelease6Jar', Jar 'secondPaidDebug6Jar', Jar 'secondPaidRelease6Jar']"]]
+        [6]    | ['debug', 'release'] | []               | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                         "Jar 'secondDefaultDebug6Jar'", "buildType 'debug'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondDefaultRelease6Jar'", "buildType 'release'", "targetPlatform 'java6'"]]
+        [6]    | ['debug', 'release'] | ['free', 'paid'] | [6, 7] | [:]                                    | [firstJar: ["Multiple binaries available for library 'second' (Java SE 6) :",
+                                                                                                                         "Jar 'secondFreeDebug6Jar'", "buildType 'debug'", "flavor 'free'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondFreeRelease6Jar'", "buildType 'release'", "flavor 'free'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondPaidDebug6Jar'", "buildType 'debug'", "flavor 'paid'", "targetPlatform 'java6'",
+                                                                                                                         "Jar 'secondPaidRelease6Jar'", "buildType 'release'", "flavor 'paid'", "targetPlatform 'java6'"]]
 
         and:
         outcome = errors ? 'fails' : 'succeeds'

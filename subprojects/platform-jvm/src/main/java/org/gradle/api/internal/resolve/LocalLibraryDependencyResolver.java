@@ -135,7 +135,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getDimensions());
                     boolean matching = true;
                     for (String dimension : commonsDimensions) {
-                        if (!"targetPlatform".equals(dimension)) {
+                        if (isPlatformDimension(dimension)) {
                             String resolveValue = variantsMetaData.getValueAsString(dimension);
                             String binaryValue = binaryVariants.getValueAsString(dimension);
                             matching = matching && com.google.common.base.Objects.equal(resolveValue, binaryValue);
@@ -172,8 +172,36 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> variants) {
-        return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, javaPlatform, variants);
+    private String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries) {
+        List<String> binaryDescriptors = new ArrayList<String>(binaries.size());
+        StringBuilder binaryDescriptor = new StringBuilder();
+        for (BinarySpec variant : binaries) {
+            binaryDescriptor.setLength(0);
+            binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
+            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant);
+            Set<String> dimensions = new TreeSet<String>(metaData.getDimensions());
+            if (dimensions.size() > 1) { // 1 because of targetPlatform
+                for (String dimension : dimensions) {
+                    binaryDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
+
+                }
+                binaryDescriptors.add(binaryDescriptor.toString());
+            }
+        }
+        if (binaryDescriptors.isEmpty()) {
+            return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, javaPlatform, binaries);
+        } else {
+            // custom variants on binaries
+            StringBuilder sb = new StringBuilder(String.format("Multiple binaries available for library '%s' (%s) :\n", libraryName, javaPlatform));
+            for (String descriptor : binaryDescriptors) {
+                sb.append(descriptor);
+            }
+            return sb.toString();
+        }
+    }
+
+    private boolean isPlatformDimension(String dimension) {
+        return !"targetPlatform".equals(dimension);
     }
 
     private String noCompatiblePlatformErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
@@ -226,7 +254,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             }
 
             for (String dimension : resolveDimensions) {
-                if (!"targetPlatform".equals(dimension)) {
+                if (isPlatformDimension(dimension)) {
                     error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
                     Set<String> available = new TreeSet<String>(variants.get(dimension));
                     if (!available.isEmpty()) {
