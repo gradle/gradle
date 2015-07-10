@@ -17,11 +17,7 @@
 package org.gradle.integtests.tooling.r26
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 import org.gradle.tooling.events.OperationDescriptor
@@ -36,6 +32,7 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
+import org.gradle.util.ConfigureUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -52,12 +49,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         testCode()
-        givenTestDescriptors = runBuildAndCollectDescriptors();
     }
-
 
     @TargetGradleVersion(">=2.6")
     def "test launcher api fires progress events"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(testDescriptors("example.MyTest"));
         then:
@@ -96,6 +93,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.6")
     def "can run specific test class passed via test descriptor"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(testDescriptors("example.MyTest"));
         then:
@@ -108,12 +107,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: null) // TODO clarify if this is by design
 
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "test")
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
     @TargetGradleVersion(">=2.6")
     def "can run specific test method passed via test descriptor"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(testDescriptors("example.MyTest", "foo"));
         then:
@@ -129,6 +130,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.6")
     def "runs all tests when test task descriptor is passed"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(taskDescriptors(":test") + testDescriptors("example.MyTest", "foo", ":test"));
         then:
@@ -141,11 +144,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: "secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
     @TargetGradleVersion(">=2.6")
     def "passing task descriptor with unsupported task type fails with meaningful error"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(taskDescriptors(":build"))
         then:
@@ -155,6 +160,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.6")
     def "runs only test task linked in test descriptor"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
         then:
@@ -171,6 +178,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.6")
     def "test task up-to-date when launched with same test descriptors again"() {
         given:
+        collectDescriptorsFromBuild()
+        and:
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"))
         when:
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
@@ -183,11 +192,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.6")
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can run and cancel testlauncher in continuous mode"() {
+        given:
+        collectDescriptorsFromBuild()
         when:
         withConnection {
             def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-
-            launchTests(it, testDescriptors("example.MyTest", null, ":secondTest"), new TestResultHandler(), cancellationTokenSource,  "-t");
+            launchTests(it, new TestResultHandler(), cancellationTokenSource){ TestLauncher launcher ->
+                def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
+                launcher
+                    .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
+                    .withArguments("-t")
+            }
             waitingForBuild()
             assertTaskExecuted(":secondTest")
             assertTaskNotExecuted(":test")
@@ -216,6 +231,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.6")
     def "listener errors are rethrown on client side"() {
         given:
+        collectDescriptorsFromBuild()
         def taskDescriptors = taskDescriptors(":test")
         def failingProgressListener = failingProgressListener()
         when:
@@ -230,18 +246,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "failing progress listener"
     }
 
-    ProgressListener failingProgressListener() {
-        new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                throw new GradleException("failing progress listener")
-            }
-        }
-    }
-
     @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test no longer exists"() {
         given:
+        collectDescriptorsFromBuild()
+        and:
         testClassRemoved()
         when:
         launchTests(testDescriptors("example.MyTest", null, ":test"));
@@ -256,6 +265,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test task no longer exists"() {
         given:
+        collectDescriptorsFromBuild()
+        and:
         buildFile.text = simpleJavaProject()
         when:
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
@@ -265,41 +276,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         def e = thrown(TestExecutionException)
         e.cause.message == "Requested test task with path ':secondTest' cannot be found."
-    }
-
-
-    def assertBuildCancelled() {
-        stdout.toString().contains("Build cancelled.")
-        true
-    }
-
-    def changeTestSource() {
-        // adding two more test methods
-        file("src/test/java/example/MyTest.java").text = """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo2() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo3() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo4() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
-    }
-
-    private void waitingForBuild() {
-        ConcurrentTestUtil.poll {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
-        }
-        stdout.reset()
-        stderr.reset()
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.6")
@@ -312,6 +288,48 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         then:
         def e = thrown(UnsupportedVersionException)
         e.message == "TestLauncher API not supported by Gradle provider version"
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "can execute test class passed by name"() {
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestClasses("example.MyTest")
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+    }
+
+    ProgressListener failingProgressListener() {
+        new ProgressListener() {
+            @Override
+            void statusChanged(ProgressEvent event) {
+                throw new GradleException("failing progress listener")
+            }
+        }
+    }
+
+
+    def assertBuildCancelled() {
+        stdout.toString().contains("Build cancelled.")
+        true
+    }
+
+    private void waitingForBuild() {
+        ConcurrentTestUtil.poll {
+            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
+        }
+        stdout.reset()
+        stderr.reset()
     }
 
     boolean assertTaskExecuted(String taskPath) {
@@ -377,18 +395,21 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     void launchTests(Collection<OperationDescriptor> testsToLaunch) {
-        withConnection { ProjectConnection connection ->
-            launchTests(connection, testsToLaunch, null, GradleConnector.newCancellationTokenSource());
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
         }
     }
 
-    def launchTests(ProjectConnection connection, Collection<TestOperationDescriptor> testsToLaunch,
-                    ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, String... arguments) {
+    void launchTests(Closure configurationClosure) {
+        withConnection { ProjectConnection connection ->
+            launchTests(connection, null, GradleConnector.newCancellationTokenSource(), configurationClosure)
+        }
+    }
+
+    def launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure confgurationClosure) {
         testDescriptors.clear()
         taskEvents.clear()
         TestLauncher testLauncher = connection.newTestLauncher()
-            .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
-            .withArguments(arguments)
             .withCancellationToken(cancellationTokenSource.token())
             .addProgressListener(new ProgressListener() {
 
@@ -412,6 +433,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 .setStandardError(new TeeOutputStream(stderr, System.err))
         }
 
+        ConfigureUtil.configure(confgurationClosure, testLauncher)
+
         if(resultHandler == null){
             testLauncher.run()
         }else {
@@ -419,8 +442,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    private Set<TestOperationDescriptor> runBuildAndCollectDescriptors() {
-        def allTestDescriptors = [] as Set
+    private collectDescriptorsFromBuild() {
+        givenTestDescriptors = [] as Set
         try {
             withConnection {
                 ProjectConnection connection ->
@@ -430,14 +453,14 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                             if (event instanceof TaskFinishEvent) {
                                 taskEvents << event
                             } else if (event instanceof TestProgressEvent) {
-                                allTestDescriptors << event.descriptor
+                                givenTestDescriptors << event.descriptor
                             }
                         }
                     }, EnumSet.of(OperationType.TEST, OperationType.TASK)).run()
             }
         } catch (BuildException e) {
         }
-        allTestDescriptors
+        givenTestDescriptors
     }
 
     def testCode() {
@@ -474,6 +497,29 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
     }
+
+
+    def changeTestSource() {
+        // adding two more test methods
+        file("src/test/java/example/MyTest.java").text = """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo2() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo3() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void foo4() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+    }
+
 
     def simpleJavaProject() {
         """

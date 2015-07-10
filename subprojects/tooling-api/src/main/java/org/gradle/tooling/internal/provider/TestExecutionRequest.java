@@ -20,12 +20,19 @@ import org.gradle.tooling.events.OperationDescriptor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class TestExecutionRequest {
     private List<OperationDescriptor> operationDescriptors;
+    private Set<String> testClassNames;
 
-    public TestExecutionRequest(List<OperationDescriptor> operationDescriptors) {
+    public TestExecutionRequest(List<OperationDescriptor> operationDescriptors, Set<String> testClassNames) {
         this.operationDescriptors = operationDescriptors;
+        this.testClassNames = testClassNames;
+    }
+
+    public Collection<String> getTestClassNames() {
+        return testClassNames;
     }
 
     public Collection<OperationDescriptor> getOperationDescriptors() {

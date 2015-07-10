@@ -21,4 +21,5 @@ import java.util.Collection;
 
 public interface InternalTestExecutionRequest extends Serializable {
     Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors();
+    Collection<String> getTestClassNames();
 }

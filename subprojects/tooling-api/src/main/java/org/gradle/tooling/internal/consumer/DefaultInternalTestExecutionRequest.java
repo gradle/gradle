@@ -24,13 +24,20 @@ import java.util.List;
 
 public class DefaultInternalTestExecutionRequest implements InternalTestExecutionRequest {
     private List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors;
+    private Collection<String> testClassNames;
 
-    public DefaultInternalTestExecutionRequest(List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors) {
+    public DefaultInternalTestExecutionRequest(List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors, Collection<String> testClassNames) {
         this.internalJvmTestDescriptors = internalJvmTestDescriptors;
+        this.testClassNames = testClassNames;
     }
+
 
     @Override
     public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors() {
         return internalJvmTestDescriptors;
+    }
+
+    public Collection<String> getTestClassNames() {
+        return testClassNames;
     }
 }

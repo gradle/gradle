@@ -28,7 +28,7 @@ import org.gradle.tooling.test.TestExecutionException;
  * */
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withTests(OperationDescriptor... testDescriptors);
-
+    TestLauncher withJvmTestClasses(String... testClasses);
     void run() throws TestExecutionException; // Run synchronously
     void run(ResultHandler<? super Void> handler); // Start asynchronously
 }

@@ -74,18 +74,6 @@ From a client this API can be used like:
 * Behaviour with continuous build.
 * Behaviour when task no longer exists or no longer contains the requested test, but the test still exists (eg it has moved)
 
-## Story: Allow forced execution of up-to-date test tasks
-
-### Implementation
-
-* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
-* allow configuration from client side via `TestLauncher#alwaysRunTests()`
-* configure candidate test tasks in `TestExecutionRequestActionRunner` as not up-to-date when always run flag is set
-
-### Test Coverage
-
-* can force execution of up-to-date test
-
 ## Story: Add ability to launch JVM tests by class
 
 ### API proposal
@@ -117,6 +105,18 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 	* class does not define any tests or is not a test class
 * build should not fail if filter matches a single test task
 * expected test progress events are received in each case
+
+## Story: Allow forced execution of up-to-date test tasks
+
+### Implementation
+
+* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
+* allow configuration from client side via `TestLauncher#alwaysRunTests()`
+* configure candidate test tasks in `TestExecutionRequestActionRunner` as not up-to-date when always run flag is set
+
+### Test Coverage
+
+* can force execution of up-to-date test
 
 ## Story: Add ability to launch JVM tests by method
 

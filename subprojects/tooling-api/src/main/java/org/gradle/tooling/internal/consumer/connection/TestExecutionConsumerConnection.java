@@ -66,12 +66,13 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
                 JvmTestOperationDescriptor jvmTestOperationDescriptor = (JvmTestOperationDescriptor)descriptor;
                 internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), findTaskPath(jvmTestOperationDescriptor)));
             } else if (descriptor instanceof TaskOperationDescriptor) {
-                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null, null, ((TaskOperationDescriptor) descriptor).getTaskPath()));
+                final TaskOperationDescriptor taskOperationDescriptor = (TaskOperationDescriptor) descriptor;
+                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null, null, taskOperationDescriptor.getTaskPath()));
             } else {
                 throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
             }
         }
-        InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors);
+        InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors, testExecutionRequest.getTestClassNames());
         return internalTestExecutionRequest;
     }
 
