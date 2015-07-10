@@ -121,7 +121,7 @@
                     <td>**/*.html</td>
                 </tr>
                 <tr>
-                    <td>javascript</td>
+                    <td>javaScript</td>
                     <td><apilink class="org.gradle.language.javascript.JavaScriptSourceSet"/></td>
                     <td>app/assets</td>
                     <td>**/*.js</td>

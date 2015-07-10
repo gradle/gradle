@@ -28,10 +28,10 @@ model {
                 java {
                     source.srcDir "additional/java"
                 }
-                routes {
+                javaScript {
                     source {
-                        srcDir "additional/routes"
-                        include "**/*.rts"
+                        srcDir "additional/javascript"
+                        include "**/*.javascript"
                     }
                 }
             }
@@ -47,9 +47,6 @@ model {
             sources {
                 extraJava(JavaSourceSet) {
                     source.srcDir "extra/java"
-                }
-                extraScala(ScalaLanguageSourceSet) {
-                    source.srcDir "extra/scala"
                 }
                 extraTwirl(TwirlSourceSet) {
                     source.srcDir "extra/twirl"
