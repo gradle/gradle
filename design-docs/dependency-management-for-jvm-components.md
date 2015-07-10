@@ -506,7 +506,6 @@ When compiling a Java source to build a Jar binary, resolve a classpath dependen
         - Given `A1[java6,debug,'free']` and `B1[java5,debug,'free']`, `B2[java6,debug,'free']`, `B3[java7,debug,'free']`: select `B2` for highest compatible `platform`
         - Given `A1[java6,debug,'free']` and `B1[java6,debug,'paid']`, `B2[java6,release,'free']`, `B3[java7,debug,'free']`: FAIL (no compatible) and list available variants
         - Given `A1[java6,debug,'free']` and `B1[java7,debug,'free']`: FAIL (no compatible) and list available variants
-        - Given `A1[java6,debug,'free']` and `B1[java5,debug,'free']`, `B2[java6,debug,'free']`, `B2[java7,debug,'free']`: FAIL (multiple compatible) and list compatible variants (`B1`, `B2`)
 - Scenario: building a custom binary type and resolving against a library with standard `JarBinarySpec` instances.
     - Binary `A {platform, buildType}` depends on Library `B {platform}`, inspect the binaries of `B` for the one with the lowest compatible `platform`.
         - Given `A1[java6,debug]` and `B1[java6]`, `B2[java7]`: select `B1` due to highest compatible `platform`
