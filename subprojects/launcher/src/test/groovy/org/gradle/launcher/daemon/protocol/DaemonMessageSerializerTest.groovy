@@ -20,8 +20,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.progress.OperationIdentifier
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.logging.internal.LogEvent
-import org.gradle.logging.internal.ProgressEvent
+import org.gradle.logging.StyledTextOutput
+import org.gradle.logging.internal.*
 
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()
@@ -57,6 +57,73 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result2.throwable == null
     }
 
+    def "can serialize StyledTextOutputEvent messages"() {
+        expect:
+        def event = new StyledTextOutputEvent(1234, "category", LogLevel.LIFECYCLE,
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Description, "description"),
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Error, "error"))
+        def result = usesEfficientSerialization(event, serializer)
+        result instanceof StyledTextOutputEvent
+        result.timestamp == 1234
+        result.category == "category"
+        result.logLevel == LogLevel.LIFECYCLE
+        result.spans.size() == 2
+        result.spans[0].style == StyledTextOutput.Style.Description
+        result.spans[0].text == "description"
+        result.spans[1].style == StyledTextOutput.Style.Error
+        result.spans[1].text == "error"
+    }
+
+    def "can serialize ProgressStartEvent messages"() {
+        expect:
+        def event = new ProgressStartEvent(new OperationIdentifier(1234L), new OperationIdentifier(5678L), 321L, "category", "description", "short", "header", "status")
+        def result = usesEfficientSerialization(event, serializer)
+        result instanceof ProgressStartEvent
+        result.operationId == new OperationIdentifier(1234L)
+        result.parentId == new OperationIdentifier(5678L)
+        result.timestamp == 321L
+        result.category == "category"
+        result.description == "description"
+        result.shortDescription == "short"
+        result.loggingHeader == "header"
+        result.status == "status"
+
+        def event2 = new ProgressStartEvent(new OperationIdentifier(1234L), null, 321L, "category", "description", null, null, "")
+        def result2 = usesEfficientSerialization(event2, serializer)
+        result2 instanceof ProgressStartEvent
+        result2.operationId == new OperationIdentifier(1234L)
+        result2.parentId == null
+        result2.timestamp == 321L
+        result2.category == "category"
+        result2.description == "description"
+        result2.shortDescription == null
+        result2.loggingHeader == null
+        result2.status == ""
+    }
+
+    def "can serialize ProgressCompleteEvent messages"() {
+        expect:
+        def event = new ProgressCompleteEvent(new OperationIdentifier(1234L), 321L, "category", "description", "status")
+        def result = usesEfficientSerialization(event, serializer)
+        result instanceof ProgressCompleteEvent
+        result.operationId == new OperationIdentifier(1234L)
+        result.timestamp == 321L
+        result.category == "category"
+        result.description == "description"
+        result.status == "status"
+    }
+
+    def "can serialize ProgressEvent messages"() {
+        expect:
+        def event = new ProgressEvent(new OperationIdentifier(1234L), 321L, "category", "status")
+        def result = usesEfficientSerialization(event, serializer)
+        result instanceof ProgressEvent
+        result.operationId == new OperationIdentifier(1234L)
+        result.timestamp == 321L
+        result.category == "category"
+        result.status == "status"
+    }
+
     def "can serialize other messages"() {
         expect:
         def message = new CloseInput("id")
@@ -64,13 +131,10 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         messageResult instanceof CloseInput
         messageResult.identifier == "id"
 
-        def event = new ProgressEvent(new OperationIdentifier(1234L), 3456L, "category", "all good")
+        def event = new LogLevelChangeEvent(LogLevel.LIFECYCLE)
         def eventResult = serialize(event, serializer)
-        eventResult instanceof ProgressEvent
-        eventResult.operationId.id == 1234L
-        eventResult.timestamp == 3456L
-        eventResult.category == "category"
-        eventResult.status == "all good"
+        eventResult instanceof LogLevelChangeEvent
+        eventResult.newLogLevel == LogLevel.LIFECYCLE
     }
 
     @Override

@@ -17,16 +17,24 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.internal.serialize.*;
-import org.gradle.logging.internal.LogEvent;
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.internal.*;
+
+import java.util.List;
 
 public class DaemonMessageSerializer {
     public static Serializer<Object> create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
         registry.register(BuildEvent.class, new BuildEventSerializer());
-        registry.register(LogEvent.class, new LogEventSerializer(factory.getSerializerFor(LogLevel.class), factory.getSerializerFor(Throwable.class)));
+        Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
+        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, factory.getSerializerFor(Throwable.class)));
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
+        registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
+        registry.register(ProgressEvent.class, new ProgressEventSerializer());
         registry.useJavaSerialization(Message.class);
         registry.useJavaSerialization(OutputEvent.class);
         return registry.build();
@@ -43,6 +51,78 @@ public class DaemonMessageSerializer {
         @Override
         public BuildEvent read(Decoder decoder) throws Exception {
             return new BuildEvent(payloadSerializer.read(decoder));
+        }
+    }
+
+    private static class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
+        @Override
+        public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
+            encoder.writeSmallLong(event.getOperationId().getId());
+            if (event.getParentId() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeSmallLong(event.getParentId().getId());
+            }
+            encoder.writeLong(event.getTimestamp());
+            encoder.writeString(event.getCategory());
+            encoder.writeString(event.getDescription());
+            encoder.writeNullableString(event.getShortDescription());
+            encoder.writeNullableString(event.getLoggingHeader());
+            encoder.writeString(event.getStatus());
+        }
+
+        @Override
+        public ProgressStartEvent read(Decoder decoder) throws Exception {
+            OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
+            OperationIdentifier parentId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+            long timestamp = decoder.readLong();
+            String category = decoder.readString();
+            String description = decoder.readString();
+            String shortDescription = decoder.readNullableString();
+            String loggingHeader = decoder.readNullableString();
+            String status = decoder.readString();
+            return new ProgressStartEvent(id, parentId, timestamp, category, description, shortDescription, loggingHeader, status);
+        }
+    }
+
+    private static class ProgressEventSerializer implements Serializer<ProgressEvent> {
+        @Override
+        public void write(Encoder encoder, ProgressEvent event) throws Exception {
+            encoder.writeSmallLong(event.getOperationId().getId());
+            encoder.writeLong(event.getTimestamp());
+            encoder.writeString(event.getCategory());
+            encoder.writeString(event.getStatus());
+        }
+
+        @Override
+        public ProgressEvent read(Decoder decoder) throws Exception {
+            OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
+            long timestamp = decoder.readLong();
+            String category = decoder.readString();
+            String status = decoder.readString();
+            return new ProgressEvent(id, timestamp, category, status);
+        }
+    }
+
+    private static class ProgressCompleteEventSerializer implements Serializer<ProgressCompleteEvent> {
+        @Override
+        public void write(Encoder encoder, ProgressCompleteEvent event) throws Exception {
+            encoder.writeSmallLong(event.getOperationId().getId());
+            encoder.writeLong(event.getTimestamp());
+            encoder.writeString(event.getCategory());
+            encoder.writeString(event.getDescription());
+            encoder.writeString(event.getStatus());
+        }
+
+        @Override
+        public ProgressCompleteEvent read(Decoder decoder) throws Exception {
+            OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
+            long timestamp = decoder.readLong();
+            String category = decoder.readString();
+            String description = decoder.readString();
+            String status = decoder.readString();
+            return new ProgressCompleteEvent(id, timestamp, category, description, status);
         }
     }
 
@@ -72,6 +152,52 @@ public class DaemonMessageSerializer {
             String message = decoder.readString();
             Throwable throwable = throwableSerializer.read(decoder);
             return new LogEvent(timestamp, category, logLevel, message, throwable);
+        }
+    }
+
+    private static class SpanSerializer implements Serializer<StyledTextOutputEvent.Span> {
+        private final Serializer<StyledTextOutput.Style> styleSerializer;
+
+        public SpanSerializer(Serializer<StyledTextOutput.Style> styleSerializer) {
+            this.styleSerializer = styleSerializer;
+        }
+
+        @Override
+        public void write(Encoder encoder, StyledTextOutputEvent.Span value) throws Exception {
+            styleSerializer.write(encoder, value.getStyle());
+            encoder.writeString(value.getText());
+        }
+
+        @Override
+        public StyledTextOutputEvent.Span read(Decoder decoder) throws Exception {
+            return new StyledTextOutputEvent.Span(styleSerializer.read(decoder), decoder.readString());
+        }
+    }
+
+    private static class StyledTextOutputEventSerializer implements Serializer<StyledTextOutputEvent> {
+        private final Serializer<LogLevel> logLevelSerializer;
+        private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
+
+        public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer) {
+            this.logLevelSerializer = logLevelSerializer;
+            this.spanSerializer = spanSerializer;
+        }
+
+        @Override
+        public void write(Encoder encoder, StyledTextOutputEvent event) throws Exception {
+            encoder.writeLong(event.getTimestamp());
+            encoder.writeString(event.getCategory());
+            logLevelSerializer.write(encoder, event.getLogLevel());
+            spanSerializer.write(encoder, event.getSpans());
+        }
+
+        @Override
+        public StyledTextOutputEvent read(Decoder decoder) throws Exception {
+            long timestamp = decoder.readLong();
+            String category = decoder.readString();
+            LogLevel logLevel = logLevelSerializer.read(decoder);
+            List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
+            return new StyledTextOutputEvent(timestamp, category, logLevel, spans);
         }
     }
 }
