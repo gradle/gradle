@@ -59,7 +59,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
 
         incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec.getClassNames());
         if (spec.getSource().isEmpty()) {
-            LOG.lifecycle("None of the classes needs to compiled! Analysis took {}. ", clock.getTime());
+            LOG.lifecycle("None of the classes needs to be compiled! Analysis took {}. ", clock.getTime());
             return new RecompilationNotNecessary();
         }
 
