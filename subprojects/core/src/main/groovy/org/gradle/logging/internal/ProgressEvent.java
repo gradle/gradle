@@ -20,7 +20,7 @@ import org.gradle.internal.progress.OperationIdentifier;
 
 public class ProgressEvent extends CategorisedOutputEvent {
     private final String status;
-    private OperationIdentifier operationId;
+    private final OperationIdentifier operationId;
 
     public ProgressEvent(OperationIdentifier operationId, long timestamp, String category, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
