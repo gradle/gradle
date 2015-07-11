@@ -366,6 +366,34 @@ class ClassInspectorTest extends Specification {
         ClassInspector.inspect(Object).superTypes.empty
         ClassInspector.inspect(Serializable).superTypes.empty
         ClassInspector.inspect(List).superTypes.toList() == [Collection, Iterable]
-        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, List, RandomAccess, Cloneable, Serializable, AbstractCollection, Collection, Iterable]
+        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
     }
+
+    def "should find superclass methods before interface methods"() {
+        expect:
+        def details = ClassInspector.inspect(AndroidJarTask)
+        def getters = details.getProperty('inputs').getGetters()
+        getters[0].getAnnotations().size() == 1
+    }
+
+    public interface Task {
+        public String getInputs()
+    }
+
+    public interface BinaryFileProviderTask extends Task {}
+
+    public abstract class AbstractTask implements Task {
+        public String getInputs() {
+            return "super"
+        }
+    }
+
+    public class Jar extends AbstractTask {
+        @Deprecated
+        public String getInputs() {
+            return "concrete"
+        }
+    }
+
+    class AndroidJarTask extends Jar implements BinaryFileProviderTask {}
 }

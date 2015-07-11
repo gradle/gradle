@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import com.google.common.collect.Lists;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -43,11 +45,20 @@ public class ClassInspector {
                 classDetails.superType(current);
             }
             inspectClass(current, classDetails);
-            if (current.getSuperclass() != null && current.getSuperclass() != Object.class) {
-                queue.add(current.getSuperclass());
-            }
+            //Visit all super  classes before interfaces
+            Collections.addAll(queue, superClasses(current));
             Collections.addAll(queue, current.getInterfaces());
         }
+    }
+
+    private static Class<?>[] superClasses(Class<?> current) {
+        List<Class<?>> supers = Lists.newArrayList();
+        Class<?> superclass = current.getSuperclass();
+        while (superclass != null && superclass != Object.class) {
+            supers.add(superclass);
+            superclass = superclass.getSuperclass();
+        }
+        return supers.toArray(new Class<?>[supers.size()]);
     }
 
     private static void inspectClass(Class<?> type, MutableClassDetails classDetails) {

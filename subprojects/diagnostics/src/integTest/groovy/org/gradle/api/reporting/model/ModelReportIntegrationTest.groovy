@@ -323,6 +323,25 @@ apply plugin: ClassHolder.InnerRules
             void setValue(Integer i)
         }"""
     }
+
+    def "can produce a report with a complex task hierarchy"() {
+        buildFile << """
+public interface BinaryFileProviderTask extends Task {
+    Artifact getArtifact()
+}
+
+class AndroidJarTask extends org.gradle.jvm.tasks.Jar implements BinaryFileProviderTask {
+    @Override
+    public Artifact getArtifact() {
+        return null
+    }
+}
+
+task aJar(type: AndroidJarTask) { }
+"""
+        expect:
+        succeeds('model')
+    }
 }
 
 
