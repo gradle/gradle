@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -324,6 +325,7 @@ apply plugin: ClassHolder.InnerRules
         }"""
     }
 
+    @Issue("GRADLE-3317")
     def "can produce a report with a complex task hierarchy"() {
         buildFile << """
 public interface BinaryFileProviderTask extends Task {
@@ -343,5 +345,3 @@ task aJar(type: AndroidJarTask) { }
         succeeds('model')
     }
 }
-
-
