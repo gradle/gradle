@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
@@ -25,14 +24,8 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.daemon })
 @LeaksFileHandles
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
-
-    @Override
-    DaemonGradleExecuter getExecuter() {
-        super.executer as DaemonGradleExecuter
-    }
-
     def setup() {
-        executer = new DaemonGradleExecuter(distribution, temporaryFolder)
+        executer.requireDaemon()
         executer.requireIsolatedDaemons()
     }
 
