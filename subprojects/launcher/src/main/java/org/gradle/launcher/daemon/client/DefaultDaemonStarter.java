@@ -17,11 +17,13 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.Module;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
@@ -41,9 +43,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultDaemonStarter implements DaemonStarter {
 
@@ -64,17 +64,16 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     public DaemonStartupInfo startDaemon() {
-        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator();
-        DefaultModuleRegistry registry = new DefaultModuleRegistry();
-        Set<File> bootstrapClasspath = new LinkedHashSet<File>();
-        bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath().getAsFiles());
-        if (gradleDistributionLocator.getGradleHome() == null) {
-            // Running from the classpath - chuck in everything we can find
-            bootstrapClasspath.addAll(registry.getFullClasspath());
+        ModuleRegistry registry = new DefaultModuleRegistry();
+        ClassPath classpath = new DefaultClassPath();
+        for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
+            classpath = classpath.plus(module.getClasspath());
         }
-        if (bootstrapClasspath.isEmpty()) {
+        if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
+        // Required when not running from a Gradle distribution (eg from IDEA or the Gradle build)
+        List<File> additionalClassPath = registry.getAdditionalClassPath().getAsFiles();
 
         versionValidator.validate(daemonParameters);
 
@@ -82,15 +81,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(daemonParameters.getEffectiveJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
-        LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
         daemonArgs.add("-cp");
-        daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
+        daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
             daemonArgs.add("-Xdebug");
             daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
         }
+        LOGGER.debug("Using daemon args: {}", daemonArgs);
 
         daemonArgs.add(GradleDaemon.class.getName());
         // Version isn't used, except by a human looking at the output of jps.
@@ -107,6 +106,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);
+            }
+            encoder.writeSmallInt(additionalClassPath.size());
+            for (File file : additionalClassPath) {
+                encoder.writeString(file.getAbsolutePath());
             }
             encoder.flush();
         } catch (IOException e) {

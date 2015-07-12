@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.launcher.bootstrap.EntryPoint;
@@ -68,6 +69,7 @@ public class DaemonMain extends EntryPoint {
         File daemonBaseDir;
         int idleTimeoutMs;
         String daemonUid;
+        List<File> additionalClassPath;
 
         KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
         try {
@@ -80,6 +82,11 @@ public class DaemonMain extends EntryPoint {
             for (int i = 0; i < argCount; i++) {
                 startupOpts.add(decoder.readString());
             }
+            int additionalClassPathLength = decoder.readSmallInt();
+            additionalClassPath = new ArrayList<File>(additionalClassPathLength);
+            for (int i = 0; i < additionalClassPathLength; i++) {
+                additionalClassPath.add(new File(decoder.readString()));
+            }
         } catch (EOFException e) {
             throw new UncheckedIOException(e);
         }
@@ -90,7 +97,7 @@ public class DaemonMain extends EntryPoint {
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager);
+        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
 
         initialiseLogging(loggingManager, daemonLog);

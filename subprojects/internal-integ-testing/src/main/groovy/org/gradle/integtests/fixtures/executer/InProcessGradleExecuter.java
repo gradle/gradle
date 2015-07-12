@@ -49,7 +49,6 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.initialization.ReportedException;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -135,7 +134,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             public JavaExecHandleBuilder create() {
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
                 builder.workingDir(getWorkingDir());
-                Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
+                Collection<File> classpath = new DefaultModuleRegistry().getAdditionalClassPath().getAsFiles();
                 builder.classpath(classpath);
                 builder.jvmArgs(getGradleOpts());
                 builder.setMain(Main.class.getName());

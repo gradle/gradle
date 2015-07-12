@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -48,13 +49,13 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final LoggingManagerInternal loggingManager;
     private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(true));
+        addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
     }
 
     protected DaemonContext createDaemonContext() {

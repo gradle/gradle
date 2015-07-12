@@ -33,9 +33,13 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.initialization.*;
+import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.DefaultClassLoaderRegistry;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
@@ -73,10 +77,16 @@ import java.util.List;
 public class GlobalScopeServices {
 
     private static final Logger LOGGER = Logging.getLogger(GlobalScopeServices.class);
+    private final ClassPath additionalModuleClassPath;
 
     private GradleBuildEnvironment environment;
 
     public GlobalScopeServices(final boolean longLiving) {
+        this(longLiving, new DefaultClassPath());
+    }
+
+    public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
+        this.additionalModuleClassPath = additionalModuleClassPath;
         this.environment = new GradleBuildEnvironment() {
             public boolean isLongLivingProcess() {
                 return longLiving;
@@ -116,7 +126,7 @@ public class GlobalScopeServices {
     }
 
     ModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry();
+        return new DefaultModuleRegistry(additionalModuleClassPath);
     }
 
     GradleDistributionLocator createGradleDistributionLocator() {
