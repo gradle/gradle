@@ -349,6 +349,8 @@ When the Jar is built, the compile time dependencies of the source are also buil
 
 - Defining platforms and tool-chains is out of scope for this story. Using the default Java platform in the test cases is okay.
 - Building a `JarBinarySpec` without the `jvm-component` plugin applied
+    - While this should be possible, no effort is made to reduce the duplication required, to expose additional public APIs,
+      or to add test coverage for this use case.
 
 ## Story: Plugin author defines a custom library that provides a Java API
 
