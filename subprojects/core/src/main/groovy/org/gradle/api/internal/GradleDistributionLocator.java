@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public interface GradleDistributionLocator {
     /**
      * Returns the directory containing the Gradle distribution of the current Gradle version. May be null.
      */
+    @Nullable
     File getGradleHome();
 
     /**
