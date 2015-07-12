@@ -83,6 +83,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String tmpDir;
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 60;
+    private boolean requireDaemon;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> gradleOpts = new ArrayList<String>();
     private boolean noDefaultJvmArgs;
@@ -245,6 +246,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (!daemonStartingMessageDisabled) {
             executer.withDaemonStartingMessageEnabled();
+        }
+        if (requireDaemon) {
+            executer.requireDaemon();
         }
 
         executer.withDebug(debug);
@@ -491,8 +495,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
-    protected File getDaemonBaseDir() {
+    public File getDaemonBaseDir() {
         return daemonBaseDir;
+    }
+
+    @Override
+    public GradleExecuter requireDaemon() {
+        requireDaemon = true;
+        return this;
+    }
+
+    protected boolean isRequireDaemon() {
+        return requireDaemon;
     }
 
     protected boolean isNoDefaultJvmArgs() {
@@ -519,6 +533,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (quiet) {
             allArgs.add("--quiet");
+        }
+        if (requireDaemon) {
+            allArgs.add("--daemon");
         }
         if (taskList) {
             allArgs.add("tasks");

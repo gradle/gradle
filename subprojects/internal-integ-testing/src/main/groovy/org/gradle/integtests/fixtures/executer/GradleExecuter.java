@@ -194,6 +194,11 @@ public interface GradleExecuter {
     GradleExecuter withDaemonBaseDir(File baseDir);
 
     /**
+     * Requires that the build run in a daemon.
+     */
+    GradleExecuter requireDaemon();
+
+    /**
      * Asserts that this executer will be able to run a build, given its current configuration.
      *
      * @throws AssertionError When this executer will not be able to run a build.

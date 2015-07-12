@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
@@ -96,6 +96,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionResult doRun() {
+        if (isRequireDaemon()) {
+            return doStart().waitForFinish();
+        }
+
         StandardOutputListener outputListener = new OutputListenerImpl();
         StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -106,11 +110,15 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
+                new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
     }
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
+        if (isRequireDaemon()) {
+            return doStart().waitForFailure();
+        }
+
         StandardOutputListener outputListener = new OutputListenerImpl();
         StandardOutputListener errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -119,7 +127,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
+                    new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
         }
     }
 
@@ -134,7 +142,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             public JavaExecHandleBuilder create() {
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
                 builder.workingDir(getWorkingDir());
-                Collection<File> classpath = new DefaultModuleRegistry().getAdditionalClassPath().getAsFiles();
+                Collection<File> classpath = GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
                 builder.classpath(classpath);
                 builder.jvmArgs(getGradleOpts());
                 builder.setMain(Main.class.getName());
