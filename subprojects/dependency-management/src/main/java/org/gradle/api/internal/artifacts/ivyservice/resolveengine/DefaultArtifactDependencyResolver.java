@@ -54,8 +54,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class DefaultDependencyResolver implements ArtifactDependencyResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
+public class DefaultArtifactDependencyResolver implements ArtifactDependencyResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultArtifactDependencyResolver.class);
     private final ServiceRegistry serviceRegistry;
     private final DependencyDescriptorFactory dependencyDescriptorFactory;
     private final ResolveIvyFactory ivyFactory;
@@ -63,8 +63,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final IvyContextManager ivyContextManager;
     private final VersionComparator versionComparator;
 
-    public DefaultDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                     CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, VersionComparator versionComparator) {
+    public DefaultArtifactDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
+                                             CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, VersionComparator versionComparator) {
         this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
