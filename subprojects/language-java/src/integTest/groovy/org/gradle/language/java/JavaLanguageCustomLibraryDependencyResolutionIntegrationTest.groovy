@@ -915,7 +915,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.jvm.internal.DefaultJarBinarySpec
 import org.gradle.platform.base.internal.PlatformResolvers
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
 
 interface CustomLibrary extends LibrarySpec {

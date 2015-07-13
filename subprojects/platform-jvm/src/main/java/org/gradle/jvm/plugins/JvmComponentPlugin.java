@@ -109,9 +109,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, final PlatformResolvers platforms) {
             List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
-                // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
-                String defaultJavaPlatformName = new DefaultJavaPlatform(JavaVersion.current()).getName();
-                targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultJavaPlatformName));
+                targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName()));
             }
             return CollectionUtils.collect(targetPlatforms, new Transformer<JavaPlatform, PlatformRequirement>() {
                 @Override

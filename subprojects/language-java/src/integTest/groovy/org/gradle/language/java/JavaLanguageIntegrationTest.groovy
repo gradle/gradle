@@ -131,7 +131,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "builds all buildable and skips non-buildable platforms when assembling"() {
-        def current = new DefaultJavaPlatform(JavaVersion.current())
+        def current = DefaultJavaPlatform.current()
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
 

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -153,7 +152,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     protected JavaPlatform getPlatform() {
-        return new DefaultJavaPlatform(JavaVersion.current());
+        return DefaultJavaPlatform.current();
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {

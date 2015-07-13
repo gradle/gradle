@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.resolve
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -65,7 +64,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         }
         projectModelResolver = new DefaultProjectModelResolver(projectRegistry)
         rootProject = mockProject(':')
-        platform = new DefaultJavaPlatform(JavaVersion.current())
+        platform = DefaultJavaPlatform.current()
         def variants = Mock(VariantsMetaData)
         variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
         variants.nonNullDimensions >> ['targetPlatform']

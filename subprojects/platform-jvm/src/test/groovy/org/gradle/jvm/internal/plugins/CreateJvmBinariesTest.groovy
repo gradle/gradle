@@ -59,7 +59,7 @@ class CreateJvmBinariesTest extends Specification {
     def "adds a binary for each jvm library"() {
         def library = BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), componentId("jvmLibOne", ":project-path"), mainSourceSet, DirectInstantiator.INSTANCE)
         def namingScheme = Mock(BinaryNamingScheme)
-        def platform = new DefaultJavaPlatform("test")
+        def platform = DefaultJavaPlatform.current()
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 

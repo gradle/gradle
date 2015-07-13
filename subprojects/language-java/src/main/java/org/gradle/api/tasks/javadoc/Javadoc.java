@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
@@ -163,7 +162,7 @@ public class Javadoc extends SourceTask {
     }
 
     private JavaPlatform getPlatform() {
-        return new DefaultJavaPlatform(JavaVersion.current());
+        return DefaultJavaPlatform.current();
     }
 
     /**
