@@ -364,6 +364,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
     }
 
+    private void putBooleanMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
+        methodVisitor.visitVarInsn(Opcodes.ILOAD, index);
+    }
+
     private void putStateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
         putFieldValueOnStack(methodVisitor, generatedType, STATE_FIELD_NAME, ModelElementState.class);
     }
@@ -435,17 +439,25 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
         MethodVisitor methodVisitor = declareMethod(visitor, method);
         invokeDelegateMethod(methodVisitor, generatedType, delegateTypeClass, method);
-        if (method.getReturnType() != Void.TYPE) {
-            finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
-        } else {
+        final Class<?> returnType = method.getReturnType();
+        if (returnType == Void.TYPE) {
             finishVisitingMethod(methodVisitor);
+        } else if (returnType == Boolean.TYPE) {
+            finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
+        } else {
+            finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
         }
     }
 
     private void invokeDelegateMethod(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
         putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
-        for (int paramNo = 0; paramNo < method.getParameterCount(); paramNo++) {
-            putMethodArgumentOnStack(methodVisitor, paramNo + 1);
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int paramNo = 0; paramNo < parameterTypes.length; paramNo++) {
+            if (parameterTypes[paramNo] == Boolean.TYPE) {
+                putBooleanMethodArgumentOnStack(methodVisitor, paramNo + 1);
+            } else {
+                putMethodArgumentOnStack(methodVisitor, paramNo + 1);
+            }
         }
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), true);
     }
