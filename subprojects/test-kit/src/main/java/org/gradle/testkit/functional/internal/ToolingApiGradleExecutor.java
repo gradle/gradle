@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ToolingApiGradleExecutor implements GradleExecutor {
     private final Logger logger = Logging.getLogger(ToolingApiGradleExecutor.class);
+    private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
     private final GradleDistribution gradleDistribution;
     private final File workingDirectory;
     private File gradleUserHomeDir;
@@ -97,16 +98,16 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     private GradleConnector buildConnector() {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector)GradleConnector.newConnector();
-
-        if(gradleUserHomeDir != null) {
-            gradleConnector.useGradleUserHomeDir(gradleUserHomeDir);
-        }
-
+        gradleConnector.useGradleUserHomeDir(determineGradleUserHomeDir());
         gradleConnector.forProjectDirectory(workingDirectory);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         useGradleDistribution(gradleConnector);
         return gradleConnector;
+    }
+
+    private File determineGradleUserHomeDir() {
+        return gradleUserHomeDir != null ? gradleUserHomeDir : tmpDirectoryProvider.createDir();
     }
 
     private void useGradleDistribution(GradleConnector gradleConnector) {

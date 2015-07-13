@@ -76,7 +76,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         """
 
         when:
-        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)prepareGradleRunner('verifyProjectProperties')
+        DefaultGradleRunner gradleRunner = prepareGradleRunner('verifyProjectProperties')
         BuildResult result = gradleRunner.succeeds()
 
         then:

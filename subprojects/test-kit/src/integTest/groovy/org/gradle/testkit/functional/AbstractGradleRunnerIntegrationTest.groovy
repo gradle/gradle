@@ -18,6 +18,7 @@ package org.gradle.testkit.functional
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testkit.functional.internal.DefaultGradleRunner
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import org.junit.Rule
 import spock.lang.Shared
@@ -32,8 +33,8 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         buildFile = testProjectDir.file('build.gradle')
     }
 
-    protected GradleRunner prepareGradleRunner(String... tasks) {
-        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
+    protected DefaultGradleRunner prepareGradleRunner(String... tasks) {
+        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
         gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withArguments(tasks)
         assert gradleRunner.workingDir == testProjectDir.testDirectory
         gradleRunner

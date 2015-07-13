@@ -41,14 +41,6 @@ public abstract class GradleRunner {
     public abstract File getGradleUserHomeDir();
 
     /**
-     * Sets the Gradle user home directory.
-     *
-     * @param gradleUserHomeDir Gradle user home directory
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withGradleUserHomeDir(File gradleUserHomeDir);
-
-    /**
      * Returns the working directory for the current build execution.
      *
      * @return Working directory
