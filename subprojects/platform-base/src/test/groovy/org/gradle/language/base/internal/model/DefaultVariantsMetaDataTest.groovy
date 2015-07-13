@@ -35,7 +35,8 @@ class DefaultVariantsMetaDataTest extends Specification {
         def variants = DefaultVariantsMetaData.extractFrom(spec)
 
         then:
-        variants.dimensions == (dimensions as Set)
+        variants.nonNullDimensions == (nonNullDimensions as Set)
+        variants.allDimensions == (allDimensions as Set)
         variants.getValueAsString('platform') == platform
         variants.getValueAsString('flavor') == flavor
         variants.getValueAsString('buildType') == buildType?.name
@@ -43,11 +44,11 @@ class DefaultVariantsMetaDataTest extends Specification {
         variants.getValueAsString('notVariantDimension') == null
 
         where:
-        platform | flavor  | buildType       | notVariantDimension | dimensions
-        'java6'  | null    | null            | null                | ['platform']
-        'java6'  | null    | null            | 'foo'               | ['platform']
-        'java6'  | 'debug' | null            | null                | ['platform', 'flavor']
-        'java6'  | 'debug' | Mock(BuildType) | null                | ['platform', 'flavor', 'buildType']
+        platform | flavor  | buildType       | notVariantDimension | nonNullDimensions                   | allDimensions
+        'java6'  | null    | null            | null                | ['platform']                        | ['platform', 'flavor', 'buildType']
+        'java6'  | null    | null            | 'foo'               | ['platform']                        | ['platform', 'flavor', 'buildType']
+        'java6'  | 'debug' | null            | null                | ['platform', 'flavor']              | ['platform', 'flavor', 'buildType']
+        'java6'  | 'debug' | Mock(BuildType) | null                | ['platform', 'flavor', 'buildType'] | ['platform', 'flavor', 'buildType']
 
     }
 

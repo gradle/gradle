@@ -15,7 +15,8 @@
  */
 package org.gradle.language.base.internal.model;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.internal.reflect.ClassDetails;
@@ -26,16 +27,22 @@ import org.gradle.platform.base.Variant;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultVariantsMetaData implements VariantsMetaData {
     private final Map<String, Object> variants;
+    private final Set<String> allVariantDimensions;
+    private final Set<String> nonNullVariantDimensions;
 
     public DefaultVariantsMetaData(Map<String, Object> variants) {
         this.variants = variants;
+        allVariantDimensions = variants.keySet();
+        nonNullVariantDimensions = ImmutableSet.copyOf(Maps.filterEntries(variants, new Predicate<Map.Entry<String, Object>>() {
+            @Override
+            public boolean apply(Map.Entry<String, Object> input) {
+                return input.getValue()!=null;
+            }
+        }).keySet());
     }
 
     public static VariantsMetaData extractFrom(BinarySpec spec) {
@@ -55,7 +62,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
             }
         }
 
-        return new DefaultVariantsMetaData(ImmutableMap.copyOf(variants));
+        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants));
     }
 
     private static void extractVariant(Map<String, Object> variants, BinarySpec spec, String name, Method method) {
@@ -67,18 +74,22 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
         } catch (InvocationTargetException e) {
             result = null;
         }
-        if (result != null) {
-            // note: it's not the role of this class to validate that the annotation is properly used, that
-            // is to say only on a getter returning String or a Named instance, so we trust the result of
-            // the call
-            variants.put(name, result);
-        }
+
+        // note: it's not the role of this class to validate that the annotation is properly used, that
+        // is to say only on a getter returning String or a Named instance, so we trust the result of
+        // the call
+        variants.put(name, result);
+
     }
 
+    @Override
+    public Set<String> getAllDimensions() {
+        return allVariantDimensions;
+    }
 
     @Override
-    public Set<String> getDimensions() {
-        return variants.keySet();
+    public Set<String> getNonNullDimensions() {
+        return nonNullVariantDimensions;
     }
 
     @Override

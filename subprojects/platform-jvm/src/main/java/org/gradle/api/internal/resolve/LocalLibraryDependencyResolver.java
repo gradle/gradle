@@ -127,13 +127,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return values;
         }
         TreeMultimap<JavaPlatform, JvmBinarySpec> platformToBinary = TreeMultimap.create(JAVA_PLATFORM_COMPARATOR, JVM_BINARY_SPEC_COMPARATOR);
-        Set<String> resolveDimensions = variantsMetaData.getDimensions();
+        Set<String> resolveDimensions = variantsMetaData.getNonNullDimensions();
         for (BinarySpec binarySpec : values) {
             if (binarySpec instanceof JvmBinarySpec) {
                 JvmBinarySpec jvmSpec = (JvmBinarySpec) binarySpec;
                 if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
                     VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(jvmSpec);
-                    Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getDimensions());
+                    Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
                     boolean matching = true;
                     for (String dimension : commonsDimensions) {
                         if (!isPlatformDimension(dimension)) {
@@ -180,7 +180,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             binaryDescriptor.setLength(0);
             binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
             VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant);
-            Set<String> dimensions = new TreeSet<String>(metaData.getDimensions());
+            Set<String> dimensions = new TreeSet<String>(metaData.getNonNullDimensions());
             if (dimensions.size() > 1) { // 1 because of targetPlatform
                 for (String dimension : dimensions) {
                     binaryDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
@@ -206,7 +206,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     private String noCompatiblePlatformErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
-        Set<String> resolveDimensions = variantsMetaData.getDimensions();
+        Set<String> resolveDimensions = variantsMetaData.getNonNullDimensions();
         if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
             List<String> availablePlatforms = Lists.transform(
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {

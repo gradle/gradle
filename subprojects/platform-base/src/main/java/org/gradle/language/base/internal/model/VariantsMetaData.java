@@ -21,7 +21,9 @@ import java.util.Set;
 
 public interface VariantsMetaData {
 
-    Set<String> getDimensions();
+    Set<String> getAllDimensions();
+
+    Set<String> getNonNullDimensions();
 
     String getValueAsString(String dimension);
 
