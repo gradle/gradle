@@ -78,7 +78,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
     interface SomeBinary extends BinarySpec {}
 
-    static class Rules {
+    class Rules {
 
         @BinaryTasks
         static String returnValue(ModelMap<Task> builder, SomeBinary binary) {
