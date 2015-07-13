@@ -34,7 +34,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     protected GradleRunner prepareGradleRunner(String... tasks) {
         GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
-        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withTasks(tasks)
+        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withArguments(tasks)
         assert gradleRunner.workingDir == testProjectDir.testDirectory
         gradleRunner
     }

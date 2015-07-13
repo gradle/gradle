@@ -35,7 +35,6 @@ public class DefaultGradleRunner extends GradleRunner {
     private File gradleUserHomeDir;
     private File workingDirectory;
     private List<String> arguments = new ArrayList<String>();
-    private List<String> taskNames = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
@@ -70,20 +69,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withArguments(String... arguments) {
-        return withArguments(Arrays.asList(arguments));
-    }
-
-    public List<String> getTasks() {
-        return taskNames;
-    }
-
-    public GradleRunner withTasks(List<String> taskNames) {
-        this.taskNames = taskNames;
-        return this;
-    }
-
-    public GradleRunner withTasks(String... taskNames) {
-        return withTasks(Arrays.asList(taskNames));
+        return withArguments(new ArrayList<String>(Arrays.asList(arguments)));
     }
 
     public GradleRunner withJvmArguments(List<String> jvmArguments) {
@@ -92,7 +78,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withJvmArguments(String... jvmArguments) {
-        return withJvmArguments(Arrays.asList(jvmArguments));
+        return withJvmArguments(new ArrayList<String>(Arrays.asList(jvmArguments)));
     }
 
     public BuildResult succeeds() {
@@ -121,9 +107,7 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(trailingMessage);
         message.append(" in ");
         message.append(getWorkingDir().getAbsolutePath());
-        message.append(" with tasks ");
-        message.append(getTasks());
-        message.append(" and arguments ");
+        message.append(" with arguments ");
         message.append(getArguments());
         message.append(lineBreak).append(lineBreak);
         message.append("Output:");
@@ -158,7 +142,6 @@ public class DefaultGradleRunner extends GradleRunner {
         GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, workingDirectory);
         gradleExecutor.withGradleUserHomeDir(gradleUserHomeDir);
         gradleExecutor.withArguments(arguments);
-        gradleExecutor.withTasks(taskNames);
         gradleExecutor.withJvmArguments(jvmArguments);
         GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
         action.execute(gradleExecutionResult);

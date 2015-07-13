@@ -64,14 +64,14 @@ public abstract class GradleRunner {
     public abstract GradleRunner withWorkingDir(File workingDirectory);
 
     /**
-     * Returns the provided arguments for the build execution. Defaults to an empty List.
+     * Returns the provided arguments (tasks and options) for the build execution. Defaults to an empty List.
      *
      * @return Build execution arguments
      */
     public abstract List<String> getArguments();
 
     /**
-     * Sets the arguments used for the build execution.
+     * Sets the arguments (tasks and options) used for the build execution.
      *
      * @param arguments Build execution arguments
      * @return The current {@link GradleRunner} instance
@@ -79,35 +79,12 @@ public abstract class GradleRunner {
     public abstract GradleRunner withArguments(List<String> arguments);
 
     /**
-     * Sets the arguments used for the build execution.
+     * Sets the arguments (tasks and options) used for the build execution.
      *
      * @param arguments Build execution arguments
      * @return The current {@link GradleRunner} instance
      */
     public abstract GradleRunner withArguments(String... arguments);
-
-    /**
-     * Returns the provided task names for build execution. Defaults to an empty List.
-     *
-     * @return Task names
-     */
-    public abstract List<String> getTasks();
-
-    /**
-     * Defines which tasks should be executed.
-     *
-     * @param taskNames Task names
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withTasks(List<String> taskNames);
-
-    /**
-     * Defines which tasks should be executed.
-     *
-     * @param taskNames Task names
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withTasks(String... taskNames);
 
     /**
      * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.

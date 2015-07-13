@@ -67,7 +67,7 @@ class GradleRunnerExpectedSuccessIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with tasks \\u005BhelloWorld\\u005D and arguments \\u005B\\u005D
+        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
 
 Output:
 :helloWorld FAILED
@@ -229,7 +229,7 @@ public class MyApp {
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.withArguments(arguments)
+        gradleRunner.arguments.addAll(arguments)
         BuildResult result = gradleRunner.succeeds()
 
         then:

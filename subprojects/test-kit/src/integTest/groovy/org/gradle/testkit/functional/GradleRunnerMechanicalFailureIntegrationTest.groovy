@@ -70,7 +70,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.withArguments('--unknown')
+        gradleRunner.arguments << '--unknown'
         gradleRunner.succeeds()
 
         then:
@@ -78,7 +78,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         String message = TextUtil.normaliseLineSeparators(t.message)
         message.contains("""Reason:
 Unknown command-line option '--unknown'.""")
-        !message.contains(':helloWorld')
+        message.contains('Problem configuring task :helloWorld from command line.')
     }
 
     def "build execution with non-existent working directory"() {

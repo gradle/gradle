@@ -39,7 +39,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     private final GradleDistribution gradleDistribution;
     private final File workingDirectory;
     private File gradleUserHomeDir;
-    private List<String> taskNames;
     private List<String> arguments;
     private List<String> jvmArguments;
 
@@ -50,10 +49,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     public void withGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
-    }
-
-    public void withTasks(List<String> taskNames) {
-        this.taskNames = taskNames;
     }
 
     public void withArguments(List<String> arguments) {
@@ -83,10 +78,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             String[] argumentArray = new String[arguments.size()];
             arguments.toArray(argumentArray);
             launcher.withArguments(argumentArray);
-
-            String[] tasksArray = new String[taskNames.size()];
-            taskNames.toArray(tasksArray);
-            launcher.forTasks(tasksArray);
 
             String[] jvmArgumentsArray = new String[jvmArguments.size()];
             jvmArguments.toArray(jvmArgumentsArray);

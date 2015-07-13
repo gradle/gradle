@@ -24,11 +24,10 @@ import spock.lang.Unroll
 class DefaultGradleRunnerTest extends Specification {
     DefaultGradleRunner defaultGradleRunner = new DefaultGradleRunner()
     File workingDir = new File('my/tests')
-    List<String> tasks = ['compile', 'test']
-    List<String> arguments = ['--parallel', '-Pfoo=bar']
+    List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
     def setup() {
-        defaultGradleRunner.withWorkingDir(workingDir).withTasks(tasks).withArguments(arguments)
+        defaultGradleRunner.withWorkingDir(workingDir).withArguments(arguments)
     }
 
     def "creates diagnostic message for execution result without thrown exception"() {
@@ -74,7 +73,7 @@ $expectedReason
     }
 
     private String getBasicDiagnosticsMessage() {
-        """Gradle build executed in $workingDir.absolutePath with tasks $tasks and arguments $arguments
+        """Gradle build executed in $workingDir.absolutePath with arguments $arguments
 
 Output:
 This is some output

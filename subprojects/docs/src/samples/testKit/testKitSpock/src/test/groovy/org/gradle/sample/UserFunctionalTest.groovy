@@ -43,7 +43,7 @@ class UserFunctionalTest extends Specification {
 
         when: "create, configure and execute Gradle runner"
         GradleRunner gradleRunner = GradleRunner.create()
-        gradleRunner.withWorkingDir(testProjectDir.root).withTasks('helloWorld')
+        gradleRunner.withWorkingDir(testProjectDir.root).withArguments('helloWorld')
         BuildResult result = gradleRunner.succeeds()
 
         then: "verify build result"
