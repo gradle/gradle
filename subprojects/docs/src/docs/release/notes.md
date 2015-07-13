@@ -169,6 +169,7 @@ We would like to thank the following community members for making contributions 
 * [Dominik Schürmann](https://github.com/dschuermann) - Support for verifying Gradle wrapper distribution download against SHA-256 hash
 * [Amit Portnoy](https://github.com/amitport) - Minor fix in LifecycleBasePlugin
 * [Jordan Jennings](https://github.com/jordanjennings) - Documentation improvements
+* [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
