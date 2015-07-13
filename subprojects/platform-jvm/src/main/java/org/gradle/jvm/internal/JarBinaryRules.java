@@ -18,6 +18,7 @@ package org.gradle.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
@@ -27,9 +28,9 @@ import java.io.File;
 @SuppressWarnings("UnusedDeclaration")
 public class JarBinaryRules extends RuleSource {
     @Defaults
-        // TODO:LPTR Use @Path("buildDir") to inject buildDir
-        // Workaround required because @Path inputs are scoped to the subject of the rule in scoped rules
-    void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder) {
+    // TODO:LPTR Use @Path("buildDir") to inject buildDir
+    // Workaround required because @Path inputs are scoped to the subject of the rule in scoped rules
+    void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder, final JavaToolChainRegistry toolChains) {
         final File binariesDir = new File(buildDirHolder.getBuildDir(), "jars");
         final File classesDir = new File(buildDirHolder.getBuildDir(), "classes");
         jvmLibrary.getBinaries().withType(JarBinarySpec.class).beforeEach(new Action<JarBinarySpec>() {
@@ -42,6 +43,7 @@ public class JarBinaryRules extends RuleSource {
                 jarBinary.setClassesDir(outputDir);
                 jarBinary.setResourcesDir(outputDir);
                 jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
+                jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });
     }

@@ -59,12 +59,10 @@ class SampleLibraryRules extends RuleSource {
     @ComponentBinaries
     public void createBinaries(ModelMap<JarBinarySpec> binaries, SampleLibrarySpec library,
                                BinaryNamingSchemeBuilder namingSchemeBuilder,
-                               @Path("buildDir") File buildDir, JavaToolChainRegistry toolChains) {
+                               @Path("buildDir") File buildDir) {
         def platform = new DefaultJavaPlatform(JavaVersion.current())
-        def toolChain = toolChains.getForPlatform(platform)
         def binaryName = namingSchemeBuilder.withComponentName(library.name).withTypeString("jar").build().lifecycleTaskName
         binaries.create(binaryName) { binary ->
-            binary.toolChain = toolChain
             binary.targetPlatform = platform
         }
     }

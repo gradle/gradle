@@ -93,16 +93,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @ComponentBinaries
         public void createBinaries(ModelMap<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
                                    PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
-
+                                   @Path("buildDir") File buildDir) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(jvmLibrary, platforms);
             for (final JavaPlatform platform : selectedPlatforms) {
-                final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
                 final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinary) {
-                        jarBinary.setToolChain(toolChain);
                         jarBinary.setTargetPlatform(platform);
                     }
                 });
