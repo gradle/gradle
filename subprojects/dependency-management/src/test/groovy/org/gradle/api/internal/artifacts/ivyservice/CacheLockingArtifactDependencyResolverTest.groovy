@@ -18,7 +18,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DependencyArtifactsVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import spock.lang.Specification
 

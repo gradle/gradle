@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 
 import java.util.Set;
 
-public interface ResolvedArtifacts {
+public interface ArtifactSet {
+
+    long getId();
+
     Set<ResolvedArtifact> getArtifacts();
 }

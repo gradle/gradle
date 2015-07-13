@@ -35,12 +35,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderF
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DependencyArtifactsVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;

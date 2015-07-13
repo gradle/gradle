@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-public interface ResolvedArtifactsBuilder extends DependencyArtifactsVisitor {
-    ResolvedArtifactResults resolve();
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+
+import java.util.Set;
+
+public interface ResolvedArtifactResults extends ResolvedArtifacts {
+    Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
 }

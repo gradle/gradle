@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedArtifacts;
 
-import java.util.Set;
+public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
+    private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
-public interface ResolvedArtifactResults extends ResolvedArtifacts {
-    Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
+    public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifactSet) {
+        artifactResults.addArtifactSet(parent, child, artifactSet);
+    }
+
+    @Override
+    public void finishArtifacts() {
+
+    }
+
+    @Override
+    public ResolvedArtifactResults resolve() {
+        artifactResults.resolveNow();
+        return artifactResults;
+    }
 }

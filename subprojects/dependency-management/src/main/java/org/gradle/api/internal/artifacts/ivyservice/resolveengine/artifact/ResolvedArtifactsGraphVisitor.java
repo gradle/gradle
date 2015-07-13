@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -76,7 +76,6 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         artifactSetsByConfiguration.clear();
     }
 
-    // TODO:DAZ This is functional, but need to refactor for clarity
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
         long id = idGenerator.generateId();
         ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
