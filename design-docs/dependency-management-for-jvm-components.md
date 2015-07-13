@@ -498,6 +498,8 @@ When compiling a Java source to build a Jar binary, resolve a classpath dependen
         - Error message should detail the variant values for the multiple compatible binaries
 - If there are no compatible binaries:
     - Failure message should detail the variant values for all available (incompatible) `JarBinarySpec` instances
+- `null` values should be considered as wildcards: when matching binaries, only variants dimensions which are in common in both binaries and have non null
+values are considered.
 
 ### Test cases
 
@@ -535,7 +537,6 @@ When compiling a Java source to build a Jar binary, resolve a classpath dependen
 
 ### Open Issues
 
-- Perform exact match on null variant values, or treat null value as "wildcard" match (compatible with any value for this variant dimension)?
 - How to resolve 2 binary types that share a variant dimension name, but with a different return type: e.g. both variants have `buildType` dimension, but
     - One is typed as `String` the other is typed as `BuildType extends Named`
     - One is typed as `BuildType extends Named` and the other is typed as `DifferentBuildType extends Named`
