@@ -74,7 +74,7 @@ public class UserFunctionalTest {
             output.write(content);
         }
         finally {
-            if(output != null) {
+            if (output != null) {
                 output.close();
             }
         }
