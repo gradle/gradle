@@ -65,11 +65,10 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.functionalSourceSet.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir, serviceRegistry, toolChainRegistry)
+        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
-        1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
