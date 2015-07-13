@@ -16,6 +16,7 @@
 package org.gradle.language.base.internal.model;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
@@ -33,20 +34,23 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     private final Map<String, Object> variants;
     private final Set<String> allVariantDimensions;
     private final Set<String> nonNullVariantDimensions;
+    private final Map<String, Class<?>> variantDimensionTypes;
 
-    public DefaultVariantsMetaData(Map<String, Object> variants) {
+    private DefaultVariantsMetaData(Map<String, Object> variants, Map<String, Class<?>> variantDimensionTypes) {
         this.variants = variants;
-        allVariantDimensions = variants.keySet();
-        nonNullVariantDimensions = ImmutableSet.copyOf(Maps.filterEntries(variants, new Predicate<Map.Entry<String, Object>>() {
+        this.allVariantDimensions = variants.keySet();
+        this.nonNullVariantDimensions = ImmutableSet.copyOf(Maps.filterEntries(variants, new Predicate<Map.Entry<String, Object>>() {
             @Override
             public boolean apply(Map.Entry<String, Object> input) {
                 return input.getValue()!=null;
             }
         }).keySet());
+        this.variantDimensionTypes = variantDimensionTypes;
     }
 
     public static VariantsMetaData extractFrom(BinarySpec spec) {
         Map<String, Object> variants = Maps.newHashMap();
+        Map<String, Class<?>> dimensionTypes = Maps.newHashMap();
         Class<? extends BinarySpec> specClass = spec.getClass();
         Set<Class<?>> interfaces = ClassInspector.inspect(specClass).getSuperTypes();
         for (Class<?> intf : interfaces) {
@@ -57,12 +61,13 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
                 for (Method getter : getters) {
                     if (getter.getAnnotation(Variant.class) != null) {
                         extractVariant(variants, spec, property.getName(), getter);
+                        dimensionTypes.put(property.getName(), getter.getReturnType());
                     }
                 }
             }
         }
 
-        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants));
+        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants), ImmutableMap.copyOf(dimensionTypes));
     }
 
     private static void extractVariant(Map<String, Object> variants, BinarySpec spec, String name, Method method) {
@@ -108,5 +113,10 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     @SuppressWarnings("unchecked")
     public <T extends Named> T getValueAsType(Class<T> clazz, String dimension) {
         return (T) variants.get(dimension);
+    }
+
+    @Override
+    public Class<?> getDimensionType(String dimension) {
+        return variantDimensionTypes.get(dimension);
     }
 }

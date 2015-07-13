@@ -29,4 +29,6 @@ public interface VariantsMetaData {
 
     <T extends Named> T getValueAsType(Class<T> clazz, String dimension);
 
+    Class<?> getDimensionType(String dimension);
+
 }

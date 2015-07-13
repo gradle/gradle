@@ -69,6 +69,8 @@ class LocalLibraryDependencyResolverTest extends Specification {
         def variants = Mock(VariantsMetaData)
         variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
         variants.nonNullDimensions >> ['targetPlatform']
+        variants.allDimensions >> ['targetPlatform']
+        variants.getDimensionType(_) >> JavaPlatform
         resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)

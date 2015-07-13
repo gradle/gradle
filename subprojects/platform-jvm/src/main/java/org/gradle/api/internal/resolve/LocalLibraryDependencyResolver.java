@@ -76,11 +76,13 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
     private final JavaPlatform javaPlatform;
+    private final Set<String> resolveDimensions;
 
     public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData) {
         this.projectModelResolver = projectModelResolver;
         this.variantsMetaData = variantsMetaData;
         this.javaPlatform = variantsMetaData.getValueAsType(JavaPlatform.class, TARGET_PLATFORM);
+        this.resolveDimensions = variantsMetaData.getNonNullDimensions();
     }
 
     @Override
@@ -127,19 +129,23 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return values;
         }
         TreeMultimap<JavaPlatform, JvmBinarySpec> platformToBinary = TreeMultimap.create(JAVA_PLATFORM_COMPARATOR, JVM_BINARY_SPEC_COMPARATOR);
-        Set<String> resolveDimensions = variantsMetaData.getNonNullDimensions();
         for (BinarySpec binarySpec : values) {
-            if (binarySpec instanceof JvmBinarySpec) {
-                JvmBinarySpec jvmSpec = (JvmBinarySpec) binarySpec;
+            if (binarySpec instanceof JarBinarySpec) {
+                JarBinarySpec jvmSpec = (JarBinarySpec) binarySpec;
                 if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
                     VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(jvmSpec);
                     Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
-                    boolean matching = true;
-                    for (String dimension : commonsDimensions) {
-                        if (!isPlatformDimension(dimension)) {
-                            String resolveValue = variantsMetaData.getValueAsString(dimension);
-                            String binaryValue = binaryVariants.getValueAsString(dimension);
-                            matching = matching && com.google.common.base.Objects.equal(resolveValue, binaryValue);
+                    boolean matching = incompatibleDimensionTypes(commonsDimensions, binaryVariants).isEmpty();
+                    if (matching) {
+                        for (String dimension : commonsDimensions) {
+                            if (!isPlatformDimension(dimension)) {
+                                String resolveValue = variantsMetaData.getValueAsString(dimension);
+                                String binaryValue = binaryVariants.getValueAsString(dimension);
+                                matching = com.google.common.base.Objects.equal(resolveValue, binaryValue);
+                                if (!matching) {
+                                    break;
+                                }
+                            }
                         }
                     }
                     if (matching) {
@@ -153,6 +159,18 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
         JavaPlatform first = platformToBinary.keySet().last();
         return platformToBinary.get(first);
+    }
+
+    private Set<String> incompatibleDimensionTypes(Set<String> testedDimensions, VariantsMetaData binaryVariant) {
+        Set<String> result = Sets.newHashSet();
+        for (String commonDimension : testedDimensions) {
+            Class<?> resolveType = variantsMetaData.getDimensionType(commonDimension);
+            Class<?> binaryVariantType = binaryVariant.getDimensionType(commonDimension);
+            if (binaryVariantType != null && !resolveType.isAssignableFrom(binaryVariantType)) {
+                result.add(commonDimension);
+            }
+        }
+        return result;
     }
 
     private LibraryResolutionResult doResolve(String projectPath,
@@ -206,13 +224,12 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     private String noCompatiblePlatformErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
-        Set<String> resolveDimensions = variantsMetaData.getNonNullDimensions();
         if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
             List<String> availablePlatforms = Lists.transform(
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
                     @Override
                     public String apply(BinarySpec input) {
-                        return input instanceof JvmBinarySpec ? ((JvmBinarySpec) input).getTargetPlatform().toString() : input.toString();
+                        return input instanceof JarBinarySpec ? ((JarBinarySpec) input).getTargetPlatform().toString() : input.toString();
                     }
                 }
             );
@@ -223,8 +240,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
                     @Override
                     public String apply(BinarySpec input) {
-                        if (input instanceof JvmBinarySpec) {
-                            JavaPlatform targetPlatform = ((JvmBinarySpec) input).getTargetPlatform();
+                        if (input instanceof JarBinarySpec) {
+                            JavaPlatform targetPlatform = ((JarBinarySpec) input).getTargetPlatform();
                             if (moreThanOneBinary) {
                                 return String.format("'%s' on %s", targetPlatform.getName(), input.getDisplayName());
                             }
@@ -242,14 +259,20 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             HashMultimap<String, String> variants = HashMultimap.create();
             for (BinarySpec spec : allBinaries) {
                 VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec);
+                Set<String> incompatibleDimensionTypes = incompatibleDimensionTypes(resolveDimensions, md);
                 for (String dimension : resolveDimensions) {
                     String value = md.getValueAsString(dimension);
                     if (value != null) {
+                        String message;
                         if (moreThanOneBinary) {
-                            variants.put(dimension, String.format("'%s' on %s", value, spec.getDisplayName()));
+                            message = String.format("'%s' on %s", value, spec.getDisplayName());
                         } else {
-                            variants.put(dimension, String.format("'%s'", value, spec.getDisplayName()));
+                            message = String.format("'%s'", value);
                         }
+                        if (incompatibleDimensionTypes.contains(dimension)) {
+                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getName(), md.getDimensionType(dimension).getName());
+                        }
+                        variants.put(dimension, message);
                     }
                 }
             }

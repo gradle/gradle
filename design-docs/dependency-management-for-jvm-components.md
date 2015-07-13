@@ -500,6 +500,9 @@ When compiling a Java source to build a Jar binary, resolve a classpath dependen
     - Failure message should detail the variant values for all available (incompatible) `JarBinarySpec` instances
 - `null` values should be considered as wildcards: when matching binaries, only variants dimensions which are in common in both binaries and have non null
 values are considered.
+- When comparing variants, only variants dimensions with a compatible type are considered. That is to say, if a binary A has a variant `buildType` of type `String`, and
+a binary `B` has a variant `buildType` of type `BuildType`, the variant dimension cannot be used for comparison.
+    - in case no matching binaries are found, but those binaries had incompatible dimension types, then a reasonable error message should be displayed.
 
 ### Test cases
 
@@ -524,22 +527,16 @@ values are considered.
         - Given `A1[java6, 'free']` and `B1[java6,debug]`, `B2[java7,release]`: select `B1` due to highest compatible `platform`
         - Given `A1[java6, 'free']` and `B1[java7,debug]`, `B2[java8,release]`: FAIL (no compatible) and list all available variants
         - Given `A1[java6, 'free']` and `B1[java6,debug]`, `B2[java6,release]`, `B3[java7,release]`: FAIL (multiple compatible) and list compatible variants (`B1`, `B2`)
-- Some coverage for open issues, below (to be decided)
-    - null dimension values
-    - common dimensions with different value types
-
+- Scenario: resolve 2 binary types that share a variant dimension name, but with a different return type.
+    - Binary `A {platform, buildType}` depends on Library `B {platform, buildType}` but type of `A#buildType` is `String` and `B#buildType` is `BuildType extends Named`: fail (no compatible) and display
+    an error message indicating that the binary didn't have a compatible type for `buildType`.
+    - Binary `A {platform, buildType}` depends on Library `B {platform, buildType}` but type of `A#buildType` is `BuildType extends Named` and `B#buildType` is `DifferentBuildType extends Named`: fail (no compatible) and display
+        an error message indicating that the binary didn't have a compatible type for `buildType`.
 ### Implementation
-
 - Extract variant metadata from `JarBinarySpec` instance: include `JavaPlatform` as well as any custom variants
     - Depending on the advancement of other stories, first step maybe using reflection, second step using `ModelSchema`
 - `DependentSourceSetResolveContext` contains variant metadata for jar being built
-- `LocalLibraryDependencyResolver` compares variant metadata from resolve context with variant metadata for candidate binaries
-
-### Open Issues
-
-- How to resolve 2 binary types that share a variant dimension name, but with a different return type: e.g. both variants have `buildType` dimension, but
-    - One is typed as `String` the other is typed as `BuildType extends Named`
-    - One is typed as `BuildType extends Named` and the other is typed as `DifferentBuildType extends Named`
+- `LocalLibraryDependencyResolver` compares variant metadata from resolve context with variant metadata for candidate binariesi
 
 ## Feature backlog
 
