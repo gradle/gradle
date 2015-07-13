@@ -38,11 +38,8 @@ class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec 
         file("src/main/resources/java.properties") << "origin=java"
 
         buildFile << """
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
-import org.gradle.platform.base.internal.DefaultPlatformRequirement
-import org.gradle.platform.base.internal.PlatformResolvers
 
 plugins {
     id 'jvm-component'
@@ -61,12 +58,9 @@ class SampleLibraryRules extends RuleSource {
 
     @ComponentBinaries
     public void createBinaries(ModelMap<JarBinarySpec> binaries, SampleLibrarySpec library,
-                               PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                               @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
-        def defaultJavaPlatformName = new DefaultJavaPlatform(JavaVersion.current()).name
-        def platformRequirement = DefaultPlatformRequirement.create(defaultJavaPlatformName)
-        def platform = platforms.resolve(JavaPlatform, platformRequirement)
-
+                               BinaryNamingSchemeBuilder namingSchemeBuilder,
+                               @Path("buildDir") File buildDir, JavaToolChainRegistry toolChains) {
+        def platform = new DefaultJavaPlatform(JavaVersion.current())
         def toolChain = toolChains.getForPlatform(platform)
         def binaryName = namingSchemeBuilder.withComponentName(library.name).withTypeString("jar").build().lifecycleTaskName
         binaries.create(binaryName) { binary ->
