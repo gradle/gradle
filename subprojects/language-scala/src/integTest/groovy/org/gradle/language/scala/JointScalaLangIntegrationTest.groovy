@@ -16,10 +16,55 @@
 
 package org.gradle.language.scala
 
+import com.sun.xml.internal.ws.util.StringUtils
+import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.scala.fixtures.TestJointCompiledComponent
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JointScalaLangIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJointCompiledComponent()
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can compile class files with Java 8 features" () {
+        app.sources.add java8SpecificClassFile
+
+        when:
+        app.writeSources(file("src/myLib"))
+        app.writeResources(file("src/myLib/resources"))
+        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    myLib(JvmLibrarySpec)
+                }
+            }
+        """
+        and:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}"
+
+        and:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+    }
+
+    def getJava8SpecificClassFile() {
+        new JvmSourceFile("compile/test", "Java8Class.java", '''
+package compile.test;
+
+import java.util.function.Function;
+
+class Java8Class {
+    public static void lambdaMethod() {
+        final Function<Integer, String> f = n -> Integer.toString(n);
+    }
+}
+''')
+    }
 }
