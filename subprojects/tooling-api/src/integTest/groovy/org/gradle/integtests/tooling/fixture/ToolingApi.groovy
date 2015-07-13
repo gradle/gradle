@@ -42,7 +42,6 @@ class ToolingApi implements TestRule {
     private TestFile gradleUserHomeDir
     private TestFile daemonBaseDir
     private boolean useSeparateDaemonBaseDir
-    private boolean inProcess
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
 
@@ -56,7 +55,6 @@ class ToolingApi implements TestRule {
         this.gradleUserHomeDir = context.gradleUserHomeDir
         this.daemonBaseDir = context.daemonBaseDir
         this.requiresDaemon = !GradleContextualExecuter.embedded
-        this.inProcess = GradleContextualExecuter.embedded
         this.testWorkDirProvider = testWorkDirProvider
     }
 
@@ -152,23 +150,26 @@ class ToolingApi implements TestRule {
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }
-        if (isEmbedded()) {
-            println("Using embedded tooling API provider from ${GradleVersion.current().version} to classpath (${dist.version.version})")
+        if (useClasspathImplementation) {
             connector.useClasspathDistribution()
-            connector.embedded(true)
         } else {
-            println("Using daemon tooling API provider from ${GradleVersion.current().version} to ${dist.version.version}")
             connector.useInstallation(dist.gradleHomeDir.absoluteFile)
-            connector.embedded(false)
         }
+        connector.embedded(embedded)
         connectorConfigurers.each {
             connector.with(it)
         }
         return connector
     }
 
+    boolean isUseClasspathImplementation() {
+        // Use classpath implementation only when running tests in embedded mode and for the current Gradle version
+        return GradleContextualExecuter.embedded && GradleVersion.current() == dist.version
+    }
+
     boolean isEmbedded() {
-        !requiresDaemon && GradleVersion.current() == dist.version
+        // Use in-process build when running tests in embedded mode and daemon is not required
+        return GradleContextualExecuter.embedded && !requiresDaemon
     }
 
     @Override
