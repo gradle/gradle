@@ -20,4 +20,5 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 public interface DependencyArtifactsVisitor {
     void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts);
+    void finishArtifacts();
 }

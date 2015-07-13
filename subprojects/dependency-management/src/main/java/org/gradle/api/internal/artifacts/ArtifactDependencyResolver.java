@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -23,11 +22,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import java.util.List;
 
 public interface ArtifactDependencyResolver {
-    void resolve(ResolveContext resolveContext,
-                 List<? extends ResolutionAwareRepository> repositories,
-                 GlobalDependencyResolutionRules metadataHandler,
-                 BuildableResolverResults results) throws ResolveException;
-
     void resolve(ResolveContext resolveContext,
                  List<? extends ResolutionAwareRepository> repositories,
                  GlobalDependencyResolutionRules metadataHandler,

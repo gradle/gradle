@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.DomainObjectContext;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToArtifactsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
@@ -139,11 +141,19 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        RepositoryHandler repositories,
                                                        GlobalDependencyResolutionRules metadataHandler,
                                                        ComponentIdentifierFactory componentIdentifierFactory,
-                                                       CacheLockingManager cacheLockingManager) {
+                                                       CacheLockingManager cacheLockingManager,
+                                                       ResolutionResultsStoreFactory resolutionResultsStoreFactory,
+                                                       StartParameter startParameter) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                             new SelfResolvingDependencyConfigurationResolver(
-                                    new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler, cacheLockingManager)),
+                                    new DefaultConfigurationResolver(
+                                            artifactDependencyResolver,
+                                            repositories,
+                                            metadataHandler,
+                                            cacheLockingManager,
+                                            resolutionResultsStoreFactory,
+                                            startParameter.isBuildProjectDependencies())),
                             componentIdentifierFactory)
             );
         }

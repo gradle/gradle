@@ -71,6 +71,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     public void finish(DependencyGraphNode root) {
+        artifactResults.finishArtifacts();
         allResolvedArtifacts.clear();
         artifactSetsByConfiguration.clear();
     }

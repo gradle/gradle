@@ -206,9 +206,7 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 IvyContextManager ivyContextManager,
-                                                                ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                                 VersionComparator versionComparator,
-                                                                StartParameter startParameter,
                                                                 ServiceRegistry serviceRegistry) {
         DefaultDependencyResolver resolver = new DefaultDependencyResolver(
             serviceRegistry,
@@ -216,9 +214,7 @@ class DependencyManagementBuildScopeServices {
             dependencyDescriptorFactory,
             cacheLockingManager,
             ivyContextManager,
-            resolutionResultsStoreFactory,
-            versionComparator,
-            startParameter.isBuildProjectDependencies()
+            versionComparator
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }

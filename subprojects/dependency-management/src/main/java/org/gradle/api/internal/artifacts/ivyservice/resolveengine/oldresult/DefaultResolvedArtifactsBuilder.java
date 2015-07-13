@@ -26,6 +26,11 @@ public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder
     }
 
     @Override
+    public void finishArtifacts() {
+
+    }
+
+    @Override
     public ResolvedArtifactResults resolve() {
         artifactResults.resolveNow();
         return artifactResults;
