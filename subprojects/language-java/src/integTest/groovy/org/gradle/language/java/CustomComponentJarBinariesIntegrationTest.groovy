@@ -39,12 +39,10 @@ class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec 
 
         buildFile << """
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.jvm.internal.*
-import org.gradle.jvm.internal.toolchain.*
-import org.gradle.jvm.platform.internal.*
-import org.gradle.jvm.toolchain.*
-import org.gradle.jvm.toolchain.internal.*
-import org.gradle.platform.base.internal.*
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultPlatformRequirement
+import org.gradle.platform.base.internal.PlatformResolvers
 
 plugins {
     id 'jvm-component'
