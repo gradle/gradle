@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
+    private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
     private final GradleDistribution gradleDistribution;
     private File gradleUserHomeDir;
     private File workingDirectory;
@@ -39,6 +40,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     public DefaultGradleRunner(GradleDistribution gradleDistribution) {
         this.gradleDistribution = gradleDistribution;
+        this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
     }
 
     public File getGradleUserHomeDir() {
