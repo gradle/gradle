@@ -48,6 +48,7 @@ public class ModelSchemaExtractor {
 
     public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
         this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
+            .addAll(strategies)
             .add(
                 new PrimitiveStrategy(),
                 new EnumStrategy(),
@@ -58,7 +59,6 @@ public class ModelSchemaExtractor {
                 new SpecializedMapStrategy(),
                 new ModelMapStrategy()
             )
-            .addAll(strategies)
             .add(new UnmanagedStrategy())
             .build();
     }
