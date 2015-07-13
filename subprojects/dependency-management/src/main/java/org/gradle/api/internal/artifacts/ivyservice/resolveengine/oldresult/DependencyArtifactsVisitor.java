@@ -18,16 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
-public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
-    private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
-
-    public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifactSet) {
-        artifactResults.addArtifactSet(parent, child, artifactSet);
-    }
-
-    @Override
-    public ResolvedArtifactResults resolve() {
-        artifactResults.resolveNow();
-        return artifactResults;
-    }
+public interface DependencyArtifactsVisitor {
+    void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts);
 }

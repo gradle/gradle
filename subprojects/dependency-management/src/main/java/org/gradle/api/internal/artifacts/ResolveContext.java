@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
 /**
  * Represents something that can be resolved.
@@ -31,6 +31,6 @@ public interface ResolveContext {
 
     DependencySet getAllDependencies();
 
-    ResolutionStrategy getResolutionStrategy();
+    ResolutionStrategyInternal getResolutionStrategy();
 
 }

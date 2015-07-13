@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import java.util.Arrays;
 import java.util.List;
 
-class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
+public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     private final List<DependencyGraphVisitor> visitors;
 
-    CompositeDependencyGraphVisitor(DependencyGraphVisitor... visitors) {
+    public CompositeDependencyGraphVisitor(DependencyGraphVisitor... visitors) {
         this.visitors = Arrays.asList(visitors);
     }
 

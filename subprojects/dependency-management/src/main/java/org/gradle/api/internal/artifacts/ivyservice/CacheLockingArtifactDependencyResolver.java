@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
@@ -34,9 +36,15 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
                                    final List<? extends ResolutionAwareRepository> repositories,
                                    final GlobalDependencyResolutionRules metadataHandler,
                                    final BuildableResolverResults results) throws ResolveException {
+        resolver.resolve(resolveContext, repositories, metadataHandler, results);
+    }
+
+    @Override
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler,
+                        final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
         lockingManager.useCache(String.format("resolve %s", resolveContext), new Runnable() {
             public void run() {
-                resolver.resolve(resolveContext, repositories, metadataHandler, results);
+                resolver.resolve(resolveContext, repositories, metadataHandler, graphVisitor, artifactsVisitor);
             }
         });
     }

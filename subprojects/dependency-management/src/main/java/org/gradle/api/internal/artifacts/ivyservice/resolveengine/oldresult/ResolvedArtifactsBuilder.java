@@ -15,11 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-
-public interface ResolvedArtifactsBuilder {
-
-    void addArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts);
-
+public interface ResolvedArtifactsBuilder extends DependencyArtifactsVisitor {
     ResolvedArtifactResults resolve();
 }

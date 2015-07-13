@@ -43,9 +43,9 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
 
-    private final ResolvedArtifactsBuilder artifactResults;
+    private final DependencyArtifactsVisitor artifactResults;
 
-    public ResolvedArtifactsGraphVisitor(ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
     }
@@ -66,7 +66,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             ResolvedConfigurationIdentifier child = resolvedConfiguration.getNodeId();
 
             ArtifactSet artifacts = getArtifacts(dependency, resolvedConfiguration);
-            artifactResults.addArtifacts(parent, child, artifacts);
+            artifactResults.visitArtifacts(parent, child, artifacts);
         }
     }
 
