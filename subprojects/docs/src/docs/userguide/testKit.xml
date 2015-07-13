@@ -102,7 +102,7 @@
             <listitem>Seamless compatibility with JUnit.</listitem>
         </itemizedlist>
         <para>The following code snippet takes the previous test example and turns it into a Spock test:</para>
-        <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test with Spock">
+        <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/groovy/org/gradle/sample" title="Using the test-kit in a functional test with Spock">
             <sourcefile file="UserFunctionalTest.groovy" snippet="functional-test-spock"/>
         </sample>
     </section>
