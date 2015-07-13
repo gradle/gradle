@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r26
+
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
@@ -34,6 +35,7 @@ import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=1.0-milestone-8")
@@ -196,7 +198,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-            launchTests(it, new TestResultHandler(), cancellationTokenSource){ TestLauncher launcher ->
+            launchTests(it, new TestResultHandler(), cancellationTokenSource) { TestLauncher launcher ->
                 def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
                 launcher
                     .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
@@ -308,6 +310,110 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
+    @TargetGradleVersion(">=2.6")
+    def "can execute multiple test classes passed by name"() {
+        setup: "add testcase that should not be exeucted"
+        file("src/test/java/example/MyFailingTest.java") << """
+            package example;
+            public class MyFailingTest {
+                @org.junit.Test public void failing1() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }
+        """
+
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestClasses("example.MyTest")
+            testLauncher.withJvmTestClasses("example2.MyOtherTest")
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":test")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":secondTest")
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "runs all test tasks in multi project build when test class passed by name"() {
+        setup:
+        settingsFile << "include ':sub1', 'sub2', ':sub2:sub3', ':sub4'"
+        ["sub1", "sub2/sub3"].each { projectFolderName ->
+            file("${projectFolderName}/src/test/java/example/MyTest.java") << """
+                package example;
+                public class MyTest {
+                    @org.junit.Test public void foo() throws Exception {
+                         org.junit.Assert.assertEquals(1, 1);
+                    }
+                }
+            """
+        }
+
+        file("sub2/src/test/java/example2/MyOtherTest.java") << """
+            package example2;
+            public class MyOtherTest {
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+            """
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestClasses("example.MyTest")
+            testLauncher.withJvmTestClasses("example2.MyOtherTest")
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTaskExecuted(":sub1:test")
+        assertTaskExecuted(":sub2:test")
+        assertTaskExecuted(":sub2:sub3:test")
+        assertTaskExecuted(":sub4:test")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub1:test")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":sub2:test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub2:sub3:test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+    }
+
+    @TargetGradleVersion(">=2.6")
+    @Ignore
+    def "compatible with configure on demand"() {
+        setup:
+        10.times{settingsFile << "include ':sub$it'\n"}
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withArguments("--configure-on-demand")
+            testLauncher.withJvmTestClasses("example.MyTest")
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":sub0:test")
+        assertTaskExecuted(":sub1:test")
+        assertTaskExecuted(":sub2:test")
+        assertTaskExecuted(":sub3:test")
+        assertTaskExecuted(":sub4:test")
+        assertTaskExecuted(":sub5:test")
+        assertTaskExecuted(":sub6:test")
+        assertTaskExecuted(":sub7:test")
+        assertTaskExecuted(":sub8:test")
+        assertTaskExecuted(":sub9:test")
+    }
+
     ProgressListener failingProgressListener() {
         new ProgressListener() {
             @Override
@@ -388,7 +494,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
 
-
     private boolean hasTestDescriptor(testInfo) {
         !testDescriptors(testDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
@@ -434,9 +539,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         confgurationClosure.call(testLauncher)
 
-        if(resultHandler == null){
+        if (resultHandler == null) {
             testLauncher.run()
-        }else {
+        } else {
             testLauncher.run(resultHandler)
         }
     }
@@ -463,7 +568,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def testCode() {
-        settingsFile << "rootProject.name = 'testproject'"
+        settingsFile << "rootProject.name = 'testproject'\n"
         buildFile.text = simpleJavaProject()
 
         buildFile << """
@@ -522,9 +627,11 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     def simpleJavaProject() {
         """
-        apply plugin: 'java'
-        repositories { mavenCentral() }
-        dependencies { testCompile 'junit:junit:4.12' }
+        allprojects{
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+        }
         """
     }
 
