@@ -22,7 +22,10 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ContextualArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
@@ -94,51 +97,52 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                         final List<? extends ResolutionAwareRepository> repositories,
                         final GlobalDependencyResolutionRules metadataHandler,
                         final BuildableResolverResults results) throws ResolveException {
-        LOGGER.debug("Resolving {}", resolveContext);
-        ivyContextManager.withIvy(new Action<Ivy>() {
-            public void execute(Ivy ivy) {
+        StoreSet stores = storeFactory.createStoreSet();
 
-                StoreSet stores = storeFactory.createStoreSet();
+        BinaryStore oldModelStore = stores.nextBinaryStore();
+        Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
+        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
+        DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
-                BinaryStore oldModelStore = stores.nextBinaryStore();
-                Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
-                TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-                DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
+        BinaryStore newModelStore = stores.nextBinaryStore();
+        Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
+        ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
+        DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
 
-                BinaryStore newModelStore = stores.nextBinaryStore();
-                Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
-                ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
-                DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
+        ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
+        DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
 
-                ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
-                DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
+        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
+        ResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
 
-                DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
-                ResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
+        resolve(resolveContext, repositories, metadataHandler, graphVisitor, artifactsBuilder);
 
-                resolve(resolveContext, repositories, metadataHandler, graphVisitor, artifactsBuilder);
+        DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
+        defaultResolverResults.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
 
-                DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
-                defaultResolverResults.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());
-
-                ResolvedGraphResults graphResults = oldModelBuilder.complete();
-                defaultResolverResults.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
-            }
-        });
+        ResolvedGraphResults graphResults = oldModelBuilder.complete();
+        defaultResolverResults.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
     }
 
     @Override
     public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
-        ResolverProvider componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
-        DependencyGraphBuilder builder = createDependencyGraphBuilder(componentSource, resolveContext.getResolutionStrategy(), metadataHandler);
+        ivyContextManager.withIvy(new Action<Ivy>() {
+            public void execute(Ivy ivy) {
 
-        ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, componentSource.getArtifactResolver()));
 
-        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver);
+                LOGGER.debug("Resolving {}", resolveContext);
+                ResolverProvider componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
+                DependencyGraphBuilder builder = createDependencyGraphBuilder(componentSource, resolveContext.getResolutionStrategy(), metadataHandler);
 
-        // Resolve the dependency graph
-        builder.resolve(resolveContext, graphVisitor, artifactsGraphVisitor);
+                ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, componentSource.getArtifactResolver()));
+
+                DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver);
+
+                // Resolve the dependency graph
+                builder.resolve(resolveContext, graphVisitor, artifactsGraphVisitor);
+            }
+        });
     }
 
     private DependencyGraphBuilder createDependencyGraphBuilder(ResolverProvider componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
@@ -207,7 +211,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     return factory.convert(context);
                 }
             }
-            throw new IllegalArgumentException("Unable to find a local converter factory for type "+context.getClass());
+            throw new IllegalArgumentException("Unable to find a local converter factory for type " + context.getClass());
         }
     }
 
