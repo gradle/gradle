@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2015 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,19 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>targetPlatform</td>
-            </tr>
-            <tr>
-                <td>jarFile</td>
-            </tr>
-            <tr>
-                <td>assetsJarFile</td>
-            </tr>
-            <tr>
-                <td>classes</td>
-            </tr>
-            <tr>
-                <td>assets</td>
+                <td>assetDirs</td>
             </tr>
         </table>
     </section>
@@ -48,6 +36,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>addAssetDir</td>
+            </tr>
         </table>
     </section>
 </section>

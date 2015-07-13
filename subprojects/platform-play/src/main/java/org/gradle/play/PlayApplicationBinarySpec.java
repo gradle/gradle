@@ -44,12 +44,28 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
 
     PlayToolChain getToolChain();
 
+    /**
+     * The application jar file produced for this binary.
+     * @return the application jar file
+     */
     File getJarFile();
 
+    /**
+     * The assets jar file produced for this binary.
+     * @return the assets jar file
+     */
     File getAssetsJarFile();
 
+    /**
+     * A buildable object representing the class files and resources that will be included in the application jar file.
+     * @return the JvmClasses for this binary
+     */
     JvmClasses getClasses();
 
+    /**
+     * A buildable object representing the public assets that will be included in the assets jar file.
+     * @return the PublicAssets for this binary
+     */
     PublicAssets getAssets();
 
     Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala();
