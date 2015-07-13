@@ -33,6 +33,7 @@ import java.util.List;
 
 public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
 
+    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
     private static final ModelElementState NO_OP_MODEL_ELEMENT_STATE = new ModelElementState() {
         @Override
         public MutableModelNode getBackingNode() {
@@ -53,11 +54,10 @@ public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySuppo
     };
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
-    private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
 
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
         Class<? extends R> implClass = classGenerator.generate(concreteClass);
-        final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, implClass, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, implClass, null, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {
                 return new ManagedModelInitializer<R>(schema, store);
@@ -74,7 +74,7 @@ public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySuppo
 
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelStructSchema<R> schema) {
         try {
-            proxyFactory.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
+            PROXY_FACTORY.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "instance creation failed", e);
         }

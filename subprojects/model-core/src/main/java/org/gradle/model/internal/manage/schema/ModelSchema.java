@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema;
 
 import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
@@ -59,8 +60,8 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.VALUE);
     }
 
-    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        return new ModelStructSchema<T>(type, properties, managedImpl, nodeInitializer);
+    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+        return new ModelStructSchema<T>(type, properties, managedImpl, delegateType, nodeInitializer);
     }
 
     public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {

@@ -56,7 +56,7 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     @Override
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
         Class<? extends R> implClass = classGenerator.generate(concreteClass, JarBinarySpecInternal.class);
-        return ModelSchema.struct(type, properties, implClass, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        return ModelSchema.struct(type, properties, implClass, JarBinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {
                 return new JarBinarySpecSpecializationModelInitializer<R>(schema, store);

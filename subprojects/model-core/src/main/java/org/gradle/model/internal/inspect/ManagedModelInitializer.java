@@ -32,9 +32,9 @@ import java.util.List;
 
 public class ManagedModelInitializer<T> implements NodeInitializer {
 
-    public static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
-    private final ModelStructSchema<T> modelSchema;
-    private final ModelSchemaStore schemaStore;
+    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
+    protected final ModelStructSchema<T> modelSchema;
+    protected final ModelSchemaStore schemaStore;
 
     public ManagedModelInitializer(ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         this.modelSchema = modelSchema;
@@ -69,7 +69,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                 modelNode.addLink(creator);
             } else {
                 ModelStructSchema<P> structSchema = (ModelStructSchema<P>) propertySchema;
-                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, new ManagedProxyFactory());
+                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, PROXY_FACTORY);
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                     .withProjection(projection)
                     .descriptor(descriptor).build();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,15 @@ public class ManagedProxyFactory {
             if (generatedClass == null) {
                 throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
             }
-            Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
-            return constructor.newInstance(state);
+            Class<?> delegateType = schema.getDelegateType();
+            if (delegateType == null) {
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
+                return constructor.newInstance(state);
+            } else {
+                Object delegate = state.getBackingNode().getPrivateData(delegateType);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, delegateType);
+                return constructor.newInstance(state, delegate);
+            }
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());
         } catch (Exception e) {
