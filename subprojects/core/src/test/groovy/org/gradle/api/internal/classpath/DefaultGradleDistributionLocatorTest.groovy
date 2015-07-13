@@ -25,7 +25,7 @@ import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultGradleDistributionLocatorIntegrationTest extends Specification {
+class DefaultGradleDistributionLocatorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile distDir
 
