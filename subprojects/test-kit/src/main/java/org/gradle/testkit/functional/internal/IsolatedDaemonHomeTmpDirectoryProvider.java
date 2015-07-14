@@ -20,24 +20,16 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 
 import java.io.File;
-import java.io.IOException;
 
 public class IsolatedDaemonHomeTmpDirectoryProvider implements TmpDirectoryProvider {
     public final static String DIR_NAME = ".gradle-test-kit";
 
     public File createDir() {
-        try {
-            File tmpDir = new File(new File(SystemProperties.getInstance().getJavaIoTmpDir()), DIR_NAME);
-
-            if (!tmpDir.exists()) {
-                if (!tmpDir.mkdirs()) {
-                    throw new UncheckedIOException(String.format("Unable to create temporary directory %s", tmpDir.getCanonicalPath()));
-                }
-            }
-
-            return tmpDir;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        File tmpDir = new File(new File(SystemProperties.getInstance().getJavaIoTmpDir()), DIR_NAME);
+        if (!tmpDir.mkdirs() && !tmpDir.isDirectory()) {
+            throw new UncheckedIOException(String.format("Unable to create temporary directory %s", tmpDir.getAbsolutePath()));
         }
+
+        return tmpDir;
     }
 }
