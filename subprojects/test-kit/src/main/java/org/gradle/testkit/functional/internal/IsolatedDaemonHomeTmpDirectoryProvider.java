@@ -29,8 +29,8 @@ public class IsolatedDaemonHomeTmpDirectoryProvider implements TmpDirectoryProvi
         try {
             File tmpDir = new File(new File(SystemProperties.getInstance().getJavaIoTmpDir()), DIR_NAME);
 
-            if(!tmpDir.exists()) {
-                if(!tmpDir.mkdirs()) {
+            if (!tmpDir.exists()) {
+                if (!tmpDir.mkdirs()) {
                     throw new UncheckedIOException(String.format("Unable to create temporary directory %s", tmpDir.getCanonicalPath()));
                 }
             }
