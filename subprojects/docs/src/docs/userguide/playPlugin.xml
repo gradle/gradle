@@ -65,10 +65,10 @@
 
         <para>
             The Play plugin uses a <emphasis>software model</emphasis> to describe a Play application.  The software model is comprised of
-            "components" and "binaries".  Components are abstract software elements that are built to produce binaries.
-            A Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically
-            creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> when it is applied.
-            A project can only have one PlayApplicationSpec component.
+            "components" and "binaries".  Components are abstract software elements that are built to produce binaries and
+            a Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically
+            creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> when it is applied and additional components
+            cannot be added.
         </para>
 
         <figure>
@@ -81,9 +81,9 @@
         <section>
             <title>The Play application component</title>
             <para>
-                A Play application component consists of several configuration elements that describe the application to be built.  One element that
+                A Play application component describes the application to be built and consists of several configuration elements.  One type of element that
                 describes the application are the source sets that define where the application controller, route, template and model class source
-                files should be found.  These source sets are logical groupings of files of a particular type.  A default source set for each type is
+                files should be found.  These source sets are logical groupings of files of a particular type and a default source set for each type is
                 created when the <literal>play</literal> plugin is applied.
             </para>
             <table>
@@ -149,14 +149,14 @@
                 It also exposes the tasks involved in building the component and creating the binary.
             </para>
             <para>
-                See <link linkend="configuring_play">Configuring Play</link> for further information on configuring the Play binary.
+                See <link linkend="configuring_play">Configuring Play</link> for examples of configuring the Play binary.
             </para>
         </section>
     </section>
 
     <section>
         <title>Project Layout</title>
-        <para>The Play plugin follows the typical Play application layout.  You can configure source sets to include additional directories or change the defaults.</para>
+        <para>The Play plugin follows the typical Play application layout.  You can <link linkend="configuring_play_sourcesets">configure source sets</link> to include additional directories or change the defaults.</para>
         <screen>
             ├── app                 <lineannotation>→ Application source code.</lineannotation>
             │   ├── assets          <lineannotation>→ Assets that require compilation.</lineannotation>
@@ -358,7 +358,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="configuring_play_sourcesets">
             <title>Configuring the default source sets</title>
             <para>You can further configure the default source sets to do things like add new directories, add filters, etc.</para>
             <sample id="addExtraPlaySourcesets" dir="play/sourcesets" title="Adding extra source sets to a Play application">
