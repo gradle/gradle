@@ -32,6 +32,7 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
+    private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
 
     private File gradleUserHomeDir;
@@ -141,18 +142,22 @@ public class DefaultGradleRunner extends GradleRunner {
         return throwable.getCause() == null ? throwable.getMessage() : ExceptionUtils.getRootCause(throwable).getMessage();
     }
 
-    private BuildResult run(Action<GradleExecutionResult> action) {
-        GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleHome, workingDirectory);
-        gradleExecutor.withGradleUserHomeDir(gradleUserHomeDir);
-        gradleExecutor.withArguments(arguments);
-        gradleExecutor.withJvmArguments(jvmArguments);
-        GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
-        action.execute(gradleExecutionResult);
+    private BuildResult run(Action<GradleExecutionResult> resultVerification) {
+        GradleExecutionResult execResult = gradleExecutor.run(
+            gradleHome,
+            gradleUserHomeDir,
+            workingDirectory,
+            arguments,
+            jvmArguments
+        );
+
+        resultVerification.execute(execResult);
+
         return new DefaultBuildResult(
-            gradleExecutionResult.getStandardOutput(),
-            gradleExecutionResult.getStandardError(),
-            gradleExecutionResult.getExecutedTasks(),
-            gradleExecutionResult.getSkippedTasks()
+            execResult.getStandardOutput(),
+            execResult.getStandardError(),
+            execResult.getExecutedTasks(),
+            execResult.getSkippedTasks()
         );
     }
 }

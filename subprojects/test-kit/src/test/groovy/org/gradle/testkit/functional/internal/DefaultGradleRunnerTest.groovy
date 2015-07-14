@@ -22,7 +22,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
-    DefaultGradleRunner defaultGradleRunner = new DefaultGradleRunner()
+    DefaultGradleRunner defaultGradleRunner = new DefaultGradleRunner(Mock(File))
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
