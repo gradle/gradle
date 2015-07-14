@@ -31,7 +31,7 @@ class UserFunctionalTest extends Specification {
         buildFile = testProjectDir.newFile('build.gradle')
     }
 
-    def "execute task 'helloWorld'"() {
+    def "hello world task prints hello world"() {
         given:
         buildFile << """
             task helloWorld {
@@ -42,9 +42,10 @@ class UserFunctionalTest extends Specification {
         """
 
         when:
-        GradleRunner gradleRunner = GradleRunner.create()
-        gradleRunner.withWorkingDir(testProjectDir.root).withArguments('helloWorld')
-        BuildResult result = gradleRunner.succeeds()
+        def result = GradleRunner.create()
+            .withWorkingDir(testProjectDir.root)
+            .withArguments('helloWorld')
+            .succeeds()
 
         then:
         result.standardOutput.contains('Hello world!')

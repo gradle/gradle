@@ -44,7 +44,6 @@ public class UserFunctionalTest {
 
     @Test
     public void testHelloWorldTask() throws IOException {
-        // write build script file under test
         String buildFileContent = "task helloWorld {" +
                                   "    doLast {" +
                                   "        println 'Hello world!'" +
@@ -52,14 +51,11 @@ public class UserFunctionalTest {
                                   "}";
         writeFile(buildFile, buildFileContent);
 
-        // create and configure Gradle runner
-        GradleRunner gradleRunner = GradleRunner.create();
-        gradleRunner.withWorkingDir(testProjectDir.getRoot()).withArguments("helloWorld");
+        BuildResult result = GradleRunner.create()
+            .withWorkingDir(testProjectDir.getRoot())
+            .withArguments("helloWorld")
+            .succeeds();
 
-        // execute build script
-        BuildResult result = gradleRunner.succeeds();
-
-        // verify build result
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");
         assertEquals(result.getExecutedTasks(), Collections.singletonList(":helloWorld"));
@@ -68,12 +64,10 @@ public class UserFunctionalTest {
 
     private void writeFile(File destination, String content) throws IOException {
         BufferedWriter output = null;
-
         try {
             output = new BufferedWriter(new FileWriter(destination));
             output.write(content);
-        }
-        finally {
+        } finally {
             if (output != null) {
                 output.close();
             }
