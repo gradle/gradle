@@ -21,7 +21,4 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecAware;
 
 public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, ComponentSpecAware {
-    String getBaseName();
-
-    void setBaseName(String baseName);
 }

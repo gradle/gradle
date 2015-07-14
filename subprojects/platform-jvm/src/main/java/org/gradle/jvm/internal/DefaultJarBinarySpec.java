@@ -36,20 +36,11 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
-    private String baseName;
     private ComponentSpec component;
 
     @Override
     protected String getTypeName() {
         return "Jar";
-    }
-
-    public String getBaseName() {
-        return baseName == null ? getName() : baseName;
-    }
-
-    public void setBaseName(String baseName) {
-        this.baseName = baseName;
     }
 
     @Override
