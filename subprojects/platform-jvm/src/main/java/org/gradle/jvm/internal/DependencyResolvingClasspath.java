@@ -106,7 +106,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
-        private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
+        public final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
         @Override
         public void start(DependencyGraphNode root) {
